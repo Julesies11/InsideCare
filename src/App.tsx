@@ -1,5 +1,4 @@
 import { AppRouting } from '@/routing/app-routing';
-import { HelmetProvider } from 'react-helmet-async';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
 import { LoadingBarContainer } from 'react-top-loading-bar';
@@ -23,7 +22,6 @@ export function App() {
         <SettingsProvider>
           <ThemeProvider>
             <I18nProvider>
-              <HelmetProvider>
                 <TooltipsProvider>
                   <QueryProvider>
                     <LoadingBarContainer>
@@ -36,7 +34,6 @@ export function App() {
                     </LoadingBarContainer>
                   </QueryProvider>
                 </TooltipsProvider>
-              </HelmetProvider>
             </I18nProvider>
           </ThemeProvider>
         </SettingsProvider>

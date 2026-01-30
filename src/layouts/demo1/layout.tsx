@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { Helmet } from 'react-helmet-async';
 import { Outlet, useLocation } from 'react-router-dom';
 import { MENU_SIDEBAR } from '@/config/menu.config';
 import { useMenu } from '@/hooks/use-menu';
@@ -56,9 +55,7 @@ export function Demo1Layout() {
 
   return (
     <>
-      <Helmet>
-        <title>{item?.title}</title>
-      </Helmet>
+      <title>InsideCare</title>
 
       {!isMobile && <Sidebar />}
 

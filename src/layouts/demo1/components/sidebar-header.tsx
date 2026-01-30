@@ -16,7 +16,7 @@ export function SidebarHeader() {
   };
 
   return (
-    <div className="sidebar-header hidden lg:flex items-center relative justify-between px-3 lg:px-6 shrink-0">
+    <div className="sidebar-header hidden lg:flex items-center relative justify-center px-3 lg:px-6 shrink-0">
       <Link to="/">
         <div className="dark:hidden">
           <img
