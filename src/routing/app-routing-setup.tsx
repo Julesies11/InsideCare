@@ -109,8 +109,7 @@ import { Navigate, Route, Routes } from 'react-router';
 export function AppRoutingSetup() {
   return (
     <Routes>
-      <Route element={<RequireAuth />}>
-        <Route element={<Demo1Layout />}>
+      <Route element={<Demo1Layout />}>
           <Route path="/" element={<DefaultPage />} />
           <Route path="/dark-sidebar" element={<Demo1DarkSidebarPage />} />
           <Route
@@ -437,7 +436,6 @@ export function AppRoutingSetup() {
           />
           <Route path="/auth/get-started" element={<AccountGetStartedPage />} />
         </Route>
-      </Route>
       <Route path="error/*" element={<ErrorRouting />} />
       <Route path="auth/*" element={<AuthRouting />} />
       <Route path="*" element={<Navigate to="/error/404" />} />
