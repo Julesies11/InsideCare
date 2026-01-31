@@ -45,6 +45,7 @@ interface ParticipantDetailContentProps {
   saveHandlerRef?: React.MutableRefObject<(() => Promise<void>) | null>;
   pendingChanges?: PendingChanges;
   onPendingChangesChange?: (changes: PendingChanges) => void;
+  updateParticipant?: (id: string, updates: Partial<Participant>) => Promise<{ data: any; error: string | null }>;
 }
 
 export function ParticipantDetailContent({
@@ -52,6 +53,7 @@ export function ParticipantDetailContent({
   onOriginalDataChange,
   onSavingChange,
   saveHandlerRef,
+  updateParticipant,
   pendingChanges,
   onPendingChangesChange,
 }: ParticipantDetailContentProps) {
@@ -237,9 +239,9 @@ export function ParticipantDetailContent({
           // Log activity
           await logActivity({
             activityType: 'create',
-            entityType: 'document',
+            entityType: 'participant',
             entityId: id,
-            entityName: doc.file.name,
+            entityName: participant?.name,
             userName,
             customDescription: `Uploaded document "${doc.file.name}"`,
           });
@@ -271,9 +273,9 @@ export function ParticipantDetailContent({
           // Log activity
           await logActivity({
             activityType: 'delete',
-            entityType: 'document',
+            entityType: 'participant',
             entityId: id,
-            entityName: doc.fileName,
+            entityName: participant?.name,
             userName,
             customDescription: `Deleted document "${doc.fileName}"`,
           });
@@ -300,9 +302,9 @@ export function ParticipantDetailContent({
           // Log activity
           await logActivity({
             activityType: 'create',
-            entityType: 'medication',
+            entityType: 'participant',
             entityId: id,
-            entityName: med.medication_name,
+            entityName: participant?.name,
             userName,
             customDescription: `Added medication "${med.medication_name}"${med.dosage ? ` (${med.dosage})` : ''}`,
           });
@@ -328,9 +330,9 @@ export function ParticipantDetailContent({
           // Log activity
           await logActivity({
             activityType: 'update',
-            entityType: 'medication',
+            entityType: 'participant',
             entityId: id,
-            entityName: med.medication_name,
+            entityName: participant?.name,
             userName,
             customDescription: `Updated medication "${med.medication_name}"${med.dosage ? ` (${med.dosage})` : ''}`,
           });
@@ -358,9 +360,9 @@ export function ParticipantDetailContent({
           // Log activity
           await logActivity({
             activityType: 'delete',
-            entityType: 'medication',
+            entityType: 'participant',
             entityId: id,
-            entityName: medData?.medication_name || 'Unknown medication',
+            entityName: participant?.name,
             userName,
             customDescription: `Deleted medication "${medData?.medication_name || 'Unknown medication'}"`,
           });
@@ -387,9 +389,9 @@ export function ParticipantDetailContent({
           // Log activity
           await logActivity({
             activityType: 'create',
-            entityType: 'service_provider',
+            entityType: 'participant',
             entityId: id,
-            entityName: provider.provider_name,
+            entityName: participant?.name,
             userName,
             customDescription: `Added service provider "${provider.provider_name}"${provider.provider_type ? ` (${provider.provider_type})` : ''}`,
           });
@@ -415,9 +417,9 @@ export function ParticipantDetailContent({
           // Log activity
           await logActivity({
             activityType: 'update',
-            entityType: 'service_provider',
+            entityType: 'participant',
             entityId: id,
-            entityName: provider.provider_name,
+            entityName: participant?.name,
             userName,
             customDescription: `Updated service provider "${provider.provider_name}"${provider.provider_type ? ` (${provider.provider_type})` : ''}`,
           });
@@ -445,9 +447,9 @@ export function ParticipantDetailContent({
           // Log activity
           await logActivity({
             activityType: 'delete',
-            entityType: 'service_provider',
+            entityType: 'participant',
             entityId: id,
-            entityName: providerData?.provider_name || 'Unknown provider',
+            entityName: participant?.name,
             userName,
             customDescription: `Deleted service provider "${providerData?.provider_name || 'Unknown provider'}"`,
           });
@@ -472,12 +474,12 @@ export function ParticipantDetailContent({
             throw new Error(`Failed to add shift note: ${error.message}`);
           }
 
-          // Log activity
+          // Log activity - use participant entity since created from participant page
           await logActivity({
             activityType: 'create',
-            entityType: 'shift_note',
+            entityType: 'participant',
             entityId: id,
-            entityName: `Shift note for ${note.shift_date}`,
+            entityName: participant?.name,
             userName,
             customDescription: `Added shift note for ${new Date(note.shift_date).toLocaleDateString('en-AU', { year: 'numeric', month: 'short', day: 'numeric' })}${note.shift_time ? ` at ${note.shift_time}` : ''}`,
           });
@@ -501,12 +503,12 @@ export function ParticipantDetailContent({
             throw new Error(`Failed to update shift note: ${error.message}`);
           }
 
-          // Log activity
+          // Log activity - use participant entity since updated from participant page
           await logActivity({
             activityType: 'update',
-            entityType: 'shift_note',
+            entityType: 'participant',
             entityId: id,
-            entityName: `Shift note for ${note.shift_date}`,
+            entityName: participant?.name,
             userName,
             customDescription: `Updated shift note for ${new Date(note.shift_date).toLocaleDateString('en-AU', { year: 'numeric', month: 'short', day: 'numeric' })}${note.shift_time ? ` at ${note.shift_time}` : ''}`,
           });
@@ -531,12 +533,12 @@ export function ParticipantDetailContent({
             throw new Error(`Failed to delete shift note: ${error.message}`);
           }
 
-          // Log activity
+          // Log activity - use participant entity since deleted from participant page
           await logActivity({
             activityType: 'delete',
-            entityType: 'shift_note',
+            entityType: 'participant',
             entityId: id,
-            entityName: `Shift note for ${noteData?.shift_date || 'unknown date'}`,
+            entityName: participant?.name,
             userName,
             customDescription: `Deleted shift note for ${noteData?.shift_date ? new Date(noteData.shift_date).toLocaleDateString('en-AU', { year: 'numeric', month: 'short', day: 'numeric' }) : 'unknown date'}`,
           });
@@ -618,13 +620,21 @@ export function ParticipantDetailContent({
 
       // Only update if there are actual changes
       if (Object.keys(changedFields).length > 0) {
-        const { error } = await supabase
-          .from('participants')
-          .update(changedFields)
-          .eq('id', id);
+        // If updateParticipant is available (from profiles page), use it to sync hook state
+        if (updateParticipant) {
+          const { error } = await updateParticipant(id, changedFields);
+          if (error) throw new Error(error);
+          console.log('Successfully saved changes via updateParticipant hook');
+        } else {
+          // Fallback to direct Supabase call if not available
+          const { error } = await supabase
+            .from('participants')
+            .update(changedFields)
+            .eq('id', id);
 
-        if (error) throw error;
-        console.log('Successfully saved changes to database');
+          if (error) throw error;
+          console.log('Successfully saved changes to database');
+        }
       } else {
         console.log('No changes detected in main form fields');
       }

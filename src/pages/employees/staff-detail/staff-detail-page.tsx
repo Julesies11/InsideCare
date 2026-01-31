@@ -60,43 +60,37 @@ export function StaffDetailPage() {
     }
   };
 
-  if (!id) {
-    return <div>Staff ID not found</div>;
-  }
-
   return (
     <Fragment>
-      {settings?.layout === 'demo1' && (
-        <div className="sticky top-0 z-20 bg-background border-b border-border">
-          <Container>
-            <Toolbar>
-              <ToolbarHeading>
-                <div className="flex items-center gap-3">
-                  <Button variant="outline" size="sm" onClick={handleBack}>
-                    <ArrowLeft className="size-4 me-1.5" />
-                    Back
-                  </Button>
-                  <div>
-                    <ToolbarPageTitle text="Staff Details" />
-                    <ToolbarDescription>
-                      View and manage staff member information
-                    </ToolbarDescription>
-                  </div>
-                </div>
-              </ToolbarHeading>
-              <ToolbarActions>
-                <Button
-                  onClick={handleSave}
-                  disabled={!isDirty || saving}
-                  variant={isDirty ? 'primary' : 'secondary'}
-                >
-                  {saving ? 'Saving...' : 'Save Changes'}
+      <div className="sticky top-0 z-20 bg-background border-b border-border">
+        <Container>
+          <Toolbar>
+            <ToolbarHeading>
+              <div className="flex items-center gap-3">
+                <Button variant="outline" size="sm" onClick={handleBack}>
+                  <ArrowLeft className="size-4 me-1.5" />
+                  Back
                 </Button>
-              </ToolbarActions>
-            </Toolbar>
-          </Container>
-        </div>
-      )}
+                <div>
+                  <ToolbarPageTitle text="Staff Details" />
+                  <ToolbarDescription>
+                    View and manage staff member information
+                  </ToolbarDescription>
+                </div>
+              </div>
+            </ToolbarHeading>
+            <ToolbarActions>
+              <Button
+                onClick={handleSave}
+                disabled={!isDirty || saving}
+                variant={isDirty ? 'primary' : 'secondary'}
+              >
+                {saving ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </ToolbarActions>
+          </Toolbar>
+        </Container>
+      </div>
       <Container>
         <StaffDetailContent
           staffId={id}

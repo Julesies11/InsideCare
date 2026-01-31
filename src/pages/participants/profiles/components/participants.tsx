@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { RiCheckboxCircleFill } from '@remixicon/react';
 import {
   ColumnDef,
@@ -21,6 +21,7 @@ import {
   UserRoundPlus,
   X,
 } from 'lucide-react';
+import { useSearchParams } from 'react-router';
 import { toast } from 'sonner';
 import { toAbsoluteUrl } from '@/lib/helpers';
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
@@ -68,9 +69,13 @@ import { Archive, Edit, Eye } from 'lucide-react';
 import { useParticipants } from '@/hooks/use-participants';
 import { useHouses } from '@/hooks/use-houses';
 import { useNavigate } from 'react-router';
+import { supabase } from '@/lib/supabase';
+import { logActivity } from '@/lib/activity-logger';
+import { useAuth } from '@/auth/context/auth-context';
 
-function ActionsCell({ row }: { row: Row<ParticipantWithHouse> }) {
+function ActionsCell({ row, updateParticipant }: { row: Row<ParticipantWithHouse>; updateParticipant: (id: string, updates: Partial<Participant>) => Promise<{ data: any; error: string | null }> }) {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const handleView = () => {
     navigate(`/participants/detail/${row.original.id}`);
@@ -81,21 +86,30 @@ function ActionsCell({ row }: { row: Row<ParticipantWithHouse> }) {
   };
 
   const handleArchive = async () => {
-    // TODO: Implement archive participant (set is_active to false)
-    console.log('Archive participant:', row.original.id);
+    try {
+      const { error } = await updateParticipant(row.original.id, { is_active: false });
+
+      if (error) throw new Error(error);
+
+      // Log activity
+      await logActivity({
+        activityType: 'update',
+        entityType: 'participant',
+        entityId: row.original.id,
+        entityName: row.original.name,
+        userName: user?.email || 'Unknown user',
+        customDescription: 'Participant archived (set to inactive)',
+      });
+
+      toast.success('Participant archived successfully');
+    } catch (error) {
+      console.error('Error archiving participant:', error);
+      toast.error('Failed to archive participant');
+    }
   };
 
   return (
     <div className="flex items-center gap-2">
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={handleView}
-        className="h-8"
-      >
-        <Eye className="size-4 me-1.5" />
-        View
-      </Button>
       <Button
         variant="ghost"
         size="sm"
@@ -129,17 +143,43 @@ function getInitials(name: string): string {
 }
 
 const Participants = () => {
-  const { participants, loading, error, refetch } = useParticipants();
+  const { participants, loading, error, updateParticipant } = useParticipants();
   const { houses } = useHouses();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 50,
+  // Helper functions to parse URL params into initial state
+  const getInitialPagination = (): PaginationState => ({
+    pageIndex: Math.max(0, parseInt(searchParams.get('page') || '1') - 1), // Convert to 0-indexed
+    pageSize: parseInt(searchParams.get('pageSize') || '50'),
   });
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedHouses, setSelectedHouses] = useState<string[]>([]);
-  const [showActiveOnly, setShowActiveOnly] = useState(true);
+
+  const getInitialSorting = (): SortingState => {
+    const sortParam = searchParams.get('sort');
+    if (!sortParam) return [];
+    
+    const [field, direction] = sortParam.split('.');
+    return [{ id: field, desc: direction === 'desc' }];
+  };
+
+  const getInitialSearch = (): string => {
+    return searchParams.get('search') || '';
+  };
+
+  const getInitialHouses = (): string[] => {
+    const housesParam = searchParams.get('houses');
+    return housesParam ? housesParam.split(',') : [];
+  };
+
+  const getInitialActiveOnly = (): boolean => {
+    return searchParams.get('activeOnly') !== 'false'; // Default true
+  };
+
+  // Initialize state from URL params
+  const [pagination, setPagination] = useState<PaginationState>(getInitialPagination());
+  const [sorting, setSorting] = useState<SortingState>(getInitialSorting());
+  const [searchQuery, setSearchQuery] = useState(getInitialSearch());
+  const [selectedHouses, setSelectedHouses] = useState<string[]>(getInitialHouses());
+  const [showActiveOnly, setShowActiveOnly] = useState(getInitialActiveOnly());
 
   // Filtered data based on search, house, and active status
   const filteredData = useMemo(() => {
@@ -189,6 +229,43 @@ const Participants = () => {
       checked ? [...prev, houseId] : prev.filter((id) => id !== houseId)
     );
   };
+
+  // Sync state changes to URL query parameters
+  useEffect(() => {
+    const params = new URLSearchParams();
+    
+    // Pagination - only add if not default
+    if (pagination.pageIndex > 0) {
+      params.set('page', (pagination.pageIndex + 1).toString()); // Convert to 1-indexed
+    }
+    if (pagination.pageSize !== 50) {
+      params.set('pageSize', pagination.pageSize.toString());
+    }
+    
+    // Sorting
+    if (sorting.length > 0) {
+      const sort = sorting[0];
+      params.set('sort', `${sort.id}.${sort.desc ? 'desc' : 'asc'}`);
+    }
+    
+    // Search
+    if (searchQuery) {
+      params.set('search', searchQuery);
+    }
+    
+    // House filters
+    if (selectedHouses.length > 0) {
+      params.set('houses', selectedHouses.join(','));
+    }
+    
+    // Active only filter - only add if false (default is true)
+    if (!showActiveOnly) {
+      params.set('activeOnly', 'false');
+    }
+    
+    // Update URL without adding to history
+    setSearchParams(params, { replace: true });
+  }, [pagination, sorting, searchQuery, selectedHouses, showActiveOnly, setSearchParams]);
 
   const columns = useMemo<ColumnDef<ParticipantWithHouse>[]>(
     () => [
@@ -266,9 +343,9 @@ const Participants = () => {
       {
         id: 'actions',
         header: 'Actions',
-        cell: ({ row }) => <ActionsCell row={row} />,
+        cell: ({ row }) => <ActionsCell row={row} updateParticipant={updateParticipant} />,
         enableSorting: false,
-        size: 280,
+        size: 150,
       },
     ],
     []
@@ -289,6 +366,7 @@ const Participants = () => {
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    autoResetPageIndex: false,
   });
 
   const Toolbar = () => {

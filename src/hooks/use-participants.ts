@@ -51,7 +51,7 @@ export function useParticipants() {
 
       if (error) throw error;
 
-      setParticipants([...participants, data]);
+      setParticipants(prevParticipants => [...prevParticipants, data]);
       
       return { data, error: null };
     } catch (err) {
@@ -67,13 +67,24 @@ export function useParticipants() {
         .from('participants')
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq('id', id)
-        .select()
+        .select(`
+          *,
+          houses!house_id (
+            name
+          )
+        `)
         .single();
 
       if (error) throw error;
 
-      setParticipants(participants.map(p => p.id === id ? data : p));
-      return { data, error: null };
+      // Transform data to include house_name
+      const participantWithHouse = {
+        ...data,
+        house_name: (data as any).houses?.name || null,
+      };
+
+      setParticipants(prevParticipants => prevParticipants.map(p => p.id === id ? participantWithHouse : p));
+      return { data: participantWithHouse, error: null };
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update participant';
       console.error('Error updating participant:', err);
@@ -90,7 +101,7 @@ export function useParticipants() {
 
       if (error) throw error;
 
-      setParticipants(participants.filter(p => p.id !== id));
+      setParticipants(prevParticipants => prevParticipants.filter(p => p.id !== id));
       
       return { error: null };
     } catch (err) {

@@ -171,9 +171,9 @@ export function StaffDetailContent({
               // Log activity
               await logActivity({
                 activityType: 'create',
-                entityType: 'staff_compliance',
+                entityType: 'staff',
                 entityId: staffId,
-                entityName: item.compliance_name,
+                entityName: staffMember?.name,
                 userName,
                 customDescription: `Added compliance requirement "${item.compliance_name}"`,
               });
@@ -196,9 +196,9 @@ export function StaffDetailContent({
               // Log activity
               await logActivity({
                 activityType: 'update',
-                entityType: 'staff_compliance',
+                entityType: 'staff',
                 entityId: staffId,
-                entityName: item.compliance_name,
+                entityName: staffMember?.name,
                 userName,
                 customDescription: `Updated compliance requirement "${item.compliance_name}"`,
               });
@@ -223,9 +223,9 @@ export function StaffDetailContent({
               // Log activity
               await logActivity({
                 activityType: 'delete',
-                entityType: 'staff_compliance',
+                entityType: 'staff',
                 entityId: staffId,
-                entityName: compData?.compliance_name || 'Unknown requirement',
+                entityName: staffMember?.name,
                 userName,
                 customDescription: `Deleted compliance requirement "${compData?.compliance_name || 'Unknown requirement'}"`,
               });
@@ -252,9 +252,9 @@ export function StaffDetailContent({
               // Log activity
               await logActivity({
                 activityType: 'create',
-                entityType: 'staff_resource',
+                entityType: 'staff',
                 entityId: staffId,
-                entityName: item.title,
+                entityName: staffMember?.name,
                 userName,
                 customDescription: `Added resource "${item.title}"`,
               });
@@ -280,9 +280,9 @@ export function StaffDetailContent({
               // Log activity
               await logActivity({
                 activityType: 'update',
-                entityType: 'staff_resource',
+                entityType: 'staff',
                 entityId: staffId,
-                entityName: item.title,
+                entityName: staffMember?.name,
                 userName,
                 customDescription: `Updated resource "${item.title}"`,
               });
@@ -307,9 +307,9 @@ export function StaffDetailContent({
               // Log activity
               await logActivity({
                 activityType: 'delete',
-                entityType: 'staff_resource',
+                entityType: 'staff',
                 entityId: staffId,
-                entityName: resData?.title || 'Unknown resource',
+                entityName: staffMember?.name,
                 userName,
                 customDescription: `Deleted resource "${resData?.title || 'Unknown resource'}"`,
               });

@@ -54,7 +54,7 @@ import {
   AuthAccountDeactivatedPage,
   AuthWelcomeMessagePage,
 } from '@/pages/auth';
-import { DefaultPage, Demo1DarkSidebarPage } from '@/pages/dashboards';
+import { HomePage, Demo1DarkSidebarPage } from '@/pages/dashboards';
 import {
   NetworkAppRosterPage,
   NetworkAuthorPage,
@@ -110,7 +110,7 @@ export function AppRoutingSetup() {
   return (
     <Routes>
       <Route element={<Demo1Layout />}>
-          <Route path="/" element={<DefaultPage />} />
+          <Route path="/" element={<HomePage />} />
           <Route path="/dark-sidebar" element={<Demo1DarkSidebarPage />} />
           <Route
             path="/public-profile/profiles/default/"
