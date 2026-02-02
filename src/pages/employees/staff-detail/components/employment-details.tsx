@@ -8,12 +8,14 @@ interface EmploymentDetailsProps {
   formData: any;
   onFormChange: (field: string, value: any) => void;
   canEdit: boolean;
+  validationErrors?: Record<string, string>;
 }
 
 export function EmploymentDetails({
   formData,
   onFormChange,
   canEdit,
+  validationErrors = {},
 }: EmploymentDetailsProps) {
   return (
     <Card className="pb-2.5" id="employment_details">
@@ -50,6 +52,26 @@ export function EmploymentDetails({
                 <SelectItem value="part-time">Part-time</SelectItem>
                 <SelectItem value="contract">Contract</SelectItem>
                 <SelectItem value="temporary">Temporary</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div className="flex items-center flex-wrap gap-2.5">
+          <Label className="flex w-full max-w-56">Status</Label>
+          <div className="grow">
+            <Select 
+              value={formData.status || 'draft'} 
+              onValueChange={(value) => onFormChange('status', value)}
+              disabled={!canEdit}
+            >
+              <SelectTrigger id="status">
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="draft">Draft</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
               </SelectContent>
             </Select>
           </div>

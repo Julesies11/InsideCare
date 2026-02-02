@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ColumnDef,
   getCoreRowModel,
@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { Alert } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
+import { StatusBadge } from '@/components/ui/status-badge';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -46,7 +47,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 import { Staff, useStaff } from '@/hooks/useStaff';
 import { format } from 'date-fns';
-import { useNavigate } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 
 function ActionsCell({ row }: { row: Row<Staff> }) {
   const navigate = useNavigate();
@@ -71,21 +72,46 @@ function ActionsCell({ row }: { row: Row<Staff> }) {
 }
 
 const StaffTable = () => {
-  const { staff, loading, error } = useStaff();
+  const { staff, loading, error, updateStaff } = useStaff();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 50,
+  // Helper functions to parse URL params into initial state
+  const getInitialPagination = (): PaginationState => ({
+    pageIndex: Math.max(0, parseInt(searchParams.get('page') || '1') - 1), // Convert to 0-indexed
+    pageSize: parseInt(searchParams.get('pageSize') || '50'),
   });
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showActiveOnly, setShowActiveOnly] = useState(true);
+
+  const getInitialSorting = (): SortingState => {
+    const sortParam = searchParams.get('sort');
+    if (!sortParam) return [];
+    
+    const [field, direction] = sortParam.split('.');
+    return [{ id: field, desc: direction === 'desc' }];
+  };
+
+  const getInitialSearch = (): string => {
+    return searchParams.get('search') || '';
+  };
+
+  const STATUS_OPTIONS = ['active', 'draft', 'inactive'];
+
+  const getInitialStatuses = (): string[] => {
+    const param = searchParams.get('statuses');
+    if (!param) return ['active', 'draft']; // default visible
+    return param.split(',').filter((s) => STATUS_OPTIONS.includes(s));
+  };
+
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>(getInitialStatuses());
+
+  // Initialize state from URL params
+  const [pagination, setPagination] = useState<PaginationState>(getInitialPagination());
+  const [sorting, setSorting] = useState<SortingState>(getInitialSorting());
+  const [searchQuery, setSearchQuery] = useState(getInitialSearch());
 
   // Filtered data based on search and active status
   const filteredData = useMemo(() => {
     return staff.filter((item) => {
-      // Active status filter
-      if (showActiveOnly && !item.is_active) {
+      if (!selectedStatuses.includes(item.status)) {
         return false;
       }
 
@@ -98,7 +124,7 @@ const StaffTable = () => {
 
       return matchesSearch;
     });
-  }, [staff, searchQuery, showActiveOnly]);
+  }, [staff, searchQuery, selectedStatuses]);
 
   const columns: ColumnDef<Staff>[] = [
     {
@@ -187,17 +213,12 @@ const StaffTable = () => {
     },
     {
       id: 'status',
-      accessorKey: 'is_active',
+      accessorKey: 'status',
       header: ({ column }) => (
         <DataGridColumnHeader title="Status" column={column} />
       ),
       cell: ({ row }) => (
-        <Badge
-          variant={row.original.is_active ? 'success' : 'secondary'}
-          className="text-xs"
-        >
-          {row.original.is_active ? 'Active' : 'Inactive'}
-        </Badge>
+        <StatusBadge status={row.original.status} />
       ),
       size: 100,
     },
@@ -209,6 +230,36 @@ const StaffTable = () => {
     },
   ];
 
+  // Sync state changes to URL query parameters
+  useEffect(() => {
+    const params = new URLSearchParams();
+    
+    // Pagination - only add if not default
+    if (pagination.pageIndex > 0) {
+      params.set('page', (pagination.pageIndex + 1).toString()); // Convert to 1-indexed
+    }
+    if (pagination.pageSize !== 50) {
+      params.set('pageSize', pagination.pageSize.toString());
+    }
+    
+    // Sorting
+    if (sorting.length > 0) {
+      const sort = sorting[0];
+      params.set('sort', `${sort.id}.${sort.desc ? 'desc' : 'asc'}`);
+    }
+    
+    // Search
+    if (searchQuery) {
+      params.set('search', searchQuery);
+    }
+    
+    // Always update the URL with the current list
+    params.set('statuses', selectedStatuses.join(','));
+
+    // Update URL without adding to history
+    setSearchParams(params, { replace: true });
+  }, [pagination, sorting, searchQuery, selectedStatuses, setSearchParams]);
+
   const table = useReactTable({
     data: filteredData,
     columns,
@@ -219,9 +270,12 @@ const StaffTable = () => {
     onPaginationChange: setPagination,
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    manualPagination: false,
+    pageCount: Math.ceil(filteredData.length / pagination.pageSize),
+    autoResetPageIndex: false,
   });
 
   return (
@@ -262,37 +316,37 @@ const StaffTable = () => {
                 <Button variant="outline">
                   <Filter className="size-4" />
                   Status
-                  {!showActiveOnly && (
                     <Badge size="sm" variant="outline">
-                      1
+                      {selectedStatuses.length}
                     </Badge>
-                  )}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-56 p-3" align="start">
-                <div className="space-y-3">
-                  <div className="text-xs font-medium text-muted-foreground">
-                    Filter by Status
-                  </div>
+                <PopoverContent className="w-56 p-3" align="start">
                   <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <Checkbox
-                        id="active"
-                        checked={showActiveOnly}
-                        onCheckedChange={(checked) =>
-                          setShowActiveOnly(checked === true)
-                        }
-                      />
-                      <Label
-                        htmlFor="active"
-                        className="font-normal cursor-pointer"
-                      >
-                        Active Only
-                      </Label>
+                    <div className="text-xs font-medium text-muted-foreground">
+                      Filter by Status
                     </div>
+
+                    {STATUS_OPTIONS.map((status) => (
+                      <div key={status} className="flex items-center gap-2">
+                        <Checkbox
+                          id={status}
+                          checked={selectedStatuses.includes(status)}
+                          onCheckedChange={(checked) => {
+                            setSelectedStatuses((prev) =>
+                              checked
+                                ? [...prev, status]
+                                : prev.filter((s) => s !== status)
+                            );
+                          }}
+                        />
+                        <Label htmlFor={status} className="font-normal cursor-pointer capitalize">
+                          {status}
+                        </Label>
+                      </div>
+                    ))}
                   </div>
-                </div>
-              </PopoverContent>
+                </PopoverContent>
             </Popover>
             <CardToolbar>
               <div className="flex flex-wrap items-center gap-2.5">

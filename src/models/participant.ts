@@ -1,6 +1,8 @@
+export type ParticipantStatus = 'draft' | 'active' | 'inactive' | 'archived';
+
 export interface Participant {
   id: string;
-  name: string;
+  name: string | null;
   photo_url?: string | null;
   email?: string | null;
   phone?: string | null;
@@ -8,7 +10,8 @@ export interface Participant {
   date_of_birth?: string | null;
   ndis_number?: string | null;
   house_id?: string | null;
-  is_active: boolean;
+  status: ParticipantStatus;
+  is_active?: boolean;
   support_level?: string | null;
   support_coordinator?: string | null;
   emergency_contact_name?: string | null;

@@ -27,6 +27,7 @@ import { toAbsoluteUrl } from '@/lib/helpers';
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
 import { Alert, AlertIcon, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
+import { StatusBadge } from '@/components/ui/status-badge';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -87,7 +88,7 @@ function ActionsCell({ row, updateParticipant }: { row: Row<ParticipantWithHouse
 
   const handleArchive = async () => {
     try {
-      const { error } = await updateParticipant(row.original.id, { is_active: false });
+      const { error } = await updateParticipant(row.original.id, { status: 'inactive' });
 
       if (error) throw new Error(error);
 
@@ -185,7 +186,7 @@ const Participants = () => {
   const filteredData = useMemo(() => {
     return participants.filter((item) => {
       // Active status filter
-      if (showActiveOnly && !item.is_active) {
+      if (showActiveOnly && item.status !== 'active') {
         return false;
       }
 
@@ -328,14 +329,12 @@ const Participants = () => {
       },
       {
         id: 'status',
-        accessorFn: (row) => row.is_active,
+        accessorFn: (row) => row.status,
         header: ({ column }) => (
           <DataGridColumnHeader title="Status" column={column} />
         ),
         cell: ({ row }) => (
-          <Badge variant={row.original.is_active ? 'success' : 'secondary'} appearance="light">
-            {row.original.is_active ? 'Active' : 'Inactive'}
-          </Badge>
+          <StatusBadge status={row.original.status} />
         ),
         enableSorting: true,
         size: 165,

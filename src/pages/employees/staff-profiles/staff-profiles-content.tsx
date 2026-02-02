@@ -1,8 +1,47 @@
-import { Users } from 'lucide-react';
+import { Users, UserRoundPlus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { StaffTable } from './components';
+import { useNavigate } from 'react-router';
+import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
+import { logActivity } from '@/lib/activity-logger';
 
 export function StaffProfilesContent() {
+  const navigate = useNavigate();
+
+  const handleAddStaff = async () => {
+    try {
+      // Create a new staff member with minimal data (name can be NULL for drafts)
+      const { data, error } = await supabase
+        .from('staff')
+        .insert([
+          {
+            status: 'draft',
+          },
+        ])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Log the activity
+      await logActivity({
+        activityType: 'create',
+        entityType: 'staff',
+        entityId: data.id,
+        entityName: data.name || 'Draft Staff Member',
+        userName: 'Current User', // TODO: Get from auth context
+      });
+
+      // Navigate to the detail page
+      navigate(`/employees/staff-detail/${data.id}`);
+    } catch (error: any) {
+      console.error('Error creating staff member:', error);
+      toast.error('Failed to create staff member', { description: error.message });
+    }
+  };
+
   return (
     <div className="grid gap-5 lg:gap-7.5">
       {/* Page Header */}
@@ -15,6 +54,10 @@ export function StaffProfilesContent() {
             Manage staff member information and profiles
           </p>
         </div>
+        <Button onClick={handleAddStaff}>
+          <UserRoundPlus className="size-4" />
+          Add Staff
+        </Button>
       </div>
 
       {/* Motivational Banner */}

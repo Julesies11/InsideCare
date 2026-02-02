@@ -12,13 +12,12 @@ export function ParticipantsProfilesContent() {
 
   const handleAddParticipant = async () => {
     try {
-      // Create a new participant with minimal data
+      // Create a new participant with minimal data (name can be NULL for drafts)
       const { data, error } = await supabase
         .from('participants')
         .insert([
           {
-            name: 'New Participant',
-            is_active: true,
+            status: 'draft',
           },
         ])
         .select()
@@ -31,7 +30,7 @@ export function ParticipantsProfilesContent() {
         activityType: 'create',
         entityType: 'participant',
         entityId: data.id,
-        entityName: 'New Participant',
+        entityName: data.name || 'Draft Participant',
         userName: 'Current User', // TODO: Get from auth context
       });
 

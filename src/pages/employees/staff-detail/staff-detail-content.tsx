@@ -7,11 +7,12 @@ import { useAuth } from '@/auth/context/auth-context';
 import { Scrollspy } from '@/components/ui/scrollspy';
 import { StaffDetailForm } from './components/staff-detail-form';
 import { StaffDetailSidebar } from './components/staff-detail-sidebar';
-import { Staff, useStaff } from '@/hooks/useStaff';
+import { Staff, StaffUpdateData, useStaff } from '@/hooks/useStaff';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { PendingChanges } from '@/models/pending-changes';
 import { logActivity, detectChanges } from '@/lib/activity-logger';
+import { parseSupabaseError } from '@/lib/error-parser';
 
 const stickySidebarClasses: Record<string, string> = {
   'demo1-layout': 'top-[calc(var(--header-height)+1rem)]',
@@ -34,6 +35,7 @@ interface StaffDetailContentProps {
   saveHandlerRef?: React.MutableRefObject<(() => Promise<void>) | null>;
   pendingChanges?: PendingChanges;
   onPendingChangesChange?: (changes: PendingChanges) => void;
+  updateStaff?: (id: string, updates: StaffUpdateData) => Promise<{ data: any; error: string | null }>;
   onSaveSuccess?: () => void;
 }
 
@@ -45,6 +47,7 @@ export function StaffDetailContent({
   saveHandlerRef,
   pendingChanges,
   onPendingChangesChange,
+  updateStaff,
   onSaveSuccess,
 }: StaffDetailContentProps) {
   const isMobile = useIsMobile();
@@ -71,14 +74,20 @@ export function StaffDetailContent({
     employment_type: '',
     working_hours: '',
     notes: '',
+    status: 'draft',
     is_active: true,
   });
+
+  // Track validation errors for field highlighting
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   // Initialize ref for parentEl
   const parentRef = useRef<HTMLElement | Document>(document);
   const scrollPosition = useScrollPosition({ targetRef: parentRef });
 
-  const { getStaffById, updateStaff } = useStaff();
+  const { getStaffById, updateStaff: updateStaffFromHook } = useStaff();
+  // Use prop if available, otherwise use hook instance
+  const updateStaffFn = updateStaff || updateStaffFromHook;
   
   // Get user name for activity logging
   const userName = user?.fullname || user?.email || 'Unknown User';
@@ -124,6 +133,7 @@ export function StaffDetailContent({
           employment_type: data.employment_type ?? '',
           working_hours: data.working_hours ?? '',
           notes: data.notes ?? '',
+          status: data.status ?? 'draft',
           is_active: data.is_active ?? true,
         };
         setFormData(initialData);
@@ -166,7 +176,11 @@ export function StaffDetailContent({
                   expiry_date: item.expiry_date || null,
                   status: item.status || 'Complete',
                 });
-              if (error) throw error;
+              if (error) {
+                const parsedError = parseSupabaseError(error);
+                toast.error(parsedError.title, { description: parsedError.description });
+                throw error;
+              }
 
               // Log activity
               await logActivity({
@@ -191,7 +205,11 @@ export function StaffDetailContent({
                   status: item.status || 'Complete',
                 })
                 .eq('id', item.id);
-              if (error) throw error;
+              if (error) {
+                const parsedError = parseSupabaseError(error);
+                toast.error(parsedError.title, { description: parsedError.description });
+                throw error;
+              }
 
               // Log activity
               await logActivity({
@@ -218,7 +236,11 @@ export function StaffDetailContent({
                 .from('staff_compliance')
                 .delete()
                 .eq('id', id);
-              if (error) throw error;
+              if (error) {
+                const parsedError = parseSupabaseError(error);
+                toast.error(parsedError.title, { description: parsedError.description });
+                throw error;
+              }
 
               // Log activity
               await logActivity({
@@ -247,7 +269,11 @@ export function StaffDetailContent({
                   is_popular: item.is_popular || false,
                   created_by: staffId, // Assuming current staff is creator
                 });
-              if (error) throw error;
+              if (error) {
+                const parsedError = parseSupabaseError(error);
+                toast.error(parsedError.title, { description: parsedError.description });
+                throw error;
+              }
 
               // Log activity
               await logActivity({
@@ -275,7 +301,11 @@ export function StaffDetailContent({
                   is_popular: item.is_popular || false,
                 })
                 .eq('id', item.id);
-              if (error) throw error;
+              if (error) {
+                const parsedError = parseSupabaseError(error);
+                toast.error(parsedError.title, { description: parsedError.description });
+                throw error;
+              }
 
               // Log activity
               await logActivity({
@@ -302,7 +332,11 @@ export function StaffDetailContent({
                 .from('staff_resources')
                 .delete()
                 .eq('id', id);
-              if (error) throw error;
+              if (error) {
+                const parsedError = parseSupabaseError(error);
+                toast.error(parsedError.title, { description: parsedError.description });
+                throw error;
+              }
 
               // Log activity
               await logActivity({
@@ -333,6 +367,7 @@ export function StaffDetailContent({
             employment_type: toNull(formData.employment_type),
             working_hours: toNull(formData.working_hours),
             notes: toNull(formData.notes),
+            status: formData.status,
             is_active: formData.is_active,
           };
 
@@ -355,9 +390,71 @@ export function StaffDetailContent({
 
           console.log('Changed fields:', changedFields);
 
+          // Clear previous validation errors
+          setValidationErrors({});
+
+          // Validate before saving
           if (Object.keys(changedFields).length > 0) {
-            const { error } = await updateStaff(staffId, changedFields);
-            if (error) throw new Error(error);
+            // Check if status is being changed to active or inactive
+            const newStatus = changedFields.status || normalizedFormData.status;
+            const currentEmail = changedFields.email !== undefined ? changedFields.email : normalizedFormData.email;
+            const currentName = normalizedFormData.name;
+            
+            // Validate: Name is required
+            if (!currentName || currentName.trim() === '') {
+              setValidationErrors({ name: 'Name is required' });
+              toast.error('Name is required', {
+                description: 'Please enter a staff member name.'
+              });
+              // Scroll to name field
+              const nameField = document.getElementById('name');
+              if (nameField) {
+                nameField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                nameField.focus();
+              }
+              return;
+            }
+            
+            // Validate: Email is required when status is not 'draft'
+            if (newStatus !== 'draft' && (!currentEmail || currentEmail.trim() === '')) {
+              setValidationErrors({ email: 'Email is required when status is Active or Inactive' });
+              toast.error('Email is required when status is Active or Inactive', {
+                description: 'Please add an email address before changing status to Active or Inactive.'
+              });
+              // Scroll to email field
+              const emailField = document.getElementById('email');
+              if (emailField) {
+                emailField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                emailField.focus();
+              }
+              return;
+            }
+
+            const { error } = await updateStaffFn(staffId, changedFields);
+            if (error) {
+              // Parse error using centralized error parser
+              const parsedError = parseSupabaseError(error);
+              
+              // Check if error is related to specific fields
+              if (parsedError.title === 'Email already in use') {
+                setValidationErrors({ email: parsedError.description });
+                const emailField = document.getElementById('email');
+                if (emailField) {
+                  emailField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  emailField.focus();
+                }
+              } else if (parsedError.title === 'Email is required') {
+                setValidationErrors({ email: parsedError.description });
+                const emailField = document.getElementById('email');
+                if (emailField) {
+                  emailField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  emailField.focus();
+                }
+              }
+              
+              toast.error(parsedError.title, { description: parsedError.description });
+              throw new Error(parsedError.description);
+            }
             console.log('Successfully saved changes to database');
           } else {
             console.log('No changes detected in main form fields');
@@ -397,6 +494,7 @@ export function StaffDetailContent({
             employment_type: normalizedFormData.employment_type ?? '',
             working_hours: normalizedFormData.working_hours ?? '',
             notes: normalizedFormData.notes ?? '',
+            status: normalizedFormData.status ?? 'draft',
             is_active: normalizedFormData.is_active ?? true,
           };
           
@@ -472,6 +570,7 @@ export function StaffDetailContent({
           pendingChanges={pendingChanges}
           onPendingChangesChange={onPendingChangesChange}
           activityRefreshTrigger={refreshKeys.activityLog}
+          validationErrors={validationErrors}
         />
       </div>
     </div>

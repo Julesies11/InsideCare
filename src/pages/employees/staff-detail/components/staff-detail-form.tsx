@@ -15,6 +15,7 @@ interface StaffDetailFormProps {
   pendingChanges?: PendingChanges;
   onPendingChangesChange?: (changes: PendingChanges) => void;
   activityRefreshTrigger?: number;
+  validationErrors?: Record<string, string>;
 }
 
 export function StaffDetailForm({
@@ -25,6 +26,7 @@ export function StaffDetailForm({
   pendingChanges,
   onPendingChangesChange,
   activityRefreshTrigger,
+  validationErrors = {},
 }: StaffDetailFormProps) {
   const handleFormChange = (field: string, value: any) => {
     onFormDataChange({
@@ -39,11 +41,13 @@ export function StaffDetailForm({
         formData={formData}
         onFormChange={handleFormChange}
         canEdit={canEdit}
+        validationErrors={validationErrors}
       />
       <EmploymentDetails
         formData={formData}
         onFormChange={handleFormChange}
         canEdit={canEdit}
+        validationErrors={validationErrors}
       />
       <EmergencyContact
         formData={formData}

@@ -22,6 +22,7 @@ export function useParticipants() {
             name
           )
         `)
+        .neq('status', 'draft')
         .order('name', { ascending: true });
 
       if (error) throw error;

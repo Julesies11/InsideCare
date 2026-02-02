@@ -15,11 +15,13 @@ import { useSettings } from '@/providers/settings-provider';
 import { PendingChanges } from '@/models/pending-changes';
 import { createPendingChanges } from '@/lib/pending-changes-factory';
 import { useDirtyTracker } from '@/hooks/useDirtyTracker';
+import { useStaff } from '@/hooks/useStaff';
 
 export function StaffDetailPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { settings } = useSettings();
+  const { updateStaff } = useStaff();
   const [formData, setFormData] = useState<any>(null);
   const [originalData, setOriginalData] = useState<any>(null);
   const [pendingChanges, setPendingChanges] = useState<PendingChanges>(createPendingChanges());
@@ -51,8 +53,9 @@ export function StaffDetailPage() {
       const confirmLeave = window.confirm('You have unsaved changes. Are you sure you want to leave?');
       if (!confirmLeave) return;
     }
-    navigate('/employees/staff-profiles');
-  }, [navigate, isDirty]);
+    // Use browser back to preserve URL state from previous page
+    window.history.back();
+  }, [isDirty]);
 
   const handleSave = async () => {
     if (saveHandlerRef.current) {
@@ -100,6 +103,7 @@ export function StaffDetailPage() {
           saveHandlerRef={saveHandlerRef}
           pendingChanges={pendingChanges}
           onPendingChangesChange={setPendingChanges}
+          updateStaff={updateStaff}
           onSaveSuccess={() => {
             // Clear dirty state after successful save
             setPendingChanges(createPendingChanges());

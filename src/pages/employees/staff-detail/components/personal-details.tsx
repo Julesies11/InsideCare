@@ -7,12 +7,14 @@ interface PersonalDetailsProps {
   formData: any;
   onFormChange: (field: string, value: any) => void;
   canEdit: boolean;
+  validationErrors?: Record<string, string>;
 }
 
 export function PersonalDetails({
   formData,
   onFormChange,
   canEdit,
+  validationErrors = {},
 }: PersonalDetailsProps) {
   return (
     <Card className="pb-2.5" id="personal_details">
@@ -23,27 +25,44 @@ export function PersonalDetails({
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
             <Label className="flex w-full max-w-56">Full Name *</Label>
-            <Input
-              id="name"
-              placeholder="Staff member name"
-              value={formData.name || ''}
-              onChange={(e) => onFormChange('name', e.target.value)}
-              disabled={!canEdit}
-            />
+            <div className="grow">
+              <Input
+                id="name"
+                placeholder="Staff member name"
+                value={formData.name || ''}
+                onChange={(e) => onFormChange('name', e.target.value)}
+                disabled={!canEdit}
+                className={validationErrors.name ? 'border-red-500 focus-visible:ring-red-500' : ''}
+              />
+              {validationErrors.name && (
+                <p className="text-red-500 text-sm mt-1">{validationErrors.name}</p>
+              )}
+            </div>
           </div>
         </div>
 
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <Label className="flex w-full max-w-56">Email *</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="staff@example.com"
-              value={formData.email || ''}
-              onChange={(e) => onFormChange('email', e.target.value)}
-              disabled={!canEdit}
-            />
+            <Label className="flex w-full max-w-56">
+              Email {formData.status !== 'draft' && '*'}
+              {formData.status === 'draft' && (
+                <span className="text-xs text-muted-foreground font-normal ml-1">(required when Active/Inactive)</span>
+              )}
+            </Label>
+            <div className="grow">
+              <Input
+                id="email"
+                type="email"
+                placeholder="staff@example.com"
+                value={formData.email || ''}
+                onChange={(e) => onFormChange('email', e.target.value)}
+                disabled={!canEdit}
+                className={validationErrors.email ? 'border-red-500 focus-visible:ring-red-500' : ''}
+              />
+              {validationErrors.email && (
+                <p className="text-red-500 text-sm mt-1">{validationErrors.email}</p>
+              )}
+            </div>
           </div>
         </div>
 

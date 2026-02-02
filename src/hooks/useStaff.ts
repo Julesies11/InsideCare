@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 
+export type StaffStatus = 'draft' | 'active' | 'inactive' | 'archived';
+
 export interface Staff {
   id: string;
-  name: string;
-  email: string;
+  name: string | null;
+  email?: string | null;
   phone?: string | null;
   department?: string | null;
   hire_date?: string | null;
@@ -19,7 +21,8 @@ export interface Staff {
   notes?: string | null;
   branch_id?: string | null;
   role_id?: string | null;
-  is_active: boolean;
+  status: StaffStatus;
+  is_active?: boolean;
   created_at?: string;
   updated_at?: string;
 }
@@ -71,6 +74,7 @@ export interface StaffUpdateData {
   notes?: string | null;
   branch_id?: string | null;
   role_id?: string | null;
+  status?: StaffStatus;
   is_active?: boolean;
 }
 
@@ -89,6 +93,7 @@ export function useStaff() {
       const { data, error } = await supabase
         .from('staff')
         .select('*')
+        .neq('status', 'inactive')
         .order('name', { ascending: true });
 
       if (error) throw error;
@@ -116,9 +121,9 @@ export function useStaff() {
 
       return { data, error: null };
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch staff member';
       console.error('Error fetching staff member:', err);
-      return { data: null, error: errorMessage };
+      // Return the full error object to preserve error codes and details
+      return { data: null, error: err };
     }
   }
 
@@ -133,13 +138,14 @@ export function useStaff() {
 
       if (error) throw error;
 
-      setStaff(staff.map(member => member.id === id ? data : member));
+      // Use functional state update to avoid stale closure
+      setStaff(prevStaff => prevStaff.map(member => member.id === id ? data : member));
 
       return { data, error: null };
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to update staff member';
       console.error('Error updating staff member:', err);
-      return { data: null, error: errorMessage };
+      // Return the full error object to preserve error codes and details
+      return { data: null, error: err };
     }
   }
 
@@ -149,6 +155,8 @@ export function useStaff() {
         .from('staff')
         .insert([{
           ...staffData,
+          status: 'draft',        // Always start as draft
+          name: staffData.name ?? null,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         }])
@@ -157,13 +165,14 @@ export function useStaff() {
 
       if (error) throw error;
 
-      setStaff([data, ...staff]);
+      // Use functional state update to avoid stale closure
+      setStaff(prevStaff => [data, ...prevStaff]);
 
       return { data, error: null };
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to create staff member';
       console.error('Error creating staff member:', err);
-      return { data: null, error: errorMessage };
+      // Return the full error object to preserve error codes and details
+      return { data: null, error: err };
     }
   }
 
@@ -176,13 +185,14 @@ export function useStaff() {
 
       if (error) throw error;
 
-      setStaff(staff.filter(member => member.id !== id));
+      // Use functional state update to avoid stale closure
+      setStaff(prevStaff => prevStaff.filter(member => member.id !== id));
 
       return { error: null };
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to delete staff member';
       console.error('Error deleting staff member:', err);
-      return { error: errorMessage };
+      // Return the full error object to preserve error codes and details
+      return { error: err };
     }
   }
 
