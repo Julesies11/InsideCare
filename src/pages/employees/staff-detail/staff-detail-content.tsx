@@ -13,6 +13,8 @@ import { toast } from 'sonner';
 import { PendingChanges } from '@/models/pending-changes';
 import { logActivity, detectChanges } from '@/lib/activity-logger';
 import { parseSupabaseError } from '@/lib/error-parser';
+import { useFormValidation } from '@/hooks/use-form-validation';
+import { validators } from '@/lib/validation-rules';
 
 const stickySidebarClasses: Record<string, string> = {
   'demo1-layout': 'top-[calc(var(--header-height)+1rem)]',
@@ -78,8 +80,8 @@ export function StaffDetailContent({
     is_active: true,
   });
 
-  // Track validation errors for field highlighting
-  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  // Use form validation hook
+  const { validationErrors, setFieldError, clearAllErrors, scrollToField } = useFormValidation();
 
   // Initialize ref for parentEl
   const parentRef = useRef<HTMLElement | Document>(document);
@@ -391,7 +393,7 @@ export function StaffDetailContent({
           console.log('Changed fields:', changedFields);
 
           // Clear previous validation errors
-          setValidationErrors({});
+          clearAllErrors();
 
           // Validate before saving
           if (Object.keys(changedFields).length > 0) {
@@ -400,33 +402,33 @@ export function StaffDetailContent({
             const currentEmail = changedFields.email !== undefined ? changedFields.email : normalizedFormData.email;
             const currentName = normalizedFormData.name;
             
-            // Validate: Name is required
-            if (!currentName || currentName.trim() === '') {
-              setValidationErrors({ name: 'Name is required' });
+            // Validate: Name is required when status is not draft
+            const nameValidation = validators.requiredWhen(
+              currentName,
+              newStatus !== 'draft',
+              'Name'
+            );
+            if (!nameValidation.isValid) {
+              setFieldError('name', nameValidation.error);
+              scrollToField('name');
               toast.error('Name is required', {
                 description: 'Please enter a staff member name.'
               });
-              // Scroll to name field
-              const nameField = document.getElementById('name');
-              if (nameField) {
-                nameField.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                nameField.focus();
-              }
               return;
             }
             
             // Validate: Email is required when status is not 'draft'
-            if (newStatus !== 'draft' && (!currentEmail || currentEmail.trim() === '')) {
-              setValidationErrors({ email: 'Email is required when status is Active or Inactive' });
+            const emailValidation = validators.requiredWhen(
+              currentEmail,
+              newStatus !== 'draft',
+              'Email'
+            );
+            if (!emailValidation.isValid) {
+              setFieldError('email', 'Email is required when status is Active or Inactive');
+              scrollToField('email');
               toast.error('Email is required when status is Active or Inactive', {
                 description: 'Please add an email address before changing status to Active or Inactive.'
               });
-              // Scroll to email field
-              const emailField = document.getElementById('email');
-              if (emailField) {
-                emailField.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                emailField.focus();
-              }
               return;
             }
 
@@ -437,19 +439,11 @@ export function StaffDetailContent({
               
               // Check if error is related to specific fields
               if (parsedError.title === 'Email already in use') {
-                setValidationErrors({ email: parsedError.description });
-                const emailField = document.getElementById('email');
-                if (emailField) {
-                  emailField.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                  emailField.focus();
-                }
+                setFieldError('email', parsedError.description);
+                scrollToField('email');
               } else if (parsedError.title === 'Email is required') {
-                setValidationErrors({ email: parsedError.description });
-                const emailField = document.getElementById('email');
-                if (emailField) {
-                  emailField.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                  emailField.focus();
-                }
+                setFieldError('email', parsedError.description);
+                scrollToField('email');
               }
               
               toast.error(parsedError.title, { description: parsedError.description });

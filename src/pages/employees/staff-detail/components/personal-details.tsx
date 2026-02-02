@@ -45,9 +45,6 @@ export function PersonalDetails({
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
             <Label className="flex w-full max-w-56">
               Email {formData.status !== 'draft' && '*'}
-              {formData.status === 'draft' && (
-                <span className="text-xs text-muted-foreground font-normal ml-1">(required when Active/Inactive)</span>
-              )}
             </Label>
             <div className="grow">
               <Input

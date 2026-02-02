@@ -17,6 +17,7 @@ interface PersonalDetailsProps {
   formData: any;
   onFormChange: (field: string, value: any) => void;
   onSave: () => void;
+  validationErrors?: Record<string, string>;
 }
 
 export function PersonalDetails({
@@ -25,6 +26,7 @@ export function PersonalDetails({
   formData,
   onFormChange,
   onSave,
+  validationErrors = {},
 }: PersonalDetailsProps) {
   const { houses } = useHouses();
   const [saving, setSaving] = useState(false);
@@ -80,13 +82,19 @@ export function PersonalDetails({
         {/* Form Fields */}
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <Label className="flex w-full max-w-56">Full Name</Label>
-            <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) => onFormChange('name', e.target.value)}
-              disabled={!canEdit}
-            />
+            <Label className="flex w-full max-w-56">Full Name {formData.status !== 'draft' && '*'}</Label>
+            <div className="grow">
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => onFormChange('name', e.target.value)}
+                disabled={!canEdit}
+                className={validationErrors.name ? 'border-red-500 focus-visible:ring-red-500' : ''}
+              />
+              {validationErrors.name && (
+                <p className="text-red-500 text-sm mt-1">{validationErrors.name}</p>
+              )}
+            </div>
           </div>
         </div>
 
@@ -130,14 +138,20 @@ export function PersonalDetails({
 
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <Label className="flex w-full max-w-56">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => onFormChange('email', e.target.value)}
-              disabled={!canEdit}
-            />
+            <Label className="flex w-full max-w-56">Email {formData.status !== 'draft' && '*'}</Label>
+            <div className="grow">
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => onFormChange('email', e.target.value)}
+                disabled={!canEdit}
+                className={validationErrors.email ? 'border-red-500 focus-visible:ring-red-500' : ''}
+              />
+              {validationErrors.email && (
+                <p className="text-red-500 text-sm mt-1">{validationErrors.email}</p>
+              )}
+            </div>
           </div>
         </div>
 
@@ -238,16 +252,17 @@ export function PersonalDetails({
           <Label className="flex w-full max-w-56">Status</Label>
           <div className="grow">
             <Select
-              value={formData.is_active ? 'true' : 'false'}
-              onValueChange={(value) => onFormChange('is_active', value === 'true' ? 'true' : 'false')}
+              value={formData.status}
+              onValueChange={(value) => onFormChange('status', value)}
               disabled={!canEdit}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="true">Active</SelectItem>
-                <SelectItem value="false">Inactive</SelectItem>
+                <SelectItem value="draft">Draft</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
               </SelectContent>
             </Select>
           </div>

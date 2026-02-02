@@ -22,7 +22,6 @@ export function useParticipants() {
             name
           )
         `)
-        .neq('status', 'draft')
         .order('name', { ascending: true });
 
       if (error) throw error;
@@ -56,9 +55,8 @@ export function useParticipants() {
       
       return { data, error: null };
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to add participant';
       console.error('Error adding participant:', err);
-      return { data: null, error: errorMessage };
+      return { data: null, error: err };
     }
   }
 
@@ -87,9 +85,8 @@ export function useParticipants() {
       setParticipants(prevParticipants => prevParticipants.map(p => p.id === id ? participantWithHouse : p));
       return { data: participantWithHouse, error: null };
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to update participant';
       console.error('Error updating participant:', err);
-      return { data: null, error: errorMessage };
+      return { data: null, error: err };
     }
   }
 
@@ -106,9 +103,8 @@ export function useParticipants() {
       
       return { error: null };
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to delete participant';
       console.error('Error deleting participant:', err);
-      return { error: errorMessage };
+      return { error: err };
     }
   }
 

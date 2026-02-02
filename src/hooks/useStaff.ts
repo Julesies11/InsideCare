@@ -22,7 +22,6 @@ export interface Staff {
   branch_id?: string | null;
   role_id?: string | null;
   status: StaffStatus;
-  is_active?: boolean;
   created_at?: string;
   updated_at?: string;
 }
@@ -75,7 +74,6 @@ export interface StaffUpdateData {
   branch_id?: string | null;
   role_id?: string | null;
   status?: StaffStatus;
-  is_active?: boolean;
 }
 
 export function useStaff() {
@@ -93,7 +91,6 @@ export function useStaff() {
       const { data, error } = await supabase
         .from('staff')
         .select('*')
-        .neq('status', 'inactive')
         .order('name', { ascending: true });
 
       if (error) throw error;

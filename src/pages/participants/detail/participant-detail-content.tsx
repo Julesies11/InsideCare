@@ -22,6 +22,9 @@ import { Participant } from '@/models/participant';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { logActivity, detectChanges } from '@/lib/activity-logger';
+import { parseSupabaseError } from '@/lib/error-parser';
+import { useFormValidation } from '@/hooks/use-form-validation';
+import { validators } from '@/lib/validation-rules';
 
 const stickySidebarClasses: Record<string, string> = {
   'demo1-layout': 'top-[calc(var(--header-height)+1rem)]',
@@ -89,6 +92,7 @@ export function ParticipantDetailContent({
     house_id: '',
     photo_url: '',
     is_active: true,
+    status: 'draft',
     support_level: '',
     support_coordinator: '',
     medical_conditions: '',
@@ -99,6 +103,9 @@ export function ParticipantDetailContent({
     general_notes: '',
     restrictive_practices: '',
   });
+
+  // Use form validation hook
+  const { validationErrors, setFieldError, clearAllErrors, scrollToField } = useFormValidation();
 
   // Initialize ref for parentEl
   const parentRef = useRef<HTMLElement | Document>(document);
@@ -141,6 +148,7 @@ export function ParticipantDetailContent({
           house_id: data.house_id ?? '',
           photo_url: data.photo_url ?? '',
           is_active: data.is_active ?? true,
+          status: data.status ?? 'draft',
           support_level: data.support_level ?? '',
           support_coordinator: data.support_coordinator ?? '',
           medical_conditions: data.medical_conditions ?? '',
@@ -197,12 +205,6 @@ export function ParticipantDetailContent({
 
   const handleSave = async () => {
     if (!id || !participant) return;
-
-    // Validate required fields
-    if (!formData.name || formData.name.trim() === '') {
-      toast.error('Name is required');
-      return;
-    }
 
     if (onSavingChange) onSavingChange(true);
 
@@ -588,6 +590,7 @@ export function ParticipantDetailContent({
         house_id: toNull(formData.house_id),
         photo_url: toNull(photoUrl),
         is_active: formData.is_active,
+        status: formData.status,
         support_level: toNull(formData.support_level),
         support_coordinator: toNull(formData.support_coordinator),
         medical_conditions: toNull(formData.medical_conditions),
@@ -620,10 +623,65 @@ export function ParticipantDetailContent({
 
       // Only update if there are actual changes
       if (Object.keys(changedFields).length > 0) {
+        // Clear previous validation errors
+        clearAllErrors();
+
+        // Check if status is being changed
+        const newStatus = changedFields.status || normalizedFormData.status;
+        const currentEmail = changedFields.email !== undefined ? changedFields.email : normalizedFormData.email;
+        const currentName = normalizedFormData.name;
+
+        // Validate: Name is required when status is not draft
+        const nameValidation = validators.requiredWhen(
+          currentName,
+          newStatus !== 'draft',
+          'Name'
+        );
+        if (!nameValidation.isValid) {
+          setFieldError('name', nameValidation.error);
+          scrollToField('name');
+          toast.error('Name is required', {
+            description: 'Please enter a participant name.'
+          });
+          return;
+        }
+
+        // Validate: Email is required when status is not draft
+        const emailValidation = validators.requiredWhen(
+          currentEmail,
+          newStatus !== 'draft',
+          'Email'
+        );
+        if (!emailValidation.isValid) {
+          setFieldError('email', 'Email is required when status is Active or Inactive');
+          scrollToField('email');
+          toast.error('Email is required when status is Active or Inactive', {
+            description: 'Please add an email address before changing status.'
+          });
+          return;
+        }
+
         // If updateParticipant is available (from profiles page), use it to sync hook state
         if (updateParticipant) {
           const { error } = await updateParticipant(id, changedFields);
-          if (error) throw new Error(error);
+          if (error) {
+            const parsedError = parseSupabaseError(error);
+            
+            // Check if error is related to specific fields
+            if (parsedError.title === 'Email already in use') {
+              setFieldError('email', parsedError.description);
+              scrollToField('email');
+            } else if (parsedError.title === 'Name is required') {
+              setFieldError('name', parsedError.description);
+              scrollToField('name');
+            } else if (parsedError.title === 'Email is required') {
+              setFieldError('email', parsedError.description);
+              scrollToField('email');
+            }
+            
+            toast.error(parsedError.title, { description: parsedError.description });
+            throw new Error(parsedError.description);
+          }
           console.log('Successfully saved changes via updateParticipant hook');
         } else {
           // Fallback to direct Supabase call if not available
@@ -632,7 +690,24 @@ export function ParticipantDetailContent({
             .update(changedFields)
             .eq('id', id);
 
-          if (error) throw error;
+          if (error) {
+            const parsedError = parseSupabaseError(error);
+            
+            // Check if error is related to specific fields
+            if (parsedError.title === 'Email already in use') {
+              setFieldError('email', parsedError.description);
+              scrollToField('email');
+            } else if (parsedError.title === 'Name is required') {
+              setFieldError('name', parsedError.description);
+              scrollToField('name');
+            } else if (parsedError.title === 'Email is required') {
+              setFieldError('email', parsedError.description);
+              scrollToField('email');
+            }
+            
+            toast.error(parsedError.title, { description: parsedError.description });
+            throw error;
+          }
           console.log('Successfully saved changes to database');
         }
       } else {
@@ -780,6 +855,7 @@ export function ParticipantDetailContent({
           formData={formData}
           onFormChange={handleFormChange}
           onSave={handleSave}
+          validationErrors={validationErrors}
         />
         <MedicalAllergies
           canEdit={canEdit}

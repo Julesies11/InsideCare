@@ -14,7 +14,6 @@ import {
 } from '@tanstack/react-table';
 import {
   Edit,
-  Filter,
   Search,
   X,
 } from 'lucide-react';
@@ -22,6 +21,7 @@ import { Alert } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Button } from '@/components/ui/button';
+import { StatusFilter, StatusOption } from '@/components/ui/status-filter';
 import {
   Card,
   CardFooter,
@@ -29,7 +29,6 @@ import {
   CardTable,
   CardToolbar,
 } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
 import { DataGrid } from '@/components/ui/data-grid';
 import { DataGridColumnHeader } from '@/components/ui/data-grid-column-header';
 import { DataGridPagination } from '@/components/ui/data-grid-pagination';
@@ -37,17 +36,18 @@ import {
   DataGridTable,
 } from '@/components/ui/data-grid-table';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 import { Staff, useStaff } from '@/hooks/useStaff';
 import { format } from 'date-fns';
-import { useNavigate, useSearchParams } from 'react-router';
+import { useNavigate } from 'react-router';
+import { useDebouncedSearchParams } from '@/hooks/use-debounced-search-params';
+
+const STAFF_STATUS_OPTIONS: StatusOption[] = [
+  { value: 'active', label: 'Active', badge: 'success' },
+  { value: 'draft', label: 'Draft', badge: 'warning' },
+  { value: 'inactive', label: 'Inactive', badge: 'secondary' },
+];
 
 function ActionsCell({ row }: { row: Row<Staff> }) {
   const navigate = useNavigate();
@@ -73,7 +73,8 @@ function ActionsCell({ row }: { row: Row<Staff> }) {
 
 const StaffTable = () => {
   const { staff, loading, error, updateStaff } = useStaff();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useDebouncedSearchParams(300);
 
   // Helper functions to parse URL params into initial state
   const getInitialPagination = (): PaginationState => ({
@@ -93,12 +94,10 @@ const StaffTable = () => {
     return searchParams.get('search') || '';
   };
 
-  const STATUS_OPTIONS = ['active', 'draft', 'inactive'];
-
   const getInitialStatuses = (): string[] => {
     const param = searchParams.get('statuses');
     if (!param) return ['active', 'draft']; // default visible
-    return param.split(',').filter((s) => STATUS_OPTIONS.includes(s));
+    return param.split(',').filter((s) => STAFF_STATUS_OPTIONS.some(opt => opt.value === s));
   };
 
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>(getInitialStatuses());
@@ -311,43 +310,12 @@ const StaffTable = () => {
                 </Button>
               )}
             </div>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline">
-                  <Filter className="size-4" />
-                  Status
-                    <Badge size="sm" variant="outline">
-                      {selectedStatuses.length}
-                    </Badge>
-                </Button>
-              </PopoverTrigger>
-                <PopoverContent className="w-56 p-3" align="start">
-                  <div className="space-y-3">
-                    <div className="text-xs font-medium text-muted-foreground">
-                      Filter by Status
-                    </div>
-
-                    {STATUS_OPTIONS.map((status) => (
-                      <div key={status} className="flex items-center gap-2">
-                        <Checkbox
-                          id={status}
-                          checked={selectedStatuses.includes(status)}
-                          onCheckedChange={(checked) => {
-                            setSelectedStatuses((prev) =>
-                              checked
-                                ? [...prev, status]
-                                : prev.filter((s) => s !== status)
-                            );
-                          }}
-                        />
-                        <Label htmlFor={status} className="font-normal cursor-pointer capitalize">
-                          {status}
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                </PopoverContent>
-            </Popover>
+            <StatusFilter
+              value={selectedStatuses}
+              onChange={setSelectedStatuses}
+              options={STAFF_STATUS_OPTIONS}
+              label="Status"
+            />
             <CardToolbar>
               <div className="flex flex-wrap items-center gap-2.5">
                 {/* Additional toolbar items here if needed */}

@@ -21,7 +21,7 @@ import {
   UserRoundPlus,
   X,
 } from 'lucide-react';
-import { useSearchParams } from 'react-router';
+import { useDebouncedSearchParams } from '@/hooks/use-debounced-search-params';
 import { toast } from 'sonner';
 import { toAbsoluteUrl } from '@/lib/helpers';
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
@@ -29,6 +29,7 @@ import { Alert, AlertIcon, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Button } from '@/components/ui/button';
+import { StatusFilter, StatusOption } from '@/components/ui/status-filter';
 import {
   Card,
   CardFooter,
@@ -62,7 +63,6 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { Switch } from '@/components/ui/switch';
 
 import { Participant, ParticipantWithHouse }  from '@/models/participant';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -73,6 +73,13 @@ import { useNavigate } from 'react-router';
 import { supabase } from '@/lib/supabase';
 import { logActivity } from '@/lib/activity-logger';
 import { useAuth } from '@/auth/context/auth-context';
+import { parseSupabaseError } from '@/lib/error-parser';
+
+const PARTICIPANT_STATUS_OPTIONS: StatusOption[] = [
+  { value: 'active', label: 'Active', badge: 'success' },
+  { value: 'draft', label: 'Draft', badge: 'warning' },
+  { value: 'inactive', label: 'Inactive', badge: 'secondary' },
+];
 
 function ActionsCell({ row, updateParticipant }: { row: Row<ParticipantWithHouse>; updateParticipant: (id: string, updates: Partial<Participant>) => Promise<{ data: any; error: string | null }> }) {
   const navigate = useNavigate();
@@ -90,7 +97,11 @@ function ActionsCell({ row, updateParticipant }: { row: Row<ParticipantWithHouse
     try {
       const { error } = await updateParticipant(row.original.id, { status: 'inactive' });
 
-      if (error) throw new Error(error);
+      if (error) {
+        const parsedError = parseSupabaseError(error);
+        toast.error(parsedError.title, { description: parsedError.description });
+        throw new Error(parsedError.description);
+      }
 
       // Log activity
       await logActivity({
@@ -105,7 +116,6 @@ function ActionsCell({ row, updateParticipant }: { row: Row<ParticipantWithHouse
       toast.success('Participant archived successfully');
     } catch (error) {
       console.error('Error archiving participant:', error);
-      toast.error('Failed to archive participant');
     }
   };
 
@@ -146,7 +156,8 @@ function getInitials(name: string): string {
 const Participants = () => {
   const { participants, loading, error, updateParticipant } = useParticipants();
   const { houses } = useHouses();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useDebouncedSearchParams(300);
 
   // Helper functions to parse URL params into initial state
   const getInitialPagination = (): PaginationState => ({
@@ -171,8 +182,10 @@ const Participants = () => {
     return housesParam ? housesParam.split(',') : [];
   };
 
-  const getInitialActiveOnly = (): boolean => {
-    return searchParams.get('activeOnly') !== 'false'; // Default true
+  const getInitialStatuses = (): string[] => {
+    const param = searchParams.get('statuses');
+    if (!param) return ['active', 'draft']; // default visible
+    return param.split(',').filter((s) => PARTICIPANT_STATUS_OPTIONS.some(opt => opt.value === s));
   };
 
   // Initialize state from URL params
@@ -180,13 +193,13 @@ const Participants = () => {
   const [sorting, setSorting] = useState<SortingState>(getInitialSorting());
   const [searchQuery, setSearchQuery] = useState(getInitialSearch());
   const [selectedHouses, setSelectedHouses] = useState<string[]>(getInitialHouses());
-  const [showActiveOnly, setShowActiveOnly] = useState(getInitialActiveOnly());
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>(getInitialStatuses());
 
-  // Filtered data based on search, house, and active status
+  // Filtered data based on search, house, and status
   const filteredData = useMemo(() => {
     return participants.filter((item) => {
-      // Active status filter
-      if (showActiveOnly && item.status !== 'active') {
+      // Status filter
+      if (!selectedStatuses.includes(item.status)) {
         return false;
       }
 
@@ -208,7 +221,7 @@ const Participants = () => {
 
       return matchesHouse && matchesSearch;
     });
-  }, [participants, searchQuery, selectedHouses, showActiveOnly]);
+  }, [participants, searchQuery, selectedHouses, selectedStatuses]);
 
   // Count of participants per house
   const houseCounts = useMemo(() => {
@@ -259,14 +272,12 @@ const Participants = () => {
       params.set('houses', selectedHouses.join(','));
     }
     
-    // Active only filter - only add if false (default is true)
-    if (!showActiveOnly) {
-      params.set('activeOnly', 'false');
-    }
+    // Status filters - always update the URL with the current list
+    params.set('statuses', selectedStatuses.join(','));
     
     // Update URL without adding to history
     setSearchParams(params, { replace: true });
-  }, [pagination, sorting, searchQuery, selectedHouses, showActiveOnly, setSearchParams]);
+  }, [pagination, sorting, searchQuery, selectedHouses, selectedStatuses, setSearchParams]);
 
   const columns = useMemo<ColumnDef<ParticipantWithHouse>[]>(
     () => [
@@ -368,24 +379,6 @@ const Participants = () => {
     autoResetPageIndex: false,
   });
 
-  const Toolbar = () => {
-    const { table } = useDataGrid();
-    return (
-      <CardToolbar>
-        <div className="flex flex-wrap items-center gap-2.5">
-          <Label htmlFor="active-users-toggle" className="text-sm">
-            Active Users
-          </Label>
-          <Switch 
-            size="sm" 
-            id="active-users-toggle" 
-            checked={showActiveOnly}
-            onCheckedChange={setShowActiveOnly}
-          />
-        </div>
-      </CardToolbar>
-    );
-  };
 
   return (
     <DataGrid
@@ -420,6 +413,12 @@ const Participants = () => {
                 </Button>
               )}
             </div>
+            <StatusFilter
+              value={selectedStatuses}
+              onChange={setSelectedStatuses}
+              options={PARTICIPANT_STATUS_OPTIONS}
+              label="Status"
+            />
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline">
@@ -463,7 +462,6 @@ const Participants = () => {
               </PopoverContent>
             </Popover>
           </div>
-          <Toolbar />
         </CardHeader>
 
         {loading && <div className="p-4 text-center">Loading participants...</div>}
