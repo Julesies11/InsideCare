@@ -8,7 +8,8 @@ import { useAuth } from '@/auth/context/auth-context';
 import { Scrollspy } from '@/components/ui/scrollspy';
 import { ParticipantDetailSidebar } from './participant-detail-sidebar';
 import { PersonalDetails } from './components/personal-details';
-import { MedicalAllergies } from './components/medical-allergies';
+import { ClinicalDetails } from './components/clinical-details';
+import { BehaviourSupport } from './components/behaviour-support';
 import { HygieneRoutines } from './components/hygiene-routines';
 import { Goals } from './components/goals';
 import { Documents } from './components/documents';
@@ -93,13 +94,23 @@ export function ParticipantDetailContent({
     status: 'draft',
     support_level: '',
     support_coordinator: '',
-    medical_conditions: '',
+    primary_diagnosis: '',
+    secondary_diagnosis: '',
     allergies: '',
     morning_routine: '',
     shower_support: '',
     current_goals: '',
     general_notes: '',
     restrictive_practices: '',
+    behaviour_of_concern: '',
+    pbsp_engaged: null,
+    bsp_available: null,
+    restrictive_practices_yn: null,
+    specialist_name: '',
+    specialist_phone: '',
+    specialist_email: '',
+    restrictive_practice_authorisation: null,
+    restrictive_practice_details: '',
   });
 
   // Use form validation hook
@@ -140,8 +151,6 @@ export function ParticipantDetailContent({
           address: data.address ?? '',
           date_of_birth: data.date_of_birth ?? '',
           ndis_number: data.ndis_number ?? '',
-          emergency_contact_name: data.emergency_contact_name ?? '',
-          emergency_contact_phone: data.emergency_contact_phone ?? '',
           house_id: data.house_id ?? '',
           photo_url: data.photo_url ?? '',
           house_phone: data.house_phone ?? '',
@@ -149,13 +158,23 @@ export function ParticipantDetailContent({
           status: data.status ?? 'draft',
           support_level: data.support_level ?? '',
           support_coordinator: data.support_coordinator ?? '',
-          medical_conditions: data.medical_conditions ?? '',
+          primary_diagnosis: data.primary_diagnosis ?? '',
+          secondary_diagnosis: data.secondary_diagnosis ?? '',
           allergies: data.allergies ?? '',
           morning_routine: data.morning_routine ?? '',
           shower_support: data.shower_support ?? '',
           current_goals: data.current_goals ?? '',
           general_notes: data.general_notes ?? '',
           restrictive_practices: data.restrictive_practices ?? '',
+          behaviour_of_concern: data.behaviour_of_concern ?? '',
+          pbsp_engaged: data.pbsp_engaged ?? null,
+          bsp_available: data.bsp_available ?? null,
+          restrictive_practices_yn: data.restrictive_practices_yn ?? null,
+          specialist_name: data.specialist_name ?? '',
+          specialist_phone: data.specialist_phone ?? '',
+          specialist_email: data.specialist_email ?? '',
+          restrictive_practice_authorisation: data.restrictive_practice_authorisation ?? null,
+          restrictive_practice_details: data.restrictive_practice_details ?? '',
         };
         setFormData(initialData);
         
@@ -586,20 +605,28 @@ export function ParticipantDetailContent({
         address: toNull(formData.address),
         date_of_birth: toNull(formData.date_of_birth),
         ndis_number: toNull(formData.ndis_number),
-        emergency_contact_name: toNull(formData.emergency_contact_name),
-        emergency_contact_phone: toNull(formData.emergency_contact_phone),
         house_id: toNull(formData.house_id),
         photo_url: toNull(photoUrl),
         status: formData.status,
         support_level: toNull(formData.support_level),
         support_coordinator: toNull(formData.support_coordinator),
-        medical_conditions: toNull(formData.medical_conditions),
+        primary_diagnosis: toNull(formData.primary_diagnosis),
+        secondary_diagnosis: toNull(formData.secondary_diagnosis),
         allergies: toNull(formData.allergies),
         morning_routine: toNull(formData.morning_routine),
         shower_support: toNull(formData.shower_support),
         current_goals: toNull(formData.current_goals),
         general_notes: toNull(formData.general_notes),
         restrictive_practices: toNull(formData.restrictive_practices),
+        behaviour_of_concern: toNull(formData.behaviour_of_concern),
+        pbsp_engaged: formData.pbsp_engaged,
+        bsp_available: formData.bsp_available,
+        restrictive_practices_yn: formData.restrictive_practices_yn,
+        specialist_name: toNull(formData.specialist_name),
+        specialist_phone: toNull(formData.specialist_phone),
+        specialist_email: toNull(formData.specialist_email),
+        restrictive_practice_authorisation: formData.restrictive_practice_authorisation,
+        restrictive_practice_details: toNull(formData.restrictive_practice_details),
       };
 
       // Build object with only changed fields by comparing with original participant data
@@ -741,20 +768,28 @@ export function ParticipantDetailContent({
         address: normalizedFormData.address ?? '',
         date_of_birth: normalizedFormData.date_of_birth ?? '',
         ndis_number: normalizedFormData.ndis_number ?? '',
-        emergency_contact_name: normalizedFormData.emergency_contact_name ?? '',
-        emergency_contact_phone: normalizedFormData.emergency_contact_phone ?? '',
         house_id: normalizedFormData.house_id ?? '',
         photo_url: normalizedFormData.photo_url ?? '',
         status: normalizedFormData.status ?? '',
         support_level: normalizedFormData.support_level ?? '',
         support_coordinator: normalizedFormData.support_coordinator ?? '',
-        medical_conditions: normalizedFormData.medical_conditions ?? '',
+        primary_diagnosis: normalizedFormData.primary_diagnosis ?? '',
+        secondary_diagnosis: normalizedFormData.secondary_diagnosis ?? '',
         allergies: normalizedFormData.allergies ?? '',
         morning_routine: normalizedFormData.morning_routine ?? '',
         shower_support: normalizedFormData.shower_support ?? '',
         current_goals: normalizedFormData.current_goals ?? '',
         general_notes: normalizedFormData.general_notes ?? '',
         restrictive_practices: normalizedFormData.restrictive_practices ?? '',
+        behaviour_of_concern: normalizedFormData.behaviour_of_concern ?? '',
+        pbsp_engaged: normalizedFormData.pbsp_engaged ?? null,
+        bsp_available: normalizedFormData.bsp_available ?? null,
+        restrictive_practices_yn: normalizedFormData.restrictive_practices_yn ?? null,
+        specialist_name: normalizedFormData.specialist_name ?? '',
+        specialist_phone: normalizedFormData.specialist_phone ?? '',
+        specialist_email: normalizedFormData.specialist_email ?? '',
+        restrictive_practice_authorisation: normalizedFormData.restrictive_practice_authorisation ?? null,
+        restrictive_practice_details: normalizedFormData.restrictive_practice_details ?? '',
       };
       
       setFormData(normalizedData);
@@ -858,7 +893,13 @@ export function ParticipantDetailContent({
           onSave={handleSave}
           validationErrors={validationErrors}
         />
-        <MedicalAllergies
+        <ClinicalDetails
+          canEdit={canEdit}
+          formData={formData}
+          onFormChange={handleFormChange}
+          onSave={handleSave}
+        />
+        <BehaviourSupport
           canEdit={canEdit}
           formData={formData}
           onFormChange={handleFormChange}

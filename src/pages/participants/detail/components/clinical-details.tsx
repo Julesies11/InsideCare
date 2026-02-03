@@ -4,19 +4,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 
-interface MedicalAllergiesProps {
+interface ClinicalDetailsProps {
   canEdit: boolean;
   formData: any;
   onFormChange: (field: string, value: string) => void;
   onSave: () => void;
 }
 
-export function MedicalAllergies({
+export function ClinicalDetails({
   canEdit,
   formData,
   onFormChange,
   onSave,
-}: MedicalAllergiesProps) {
+}: ClinicalDetailsProps) {
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
@@ -26,20 +26,34 @@ export function MedicalAllergies({
   };
 
   return (
-    <Card className="pb-2.5" id="medical">
+    <Card className="pb-2.5" id="clinical">
       <CardHeader>
-        <CardTitle>Medical & Allergies</CardTitle>
+        <CardTitle>Clinical Details</CardTitle>
       </CardHeader>
       <CardContent className="grid gap-5">
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <Label className="flex w-full max-w-56">Medical Conditions</Label>
+            <Label className="flex w-full max-w-56">Primary Diagnosis</Label>
             <Textarea
-              id="medical_conditions"
-              value={formData.medical_conditions}
-              onChange={(e) => onFormChange('medical_conditions', e.target.value)}
+              id="primary_diagnosis"
+              value={formData.primary_diagnosis}
+              onChange={(e) => onFormChange('primary_diagnosis', e.target.value)}
               rows={5}
-              placeholder="List any medical conditions..."
+              placeholder="Primary Diagnosis..."
+              disabled={!canEdit}
+            />
+          </div>
+        </div>
+
+        <div className="w-full">
+          <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+            <Label className="flex w-full max-w-56">Secondary Diagnosis</Label>
+            <Textarea
+              id="secondary_diagnosis"
+              value={formData.secondary_diagnosis}
+              onChange={(e) => onFormChange('secondary_diagnosis', e.target.value)}
+              rows={5}
+              placeholder="Secondary Diagnosis..."
               disabled={!canEdit}
             />
           </div>

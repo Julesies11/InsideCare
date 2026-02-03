@@ -14,9 +14,8 @@ export interface Participant {
   status: ParticipantStatus;
   support_level?: string | null;
   support_coordinator?: string | null;
-  emergency_contact_name?: string | null;
-  emergency_contact_phone?: string | null;
-  medical_conditions?: string | null;
+  primary_diagnosis?: string | null;
+  secondary_diagnosis?: string | null;
   allergies?: string | null;
   morning_routine?: string | null;
   shower_support?: string | null;
@@ -25,6 +24,15 @@ export interface Participant {
   general_notes?: string | null;
   restrictive_practices?: string | null;
   service_providers?: string | null;
+  behaviour_of_concern?: string | null;
+  pbsp_engaged?: boolean | null;
+  bsp_available?: boolean | null;
+  restrictive_practices_yn?: boolean | null;
+  specialist_name?: string | null;
+  specialist_phone?: string | null;
+  specialist_email?: string | null;
+  restrictive_practice_authorisation?: boolean | null;
+  restrictive_practice_details?: string | null;
   created_at?: string;
   updated_at?: string;
 }

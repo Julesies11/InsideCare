@@ -11,8 +11,12 @@ export function ParticipantDetailSidebar() {
       active: true,
     },
     {
-      title: 'Medical & Allergies',
-      target: 'medical',
+      title: 'Clinical Details',
+      target: 'clinical',
+    },
+    {
+      title: 'Behaviour & Support',
+      target: 'behaviour',
     },
     {
       title: 'Hygiene & Routines',

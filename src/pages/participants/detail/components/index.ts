@@ -1,5 +1,5 @@
 export * from './personal-details';
-export * from './medical-allergies';
+export * from './clinical-details';
 export * from './hygiene-routines';
 export * from './goals';
 export * from './documents';
