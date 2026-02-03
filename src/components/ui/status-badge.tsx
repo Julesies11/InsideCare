@@ -1,4 +1,4 @@
-import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
 interface StatusBadgeProps {
   status: 'draft' | 'active' | 'inactive' | 'archived';
@@ -6,11 +6,11 @@ interface StatusBadgeProps {
 }
 
 export function StatusBadge({ status, className }: StatusBadgeProps) {
-  const variants = {
-    draft: 'badge-light-warning',
-    active: 'badge-light-success',
-    inactive: 'badge-light-secondary',
-    archived: 'badge-light-dark',
+  const variantMap = {
+    draft: { variant: 'warning' as const, appearance: 'light' as const },
+    active: { variant: 'success' as const, appearance: 'light' as const },
+    inactive: { variant: 'secondary' as const, appearance: 'light' as const },
+    archived: { variant: 'secondary' as const, appearance: 'light' as const },
   };
 
   const labels = {
@@ -20,9 +20,16 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
     archived: 'Archived',
   };
 
+  const config = variantMap[status];
+
   return (
-    <span className={cn('badge', variants[status], className)}>
+    <Badge 
+      variant={config.variant} 
+      appearance={config.appearance}
+      size="sm"
+      className={className}
+    >
       {labels[status]}
-    </span>
+    </Badge>
   );
 }

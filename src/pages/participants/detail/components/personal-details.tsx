@@ -125,12 +125,25 @@ export function PersonalDetails({
 
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <Label className="flex w-full max-w-56">Phone</Label>
+            <Label className="flex w-full max-w-56">House Phone</Label>
             <Input
-              id="phone"
+              id="house_phone"
               type="tel"
-              value={formData.phone}
-              onChange={(e) => onFormChange('phone', e.target.value)}
+              value={formData.house_phone}
+              onChange={(e) => onFormChange('house_phone', e.target.value)}
+              disabled={!canEdit}
+            />
+          </div>
+        </div>
+
+        <div className="w-full">
+          <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+            <Label className="flex w-full max-w-56">Personal Mobile</Label>
+            <Input
+              id="personal_mobile"
+              type="tel"
+              value={formData.personal_mobile}
+              onChange={(e) => onFormChange('personal_mobile', e.target.value)}
               disabled={!canEdit}
             />
           </div>
@@ -163,31 +176,6 @@ export function PersonalDetails({
               value={formData.address}
               onChange={(e) => onFormChange('address', e.target.value)}
               rows={2}
-              disabled={!canEdit}
-            />
-          </div>
-        </div>
-
-        <div className="w-full">
-          <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <Label className="flex w-full max-w-56">Emergency Contact</Label>
-            <Input
-              id="emergency_contact_name"
-              value={formData.emergency_contact_name}
-              onChange={(e) => onFormChange('emergency_contact_name', e.target.value)}
-              disabled={!canEdit}
-            />
-          </div>
-        </div>
-
-        <div className="w-full">
-          <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <Label className="flex w-full max-w-56">Emergency Phone</Label>
-            <Input
-              id="emergency_contact_phone"
-              type="tel"
-              value={formData.emergency_contact_phone}
-              onChange={(e) => onFormChange('emergency_contact_phone', e.target.value)}
               disabled={!canEdit}
             />
           </div>

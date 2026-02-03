@@ -1,17 +1,17 @@
-export type ParticipantStatus = 'draft' | 'active' | 'inactive' | 'archived';
+export type ParticipantStatus = 'draft' | 'active' | 'inactive';
 
 export interface Participant {
   id: string;
   name: string | null;
   photo_url?: string | null;
   email?: string | null;
-  phone?: string | null;
+  house_phone?: string | null;
+  personal_mobile?: string | null;
   address?: string | null;
   date_of_birth?: string | null;
   ndis_number?: string | null;
   house_id?: string | null;
   status: ParticipantStatus;
-  is_active?: boolean;
   support_level?: string | null;
   support_coordinator?: string | null;
   emergency_contact_name?: string | null;

@@ -144,7 +144,8 @@ function ActionsCell({ row, updateParticipant }: { row: Row<ParticipantWithHouse
 }
 
 // Helper function to get initials from name
-function getInitials(name: string): string {
+function getInitials(name: string | null | undefined): string {
+  if (!name) return '??';
   return name
     .split(' ')
     .map(word => word[0])
@@ -214,7 +215,6 @@ const Participants = () => {
         !searchQuery ||
         (item.name && item.name.toLowerCase().includes(searchLower)) ||
         (item.email && item.email.toLowerCase().includes(searchLower)) ||
-        (item.phone && item.phone.toLowerCase().includes(searchLower)) ||
         (item.ndis_number && item.ndis_number.toLowerCase().includes(searchLower)) ||
         ((item as ParticipantWithHouse).house_name && (item as ParticipantWithHouse).house_name!.toLowerCase().includes(searchLower)) ||
         (item.address && item.address.toLowerCase().includes(searchLower));

@@ -77,7 +77,6 @@ export function StaffDetailContent({
     working_hours: '',
     notes: '',
     status: 'draft',
-    is_active: true,
   });
 
   // Use form validation hook
@@ -136,7 +135,6 @@ export function StaffDetailContent({
           working_hours: data.working_hours ?? '',
           notes: data.notes ?? '',
           status: data.status ?? 'draft',
-          is_active: data.is_active ?? true,
         };
         setFormData(initialData);
         onOriginalDataChange?.(initialData);
@@ -370,7 +368,6 @@ export function StaffDetailContent({
             working_hours: toNull(formData.working_hours),
             notes: toNull(formData.notes),
             status: formData.status,
-            is_active: formData.is_active,
           };
 
           // Build object with only changed fields by comparing with original staff data
@@ -405,7 +402,7 @@ export function StaffDetailContent({
             // Validate: Name is required when status is not draft
             const nameValidation = validators.requiredWhen(
               currentName,
-              newStatus !== 'draft',
+              newStatus == 'active',
               'Name'
             );
             if (!nameValidation.isValid) {
@@ -420,14 +417,14 @@ export function StaffDetailContent({
             // Validate: Email is required when status is not 'draft'
             const emailValidation = validators.requiredWhen(
               currentEmail,
-              newStatus !== 'draft',
+              newStatus == 'active',
               'Email'
             );
             if (!emailValidation.isValid) {
-              setFieldError('email', 'Email is required when status is Active or Inactive');
+              setFieldError('email', 'Email is required when status is Active');
               scrollToField('email');
-              toast.error('Email is required when status is Active or Inactive', {
-                description: 'Please add an email address before changing status to Active or Inactive.'
+              toast.error('Email is required when status is Active', {
+                description: 'Please add an email address before changing status to Active.'
               });
               return;
             }
@@ -489,7 +486,6 @@ export function StaffDetailContent({
             working_hours: normalizedFormData.working_hours ?? '',
             notes: normalizedFormData.notes ?? '',
             status: normalizedFormData.status ?? 'draft',
-            is_active: normalizedFormData.is_active ?? true,
           };
           
           setFormData(normalizedData);

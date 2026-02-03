@@ -83,15 +83,13 @@ export function ParticipantDetailContent({
   const [formData, setFormData] = useState<any>({
     name: '',
     email: '',
-    phone: '',
+    house_phone: '',
+    personal_phone: '',
     address: '',
     date_of_birth: '',
     ndis_number: '',
-    emergency_contact_name: '',
-    emergency_contact_phone: '',
     house_id: '',
     photo_url: '',
-    is_active: true,
     status: 'draft',
     support_level: '',
     support_coordinator: '',
@@ -139,7 +137,6 @@ export function ParticipantDetailContent({
         const initialData = {
           name: data.name ?? '',
           email: data.email ?? '',
-          phone: data.phone ?? '',
           address: data.address ?? '',
           date_of_birth: data.date_of_birth ?? '',
           ndis_number: data.ndis_number ?? '',
@@ -147,7 +144,8 @@ export function ParticipantDetailContent({
           emergency_contact_phone: data.emergency_contact_phone ?? '',
           house_id: data.house_id ?? '',
           photo_url: data.photo_url ?? '',
-          is_active: data.is_active ?? true,
+          house_phone: data.house_phone ?? '',
+          personal_mobile: data.personal_mobile ?? '',
           status: data.status ?? 'draft',
           support_level: data.support_level ?? '',
           support_coordinator: data.support_coordinator ?? '',
@@ -194,14 +192,16 @@ export function ParticipantDetailContent({
     const normalizedValue = field === 'is_active' ? value === 'true' : value;
     
     setFormData((prev: any) => {
-      const newFormData = { ...prev, [field]: normalizedValue };
-      
-      // Notify parent of form data change
-      if (onFormDataChange) onFormDataChange(newFormData);
-      
-      return newFormData;
+      return { ...prev, [field]: normalizedValue };
     });
   };
+
+  // Notify parent of form data changes via useEffect to avoid setState during render
+  useEffect(() => {
+    if (onFormDataChange) {
+      onFormDataChange(formData);
+    }
+  }, [formData, onFormDataChange]);
 
   const handleSave = async () => {
     if (!id || !participant) return;
@@ -581,7 +581,8 @@ export function ParticipantDetailContent({
       const normalizedFormData = {
         name: formData.name,
         email: toNull(formData.email),
-        phone: toNull(formData.phone),
+        house_phone: toNull(formData.house_phone),
+        personal_mobile: toNull(formData.personal_mobile),
         address: toNull(formData.address),
         date_of_birth: toNull(formData.date_of_birth),
         ndis_number: toNull(formData.ndis_number),
@@ -589,7 +590,6 @@ export function ParticipantDetailContent({
         emergency_contact_phone: toNull(formData.emergency_contact_phone),
         house_id: toNull(formData.house_id),
         photo_url: toNull(photoUrl),
-        is_active: formData.is_active,
         status: formData.status,
         support_level: toNull(formData.support_level),
         support_coordinator: toNull(formData.support_coordinator),
@@ -631,10 +631,10 @@ export function ParticipantDetailContent({
         const currentEmail = changedFields.email !== undefined ? changedFields.email : normalizedFormData.email;
         const currentName = normalizedFormData.name;
 
-        // Validate: Name is required when status is not draft
+        // Validate: Name is required when status is Active
         const nameValidation = validators.requiredWhen(
           currentName,
-          newStatus !== 'draft',
+          newStatus == 'active',
           'Name'
         );
         if (!nameValidation.isValid) {
@@ -646,16 +646,16 @@ export function ParticipantDetailContent({
           return;
         }
 
-        // Validate: Email is required when status is not draft
+        // Validate: Email is required when status is active
         const emailValidation = validators.requiredWhen(
           currentEmail,
-          newStatus !== 'draft',
+          newStatus == 'active',
           'Email'
         );
         if (!emailValidation.isValid) {
-          setFieldError('email', 'Email is required when status is Active or Inactive');
+          setFieldError('email', 'Email is required when status is Active');
           scrollToField('email');
-          toast.error('Email is required when status is Active or Inactive', {
+          toast.error('Email is required when status is Active', {
             description: 'Please add an email address before changing status.'
           });
           return;
@@ -736,7 +736,8 @@ export function ParticipantDetailContent({
       const normalizedData = {
         name: normalizedFormData.name ?? '',
         email: normalizedFormData.email ?? '',
-        phone: normalizedFormData.phone ?? '',
+        house_phone: normalizedFormData.house_phone ?? '',
+        personal_mobile: normalizedFormData.personal_mobile ?? '',
         address: normalizedFormData.address ?? '',
         date_of_birth: normalizedFormData.date_of_birth ?? '',
         ndis_number: normalizedFormData.ndis_number ?? '',
@@ -744,7 +745,7 @@ export function ParticipantDetailContent({
         emergency_contact_phone: normalizedFormData.emergency_contact_phone ?? '',
         house_id: normalizedFormData.house_id ?? '',
         photo_url: normalizedFormData.photo_url ?? '',
-        is_active: normalizedFormData.is_active ?? true,
+        status: normalizedFormData.status ?? '',
         support_level: normalizedFormData.support_level ?? '',
         support_coordinator: normalizedFormData.support_coordinator ?? '',
         medical_conditions: normalizedFormData.medical_conditions ?? '',
