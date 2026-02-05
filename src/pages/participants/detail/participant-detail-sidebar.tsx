@@ -43,10 +43,6 @@ export function ParticipantDetailSidebar() {
       target: 'providers',
     },
     {
-      title: 'Notes',
-      target: 'notes',
-    },
-    {
       title: 'Restrictive Practices',
       target: 'practices',
     },

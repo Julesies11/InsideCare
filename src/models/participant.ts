@@ -21,7 +21,6 @@ export interface Participant {
   hygiene_support?: string | null;
   current_goals?: string | null;
   current_medications?: string | null;
-  general_notes?: string | null;
   restrictive_practices?: string | null;
   service_providers?: string | null;
   behaviour_of_concern?: string | null;

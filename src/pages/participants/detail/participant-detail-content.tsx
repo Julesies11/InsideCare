@@ -15,7 +15,6 @@ import { Goals } from './components/goals';
 import { Documents } from './components/documents';
 import { Medications } from './components/medications';
 import { ServiceProviders } from './components/service-providers';
-import { Notes } from './components/notes';
 import { RestrictivePractices } from './components/restrictive-practices';
 import { ShiftNotes } from './components/shift-notes';
 import { ActivityLog } from './components/activity-log';
@@ -112,7 +111,6 @@ export function ParticipantDetailContent({
     cultural_religious_support: '',
     other_support: '',
     current_goals: '',
-    general_notes: '',
     restrictive_practices: '',
     behaviour_of_concern: '',
     pbsp_engaged: null,
@@ -188,7 +186,6 @@ mtmp_details: '',
           cultural_religious_support: data.cultural_religious_support ?? '',
           other_support: data.other_support ?? '',
           current_goals: data.current_goals ?? '',
-          general_notes: data.general_notes ?? '',
           restrictive_practices: data.restrictive_practices ?? '',
           behaviour_of_concern: data.behaviour_of_concern ?? '',
           pbsp_engaged: data.pbsp_engaged ?? null,
@@ -738,7 +735,6 @@ mtmp_details: '',
         cultural_religious_support: toNull(formData.cultural_religious_support),
         other_support: toNull(formData.other_support),
         current_goals: toNull(formData.current_goals),
-        general_notes: toNull(formData.general_notes),
         restrictive_practices: toNull(formData.restrictive_practices),
         behaviour_of_concern: toNull(formData.behaviour_of_concern),
         pbsp_engaged: formData.pbsp_engaged,
@@ -913,7 +909,6 @@ mtmp_details: '',
         cultural_religious_support: normalizedFormData.cultural_religious_support ?? '',
         other_support: normalizedFormData.other_support ?? '',
         current_goals: normalizedFormData.current_goals ?? '',
-        general_notes: normalizedFormData.general_notes ?? '',
         restrictive_practices: normalizedFormData.restrictive_practices ?? '',
         behaviour_of_concern: normalizedFormData.behaviour_of_concern ?? '',
         pbsp_engaged: normalizedFormData.pbsp_engaged ?? null,
@@ -1088,7 +1083,6 @@ mtmp_details: '',
           pendingChanges={pendingChanges}
           onPendingChangesChange={onPendingChangesChange}
         />
-        <Notes canEdit={canEdit} formData={formData} onFormChange={handleFormChange} onSave={handleSave} />
         <RestrictivePractices
           canEdit={canEdit}
           formData={formData}
