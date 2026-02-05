@@ -11,6 +11,7 @@ import { PersonalDetails } from './components/personal-details';
 import { ClinicalDetails } from './components/clinical-details';
 import { BehaviourSupport } from './components/behaviour-support';
 import { SupportNeeds } from './components/support-needs';
+import { EmergencyManagement } from './components/emergency-management';
 import { Goals } from './components/goals';
 import { Documents } from './components/documents';
 import { Medications } from './components/medications';
@@ -110,6 +111,9 @@ export function ParticipantDetailContent({
     health_wellbeing_support: '',
     cultural_religious_support: '',
     other_support: '',
+    mental_health_plan: '',
+    medical_plan: '',
+    natural_disaster_plan: '',
     current_goals: '',
     restrictive_practices: '',
     behaviour_of_concern: '',
@@ -185,6 +189,9 @@ mtmp_details: '',
           health_wellbeing_support: data.health_wellbeing_support ?? '',
           cultural_religious_support: data.cultural_religious_support ?? '',
           other_support: data.other_support ?? '',
+          mental_health_plan: data.mental_health_plan ?? '',
+          medical_plan: data.medical_plan ?? '',
+          natural_disaster_plan: data.natural_disaster_plan ?? '',
           current_goals: data.current_goals ?? '',
           restrictive_practices: data.restrictive_practices ?? '',
           behaviour_of_concern: data.behaviour_of_concern ?? '',
@@ -734,6 +741,9 @@ mtmp_details: '',
         health_wellbeing_support: toNull(formData.health_wellbeing_support),
         cultural_religious_support: toNull(formData.cultural_religious_support),
         other_support: toNull(formData.other_support),
+        mental_health_plan: toNull(formData.mental_health_plan),
+        medical_plan: toNull(formData.medical_plan),
+        natural_disaster_plan: toNull(formData.natural_disaster_plan),
         current_goals: toNull(formData.current_goals),
         restrictive_practices: toNull(formData.restrictive_practices),
         behaviour_of_concern: toNull(formData.behaviour_of_concern),
@@ -908,6 +918,9 @@ mtmp_details: '',
         health_wellbeing_support: normalizedFormData.health_wellbeing_support ?? '',
         cultural_religious_support: normalizedFormData.cultural_religious_support ?? '',
         other_support: normalizedFormData.other_support ?? '',
+        mental_health_plan: normalizedFormData.mental_health_plan ?? '',
+        medical_plan: normalizedFormData.medical_plan ?? '',
+        natural_disaster_plan: normalizedFormData.natural_disaster_plan ?? '',
         current_goals: normalizedFormData.current_goals ?? '',
         restrictive_practices: normalizedFormData.restrictive_practices ?? '',
         behaviour_of_concern: normalizedFormData.behaviour_of_concern ?? '',
@@ -1046,6 +1059,11 @@ mtmp_details: '',
           onSave={handleSave}
         />
         <SupportNeeds
+          canEdit={canEdit}
+          formData={formData}
+          onFormChange={handleFormChange}
+        />
+        <EmergencyManagement
           canEdit={canEdit}
           formData={formData}
           onFormChange={handleFormChange}

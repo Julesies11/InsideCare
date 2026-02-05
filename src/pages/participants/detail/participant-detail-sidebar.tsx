@@ -27,6 +27,10 @@ export function ParticipantDetailSidebar() {
       target: 'support-needs',
     },
     {
+      title: 'Emergency Management',
+      target: 'emergency-management',
+    },
+    {
       title: 'Goals',
       target: 'goals',
     },

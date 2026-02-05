@@ -44,6 +44,9 @@ export interface Participant {
   health_wellbeing_support?: string | null;
   cultural_religious_support?: string | null;
   other_support?: string | null;
+  mental_health_plan?: string | null;
+  medical_plan?: string | null;
+  natural_disaster_plan?: string | null;
   created_at?: string;
   updated_at?: string;
 }
