@@ -47,6 +47,17 @@ export interface Participant {
   mental_health_plan?: string | null;
   medical_plan?: string | null;
   natural_disaster_plan?: string | null;
+  pharmacy_name?: string | null;
+  pharmacy_contact?: string | null;
+  pharmacy_location?: string | null;
+  gp_name?: string | null;
+  gp_contact?: string | null;
+  gp_location?: string | null;
+  psychiatrist_name?: string | null;
+  psychiatrist_contact?: string | null;
+  psychiatrist_location?: string | null;
+  medical_routine_other?: string | null;
+  medical_routine_general_process?: string | null;
   created_at?: string;
   updated_at?: string;
 }

@@ -12,6 +12,7 @@ import { ClinicalDetails } from './components/clinical-details';
 import { BehaviourSupport } from './components/behaviour-support';
 import { SupportNeeds } from './components/support-needs';
 import { EmergencyManagement } from './components/emergency-management';
+import { MedicalRoutine } from './components/medical-routine';
 import { Goals } from './components/goals';
 import { Documents } from './components/documents';
 import { Medications } from './components/medications';
@@ -114,6 +115,17 @@ export function ParticipantDetailContent({
     mental_health_plan: '',
     medical_plan: '',
     natural_disaster_plan: '',
+    pharmacy_name: '',
+    pharmacy_contact: '',
+    pharmacy_location: '',
+    gp_name: '',
+    gp_contact: '',
+    gp_location: '',
+    psychiatrist_name: '',
+    psychiatrist_contact: '',
+    psychiatrist_location: '',
+    medical_routine_other: '',
+    medical_routine_general_process: '',
     current_goals: '',
     restrictive_practices: '',
     behaviour_of_concern: '',
@@ -192,6 +204,17 @@ mtmp_details: '',
           mental_health_plan: data.mental_health_plan ?? '',
           medical_plan: data.medical_plan ?? '',
           natural_disaster_plan: data.natural_disaster_plan ?? '',
+          pharmacy_name: data.pharmacy_name ?? '',
+          pharmacy_contact: data.pharmacy_contact ?? '',
+          pharmacy_location: data.pharmacy_location ?? '',
+          gp_name: data.gp_name ?? '',
+          gp_contact: data.gp_contact ?? '',
+          gp_location: data.gp_location ?? '',
+          psychiatrist_name: data.psychiatrist_name ?? '',
+          psychiatrist_contact: data.psychiatrist_contact ?? '',
+          psychiatrist_location: data.psychiatrist_location ?? '',
+          medical_routine_other: data.medical_routine_other ?? '',
+          medical_routine_general_process: data.medical_routine_general_process ?? '',
           current_goals: data.current_goals ?? '',
           restrictive_practices: data.restrictive_practices ?? '',
           behaviour_of_concern: data.behaviour_of_concern ?? '',
@@ -744,6 +767,17 @@ mtmp_details: '',
         mental_health_plan: toNull(formData.mental_health_plan),
         medical_plan: toNull(formData.medical_plan),
         natural_disaster_plan: toNull(formData.natural_disaster_plan),
+        pharmacy_name: toNull(formData.pharmacy_name),
+        pharmacy_contact: toNull(formData.pharmacy_contact),
+        pharmacy_location: toNull(formData.pharmacy_location),
+        gp_name: toNull(formData.gp_name),
+        gp_contact: toNull(formData.gp_contact),
+        gp_location: toNull(formData.gp_location),
+        psychiatrist_name: toNull(formData.psychiatrist_name),
+        psychiatrist_contact: toNull(formData.psychiatrist_contact),
+        psychiatrist_location: toNull(formData.psychiatrist_location),
+        medical_routine_other: toNull(formData.medical_routine_other),
+        medical_routine_general_process: toNull(formData.medical_routine_general_process),
         current_goals: toNull(formData.current_goals),
         restrictive_practices: toNull(formData.restrictive_practices),
         behaviour_of_concern: toNull(formData.behaviour_of_concern),
@@ -921,6 +955,17 @@ mtmp_details: '',
         mental_health_plan: normalizedFormData.mental_health_plan ?? '',
         medical_plan: normalizedFormData.medical_plan ?? '',
         natural_disaster_plan: normalizedFormData.natural_disaster_plan ?? '',
+        pharmacy_name: normalizedFormData.pharmacy_name ?? '',
+        pharmacy_contact: normalizedFormData.pharmacy_contact ?? '',
+        pharmacy_location: normalizedFormData.pharmacy_location ?? '',
+        gp_name: normalizedFormData.gp_name ?? '',
+        gp_contact: normalizedFormData.gp_contact ?? '',
+        gp_location: normalizedFormData.gp_location ?? '',
+        psychiatrist_name: normalizedFormData.psychiatrist_name ?? '',
+        psychiatrist_contact: normalizedFormData.psychiatrist_contact ?? '',
+        psychiatrist_location: normalizedFormData.psychiatrist_location ?? '',
+        medical_routine_other: normalizedFormData.medical_routine_other ?? '',
+        medical_routine_general_process: normalizedFormData.medical_routine_general_process ?? '',
         current_goals: normalizedFormData.current_goals ?? '',
         restrictive_practices: normalizedFormData.restrictive_practices ?? '',
         behaviour_of_concern: normalizedFormData.behaviour_of_concern ?? '',
@@ -1064,6 +1109,11 @@ mtmp_details: '',
           onFormChange={handleFormChange}
         />
         <EmergencyManagement
+          canEdit={canEdit}
+          formData={formData}
+          onFormChange={handleFormChange}
+        />
+        <MedicalRoutine
           canEdit={canEdit}
           formData={formData}
           onFormChange={handleFormChange}

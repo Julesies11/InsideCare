@@ -31,6 +31,10 @@ export function ParticipantDetailSidebar() {
       target: 'emergency-management',
     },
     {
+      title: 'Medical Routine',
+      target: 'medical-routine',
+    },
+    {
       title: 'Goals',
       target: 'goals',
     },
