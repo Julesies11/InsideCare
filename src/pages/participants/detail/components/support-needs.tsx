@@ -22,7 +22,7 @@ export function SupportNeeds({
       <CardContent className="grid gap-8">
         
         {/* Personal Care and Routine */}
-        <div className="space-y-5">
+        <div className="space-y-5" id="support-needs-personal-care">
           <h3 className="text-lg font-semibold">Personal Care and Routine</h3>
           <div className="grid gap-2.5">
             <div className="w-full">
@@ -55,7 +55,7 @@ export function SupportNeeds({
         </div>
 
         {/* Mobility */}
-        <div className="space-y-5">
+        <div className="space-y-5" id="support-needs-mobility">
           <h3 className="text-lg font-semibold">Mobility</h3>
           <div className="w-full">
             <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
@@ -73,7 +73,7 @@ export function SupportNeeds({
         </div>
 
         {/* Meal Preparation and Kitchen Safety */}
-        <div className="space-y-5">
+        <div className="space-y-5" id="support-needs-meal-prep">
           <h3 className="text-lg font-semibold">Meal Preparation and Kitchen Safety</h3>
           <div className="w-full">
             <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
@@ -91,7 +91,7 @@ export function SupportNeeds({
         </div>
 
         {/* Household Tasks */}
-        <div className="space-y-5">
+        <div className="space-y-5" id="support-needs-household">
           <h3 className="text-lg font-semibold">Household Tasks</h3>
           <div className="w-full">
             <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
@@ -109,7 +109,7 @@ export function SupportNeeds({
         </div>
 
         {/* Communication */}
-        <div className="space-y-5">
+        <div className="space-y-5" id="support-needs-communication">
           <h3 className="text-lg font-semibold">Communication</h3>
           <div className="grid gap-2.5">
             <div className="w-full">
@@ -160,7 +160,7 @@ export function SupportNeeds({
         </div>
 
         {/* Finances */}
-        <div className="space-y-5">
+        <div className="space-y-5" id="support-needs-finances">
           <h3 className="text-lg font-semibold">Finances</h3>
           <div className="w-full">
             <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
@@ -178,7 +178,7 @@ export function SupportNeeds({
         </div>
 
         {/* Health and Wellbeing */}
-        <div className="space-y-5">
+        <div className="space-y-5" id="support-needs-health">
           <h3 className="text-lg font-semibold">Health and Wellbeing</h3>
           <div className="w-full">
             <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
@@ -196,7 +196,7 @@ export function SupportNeeds({
         </div>
 
         {/* Cultural and Religious */}
-        <div className="space-y-5">
+        <div className="space-y-5" id="support-needs-cultural">
           <h3 className="text-lg font-semibold">Cultural and Religious</h3>
           <div className="w-full">
             <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
@@ -214,7 +214,7 @@ export function SupportNeeds({
         </div>
 
         {/* Other */}
-        <div className="space-y-5">
+        <div className="space-y-5" id="support-needs-other">
           <h3 className="text-lg font-semibold">Other</h3>
           <div className="w-full">
             <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">

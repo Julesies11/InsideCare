@@ -17,17 +17,32 @@ const ScrollspyMenu = ({ items }: ScrollspyMenuProps) => {
     item: ScrollspyMenuItem,
     index: number,
     indent: boolean = false,
+    isLast: boolean = false,
   ) => {
     return (
       <div
         key={index}
         data-scrollspy-anchor={item.target}
         className={cn(
-          'cursor-pointer flex items-center rounded-lg ps-2.5 pe-2.5 py-1.5 border border-transparent text-accent-foreground hover:text-primary data-[active=true]:bg-accent data-[active=true]:text-primary data-[active=true]:font-medium',
-          indent ? 'gap-3.5' : 'gap-1.5',
+          'cursor-pointer flex items-center rounded-lg pe-2.5 py-1.5 border border-transparent text-accent-foreground hover:text-primary data-[active=true]:bg-accent data-[active=true]:text-primary data-[active=true]:font-medium',
+          indent ? 'ps-0 gap-1.5 relative' : 'ps-2.5 gap-1.5',
         )}
       >
-        <span className="flex w-1.5 relative before:absolute start-px rtl:-start-[5px] before:top-0 before:size-1.5 before:rounded-full before:-translate-x-2/4 before:-translate-y-2/4 [[data-active=true]>&]:before:bg-primary"></span>
+        {indent && (
+          <>
+            <span className="flex w-[26px] h-full absolute left-0 top-0">
+              <span className="absolute left-[11px] top-0 bottom-1/2 w-px bg-border"></span>
+              <span className={cn(
+                "absolute left-[11px] top-1/2 w-[15px] h-px bg-border",
+                isLast && "after:absolute after:left-0 after:top-0 after:bottom-0 after:w-px after:bg-background"
+              )}></span>
+            </span>
+            <span className="flex w-1.5 relative ml-[26px] before:absolute start-px rtl:-start-[5px] before:top-0 before:size-1.5 before:rounded-full before:-translate-x-2/4 before:-translate-y-2/4 [[data-active=true]>&]:before:bg-primary"></span>
+          </>
+        )}
+        {!indent && (
+          <span className="flex w-1.5 relative before:absolute start-px rtl:-start-[5px] before:top-0 before:size-1.5 before:rounded-full before:-translate-x-2/4 before:-translate-y-2/4 [[data-active=true]>&]:before:bg-primary"></span>
+        )}
         {item.title}
       </div>
     );
@@ -35,7 +50,7 @@ const ScrollspyMenu = ({ items }: ScrollspyMenuProps) => {
 
   const buildSubAnchors = (items: ScrollspyMenuItems) => {
     return items.map((item, index) => {
-      return buildAnchor(item, index, true);
+      return buildAnchor(item, index, true, index === items.length - 1);
     });
   };
 
@@ -44,9 +59,13 @@ const ScrollspyMenu = ({ items }: ScrollspyMenuProps) => {
       if (item.children) {
         return (
           <div key={index} className="flex flex-col">
-            <div className="ps-6 pe-2.5 py-2.5 text-sm font-semibold text-mono">
-              {item.title}
-            </div>
+            {item.target ? (
+              buildAnchor(item, index, false)
+            ) : (
+              <div className="ps-6 pe-2.5 py-2.5 text-sm text-accent-foreground">
+                {item.title}
+              </div>
+            )}
             <div className="flex flex-col">
               {buildSubAnchors(item.children)}
             </div>

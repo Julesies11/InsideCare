@@ -18,7 +18,7 @@ export function HomeContent() {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-7.5">
         <StatCard
-          title="Clients"
+          title="Participants"
           value={participantCount}
           icon={Users}
           color="bg-blue-500"

@@ -1085,19 +1085,15 @@ mtmp_details: '',
           onSave={handleSave}
           validationErrors={validationErrors}
         />
-        <ClinicalDetails
-          canEdit={canEdit}
-          formData={formData}
-          onFormChange={handleFormChange}
-          onSave={handleSave}
+        <Goals 
+          key={`goals-${refreshKeys.goals}`}
+          participantId={id} 
+          canAdd={canAdd} 
+          canDelete={canDelete}
+          pendingChanges={pendingChanges}
+          onPendingChangesChange={onPendingChangesChange}
         />
         <BehaviourSupport
-          canEdit={canEdit}
-          formData={formData}
-          onFormChange={handleFormChange}
-          onSave={handleSave}
-        />
-        <MealtimeManagement
           canEdit={canEdit}
           formData={formData}
           onFormChange={handleFormChange}
@@ -1108,18 +1104,24 @@ mtmp_details: '',
           formData={formData}
           onFormChange={handleFormChange}
         />
-        <EmergencyManagement
+        <MealtimeManagement
           canEdit={canEdit}
           formData={formData}
           onFormChange={handleFormChange}
+          onSave={handleSave}
         />
         <MedicalRoutine
           canEdit={canEdit}
           formData={formData}
           onFormChange={handleFormChange}
         />
-        <Goals 
-          key={`goals-${refreshKeys.goals}`}
+        <EmergencyManagement
+          canEdit={canEdit}
+          formData={formData}
+          onFormChange={handleFormChange}
+        />
+        <ServiceProviders 
+          key={`service-providers-${refreshKeys.serviceProviders}`}
           participantId={id} 
           canAdd={canAdd} 
           canDelete={canDelete}
@@ -1134,28 +1136,6 @@ mtmp_details: '',
           canDelete={canDelete}
           pendingChanges={pendingChanges}
           onPendingChangesChange={onPendingChangesChange}
-        />
-        <Medications 
-          key={`medications-${refreshKeys.medications}`}
-          participantId={id} 
-          canAdd={canAdd} 
-          canDelete={canDelete}
-          pendingChanges={pendingChanges}
-          onPendingChangesChange={onPendingChangesChange}
-        />
-        <ServiceProviders 
-          key={`service-providers-${refreshKeys.serviceProviders}`}
-          participantId={id} 
-          canAdd={canAdd} 
-          canDelete={canDelete}
-          pendingChanges={pendingChanges}
-          onPendingChangesChange={onPendingChangesChange}
-        />
-        <RestrictivePractices
-          canEdit={canEdit}
-          formData={formData}
-          onFormChange={handleFormChange}
-          onSave={handleSave}
         />
         <ShiftNotes 
           key={`shift-notes-${refreshKeys.shiftNotes}`}

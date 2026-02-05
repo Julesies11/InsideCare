@@ -23,7 +23,7 @@ export function MedicalRoutine({
       <CardContent className="grid gap-8">
         
         {/* Pharmacy */}
-        <div className="space-y-5">
+        <div className="space-y-5" id="medical-routine-pharmacy">
           <h3 className="text-lg font-semibold">Pharmacy</h3>
           <div className="grid gap-2.5">
             <div className="w-full">
@@ -66,7 +66,7 @@ export function MedicalRoutine({
         </div>
 
         {/* General Practitioner */}
-        <div className="space-y-5">
+        <div className="space-y-5" id="medical-routine-gp">
           <h3 className="text-lg font-semibold">General Practitioner</h3>
           <div className="grid gap-2.5">
             <div className="w-full">
@@ -109,7 +109,7 @@ export function MedicalRoutine({
         </div>
 
         {/* Psychiatrist */}
-        <div className="space-y-5">
+        <div className="space-y-5" id="medical-routine-psychiatrist">
           <h3 className="text-lg font-semibold">Psychiatrist</h3>
           <div className="grid gap-2.5">
             <div className="w-full">
@@ -152,7 +152,7 @@ export function MedicalRoutine({
         </div>
 
         {/* Any Other */}
-        <div className="w-full">
+        <div className="w-full" id="medical-routine-other">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
             <Label className="flex w-full max-w-56">Any Other</Label>
             <Textarea
@@ -167,7 +167,7 @@ export function MedicalRoutine({
         </div>
 
         {/* General Process */}
-        <div className="w-full">
+        <div className="w-full" id="medical-routine-process">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
             <Label className="flex w-full max-w-56">General Process</Label>
             <Textarea
