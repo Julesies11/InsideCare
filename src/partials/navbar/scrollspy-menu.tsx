@@ -25,7 +25,7 @@ const ScrollspyMenu = ({ items }: ScrollspyMenuProps) => {
         data-scrollspy-anchor={item.target}
         className={cn(
           'cursor-pointer flex items-center rounded-lg pe-2.5 border border-transparent text-accent-foreground hover:text-primary data-[active=true]:bg-accent data-[active=true]:text-primary data-[active=true]:font-medium',
-          indent ? 'ps-0 gap-1.5 relative py-0.5 text-xs leading-tight' : 'ps-2.5 gap-1.5 py-1.5 font-semibold',
+          indent ? 'ps-0 gap-1.5 relative py-0.5 text-xs leading-tight' : 'ps-2.5 gap-1.5 py-1 font-semibold',
         )}
       >
         {indent && (
@@ -63,13 +63,13 @@ const ScrollspyMenu = ({ items }: ScrollspyMenuProps) => {
               <div
                 key={index}
                 data-scrollspy-anchor={item.target}
-                className="cursor-pointer flex items-center rounded-lg pe-2.5 border border-transparent text-accent-foreground hover:text-primary data-[active=true]:bg-accent data-[active=true]:text-primary data-[active=true]:font-medium ps-2.5 gap-1.5 py-1.5 font-semibold"
+                className="cursor-pointer flex items-center rounded-lg pe-2.5 border border-transparent text-accent-foreground hover:text-primary data-[active=true]:bg-accent data-[active=true]:text-primary data-[active=true]:font-medium ps-2.5 gap-1.5 py-1 font-semibold"
               >
                 <span className="flex w-1.5 relative before:absolute start-px rtl:-start-[5px] before:top-0 before:size-1.5 before:rounded-full before:-translate-x-2/4 before:-translate-y-2/4 [[data-active=true]>&]:before:bg-primary"></span>
                 {item.title}
               </div>
             ) : (
-              <div className="ps-6 pe-2.5 py-1.5 text-sm text-accent-foreground font-semibold">
+              <div className="ps-6 pe-2.5 py-1 text-sm text-accent-foreground font-semibold">
                 {item.title}
               </div>
             )}
