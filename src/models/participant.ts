@@ -17,8 +17,8 @@ export interface Participant {
   primary_diagnosis?: string | null;
   secondary_diagnosis?: string | null;
   allergies?: string | null;
-  morning_routine?: string | null;
-  shower_support?: string | null;
+  routine?: string | null;
+  hygiene_support?: string | null;
   current_goals?: string | null;
   current_medications?: string | null;
   general_notes?: string | null;
@@ -35,6 +35,16 @@ export interface Participant {
   restrictive_practice_details?: string | null;
   mtmp_required?: boolean | null;
   mtmp_details?: string | null;
+  mobility_support?: string | null;
+  meal_prep_support?: string | null;
+  household_support?: string | null;
+  communication_type?: string | null;
+  communication_notes?: string | null;
+  communication_language_needs?: string | null;
+  finance_support?: string | null;
+  health_wellbeing_support?: string | null;
+  cultural_religious_support?: string | null;
+  other_support?: string | null;
   created_at?: string;
   updated_at?: string;
 }

@@ -23,8 +23,8 @@ export function ParticipantDetailSidebar() {
       target: 'mealtime',
     },
     {
-      title: 'Hygiene & Routines',
-      target: 'hygiene',
+      title: 'Support Needs',
+      target: 'support-needs',
     },
     {
       title: 'Goals',

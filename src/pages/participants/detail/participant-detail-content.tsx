@@ -10,7 +10,7 @@ import { ParticipantDetailSidebar } from './participant-detail-sidebar';
 import { PersonalDetails } from './components/personal-details';
 import { ClinicalDetails } from './components/clinical-details';
 import { BehaviourSupport } from './components/behaviour-support';
-import { HygieneRoutines } from './components/hygiene-routines';
+import { SupportNeeds } from './components/support-needs';
 import { Goals } from './components/goals';
 import { Documents } from './components/documents';
 import { Medications } from './components/medications';
@@ -99,8 +99,18 @@ export function ParticipantDetailContent({
     primary_diagnosis: '',
     secondary_diagnosis: '',
     allergies: '',
-    morning_routine: '',
-    shower_support: '',
+    routine: '',
+    hygiene_support: '',
+    mobility_support: '',
+    meal_prep_support: '',
+    household_support: '',
+    communication_type: '',
+    communication_notes: '',
+    communication_language_needs: '',
+    finance_support: '',
+    health_wellbeing_support: '',
+    cultural_religious_support: '',
+    other_support: '',
     current_goals: '',
     general_notes: '',
     restrictive_practices: '',
@@ -165,8 +175,18 @@ mtmp_details: '',
           primary_diagnosis: data.primary_diagnosis ?? '',
           secondary_diagnosis: data.secondary_diagnosis ?? '',
           allergies: data.allergies ?? '',
-          morning_routine: data.morning_routine ?? '',
-          shower_support: data.shower_support ?? '',
+          routine: data.routine ?? '',
+          hygiene_support: data.hygiene_support ?? '',
+          mobility_support: data.mobility_support ?? '',
+          meal_prep_support: data.meal_prep_support ?? '',
+          household_support: data.household_support ?? '',
+          communication_type: data.communication_type ?? '',
+          communication_notes: data.communication_notes ?? '',
+          communication_language_needs: data.communication_language_needs ?? '',
+          finance_support: data.finance_support ?? '',
+          health_wellbeing_support: data.health_wellbeing_support ?? '',
+          cultural_religious_support: data.cultural_religious_support ?? '',
+          other_support: data.other_support ?? '',
           current_goals: data.current_goals ?? '',
           general_notes: data.general_notes ?? '',
           restrictive_practices: data.restrictive_practices ?? '',
@@ -705,8 +725,18 @@ mtmp_details: '',
         primary_diagnosis: toNull(formData.primary_diagnosis),
         secondary_diagnosis: toNull(formData.secondary_diagnosis),
         allergies: toNull(formData.allergies),
-        morning_routine: toNull(formData.morning_routine),
-        shower_support: toNull(formData.shower_support),
+        routine: toNull(formData.routine),
+        hygiene_support: toNull(formData.hygiene_support),
+        mobility_support: toNull(formData.mobility_support),
+        meal_prep_support: toNull(formData.meal_prep_support),
+        household_support: toNull(formData.household_support),
+        communication_type: toNull(formData.communication_type),
+        communication_notes: toNull(formData.communication_notes),
+        communication_language_needs: toNull(formData.communication_language_needs),
+        finance_support: toNull(formData.finance_support),
+        health_wellbeing_support: toNull(formData.health_wellbeing_support),
+        cultural_religious_support: toNull(formData.cultural_religious_support),
+        other_support: toNull(formData.other_support),
         current_goals: toNull(formData.current_goals),
         general_notes: toNull(formData.general_notes),
         restrictive_practices: toNull(formData.restrictive_practices),
@@ -870,8 +900,18 @@ mtmp_details: '',
         primary_diagnosis: normalizedFormData.primary_diagnosis ?? '',
         secondary_diagnosis: normalizedFormData.secondary_diagnosis ?? '',
         allergies: normalizedFormData.allergies ?? '',
-        morning_routine: normalizedFormData.morning_routine ?? '',
-        shower_support: normalizedFormData.shower_support ?? '',
+        routine: normalizedFormData.routine ?? '',
+        hygiene_support: normalizedFormData.hygiene_support ?? '',
+        mobility_support: normalizedFormData.mobility_support ?? '',
+        meal_prep_support: normalizedFormData.meal_prep_support ?? '',
+        household_support: normalizedFormData.household_support ?? '',
+        communication_type: normalizedFormData.communication_type ?? '',
+        communication_notes: normalizedFormData.communication_notes ?? '',
+        communication_language_needs: normalizedFormData.communication_language_needs ?? '',
+        finance_support: normalizedFormData.finance_support ?? '',
+        health_wellbeing_support: normalizedFormData.health_wellbeing_support ?? '',
+        cultural_religious_support: normalizedFormData.cultural_religious_support ?? '',
+        other_support: normalizedFormData.other_support ?? '',
         current_goals: normalizedFormData.current_goals ?? '',
         general_notes: normalizedFormData.general_notes ?? '',
         restrictive_practices: normalizedFormData.restrictive_practices ?? '',
@@ -1010,11 +1050,10 @@ mtmp_details: '',
           onFormChange={handleFormChange}
           onSave={handleSave}
         />
-        <HygieneRoutines
+        <SupportNeeds
           canEdit={canEdit}
           formData={formData}
           onFormChange={handleFormChange}
-          onSave={handleSave}
         />
         <Goals 
           key={`goals-${refreshKeys.goals}`}
