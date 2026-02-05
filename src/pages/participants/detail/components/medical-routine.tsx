@@ -25,7 +25,7 @@ export function MedicalRoutine({
         {/* Pharmacy */}
         <div className="space-y-5">
           <h3 className="text-lg font-semibold">Pharmacy</h3>
-          <div className="grid gap-5">
+          <div className="grid gap-2.5">
             <div className="w-full">
               <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
                 <Label className="flex w-full max-w-56">Pharmacy Name</Label>
@@ -68,7 +68,7 @@ export function MedicalRoutine({
         {/* General Practitioner */}
         <div className="space-y-5">
           <h3 className="text-lg font-semibold">General Practitioner</h3>
-          <div className="grid gap-5">
+          <div className="grid gap-2.5">
             <div className="w-full">
               <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
                 <Label className="flex w-full max-w-56">GP Name</Label>
@@ -111,7 +111,7 @@ export function MedicalRoutine({
         {/* Psychiatrist */}
         <div className="space-y-5">
           <h3 className="text-lg font-semibold">Psychiatrist</h3>
-          <div className="grid gap-5">
+          <div className="grid gap-2.5">
             <div className="w-full">
               <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
                 <Label className="flex w-full max-w-56">Psychiatrist Name</Label>

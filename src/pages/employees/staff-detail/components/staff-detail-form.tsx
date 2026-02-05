@@ -36,7 +36,7 @@ export function StaffDetailForm({
   };
 
   return (
-    <div className="grid gap-5 lg:gap-7.5">
+    <div className="grid gap-2.5 lg:gap-7.5">
       <PersonalDetails
         formData={formData}
         onFormChange={handleFormChange}

@@ -33,7 +33,7 @@ export function BehaviourSupport({
         <CardTitle>Behaviour Support</CardTitle>
       </CardHeader>
 
-      <CardContent className="grid gap-5">
+      <CardContent className="grid gap-2.5">
         {/* Behaviour of Concern */}
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">

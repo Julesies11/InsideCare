@@ -20,7 +20,7 @@ export function MealtimeManagement({
         <CardTitle>Mealtime Management Plan</CardTitle>
       </CardHeader>
 
-      <CardContent className="grid gap-5">
+      <CardContent className="grid gap-2.5">
 
         {/* MTMP Required */}
         <div className="flex items-center flex-wrap lg:flex-nowrap gap-2.5">

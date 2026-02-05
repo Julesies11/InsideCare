@@ -64,7 +64,7 @@ export function PersonalDetails({
       <CardHeader>
         <CardTitle>Personal Details</CardTitle>
       </CardHeader>
-      <CardContent className="grid gap-5">
+      <CardContent className="grid gap-2.5">
         {/* Avatar Section */}
         <div className="flex items-center flex-wrap gap-2.5">
           <Label className="flex w-full max-w-56">Photo</Label>

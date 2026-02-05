@@ -18,7 +18,7 @@ export function EmergencyContact({
       <CardHeader>
         <CardTitle>Emergency Contact</CardTitle>
       </CardHeader>
-      <CardContent className="grid gap-5">
+      <CardContent className="grid gap-2.5">
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
             <Label className="flex w-full max-w-56">Contact Name</Label>

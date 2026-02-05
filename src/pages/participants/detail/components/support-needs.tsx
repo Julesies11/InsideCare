@@ -24,7 +24,7 @@ export function SupportNeeds({
         {/* Personal Care and Routine */}
         <div className="space-y-5">
           <h3 className="text-lg font-semibold">Personal Care and Routine</h3>
-          <div className="grid gap-5">
+          <div className="grid gap-2.5">
             <div className="w-full">
               <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
                 <Label className="flex w-full max-w-56">Routine</Label>
@@ -111,7 +111,7 @@ export function SupportNeeds({
         {/* Communication */}
         <div className="space-y-5">
           <h3 className="text-lg font-semibold">Communication</h3>
-          <div className="grid gap-5">
+          <div className="grid gap-2.5">
             <div className="w-full">
               <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
                 <Label className="flex w-full max-w-56">Preferred Communication Type</Label>
