@@ -1,3 +1,11 @@
+export interface PendingGoal {
+  tempId?: string;
+  id?: string;
+  goal_type: string;
+  description?: string;
+  is_active: boolean;
+}
+
 export interface PendingDocument {
   file: File;
   fileName: string;
@@ -60,6 +68,11 @@ export interface PendingStaffResource {
 }
 
 export interface PendingChanges {
+    goals: {
+    toAdd: PendingGoal[];
+    toUpdate: PendingGoal[];
+    toDelete: string[]; // IDs
+  };
   documents: {
     toAdd: PendingDocument[];
     toDelete: PendingDocumentDelete[];
@@ -92,6 +105,11 @@ export interface PendingChanges {
 }
 
 export const emptyPendingChanges: PendingChanges = {
+  goals: {
+    toAdd: [],
+    toUpdate: [],
+    toDelete: [],
+  },
   documents: {
     toAdd: [],
     toDelete: [],
@@ -126,6 +144,9 @@ export const emptyPendingChanges: PendingChanges = {
 // Helper to check if there are any pending changes
 export function hasPendingChanges(pending: PendingChanges): boolean {
   return (
+    pending.goals.toAdd.length > 0 ||
+    pending.goals.toUpdate.length > 0 ||
+    pending.goals.toDelete.length > 0 ||
     pending.documents.toAdd.length > 0 ||
     pending.documents.toDelete.length > 0 ||
     pending.medications.toAdd.length > 0 ||
@@ -149,6 +170,9 @@ export function hasPendingChanges(pending: PendingChanges): boolean {
 // Helper to count total pending changes
 export function countPendingChanges(pending: PendingChanges): number {
   return (
+    pending.goals.toAdd.length +
+    pending.goals.toUpdate.length +
+    pending.goals.toDelete.length +
     pending.documents.toAdd.length +
     pending.documents.toDelete.length +
     pending.medications.toAdd.length +

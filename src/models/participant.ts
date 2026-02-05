@@ -33,6 +33,8 @@ export interface Participant {
   specialist_email?: string | null;
   restrictive_practice_authorisation?: boolean | null;
   restrictive_practice_details?: string | null;
+  mtmp_required?: boolean | null;
+  mtmp_details?: string | null;
   created_at?: string;
   updated_at?: string;
 }

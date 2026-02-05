@@ -41,6 +41,7 @@ const stickySidebarClasses: Record<string, string> = {
 };
 
 import { PendingChanges } from '@/models/pending-changes';
+import { MealtimeManagement } from './components/mealtime-management';
 
 interface ParticipantDetailContentProps {
   onFormDataChange?: (data: any) => void;
@@ -68,6 +69,7 @@ export function ParticipantDetailContent({
   const [participant, setParticipant] = useState<Participant | undefined>();
   const [loading, setLoading] = useState(true);
   const [refreshKeys, setRefreshKeys] = useState({
+    goals: 0,
     documents: 0,
     medications: 0,
     serviceProviders: 0,
@@ -111,6 +113,8 @@ export function ParticipantDetailContent({
     specialist_email: '',
     restrictive_practice_authorisation: null,
     restrictive_practice_details: '',
+    mtmp_required: null,
+mtmp_details: '',
   });
 
   // Use form validation hook
@@ -175,6 +179,8 @@ export function ParticipantDetailContent({
           specialist_email: data.specialist_email ?? '',
           restrictive_practice_authorisation: data.restrictive_practice_authorisation ?? null,
           restrictive_practice_details: data.restrictive_practice_details ?? '',
+          mtmp_required: data.mtmp_required ?? null,
+          mtmp_details: data.mtmp_details ?? '',
         };
         setFormData(initialData);
         
@@ -228,6 +234,92 @@ export function ParticipantDetailContent({
     if (onSavingChange) onSavingChange(true);
 
     try {
+
+      // Subform: Process pending goals
+      if (pendingChanges?.goals.toAdd.length) {
+        for (const goal of pendingChanges.goals.toAdd) {
+          const { error } = await supabase
+            .from('participant_goals')
+            .insert({
+              participant_id: id,
+              goal_type: goal.goal_type,
+              description: goal.description || null,
+              is_active: goal.is_active,
+            });
+
+          if (error) {
+            throw new Error(`Failed to add goal: ${error.message}`);
+          }
+
+          // Log activity
+          await logActivity({
+            activityType: 'create',
+            entityType: 'participant',
+            entityId: id,
+            entityName: participant?.name,
+            userName,
+            customDescription: `Added goal "${goal.goal_type}"${goal.description ? ` (${goal.description})` : ''}`,
+          });
+        }
+      }
+
+      if (pendingChanges?.goals.toUpdate.length) {
+        for (const goal of pendingChanges.goals.toUpdate) {
+          const { error } = await supabase
+            .from('participant_goals')
+            .update({
+              goal_type: goal.goal_type,
+              description: goal.description || null,
+              is_active: goal.is_active,
+            })
+            .eq('id', goal.id);
+
+          if (error) {
+            throw new Error(`Failed to update goal: ${error.message}`);
+          }
+
+          // Log activity
+          await logActivity({
+            activityType: 'update',
+            entityType: 'participant',
+            entityId: id,
+            entityName: participant?.name,
+            userName,
+            customDescription: `Updated goal "${goal.goal_type}"${goal.description ? ` (${goal.description})` : ''}`,
+          });
+        }
+      }
+
+      if (pendingChanges?.goals.toDelete.length) {
+        for (const goalId of pendingChanges.goals.toDelete) {
+          // Get goal type before deleting
+          const { data: medData } = await supabase
+            .from('participant_goals')
+            .select('goal_type')
+            .eq('id', goalId)
+            .single();
+
+          const { error } = await supabase
+            .from('participant_goals')
+            .delete()
+            .eq('id', goalId);
+
+          if (error) {
+            throw new Error(`Failed to delete goal: ${error.message}`);
+          }
+
+          // Log activity
+          await logActivity({
+            activityType: 'delete',
+            entityType: 'participant',
+            entityId: id,
+            entityName: participant?.name,
+            userName,
+            customDescription: `Deleted goal "${goalId?.goal_type || 'Unknown goal'}"`,
+          });
+        }
+      }
+
       // Step 1: Upload pending documents
       if (pendingChanges?.documents.toAdd.length) {
         for (const doc of pendingChanges.documents.toAdd) {
@@ -627,6 +719,8 @@ export function ParticipantDetailContent({
         specialist_email: toNull(formData.specialist_email),
         restrictive_practice_authorisation: formData.restrictive_practice_authorisation,
         restrictive_practice_details: toNull(formData.restrictive_practice_details),
+        mtmp_required: formData.mtmp_required,
+        mtmp_details: toNull(formData.mtmp_details),
       };
 
       // Build object with only changed fields by comparing with original participant data
@@ -790,6 +884,8 @@ export function ParticipantDetailContent({
         specialist_email: normalizedFormData.specialist_email ?? '',
         restrictive_practice_authorisation: normalizedFormData.restrictive_practice_authorisation ?? null,
         restrictive_practice_details: normalizedFormData.restrictive_practice_details ?? '',
+        mtmp_required: normalizedFormData.mtmp_required ?? null,
+        mtmp_details: normalizedFormData.mtmp_details ?? '',
       };
       
       setFormData(normalizedData);
@@ -801,6 +897,7 @@ export function ParticipantDetailContent({
 
       // Track which child entities had changes for selective refresh
       const changedEntities = {
+        goals: (pendingChanges?.goals.toAdd.length || 0) > 0 || (pendingChanges?.goals.toUpdate.length || 0) > 0 || (pendingChanges?.goals.toDelete.length || 0) > 0,
         documents: (pendingChanges?.documents.toAdd.length || 0) > 0 || (pendingChanges?.documents.toDelete.length || 0) > 0,
         medications: (pendingChanges?.medications.toAdd.length || 0) > 0 || (pendingChanges?.medications.toUpdate.length || 0) > 0 || (pendingChanges?.medications.toDelete.length || 0) > 0,
         serviceProviders: (pendingChanges?.serviceProviders.toAdd.length || 0) > 0 || (pendingChanges?.serviceProviders.toUpdate.length || 0) > 0 || (pendingChanges?.serviceProviders.toDelete.length || 0) > 0,
@@ -814,6 +911,7 @@ export function ParticipantDetailContent({
 
       // Only increment refresh keys for entities that had changes
       setRefreshKeys(prev => ({
+        goals: changedEntities.goals ? prev.goals + 1 : prev.goals,
         documents: changedEntities.documents ? prev.documents + 1 : prev.documents,
         medications: changedEntities.medications ? prev.medications + 1 : prev.medications,
         serviceProviders: changedEntities.serviceProviders ? prev.serviceProviders + 1 : prev.serviceProviders,
@@ -824,6 +922,7 @@ export function ParticipantDetailContent({
       // Step 6: Clear pending changes after successful save
       if (onPendingChangesChange && pendingChanges) {
         onPendingChangesChange({
+          goals: { toAdd: [], toUpdate: [], toDelete: [] },
           documents: { toAdd: [], toDelete: [] },
           medications: { toAdd: [], toUpdate: [], toDelete: [] },
           serviceProviders: { toAdd: [], toUpdate: [], toDelete: [] },
@@ -905,18 +1004,25 @@ export function ParticipantDetailContent({
           onFormChange={handleFormChange}
           onSave={handleSave}
         />
+        <MealtimeManagement
+          canEdit={canEdit}
+          formData={formData}
+          onFormChange={handleFormChange}
+          onSave={handleSave}
+        />
         <HygieneRoutines
           canEdit={canEdit}
           formData={formData}
           onFormChange={handleFormChange}
           onSave={handleSave}
         />
-        <Goals
-          participant={participant}
-          canEdit={canEdit}
-          formData={formData}
-          onFormChange={handleFormChange}
-          onSave={handleSave}
+        <Goals 
+          key={`goals-${refreshKeys.goals}`}
+          participantId={id} 
+          canAdd={canAdd} 
+          canDelete={canDelete}
+          pendingChanges={pendingChanges}
+          onPendingChangesChange={onPendingChangesChange}
         />
         <Documents
           key={`documents-${refreshKeys.documents}`}

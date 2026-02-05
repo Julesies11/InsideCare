@@ -19,6 +19,10 @@ export function ParticipantDetailSidebar() {
       target: 'behaviour',
     },
     {
+      title: 'Mealtime Management',
+      target: 'mealtime',
+    },
+    {
       title: 'Hygiene & Routines',
       target: 'hygiene',
     },
