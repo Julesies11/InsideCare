@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Plus, Edit, Trash2, Pill, Clock } from 'lucide-react';
+import { MedicationCombobox } from './medication-components/medication-combobox';
+import { MedicationMasterDialog } from './medication-components/medication-master-dialog';
 import { useParticipantMedications } from '@/hooks/useParticipantMedications';
 import { PendingChanges } from '@/models/pending-changes';
 import { useForm } from 'react-hook-form';
@@ -40,6 +42,7 @@ export function Medications({
 }: MedicationsProps) {
   const [showDialog, setShowDialog] = useState(false);
   const [editingMedication, setEditingMedication] = useState<any>(null);
+  const [showMasterDialog, setShowMasterDialog] = useState(false);
 
   const { medications, loading } = useParticipantMedications(participantId);
 
@@ -349,7 +352,12 @@ export function Medications({
                   <FormItem>
                     <FormLabel>Medication Name *</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <MedicationCombobox
+                        value={field.value}
+                        onChange={field.onChange}
+                        canEdit={canAdd}
+                        onManageList={() => setShowMasterDialog(true)}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -406,6 +414,14 @@ export function Medications({
           </Form>
         </DialogContent>
       </Dialog>
+
+      <MedicationMasterDialog
+        open={showMasterDialog}
+        onClose={() => setShowMasterDialog(false)}
+        onUpdate={() => {
+          // Combobox will automatically refresh via useMedicationsMaster hook
+        }}
+      />
     </>
   );
 }
