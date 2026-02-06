@@ -7,13 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { FundingSourceCombobox } from '@/pages/participants/detail/components/funding-components/funding-source-combobox';
+import { FundingTypeCombobox } from '@/pages/participants/detail/components/funding-components/funding-type-combobox';
+import { FundingSourceMasterDialog } from '@/pages/participants/detail/components/funding-components/funding-source-master-dialog';
+import { FundingTypeMasterDialog } from '@/pages/participants/detail/components/funding-components/funding-type-master-dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert } from '@/components/ui/alert';
 import { useParticipants } from '@/hooks/use-participants';
@@ -32,18 +30,22 @@ export function FundingForm() {
   const [loading, setLoading] = useState(!!id);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showFundingSourceMasterDialog, setShowFundingSourceMasterDialog] = useState(false);
+  const [showFundingTypeMasterDialog, setShowFundingTypeMasterDialog] = useState(false);
+  const [refreshFundingSourceKey, setRefreshFundingSourceKey] = useState(0);
+  const [refreshFundingTypeKey, setRefreshFundingTypeKey] = useState(0);
 
   const [formData, setFormData] = useState({
     participant_id: '',
     house_id: '',
-    funding_source: 'NDIS' as 'NDIS' | 'Private' | 'State Funding',
-    funding_type: 'Core Supports' as 'Core Supports' | 'Capacity Building' | 'Capital Supports' | 'Support Services',
-    registration_number: '',
+    funding_source_id: '',
+    funding_type_id: '',
+    code: '',
     invoice_recipient: '',
     allocated_amount: '',
     used_amount: '',
     status: 'Active' as 'Active' | 'Near Depletion' | 'Expired' | 'Inactive',
-    expiry_date: '',
+    end_date: '',
     notes: '',
   });
 
@@ -54,14 +56,14 @@ export function FundingForm() {
         setFormData({
           participant_id: funding.participant_id,
           house_id: funding.house_id ? funding.house_id : 'none',
-          funding_source: funding.funding_source,
-          funding_type: funding.funding_type,
-          registration_number: funding.registration_number,
-          invoice_recipient: funding.invoice_recipient,
+          funding_source_id: funding.funding_source_id,
+          funding_type_id: funding.funding_type_id,
+          code: funding.code || '',
+          invoice_recipient: funding.invoice_recipient || '',
           allocated_amount: funding.allocated_amount.toString(),
           used_amount: funding.used_amount.toString(),
           status: funding.status,
-          expiry_date: funding.expiry_date || '',
+          end_date: funding.end_date || '',
           notes: funding.notes || '',
         });
         setLoading(false);
@@ -92,6 +94,20 @@ export function FundingForm() {
     return Math.max(0, allocated - used);
   };
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-AU', { 
+      style: 'currency', 
+      currency: 'AUD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
+
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
+    const value = e.target.value.replace(/[^0-9]/g, '');
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -107,12 +123,18 @@ export function FundingForm() {
       const remaining = calculateRemaining();
 
       const data = {
-        ...formData,
+        participant_id: formData.participant_id,
         house_id: formData.house_id === 'none' ? null : formData.house_id,
+        funding_source_id: formData.funding_source_id,
+        funding_type_id: formData.funding_type_id,
+        code: formData.code || null,
+        invoice_recipient: formData.invoice_recipient || null,
         allocated_amount: allocated,
         used_amount: used,
         remaining_amount: remaining,
-        expiry_date: formData.expiry_date || null,
+        status: formData.status,
+        end_date: formData.end_date || null,
+        notes: formData.notes || null,
       };
 
       if (id) {
@@ -217,50 +239,37 @@ export function FundingForm() {
             {/* Second Row */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="funding_source">Funding Source *</Label>
-                <Select
-                  value={formData.funding_source}
-                  onValueChange={(value) => handleSelectChange('funding_source', value)}
-                >
-                  <SelectTrigger id="funding_source">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="NDIS">NDIS</SelectItem>
-                    <SelectItem value="Private">Private</SelectItem>
-                    <SelectItem value="State Funding">State Funding</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="funding_source_id">Funding Source *</Label>
+                <FundingSourceCombobox
+                  value={formData.funding_source_id}
+                  onChange={(value) => handleSelectChange('funding_source_id', value)}
+                  canEdit={true}
+                  onManageList={() => setShowFundingSourceMasterDialog(true)}
+                  onRefresh={refreshFundingSourceKey > 0 ? () => {} : undefined}
+                />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="funding_type">Funding Type *</Label>
-                <Select
-                  value={formData.funding_type}
-                  onValueChange={(value) => handleSelectChange('funding_type', value)}
-                >
-                  <SelectTrigger id="funding_type">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Core Supports">Core Supports</SelectItem>
-                    <SelectItem value="Capacity Building">Capacity Building</SelectItem>
-                    <SelectItem value="Capital Supports">Capital Supports</SelectItem>
-                    <SelectItem value="Support Services">Support Services</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="funding_type_id">Funding Type *</Label>
+                <FundingTypeCombobox
+                  value={formData.funding_type_id}
+                  onChange={(value) => handleSelectChange('funding_type_id', value)}
+                  canEdit={true}
+                  onManageList={() => setShowFundingTypeMasterDialog(true)}
+                  onRefresh={refreshFundingTypeKey > 0 ? () => {} : undefined}
+                />
               </div>
             </div>
 
             {/* Third Row */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="registration_number">Registration Number *</Label>
+                <Label htmlFor="code">Code</Label>
                 <Input
-                  id="registration_number"
-                  name="registration_number"
+                  id="code"
+                  name="code"
                   placeholder="e.g., NDIS-2024-001"
-                  value={formData.registration_number}
+                  value={formData.code}
                   onChange={handleInputChange}
                 />
               </div>
@@ -280,38 +289,48 @@ export function FundingForm() {
             {/* Fourth Row */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="allocated_amount">Allocated Amount * ($)</Label>
+                <Label htmlFor="allocated_amount">Allocated Amount *</Label>
                 <Input
                   id="allocated_amount"
                   name="allocated_amount"
-                  type="number"
-                  placeholder="0.00"
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="0"
                   value={formData.allocated_amount}
-                  onChange={handleInputChange}
-                  step="0.01"
+                  onChange={(e) => handleAmountChange(e, 'allocated_amount')}
                 />
+                {formData.allocated_amount && (
+                  <p className="text-xs text-muted-foreground">
+                    {formatCurrency(Number(formData.allocated_amount))}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="used_amount">Used Amount ($)</Label>
+                <Label htmlFor="used_amount">Used Amount</Label>
                 <Input
                   id="used_amount"
                   name="used_amount"
-                  type="number"
-                  placeholder="0.00"
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="0"
                   value={formData.used_amount}
-                  onChange={handleInputChange}
-                  step="0.01"
+                  onChange={(e) => handleAmountChange(e, 'used_amount')}
                 />
+                {formData.used_amount && (
+                  <p className="text-xs text-muted-foreground">
+                    {formatCurrency(Number(formData.used_amount))}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="remaining">Remaining Amount ($)</Label>
+                <Label htmlFor="remaining">Remaining Amount</Label>
                 <Input
                   id="remaining"
-                  type="number"
+                  type="text"
                   disabled
-                  value={calculateRemaining().toFixed(2)}
+                  value={formatCurrency(calculateRemaining())}
                   className="bg-gray-100 dark:bg-gray-800"
                 />
               </div>
@@ -338,12 +357,12 @@ export function FundingForm() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="expiry_date">Expiry Date</Label>
+                <Label htmlFor="end_date">End Date</Label>
                 <Input
-                  id="expiry_date"
-                  name="expiry_date"
+                  id="end_date"
+                  name="end_date"
                   type="date"
-                  value={formData.expiry_date}
+                  value={formData.end_date}
                   onChange={handleInputChange}
                 />
               </div>
@@ -382,6 +401,25 @@ export function FundingForm() {
           </form>
         </CardContent>
       </Card>
+
+      {/* Master Dialogs */}
+      <FundingSourceMasterDialog
+        open={showFundingSourceMasterDialog}
+        onClose={() => {
+          setShowFundingSourceMasterDialog(false);
+          setRefreshFundingSourceKey(prev => prev + 1);
+        }}
+        onUpdate={() => {}}
+      />
+
+      <FundingTypeMasterDialog
+        open={showFundingTypeMasterDialog}
+        onClose={() => {
+          setShowFundingTypeMasterDialog(false);
+          setRefreshFundingTypeKey(prev => prev + 1);
+        }}
+        onUpdate={() => {}}
+      />
     </div>
   );
 }

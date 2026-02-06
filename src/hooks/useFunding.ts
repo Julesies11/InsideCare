@@ -86,10 +86,10 @@ export function useFunding(participantId?: string) {
 
       const formattedData = (data || []).map((record: any) => ({
         ...record,
-        participant: record.participant?.[0],
-        house: record.house?.[0],
-        funding_source: record.funding_source,
-        funding_type: record.funding_type,
+        participant: Array.isArray(record.participant) ? record.participant[0] : record.participant,
+        house: Array.isArray(record.house) ? record.house[0] : record.house,
+        funding_source: Array.isArray(record.funding_source) ? record.funding_source[0] : record.funding_source,
+        funding_type: Array.isArray(record.funding_type) ? record.funding_type[0] : record.funding_type,
       }));
       setFundingRecords(formattedData);
       setError(null);

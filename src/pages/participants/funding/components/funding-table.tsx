@@ -95,9 +95,9 @@ const FundingTable = () => {
       const matchesSearch =
         !searchQuery ||
         (item.participant?.name && item.participant.name.toLowerCase().includes(searchLower)) ||
-        (item.registration_number && item.registration_number.toLowerCase().includes(searchLower)) ||
-        (item.funding_source && item.funding_source.toLowerCase().includes(searchLower)) ||
-        (item.funding_type && item.funding_type.toLowerCase().includes(searchLower));
+        (item.code && item.code.toLowerCase().includes(searchLower)) ||
+        (item.funding_source?.name && item.funding_source.name.toLowerCase().includes(searchLower)) ||
+        (item.funding_type?.name && item.funding_type.name.toLowerCase().includes(searchLower));
 
       return matchesHouse && matchesSearch;
     });
@@ -161,13 +161,13 @@ const FundingTable = () => {
       },
       {
         id: 'source',
-        accessorFn: (row) => row.funding_source,
+        accessorFn: (row) => row.funding_source?.name,
         header: ({ column }) => (
           <DataGridColumnHeader title="Funding Source" column={column} />
         ),
         cell: ({ row }) => (
           <Badge variant="outline" appearance="light">
-            {row.original.funding_source}
+            {row.original.funding_source?.name || 'N/A'}
           </Badge>
         ),
         enableSorting: true,
@@ -175,27 +175,27 @@ const FundingTable = () => {
       },
       {
         id: 'type',
-        accessorFn: (row) => row.funding_type,
+        accessorFn: (row) => row.funding_type?.name,
         header: ({ column }) => (
           <DataGridColumnHeader title="Type" column={column} />
         ),
         cell: ({ row }) => (
           <span className="text-sm text-gray-700 dark:text-gray-300">
-            {row.original.funding_type}
+            {row.original.funding_type?.name || 'N/A'}
           </span>
         ),
         enableSorting: true,
         size: 180,
       },
       {
-        id: 'registration',
-        accessorFn: (row) => row.registration_number,
+        id: 'code',
+        accessorFn: (row) => row.code,
         header: ({ column }) => (
-          <DataGridColumnHeader title="Registration Number" column={column} />
+          <DataGridColumnHeader title="Code" column={column} />
         ),
         cell: ({ row }) => (
           <span className="text-sm text-gray-700 dark:text-gray-300 font-mono">
-            {row.original.registration_number || '-'}
+            {row.original.code || '-'}
           </span>
         ),
         enableSorting: true,
@@ -211,10 +211,10 @@ const FundingTable = () => {
           <div className="space-y-1 w-32">
             <div className="flex justify-between text-xs">
               <span className="text-gray-600 dark:text-gray-400">
-                ${row.original.used_amount.toLocaleString()}
+                ${row.original.used_amount.toLocaleString('en-AU', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
               </span>
               <span className="text-gray-600 dark:text-gray-400">
-                ${row.original.remaining_amount.toLocaleString()}
+                ${(row.original.remaining_amount || 0).toLocaleString('en-AU', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
               </span>
             </div>
             <Progress
@@ -222,7 +222,7 @@ const FundingTable = () => {
               className="h-2"
             />
             <div className="text-xs text-gray-500 dark:text-gray-500">
-              ${row.original.allocated_amount.toLocaleString()} allocated
+              ${row.original.allocated_amount.toLocaleString('en-AU', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} allocated
             </div>
           </div>
         ),

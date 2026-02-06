@@ -38,20 +38,22 @@ export function FundingDetail() {
           id,
           participant_id,
           house_id,
-          funding_source,
-          funding_type,
-          registration_number,
+          funding_source_id,
+          funding_type_id,
+          code,
           invoice_recipient,
           allocated_amount,
           used_amount,
           remaining_amount,
           status,
-          expiry_date,
+          end_date,
           notes,
           created_at,
           updated_at,
           participant:participants(id, name),
-          house:houses(id, name)
+          house:houses(id, name),
+          funding_source:funding_sources_master(id, name),
+          funding_type:funding_types_master(id, name)
           `
         )
         .eq('id', id)
@@ -62,8 +64,10 @@ export function FundingDetail() {
       // Format the data
       const formattedFunding = {
         ...data,
-        participant: data.participant?.[0],
-        house: data.house?.[0],
+        participant: Array.isArray(data.participant) ? data.participant[0] : data.participant,
+        house: Array.isArray(data.house) ? data.house[0] : data.house,
+        funding_source: Array.isArray(data.funding_source) ? data.funding_source[0] : data.funding_source,
+        funding_type: Array.isArray(data.funding_type) ? data.funding_type[0] : data.funding_type,
       } as ParticipantFunding;
 
       setFunding(formattedFunding);
@@ -164,7 +168,7 @@ export function FundingDetail() {
             {funding.participant?.name || 'Funding Details'}
           </h1>
           <p className="text-sm text-gray-700 dark:text-gray-400">
-            {funding.funding_source} - {funding.funding_type}
+            {funding.funding_source?.name} - {funding.funding_type?.name}
           </p>
         </div>
         <div className="flex gap-2">
@@ -190,7 +194,7 @@ export function FundingDetail() {
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Total Allocated</p>
                 <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  ${funding.allocated_amount.toLocaleString()}
+                  ${funding.allocated_amount.toLocaleString('en-AU', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                 </p>
               </div>
             </div>
@@ -206,7 +210,7 @@ export function FundingDetail() {
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Total Used</p>
                 <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  ${funding.used_amount.toLocaleString()}
+                  ${funding.used_amount.toLocaleString('en-AU', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                 </p>
               </div>
             </div>
@@ -222,7 +226,7 @@ export function FundingDetail() {
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Remaining</p>
                 <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  ${funding.remaining_amount.toLocaleString()}
+                  ${(funding.remaining_amount || 0).toLocaleString('en-AU', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                 </p>
               </div>
             </div>
@@ -252,19 +256,19 @@ export function FundingDetail() {
             <div>
               <p className="text-xs text-gray-600 dark:text-gray-400">Allocated</p>
               <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                ${funding.allocated_amount.toLocaleString()}
+                ${funding.allocated_amount.toLocaleString('en-AU', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
               </p>
             </div>
             <div>
               <p className="text-xs text-gray-600 dark:text-gray-400">Used</p>
               <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                ${funding.used_amount.toLocaleString()}
+                ${funding.used_amount.toLocaleString('en-AU', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
               </p>
             </div>
             <div>
               <p className="text-xs text-gray-600 dark:text-gray-400">Remaining</p>
               <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                ${funding.remaining_amount.toLocaleString()}
+                ${(funding.remaining_amount || 0).toLocaleString('en-AU', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
               </p>
             </div>
           </div>
@@ -306,23 +310,23 @@ export function FundingDetail() {
                     <p className="text-sm text-gray-600 dark:text-gray-400">Funding Source</p>
                     <p className="font-medium text-gray-900 dark:text-gray-100">
                       <Badge variant="outline" appearance="light">
-                        {funding.funding_source}
+                        {funding.funding_source?.name || 'N/A'}
                       </Badge>
                     </p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600 dark:text-gray-400">Funding Type</p>
                     <p className="font-medium text-gray-900 dark:text-gray-100">
-                      {funding.funding_type}
+                      {funding.funding_type?.name || 'N/A'}
                     </p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Registration Number</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Code</p>
                     <p className="font-mono text-sm font-medium text-gray-900 dark:text-gray-100">
-                      {funding.registration_number}
+                      {funding.code || '-'}
                     </p>
                   </div>
                   <div>
@@ -342,9 +346,9 @@ export function FundingDetail() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Expiry Date</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">End Date</p>
                     <p className="font-medium text-gray-900 dark:text-gray-100">
-                      {funding.expiry_date ? new Date(funding.expiry_date).toLocaleDateString() : '-'}
+                      {funding.end_date ? new Date(funding.end_date).toLocaleDateString() : '-'}
                     </p>
                   </div>
                   <div>
