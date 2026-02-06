@@ -5,15 +5,15 @@ export interface ParticipantFunding {
   id: string;
   participant_id: string;
   house_id?: string;
-  funding_source: 'NDIS' | 'Private' | 'State Funding';
-  funding_type: 'Core Supports' | 'Capacity Building' | 'Capital Supports' | 'Support Services';
-  registration_number: string;
-  invoice_recipient: string;
+  funding_source_id: string;
+  funding_type_id: string;
+  code?: string;
+  invoice_recipient?: string;
   allocated_amount: number;
   used_amount: number;
-  remaining_amount: number;
+  remaining_amount?: number;
   status: 'Active' | 'Near Depletion' | 'Expired' | 'Inactive';
-  expiry_date?: string;
+  end_date?: string;
   notes?: string;
   created_at?: string;
   updated_at?: string;
@@ -22,6 +22,14 @@ export interface ParticipantFunding {
     name: string;
   };
   house?: {
+    id: string;
+    name: string;
+  };
+  funding_source?: {
+    id: string;
+    name: string;
+  };
+  funding_type?: {
     id: string;
     name: string;
   };
@@ -47,20 +55,22 @@ export function useFunding(participantId?: string) {
           id,
           participant_id,
           house_id,
-          funding_source,
-          funding_type,
-          registration_number,
+          funding_source_id,
+          funding_type_id,
+          code,
           invoice_recipient,
           allocated_amount,
           used_amount,
           remaining_amount,
           status,
-          expiry_date,
+          end_date,
           notes,
           created_at,
           updated_at,
           participant:participants(id, name),
-          house:houses(id, name)
+          house:houses(id, name),
+          funding_source:funding_sources_master(id, name),
+          funding_type:funding_types_master(id, name)
           `
         )
         .order('created_at', { ascending: false });
@@ -78,6 +88,8 @@ export function useFunding(participantId?: string) {
         ...record,
         participant: record.participant?.[0],
         house: record.house?.[0],
+        funding_source: record.funding_source,
+        funding_type: record.funding_type,
       }));
       setFundingRecords(formattedData);
       setError(null);

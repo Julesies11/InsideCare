@@ -39,6 +39,21 @@ export interface PendingContact {
   is_active: boolean;
 }
 
+export interface PendingFunding {
+  tempId?: string;
+  id?: string;
+  funding_source_id: string;
+  funding_type_id: string;
+  code?: string;
+  invoice_recipient?: string;
+  allocated_amount: number;
+  used_amount: number;
+  remaining_amount?: number;
+  status: 'Active' | 'Near Depletion' | 'Expired' | 'Inactive';
+  end_date?: string;
+  notes?: string;
+}
+
 export interface PendingShiftNote {
   tempId?: string;
   id?: string;
@@ -90,6 +105,11 @@ export interface PendingChanges {
     toUpdate: PendingContact[];
     toDelete: string[]; // IDs
   };
+  funding: {
+    toAdd: PendingFunding[];
+    toUpdate: PendingFunding[];
+    toDelete: string[]; // IDs
+  };
   shiftNotes: {
     toAdd: PendingShiftNote[];
     toUpdate: PendingShiftNote[];
@@ -127,6 +147,11 @@ export const emptyPendingChanges: PendingChanges = {
     toUpdate: [],
     toDelete: [],
   },
+  funding: {
+    toAdd: [],
+    toUpdate: [],
+    toDelete: [],
+  },
   shiftNotes: {
     toAdd: [],
     toUpdate: [],
@@ -158,6 +183,9 @@ export function hasPendingChanges(pending: PendingChanges): boolean {
     pending.contacts.toAdd.length > 0 ||
     pending.contacts.toUpdate.length > 0 ||
     pending.contacts.toDelete.length > 0 ||
+    pending.funding.toAdd.length > 0 ||
+    pending.funding.toUpdate.length > 0 ||
+    pending.funding.toDelete.length > 0 ||
     pending.shiftNotes.toAdd.length > 0 ||
     pending.shiftNotes.toUpdate.length > 0 ||
     pending.shiftNotes.toDelete.length > 0 ||
@@ -184,6 +212,9 @@ export function countPendingChanges(pending: PendingChanges): number {
     pending.contacts.toAdd.length +
     pending.contacts.toUpdate.length +
     pending.contacts.toDelete.length +
+    pending.funding.toAdd.length +
+    pending.funding.toUpdate.length +
+    pending.funding.toDelete.length +
     pending.shiftNotes.toAdd.length +
     pending.shiftNotes.toUpdate.length +
     pending.shiftNotes.toDelete.length +
