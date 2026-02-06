@@ -1,5 +1,5 @@
 export type ActivityType = 'create' | 'update' | 'delete';
-export type EntityType = 'participant' | 'staff' | 'incident' | 'compliance' | 'shift_note' | 'branch' | 'medication' | 'medication_master' | 'document' | 'service_provider';
+export type EntityType = 'participant' | 'staff' | 'incident' | 'compliance' | 'shift_note' | 'branch' | 'medication' | 'medication_master' | 'document' | 'contact' | 'contact_type_master';
 
 export interface ActivityLog {
   id: string;

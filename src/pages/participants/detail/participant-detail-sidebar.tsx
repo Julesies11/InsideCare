@@ -88,7 +88,7 @@ export function ParticipantDetailSidebar() {
     },
     {
       title: 'Contacts',
-      target: 'providers',
+      target: 'contacts',
     },
     {
       title: 'Documents',

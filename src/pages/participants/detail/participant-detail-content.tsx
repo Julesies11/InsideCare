@@ -16,7 +16,7 @@ import { MedicalRoutine } from './components/medical-routine';
 import { Goals } from './components/goals';
 import { Documents } from './components/documents';
 import { Medications } from './components/medications';
-import { ServiceProviders } from './components/service-providers';
+import { Contacts } from './components/contacts';
 import { RestrictivePractices } from './components/restrictive-practices';
 import { ShiftNotes } from './components/shift-notes';
 import { ActivityLog } from './components/activity-log';
@@ -73,7 +73,7 @@ export function ParticipantDetailContent({
     goals: 0,
     documents: 0,
     medications: 0,
-    serviceProviders: 0,
+    contacts: 0,
     shiftNotes: 0,
     activityLog: 0,
   });
@@ -529,21 +529,24 @@ mtmp_details: '',
         }
       }
 
-      // Step 4: Process pending service providers
-      if (pendingChanges?.serviceProviders.toAdd.length) {
-        for (const provider of pendingChanges.serviceProviders.toAdd) {
+      // Step 4: Process pending contacts
+      if (pendingChanges?.contacts.toAdd.length) {
+        for (const contact of pendingChanges.contacts.toAdd) {
           const { error } = await supabase
-            .from('participant_providers')
+            .from('participant_contacts')
             .insert({
               participant_id: id,
-              provider_name: provider.provider_name,
-              provider_type: provider.provider_type || null,
-              provider_description: provider.provider_description || null,
-              is_active: provider.is_active,
+              contact_name: contact.contact_name,
+              contact_type: contact.contact_type || null,
+              phone: contact.phone || null,
+              email: contact.email || null,
+              address: contact.address || null,
+              notes: contact.notes || null,
+              is_active: contact.is_active,
             });
 
           if (error) {
-            throw new Error(`Failed to add service provider: ${error.message}`);
+            throw new Error(`Failed to add contact: ${error.message}`);
           }
 
           // Log activity
@@ -553,25 +556,28 @@ mtmp_details: '',
             entityId: id,
             entityName: participant?.name,
             userName,
-            customDescription: `Added service provider "${provider.provider_name}"${provider.provider_type ? ` (${provider.provider_type})` : ''}`,
+            customDescription: `Added contact "${contact.contact_name}"${contact.contact_type ? ` (${contact.contact_type})` : ''}`,
           });
         }
       }
 
-      if (pendingChanges?.serviceProviders.toUpdate.length) {
-        for (const provider of pendingChanges.serviceProviders.toUpdate) {
+      if (pendingChanges?.contacts.toUpdate.length) {
+        for (const contact of pendingChanges.contacts.toUpdate) {
           const { error } = await supabase
-            .from('participant_providers')
+            .from('participant_contacts')
             .update({
-              provider_name: provider.provider_name,
-              provider_type: provider.provider_type || null,
-              provider_description: provider.provider_description || null,
-              is_active: provider.is_active,
+              contact_name: contact.contact_name,
+              contact_type: contact.contact_type || null,
+              phone: contact.phone || null,
+              email: contact.email || null,
+              address: contact.address || null,
+              notes: contact.notes || null,
+              is_active: contact.is_active,
             })
-            .eq('id', provider.id);
+            .eq('id', contact.id);
 
           if (error) {
-            throw new Error(`Failed to update service provider: ${error.message}`);
+            throw new Error(`Failed to update contact: ${error.message}`);
           }
 
           // Log activity
@@ -581,27 +587,27 @@ mtmp_details: '',
             entityId: id,
             entityName: participant?.name,
             userName,
-            customDescription: `Updated service provider "${provider.provider_name}"${provider.provider_type ? ` (${provider.provider_type})` : ''}`,
+            customDescription: `Updated contact "${contact.contact_name}"${contact.contact_type ? ` (${contact.contact_type})` : ''}`,
           });
         }
       }
 
-      if (pendingChanges?.serviceProviders.toDelete.length) {
-        for (const providerId of pendingChanges.serviceProviders.toDelete) {
-          // Get provider name before deleting
-          const { data: providerData } = await supabase
-            .from('participant_providers')
-            .select('provider_name')
-            .eq('id', providerId)
+      if (pendingChanges?.contacts.toDelete.length) {
+        for (const contactId of pendingChanges.contacts.toDelete) {
+          // Get contact name before deleting
+          const { data: contactData } = await supabase
+            .from('participant_contacts')
+            .select('contact_name')
+            .eq('id', contactId)
             .single();
 
           const { error } = await supabase
-            .from('participant_providers')
+            .from('participant_contacts')
             .delete()
-            .eq('id', providerId);
+            .eq('id', contactId);
 
           if (error) {
-            throw new Error(`Failed to delete service provider: ${error.message}`);
+            throw new Error(`Failed to delete contact: ${error.message}`);
           }
 
           // Log activity
@@ -611,7 +617,7 @@ mtmp_details: '',
             entityId: id,
             entityName: participant?.name,
             userName,
-            customDescription: `Deleted service provider "${providerData?.provider_name || 'Unknown provider'}"`,
+            customDescription: `Deleted contact "${contactData?.contact_name || 'Unknown contact'}"`,
           });
         }
       }
@@ -993,7 +999,7 @@ mtmp_details: '',
         goals: (pendingChanges?.goals.toAdd.length || 0) > 0 || (pendingChanges?.goals.toUpdate.length || 0) > 0 || (pendingChanges?.goals.toDelete.length || 0) > 0,
         documents: (pendingChanges?.documents.toAdd.length || 0) > 0 || (pendingChanges?.documents.toDelete.length || 0) > 0,
         medications: (pendingChanges?.medications.toAdd.length || 0) > 0 || (pendingChanges?.medications.toUpdate.length || 0) > 0 || (pendingChanges?.medications.toDelete.length || 0) > 0,
-        serviceProviders: (pendingChanges?.serviceProviders.toAdd.length || 0) > 0 || (pendingChanges?.serviceProviders.toUpdate.length || 0) > 0 || (pendingChanges?.serviceProviders.toDelete.length || 0) > 0,
+        contacts: (pendingChanges?.contacts.toAdd.length || 0) > 0 || (pendingChanges?.contacts.toUpdate.length || 0) > 0 || (pendingChanges?.contacts.toDelete.length || 0) > 0,
         shiftNotes: (pendingChanges?.shiftNotes.toAdd.length || 0) > 0 || (pendingChanges?.shiftNotes.toUpdate.length || 0) > 0 || (pendingChanges?.shiftNotes.toDelete.length || 0) > 0,
       };
 
@@ -1007,7 +1013,7 @@ mtmp_details: '',
         goals: changedEntities.goals ? prev.goals + 1 : prev.goals,
         documents: changedEntities.documents ? prev.documents + 1 : prev.documents,
         medications: changedEntities.medications ? prev.medications + 1 : prev.medications,
-        serviceProviders: changedEntities.serviceProviders ? prev.serviceProviders + 1 : prev.serviceProviders,
+        contacts: changedEntities.contacts ? prev.contacts + 1 : prev.contacts,
         shiftNotes: changedEntities.shiftNotes ? prev.shiftNotes + 1 : prev.shiftNotes,
         activityLog: hasAnyChanges ? prev.activityLog + 1 : prev.activityLog,
       }));
@@ -1018,7 +1024,7 @@ mtmp_details: '',
           goals: { toAdd: [], toUpdate: [], toDelete: [] },
           documents: { toAdd: [], toDelete: [] },
           medications: { toAdd: [], toUpdate: [], toDelete: [] },
-          serviceProviders: { toAdd: [], toUpdate: [], toDelete: [] },
+          contacts: { toAdd: [], toUpdate: [], toDelete: [] },
           shiftNotes: { toAdd: [], toUpdate: [], toDelete: [] },
           staffCompliance: { toAdd: [], toUpdate: [], toDelete: [] },
           staffResources: { toAdd: [], toUpdate: [], toDelete: [] },
@@ -1120,8 +1126,8 @@ mtmp_details: '',
           formData={formData}
           onFormChange={handleFormChange}
         />
-        <ServiceProviders 
-          key={`service-providers-${refreshKeys.serviceProviders}`}
+        <Contacts 
+          key={`contacts-${refreshKeys.contacts}`}
           participantId={id} 
           canAdd={canAdd} 
           canDelete={canDelete}

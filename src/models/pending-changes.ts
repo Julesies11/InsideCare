@@ -27,12 +27,15 @@ export interface PendingMedication {
   is_active: boolean;
 }
 
-export interface PendingServiceProvider {
+export interface PendingContact {
   tempId?: string;
   id?: string;
-  provider_name: string;
-  provider_type?: string;
-  provider_description?: string;
+  contact_name: string;
+  contact_type?: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  notes?: string;
   is_active: boolean;
 }
 
@@ -82,9 +85,9 @@ export interface PendingChanges {
     toUpdate: PendingMedication[];
     toDelete: string[]; // IDs
   };
-  serviceProviders: {
-    toAdd: PendingServiceProvider[];
-    toUpdate: PendingServiceProvider[];
+  contacts: {
+    toAdd: PendingContact[];
+    toUpdate: PendingContact[];
     toDelete: string[]; // IDs
   };
   shiftNotes: {
@@ -119,7 +122,7 @@ export const emptyPendingChanges: PendingChanges = {
     toUpdate: [],
     toDelete: [],
   },
-  serviceProviders: {
+  contacts: {
     toAdd: [],
     toUpdate: [],
     toDelete: [],
@@ -152,9 +155,9 @@ export function hasPendingChanges(pending: PendingChanges): boolean {
     pending.medications.toAdd.length > 0 ||
     pending.medications.toUpdate.length > 0 ||
     pending.medications.toDelete.length > 0 ||
-    pending.serviceProviders.toAdd.length > 0 ||
-    pending.serviceProviders.toUpdate.length > 0 ||
-    pending.serviceProviders.toDelete.length > 0 ||
+    pending.contacts.toAdd.length > 0 ||
+    pending.contacts.toUpdate.length > 0 ||
+    pending.contacts.toDelete.length > 0 ||
     pending.shiftNotes.toAdd.length > 0 ||
     pending.shiftNotes.toUpdate.length > 0 ||
     pending.shiftNotes.toDelete.length > 0 ||
@@ -178,9 +181,9 @@ export function countPendingChanges(pending: PendingChanges): number {
     pending.medications.toAdd.length +
     pending.medications.toUpdate.length +
     pending.medications.toDelete.length +
-    pending.serviceProviders.toAdd.length +
-    pending.serviceProviders.toUpdate.length +
-    pending.serviceProviders.toDelete.length +
+    pending.contacts.toAdd.length +
+    pending.contacts.toUpdate.length +
+    pending.contacts.toDelete.length +
     pending.shiftNotes.toAdd.length +
     pending.shiftNotes.toUpdate.length +
     pending.shiftNotes.toDelete.length +
