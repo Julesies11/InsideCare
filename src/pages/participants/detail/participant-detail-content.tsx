@@ -451,7 +451,7 @@ mtmp_details: '',
             .from('participant_medications')
             .insert({
               participant_id: id,
-              medication_name: med.medication_name,
+              medication_id: med.medication_id,
               dosage: med.dosage || null,
               frequency: med.frequency || null,
               is_active: med.is_active,
@@ -461,6 +461,13 @@ mtmp_details: '',
             throw new Error(`Failed to add medication: ${error.message}`);
           }
 
+          // Get medication name for logging
+          const { data: medData } = await supabase
+            .from('medications_master')
+            .select('name')
+            .eq('id', med.medication_id)
+            .single();
+
           // Log activity
           await logActivity({
             activityType: 'create',
@@ -468,7 +475,7 @@ mtmp_details: '',
             entityId: id,
             entityName: participant?.name,
             userName,
-            customDescription: `Added medication "${med.medication_name}"${med.dosage ? ` (${med.dosage})` : ''}`,
+            customDescription: `Added medication "${medData?.name || 'Unknown'}"${med.dosage ? ` (${med.dosage})` : ''}`,
           });
         }
       }
@@ -478,7 +485,7 @@ mtmp_details: '',
           const { error } = await supabase
             .from('participant_medications')
             .update({
-              medication_name: med.medication_name,
+              medication_id: med.medication_id,
               dosage: med.dosage || null,
               frequency: med.frequency || null,
               is_active: med.is_active,
@@ -489,6 +496,13 @@ mtmp_details: '',
             throw new Error(`Failed to update medication: ${error.message}`);
           }
 
+          // Get medication name for logging
+          const { data: medData } = await supabase
+            .from('medications_master')
+            .select('name')
+            .eq('id', med.medication_id)
+            .single();
+
           // Log activity
           await logActivity({
             activityType: 'update',
@@ -496,7 +510,7 @@ mtmp_details: '',
             entityId: id,
             entityName: participant?.name,
             userName,
-            customDescription: `Updated medication "${med.medication_name}"${med.dosage ? ` (${med.dosage})` : ''}`,
+            customDescription: `Updated medication "${medData?.name || 'Unknown'}"${med.dosage ? ` (${med.dosage})` : ''}`,
           });
         }
       }
@@ -506,7 +520,9 @@ mtmp_details: '',
           // Get medication name before deleting
           const { data: medData } = await supabase
             .from('participant_medications')
-            .select('medication_name')
+            .select(`
+              medication:medications_master(name)
+            `)
             .eq('id', medId)
             .single();
 
@@ -526,7 +542,7 @@ mtmp_details: '',
             entityId: id,
             entityName: participant?.name,
             userName,
-            customDescription: `Deleted medication "${medData?.medication_name || 'Unknown medication'}"`,
+            customDescription: `Deleted medication "${medData?.medication?.name || 'Unknown'}"`,
           });
         }
       }
@@ -539,7 +555,7 @@ mtmp_details: '',
             .insert({
               participant_id: id,
               contact_name: contact.contact_name,
-              contact_type: contact.contact_type || null,
+              contact_type_id: contact.contact_type_id || null,
               phone: contact.phone || null,
               email: contact.email || null,
               address: contact.address || null,
@@ -551,6 +567,17 @@ mtmp_details: '',
             throw new Error(`Failed to add contact: ${error.message}`);
           }
 
+          // Get contact type name for logging
+          let contactTypeName = '';
+          if (contact.contact_type_id) {
+            const { data: typeData } = await supabase
+              .from('contact_types_master')
+              .select('name')
+              .eq('id', contact.contact_type_id)
+              .single();
+            contactTypeName = typeData?.name || '';
+          }
+
           // Log activity
           await logActivity({
             activityType: 'create',
@@ -558,7 +585,7 @@ mtmp_details: '',
             entityId: id,
             entityName: participant?.name,
             userName,
-            customDescription: `Added contact "${contact.contact_name}"${contact.contact_type ? ` (${contact.contact_type})` : ''}`,
+            customDescription: `Added contact "${contact.contact_name}"${contactTypeName ? ` (${contactTypeName})` : ''}`,
           });
         }
       }
@@ -569,7 +596,7 @@ mtmp_details: '',
             .from('participant_contacts')
             .update({
               contact_name: contact.contact_name,
-              contact_type: contact.contact_type || null,
+              contact_type_id: contact.contact_type_id || null,
               phone: contact.phone || null,
               email: contact.email || null,
               address: contact.address || null,
@@ -582,6 +609,17 @@ mtmp_details: '',
             throw new Error(`Failed to update contact: ${error.message}`);
           }
 
+          // Get contact type name for logging
+          let contactTypeName = '';
+          if (contact.contact_type_id) {
+            const { data: typeData } = await supabase
+              .from('contact_types_master')
+              .select('name')
+              .eq('id', contact.contact_type_id)
+              .single();
+            contactTypeName = typeData?.name || '';
+          }
+
           // Log activity
           await logActivity({
             activityType: 'update',
@@ -589,17 +627,20 @@ mtmp_details: '',
             entityId: id,
             entityName: participant?.name,
             userName,
-            customDescription: `Updated contact "${contact.contact_name}"${contact.contact_type ? ` (${contact.contact_type})` : ''}`,
+            customDescription: `Updated contact "${contact.contact_name}"${contactTypeName ? ` (${contactTypeName})` : ''}`,
           });
         }
       }
 
       if (pendingChanges?.contacts.toDelete.length) {
         for (const contactId of pendingChanges.contacts.toDelete) {
-          // Get contact name before deleting
+          // Get contact name and type before deleting
           const { data: contactData } = await supabase
             .from('participant_contacts')
-            .select('contact_name')
+            .select(`
+              contact_name,
+              contact_type:contact_types_master(name)
+            `)
             .eq('id', contactId)
             .single();
 
@@ -612,6 +653,8 @@ mtmp_details: '',
             throw new Error(`Failed to delete contact: ${error.message}`);
           }
 
+          const contactTypeName = contactData?.contact_type?.name || '';
+
           // Log activity
           await logActivity({
             activityType: 'delete',
@@ -619,7 +662,7 @@ mtmp_details: '',
             entityId: id,
             entityName: participant?.name,
             userName,
-            customDescription: `Deleted contact "${contactData?.contact_name || 'Unknown contact'}"`,
+            customDescription: `Deleted contact "${contactData?.contact_name || 'Unknown'}"${contactTypeName ? ` (${contactTypeName})` : ''}`,
           });
         }
       }

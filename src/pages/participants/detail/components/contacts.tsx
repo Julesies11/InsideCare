@@ -35,7 +35,7 @@ export function Contacts({
   const [refreshContactTypeKey, setRefreshContactTypeKey] = useState(0);
   const [formData, setFormData] = useState({
     contact_name: '',
-    contact_type: '',
+    contact_type_id: '',
     phone: '',
     email: '',
     address: '',
@@ -49,7 +49,7 @@ export function Contacts({
     setEditingContact(null);
     setFormData({
       contact_name: '',
-      contact_type: '',
+      contact_type_id: '',
       phone: '',
       email: '',
       address: '',
@@ -63,7 +63,7 @@ export function Contacts({
     setEditingContact(contact);
     setFormData({
       contact_name: contact.contact_name,
-      contact_type: contact.contact_type || '',
+      contact_type_id: contact.contact_type_id || '',
       phone: contact.phone || '',
       email: contact.email || '',
       address: contact.address || '',
@@ -74,7 +74,7 @@ export function Contacts({
   };
 
   const handleSave = () => {
-    if (!formData.contact_name.trim() || !formData.contact_type.trim()) {
+    if (!formData.contact_name.trim()) {
       return;
     }
     if (!pendingChanges || !onPendingChangesChange) return;
@@ -260,7 +260,7 @@ export function Contacts({
                           )}
                         </div>
                       </TableCell>
-                      <TableCell>{contact.contact_type || 'N/A'}</TableCell>
+                      <TableCell>{contact.contact_type?.name || 'N/A'}</TableCell>
                       <TableCell>{contact.phone || 'N/A'}</TableCell>
                       <TableCell className="max-w-xs truncate">
                         {contact.email || 'N/A'}
@@ -347,10 +347,10 @@ export function Contacts({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="contact_type">Contact Type *</Label>
+              <Label htmlFor="contact_type">Contact Type</Label>
               <ContactTypeCombobox
-                value={formData.contact_type}
-                onChange={(value) => setFormData({ ...formData, contact_type: value })}
+                value={formData.contact_type_id}
+                onChange={(value) => setFormData({ ...formData, contact_type_id: value })}
                 canEdit={true}
                 onManageList={() => setShowContactTypeMasterDialog(true)}
                 onRefresh={refreshContactTypeKey > 0 ? () => {} : undefined}

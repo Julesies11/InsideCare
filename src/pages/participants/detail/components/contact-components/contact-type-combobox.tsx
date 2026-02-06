@@ -44,10 +44,10 @@ export function ContactTypeCombobox({
   }, [onRefresh]);
 
   const activeContactTypes = contactTypes.filter((ct) => ct.is_active);
-  const selectedContactType = contactTypes.find((ct) => ct.name === value);
+  const selectedContactType = contactTypes.find((ct) => ct.id === value);
 
-  const handleSelect = (contactTypeName: string) => {
-    onChange(contactTypeName === value ? '' : contactTypeName);
+  const handleSelect = (contactTypeId: string) => {
+    onChange(contactTypeId === value ? '' : contactTypeId);
     setOpen(false);
   };
 
@@ -66,8 +66,6 @@ export function ContactTypeCombobox({
           >
             {selectedContactType ? (
               <span className="truncate">{selectedContactType.name}</span>
-            ) : value ? (
-              <span className="truncate">{value}</span>
             ) : (
               <span>Select contact type...</span>
             )}
@@ -90,10 +88,10 @@ export function ContactTypeCombobox({
                       <CommandItem
                         key={contactType.id}
                         value={contactType.name}
-                        onSelect={handleSelect}
+                        onSelect={() => handleSelect(contactType.id)}
                       >
                         <span className="truncate font-medium">{contactType.name}</span>
-                        {value === contactType.name && <CommandCheck />}
+                        {value === contactType.id && <CommandCheck />}
                       </CommandItem>
                     ))
                   )}

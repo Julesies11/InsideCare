@@ -5,7 +5,11 @@ export interface ParticipantContact {
   id: string;
   participant_id: string;
   contact_name: string;
-  contact_type?: string;
+  contact_type_id?: string;
+  contact_type?: {
+    id: string;
+    name: string;
+  };
   phone?: string;
   email?: string;
   address?: string;
@@ -33,13 +37,24 @@ export function useParticipantContacts(participantId?: string) {
       setLoading(true);
       const { data, error } = await supabase
         .from('participant_contacts')
-        .select('*')
+        .select(`
+          *,
+          contact_type:contact_types_master(
+            id,
+            name
+          )
+        `)
         .eq('participant_id', participantId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      setContacts(data || []);
+      const formattedData = (data || []).map(item => ({
+        ...item,
+        contact_type: Array.isArray(item.contact_type) ? item.contact_type[0] : item.contact_type
+      }));
+
+      setContacts(formattedData);
       setError(null);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch contacts';

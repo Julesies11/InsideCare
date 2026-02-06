@@ -21,7 +21,7 @@ export interface PendingDocumentDelete {
 export interface PendingMedication {
   tempId?: string;
   id?: string;
-  medication_name: string;
+  medication_id: string;
   dosage?: string;
   frequency?: string;
   is_active: boolean;
@@ -31,7 +31,7 @@ export interface PendingContact {
   tempId?: string;
   id?: string;
   contact_name: string;
-  contact_type?: string;
+  contact_type_id?: string;
   phone?: string;
   email?: string;
   address?: string;

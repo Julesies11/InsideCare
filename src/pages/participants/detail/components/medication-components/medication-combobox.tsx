@@ -44,10 +44,10 @@ export function MedicationCombobox({
   }, [onRefresh]);
 
   const activeMedications = medications.filter((med) => med.is_active);
-  const selectedMedication = medications.find((med) => med.name === value);
+  const selectedMedication = medications.find((med) => med.id === value);
 
-  const handleSelect = (medicationName: string) => {
-    onChange(medicationName === value ? '' : medicationName);
+  const handleSelect = (medicationId: string) => {
+    onChange(medicationId === value ? '' : medicationId);
     setOpen(false);
   };
 
@@ -66,8 +66,6 @@ export function MedicationCombobox({
           >
             {selectedMedication ? (
               <span className="truncate">{selectedMedication.name}</span>
-            ) : value ? (
-              <span className="truncate">{value}</span>
             ) : (
               <span>Select medication...</span>
             )}
@@ -90,7 +88,7 @@ export function MedicationCombobox({
                       <CommandItem
                         key={medication.id}
                         value={medication.name}
-                        onSelect={handleSelect}
+                        onSelect={() => handleSelect(medication.id)}
                       >
                         <span className="flex flex-col gap-0.5 flex-1">
                           <span className="flex items-center gap-2">
@@ -107,7 +105,7 @@ export function MedicationCombobox({
                             </span>
                           )}
                         </span>
-                        {value === medication.name && <CommandCheck />}
+                        {value === medication.id && <CommandCheck />}
                       </CommandItem>
                     ))
                   )}

@@ -66,8 +66,6 @@ export function FundingSourceCombobox({
           >
             {selectedFundingSource ? (
               <span className="truncate">{selectedFundingSource.name}</span>
-            ) : value ? (
-              <span className="truncate">{value}</span>
             ) : (
               <span>Select funding source...</span>
             )}
@@ -89,8 +87,8 @@ export function FundingSourceCombobox({
                     activeFundingSources.map((fundingSource) => (
                       <CommandItem
                         key={fundingSource.id}
-                        value={fundingSource.id}
-                        onSelect={handleSelect}
+                        value={fundingSource.name}
+                        onSelect={() => handleSelect(fundingSource.id)}
                       >
                         <span className="truncate font-medium">{fundingSource.name}</span>
                         {value === fundingSource.id && <CommandCheck />}

@@ -10,6 +10,7 @@ import { Plus, Edit, Trash2, Pill, Clock } from 'lucide-react';
 import { MedicationCombobox } from './medication-components/medication-combobox';
 import { MedicationMasterDialog } from './medication-components/medication-master-dialog';
 import { useParticipantMedications } from '@/hooks/useParticipantMedications';
+import { useMedicationsMaster } from '@/hooks/useMedicationsMaster';
 import { PendingChanges } from '@/models/pending-changes';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -25,7 +26,7 @@ interface MedicationsProps {
 }
 
 const medicationSchema = z.object({
-  medication_name: z.string().min(1, 'Medication name is required'),
+  medication_id: z.string().min(1, 'Medication is required'),
   dosage: z.string().optional().default(''),
   frequency: z.string().optional().default(''),
   is_active: z.boolean().default(true),
@@ -46,11 +47,26 @@ export function Medications({
   const [refreshMedicationKey, setRefreshMedicationKey] = useState(0);
 
   const { medications, loading } = useParticipantMedications(participantId);
+  const { medications: medicationsMaster } = useMedicationsMaster();
+
+  // Helper function to get medication name
+  const getMedicationName = (med: any) => {
+    // If it has the joined medication object, use that
+    if (med.medication?.name) {
+      return med.medication.name;
+    }
+    // For pending medications, look up the name from master list
+    if (med.medication_id) {
+      const masterMed = medicationsMaster.find(m => m.id === med.medication_id);
+      return masterMed?.name || 'Unknown Medication';
+    }
+    return 'Unknown Medication';
+  };
 
   const form = useForm<MedicationFormValues>({
     resolver: zodResolver(medicationSchema),
     defaultValues: {
-      medication_name: '',
+      medication_id: '',
       dosage: '',
       frequency: '',
       is_active: true,
@@ -60,14 +76,14 @@ export function Medications({
   useEffect(() => {
     if (showDialog && editingMedication) {
       form.reset({
-        medication_name: editingMedication.medication_name,
+        medication_id: editingMedication.medication_id,
         dosage: editingMedication.dosage || '',
         frequency: editingMedication.frequency || '',
         is_active: editingMedication.is_active,
       });
     } else if (showDialog) {
       form.reset({
-        medication_name: '',
+        medication_id: '',
         dosage: '',
         frequency: '',
         is_active: true,
@@ -246,7 +262,7 @@ export function Medications({
                         <div className="flex items-center gap-2">
                           <Pill className="size-4 text-muted-foreground" />
                           <span className={`font-medium ${isPendingDelete ? 'line-through' : ''}`}>
-                            {med.medication_name}
+                            {getMedicationName(med)}
                           </span>
                           {isPendingAdd && (
                             <span className="text-xs text-primary flex items-center gap-1">
@@ -348,7 +364,7 @@ export function Medications({
             <form onSubmit={form.handleSubmit(handleSave)} className="space-y-4 py-4">
               <FormField
                 control={form.control}
-                name="medication_name"
+                name="medication_id"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Medication Name *</FormLabel>

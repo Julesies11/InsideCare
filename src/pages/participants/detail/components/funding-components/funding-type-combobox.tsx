@@ -66,8 +66,6 @@ export function FundingTypeCombobox({
           >
             {selectedFundingType ? (
               <span className="truncate">{selectedFundingType.name}</span>
-            ) : value ? (
-              <span className="truncate">{value}</span>
             ) : (
               <span>Select funding type...</span>
             )}
@@ -89,8 +87,8 @@ export function FundingTypeCombobox({
                     activeFundingTypes.map((fundingType) => (
                       <CommandItem
                         key={fundingType.id}
-                        value={fundingType.id}
-                        onSelect={handleSelect}
+                        value={fundingType.name}
+                        onSelect={() => handleSelect(fundingType.id)}
                       >
                         <span className="truncate font-medium">{fundingType.name}</span>
                         {value === fundingType.id && <CommandCheck />}

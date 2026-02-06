@@ -4,7 +4,13 @@ import { supabase } from '@/lib/supabase';
 export interface ParticipantMedication {
   id: string;
   participant_id: string;
-  medication_name: string;
+  medication_id: string;
+  medication?: {
+    id: string;
+    name: string;
+    category?: string;
+    common_dosages?: string;
+  };
   dosage?: string;
   frequency?: string;
   is_active?: boolean;
@@ -30,13 +36,26 @@ export function useParticipantMedications(participantId?: string) {
       setLoading(true);
       const { data, error } = await supabase
         .from('participant_medications')
-        .select('*')
+        .select(`
+          *,
+          medication:medications_master(
+            id,
+            name,
+            category,
+            common_dosages
+          )
+        `)
         .eq('participant_id', participantId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      setMedications(data || []);
+      const formattedData = (data || []).map(item => ({
+        ...item,
+        medication: Array.isArray(item.medication) ? item.medication[0] : item.medication
+      }));
+
+      setMedications(formattedData);
       setError(null);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch medications';
