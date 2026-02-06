@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button, ButtonArrow } from '@/components/ui/button';
 import {
   Command,
@@ -24,6 +24,7 @@ interface MedicationComboboxProps {
   onChange: (value: string) => void;
   canEdit: boolean;
   onManageList: () => void;
+  onRefresh?: () => void;
 }
 
 export function MedicationCombobox({
@@ -31,9 +32,16 @@ export function MedicationCombobox({
   onChange,
   canEdit,
   onManageList,
+  onRefresh,
 }: MedicationComboboxProps) {
   const [open, setOpen] = useState(false);
-  const { medications, loading } = useMedicationsMaster();
+  const { medications, loading, refresh } = useMedicationsMaster();
+
+  useEffect(() => {
+    if (onRefresh) {
+      refresh();
+    }
+  }, [onRefresh]);
 
   const activeMedications = medications.filter((med) => med.is_active);
   const selectedMedication = medications.find((med) => med.name === value);

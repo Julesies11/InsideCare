@@ -1251,6 +1251,14 @@ mtmp_details: '',
           formData={formData}
           onFormChange={handleFormChange}
         />
+        <Medications 
+          key={`medications-${refreshKeys.medications}`}
+          participantId={id} 
+          canAdd={canAdd} 
+          canDelete={canDelete}
+          pendingChanges={pendingChanges}
+          onPendingChangesChange={onPendingChangesChange}
+        />
         <EmergencyManagement
           canEdit={canEdit}
           formData={formData}
@@ -1258,14 +1266,6 @@ mtmp_details: '',
         />
         <Contacts 
           key={`contacts-${refreshKeys.contacts}`}
-          participantId={id} 
-          canAdd={canAdd} 
-          canDelete={canDelete}
-          pendingChanges={pendingChanges}
-          onPendingChangesChange={onPendingChangesChange}
-        />
-        <Funding 
-          key={`funding-${refreshKeys.funding}`}
           participantId={id} 
           canAdd={canAdd} 
           canDelete={canDelete}
@@ -1283,6 +1283,14 @@ mtmp_details: '',
         />
         <ShiftNotes 
           key={`shift-notes-${refreshKeys.shiftNotes}`}
+          participantId={id} 
+          canAdd={canAdd} 
+          canDelete={canDelete}
+          pendingChanges={pendingChanges}
+          onPendingChangesChange={onPendingChangesChange}
+        />
+        <Funding 
+          key={`funding-${refreshKeys.funding}`}
           participantId={id} 
           canAdd={canAdd} 
           canDelete={canDelete}

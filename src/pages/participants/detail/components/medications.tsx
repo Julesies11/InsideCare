@@ -43,6 +43,7 @@ export function Medications({
   const [showDialog, setShowDialog] = useState(false);
   const [editingMedication, setEditingMedication] = useState<any>(null);
   const [showMasterDialog, setShowMasterDialog] = useState(false);
+  const [refreshMedicationKey, setRefreshMedicationKey] = useState(0);
 
   const { medications, loading } = useParticipantMedications(participantId);
 
@@ -357,6 +358,7 @@ export function Medications({
                         onChange={field.onChange}
                         canEdit={canAdd}
                         onManageList={() => setShowMasterDialog(true)}
+                        onRefresh={refreshMedicationKey > 0 ? () => {} : undefined}
                       />
                     </FormControl>
                     <FormMessage />
@@ -417,9 +419,12 @@ export function Medications({
 
       <MedicationMasterDialog
         open={showMasterDialog}
-        onClose={() => setShowMasterDialog(false)}
+        onClose={() => {
+          setShowMasterDialog(false);
+          setRefreshMedicationKey(prev => prev + 1);
+        }}
         onUpdate={() => {
-          // Combobox will automatically refresh via useMedicationsMaster hook
+          // Refresh will happen automatically via the hook
         }}
       />
     </>

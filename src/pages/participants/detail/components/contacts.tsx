@@ -32,6 +32,7 @@ export function Contacts({
   const [showDialog, setShowDialog] = useState(false);
   const [showContactTypeMasterDialog, setShowContactTypeMasterDialog] = useState(false);
   const [editingContact, setEditingContact] = useState<any>(null);
+  const [refreshContactTypeKey, setRefreshContactTypeKey] = useState(0);
   const [formData, setFormData] = useState({
     contact_name: '',
     contact_type: '',
@@ -352,6 +353,7 @@ export function Contacts({
                 onChange={(value) => setFormData({ ...formData, contact_type: value })}
                 canEdit={true}
                 onManageList={() => setShowContactTypeMasterDialog(true)}
+                onRefresh={refreshContactTypeKey > 0 ? () => {} : undefined}
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -415,7 +417,10 @@ export function Contacts({
 
       <ContactTypeMasterDialog
         open={showContactTypeMasterDialog}
-        onClose={() => setShowContactTypeMasterDialog(false)}
+        onClose={() => {
+          setShowContactTypeMasterDialog(false);
+          setRefreshContactTypeKey(prev => prev + 1);
+        }}
         onUpdate={() => {}}
       />
     </>

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button, ButtonArrow } from '@/components/ui/button';
 import {
   Command,
@@ -24,6 +24,7 @@ interface ContactTypeComboboxProps {
   onChange: (value: string) => void;
   canEdit: boolean;
   onManageList: () => void;
+  onRefresh?: () => void;
 }
 
 export function ContactTypeCombobox({
@@ -31,9 +32,16 @@ export function ContactTypeCombobox({
   onChange,
   canEdit,
   onManageList,
+  onRefresh,
 }: ContactTypeComboboxProps) {
   const [open, setOpen] = useState(false);
-  const { contactTypes, loading } = useContactTypesMaster();
+  const { contactTypes, loading, refresh } = useContactTypesMaster();
+
+  useEffect(() => {
+    if (onRefresh) {
+      refresh();
+    }
+  }, [onRefresh]);
 
   const activeContactTypes = contactTypes.filter((ct) => ct.is_active);
   const selectedContactType = contactTypes.find((ct) => ct.name === value);

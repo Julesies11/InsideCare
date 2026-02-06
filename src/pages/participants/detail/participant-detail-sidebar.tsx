@@ -83,6 +83,10 @@ export function ParticipantDetailSidebar() {
       ],
     },
     {
+      title: 'Medications',
+      target: 'medications',
+    },
+    {
       title: 'Emergency Management',
       target: 'emergency-management',
     },
