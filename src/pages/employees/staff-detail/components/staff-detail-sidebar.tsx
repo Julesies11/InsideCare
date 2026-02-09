@@ -19,16 +19,16 @@ export function StaffDetailSidebar() {
       target: 'emergency_contact',
     },
     {
-      title: 'Additional Information',
-      target: 'additional_info',
-    },
-    {
       title: 'Compliance & Training',
       target: 'staff_compliance',
     },
     {
       title: 'Resources',
       target: 'staff_resources',
+    },
+    {
+      title: 'Documents',
+      target: 'staff_documents',
     },
     {
       title: 'Activity Log',

@@ -122,7 +122,7 @@ export function Documents({
 
   return (
     <>
-      <Card className="pb-2.5" id="documents">
+      <Card className="pb-2.5" id="staff_documents">
         <CardHeader>
           <CardTitle>Documents</CardTitle>
           <Button variant="secondary" size="sm" className="border border-gray-300" onClick={() => setShowUploadSheet(true)} disabled={!staffId || !canAdd}>

@@ -641,15 +641,8 @@ export function StaffDetailContent({
           onPendingChangesChange={onPendingChangesChange}
           activityRefreshTrigger={refreshKeys.activityLog}
           validationErrors={validationErrors}
-        />
-        <Documents
-          key={`documents-${refreshKeys.resources}`}
-          staffId={staffId}
           staffName={staffMember.name}
-          canAdd={canEdit}
-          canDelete={canEdit}
-          pendingChanges={pendingChanges}
-          onPendingChangesChange={onPendingChangesChange}
+          documentsRefreshKey={refreshKeys.resources}
         />
       </div>
     </div>

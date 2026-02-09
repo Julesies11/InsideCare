@@ -5,6 +5,7 @@ import { StaffComplianceSection } from './staff-compliance';
 import { StaffResourcesSection } from './staff-resources';
 import { StaffActivityLog } from './staff-activity-log';
 import { PendingChanges } from '@/models/pending-changes';
+import { Documents } from './documents';
 
 interface StaffDetailFormProps {
   staffId: string;
@@ -15,6 +16,8 @@ interface StaffDetailFormProps {
   onPendingChangesChange?: (changes: PendingChanges) => void;
   activityRefreshTrigger?: number;
   validationErrors?: Record<string, string>;
+  staffName?: string;
+  documentsRefreshKey?: number;
 }
 
 export function StaffDetailForm({
@@ -26,6 +29,8 @@ export function StaffDetailForm({
   onPendingChangesChange,
   activityRefreshTrigger,
   validationErrors = {},
+  staffName = '',
+  documentsRefreshKey = 0,
 }: StaffDetailFormProps) {
   const handleFormChange = (field: string, value: any) => {
     onFormDataChange({
@@ -60,6 +65,15 @@ export function StaffDetailForm({
         onPendingChangesChange={onPendingChangesChange}
       />
       <StaffResourcesSection
+        pendingChanges={pendingChanges}
+        onPendingChangesChange={onPendingChangesChange}
+      />
+      <Documents
+        key={`documents-${documentsRefreshKey}`}
+        staffId={staffId}
+        staffName={staffName}
+        canAdd={canEdit}
+        canDelete={canEdit}
         pendingChanges={pendingChanges}
         onPendingChangesChange={onPendingChangesChange}
       />
