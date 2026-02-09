@@ -7,6 +7,7 @@ import { useAuth } from '@/auth/context/auth-context';
 import { Scrollspy } from '@/components/ui/scrollspy';
 import { StaffDetailForm } from './components/staff-detail-form';
 import { StaffDetailSidebar } from './components/staff-detail-sidebar';
+import { Documents } from './components/documents';
 import { Staff, StaffUpdateData, useStaff } from '@/hooks/useStaff';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
@@ -352,6 +353,81 @@ export function StaffDetailContent({
             }
           }
 
+          // Step 1: Upload pending documents
+          if (pendingChanges?.documents.toAdd.length) {
+            for (const doc of pendingChanges.documents.toAdd) {
+              // Upload to storage
+              const fileExt = doc.file.name.split('.').pop();
+              const fileName = `${staffId}-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+              const filePath = `staff-documents/${fileName}`;
+
+              const { error: uploadError } = await supabase.storage
+                .from('staff-documents')
+                .upload(filePath, doc.file);
+
+              if (uploadError) {
+                throw new Error(`Failed to upload document: ${uploadError.message}`);
+              }
+
+              // Create database record
+              const { error: dbError } = await supabase
+                .from('staff_documents')
+                .insert({
+                  staff_id: staffId,
+                  file_name: doc.file.name,
+                  file_path: filePath,
+                });
+
+              if (dbError) {
+                throw new Error(`Failed to create document record: ${dbError.message}`);
+              }
+
+              // Log activity
+              await logActivity({
+                activityType: 'create',
+                entityType: 'staff',
+                entityId: staffId,
+                entityName: staffMember?.name,
+                userName,
+                customDescription: `Uploaded document "${doc.file.name}"`,
+              });
+            }
+          }
+
+          // Step 2: Delete pending document deletions
+          if (pendingChanges?.documents.toDelete.length) {
+            for (const doc of pendingChanges.documents.toDelete) {
+              // Delete from storage
+              const { error: storageError } = await supabase.storage
+                .from('staff-documents')
+                .remove([doc.filePath]);
+
+              if (storageError) {
+                console.error('Failed to delete from storage:', storageError);
+              }
+
+              // Delete from database
+              const { error: dbError } = await supabase
+                .from('staff_documents')
+                .delete()
+                .eq('id', doc.id);
+
+              if (dbError) {
+                throw new Error(`Failed to delete document record: ${dbError.message}`);
+              }
+
+              // Log activity
+              await logActivity({
+                activityType: 'delete',
+                entityType: 'staff',
+                entityId: staffId,
+                entityName: staffMember?.name,
+                userName,
+                customDescription: `Deleted document "${doc.fileName}"`,
+              });
+            }
+          }
+
           // Step 3: Save main staff form data using json-diff-ts
           const toNull = (value: any) => (value === '' ? null : value);
           const normalizedFormData = {
@@ -565,6 +641,15 @@ export function StaffDetailContent({
           onPendingChangesChange={onPendingChangesChange}
           activityRefreshTrigger={refreshKeys.activityLog}
           validationErrors={validationErrors}
+        />
+        <Documents
+          key={`documents-${refreshKeys.resources}`}
+          staffId={staffId}
+          staffName={staffMember.name}
+          canAdd={canEdit}
+          canDelete={canEdit}
+          pendingChanges={pendingChanges}
+          onPendingChangesChange={onPendingChangesChange}
         />
       </div>
     </div>
