@@ -1,7 +1,6 @@
 import { PersonalDetails } from './personal-details';
 import { EmploymentDetails } from './employment-details';
 import { EmergencyContact } from './emergency-contact';
-import { AdditionalInfo } from './additional-info';
 import { StaffComplianceSection } from './staff-compliance';
 import { StaffResourcesSection } from './staff-resources';
 import { StaffActivityLog } from './staff-activity-log';
@@ -48,13 +47,9 @@ export function StaffDetailForm({
         onFormChange={handleFormChange}
         canEdit={canEdit}
         validationErrors={validationErrors}
+        currentStaffId={staffId}
       />
       <EmergencyContact
-        formData={formData}
-        onFormChange={handleFormChange}
-        canEdit={canEdit}
-      />
-      <AdditionalInfo
         formData={formData}
         onFormChange={handleFormChange}
         canEdit={canEdit}

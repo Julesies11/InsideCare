@@ -8,22 +8,26 @@ export interface Staff {
   name: string | null;
   email?: string | null;
   phone?: string | null;
-  department?: string | null;
-  hire_date?: string | null;
-  qualifications?: string | null;
-  certifications?: string | null;
   date_of_birth?: string | null;
   address?: string | null;
+  hobbies?: string | null;
+  allergies?: string | null;
   emergency_contact_name?: string | null;
   emergency_contact_phone?: string | null;
-  employment_type?: string | null;
-  working_hours?: string | null;
+  department_id?: string | null;
+  employment_type_id?: string | null;
+  manager_id?: string | null;
+  hire_date?: string | null;
+  availability?: string | null;
   notes?: string | null;
   branch_id?: string | null;
   role_id?: string | null;
   status: StaffStatus;
   created_at?: string;
   updated_at?: string;
+  department_info?: { id: string; name: string; } | null;
+  employment_type_info?: { id: string; name: string; } | null;
+  manager_info?: { id: string; name: string; } | null;
 }
 
 export interface StaffCompliance {
@@ -60,16 +64,17 @@ export interface StaffUpdateData {
   name?: string;
   email?: string;
   phone?: string | null;
-  department?: string | null;
-  hire_date?: string | null;
-  qualifications?: string | null;
-  certifications?: string | null;
   date_of_birth?: string | null;
   address?: string | null;
+  hobbies?: string | null;
+  allergies?: string | null;
   emergency_contact_name?: string | null;
   emergency_contact_phone?: string | null;
-  employment_type?: string | null;
-  working_hours?: string | null;
+  department_id?: string | null;
+  employment_type_id?: string | null;
+  manager_id?: string | null;
+  hire_date?: string | null;
+  availability?: string | null;
   notes?: string | null;
   branch_id?: string | null;
   role_id?: string | null;
@@ -110,13 +115,26 @@ export function useStaff() {
     try {
       const { data, error } = await supabase
         .from('staff')
-        .select('*')
+        .select(`
+          *,
+          department_info:departments(id, name),
+          employment_type_info:employment_types_master(id, name),
+          manager_info:staff!manager_id(id, name)
+        `)
         .eq('id', id)
         .single();
 
       if (error) throw error;
 
-      return { data, error: null };
+      // Format joined data
+      const formattedData = {
+        ...data,
+        department_info: Array.isArray(data.department_info) ? data.department_info[0] : data.department_info,
+        employment_type_info: Array.isArray(data.employment_type_info) ? data.employment_type_info[0] : data.employment_type_info,
+        manager_info: Array.isArray(data.manager_info) ? data.manager_info[0] : data.manager_info,
+      };
+
+      return { data: formattedData, error: null };
     } catch (err) {
       console.error('Error fetching staff member:', err);
       // Return the full error object to preserve error codes and details

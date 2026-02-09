@@ -103,6 +103,34 @@ export function PersonalDetails({
             />
           </div>
         </div>
+
+        <div className="w-full">
+          <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+            <Label className="flex w-full max-w-56">Hobbies</Label>
+            <Textarea
+              id="hobbies"
+              placeholder="Staff member hobbies and interests"
+              value={formData.hobbies || ''}
+              onChange={(e) => onFormChange('hobbies', e.target.value)}
+              disabled={!canEdit}
+              rows={3}
+            />
+          </div>
+        </div>
+
+        <div className="w-full">
+          <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+            <Label className="flex w-full max-w-56">Allergies</Label>
+            <Textarea
+              id="allergies"
+              placeholder="Staff member allergies"
+              value={formData.allergies || ''}
+              onChange={(e) => onFormChange('allergies', e.target.value)}
+              disabled={!canEdit}
+              rows={3}
+            />
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
