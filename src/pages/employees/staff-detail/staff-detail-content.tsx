@@ -137,6 +137,19 @@ export function StaffDetailContent({
           hire_date: data.hire_date ?? '',
           availability: data.availability ?? '',
           notes: data.notes ?? '',
+          // Compliance checklist fields
+          ndis_worker_screening_check: data.ndis_worker_screening_check ?? false,
+          ndis_worker_screening_check_expiry: data.ndis_worker_screening_check_expiry ?? '',
+          ndis_orientation_module: data.ndis_orientation_module ?? false,
+          ndis_orientation_module_expiry: data.ndis_orientation_module_expiry ?? '',
+          ndis_code_of_conduct: data.ndis_code_of_conduct ?? false,
+          ndis_code_of_conduct_expiry: data.ndis_code_of_conduct_expiry ?? '',
+          ndis_infection_control_training: data.ndis_infection_control_training ?? false,
+          ndis_infection_control_training_expiry: data.ndis_infection_control_training_expiry ?? '',
+          drivers_license: data.drivers_license ?? false,
+          drivers_license_expiry: data.drivers_license_expiry ?? '',
+          comprehensive_car_insurance: data.comprehensive_car_insurance ?? false,
+          comprehensive_car_insurance_expiry: data.comprehensive_car_insurance_expiry ?? '',
           status: data.status ?? 'draft',
         };
         setFormData(initialData);
@@ -447,6 +460,19 @@ export function StaffDetailContent({
             availability: toNull(formData.availability),
             notes: toNull(formData.notes),
             status: formData.status,
+            // Compliance checklist fields
+            ndis_worker_screening_check: formData.ndis_worker_screening_check ?? false,
+            ndis_worker_screening_check_expiry: toNull(formData.ndis_worker_screening_check_expiry),
+            ndis_orientation_module: formData.ndis_orientation_module ?? false,
+            ndis_orientation_module_expiry: toNull(formData.ndis_orientation_module_expiry),
+            ndis_code_of_conduct: formData.ndis_code_of_conduct ?? false,
+            ndis_code_of_conduct_expiry: toNull(formData.ndis_code_of_conduct_expiry),
+            ndis_infection_control_training: formData.ndis_infection_control_training ?? false,
+            ndis_infection_control_training_expiry: toNull(formData.ndis_infection_control_training_expiry),
+            drivers_license: formData.drivers_license ?? false,
+            drivers_license_expiry: toNull(formData.drivers_license_expiry),
+            comprehensive_car_insurance: formData.comprehensive_car_insurance ?? false,
+            comprehensive_car_insurance_expiry: toNull(formData.comprehensive_car_insurance_expiry),
           };
 
           // Build object with only changed fields by comparing with original staff data
@@ -566,6 +592,19 @@ export function StaffDetailContent({
             availability: normalizedFormData.availability ?? '',
             notes: normalizedFormData.notes ?? '',
             status: normalizedFormData.status ?? 'draft',
+            // Compliance checklist fields
+            ndis_worker_screening_check: normalizedFormData.ndis_worker_screening_check ?? false,
+            ndis_worker_screening_check_expiry: normalizedFormData.ndis_worker_screening_check_expiry ?? '',
+            ndis_orientation_module: normalizedFormData.ndis_orientation_module ?? false,
+            ndis_orientation_module_expiry: normalizedFormData.ndis_orientation_module_expiry ?? '',
+            ndis_code_of_conduct: normalizedFormData.ndis_code_of_conduct ?? false,
+            ndis_code_of_conduct_expiry: normalizedFormData.ndis_code_of_conduct_expiry ?? '',
+            ndis_infection_control_training: normalizedFormData.ndis_infection_control_training ?? false,
+            ndis_infection_control_training_expiry: normalizedFormData.ndis_infection_control_training_expiry ?? '',
+            drivers_license: normalizedFormData.drivers_license ?? false,
+            drivers_license_expiry: normalizedFormData.drivers_license_expiry ?? '',
+            comprehensive_car_insurance: normalizedFormData.comprehensive_car_insurance ?? false,
+            comprehensive_car_insurance_expiry: normalizedFormData.comprehensive_car_insurance_expiry ?? '',
           };
           
           setFormData(normalizedData);

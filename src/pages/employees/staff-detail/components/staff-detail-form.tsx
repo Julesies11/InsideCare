@@ -2,6 +2,7 @@ import { PersonalDetails } from './personal-details';
 import { EmploymentDetails } from './employment-details';
 import { EmergencyContact } from './emergency-contact';
 import { StaffComplianceSection } from './staff-compliance';
+import { StaffRoster } from './staff-roster';
 import { StaffResourcesSection } from './staff-resources';
 import { StaffActivityLog } from './staff-activity-log';
 import { PendingChanges } from '@/models/pending-changes';
@@ -60,9 +61,13 @@ export function StaffDetailForm({
         canEdit={canEdit}
       />
       <StaffComplianceSection
+        formData={formData}
+        onFormChange={handleFormChange}
+        canEdit={canEdit}
+      />
+      <StaffRoster
         staffId={staffId}
-        pendingChanges={pendingChanges}
-        onPendingChangesChange={onPendingChangesChange}
+        canEdit={canEdit}
       />
       <StaffResourcesSection
         pendingChanges={pendingChanges}

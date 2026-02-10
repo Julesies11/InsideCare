@@ -28,6 +28,19 @@ export interface Staff {
   department_info?: { id: string; name: string; } | null;
   employment_type_info?: { id: string; name: string; } | null;
   manager_info?: { id: string; name: string; } | null;
+  // Compliance checklist fields
+  ndis_worker_screening_check?: boolean | null;
+  ndis_worker_screening_check_expiry?: string | null;
+  ndis_orientation_module?: boolean | null;
+  ndis_orientation_module_expiry?: string | null;
+  ndis_code_of_conduct?: boolean | null;
+  ndis_code_of_conduct_expiry?: string | null;
+  ndis_infection_control_training?: boolean | null;
+  ndis_infection_control_training_expiry?: string | null;
+  drivers_license?: boolean | null;
+  drivers_license_expiry?: string | null;
+  comprehensive_car_insurance?: boolean | null;
+  comprehensive_car_insurance_expiry?: string | null;
 }
 
 export interface StaffCompliance {

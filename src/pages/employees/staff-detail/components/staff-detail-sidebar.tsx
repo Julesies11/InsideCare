@@ -19,8 +19,12 @@ export function StaffDetailSidebar() {
       target: 'emergency_contact',
     },
     {
-      title: 'Compliance & Training',
+      title: 'Compliance',
       target: 'staff_compliance',
+    },
+    {
+      title: 'Roster',
+      target: 'staff_roster',
     },
     {
       title: 'Resources',
