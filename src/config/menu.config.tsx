@@ -102,14 +102,7 @@ export const MENU_SIDEBAR: MenuConfig = [
     title: 'Template',
     icon: LayoutGrid,
     children: [
-      {
-        title: 'Dashboards',
-        icon: LayoutGrid,
-        children: [
-          { title: 'Light Sidebar', path: '/' },
-          { title: 'Dark Sidebar', path: '/dark-sidebar' },
-        ],
-      },
+      { title: 'Dashboard', path: '/', icon: LayoutGrid },
       {
         title: 'Public Profile',
         icon: UserCircle,

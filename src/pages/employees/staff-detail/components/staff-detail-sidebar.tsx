@@ -15,6 +15,10 @@ export function StaffDetailSidebar() {
       target: 'employment_details',
     },
     {
+      title: 'Availability',
+      target: 'staff_availability',
+    },
+    {
       title: 'Emergency Contact',
       target: 'emergency_contact',
     },
@@ -23,16 +27,24 @@ export function StaffDetailSidebar() {
       target: 'staff_compliance',
     },
     {
-      title: 'Roster',
-      target: 'staff_roster',
-    },
-    {
-      title: 'Resources',
-      target: 'staff_resources',
+      title: 'Training',
+      target: 'staff_training',
     },
     {
       title: 'Documents',
       target: 'staff_documents',
+    },
+    {
+      title: 'Roster',
+      target: 'staff_roster',
+    },
+    {
+      title: 'Leave',
+      target: 'staff_leave',
+    },
+    {
+      title: 'Warnings',
+      target: 'staff_warnings',
     },
     {
       title: 'Activity Log',
