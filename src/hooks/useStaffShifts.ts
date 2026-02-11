@@ -83,7 +83,10 @@ export const useStaffShifts = () => {
       const shiftsWithParticipants = shifts.map((shift) => {
         const shiftParticipants = participants
           ?.filter((p) => p.shift_id === shift.id)
-          .map((p) => p.participant)
+          .map((p) => p.participant ? {
+            id: p.participant.id,
+            name: p.participant.name
+          } : null)
           .filter((p) => p !== null) || [];
 
         const duration = calculateDuration(shift.start_time, shift.end_time);

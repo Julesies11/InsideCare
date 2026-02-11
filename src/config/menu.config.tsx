@@ -8,6 +8,7 @@ import {
   Book,
   Briefcase,
   Building,
+  Calendar,
   CalendarCheck,
   Captions,
   CheckCircle,
@@ -90,6 +91,11 @@ export const MENU_SIDEBAR: MenuConfig = [
         children: [{ title: 'Detail', path: '/employees/staff-detail/:id' }],
       },
     ],
+  },
+  {
+    title: 'Roster Board',
+    icon: Calendar,
+    path: '/roster-board',
   },
   { heading: 'Template' },
   {

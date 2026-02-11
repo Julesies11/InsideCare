@@ -1,29 +1,36 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { format, addMonths, addWeeks, addDays } from 'date-fns';
+import { format } from 'date-fns';
 import { ShiftCalendar } from '@/components/roster/shift-calendar';
 import { ShiftDialog, ShiftFormData } from '@/components/roster/shift-dialog';
-import { RosterCalendarHeader } from '@/components/roster/roster-calendar-header';
 import { useRosterData, StaffShift } from '@/components/roster/use-roster-data';
 import { getDateRange, calculateDuration, ViewMode } from '@/components/roster/roster-utils';
 
-interface StaffRosterProps {
+interface StaffRosterCalendarProps {
   staffId: string;
+  viewMode: ViewMode;
+  currentDate: Date;
+  houseFilter: string;
+  participantFilter: string;
+  shiftTypeFilter: string;
+  statusFilter: string;
   canEdit: boolean;
 }
 
-export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
-  const [viewMode, setViewMode] = useState<ViewMode>('week');
-  const [currentDate, setCurrentDate] = useState(new Date());
+export function StaffRosterCalendar({
+  staffId,
+  viewMode,
+  currentDate,
+  houseFilter,
+  participantFilter,
+  shiftTypeFilter,
+  statusFilter,
+  canEdit,
+}: StaffRosterCalendarProps) {
   const [shifts, setShifts] = useState<StaffShift[]>([]);
   const [showShiftDialog, setShowShiftDialog] = useState(false);
   const [selectedShift, setSelectedShift] = useState<StaffShift | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  
-  const [houseFilter, setHouseFilter] = useState<string>('all');
-  const [shiftTypeFilter, setShiftTypeFilter] = useState<string>('all');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
 
   const {
     houses,
@@ -57,29 +64,11 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
       const matchesHouse = houseFilter === 'all' || shift.house_id === houseFilter;
       const matchesType = shiftTypeFilter === 'all' || shift.shift_type === shiftTypeFilter;
       const matchesStatus = statusFilter === 'all' || shift.status === statusFilter;
-      return matchesHouse && matchesType && matchesStatus;
+      const matchesParticipant = participantFilter === 'all' || 
+        shift.participants?.some(p => p.id === participantFilter);
+      return matchesHouse && matchesType && matchesStatus && matchesParticipant;
     });
-  }, [shifts, houseFilter, shiftTypeFilter, statusFilter]);
-
-  const navigatePeriod = (direction: 'prev' | 'next') => {
-    if (viewMode === 'today') {
-      setCurrentDate(prev => addDays(prev, direction === 'next' ? 1 : -1));
-    } else if (viewMode === 'week') {
-      setCurrentDate(prev => addWeeks(prev, direction === 'next' ? 1 : -1));
-    } else {
-      setCurrentDate(prev => addMonths(prev, direction === 'next' ? 1 : -1));
-    }
-  };
-
-  const getPeriodLabel = () => {
-    if (viewMode === 'today') {
-      return format(currentDate, 'MMMM d, yyyy');
-    } else if (viewMode === 'week') {
-      return `Week of ${format(currentDate, 'MMMM d, yyyy')}`;
-    } else {
-      return format(currentDate, 'MMMM yyyy');
-    }
-  };
+  }, [shifts, houseFilter, participantFilter, shiftTypeFilter, statusFilter]);
 
   const handleAddShift = (date: Date) => {
     setSelectedDate(date);
@@ -94,8 +83,8 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
   };
 
   const handleSaveShift = async (formData: ShiftFormData) => {
-    if (!formData.shift_date || !formData.start_time || !formData.end_time) {
-      toast.error('Please fill in all required fields');
+    if (!formData.staff_id || !formData.shift_date || !formData.start_time || !formData.end_time) {
+      toast.error('Please fill in all required fields including staff member');
       return;
     }
 
@@ -103,6 +92,7 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
       if (selectedShift) {
         // UPDATE EXISTING SHIFT
         const updates = {
+          staff_id: formData.staff_id,
           shift_date: formData.shift_date,
           start_time: formData.start_time,
           end_time: formData.end_time,
@@ -131,6 +121,7 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
         const shiftParticipants = formData.participant_ids
           .map(id => participants.find(p => p.id === id))
           .filter(p => p !== undefined) as typeof participants;
+        const staffMember = staff.find(s => s.id === formData.staff_id);
 
         // Update local state
         setShifts(prevShifts => prevShifts.map(shift => 
@@ -140,6 +131,7 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
                 ...updates,
                 house: house ? { id: house.id, name: house.name } : undefined,
                 participants: shiftParticipants,
+                staff_name: staffMember?.name || 'Unassigned',
                 duration_hours: calculateDuration(updates.start_time, updates.end_time),
               }
             : shift
@@ -149,7 +141,7 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
       } else {
         // CREATE NEW SHIFT
         const shiftData = {
-          staff_id: staffId,
+          staff_id: formData.staff_id,
           shift_date: formData.shift_date,
           start_time: formData.start_time,
           end_time: formData.end_time,
@@ -174,12 +166,14 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
         const shiftParticipants = formData.participant_ids
           .map(id => participants.find(p => p.id === id))
           .filter(p => p !== undefined) as typeof participants;
+        const staffMember = staff.find(s => s.id === formData.staff_id);
 
         // Add to local state
         const newShift: StaffShift = {
           ...data,
           house: house ? { id: house.id, name: house.name } : undefined,
           participants: shiftParticipants,
+          staff_name: staffMember?.name || 'Unassigned',
           duration_hours: calculateDuration(data.start_time, data.end_time),
         };
 
@@ -207,52 +201,30 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
   };
 
   return (
-    <Card id="staff_roster">
-      <CardHeader>
-        <CardTitle>Roster</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <RosterCalendarHeader
-          viewMode={viewMode}
-          onViewModeChange={setViewMode}
-          currentDate={currentDate}
-          onNavigate={navigatePeriod}
-          getPeriodLabel={getPeriodLabel}
-          showStaffFilter={false}
-          showParticipantFilter={false}
-          houseFilter={houseFilter}
-          onHouseFilterChange={setHouseFilter}
-          houseList={houses}
-          shiftTypeFilter={shiftTypeFilter}
-          onShiftTypeFilterChange={setShiftTypeFilter}
-          statusFilter={statusFilter}
-          onStatusFilterChange={setStatusFilter}
-        />
+    <>
+      <ShiftCalendar
+        staffId={staffId}
+        viewMode={viewMode}
+        currentDate={currentDate}
+        shifts={filteredShifts}
+        loading={loading}
+        canEdit={canEdit}
+        onAddShift={handleAddShift}
+        onEditShift={handleEditShift}
+      />
 
-        <ShiftCalendar
-          staffId={staffId}
-          viewMode={viewMode}
-          currentDate={currentDate}
-          shifts={filteredShifts}
-          loading={loading}
-          canEdit={canEdit}
-          onAddShift={handleAddShift}
-          onEditShift={handleEditShift}
-        />
-
-        <ShiftDialog
-          open={showShiftDialog}
-          onOpenChange={setShowShiftDialog}
-          shift={selectedShift}
-          staffId={staffId}
-          staffList={staff}
-          staffSelectionDisabled={true}
-          houses={houses}
-          participants={participants}
-          onSave={handleSaveShift}
-          onDelete={selectedShift ? handleDeleteShift : undefined}
-        />
-      </CardContent>
-    </Card>
+      <ShiftDialog
+        open={showShiftDialog}
+        onOpenChange={setShowShiftDialog}
+        shift={selectedShift}
+        staffId={staffId !== 'all' ? staffId : undefined}
+        staffList={staff}
+        staffSelectionDisabled={false}
+        houses={houses}
+        participants={participants}
+        onSave={handleSaveShift}
+        onDelete={selectedShift ? handleDeleteShift : undefined}
+      />
+    </>
   );
 }

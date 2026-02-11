@@ -50,6 +50,7 @@ import {
   StaffProfilesPage,
   StaffDetailPage,
 } from '@/pages/employees';
+import RosterBoard from '@/pages/roster-board';
 import {
   AuthAccountDeactivatedPage,
   AuthWelcomeMessagePage,
@@ -301,6 +302,10 @@ export function AppRoutingSetup() {
           <Route
             path="/employees/staff-detail/:id"
             element={<StaffDetailPage />}
+          />
+          <Route
+            path="/roster-board"
+            element={<RosterBoard />}
           />
           <Route
             path="/account/members/import-members"
