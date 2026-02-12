@@ -168,6 +168,7 @@ export function StaffDetailContent({
   const [refreshKeys, setRefreshKeys] = useState({
     compliance: 0,
     resources: 0,
+    training: 0,
     activityLog: 0,
   });
 
@@ -270,20 +271,47 @@ export function StaffDetailContent({
             }
           }
 
-          // Step 2: Process pending resources
-          if (pendingChanges?.staffResources.toAdd.length) {
-            for (const item of pendingChanges.staffResources.toAdd) {
+          // Step 2: Process pending training records
+          if (pendingChanges?.training.toAdd.length) {
+            for (const item of pendingChanges.training.toAdd) {
+              let filePath = null;
+              let fileName = null;
+              let fileSize = null;
+
+              // Upload file if present
+              if (item.file) {
+                const fileExt = item.file.name.split('.').pop();
+                const uniqueFileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+                const storagePath = `${staffId}/training/${uniqueFileName}`;
+
+                const { error: uploadError } = await supabase.storage
+                  .from('staff-documents')
+                  .upload(storagePath, item.file);
+
+                if (uploadError) {
+                  toast.error('Failed to upload training document');
+                  throw uploadError;
+                }
+
+                filePath = storagePath;
+                fileName = item.file.name;
+                fileSize = item.file.size;
+              }
+
               const { error } = await supabase
-                .from('staff_resources')
+                .from('staff_training')
                 .insert({
-                  category: item.category,
+                  staff_id: staffId,
                   title: item.title,
+                  category: item.category,
                   description: item.description || null,
-                  type: item.type,
-                  external_url: item.external_url || null,
-                  duration: item.duration || null,
-                  is_popular: item.is_popular || false,
-                  created_by: staffId, // Assuming current staff is creator
+                  provider: item.provider || null,
+                  date_completed: item.date_completed || null,
+                  expiry_date: item.expiry_date || null,
+                  file_path: filePath,
+                  file_name: fileName,
+                  file_size: fileSize,
+                  created_by: staffId,
                 });
               if (error) {
                 const parsedError = parseSupabaseError(error);
@@ -298,23 +326,56 @@ export function StaffDetailContent({
                 entityId: staffId,
                 entityName: staffMember?.name,
                 userName,
-                customDescription: `Added resource "${item.title}"`,
+                customDescription: `Added training record "${item.title}"`,
               });
             }
           }
 
-          if (pendingChanges?.staffResources.toUpdate.length) {
-            for (const item of pendingChanges.staffResources.toUpdate) {
+          if (pendingChanges?.training.toUpdate.length) {
+            for (const item of pendingChanges.training.toUpdate) {
+              let filePath = item.filePath;
+              let fileName = item.fileName;
+              let fileSize = null;
+
+              // Upload new file if present
+              if (item.file) {
+                // Delete old file if exists
+                if (item.filePath) {
+                  await supabase.storage
+                    .from('staff-documents')
+                    .remove([item.filePath]);
+                }
+
+                const fileExt = item.file.name.split('.').pop();
+                const uniqueFileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+                const storagePath = `${staffId}/training/${uniqueFileName}`;
+
+                const { error: uploadError } = await supabase.storage
+                  .from('staff-documents')
+                  .upload(storagePath, item.file);
+
+                if (uploadError) {
+                  toast.error('Failed to upload training document');
+                  throw uploadError;
+                }
+
+                filePath = storagePath;
+                fileName = item.file.name;
+                fileSize = item.file.size;
+              }
+
               const { error } = await supabase
-                .from('staff_resources')
+                .from('staff_training')
                 .update({
-                  category: item.category,
                   title: item.title,
+                  category: item.category,
                   description: item.description || null,
-                  type: item.type,
-                  external_url: item.external_url || null,
-                  duration: item.duration || null,
-                  is_popular: item.is_popular || false,
+                  provider: item.provider || null,
+                  date_completed: item.date_completed || null,
+                  expiry_date: item.expiry_date || null,
+                  file_path: filePath,
+                  file_name: fileName,
+                  file_size: fileSize,
                 })
                 .eq('id', item.id);
               if (error) {
@@ -330,24 +391,31 @@ export function StaffDetailContent({
                 entityId: staffId,
                 entityName: staffMember?.name,
                 userName,
-                customDescription: `Updated resource "${item.title}"`,
+                customDescription: `Updated training record "${item.title}"`,
               });
             }
           }
 
-          if (pendingChanges?.staffResources.toDelete.length) {
-            for (const id of pendingChanges.staffResources.toDelete) {
+          if (pendingChanges?.training.toDelete.length) {
+            for (const item of pendingChanges.training.toDelete) {
               // Get title before deleting for log
-              const { data: resData } = await supabase
-                .from('staff_resources')
+              const { data: trainingData } = await supabase
+                .from('staff_training')
                 .select('title')
-                .eq('id', id)
+                .eq('id', item.id)
                 .single();
 
+              // Delete file from storage if exists
+              if (item.filePath) {
+                await supabase.storage
+                  .from('staff-documents')
+                  .remove([item.filePath]);
+              }
+
               const { error } = await supabase
-                .from('staff_resources')
+                .from('staff_training')
                 .delete()
-                .eq('id', id);
+                .eq('id', item.id);
               if (error) {
                 const parsedError = parseSupabaseError(error);
                 toast.error(parsedError.title, { description: parsedError.description });
@@ -361,7 +429,7 @@ export function StaffDetailContent({
                 entityId: staffId,
                 entityName: staffMember?.name,
                 userName,
-                customDescription: `Deleted resource "${resData?.title || 'Unknown resource'}"`,
+                customDescription: `Deleted training record "${trainingData?.title || 'Unknown training'}"`,
               });
             }
           }
@@ -617,6 +685,7 @@ export function StaffDetailContent({
           setRefreshKeys(prev => ({
             compliance: prev.compliance + 1,
             resources: prev.resources + 1,
+            training: prev.training + 1,
             activityLog: prev.activityLog + 1,
           }));
 
@@ -668,7 +737,7 @@ export function StaffDetailContent({
       )}
       <div className="flex flex-col items-stretch grow gap-5 lg:gap-7.5">
         <StaffDetailForm
-          key={`staff-form-${refreshKeys.compliance}-${refreshKeys.resources}-${refreshKeys.activityLog}`}
+          key={`staff-form-${refreshKeys.compliance}-${refreshKeys.resources}-${refreshKeys.training}-${refreshKeys.activityLog}`}
           staffId={staffId}
           formData={formData}
           onFormDataChange={(data) => {
@@ -682,6 +751,7 @@ export function StaffDetailContent({
           validationErrors={validationErrors}
           staffName={staffMember.name}
           documentsRefreshKey={refreshKeys.resources}
+          trainingRefreshKey={refreshKeys.training}
         />
       </div>
     </div>

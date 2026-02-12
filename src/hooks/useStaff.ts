@@ -54,20 +54,18 @@ export interface StaffCompliance {
   updated_at?: string;
 }
 
-export interface StaffResource {
+export interface StaffTraining {
   id: string;
-  category: string;
+  staff_id?: string;
   title: string;
+  category: string;
   description?: string | null;
-  type: string;
-  file_url?: string | null;
+  provider?: string | null;
+  date_completed?: string | null;
+  expiry_date?: string | null;
+  file_path?: string | null;
   file_name?: string | null;
   file_size?: number | null;
-  external_url?: string | null;
-  duration?: string | null;
-  is_popular?: boolean | null;
-  is_interactive?: boolean | null;
-  tags?: string[] | null;
   created_by?: string | null;
   created_at?: string;
   updated_at?: string;
@@ -241,18 +239,24 @@ export function useStaff() {
     }
   }
 
-  async function getStaffResources() {
+  async function getStaffTraining(staffId?: string) {
     try {
-      const { data, error } = await supabase
-        .from('staff_resources')
+      let query = supabase
+        .from('staff_training')
         .select('*')
         .order('created_at', { ascending: false });
+
+      if (staffId) {
+        query = query.eq('staff_id', staffId);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       return { data, error: null };
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch resources';
-      console.error('Error fetching resources:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch training records';
+      console.error('Error fetching training:', err);
       return { data: null, error: errorMessage };
     }
   }
@@ -266,7 +270,7 @@ export function useStaff() {
     deleteStaff,
     getStaffById,
     getStaffCompliance,
-    getStaffResources,
+    getStaffTraining,
     refetch: fetchStaff,
   };
 }

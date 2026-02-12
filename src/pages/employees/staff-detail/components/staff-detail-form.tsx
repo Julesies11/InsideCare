@@ -3,7 +3,7 @@ import { EmploymentDetails } from './employment-details';
 import { EmergencyContact } from './emergency-contact';
 import { StaffComplianceSection } from './staff-compliance';
 import { StaffRoster } from './staff-roster';
-import { StaffResourcesSection } from './staff-resources';
+import { StaffTrainingSection } from './staff-training';
 import { StaffActivityLog } from './staff-activity-log';
 import { PendingChanges } from '@/models/pending-changes';
 import { Documents } from './documents';
@@ -19,6 +19,7 @@ interface StaffDetailFormProps {
   validationErrors?: Record<string, string>;
   staffName?: string;
   documentsRefreshKey?: number;
+  trainingRefreshKey?: number;
 }
 
 export function StaffDetailForm({
@@ -32,6 +33,7 @@ export function StaffDetailForm({
   validationErrors = {},
   staffName = '',
   documentsRefreshKey = 0,
+  trainingRefreshKey = 0,
 }: StaffDetailFormProps) {
   const handleFormChange = (field: string, value: any) => {
     onFormDataChange({
@@ -69,9 +71,11 @@ export function StaffDetailForm({
         staffId={staffId}
         canEdit={canEdit}
       />
-      <StaffResourcesSection
+      <StaffTrainingSection
+        key={`training-${trainingRefreshKey}`}
         pendingChanges={pendingChanges}
         onPendingChangesChange={onPendingChangesChange}
+        refreshKey={trainingRefreshKey}
       />
       <Documents
         key={`documents-${documentsRefreshKey}`}
