@@ -10,14 +10,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Plus, Edit, Trash2, FileText, Download, Clock } from 'lucide-react';
 import { useStaff, StaffTraining } from '@/hooks/useStaff';
 import { toast } from 'sonner';
-import { PendingChanges } from '@/models/pending-changes';
+import { StaffPendingChanges } from '@/models/staff-pending-changes';
 import { cn } from '@/lib/utils';
 import { format, differenceInDays, parseISO } from 'date-fns';
 import { supabase } from '@/lib/supabase';
 
 interface StaffTrainingSectionProps {
-  pendingChanges?: PendingChanges;
-  onPendingChangesChange?: (changes: PendingChanges) => void;
+  pendingChanges?: StaffPendingChanges;
+  onPendingChangesChange?: (changes: StaffPendingChanges) => void;
   refreshKey?: number;
 }
 

@@ -11,7 +11,7 @@ import { Documents } from './components/documents';
 import { Staff, StaffUpdateData, useStaff } from '@/hooks/useStaff';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { PendingChanges } from '@/models/pending-changes';
+import { StaffPendingChanges } from '@/models/staff-pending-changes';
 import { logActivity, detectChanges } from '@/lib/activity-logger';
 import { parseSupabaseError } from '@/lib/error-parser';
 import { useFormValidation } from '@/hooks/use-form-validation';
@@ -36,8 +36,8 @@ interface StaffDetailContentProps {
   onOriginalDataChange?: (data: any) => void;
   onSavingChange?: (saving: boolean) => void;
   saveHandlerRef?: React.MutableRefObject<(() => Promise<void>) | null>;
-  pendingChanges?: PendingChanges;
-  onPendingChangesChange?: (changes: PendingChanges) => void;
+  pendingChanges?: StaffPendingChanges;
+  onPendingChangesChange?: (changes: StaffPendingChanges) => void;
   updateStaff?: (id: string, updates: StaffUpdateData) => Promise<{ data: any; error: string | null }>;
   onSaveSuccess?: () => void;
 }

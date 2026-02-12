@@ -42,7 +42,7 @@ const stickySidebarClasses: Record<string, string> = {
   'demo10-layout': 'top-[1.5rem]',
 };
 
-import { PendingChanges } from '@/models/pending-changes';
+import { ParticipantPendingChanges } from '@/models/participant-pending-changes';
 import { MealtimeManagement } from './components/mealtime-management';
 
 interface ParticipantDetailContentProps {
@@ -50,8 +50,8 @@ interface ParticipantDetailContentProps {
   onOriginalDataChange?: (data: any) => void;
   onSavingChange?: (saving: boolean) => void;
   saveHandlerRef?: React.MutableRefObject<(() => Promise<void>) | null>;
-  pendingChanges?: PendingChanges;
-  onPendingChangesChange?: (changes: PendingChanges) => void;
+  pendingChanges?: ParticipantPendingChanges;
+  onPendingChangesChange?: (changes: ParticipantPendingChanges) => void;
   updateParticipant?: (id: string, updates: Partial<Participant>) => Promise<{ data: any; error: string | null }>;
 }
 
@@ -1028,6 +1028,19 @@ mtmp_details: '',
           return;
         }
 
+        // Validate: MTMP details are required when MTMP is required
+        const mtmpRequired = changedFields.mtmp_required !== undefined ? changedFields.mtmp_required : normalizedFormData.mtmp_required;
+        const mtmpDetails = changedFields.mtmp_details !== undefined ? changedFields.mtmp_details : normalizedFormData.mtmp_details;
+        
+        if (mtmpRequired && !mtmpDetails) {
+          setFieldError('mtmp_details', 'MTMP details are required when MTMP is enabled');
+          scrollToField('mtmp_details');
+          toast.error('MTMP details required', {
+            description: 'Please provide details for the Mealtime Management Plan.'
+          });
+          return;
+        }
+
         // If updateParticipant is available (from profiles page), use it to sync hook state
         if (updateParticipant) {
           const { error } = await updateParticipant(id, changedFields);
@@ -1287,7 +1300,7 @@ mtmp_details: '',
           canEdit={canEdit}
           formData={formData}
           onFormChange={handleFormChange}
-          onSave={handleSave}
+          validationErrors={validationErrors}
         />
         <MedicalRoutine
           canEdit={canEdit}

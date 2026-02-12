@@ -14,7 +14,9 @@ import { FundingTypeCombobox } from './funding-components/funding-type-combobox'
 import { FundingSourceMasterDialog } from './funding-components/funding-source-master-dialog';
 import { FundingTypeMasterDialog } from './funding-components/funding-type-master-dialog';
 import { useFunding } from '@/hooks/useFunding';
-import { PendingChanges } from '@/models/pending-changes';
+import { useFundingSourcesMaster } from '@/hooks/useFundingSourcesMaster';
+import { useFundingTypesMaster } from '@/hooks/useFundingTypesMaster';
+import { ParticipantPendingChanges } from '@/models/participant-pending-changes';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -24,8 +26,8 @@ interface FundingProps {
   participantId?: string;
   canAdd: boolean;
   canDelete: boolean;
-  pendingChanges?: PendingChanges;
-  onPendingChangesChange?: (changes: PendingChanges) => void;
+  pendingChanges?: ParticipantPendingChanges;
+  onPendingChangesChange?: (changes: ParticipantPendingChanges) => void;
 }
 
 const fundingSchema = z.object({
@@ -57,6 +59,8 @@ export function Funding({
   const [refreshFundingTypeKey, setRefreshFundingTypeKey] = useState(0);
 
   const { fundingRecords, loading } = useFunding(participantId);
+  const { fundingSources } = useFundingSourcesMaster();
+  const { fundingTypes } = useFundingTypesMaster();
 
   const form = useForm<FundingFormValues>({
     resolver: zodResolver(fundingSchema),
@@ -240,6 +244,34 @@ export function Funding({
     onPendingChangesChange(newPending);
   };
 
+  // Helper function to get funding source name
+  const getFundingSourceName = (funding: any) => {
+    // If funding has funding_source object (from database join), use it
+    if (funding.funding_source?.name) {
+      return funding.funding_source.name;
+    }
+    // Otherwise, look up by funding_source_id (for pending funding)
+    if (funding.funding_source_id) {
+      const fundingSource = fundingSources.find(fs => fs.id === funding.funding_source_id);
+      return fundingSource?.name || 'N/A';
+    }
+    return 'N/A';
+  };
+
+  // Helper function to get funding type name
+  const getFundingTypeName = (funding: any) => {
+    // If funding has funding_type object (from database join), use it
+    if (funding.funding_type?.name) {
+      return funding.funding_type.name;
+    }
+    // Otherwise, look up by funding_type_id (for pending funding)
+    if (funding.funding_type_id) {
+      const fundingType = fundingTypes.find(ft => ft.id === funding.funding_type_id);
+      return fundingType?.name || 'N/A';
+    }
+    return 'N/A';
+  };
+
   const visibleFunding = [
     ...fundingRecords.filter(fund => !pendingChanges?.funding.toDelete.includes(fund.id)),
     ...(pendingChanges?.funding.toAdd || []),
@@ -303,7 +335,7 @@ export function Funding({
                         <div className="flex items-center gap-2">
                           <DollarSign className="size-4 text-muted-foreground" />
                           <span className={`font-medium ${isPendingDelete ? 'line-through' : ''}`}>
-                            {funding.funding_source?.name || 'N/A'}
+                            {getFundingSourceName(funding)}
                           </span>
                           {isPendingAdd && (
                             <span className="text-xs text-primary flex items-center gap-1">
@@ -325,7 +357,7 @@ export function Funding({
                           )}
                         </div>
                       </TableCell>
-                      <TableCell>{funding.funding_type?.name || 'N/A'}</TableCell>
+                      <TableCell>{getFundingTypeName(funding)}</TableCell>
                       <TableCell>{funding.code || 'N/A'}</TableCell>
                       <TableCell>{formatCurrency(funding.allocated_amount)}</TableCell>
                       <TableCell>{formatCurrency(funding.used_amount)}</TableCell>

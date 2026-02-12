@@ -5,7 +5,7 @@ import { StaffComplianceSection } from './staff-compliance';
 import { StaffRoster } from './staff-roster';
 import { StaffTrainingSection } from './staff-training';
 import { StaffActivityLog } from './staff-activity-log';
-import { PendingChanges } from '@/models/pending-changes';
+import { StaffPendingChanges } from '@/models/staff-pending-changes';
 import { Documents } from './documents';
 
 interface StaffDetailFormProps {
@@ -13,8 +13,8 @@ interface StaffDetailFormProps {
   formData: any;
   onFormDataChange: (data: any) => void;
   canEdit: boolean;
-  pendingChanges?: PendingChanges;
-  onPendingChangesChange?: (changes: PendingChanges) => void;
+  pendingChanges?: StaffPendingChanges;
+  onPendingChangesChange?: (changes: StaffPendingChanges) => void;
   activityRefreshTrigger?: number;
   validationErrors?: Record<string, string>;
   staffName?: string;

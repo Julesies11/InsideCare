@@ -10,14 +10,14 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Plus, Edit, Trash2, Building2, Clock } from 'lucide-react';
 import { useParticipantProviders } from '@/hooks/useParticipantProviders';
-import { PendingChanges } from '@/models/pending-changes';
+import { ParticipantPendingChanges } from '@/models/participant-pending-changes';
 
 interface ServiceProvidersProps {
   participantId?: string;
   canAdd: boolean;
   canDelete: boolean;
-  pendingChanges?: PendingChanges;
-  onPendingChangesChange?: (changes: PendingChanges) => void;
+  pendingChanges?: ParticipantPendingChanges;
+  onPendingChangesChange?: (changes: ParticipantPendingChanges) => void;
 }
 
 export function ServiceProviders({ 

@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Edit, Trash2, Target, Clock } from 'lucide-react';
 import { useParticipantGoals, ParticipantGoal, GoalProgress } from '@/hooks/useParticipantGoals';
-import { PendingChanges } from '@/models/pending-changes';
+import { ParticipantPendingChanges } from '@/models/participant-pending-changes';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -18,8 +18,8 @@ interface GoalsProps {
   participantId?: string;
   canAdd: boolean;
   canDelete: boolean;
-  pendingChanges?: PendingChanges;
-  onPendingChangesChange?: (changes: PendingChanges) => void;
+  pendingChanges?: ParticipantPendingChanges;
+  onPendingChangesChange?: (changes: ParticipantPendingChanges) => void;
 }
 
 const goalSchema = z.object({

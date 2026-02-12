@@ -70,9 +70,13 @@ export function useMedicationsMaster() {
       }
 
       return { data, error: null };
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to add medication';
+    } catch (err: any) {
       console.error('Error adding medication:', err);
+      // Check for duplicate key constraint
+      if (err?.code === '23505' && err?.message?.includes('medications_master_name_key')) {
+        return { data: null, error: 'DUPLICATE_NAME' };
+      }
+      const errorMessage = err instanceof Error ? err.message : 'Failed to add medication';
       return { data: null, error: errorMessage };
     }
   }
@@ -115,9 +119,13 @@ export function useMedicationsMaster() {
       }
 
       return { data, error: null };
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to update medication';
+    } catch (err: any) {
       console.error('Error updating medication:', err);
+      // Check for duplicate key constraint
+      if (err?.code === '23505' && err?.message?.includes('medications_master_name_key')) {
+        return { data: null, error: 'DUPLICATE_NAME' };
+      }
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update medication';
       return { data: null, error: errorMessage };
     }
   }

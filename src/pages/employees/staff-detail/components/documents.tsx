@@ -7,15 +7,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Plus, Download, Trash2, FileText, Clock } from 'lucide-react';
 import { useStaffDocuments } from '@/hooks/useStaffDocuments';
-import { PendingChanges } from '@/models/pending-changes';
+import { StaffPendingChanges } from '@/models/staff-pending-changes';
 
 interface DocumentsProps {
   staffId?: string;
   staffName?: string;
   canAdd: boolean;
   canDelete: boolean;
-  pendingChanges?: PendingChanges;
-  onPendingChangesChange?: (changes: PendingChanges) => void;
+  pendingChanges?: StaffPendingChanges;
+  onPendingChangesChange?: (changes: StaffPendingChanges) => void;
 }
 
 export function Documents({ 

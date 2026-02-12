@@ -12,8 +12,7 @@ import {
   ToolbarPageTitle,
 } from '@/partials/common/toolbar';
 import { useSettings } from '@/providers/settings-provider';
-import { PendingChanges } from '@/models/pending-changes';
-import { createPendingChanges } from '@/lib/pending-changes-factory';
+import { ParticipantPendingChanges, emptyParticipantPendingChanges } from '@/models/participant-pending-changes';
 import { useDirtyTracker } from '@/hooks/useDirtyTracker';
 import { useParticipants } from '@/hooks/use-participants';
 
@@ -23,7 +22,7 @@ export function ParticipantDetailPage() {
   const { updateParticipant } = useParticipants();
   const [formData, setFormData] = useState<any>(null);
   const [originalData, setOriginalData] = useState<any>(null);
-  const [pendingChanges, setPendingChanges] = useState<PendingChanges>(createPendingChanges());
+  const [pendingChanges, setPendingChanges] = useState<ParticipantPendingChanges>(emptyParticipantPendingChanges);
   const [saving, setSaving] = useState(false);
   const saveHandlerRef = useRef<(() => Promise<void>) | null>(null);
 

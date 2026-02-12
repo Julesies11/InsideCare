@@ -92,7 +92,16 @@ export function MedicationMasterDialog({
     if (editingMedication) {
       const { error } = await updateMedication(editingMedication.id, medicationData);
       if (error) {
-        toast.error('Failed to update medication: ' + error);
+        // Check for duplicate name constraint
+        if (error === 'DUPLICATE_NAME') {
+          toast.error('Duplicate medication name', {
+            description: 'A medication with this name already exists. Please use a different name.'
+          });
+        } else {
+          toast.error('Failed to update medication', {
+            description: error
+          });
+        }
       } else {
         toast.success('Medication updated successfully');
         setShowAddDialog(false);
@@ -109,7 +118,16 @@ export function MedicationMasterDialog({
         updated_by: null,
       });
       if (error) {
-        toast.error('Failed to add medication: ' + error);
+        // Check for duplicate name constraint
+        if (error === 'DUPLICATE_NAME') {
+          toast.error('Duplicate medication name', {
+            description: 'A medication with this name already exists. Please use a different name.'
+          });
+        } else {
+          toast.error('Failed to add medication', {
+            description: error
+          });
+        }
       } else {
         toast.success('Medication added successfully');
         setShowAddDialog(false);

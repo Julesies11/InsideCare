@@ -1,3 +1,6 @@
+// Participant-specific pending changes model
+// This model includes goals, medications, contacts, funding, and shift notes
+
 export interface PendingGoal {
   tempId?: string;
   id?: string;
@@ -9,7 +12,7 @@ export interface PendingGoal {
 export interface PendingDocument {
   file: File;
   fileName: string;
-  tempId: string; // Temporary ID for tracking before save
+  tempId: string;
 }
 
 export interface PendingDocumentDelete {
@@ -64,34 +67,11 @@ export interface PendingShiftNote {
   tags: string[];
 }
 
-export interface PendingStaffCompliance {
-  tempId?: string;
-  id?: string;
-  compliance_name: string;
-  completion_date?: string | null;
-  expiry_date?: string | null;
-  status?: string | null;
-}
-
-export interface PendingStaffTraining {
-  tempId?: string;
-  id?: string;
-  title: string;
-  category: string;
-  description?: string | null;
-  provider?: string | null;
-  date_completed?: string | null;
-  expiry_date?: string | null;
-  file?: File;
-  fileName?: string;
-  filePath?: string;
-}
-
-export interface PendingChanges {
-    goals: {
+export interface ParticipantPendingChanges {
+  goals: {
     toAdd: PendingGoal[];
     toUpdate: PendingGoal[];
-    toDelete: string[]; // IDs
+    toDelete: string[];
   };
   documents: {
     toAdd: PendingDocument[];
@@ -100,36 +80,26 @@ export interface PendingChanges {
   medications: {
     toAdd: PendingMedication[];
     toUpdate: PendingMedication[];
-    toDelete: string[]; // IDs
+    toDelete: string[];
   };
   contacts: {
     toAdd: PendingContact[];
     toUpdate: PendingContact[];
-    toDelete: string[]; // IDs
+    toDelete: string[];
   };
   funding: {
     toAdd: PendingFunding[];
     toUpdate: PendingFunding[];
-    toDelete: string[]; // IDs
+    toDelete: string[];
   };
   shiftNotes: {
     toAdd: PendingShiftNote[];
     toUpdate: PendingShiftNote[];
-    toDelete: string[]; // IDs
-  };
-  staffCompliance: {
-    toAdd: PendingStaffCompliance[];
-    toUpdate: PendingStaffCompliance[];
-    toDelete: string[]; // IDs
-  };
-  training: {
-    toAdd: PendingStaffTraining[];
-    toUpdate: PendingStaffTraining[];
-    toDelete: Array<{ id: string; filePath?: string; fileName?: string }>;
+    toDelete: string[];
   };
 }
 
-export const emptyPendingChanges: PendingChanges = {
+export const emptyParticipantPendingChanges: ParticipantPendingChanges = {
   goals: {
     toAdd: [],
     toUpdate: [],
@@ -159,20 +129,10 @@ export const emptyPendingChanges: PendingChanges = {
     toUpdate: [],
     toDelete: [],
   },
-  staffCompliance: {
-    toAdd: [],
-    toUpdate: [],
-    toDelete: [],
-  },
-  training: {
-    toAdd: [],
-    toUpdate: [],
-    toDelete: [],
-  },
 };
 
-// Helper to check if there are any pending changes
-export function hasPendingChanges(pending: PendingChanges): boolean {
+// Helper to check if there are any pending changes for participants
+export function hasParticipantPendingChanges(pending: ParticipantPendingChanges): boolean {
   return (
     pending.goals.toAdd.length > 0 ||
     pending.goals.toUpdate.length > 0 ||
@@ -190,18 +150,12 @@ export function hasPendingChanges(pending: PendingChanges): boolean {
     pending.funding.toDelete.length > 0 ||
     pending.shiftNotes.toAdd.length > 0 ||
     pending.shiftNotes.toUpdate.length > 0 ||
-    pending.shiftNotes.toDelete.length > 0 ||
-    pending.staffCompliance.toAdd.length > 0 ||
-    pending.staffCompliance.toUpdate.length > 0 ||
-    pending.staffCompliance.toDelete.length > 0 ||
-    pending.training.toAdd.length > 0 ||
-    pending.training.toUpdate.length > 0 ||
-    pending.training.toDelete.length > 0
+    pending.shiftNotes.toDelete.length > 0
   );
 }
 
-// Helper to count total pending changes
-export function countPendingChanges(pending: PendingChanges): number {
+// Helper to count total pending changes for participants
+export function countParticipantPendingChanges(pending: ParticipantPendingChanges): number {
   return (
     pending.goals.toAdd.length +
     pending.goals.toUpdate.length +
@@ -219,12 +173,6 @@ export function countPendingChanges(pending: PendingChanges): number {
     pending.funding.toDelete.length +
     pending.shiftNotes.toAdd.length +
     pending.shiftNotes.toUpdate.length +
-    pending.shiftNotes.toDelete.length +
-    pending.staffCompliance.toAdd.length +
-    pending.staffCompliance.toUpdate.length +
-    pending.staffCompliance.toDelete.length +
-    pending.training.toAdd.length +
-    pending.training.toUpdate.length +
-    pending.training.toDelete.length
+    pending.shiftNotes.toDelete.length
   );
 }

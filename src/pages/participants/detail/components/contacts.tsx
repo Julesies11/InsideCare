@@ -10,16 +10,17 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Plus, Edit, Trash2, Users, Clock } from 'lucide-react';
 import { useParticipantContacts } from '@/hooks/useParticipantContacts';
+import { useContactTypesMaster } from '@/hooks/useContactTypesMaster';
 import { ContactTypeCombobox } from './contact-components/contact-type-combobox';
 import { ContactTypeMasterDialog } from './contact-components/contact-type-master-dialog';
-import { PendingChanges } from '@/models/pending-changes';
+import { ParticipantPendingChanges } from '@/models/participant-pending-changes';
 
 interface ContactsProps {
   participantId?: string;
   canAdd: boolean;
   canDelete: boolean;
-  pendingChanges?: PendingChanges;
-  onPendingChangesChange?: (changes: PendingChanges) => void;
+  pendingChanges?: ParticipantPendingChanges;
+  onPendingChangesChange?: (changes: ParticipantPendingChanges) => void;
 }
 
 export function Contacts({ 
@@ -44,6 +45,7 @@ export function Contacts({
   });
 
   const { contacts, loading } = useParticipantContacts(participantId);
+  const { contactTypes } = useContactTypesMaster();
 
   const handleAdd = () => {
     setEditingContact(null);
@@ -186,6 +188,20 @@ export function Contacts({
     onPendingChangesChange(newPending);
   };
 
+  // Helper function to get contact type name
+  const getContactTypeName = (contact: any) => {
+    // If contact has contact_type object (from database join), use it
+    if (contact.contact_type?.name) {
+      return contact.contact_type.name;
+    }
+    // Otherwise, look up by contact_type_id (for pending contacts)
+    if (contact.contact_type_id) {
+      const contactType = contactTypes.find(ct => ct.id === contact.contact_type_id);
+      return contactType?.name || 'N/A';
+    }
+    return 'N/A';
+  };
+
   // Combine existing contacts with pending adds, filter out pending deletes
   const visibleContacts = [
     ...contacts.filter(cont => !pendingChanges?.contacts.toDelete.includes(cont.id)),
@@ -260,7 +276,7 @@ export function Contacts({
                           )}
                         </div>
                       </TableCell>
-                      <TableCell>{contact.contact_type?.name || 'N/A'}</TableCell>
+                      <TableCell>{getContactTypeName(contact)}</TableCell>
                       <TableCell>{contact.phone || 'N/A'}</TableCell>
                       <TableCell className="max-w-xs truncate">
                         {contact.email || 'N/A'}

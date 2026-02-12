@@ -1,12 +1,12 @@
 import { useMemo } from 'react';
 import { diff } from 'json-diff-ts';
-import { hasAnyPendingChanges } from '@/lib/pending-changes-factory';
-import { PendingChanges } from '@/models/pending-changes';
+import { StaffPendingChanges, hasStaffPendingChanges } from '@/models/staff-pending-changes';
+import { ParticipantPendingChanges, hasParticipantPendingChanges } from '@/models/participant-pending-changes';
 
 interface UseDirtyTrackerOptions {
   formData: any;
   originalData: any;
-  pendingChanges?: PendingChanges;
+  pendingChanges?: StaffPendingChanges | ParticipantPendingChanges;
 }
 
 /**
@@ -20,7 +20,15 @@ export function useDirtyTracker({ formData, originalData, pendingChanges }: UseD
     const formChanged = formDiff.length > 0;
 
     // Check if any child entities have pending changes
-    const hasPendingChildChanges = pendingChanges ? hasAnyPendingChanges(pendingChanges) : false;
+    let hasPendingChildChanges = false;
+    if (pendingChanges) {
+      // Check if it's StaffPendingChanges (has training property)
+      if ('training' in pendingChanges) {
+        hasPendingChildChanges = hasStaffPendingChanges(pendingChanges as StaffPendingChanges);
+      } else {
+        hasPendingChildChanges = hasParticipantPendingChanges(pendingChanges as ParticipantPendingChanges);
+      }
+    }
 
     return {
       isDirty: formChanged || hasPendingChildChanges,

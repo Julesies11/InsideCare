@@ -12,8 +12,7 @@ import {
   ToolbarPageTitle,
 } from '@/partials/common/toolbar';
 import { useSettings } from '@/providers/settings-provider';
-import { PendingChanges } from '@/models/pending-changes';
-import { createPendingChanges } from '@/lib/pending-changes-factory';
+import { StaffPendingChanges, emptyStaffPendingChanges } from '@/models/staff-pending-changes';
 import { useDirtyTracker } from '@/hooks/useDirtyTracker';
 import { useStaff } from '@/hooks/useStaff';
 
@@ -24,7 +23,7 @@ export function StaffDetailPage() {
   const { updateStaff } = useStaff();
   const [formData, setFormData] = useState<any>(null);
   const [originalData, setOriginalData] = useState<any>(null);
-  const [pendingChanges, setPendingChanges] = useState<PendingChanges>(createPendingChanges());
+  const [pendingChanges, setPendingChanges] = useState<StaffPendingChanges>(emptyStaffPendingChanges);
   const [saving, setSaving] = useState(false);
   const saveHandlerRef = useRef<(() => Promise<void>) | null>(null);
 
@@ -106,7 +105,7 @@ export function StaffDetailPage() {
           updateStaff={updateStaff}
           onSaveSuccess={() => {
             // Clear dirty state after successful save
-            setPendingChanges(createPendingChanges());
+            setPendingChanges(emptyStaffPendingChanges);
           }}
         />
       </Container>

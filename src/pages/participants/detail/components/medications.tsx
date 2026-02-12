@@ -11,7 +11,7 @@ import { MedicationCombobox } from './medication-components/medication-combobox'
 import { MedicationMasterDialog } from './medication-components/medication-master-dialog';
 import { useParticipantMedications } from '@/hooks/useParticipantMedications';
 import { useMedicationsMaster } from '@/hooks/useMedicationsMaster';
-import { PendingChanges } from '@/models/pending-changes';
+import { ParticipantPendingChanges } from '@/models/participant-pending-changes';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -21,8 +21,8 @@ interface MedicationsProps {
   participantId?: string;
   canAdd: boolean;
   canDelete: boolean;
-  pendingChanges?: PendingChanges;
-  onPendingChangesChange?: (changes: PendingChanges) => void;
+  pendingChanges?: ParticipantPendingChanges;
+  onPendingChangesChange?: (changes: ParticipantPendingChanges) => void;
 }
 
 const medicationSchema = z.object({
