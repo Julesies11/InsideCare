@@ -13,6 +13,8 @@ interface ShiftCalendarProps {
   canEdit: boolean;
   onAddShift: (date: Date) => void;
   onEditShift: (shift: ShiftCardData) => void;
+  onWriteNote?: (shift: ShiftCardData) => void;
+  onNotesClick?: (shift: ShiftCardData) => void;
 }
 
 export function ShiftCalendar({
@@ -24,6 +26,8 @@ export function ShiftCalendar({
   canEdit,
   onAddShift,
   onEditShift,
+  onWriteNote,
+  onNotesClick,
 }: ShiftCalendarProps) {
   const getShiftsForDate = (date: Date) => {
     return shifts.filter(shift => 
@@ -83,6 +87,8 @@ export function ShiftCalendar({
                       compact={true}
                       showStaffName={staffId === 'all'}
                       onClick={() => canEdit && onEditShift(shift)}
+                      onWriteNote={onWriteNote}
+                      onNotesClick={onNotesClick}
                     />
                   ))}
                 </div>
@@ -135,6 +141,8 @@ export function ShiftCalendar({
                     compact={false}
                     showStaffName={staffId === 'all'}
                     onClick={() => canEdit && onEditShift(shift)}
+                    onWriteNote={onWriteNote}
+                    onNotesClick={onNotesClick}
                   />
                 ))}
                 {dayShifts.length === 0 && (
@@ -181,6 +189,8 @@ export function ShiftCalendar({
                 compact={false}
                 showStaffName={staffId === 'all'}
                 onClick={() => canEdit && onEditShift(shift)}
+                onWriteNote={onWriteNote}
+                onNotesClick={onNotesClick}
               />
             ))}
           </div>

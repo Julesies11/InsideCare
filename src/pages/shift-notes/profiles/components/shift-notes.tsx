@@ -229,21 +229,6 @@ const ShiftNotes = () => {
         size: 300,
       },
       {
-        id: 'tags',
-        header: 'Tags',
-        cell: ({ row }) => (
-          <div className="flex gap-1 flex-wrap">
-            {row.original.tags?.map((tag, index) => (
-              <Badge key={index} variant="secondary" appearance="light" size="sm">
-                {tag}
-              </Badge>
-            ))}
-          </div>
-        ),
-        enableSorting: false,
-        size: 150,
-      },
-      {
         id: 'actions',
         header: 'Actions',
         cell: ({ row }) => <ActionsCell row={row} />,

@@ -16,7 +16,6 @@ import {
   Edit,
   Filter,
   Search,
-  Tag,
   X,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -48,6 +47,7 @@ import { ShiftNote, useShiftNotes } from '@/hooks/useShiftNotes';
 import { useHouses } from '@/hooks/use-houses';
 import { format } from 'date-fns';
 import { Alert } from '@/components/ui/alert';
+import { formatTime } from '@/components/roster/roster-utils';
 import { EditShiftNoteDialog } from './edit-shift-note-dialog';
 
 interface ShiftNotesProps {
@@ -82,8 +82,7 @@ const ShiftNotes = ({}: ShiftNotesProps) => {
         (item.participant?.name && item.participant.name.toLowerCase().includes(searchLower)) ||
         (item.staff?.name && item.staff.name.toLowerCase().includes(searchLower)) ||
         (item.house?.name && item.house.name.toLowerCase().includes(searchLower)) ||
-        (item.notes && item.notes.toLowerCase().includes(searchLower)) ||
-        (item.tags && item.tags.some(tag => tag.toLowerCase().includes(searchLower)));
+        (item.notes && item.notes.toLowerCase().includes(searchLower));
 
       return matchesHouse && matchesSearch;
     });
@@ -198,22 +197,22 @@ const ShiftNotes = ({}: ShiftNotesProps) => {
         size: 150,
       },
       {
-        id: 'tags',
+        id: 'linked_shift',
         header: ({ column }) => (
-          <DataGridColumnHeader title="Tags" column={column} />
+          <DataGridColumnHeader title="Linked Shift" column={column} />
         ),
-        cell: ({ row }) => (
-          <div className="flex flex-wrap gap-1">
-            {row.original.tags?.map((tag, index) => (
-              <Badge key={index} variant="secondary" className="text-[10px] px-1.5 py-0">
-                <Tag className="size-2.5 me-1" />
-                {tag}
-              </Badge>
-            )) || '-'}
-          </div>
-        ),
+        cell: ({ row }) => {
+          const shift = row.original.shift;
+          if (!shift) return <span className="text-sm text-muted-foreground">—</span>;
+          return (
+            <span className="text-sm text-gray-700 dark:text-gray-300">
+              {formatTime(shift.start_time)} – {formatTime(shift.end_time)}
+              <span className="ml-1 text-xs text-muted-foreground">({shift.shift_type})</span>
+            </span>
+          );
+        },
         enableSorting: false,
-        size: 200,
+        size: 160,
       },
       {
         id: 'actions',

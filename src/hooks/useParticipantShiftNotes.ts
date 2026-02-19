@@ -9,7 +9,6 @@ export interface ShiftNote {
   shift_time?: string | null;
   house_id?: string | null;
   summary?: string | null;
-  tags?: string[] | null;
   full_note?: string | null;
   attachment_path?: string | null;
   created_at?: string;

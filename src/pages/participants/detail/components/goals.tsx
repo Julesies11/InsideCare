@@ -3,16 +3,17 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetBody } from '@/components/ui/sheet';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Trash2, Target, Clock } from 'lucide-react';
+import { Plus, Edit, Trash2, Target, MessageSquarePlus, Clock, ChevronRight, Send, Loader2, Check, X } from 'lucide-react';
 import { useParticipantGoals, ParticipantGoal, GoalProgress } from '@/hooks/useParticipantGoals';
 import { ParticipantPendingChanges } from '@/models/participant-pending-changes';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
+import { format } from 'date-fns';
 
 interface GoalsProps {
   participantId?: string;
@@ -29,6 +30,179 @@ const goalSchema = z.object({
 
 type GoalFormValues = z.infer<typeof goalSchema>;
 
+function ProgressNoteItem({
+  note,
+  onEdit,
+  onDelete,
+  canEdit,
+}: {
+  note: GoalProgress;
+  onEdit: (id: string, text: string) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
+  canEdit: boolean;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [editText, setEditText] = useState(note.progress_note);
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleSaveEdit = async () => {
+    const trimmed = editText.trim();
+    if (!trimmed || trimmed === note.progress_note) { setEditing(false); return; }
+    setSaving(true);
+    await onEdit(note.id, trimmed);
+    setSaving(false);
+    setEditing(false);
+  };
+
+  const handleDelete = async () => {
+    if (!confirm('Delete this progress note?')) return;
+    setDeleting(true);
+    await onDelete(note.id);
+    setDeleting(false);
+  };
+
+  const handleCancelEdit = () => {
+    setEditText(note.progress_note);
+    setEditing(false);
+  };
+
+  return (
+    <div className="rounded-md border bg-muted/40 px-3 py-2 group">
+      {editing ? (
+        <div className="flex flex-col gap-2">
+          <Textarea
+            value={editText}
+            onChange={(e) => setEditText(e.target.value)}
+            rows={2}
+            className="resize-none text-sm"
+            autoFocus
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleSaveEdit();
+              if (e.key === 'Escape') handleCancelEdit();
+            }}
+          />
+          <div className="flex gap-1 justify-end">
+            <Button size="sm" variant="ghost" onClick={handleCancelEdit} disabled={saving}>
+              <X className="size-3.5" />
+            </Button>
+            <Button size="sm" variant="primary" onClick={handleSaveEdit} disabled={saving || !editText.trim()}>
+              {saving ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />}
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm whitespace-pre-wrap">{note.progress_note}</p>
+            {note.created_at && (
+              <p className="text-xs text-muted-foreground mt-1">
+                <Clock className="inline size-3 me-1" />
+                {format(new Date(note.created_at), 'dd MMM yyyy, h:mm a')}
+                {note.updated_at && note.updated_at !== note.created_at && (
+                  <span className="ml-1 italic">(edited)</span>
+                )}
+              </p>
+            )}
+          </div>
+          {canEdit && (
+            <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-6 w-6 p-0"
+                onClick={() => { setEditText(note.progress_note); setEditing(true); }}
+              >
+                <Edit className="size-3" />
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                onClick={handleDelete}
+                disabled={deleting}
+              >
+                {deleting ? <Loader2 className="size-3 animate-spin" /> : <Trash2 className="size-3" />}
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ProgressNotesList({
+  notes,
+  goalId,
+  onAddNote,
+  onEditNote,
+  onDeleteNote,
+  canAdd,
+}: {
+  notes: GoalProgress[];
+  goalId: string;
+  onAddNote: (goalId: string, text: string) => Promise<void>;
+  onEditNote: (id: string, text: string) => Promise<void>;
+  onDeleteNote: (id: string) => Promise<void>;
+  canAdd: boolean;
+}) {
+  const [noteText, setNoteText] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const handleSubmit = async () => {
+    const trimmed = noteText.trim();
+    if (!trimmed) return;
+    setSaving(true);
+    await onAddNote(goalId, trimmed);
+    setNoteText('');
+    setSaving(false);
+  };
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-2 max-h-72 overflow-y-auto pr-1">
+        {notes.length === 0 ? (
+          <p className="text-sm text-muted-foreground py-4 text-center">No progress notes yet</p>
+        ) : (
+          notes.map((note) => (
+            <ProgressNoteItem
+              key={note.id}
+              note={note}
+              onEdit={onEditNote}
+              onDelete={onDeleteNote}
+              canEdit={canAdd}
+            />
+          ))
+        )}
+      </div>
+      {canAdd && (
+        <div className="flex gap-2 pt-1">
+          <Textarea
+            value={noteText}
+            onChange={(e) => setNoteText(e.target.value)}
+            placeholder="Add a progress note..."
+            rows={2}
+            className="flex-1 resize-none text-sm"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleSubmit();
+            }}
+          />
+          <Button
+            size="sm"
+            variant="primary"
+            className="self-end"
+            onClick={handleSubmit}
+            disabled={saving || !noteText.trim()}
+          >
+            {saving ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function Goals({
   participantId,
   canAdd,
@@ -36,10 +210,16 @@ export function Goals({
   pendingChanges,
   onPendingChangesChange,
 }: GoalsProps) {
-  const [showDialog, setShowDialog] = useState(false);
+  const [showGoalDialog, setShowGoalDialog] = useState(false);
   const [editingGoal, setEditingGoal] = useState<ParticipantGoal | null>(null);
 
-  const { goals, goalProgress, loading } = useParticipantGoals(participantId);
+  // Option B: Sheet state — selected goal for side panel
+  const [sheetGoal, setSheetGoal] = useState<ParticipantGoal | null>(null);
+
+  // Option D: Progress dialog state — selected goal for focused progress dialog
+  const [progressDialogGoal, setProgressDialogGoal] = useState<ParticipantGoal | null>(null);
+
+  const { goals, goalProgress, loading, addProgress, updateProgress, deleteProgress } = useParticipantGoals(participantId);
 
   const form = useForm<GoalFormValues>({
     resolver: zodResolver(goalSchema),
@@ -50,34 +230,33 @@ export function Goals({
   });
 
   useEffect(() => {
-    if (showDialog && editingGoal) {
+    if (showGoalDialog && editingGoal) {
       form.reset({
         goal_type: editingGoal.goal_type,
         description: editingGoal.description,
       });
-    } else if (showDialog) {
+    } else if (showGoalDialog) {
       form.reset({
         goal_type: 'identified',
         description: '',
       });
     }
-  }, [showDialog, editingGoal, form]);
+  }, [showGoalDialog, editingGoal, form]);
 
   const handleAdd = () => {
     setEditingGoal(null);
-    setShowDialog(true);
+    setShowGoalDialog(true);
   };
 
   const handleEdit = (goal: ParticipantGoal) => {
     setEditingGoal(goal);
-    setShowDialog(true);
+    setShowGoalDialog(true);
   };
 
   const handleSave = (data: GoalFormValues) => {
     if (!pendingChanges || !onPendingChangesChange) return;
 
     if (editingGoal) {
-      // Update existing goal
       if (editingGoal.tempId) {
         const newPending = {
           ...pendingChanges,
@@ -103,7 +282,6 @@ export function Goals({
         onPendingChangesChange(newPending);
       }
     } else {
-      // Add new goal
       const tempId = `temp-${Date.now()}-${Math.random()}`;
       const newPending = {
         ...pendingChanges,
@@ -117,7 +295,7 @@ export function Goals({
       };
       onPendingChangesChange(newPending);
     }
-    setShowDialog(false);
+    setShowGoalDialog(false);
   };
 
   const handleDelete = (goal: ParticipantGoal) => {
@@ -176,10 +354,25 @@ export function Goals({
     onPendingChangesChange(newPending);
   };
 
+  const handleAddNote = async (goalId: string, text: string) => {
+    await addProgress({ goal_id: goalId, progress_note: text });
+  };
+
+  const handleEditNote = async (id: string, text: string) => {
+    await updateProgress(id, text);
+  };
+
+  const handleDeleteNote = async (id: string) => {
+    await deleteProgress(id);
+  };
+
   const visibleGoals = [
     ...goals.filter(g => !pendingChanges?.goals.toDelete.includes(g.id)),
     ...(pendingChanges?.goals.toAdd || []),
   ];
+
+  const sheetNotes = sheetGoal ? goalProgress.filter(p => p.goal_id === sheetGoal.id) : [];
+  const progressDialogNotes = progressDialogGoal ? goalProgress.filter(p => p.goal_id === progressDialogGoal.id) : [];
 
   return (
     <>
@@ -202,7 +395,7 @@ export function Goals({
                 <TableRow>
                   <TableHead>Goal Type</TableHead>
                   <TableHead>Description</TableHead>
-                  <TableHead>Progress Notes</TableHead>
+                  <TableHead>Progress</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -211,8 +404,8 @@ export function Goals({
                   const isPendingAdd = 'tempId' in goal;
                   const isPendingUpdate = pendingChanges?.goals.toUpdate.some(g => g.id === goal.id);
                   const isPendingDelete = pendingChanges?.goals.toDelete.includes(goal.id);
-
-                  const progressNotes = goalProgress.filter(p => p.goal_id === goal.id);
+                  const noteCount = goalProgress.filter(p => p.goal_id === goal.id).length;
+                  const isSaved = !isPendingAdd;
 
                   return (
                     <TableRow
@@ -231,16 +424,40 @@ export function Goals({
                           </span>
                         </div>
                       </TableCell>
-                      <TableCell>{goal.description}</TableCell>
+                      {/* Option B trigger: click description to open Sheet */}
                       <TableCell>
-                        {progressNotes.length === 0
-                          ? <span className="text-muted-foreground">No progress</span>
-                          : progressNotes.map((p, idx) => (
-                              <div key={p.id || idx} className="text-sm mb-1">
-                                {p.progress_note}
-                              </div>
-                            ))
-                        }
+                        {isSaved ? (
+                          <button
+                            type="button"
+                            className="text-left hover:underline focus:outline-none group flex items-center gap-1"
+                            onClick={() => setSheetGoal(goal as ParticipantGoal)}
+                          >
+                            <span className={isPendingDelete ? 'line-through' : ''}>{goal.description}</span>
+                            <ChevronRight className="size-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </button>
+                        ) : (
+                          <span>{goal.description}</span>
+                        )}
+                      </TableCell>
+                      {/* Option D: badge showing note count */}
+                      <TableCell>
+                        {isSaved ? (
+                          <button
+                            type="button"
+                            onClick={() => setProgressDialogGoal(goal as ParticipantGoal)}
+                            className="focus:outline-none"
+                          >
+                            <Badge
+                              variant={noteCount > 0 ? 'secondary' : 'outline'}
+                              className="cursor-pointer hover:bg-secondary/80 transition-colors gap-1"
+                            >
+                              <MessageSquarePlus className="size-3" />
+                              {noteCount > 0 ? `${noteCount} note${noteCount !== 1 ? 's' : ''}` : 'Add notes'}
+                            </Badge>
+                          </button>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">Save goal first</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         <div className="flex justify-end gap-1">
@@ -299,16 +516,17 @@ export function Goals({
         </CardContent>
       </Card>
 
-      <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent>
+      {/* Add / Edit Goal Dialog */}
+      <Dialog open={showGoalDialog} onOpenChange={setShowGoalDialog}>
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>{editingGoal ? 'Edit Goal' : 'Add Goal'}</DialogTitle>
             <DialogDescription>
-              {editingGoal ? 'Update goal details' : 'Add a new goal for this participant'}
+              {editingGoal ? 'Update goal details and add progress notes' : 'Add a new goal for this participant'}
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSave)} className="space-y-4 py-4">
+            <form onSubmit={form.handleSubmit(handleSave)} className="space-y-4 py-2">
               <FormField
                 control={form.control}
                 name="goal_type"
@@ -338,14 +556,91 @@ export function Goals({
                   </FormItem>
                 )}
               />
+
+              {/* Progress notes — only for saved goals */}
+              {editingGoal && !editingGoal.tempId ? (
+                <div className="pt-1">
+                  <p className="text-sm font-medium mb-2">Progress Notes</p>
+                  <ProgressNotesList
+                    notes={goalProgress.filter(p => p.goal_id === editingGoal.id)}
+                    goalId={editingGoal.id}
+                    onAddNote={handleAddNote}
+                    onEditNote={handleEditNote}
+                    onDeleteNote={handleDeleteNote}
+                    canAdd={canAdd}
+                  />
+                </div>
+              ) : !editingGoal ? (
+                <p className="text-xs text-muted-foreground border rounded-md px-3 py-2 bg-muted/40">
+                  Progress notes can be added after the goal is saved.
+                </p>
+              ) : null}
+
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setShowDialog(false)}>
+                <Button type="button" variant="outline" onClick={() => setShowGoalDialog(false)}>
                   Cancel
                 </Button>
                 <Button type="submit" variant="primary">Save</Button>
               </DialogFooter>
             </form>
           </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Option B: Goal detail Sheet (right side panel) */}
+      <Sheet open={!!sheetGoal} onOpenChange={(open) => { if (!open) setSheetGoal(null); }}>
+        <SheetContent side="right" className="w-full sm:max-w-lg flex flex-col gap-0 p-0">
+          <SheetHeader className="px-6 pt-6 pb-4 border-b">
+            <div className="flex items-center gap-2">
+              <Target className="size-4 text-muted-foreground" />
+              <Badge variant="secondary" className="text-xs">
+                {sheetGoal?.goal_type === 'ndis' ? 'NDIS Goal' : 'Identified Goal'}
+              </Badge>
+            </div>
+            <SheetTitle className="mt-2 text-base leading-snug">{sheetGoal?.description}</SheetTitle>
+            <SheetDescription>
+              Progress notes — {sheetNotes.length} {sheetNotes.length === 1 ? 'entry' : 'entries'}
+            </SheetDescription>
+          </SheetHeader>
+          <SheetBody className="flex-1 overflow-y-auto px-6 py-4">
+            {sheetGoal && (
+              <ProgressNotesList
+                notes={sheetNotes}
+                goalId={sheetGoal.id}
+                onAddNote={handleAddNote}
+                onEditNote={handleEditNote}
+                onDeleteNote={handleDeleteNote}
+                canAdd={canAdd}
+              />
+            )}
+          </SheetBody>
+        </SheetContent>
+      </Sheet>
+
+      {/* Option D: Focused progress notes Dialog */}
+      <Dialog open={!!progressDialogGoal} onOpenChange={(open) => { if (!open) setProgressDialogGoal(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MessageSquarePlus className="size-4 text-muted-foreground" />
+              Progress Notes
+            </DialogTitle>
+            <DialogDescription className="line-clamp-2">
+              {progressDialogGoal?.description}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-2">
+            {progressDialogGoal && (
+              <ProgressNotesList
+                notes={progressDialogNotes}
+                goalId={progressDialogGoal.id}
+                onAddNote={handleAddNote}
+                onEditNote={handleEditNote}
+                onDeleteNote={handleDeleteNote}
+                canAdd={canAdd}
+              />
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </>

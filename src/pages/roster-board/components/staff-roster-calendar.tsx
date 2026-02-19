@@ -1,10 +1,13 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ShiftCalendar } from '@/components/roster/shift-calendar';
 import { ShiftDialog, ShiftFormData } from '@/components/roster/shift-dialog';
+import { ShiftCardData } from '@/components/roster/shift-card';
 import { useRosterData, StaffShift } from '@/components/roster/use-roster-data';
 import { getDateRange, calculateDuration, ViewMode } from '@/components/roster/roster-utils';
+import { EditShiftNoteDialog } from '@/pages/participants/shift-notes/components/edit-shift-note-dialog';
+import { useShiftNotes } from '@/hooks/useShiftNotes';
 
 interface StaffRosterCalendarProps {
   staffId: string;
@@ -31,6 +34,25 @@ export function StaffRosterCalendar({
   const [showShiftDialog, setShowShiftDialog] = useState(false);
   const [selectedShift, setSelectedShift] = useState<StaffShift | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+
+  // Write Note state
+  const [showNoteDialog, setShowNoteDialog] = useState(false);
+  const [notePreFillShiftId, setNotePreFillShiftId] = useState<string | null>(null);
+  const [notePreFillLinkedShift, setNotePreFillLinkedShift] = useState<{
+    id: string; start_time: string; end_time: string; shift_type: string; status: string;
+  } | null>(null);
+  const [notePreFillData, setNotePreFillData] = useState<{
+    staff_id?: string | null;
+    shift_date?: string;
+    house_id?: string | null;
+    shift_time?: string | null;
+  }>({});
+
+  const { createShiftNote, refetch: refetchNotes, fetchShiftNotesByShiftId } = useShiftNotes();
+
+  // notes count map: shiftId -> count
+  const [notesCounts, setNotesCounts] = useState<Record<string, number>>({});
+  const [scrollToNotes, setScrollToNotes] = useState(false);
 
   const {
     houses,
@@ -59,16 +81,38 @@ export function StaffRosterCalendar({
     fetchShifts();
   }, [staffId, currentDate, viewMode, loadShifts]);
 
+  const fetchNotesCounts = useCallback(async (shiftIds: string[]) => {
+    if (shiftIds.length === 0) return;
+    const results = await Promise.all(
+      shiftIds.map(async (id) => {
+        const notes = await fetchShiftNotesByShiftId(id);
+        return { id, count: notes.length };
+      })
+    );
+    setNotesCounts(prev => {
+      const next = { ...prev };
+      results.forEach(({ id, count }) => { next[id] = count; });
+      return next;
+    });
+  }, [fetchShiftNotesByShiftId]);
+
+  useEffect(() => {
+    if (shifts.length > 0) {
+      fetchNotesCounts(shifts.map(s => s.id));
+    }
+  }, [shifts, fetchNotesCounts]);
+
   const filteredShifts = useMemo(() => {
     return shifts.filter(shift => {
+
       const matchesHouse = houseFilter === 'all' || shift.house_id === houseFilter;
       const matchesType = shiftTypeFilter === 'all' || shift.shift_type === shiftTypeFilter;
       const matchesStatus = statusFilter === 'all' || shift.status === statusFilter;
       const matchesParticipant = participantFilter === 'all' || 
         shift.participants?.some(p => p.id === participantFilter);
       return matchesHouse && matchesType && matchesStatus && matchesParticipant;
-    });
-  }, [shifts, houseFilter, participantFilter, shiftTypeFilter, statusFilter]);
+    }).map(shift => ({ ...shift, notesCount: notesCounts[shift.id] ?? 0 }));
+  }, [shifts, houseFilter, participantFilter, shiftTypeFilter, statusFilter, notesCounts]);
 
   const handleAddShift = (date: Date) => {
     setSelectedDate(date);
@@ -79,10 +123,19 @@ export function StaffRosterCalendar({
   const handleEditShift = (shift: StaffShift) => {
     setSelectedShift(shift);
     setSelectedDate(null);
+    setScrollToNotes(false);
     setShowShiftDialog(true);
   };
 
-  const handleSaveShift = async (formData: ShiftFormData) => {
+  const handleNotesClick = (shift: ShiftCardData) => {
+    const fullShift = shifts.find(s => s.id === shift.id) || null;
+    setSelectedShift(fullShift);
+    setSelectedDate(null);
+    setScrollToNotes(true);
+    setShowShiftDialog(true);
+  };
+
+  const handleSaveShift = async (formData: ShiftFormData): Promise<{ id: string } | void> => {
     if (!formData.staff_id || !formData.shift_date || !formData.start_time || !formData.end_time) {
       toast.error('Please fill in all required fields including staff member');
       return;
@@ -180,6 +233,7 @@ export function StaffRosterCalendar({
         setShifts(prevShifts => [...prevShifts, newShift]);
 
         toast.success('Shift created successfully');
+        return { id: data.id };
       }
     } catch (error) {
       toast.error(selectedShift ? 'Failed to update shift' : 'Failed to create shift');
@@ -200,6 +254,24 @@ export function StaffRosterCalendar({
     }
   };
 
+  const handleWriteNote = (shift: ShiftCardData) => {
+    setNotePreFillShiftId(shift.id);
+    setNotePreFillLinkedShift({
+      id: shift.id,
+      start_time: shift.start_time,
+      end_time: shift.end_time,
+      shift_type: shift.shift_type,
+      status: shift.status,
+    });
+    setNotePreFillData({
+      staff_id: shift.staff_id || null,
+      shift_date: shift.shift_date,
+      house_id: shift.house?.id || null,
+      shift_time: shift.start_time,
+    });
+    setShowNoteDialog(true);
+  };
+
   return (
     <>
       <ShiftCalendar
@@ -211,11 +283,20 @@ export function StaffRosterCalendar({
         canEdit={canEdit}
         onAddShift={handleAddShift}
         onEditShift={handleEditShift}
+        onWriteNote={handleWriteNote}
+        onNotesClick={handleNotesClick}
       />
 
       <ShiftDialog
         open={showShiftDialog}
-        onOpenChange={setShowShiftDialog}
+        onOpenChange={(open) => {
+          setShowShiftDialog(open);
+          if (!open) {
+            // Refresh notes counts when dialog closes (notes may have been added)
+            if (selectedShift) fetchNotesCounts([selectedShift.id]);
+            setScrollToNotes(false);
+          }
+        }}
         shift={selectedShift}
         staffId={staffId !== 'all' ? staffId : undefined}
         staffList={staff}
@@ -224,6 +305,19 @@ export function StaffRosterCalendar({
         participants={participants}
         onSave={handleSaveShift}
         onDelete={selectedShift ? handleDeleteShift : undefined}
+        scrollToNotes={scrollToNotes}
+      />
+
+      <EditShiftNoteDialog
+        open={showNoteDialog}
+        onOpenChange={setShowNoteDialog}
+        shiftNote={null}
+        onCreate={async (data) => createShiftNote({ ...data, ...notePreFillData, shift_id: notePreFillShiftId })}
+        onSave={async () => ({ data: null, error: 'Not applicable' })}
+        onSuccess={() => refetchNotes(true)}
+        mode="create"
+        initialShiftId={notePreFillShiftId}
+        initialLinkedShift={notePreFillLinkedShift}
       />
     </>
   );

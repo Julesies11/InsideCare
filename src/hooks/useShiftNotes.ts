@@ -8,8 +8,8 @@ export interface ShiftNote {
   shift_date: string;
   shift_time?: string | null;
   house_id?: string | null;
+  shift_id?: string | null;
   notes?: string | null;
-  tags?: string[] | null;
   full_note?: string | null;
   created_at?: string;
   updated_at?: string;
@@ -26,6 +26,13 @@ export interface ShiftNote {
     id: string;
     name: string;
   } | null;
+  shift?: {
+    id: string;
+    start_time: string;
+    end_time: string;
+    shift_type: string;
+    status: string;
+  } | null;
 }
 
 export interface ShiftNoteUpdateData {
@@ -34,8 +41,8 @@ export interface ShiftNoteUpdateData {
   shift_date?: string;
   shift_time?: string | null;
   house_id?: string | null;
+  shift_id?: string | null;
   notes?: string | null;
-  tags?: string[] | null;
   full_note?: string | null;
 }
 
@@ -57,7 +64,8 @@ export function useShiftNotes() {
           *,
           participant:participants(id, name),
           staff(id, name),
-          house:houses(id, name)
+          house:houses(id, name),
+          shift:staff_shifts(id, start_time, end_time, shift_type, status)
         `)
         .order('shift_date', { ascending: false });
 
@@ -84,7 +92,8 @@ export function useShiftNotes() {
           *,
           participant:participants(id, name),
           staff(id, name),
-          house:houses(id, name)
+          house:houses(id, name),
+          shift:staff_shifts(id, start_time, end_time, shift_type, status)
         `)
         .single();
 
@@ -113,7 +122,8 @@ export function useShiftNotes() {
           *,
           participant:participants(id, name),
           staff(id, name),
-          house:houses(id, name)
+          house:houses(id, name),
+          shift:staff_shifts(id, start_time, end_time, shift_type, status)
         `)
         .single();
 
@@ -129,12 +139,54 @@ export function useShiftNotes() {
     }
   }
 
+  async function deleteShiftNote(id: string) {
+    try {
+      const { error } = await supabase
+        .from('shift_notes')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setShiftNotes(shiftNotes.filter(note => note.id !== id));
+      return { error: null };
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete shift note';
+      console.error('Error deleting shift note:', err);
+      return { error: errorMessage };
+    }
+  }
+
+  async function fetchShiftNotesByShiftId(shiftId: string): Promise<ShiftNote[]> {
+    try {
+      const { data, error } = await supabase
+        .from('shift_notes')
+        .select(`
+          *,
+          participant:participants(id, name),
+          staff(id, name),
+          house:houses(id, name),
+          shift:staff_shifts(id, start_time, end_time, shift_type, status)
+        `)
+        .eq('shift_id', shiftId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    } catch (err) {
+      console.error('Error fetching shift notes by shift id:', err);
+      return [];
+    }
+  }
+
   return {
     shiftNotes,
     loading,
     error,
     createShiftNote,
     updateShiftNote,
+    deleteShiftNote,
+    fetchShiftNotesByShiftId,
     refetch: fetchShiftNotes,
   };
 }

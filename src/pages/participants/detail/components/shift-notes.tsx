@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit, Trash2, Calendar, Clock, X } from 'lucide-react';
+import { Plus, Edit, Trash2, Calendar, Clock } from 'lucide-react';
 import { useParticipantShiftNotes } from '@/hooks/useParticipantShiftNotes';
 import { useStaff } from '@/hooks/useStaff';
 import { ParticipantPendingChanges } from '@/models/participant-pending-changes';
@@ -29,13 +29,11 @@ export function ShiftNotes({
 }: ShiftNotesProps) {
   const [showSheet, setShowSheet] = useState(false);
   const [editingNote, setEditingNote] = useState<any>(null);
-  const [tagInput, setTagInput] = useState('');
   const [formData, setFormData] = useState({
     shift_date: new Date().toISOString().split('T')[0],
     shift_time: '',
     staff_id: '',
     full_note: '',
-    tags: [] as string[],
   });
 
   const { shiftNotes, loading } = useParticipantShiftNotes(participantId);
@@ -43,26 +41,22 @@ export function ShiftNotes({
 
   const handleAdd = () => {
     setEditingNote(null);
-    setTagInput('');
     setFormData({
       shift_date: new Date().toISOString().split('T')[0],
       shift_time: '',
       staff_id: '',
       full_note: '',
-      tags: [],
     });
     setShowSheet(true);
   };
 
   const handleEdit = (note: any) => {
     setEditingNote(note);
-    setTagInput('');
     setFormData({
       shift_date: note.shift_date || new Date().toISOString().split('T')[0],
       shift_time: note.shift_time || '',
       staff_id: note.staff_id || '',
       full_note: note.full_note || '',
-      tags: note.tags || [],
     });
     setShowSheet(true);
   };
@@ -193,21 +187,6 @@ export function ShiftNotes({
     ...(pendingChanges?.shiftNotes.toAdd || []),
   ];
 
-  const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if ((e.key === 'Enter' || e.key === ',') && tagInput.trim()) {
-      e.preventDefault();
-      const newTag = tagInput.trim().replace(/,$/g, '');
-      if (newTag && !formData.tags.includes(newTag)) {
-        setFormData({ ...formData, tags: [...formData.tags, newTag] });
-      }
-      setTagInput('');
-    }
-  };
-
-  const handleRemoveTag = (tagToRemove: string) => {
-    setFormData({ ...formData, tags: formData.tags.filter((tag) => tag !== tagToRemove) });
-  };
-
   return (
     <>
       <Card className="pb-2.5" id="shift_notes">
@@ -335,15 +314,6 @@ export function ShiftNotes({
                           {note.full_note}
                         </p>
                       )}
-                      {note.tags && note.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mt-3">
-                          {note.tags.map((tag, idx) => (
-                            <Badge key={idx} variant="secondary" className="text-xs">
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
                     </CardContent>
                   </Card>
                 );
@@ -414,36 +384,6 @@ export function ShiftNotes({
                 rows={8}
                 placeholder="Detailed shift notes..."
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="tags">Tags</Label>
-              <Input
-                id="tags"
-                placeholder="Type tag and press Enter or comma"
-                value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
-                onKeyDown={handleAddTag}
-              />
-              {formData.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {formData.tags.map((tag, index) => (
-                    <Badge
-                      key={index}
-                      variant="secondary"
-                      className="text-xs flex items-center gap-1"
-                    >
-                      {tag}
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveTag(tag)}
-                        className="ms-1 hover:bg-secondary-foreground/20 rounded-full p-0.5"
-                      >
-                        <X className="size-3" />
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
-              )}
             </div>
           </SheetBody>
           <SheetFooter>

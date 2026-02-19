@@ -148,6 +148,46 @@ export function useParticipantGoals(participantId?: string) {
     }
   }
 
+  async function updateProgress(id: string, progress_note: string) {
+    try {
+      const { data, error } = await supabase
+        .from('participant_goal_progress')
+        .update({ progress_note })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      if (data) setGoalProgress(goalProgress.map(p => p.id === id ? data : p));
+
+      return { data, error: null };
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update progress note';
+      console.error('Error updating progress note:', err);
+      return { data: null, error: errorMessage };
+    }
+  }
+
+  async function deleteProgress(id: string) {
+    try {
+      const { error } = await supabase
+        .from('participant_goal_progress')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setGoalProgress(goalProgress.filter(p => p.id !== id));
+
+      return { error: null };
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete progress note';
+      console.error('Error deleting progress note:', err);
+      return { error: errorMessage };
+    }
+  }
+
   return {
     goals,
     goalProgress,
@@ -157,6 +197,8 @@ export function useParticipantGoals(participantId?: string) {
     updateGoal,
     deleteGoal,
     addProgress,
+    updateProgress,
+    deleteProgress,
     refetch: participantId ? () => fetchGoals(participantId) : () => {},
   };
 }

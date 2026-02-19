@@ -1,6 +1,7 @@
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, MapPin, User, Users } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { ClipboardList, Clock, MapPin, User, Users } from 'lucide-react';
 import { getShiftTypeColor, getStatusVariant, formatTime } from './roster-utils';
 
 export interface ShiftCardData {
@@ -12,7 +13,9 @@ export interface ShiftCardData {
   status: string;
   house?: { id: string; name: string };
   staff_name?: string;
+  staff_id?: string;
   participants?: Array<{ id: string; name: string }>;
+  notesCount?: number;
 }
 
 interface ShiftCardProps {
@@ -20,9 +23,11 @@ interface ShiftCardProps {
   compact: boolean;
   showStaffName: boolean;
   onClick: () => void;
+  onWriteNote?: (shift: ShiftCardData) => void;
+  onNotesClick?: (shift: ShiftCardData) => void;
 }
 
-export function ShiftCard({ shift, compact, showStaffName, onClick }: ShiftCardProps) {
+export function ShiftCard({ shift, compact, showStaffName, onClick, onWriteNote, onNotesClick }: ShiftCardProps) {
   const participantCount = shift.participants?.length || 0;
 
   if (compact) {
@@ -63,9 +68,26 @@ export function ShiftCard({ shift, compact, showStaffName, onClick }: ShiftCardP
             </span>
           </div>
         )}
-        <Badge variant={getStatusVariant(shift.status)} className="text-[10px] px-1 py-0">
-          {shift.status}
-        </Badge>
+        <div className="flex items-center justify-between mt-0.5">
+          <Badge variant={getStatusVariant(shift.status)} className="text-[10px] px-1 py-0">
+            {shift.status}
+          </Badge>
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onNotesClick ? onNotesClick(shift) : onWriteNote?.(shift); }}
+            className={`flex items-center gap-0.5 p-0.5 rounded transition-colors ${
+              (shift.notesCount ?? 0) > 0
+                ? 'text-emerald-600 hover:text-emerald-700'
+                : 'text-red-500 hover:text-red-600'
+            }`}
+            title={(shift.notesCount ?? 0) > 0 ? `${shift.notesCount} shift note${shift.notesCount !== 1 ? 's' : ''}` : '0 notes – click to add'}
+          >
+            <ClipboardList className="h-3 w-3" />
+            <span className="text-[9px] font-semibold leading-none">
+              {shift.notesCount ?? 0} note{(shift.notesCount ?? 0) !== 1 ? 's' : ''}
+            </span>
+          </button>
+        </div>
       </div>
     );
   }
@@ -73,12 +95,12 @@ export function ShiftCard({ shift, compact, showStaffName, onClick }: ShiftCardP
   return (
     <Card
       onClick={onClick}
-      className="p-2.5 cursor-pointer hover:bg-accent/50 transition-colors overflow-hidden"
+      className="p-2.5 cursor-pointer hover:bg-accent/50 transition-colors overflow-hidden group"
     >
       <div className="space-y-1.5">
         <div className="flex items-center gap-1.5">
           <Clock className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-          <span className="text-xs font-medium truncate">
+          <span className="text-xs font-medium truncate flex-1">
             {formatTime(shift.start_time)} - {formatTime(shift.end_time)}
           </span>
         </div>
@@ -118,6 +140,20 @@ export function ShiftCard({ shift, compact, showStaffName, onClick }: ShiftCardP
             </span>
           </div>
         )}
+
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onNotesClick ? onNotesClick(shift) : onWriteNote?.(shift); }}
+          className={`w-full flex items-center justify-center gap-1 h-6 text-[10px] font-medium rounded px-2 mt-1 transition-colors ${
+            (shift.notesCount ?? 0) > 0
+              ? 'text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/30'
+              : 'text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30'
+          }`}
+          title={(shift.notesCount ?? 0) > 0 ? `${shift.notesCount} shift note${shift.notesCount !== 1 ? 's' : ''}` : '0 notes – click to add'}
+        >
+          <ClipboardList className="h-3 w-3" />
+          {shift.notesCount ?? 0} note{(shift.notesCount ?? 0) !== 1 ? 's' : ''}
+        </button>
       </div>
     </Card>
   );

@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
-import { CalendarIcon, X } from 'lucide-react';
+import { CalendarIcon, Link, Link2Off } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -35,7 +35,24 @@ import { ShiftNote, ShiftNoteUpdateData } from '@/hooks/useShiftNotes';
 import { useParticipants } from '@/hooks/use-participants';
 import { useStaff } from '@/hooks/useStaff';
 import { useHouses } from '@/hooks/use-houses';
+import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { formatTime } from '@/components/roster/roster-utils';
+
+interface LinkedShiftInfo {
+  id: string;
+  start_time: string;
+  end_time: string;
+  shift_type: string;
+  status: string;
+}
+
+interface MatchedShiftOption {
+  id: string;
+  start_time: string;
+  end_time: string;
+  shift_type: string;
+}
 
 interface EditShiftNoteDialogProps {
   open: boolean;
@@ -45,6 +62,10 @@ interface EditShiftNoteDialogProps {
   onCreate?: (data: ShiftNoteUpdateData) => Promise<{ data: any; error: string | null }>;
   onSuccess?: () => void;
   mode?: 'edit' | 'create';
+  /** Pre-fill shift_id when launched from the roster "Write Note" button */
+  initialShiftId?: string | null;
+  /** Pre-fill linked shift info for display when launched from roster */
+  initialLinkedShift?: LinkedShiftInfo | null;
 }
 
 export function EditShiftNoteDialog({
@@ -55,6 +76,8 @@ export function EditShiftNoteDialog({
   onCreate,
   onSuccess,
   mode = 'edit',
+  initialShiftId = null,
+  initialLinkedShift = null,
 }: EditShiftNoteDialogProps) {
   const { participants } = useParticipants();
   const { staff } = useStaff();
@@ -66,13 +89,49 @@ export function EditShiftNoteDialog({
     shift_date: '',
     shift_time: null,
     house_id: null,
+    shift_id: null,
     notes: null,
-    tags: [],
     full_note: null,
   });
   const [saving, setSaving] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
-  const [tagInput, setTagInput] = useState('');
+  const [linkedShift, setLinkedShift] = useState<LinkedShiftInfo | null>(null);
+  const [matchedShiftOptions, setMatchedShiftOptions] = useState<MatchedShiftOption[]>([]);
+  const [isMatchingShift, setIsMatchingShift] = useState(false);
+
+  // Auto-match shift by staff_id + shift_date (Option 2)
+  const autoMatchShift = useCallback(async (staffId: string | null, shiftDate: string | null) => {
+    if (!staffId || !shiftDate || formData.shift_id) return;
+
+    setIsMatchingShift(true);
+    try {
+      const { data, error } = await supabase
+        .from('staff_shifts')
+        .select('id, start_time, end_time, shift_type, status')
+        .eq('staff_id', staffId)
+        .eq('shift_date', shiftDate)
+        .order('start_time');
+
+      if (error || !data || data.length === 0) {
+        setMatchedShiftOptions([]);
+        return;
+      }
+
+      if (data.length === 1) {
+        // Single match — auto-link silently
+        setFormData(prev => ({ ...prev, shift_id: data[0].id }));
+        setLinkedShift(data[0]);
+        setMatchedShiftOptions([]);
+      } else {
+        // Multiple matches — show dropdown for user to pick
+        setMatchedShiftOptions(data);
+      }
+    } catch {
+      // Silently fail — auto-match is best-effort
+    } finally {
+      setIsMatchingShift(false);
+    }
+  }, [formData.shift_id]);
 
   // Reset form when shiftNote changes or dialog opens
   useEffect(() => {
@@ -85,11 +144,12 @@ export function EditShiftNoteDialog({
           shift_date: format(new Date(), 'yyyy-MM-dd'),
           shift_time: null,
           house_id: null,
+          shift_id: initialShiftId,
           notes: null,
-          tags: [],
           full_note: null,
         });
-        setTagInput('');
+        setLinkedShift(initialLinkedShift);
+        setMatchedShiftOptions([]);
       } else if (shiftNote) {
         // Populate form with existing shift note data
         setFormData({
@@ -98,44 +158,64 @@ export function EditShiftNoteDialog({
           shift_date: shiftNote.shift_date,
           shift_time: shiftNote.shift_time || null,
           house_id: shiftNote.house_id || null,
+          shift_id: shiftNote.shift_id || null,
           notes: shiftNote.notes || null,
-          tags: shiftNote.tags || [],
           full_note: shiftNote.full_note || null,
         });
-        setTagInput('');
+        setLinkedShift(shiftNote.shift || null);
+        setMatchedShiftOptions([]);
       }
     }
-  }, [shiftNote, open, mode]);
-
-  const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if ((e.key === 'Enter' || e.key === ',') && tagInput.trim()) {
-      e.preventDefault();
-      const newTag = tagInput.trim().replace(/,$/g, '');
-      if (newTag && !formData.tags?.includes(newTag)) {
-        setFormData((prev) => ({
-          ...prev,
-          tags: [...(prev.tags || []), newTag],
-        }));
-      }
-      setTagInput('');
-    }
-  };
-
-  const handleRemoveTag = (tagToRemove: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      tags: prev.tags?.filter((tag) => tag !== tagToRemove) || [],
-    }));
-  };
+  }, [shiftNote, open, mode, initialShiftId, initialLinkedShift]);
 
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
+      const newDate = format(date, 'yyyy-MM-dd');
       setFormData((prev) => ({
         ...prev,
-        shift_date: format(date, 'yyyy-MM-dd'),
+        shift_date: newDate,
+        // Clear existing auto-match when date changes
+        shift_id: initialShiftId || prev.shift_id,
       }));
       setDatePickerOpen(false);
+      // Trigger auto-match with new date if no pre-set shift
+      if (!initialShiftId && !formData.shift_id) {
+        autoMatchShift(formData.staff_id || null, newDate);
+      }
     }
+  };
+
+  const handleStaffChange = (value: string) => {
+    const newStaffId = value === 'none' ? null : value;
+    setFormData((prev) => ({
+      ...prev,
+      staff_id: newStaffId,
+      // Clear auto-matched shift when staff changes (unless pre-set from roster)
+      shift_id: initialShiftId || null,
+    }));
+    if (!initialShiftId) {
+      setLinkedShift(null);
+      setMatchedShiftOptions([]);
+      // Trigger auto-match with new staff
+      if (newStaffId && formData.shift_date) {
+        autoMatchShift(newStaffId, formData.shift_date);
+      }
+    }
+  };
+
+  const handleSelectMatchedShift = (shiftId: string) => {
+    const selected = matchedShiftOptions.find(s => s.id === shiftId);
+    if (selected) {
+      setFormData(prev => ({ ...prev, shift_id: selected.id }));
+      setLinkedShift({ ...selected, status: '' });
+      setMatchedShiftOptions([]);
+    }
+  };
+
+  const handleClearShiftLink = () => {
+    setFormData(prev => ({ ...prev, shift_id: null }));
+    setLinkedShift(null);
+    setMatchedShiftOptions([]);
   };
 
   const handleSubmit = async () => {
@@ -299,12 +379,7 @@ export function EditShiftNoteDialog({
             <Label htmlFor="staff_id">Staff Member</Label>
             <Select
               value={formData.staff_id || 'none'}
-              onValueChange={(value) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  staff_id: value === 'none' ? null : value,
-                }))
-              }
+              onValueChange={handleStaffChange}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select staff member" />
@@ -319,6 +394,55 @@ export function EditShiftNoteDialog({
               </SelectContent>
             </Select>
           </div>
+
+          {/* Linked Shift — shown when auto-matched or pre-filled from roster */}
+          {linkedShift && (
+            <div className="flex items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/30 px-3 py-2">
+              <Link className="size-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <span className="text-sm text-emerald-800 dark:text-emerald-300 flex-1">
+                Linked to shift: <strong>{formatTime(linkedShift.start_time)} – {formatTime(linkedShift.end_time)}</strong>
+                {linkedShift.shift_type && <span className="ml-1 text-emerald-600">({linkedShift.shift_type})</span>}
+              </span>
+              {!initialShiftId && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 px-1.5 text-emerald-700 hover:text-red-600 hover:bg-red-50"
+                  onClick={handleClearShiftLink}
+                >
+                  <Link2Off className="size-3.5" />
+                </Button>
+              )}
+            </div>
+          )}
+
+          {/* Multiple shift matches — prompt user to pick one */}
+          {matchedShiftOptions.length > 1 && (
+            <div className="space-y-2">
+              <Label>Multiple shifts found — select which shift to link</Label>
+              <Select
+                value={formData.shift_id || 'none'}
+                onValueChange={(value) => value !== 'none' && handleSelectMatchedShift(value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select shift to link" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Don't link to a shift</SelectItem>
+                  {matchedShiftOptions.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {formatTime(s.start_time)} – {formatTime(s.end_time)} ({s.shift_type})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {isMatchingShift && (
+            <p className="text-xs text-muted-foreground">Finding matching shift...</p>
+          )}
 
           {/* Summary Notes */}
           <div className="space-y-2">
@@ -354,37 +478,6 @@ export function EditShiftNoteDialog({
             />
           </div>
 
-          {/* Tags - Text Input */}
-          <div className="space-y-2">
-            <Label htmlFor="tags">Tags</Label>
-            <Input
-              id="tags"
-              placeholder="Type tag and press Enter or comma"
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              onKeyDown={handleAddTag}
-            />
-            {formData.tags && formData.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
-                {formData.tags.map((tag, index) => (
-                  <Badge
-                    key={index}
-                    variant="secondary"
-                    className="text-xs flex items-center gap-1"
-                  >
-                    {tag}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveTag(tag)}
-                      className="ms-1 hover:bg-secondary-foreground/20 rounded-full p-0.5"
-                    >
-                      <X className="size-3" />
-                    </button>
-                  </Badge>
-                ))}
-              </div>
-            )}
-          </div>
         </DialogBody>
 
         <DialogFooter>
