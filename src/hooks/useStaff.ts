@@ -18,6 +18,7 @@ export interface Staff {
   employment_type_id?: string | null;
   manager_id?: string | null;
   hire_date?: string | null;
+  separation_date?: string | null;
   availability?: string | null;
   notes?: string | null;
   branch_id?: string | null;
@@ -85,6 +86,7 @@ export interface StaffUpdateData {
   employment_type_id?: string | null;
   manager_id?: string | null;
   hire_date?: string | null;
+  separation_date?: string | null;
   availability?: string | null;
   notes?: string | null;
   branch_id?: string | null;
@@ -106,7 +108,11 @@ export function useStaff() {
       if (!silent) setLoading(true);
       const { data, error } = await supabase
         .from('staff')
-        .select('*')
+        .select(`
+          *,
+          department_info:departments(id, name),
+          employment_type_info:employment_types_master(id, name)
+        `)
         .order('name', { ascending: true });
 
       if (error) throw error;

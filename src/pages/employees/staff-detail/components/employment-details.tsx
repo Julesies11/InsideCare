@@ -134,6 +134,19 @@ export function EmploymentDetails({
 
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+            <Label className="flex w-full max-w-56">Separation Date</Label>
+            <Input
+              id="separation_date"
+              type="date"
+              value={formData.separation_date || ''}
+              onChange={(e) => onFormChange('separation_date', e.target.value || null)}
+              disabled={!canEdit}
+            />
+          </div>
+        </div>
+
+        <div className="w-full">
+          <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
             <Label className="flex w-full max-w-56">Availability</Label>
             <Textarea
               id="availability"

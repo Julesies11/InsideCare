@@ -138,34 +138,26 @@ const StaffTable = () => {
         </span>
       ),
       enableSorting: true,
-      size: 200,
+      size: 160,
     },
     {
       id: 'email',
       accessorKey: 'email',
       header: ({ column }) => (
-        <DataGridColumnHeader title="Email" column={column} />
+        <DataGridColumnHeader title="Email / Phone" column={column} />
       ),
       cell: ({ row }) => (
-        <span className="text-sm text-gray-700 dark:text-gray-300">
-          {row.original.email || '-'}
-        </span>
+        <div className="flex flex-col gap-0.5">
+          <span className="text-sm text-gray-700 dark:text-gray-300">
+            {row.original.email || '-'}
+          </span>
+          <span className="text-xs text-gray-500 dark:text-gray-400">
+            {row.original.phone || '-'}
+          </span>
+        </div>
       ),
       enableSorting: true,
-      size: 220,
-    },
-    {
-      id: 'phone',
-      accessorKey: 'phone',
-      header: ({ column }) => (
-        <DataGridColumnHeader title="Phone" column={column} />
-      ),
-      cell: ({ row }) => (
-        <span className="text-sm text-gray-700 dark:text-gray-300">
-          {row.original.phone || '-'}
-        </span>
-      ),
-      size: 150,
+      size: 230,
     },
     {
       id: 'department',
@@ -175,11 +167,11 @@ const StaffTable = () => {
       ),
       cell: ({ row }) => (
         <span className="text-sm text-gray-700 dark:text-gray-300">
-          {row.original.department || '-'}
+          {row.original.department_info?.name || '-'}
         </span>
       ),
       enableSorting: true,
-      size: 150,
+      size: 120,
     },
     {
       id: 'employment_type',
@@ -189,25 +181,9 @@ const StaffTable = () => {
       ),
       cell: ({ row }) => (
         <Badge variant="secondary" className="text-xs">
-          {row.original.employment_type || 'Not Specified'}
+          {row.original.employment_type_info?.name || 'Not Specified'}
         </Badge>
       ),
-      size: 150,
-    },
-    {
-      id: 'hire_date',
-      accessorKey: 'hire_date',
-      header: ({ column }) => (
-        <DataGridColumnHeader title="Hire Date" column={column} />
-      ),
-      cell: ({ row }) => (
-        <span className="text-sm text-gray-700 dark:text-gray-300">
-          {row.original.hire_date
-            ? format(new Date(row.original.hire_date), 'dd MMM yyyy')
-            : '-'}
-        </span>
-      ),
-      enableSorting: true,
       size: 130,
     },
     {
@@ -219,13 +195,13 @@ const StaffTable = () => {
       cell: ({ row }) => (
         <StatusBadge status={row.original.status} />
       ),
-      size: 100,
+      size: 80,
     },
     {
       id: 'actions',
       header: 'Actions',
       cell: ActionsCell,
-      size: 150,
+      size: 100,
     },
   ];
 
