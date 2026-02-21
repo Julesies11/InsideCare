@@ -219,16 +219,16 @@ export const SupabaseAdapter = {
     // Get user metadata and transform to UserModel format
     const metadata = user.user_metadata || {};
 
-    // Look up linked staff record
+    // Look up linked staff record for ALL users (admins may also have a staff record)
     let staff_id: string | undefined;
-    if (!metadata.is_admin) {
-      const { data: staffRow } = await supabase
-        .from('staff')
-        .select('id')
-        .eq('auth_user_id', user.id)
-        .maybeSingle();
-      staff_id = staffRow?.id ?? undefined;
-    }
+    let photo_url: string | null = null;
+    const { data: staffRow } = await supabase
+      .from('staff')
+      .select('id, photo_url')
+      .eq('auth_user_id', user.id)
+      .maybeSingle();
+    staff_id = staffRow?.id ?? undefined;
+    photo_url = staffRow?.photo_url ?? null;
 
     // Format data to maintain compatibility with existing UI
     return {
@@ -248,6 +248,7 @@ export const SupabaseAdapter = {
       language: metadata.language || 'en',
       is_admin: metadata.is_admin || false,
       staff_id,
+      photo_url,
     };
   },
 

@@ -1,5 +1,6 @@
 import { Fragment, useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
+import { useAuth } from '@/auth/context/auth-context';
 import { Container } from '@/components/common/container';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Mail, CheckCircle } from 'lucide-react';
@@ -22,11 +23,13 @@ export function StaffDetailPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { settings } = useSettings();
+  const { user } = useAuth();
   const { updateStaff } = useStaff();
   const [formData, setFormData] = useState<any>(null);
   const [originalData, setOriginalData] = useState<any>(null);
   const [pendingChanges, setPendingChanges] = useState<StaffPendingChanges>(emptyStaffPendingChanges);
   const [saving, setSaving] = useState(false);
+  const [photoDirty, setPhotoDirty] = useState(false);
   const saveHandlerRef = useRef<(() => Promise<void>) | null>(null);
   const [staffAuthUserId, setStaffAuthUserId] = useState<string | null | undefined>(undefined);
   const [inviting, setInviting] = useState(false);
@@ -77,11 +80,12 @@ export function StaffDetailPage() {
   };
 
   // Use centralized dirty tracking with json-diff-ts
-  const { isDirty } = useDirtyTracker({
+  const { isDirty: formIsDirty } = useDirtyTracker({
     formData: formData || {},
     originalData: originalData || {},
     pendingChanges,
   });
+  const isDirty = formIsDirty || photoDirty;
 
   // Warn user before leaving page with unsaved changes
   useEffect(() => {
@@ -148,8 +152,8 @@ export function StaffDetailPage() {
               )}
               <Button
                 onClick={handleSave}
-                disabled={(!isDirty && !isNewRecord) || saving}
-                variant={(isDirty || isNewRecord) ? 'primary' : 'secondary'}
+                disabled={(!isDirty && !isNewRecord && !photoDirty) || saving}
+                variant={(isDirty || isNewRecord || photoDirty) ? 'primary' : 'secondary'}
               >
                 {saving ? 'Saving...' : 'Save Changes'}
               </Button>
@@ -171,6 +175,7 @@ export function StaffDetailPage() {
             setPendingChanges(emptyStaffPendingChanges);
             setIsNewRecord(false);
           }}
+          onPhotoDirtyChange={setPhotoDirty}
         />
       </Container>
     </Fragment>

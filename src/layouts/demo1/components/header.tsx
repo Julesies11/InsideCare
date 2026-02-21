@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useAuth } from '@/auth/context/auth-context';
 import { StoreClientTopbar } from '@/pages/store-client/components/common/topbar';
 import { SearchDialog } from '@/partials/dialogs/search/search-dialog';
 import { AppsDropdownMenu } from '@/partials/topbar/apps-dropdown-menu';
@@ -18,6 +19,7 @@ import { useLocation } from 'react-router';
 import { Link } from 'react-router-dom';
 import { toAbsoluteUrl } from '@/lib/helpers';
 import { cn } from '@/lib/utils';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useScrollPosition } from '@/hooks/use-scroll-position';
 import { Button } from '@/components/ui/button';
@@ -38,6 +40,11 @@ export function Header() {
   const [isSidebarSheetOpen, setIsSidebarSheetOpen] = useState(false);
   const [isMegaMenuSheetOpen, setIsMegaMenuSheetOpen] = useState(false);
   const { unreadCount } = useNotifications();
+  const { user } = useAuth();
+  const initials = [user?.first_name, user?.last_name]
+    .filter(Boolean)
+    .map((n) => n![0].toUpperCase())
+    .join('') || (user?.email?.[0]?.toUpperCase() ?? '?');
 
   const { pathname } = useLocation();
   const mobileMode = useIsMobile();
@@ -182,11 +189,10 @@ export function Header() {
               />
               <UserDropdownMenu
                 trigger={
-                  <img
-                    className="size-9 rounded-full border-2 border-green-500 shrink-0 cursor-pointer"
-                    src={toAbsoluteUrl('/media/avatars/300-2.png')}
-                    alt="User Avatar"
-                  />
+                  <Avatar className="size-9 border-2 border-green-500 shrink-0 cursor-pointer">
+                    {user?.photo_url && <AvatarImage src={user.photo_url} alt="User Avatar" className="object-cover" />}
+                    <AvatarFallback className="text-xs font-semibold">{initials}</AvatarFallback>
+                  </Avatar>
                 }
               />
             </>

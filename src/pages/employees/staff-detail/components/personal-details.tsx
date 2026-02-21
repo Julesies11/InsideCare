@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { AvatarInput } from '@/components/image-input/avatar-input';
 
 interface PersonalDetailsProps {
   formData: any;
@@ -16,12 +17,34 @@ export function PersonalDetails({
   canEdit,
   validationErrors = {},
 }: PersonalDetailsProps) {
+  const handlePhotoChange = (file: File | null, dataURL: string | null) => {
+    onFormChange('photo_file', file);
+    onFormChange('photo_url_preview', dataURL);
+  };
+
   return (
     <Card className="pb-2.5" id="personal_details">
       <CardHeader>
         <CardTitle>Personal Details</CardTitle>
       </CardHeader>
       <CardContent className="grid gap-2.5">
+        {/* Profile Photo */}
+        <div className="w-full">
+          <div className="flex items-center flex-wrap gap-2.5">
+            <Label className="flex w-full max-w-56">Profile Photo</Label>
+            <div className="flex items-center gap-4">
+              <AvatarInput
+                value={formData.photo_url_preview ?? formData.photo_url ?? undefined}
+                onChange={canEdit ? handlePhotoChange : () => {}}
+                size="lg"
+              />
+              {canEdit && (
+                <p className="text-xs text-muted-foreground">Click the photo to change it</p>
+              )}
+            </div>
+          </div>
+        </div>
+
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
             <Label className="flex w-full max-w-56">Full Name *</Label>

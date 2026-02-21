@@ -1,41 +1,18 @@
-import { useEffect, useRef, useState } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { ScreenLoader } from '@/components/common/screen-loader';
 import { useAuth } from './context/auth-context';
 
 /**
- * Component to protect routes that require authentication.
- * If user is not authenticated, redirects to the login page.
+ * Protects routes that require authentication.
+ * Reads loading/auth state from AuthProvider — no local state, no verify() calls.
+ * Shows a loader while the provider bootstraps, then redirects or renders.
  */
 export const RequireAuth = () => {
-  const { auth, verify, loading: globalLoading } = useAuth();
+  const { auth, loading } = useAuth();
   const location = useLocation();
-  const [loading, setLoading] = useState(true);
-  const verificationStarted = useRef(false);
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      if (!auth?.access_token || !verificationStarted.current) {
-        verificationStarted.current = true;
-        try {
-          await verify();
-        } finally {
-          setLoading(false);
-        }
-      } else {
-        setLoading(false);
-      }
-    };
+  if (loading) return <ScreenLoader />;
 
-    checkAuth();
-  }, [auth, verify]);
-
-  // Show screen loader while checking authentication
-  if (loading || globalLoading) {
-    return <ScreenLoader />;
-  }
-
-  // If not authenticated, redirect to login
   if (!auth?.access_token) {
     return (
       <Navigate
@@ -45,77 +22,54 @@ export const RequireAuth = () => {
     );
   }
 
-  // If authenticated, render child routes
   return <Outlet />;
 };
 
 /**
- * Guard for admin-only routes.
- * Waits for user to load, then redirects staff-only users away.
+ * Protects admin-only routes.
+ * Waits for provider to finish loading, then checks role.
+ * Staff-only users are redirected to their dashboard.
  */
 export const RequireAdmin = () => {
-  const { isAdmin, isStaff, auth, user, loading: globalLoading } = useAuth();
-  const [loading, setLoading] = useState(true);
-  const { verify } = useAuth();
-  const verificationStarted = useRef(false);
+  const { auth, user, isAdmin, isStaff, loading } = useAuth();
 
-  useEffect(() => {
-    const check = async () => {
-      if (!verificationStarted.current) {
-        verificationStarted.current = true;
-        try { await verify(); } finally { setLoading(false); }
-      } else {
-        setLoading(false);
-      }
-    };
-    check();
-  }, [verify]);
-
-  if (loading || globalLoading) return <ScreenLoader />;
+  if (loading) return <ScreenLoader />;
 
   if (!auth?.access_token) {
     return <Navigate to="/auth/signin" replace />;
   }
 
-  // Only redirect once we have confirmed the user is staff-only
+  // user is loaded (not undefined) and is staff-only — redirect away
   if (user && isStaff && !isAdmin) {
     return <Navigate to="/staff/dashboard" replace />;
   }
 
+  // user not yet loaded but auth token exists — wait
+  if (!user) return <ScreenLoader />;
+
   return <Outlet />;
 };
 
 /**
- * Guard for staff-only routes.
- * Waits for user to load, then redirects admins away.
+ * Protects staff-only routes.
+ * Admins are redirected to the home page.
  */
 export const RequireStaff = () => {
-  const { isAdmin, auth, user, loading: globalLoading, verify } = useAuth();
-  const [loading, setLoading] = useState(true);
-  const verificationStarted = useRef(false);
+  const { auth, user, isAdmin, loading } = useAuth();
 
-  useEffect(() => {
-    const check = async () => {
-      if (!verificationStarted.current) {
-        verificationStarted.current = true;
-        try { await verify(); } finally { setLoading(false); }
-      } else {
-        setLoading(false);
-      }
-    };
-    check();
-  }, [verify]);
-
-  if (loading || globalLoading) return <ScreenLoader />;
+  if (loading) return <ScreenLoader />;
 
   if (!auth?.access_token) {
     return <Navigate to="/auth/signin" replace />;
   }
 
-  // Only redirect once we have confirmed the user is an admin
+  // user is loaded and is admin — redirect away
   if (user && isAdmin) {
     return <Navigate to="/" replace />;
   }
+
+  // user not yet loaded but auth token exists — wait
+  if (!user) return <ScreenLoader />;
 
   return <Outlet />;
 };

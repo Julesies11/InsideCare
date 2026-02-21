@@ -40,6 +40,7 @@ interface StaffDetailContentProps {
   onPendingChangesChange?: (changes: StaffPendingChanges) => void;
   updateStaff?: (id: string, updates: StaffUpdateData) => Promise<{ data: any; error: string | null }>;
   onSaveSuccess?: () => void;
+  onPhotoDirtyChange?: (dirty: boolean) => void;
 }
 
 export function StaffDetailContent({
@@ -52,13 +53,23 @@ export function StaffDetailContent({
   onPendingChangesChange,
   updateStaff,
   onSaveSuccess,
+  onPhotoDirtyChange,
 }: StaffDetailContentProps) {
   const isMobile = useIsMobile();
   const { settings } = useSettings();
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const [staffMember, setStaffMember] = useState<Staff | undefined>();
   const [loading, setLoading] = useState(true);
   const [sidebarSticky, setSidebarSticky] = useState(false);
+
+  // Photo state kept separate from formData so it doesn't affect dirty tracking
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+
+  // Notify parent when photo dirty state changes
+  useEffect(() => {
+    onPhotoDirtyChange?.(photoFile !== null);
+  }, [photoFile, onPhotoDirtyChange]);
 
   const canEdit = true;
 
@@ -132,6 +143,7 @@ export function StaffDetailContent({
           allergies: data.allergies ?? '',
           emergency_contact_name: data.emergency_contact_name ?? '',
           emergency_contact_phone: data.emergency_contact_phone ?? '',
+          photo_url: data.photo_url ?? null,
           department_id: data.department_id ?? '',
           employment_type_id: data.employment_type_id ?? '',
           manager_id: data.manager_id ?? '',
@@ -183,6 +195,53 @@ export function StaffDetailContent({
         onSavingChange?.(true);
 
         try {
+          // Step 0: Upload profile photo if a new file was selected
+          if (photoFile) {
+            const file = photoFile;
+            const ext = file.name.split('.').pop();
+            const path = `${staffId}/profile/${Date.now()}.${ext}`;
+            const { error: uploadErr } = await supabase.storage
+              .from('staff-documents')
+              .upload(path, file, { upsert: true });
+            if (uploadErr) {
+              toast.error('Failed to upload profile photo', { description: uploadErr.message });
+              throw uploadErr;
+            }
+            const { data: urlData } = supabase.storage.from('staff-documents').getPublicUrl(path);
+            const newPhotoUrl = urlData.publicUrl;
+
+            const { error: photoErr } = await supabase
+              .from('staff')
+              .update({ photo_url: newPhotoUrl, updated_at: new Date().toISOString() })
+              .eq('id', staffId);
+            if (photoErr) {
+              toast.error('Failed to save profile photo', { description: photoErr.message });
+              throw photoErr;
+            }
+
+            // Update local staffMember state so dirty-check doesn't re-trigger
+            setStaffMember(prev => prev ? { ...prev, photo_url: newPhotoUrl } : prev);
+
+            // If this is the currently logged-in user's own record, update the header avatar
+            if (user?.staff_id === staffId && setUser && user) {
+              setUser({ ...user, photo_url: newPhotoUrl });
+            }
+
+            // Clear the pending photo state and update photo_url in formData
+            setPhotoFile(null);
+            setPhotoPreview(null);
+            setFormData((prev: any) => ({ ...prev, photo_url: newPhotoUrl }));
+
+            await logActivity({
+              activityType: 'update',
+              entityType: 'staff',
+              entityId: staffId,
+              entityName: staffMember?.name,
+              userName,
+              customDescription: 'Updated profile photo',
+            });
+          }
+
           // Step 1: Process pending compliance
           if (pendingChanges?.staffCompliance.toAdd.length) {
             for (const item of pendingChanges.staffCompliance.toAdd) {
@@ -643,7 +702,7 @@ export function StaffDetailContent({
           }
 
           // Update local state with saved data
-          setStaffMember({ ...staffMember, ...normalizedFormData });
+          setStaffMember({ ...staffMember, ...normalizedFormData, photo_url: formData.photo_url ?? staffMember.photo_url });
           
           // Normalize data for form inputs
           const normalizedData = {
@@ -706,7 +765,7 @@ export function StaffDetailContent({
     return () => {
       delete (window as any).entityName;
     };
-  }, [staffId, staffMember, formData, pendingChanges, updateStaff, onFormDataChange, onOriginalDataChange, onSaveSuccess, onSavingChange]);
+  }, [staffId, staffMember, formData, photoFile, pendingChanges, updateStaff, onFormDataChange, onOriginalDataChange, onSaveSuccess, onSavingChange]);
 
   // Get the sticky class based on the current layout
   const stickyClass = settings?.layout
@@ -743,10 +802,14 @@ export function StaffDetailContent({
         <StaffDetailForm
           key={`staff-form-${refreshKeys.compliance}-${refreshKeys.resources}-${refreshKeys.training}-${refreshKeys.activityLog}`}
           staffId={staffId}
-          formData={formData}
+          formData={{ ...formData, photo_url_preview: photoPreview }}
           onFormDataChange={(data) => {
-            setFormData(data);
-            onFormDataChange?.(data);
+            // Intercept photo fields so they don't enter formData / dirty tracker
+            const { photo_file, photo_url_preview, ...rest } = data;
+            if (photo_file !== undefined) setPhotoFile(photo_file);
+            if (photo_url_preview !== undefined) setPhotoPreview(photo_url_preview);
+            setFormData(rest);
+            onFormDataChange?.(rest);
           }}
           canEdit={canEdit}
           pendingChanges={pendingChanges}

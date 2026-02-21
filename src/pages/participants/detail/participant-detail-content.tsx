@@ -86,6 +86,10 @@ export function ParticipantDetailContent({
   const canAdd = true;
   const canDelete = true;
   
+  // Photo state — kept separate so it doesn't pollute dirty tracking
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+
   const [formData, setFormData] = useState<any>({
     name: '',
     email: '',
@@ -232,6 +236,7 @@ mtmp_details: '',
           mtmp_details: data.mtmp_details ?? '',
         };
         setFormData(initialData);
+        if (data.photo_url) setPhotoPreview(data.photo_url);
         
         // Notify parent of initial data
         if (onFormDataChange) onFormDataChange(initialData);
@@ -263,11 +268,11 @@ mtmp_details: '',
   const stickyClass = 'top-[calc(var(--header-height)+1rem)]';
 
   const handleFormChange = (field: string, value: any) => {
+    // Intercept photo fields — keep them out of formData/dirty tracking
+    if (field === 'photo_file') { setPhotoFile(value); return; }
+    if (field === 'photo_url_preview') { setPhotoPreview(value); return; }
     const normalizedValue = field === 'is_active' ? value === 'true' : value;
-    
-    setFormData((prev: any) => {
-      return { ...prev, [field]: normalizedValue };
-    });
+    setFormData((prev: any) => ({ ...prev, [field]: normalizedValue }));
   };
 
   // Notify parent of form data changes via useEffect to avoid setState during render
@@ -884,16 +889,16 @@ mtmp_details: '',
       // Step 6: Save main participant form data
       // Handle photo upload if there's a new photo file
       let photoUrl = formData.photo_url;
-      if (formData.photo_file && formData.photo_file instanceof File) {
-        const fileExt = formData.photo_file.name.split('.').pop();
+      if (photoFile && photoFile instanceof File) {
+        const fileExt = photoFile.name.split('.').pop();
         const fileName = `${id}-${Date.now()}.${fileExt}`;
         const filePath = `participant-photos/${fileName}`;
 
         const { error: uploadError } = await supabase.storage
           .from('participants')
-          .upload(filePath, formData.photo_file, {
+          .upload(filePath, photoFile, {
             upsert: true,
-            contentType: formData.photo_file.type
+            contentType: photoFile.type
           });
 
         if (uploadError) {
@@ -906,6 +911,8 @@ mtmp_details: '',
           .getPublicUrl(filePath);
 
         photoUrl = data.publicUrl;
+        setPhotoFile(null);
+        setPhotoPreview(photoUrl);
       }
 
       // Helper function to convert empty strings to null
@@ -1272,7 +1279,7 @@ mtmp_details: '',
         <PersonalDetails
           participant={participant}
           canEdit={canEdit}
-          formData={formData}
+          formData={{ ...formData, photo_url: photoPreview ?? formData.photo_url }}
           onFormChange={handleFormChange}
           onSave={handleSave}
           validationErrors={validationErrors}

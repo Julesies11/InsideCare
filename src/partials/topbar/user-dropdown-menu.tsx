@@ -8,7 +8,6 @@ import {
   CreditCard,
   FileText,
   Globe,
-  IdCard,
   Moon,
   Settings,
   Shield,
@@ -18,8 +17,8 @@ import {
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Link } from 'react-router';
-import { toAbsoluteUrl } from '@/lib/helpers';
 import { useLanguage } from '@/providers/i18n-provider';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -49,8 +48,10 @@ export function UserDropdownMenu({ trigger }: { trigger: ReactNode }) {
       : user?.username || 'User');
 
   const displayEmail = user?.email || '';
-  // const displayAvatar = user?.pic || toAbsoluteUrl('/media/avatars/300-2.png');
-  const displayAvatar = toAbsoluteUrl('/media/avatars/300-2.png');
+  const initials = [user?.first_name, user?.last_name]
+    .filter(Boolean)
+    .map((n) => n![0].toUpperCase())
+    .join('') || (user?.email?.[0]?.toUpperCase() ?? '?');
 
   const handleLanguage = (lang: Language) => {
     changeLanguage(lang);
@@ -67,11 +68,10 @@ export function UserDropdownMenu({ trigger }: { trigger: ReactNode }) {
         {/* Header */}
         <div className="flex items-center justify-between p-3">
           <div className="flex items-center gap-2">
-            <img
-              className="size-9 rounded-full border-2 border-green-500"
-              src={displayAvatar}
-              alt="User avatar"
-            />
+            <Avatar className="size-9 border-2 border-green-500">
+              {user?.photo_url && <AvatarImage src={user.photo_url} alt="User avatar" className="object-cover" />}
+              <AvatarFallback className="text-xs font-semibold">{initials}</AvatarFallback>
+            </Avatar>
             <div className="flex flex-col">
               <Link
                 to="/account/home/get-started"
@@ -97,16 +97,7 @@ export function UserDropdownMenu({ trigger }: { trigger: ReactNode }) {
         {/* Menu Items */}
         <DropdownMenuItem asChild>
           <Link
-            to="/public-profile/profiles/default"
-            className="flex items-center gap-2"
-          >
-            <IdCard />
-            Public Profile
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link
-            to="/account/home/user-profile"
+            to="/staff/profile"
             className="flex items-center gap-2"
           >
             <UserCircle />
