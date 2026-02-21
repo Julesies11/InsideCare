@@ -2,8 +2,10 @@ import { Fragment, useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { Container } from '@/components/common/container';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Mail, CheckCircle } from 'lucide-react';
 import { StaffDetailContent } from './staff-detail-content.tsx';
+import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 import {
   Toolbar,
   ToolbarActions,
@@ -26,6 +28,53 @@ export function StaffDetailPage() {
   const [pendingChanges, setPendingChanges] = useState<StaffPendingChanges>(emptyStaffPendingChanges);
   const [saving, setSaving] = useState(false);
   const saveHandlerRef = useRef<(() => Promise<void>) | null>(null);
+  const [staffAuthUserId, setStaffAuthUserId] = useState<string | null | undefined>(undefined);
+  const [inviting, setInviting] = useState(false);
+  const [isNewRecord, setIsNewRecord] = useState(false);
+
+  useEffect(() => {
+    if (!id) return;
+    supabase
+      .from('staff')
+      .select('auth_user_id, email, name, created_at')
+      .eq('id', id)
+      .maybeSingle()
+      .then(({ data }) => {
+        setStaffAuthUserId(data?.auth_user_id ?? null);
+        // A record is "new" if it has no name yet (just created as a blank draft)
+        setIsNewRecord(!data?.name);
+      });
+  }, [id]);
+
+  const handleInvite = async () => {
+    if (!id || !formData?.email) {
+      toast.error('Staff email is required to send an invite');
+      return;
+    }
+    setInviting(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/invite-staff-user`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify({ staffId: id, email: formData.email }),
+        },
+      );
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || 'Invite failed');
+      setStaffAuthUserId(result.authUserId);
+      toast.success('Invite sent! The staff member will receive an email to set their password.');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to send invite');
+    } finally {
+      setInviting(false);
+    }
+  };
 
   // Use centralized dirty tracking with json-diff-ts
   const { isDirty } = useDirtyTracker({
@@ -82,10 +131,25 @@ export function StaffDetailPage() {
               </div>
             </ToolbarHeading>
             <ToolbarActions>
+              {staffAuthUserId === null && (
+                <Button
+                  variant="outline"
+                  onClick={handleInvite}
+                  disabled={inviting}
+                >
+                  <Mail className="size-4 me-1.5" />
+                  {inviting ? 'Sending...' : 'Invite to Portal'}
+                </Button>
+              )}
+              {staffAuthUserId && (
+                <span className="flex items-center gap-1.5 text-sm text-green-600 font-medium">
+                  <CheckCircle className="size-4" /> Portal Access Active
+                </span>
+              )}
               <Button
                 onClick={handleSave}
-                disabled={!isDirty || saving}
-                variant={isDirty ? 'primary' : 'secondary'}
+                disabled={(!isDirty && !isNewRecord) || saving}
+                variant={(isDirty || isNewRecord) ? 'primary' : 'secondary'}
               >
                 {saving ? 'Saving...' : 'Save Changes'}
               </Button>
@@ -104,8 +168,8 @@ export function StaffDetailPage() {
           onPendingChangesChange={setPendingChanges}
           updateStaff={updateStaff}
           onSaveSuccess={() => {
-            // Clear dirty state after successful save
             setPendingChanges(emptyStaffPendingChanges);
+            setIsNewRecord(false);
           }}
         />
       </Container>

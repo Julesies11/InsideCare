@@ -8,6 +8,17 @@ import { useRosterData, StaffShift } from '@/components/roster/use-roster-data';
 import { getDateRange, calculateDuration, ViewMode } from '@/components/roster/roster-utils';
 import { EditShiftNoteDialog } from '@/pages/participants/shift-notes/components/edit-shift-note-dialog';
 import { useShiftNotes } from '@/hooks/useShiftNotes';
+import { supabase } from '@/lib/supabase';
+import { eachDayOfInterval, parseISO, isWithinInterval } from 'date-fns';
+
+export interface LeaveBlock {
+  id: string;
+  start_date: string;
+  end_date: string;
+  status: 'pending' | 'approved' | 'rejected';
+  leave_type_name: string;
+  staff_id: string;
+}
 
 interface StaffRosterCalendarProps {
   staffId: string;
@@ -18,6 +29,7 @@ interface StaffRosterCalendarProps {
   shiftTypeFilter: string;
   statusFilter: string;
   canEdit: boolean;
+  showLeave?: boolean;
 }
 
 export function StaffRosterCalendar({
@@ -29,8 +41,10 @@ export function StaffRosterCalendar({
   shiftTypeFilter,
   statusFilter,
   canEdit,
+  showLeave = true,
 }: StaffRosterCalendarProps) {
   const [shifts, setShifts] = useState<StaffShift[]>([]);
+  const [leaveBlocks, setLeaveBlocks] = useState<LeaveBlock[]>([]);
   const [showShiftDialog, setShowShiftDialog] = useState(false);
   const [selectedShift, setSelectedShift] = useState<StaffShift | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -81,6 +95,32 @@ export function StaffRosterCalendar({
     fetchShifts();
   }, [staffId, currentDate, viewMode, loadShifts]);
 
+  useEffect(() => {
+    if (!showLeave || !staffId || staffId === 'all') return;
+    const fetchLeave = async () => {
+      const { startDate, endDate } = getDateRange(currentDate, viewMode);
+      const query = supabase
+        .from('leave_requests')
+        .select('id, start_date, end_date, status, leave_type:leave_types(name), staff_id')
+        .neq('status', 'rejected')
+        .lte('start_date', endDate)
+        .gte('end_date', startDate);
+      if (staffId !== 'all') query.eq('staff_id', staffId);
+      const { data } = await query;
+      setLeaveBlocks(
+        (data || []).map((r: any) => ({
+          id: r.id,
+          start_date: r.start_date,
+          end_date: r.end_date,
+          status: r.status,
+          leave_type_name: r.leave_type?.name ?? 'Leave',
+          staff_id: r.staff_id,
+        }))
+      );
+    };
+    fetchLeave();
+  }, [staffId, currentDate, viewMode, showLeave]);
+
   const fetchNotesCounts = useCallback(async (shiftIds: string[]) => {
     if (shiftIds.length === 0) return;
     const results = await Promise.all(
@@ -97,10 +137,10 @@ export function StaffRosterCalendar({
   }, [fetchShiftNotesByShiftId]);
 
   useEffect(() => {
-    if (shifts.length > 0) {
+    if (shifts.length > 0 && canEdit) {
       fetchNotesCounts(shifts.map(s => s.id));
     }
-  }, [shifts, fetchNotesCounts]);
+  }, [shifts, fetchNotesCounts, canEdit]);
 
   const filteredShifts = useMemo(() => {
     return shifts.filter(shift => {
@@ -281,6 +321,7 @@ export function StaffRosterCalendar({
         shifts={filteredShifts}
         loading={loading}
         canEdit={canEdit}
+        leaveBlocks={showLeave ? leaveBlocks : []}
         onAddShift={handleAddShift}
         onEditShift={handleEditShift}
         onWriteNote={handleWriteNote}
@@ -306,6 +347,7 @@ export function StaffRosterCalendar({
         onSave={handleSaveShift}
         onDelete={selectedShift ? handleDeleteShift : undefined}
         scrollToNotes={scrollToNotes}
+        readOnly={!canEdit}
       />
 
       <EditShiftNoteDialog

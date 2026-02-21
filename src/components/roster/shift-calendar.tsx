@@ -1,8 +1,9 @@
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { format, isSameDay, isSameMonth, parseISO } from 'date-fns';
+import { format, isSameDay, isSameMonth, parseISO, isWithinInterval } from 'date-fns';
 import { ShiftCard, ShiftCardData } from './shift-card';
 import { generateMonthDays, generateWeekDays, ViewMode } from './roster-utils';
+import { LeaveBlock } from '@/pages/roster-board/components/staff-roster-calendar';
 
 interface ShiftCalendarProps {
   staffId: string;
@@ -11,10 +12,27 @@ interface ShiftCalendarProps {
   shifts: ShiftCardData[];
   loading: boolean;
   canEdit: boolean;
+  leaveBlocks?: LeaveBlock[];
   onAddShift: (date: Date) => void;
   onEditShift: (shift: ShiftCardData) => void;
   onWriteNote?: (shift: ShiftCardData) => void;
   onNotesClick?: (shift: ShiftCardData) => void;
+}
+
+function LeaveBlockBadge({ leave }: { leave: LeaveBlock }) {
+  const isPending = leave.status === 'pending';
+  return (
+    <div
+      className={`text-[10px] px-1.5 py-0.5 rounded font-medium truncate ${
+        isPending
+          ? 'bg-yellow-100 text-yellow-800 border border-yellow-300'
+          : 'bg-gray-100 text-gray-600 border border-gray-300'
+      }`}
+      title={`${leave.leave_type_name} (${leave.status})`}
+    >
+      {isPending ? '⏳' : '🏖'} {leave.leave_type_name}
+    </div>
+  );
 }
 
 export function ShiftCalendar({
@@ -24,15 +42,27 @@ export function ShiftCalendar({
   shifts,
   loading,
   canEdit,
+  leaveBlocks = [],
   onAddShift,
   onEditShift,
   onWriteNote,
   onNotesClick,
 }: ShiftCalendarProps) {
   const getShiftsForDate = (date: Date) => {
-    return shifts.filter(shift => 
+    return shifts.filter(shift =>
       isSameDay(parseISO(shift.shift_date), date)
     );
+  };
+
+  const getLeaveForDate = (date: Date) => {
+    return leaveBlocks.filter(leave => {
+      try {
+        return isWithinInterval(date, {
+          start: parseISO(leave.start_date),
+          end: parseISO(leave.end_date),
+        });
+      } catch { return false; }
+    });
   };
 
   const renderMonthView = () => {
@@ -80,13 +110,16 @@ export function ShiftCalendar({
                   )}
                 </div>
                 <div className="space-y-1">
+                  {getLeaveForDate(day).map(leave => (
+                    <LeaveBlockBadge key={leave.id} leave={leave} />
+                  ))}
                   {dayShifts.map(shift => (
                     <ShiftCard
                       key={shift.id}
                       shift={shift}
                       compact={true}
                       showStaffName={staffId === 'all'}
-                      onClick={() => canEdit && onEditShift(shift)}
+                      onClick={() => onEditShift(shift)}
                       onWriteNote={onWriteNote}
                       onNotesClick={onNotesClick}
                     />
@@ -134,18 +167,21 @@ export function ShiftCalendar({
               </div>
               
               <div className="space-y-2">
+                {getLeaveForDate(day).map(leave => (
+                  <LeaveBlockBadge key={leave.id} leave={leave} />
+                ))}
                 {dayShifts.map(shift => (
                   <ShiftCard
                     key={shift.id}
                     shift={shift}
                     compact={false}
                     showStaffName={staffId === 'all'}
-                    onClick={() => canEdit && onEditShift(shift)}
+                    onClick={() => onEditShift(shift)}
                     onWriteNote={onWriteNote}
                     onNotesClick={onNotesClick}
                   />
                 ))}
-                {dayShifts.length === 0 && (
+                {dayShifts.length === 0 && getLeaveForDate(day).length === 0 && (
                   <div className="text-center py-4 text-muted-foreground text-xs">
                     No shifts
                   </div>
@@ -180,6 +216,13 @@ export function ShiftCalendar({
           )}
         </div>
         
+        {getLeaveForDate(currentDate).length > 0 && (
+          <div className="space-y-2">
+            {getLeaveForDate(currentDate).map(leave => (
+              <LeaveBlockBadge key={leave.id} leave={leave} />
+            ))}
+          </div>
+        )}
         {todayShifts.length > 0 ? (
           <div className="grid gap-4">
             {todayShifts.map(shift => (
@@ -188,7 +231,7 @@ export function ShiftCalendar({
                 shift={shift}
                 compact={false}
                 showStaffName={staffId === 'all'}
-                onClick={() => canEdit && onEditShift(shift)}
+                onClick={() => onEditShift(shift)}
                 onWriteNote={onWriteNote}
                 onNotesClick={onNotesClick}
               />

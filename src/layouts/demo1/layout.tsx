@@ -4,9 +4,11 @@ import { MENU_SIDEBAR } from '@/config/menu.config';
 import { useMenu } from '@/hooks/use-menu';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useSettings } from '@/providers/settings-provider';
+import { useAuth } from '@/auth/context/auth-context';
 import { Footer } from './components/footer';
 import { Header } from './components/header';
 import { Sidebar } from './components/sidebar';
+import { StaffMobileNav } from './components/staff-mobile-nav';
 
 export function Demo1Layout() {
   const isMobile = useIsMobile();
@@ -14,6 +16,8 @@ export function Demo1Layout() {
   const { getCurrentItem } = useMenu(pathname);
   const item = getCurrentItem(MENU_SIDEBAR);
   const { settings, setOption } = useSettings();
+  const { isStaff, isAdmin } = useAuth();
+  const showStaffMobileNav = isMobile && isStaff && !isAdmin;
 
   useEffect(() => {
     const bodyClass = document.body.classList;
@@ -62,11 +66,12 @@ export function Demo1Layout() {
       <div className="wrapper flex grow flex-col">
         <Header />
 
-        <main className="grow pt-5" role="content">
+        <main className={`grow pt-5${showStaffMobileNav ? ' pb-20' : ''}`} role="content">
           <Outlet />
         </main>
 
-        <Footer />
+        {!showStaffMobileNav && <Footer />}
+        {showStaffMobileNav && <StaffMobileNav />}
       </div>
     </>
   );

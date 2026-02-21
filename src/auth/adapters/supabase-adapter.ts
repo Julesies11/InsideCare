@@ -219,9 +219,19 @@ export const SupabaseAdapter = {
     // Get user metadata and transform to UserModel format
     const metadata = user.user_metadata || {};
 
+    // Look up linked staff record
+    let staff_id: string | undefined;
+    if (!metadata.is_admin) {
+      const { data: staffRow } = await supabase
+        .from('staff')
+        .select('id')
+        .eq('auth_user_id', user.id)
+        .maybeSingle();
+      staff_id = staffRow?.id ?? undefined;
+    }
+
     // Format data to maintain compatibility with existing UI
     return {
-      id: user.id,
       email: user.email || '',
       email_verified: user.email_confirmed_at !== null,
       username: metadata.username || '',
@@ -232,12 +242,12 @@ export const SupabaseAdapter = {
         `${metadata.first_name || ''} ${metadata.last_name || ''}`.trim(),
       occupation: metadata.occupation || '',
       company_name: metadata.company_name || '',
-      companyName: metadata.company_name || '', // For backward compatibility
       phone: metadata.phone || '',
       roles: metadata.roles || [],
       pic: metadata.pic || '',
       language: metadata.language || 'en',
       is_admin: metadata.is_admin || false,
+      staff_id,
     };
   },
 
@@ -254,7 +264,7 @@ export const SupabaseAdapter = {
         userData.fullname ||
         `${userData.first_name || ''} ${userData.last_name || ''}`.trim(),
       occupation: userData.occupation,
-      company_name: userData.company_name || userData.companyName, // Support both formats
+      company_name: userData.company_name,
       phone: userData.phone,
       roles: userData.roles,
       pic: userData.pic,

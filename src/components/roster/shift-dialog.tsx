@@ -35,6 +35,7 @@ interface ShiftDialogProps {
   onSave: (formData: ShiftFormData) => Promise<{ id: string } | void>;
   onDelete?: (shiftId: string) => Promise<void>;
   scrollToNotes?: boolean;
+  readOnly?: boolean;
 }
 
 /** A draft note not yet saved to the DB (used in create mode or when adding new notes) */
@@ -57,6 +58,7 @@ export function ShiftDialog({
   onSave,
   onDelete,
   scrollToNotes = false,
+  readOnly = false,
 }: ShiftDialogProps) {
   const notesSectionRef = useRef<HTMLDivElement>(null);
   const [formData, setFormData] = useState<ShiftFormData>({
@@ -452,15 +454,17 @@ export function ShiftDialog({
                   )}
                 </span>
               </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleAddDraftNote}
-              >
-                <Plus className="h-3.5 w-3.5 mr-1" />
-                Add Note
-              </Button>
+              {!readOnly && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleAddDraftNote}
+                >
+                  <Plus className="h-3.5 w-3.5 mr-1" />
+                  Add Note
+                </Button>
+              )}
             </div>
 
             {/* Existing saved notes (edit mode) */}
@@ -639,7 +643,7 @@ export function ShiftDialog({
 
         <DialogFooter className="flex justify-between">
           <div>
-            {isEdit && onDelete && (
+            {!readOnly && isEdit && onDelete && (
               <Button
                 variant="destructive"
                 onClick={handleDelete}
@@ -652,11 +656,13 @@ export function ShiftDialog({
           </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving || deleting}>
-              Cancel
+              {readOnly ? 'Close' : 'Cancel'}
             </Button>
-            <Button onClick={handleSave} disabled={saving || deleting}>
-              {saving ? 'Saving...' : isEdit ? 'Update Shift' : 'Create Shift'}
-            </Button>
+            {!readOnly && (
+              <Button onClick={handleSave} disabled={saving || deleting}>
+                {saving ? 'Saving...' : isEdit ? 'Update Shift' : 'Create Shift'}
+              </Button>
+            )}
           </div>
         </DialogFooter>
       </DialogContent>

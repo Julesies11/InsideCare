@@ -1,5 +1,5 @@
 import { AuthRouting } from '@/auth/auth-routing';
-import { RequireAuth } from '@/auth/require-auth';
+import { RequireAuth, RequireAdmin, RequireStaff } from '@/auth/require-auth';
 import { ErrorRouting } from '@/errors/error-routing';
 import { Demo1Layout } from '@/layouts/demo1/layout';
 import {
@@ -106,11 +106,33 @@ import {
   WishlistPage,
 } from '@/pages/store-client';
 import { Navigate, Route, Routes } from 'react-router';
+import {
+  StaffDashboard,
+  StaffRoster,
+  StaffTimesheetForm,
+  StaffTimesheetList,
+  StaffLeaveList,
+  StaffLeaveForm,
+  StaffProfile,
+} from '@/pages/staff';
+import {
+  AdminTimesheetsPage,
+  AdminLeaveRequestsPage,
+} from '@/pages/employees';
 
 export function AppRoutingSetup() {
   return (
     <Routes>
+      <Route element={<RequireAuth />}>
       <Route element={<Demo1Layout />}>
+          <Route path="/staff/dashboard" element={<StaffDashboard />} />
+          <Route path="/staff/roster" element={<StaffRoster />} />
+          <Route path="/staff/roster/:shiftId/timesheet" element={<StaffTimesheetForm />} />
+          <Route path="/staff/timesheets" element={<StaffTimesheetList />} />
+          <Route path="/staff/leave" element={<StaffLeaveList />} />
+          <Route path="/staff/leave/new" element={<StaffLeaveForm />} />
+          <Route path="/staff/leave/:id/edit" element={<StaffLeaveForm />} />
+          <Route path="/staff/profile" element={<StaffProfile />} />
           <Route path="/" element={<HomePage />} />
           <Route path="/dark-sidebar" element={<Demo1DarkSidebarPage />} />
           <Route
@@ -295,18 +317,28 @@ export function AppRoutingSetup() {
             path="/participants/detail/:id/edit"
             element={<ParticipantDetailPage />}
           />
-          <Route
-            path="/employees/staff-profiles"
-            element={<StaffProfilesPage />}
-          />
-          <Route
-            path="/employees/staff-detail/:id"
-            element={<StaffDetailPage />}
-          />
-          <Route
-            path="/roster-board"
-            element={<RosterBoard />}
-          />
+          <Route element={<RequireAdmin />}>
+            <Route
+              path="/employees/staff-profiles"
+              element={<StaffProfilesPage />}
+            />
+            <Route
+              path="/employees/staff-detail/:id"
+              element={<StaffDetailPage />}
+            />
+            <Route
+              path="/employees/timesheets"
+              element={<AdminTimesheetsPage />}
+            />
+            <Route
+              path="/employees/leave-requests"
+              element={<AdminLeaveRequestsPage />}
+            />
+            <Route
+              path="/roster-board"
+              element={<RosterBoard />}
+            />
+          </Route>
           <Route
             path="/account/members/import-members"
             element={<AccountImportMembersPage />}
@@ -441,6 +473,7 @@ export function AppRoutingSetup() {
           />
           <Route path="/auth/get-started" element={<AccountGetStartedPage />} />
         </Route>
+      </Route>
       <Route path="error/*" element={<ErrorRouting />} />
       <Route path="auth/*" element={<AuthRouting />} />
       <Route path="*" element={<Navigate to="/error/404" />} />

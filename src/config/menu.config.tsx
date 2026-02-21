@@ -12,6 +12,7 @@ import {
   CalendarCheck,
   Captions,
   CheckCircle,
+  ClipboardList,
   Code,
   Codepen,
   Coffee,
@@ -49,6 +50,7 @@ import {
   Theater,
   ThumbsUp,
   TrendingUp,
+  Umbrella,
   UserCheck,
   UserCircle,
   Users,
@@ -63,10 +65,45 @@ export const MENU_SIDEBAR: MenuConfig = [
     title: 'Dashboard',
     icon: LayoutGrid,
     path: '/',
+    roles: ['admin'],
+  },
+  {
+    title: 'My Dashboard',
+    icon: LayoutGrid,
+    path: '/staff/dashboard',
+    roles: ['staff'],
+  },
+  {
+    title: 'My Roster',
+    icon: Calendar,
+    path: '/staff/roster',
+    roles: ['staff'],
+  },
+  {
+    title: 'Leave Requests',
+    icon: Umbrella,
+    roles: ['staff'],
+    children: [
+      { title: 'My Leave', path: '/staff/leave' },
+      { title: 'New Request', path: '/staff/leave/new' },
+    ],
+  },
+  {
+    title: 'My Timesheets',
+    icon: ClipboardList,
+    path: '/staff/timesheets',
+    roles: ['staff'],
+  },
+  {
+    title: 'My Profile',
+    icon: UserCircle,
+    path: '/staff/profile',
+    roles: ['staff'],
   },
   {
     title: 'Participants',
     icon: PeopleIcon,
+    roles: ['admin'],
     children: [
       { title: 'Participant Profiles', path: '/participants/profiles' },
       {
@@ -82,6 +119,7 @@ export const MENU_SIDEBAR: MenuConfig = [
   {
     title: 'Employees',
     icon: PeopleIcon,
+    roles: ['admin'],
     children: [
       { title: 'Staff Profiles', path: '/employees/staff-profiles' },
       {
@@ -90,17 +128,21 @@ export const MENU_SIDEBAR: MenuConfig = [
         hidden: true,
         children: [{ title: 'Detail', path: '/employees/staff-detail/:id' }],
       },
+      { title: 'Timesheets', path: '/employees/timesheets' },
+      { title: 'Leave Requests', path: '/employees/leave-requests' },
     ],
   },
   {
     title: 'Roster Board',
     icon: Calendar,
     path: '/roster-board',
+    roles: ['admin'],
   },
-  { heading: 'Template' },
+  { heading: 'Template', roles: ['admin'] },
   {
     title: 'Template',
     icon: LayoutGrid,
+    roles: ['admin'],
     children: [
       { title: 'Dashboard', path: '/', icon: LayoutGrid },
       {

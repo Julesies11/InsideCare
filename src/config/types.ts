@@ -15,6 +15,7 @@ export interface MenuItem {
   badge?: string;
   separator?: boolean;
   hidden?: boolean;
+  roles?: ('admin' | 'staff')[];
 }
 
 export type MenuConfig = MenuItem[];

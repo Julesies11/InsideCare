@@ -26,4 +26,5 @@ export interface UserModel {
   pic?: string;
   language?: LanguageCode; // Maintain existing type
   is_admin?: boolean; // Added admin flag
+  staff_id?: string; // Links to staff table row
 }

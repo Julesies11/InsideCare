@@ -4,6 +4,7 @@ import { JSX, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { MENU_SIDEBAR } from '@/config/menu.config';
 import { MenuConfig, MenuItem } from '@/config/types';
+import { useAuth } from '@/auth/context/auth-context';
 import { cn } from '@/lib/utils';
 import {
   AccordionMenu,
@@ -19,6 +20,15 @@ import { Badge } from '@/components/ui/badge';
 
 export function SidebarMenu() {
   const { pathname } = useLocation();
+  const { isAdmin, isStaff } = useAuth();
+
+  const isItemVisible = (item: MenuItem): boolean => {
+    if (!item.roles || item.roles.length === 0) return true;
+    // Only restrict when we positively know the user is staff-only.
+    // If neither flag is confirmed yet, show all items (admin fallback).
+    if (isStaff && !isAdmin) return item.roles.includes('staff');
+    return item.roles.includes('admin');
+  };
 
   // Memoize matchPath to prevent unnecessary re-renders
   const matchPath = useCallback(
@@ -44,7 +54,7 @@ export function SidebarMenu() {
 
   const buildMenu = (items: MenuConfig): JSX.Element[] => {
     return items
-      .filter((item) => !item.hidden)
+      .filter((item) => !item.hidden && isItemVisible(item))
       .map((item: MenuItem, index: number) => {
         if (item.heading) {
           return buildMenuHeading(item, index);
@@ -121,7 +131,7 @@ export function SidebarMenu() {
     level: number = 0,
   ): JSX.Element[] => {
     return items
-      .filter((item) => !item.hidden)
+      .filter((item) => !item.hidden && isItemVisible(item))
       .map((item: MenuItem, index: number) => {
         if (item.disabled) {
           return buildMenuItemChildDisabled(item, index, level);

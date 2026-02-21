@@ -21,10 +21,13 @@ import { Icons } from '@/components/common/icons';
 import { getSigninSchema, SigninSchemaType } from '../forms/signin-schema';
 import { LoaderCircleIcon } from 'lucide-react';
 
+const TEST_ADMIN = { email: 'admin@demo.com', password: 'demo' };
+const TEST_STAFF = { email: 'staff@demo.com', password: 'demo' };
+
 export function SignInPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, getUser } = useAuth();
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -74,11 +77,32 @@ export function SignInPage() {
   const form = useForm<SigninSchemaType>({
     resolver: zodResolver(getSigninSchema()),
     defaultValues: {
-      email: 'demo@kt.com',
-      password: 'demo123',
+      email: '',
+      password: '',
       rememberMe: true,
     },
   });
+
+  const loginAs = async (credentials: { email: string; password: string }) => {
+    try {
+      setIsProcessing(true);
+      setError(null);
+      await login(credentials.email, credentials.password);
+      const user = await getUser();
+      const nextPath = searchParams.get('next');
+      if (nextPath) {
+        navigate(nextPath);
+      } else if (user?.is_admin) {
+        navigate('/');
+      } else {
+        navigate('/staff/dashboard');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login failed');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   async function onSubmit(values: SigninSchemaType) {
     try {
@@ -96,11 +120,16 @@ export function SignInPage() {
       // Sign in using the auth context
       await login(values.email, values.password);
 
-      // Get the 'next' parameter from URL if it exists
-      const nextPath = searchParams.get('next') || '/';
-
-      // Use navigate for navigation
-      navigate(nextPath);
+      // Role-based redirect — read fresh user to avoid stale state
+      const user = await getUser();
+      const nextPath = searchParams.get('next');
+      if (nextPath) {
+        navigate(nextPath);
+      } else if (user?.is_admin) {
+        navigate('/');
+      } else {
+        navigate('/staff/dashboard');
+      }
     } catch (err) {
       console.error('Unexpected sign-in error:', err);
       setError(
@@ -156,16 +185,6 @@ export function SignInPage() {
             Welcome back! Log in with your credentials.
           </p>
         </div>
-
-        <Alert appearance="light" size="sm" close={false}>
-          <AlertIcon>
-            <AlertCircle className="text-primary" />
-          </AlertIcon>
-          <AlertTitle className="text-accent-foreground">
-            Use <strong>demo@kt.com</strong> username and {` `}
-            <strong>demo123</strong> password for demo access.
-          </AlertTitle>
-        </Alert>
 
         <div className="flex flex-col gap-3.5">
           <Button
@@ -303,14 +322,28 @@ export function SignInPage() {
           )}
         </Button>
 
-        <div className="text-center text-sm text-muted-foreground">
-          Don't have an account?{' '}
-          <Link
-            to="/auth/signup"
-            className="text-sm font-semibold text-foreground hover:text-primary"
-          >
-            Sign Up
-          </Link>
+        <div className="border-t pt-4 mt-2">
+          <p className="text-xs text-center text-muted-foreground mb-2 font-medium uppercase tracking-wide">DEV — Quick Login</p>
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => loginAs(TEST_ADMIN)}
+              disabled={isProcessing}
+            >
+              Admin (Test)
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => loginAs(TEST_STAFF)}
+              disabled={isProcessing}
+            >
+              Staff (Test)
+            </Button>
+          </div>
         </div>
       </form>
     </Form>

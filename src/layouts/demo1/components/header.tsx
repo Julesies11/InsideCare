@@ -5,6 +5,7 @@ import { AppsDropdownMenu } from '@/partials/topbar/apps-dropdown-menu';
 import { ChatSheet } from '@/partials/topbar/chat-sheet';
 import { NotificationsSheet } from '@/partials/topbar/notifications-sheet';
 import { UserDropdownMenu } from '@/partials/topbar/user-dropdown-menu';
+import { useNotifications } from '@/hooks/useNotifications';
 import {
   Bell,
   LayoutGrid,
@@ -36,6 +37,7 @@ import { SidebarMenu } from './sidebar-menu';
 export function Header() {
   const [isSidebarSheetOpen, setIsSidebarSheetOpen] = useState(false);
   const [isMegaMenuSheetOpen, setIsMegaMenuSheetOpen] = useState(false);
+  const { unreadCount } = useNotifications();
 
   const { pathname } = useLocation();
   const mobileMode = useIsMobile();
@@ -145,9 +147,12 @@ export function Header() {
                     variant="ghost"
                     mode="icon"
                     shape="circle"
-                    className="size-9 hover:bg-primary/10 hover:[&_svg]:text-primary"
+                    className="relative size-9 hover:bg-primary/10 hover:[&_svg]:text-primary"
                   >
                     <Bell className="size-4.5!" />
+                    {unreadCount > 0 && (
+                      <span className="absolute top-1 end-1 size-2 rounded-full bg-red-500" />
+                    )}
                   </Button>
                 }
               />
