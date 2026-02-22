@@ -65,11 +65,15 @@ export function StaffDetailContent({
   // Photo state kept separate from formData so it doesn't affect dirty tracking
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  // Track the original photo URL as state so mutations trigger re-render + dirty effect
+  const [originalPhotoUrl, setOriginalPhotoUrl] = useState<string | null>(null);
 
   // Notify parent when photo dirty state changes
+  // Dirty if: new file selected OR preview differs from original (e.g. deleted)
   useEffect(() => {
-    onPhotoDirtyChange?.(photoFile !== null);
-  }, [photoFile, onPhotoDirtyChange]);
+    const photoDirty = photoFile !== null || photoPreview !== originalPhotoUrl;
+    onPhotoDirtyChange?.(photoDirty);
+  }, [photoFile, photoPreview, originalPhotoUrl, onPhotoDirtyChange]);
 
   const canEdit = true;
 
@@ -169,6 +173,9 @@ export function StaffDetailContent({
         setFormData(initialData);
         onOriginalDataChange?.(initialData);
         onFormDataChange?.(initialData);
+        // Record original photo URL for deletion dirty tracking
+        setOriginalPhotoUrl(data.photo_url ?? null);
+        if (data.photo_url) setPhotoPreview(data.photo_url);
         
         // Set entity name for breadcrumbs
         (window as any).entityName = data.name;
@@ -195,7 +202,7 @@ export function StaffDetailContent({
         onSavingChange?.(true);
 
         try {
-          // Step 0: Upload profile photo if a new file was selected
+          // Step 0: Upload profile photo if a new file was selected, or clear if deleted
           if (photoFile) {
             const file = photoFile;
             const ext = file.name.split('.').pop();
@@ -219,17 +226,13 @@ export function StaffDetailContent({
               throw photoErr;
             }
 
-            // Update local staffMember state so dirty-check doesn't re-trigger
+            setOriginalPhotoUrl(newPhotoUrl);
             setStaffMember(prev => prev ? { ...prev, photo_url: newPhotoUrl } : prev);
-
-            // If this is the currently logged-in user's own record, update the header avatar
             if (user?.staff_id === staffId && setUser && user) {
               setUser({ ...user, photo_url: newPhotoUrl });
             }
-
-            // Clear the pending photo state and update photo_url in formData
             setPhotoFile(null);
-            setPhotoPreview(null);
+            setPhotoPreview(newPhotoUrl);
             setFormData((prev: any) => ({ ...prev, photo_url: newPhotoUrl }));
 
             await logActivity({
@@ -239,6 +242,31 @@ export function StaffDetailContent({
               entityName: staffMember?.name,
               userName,
               customDescription: 'Updated profile photo',
+            });
+          } else if (photoPreview === null && originalPhotoUrl !== null) {
+            // Photo was deleted — clear it in the DB
+            const { error: photoErr } = await supabase
+              .from('staff')
+              .update({ photo_url: null, updated_at: new Date().toISOString() })
+              .eq('id', staffId);
+            if (photoErr) {
+              toast.error('Failed to remove profile photo', { description: photoErr.message });
+              throw photoErr;
+            }
+            setOriginalPhotoUrl(null);
+            setStaffMember(prev => prev ? { ...prev, photo_url: null } : prev);
+            if (user?.staff_id === staffId && setUser && user) {
+              setUser({ ...user, photo_url: null });
+            }
+            setFormData((prev: any) => ({ ...prev, photo_url: null }));
+
+            await logActivity({
+              activityType: 'update',
+              entityType: 'staff',
+              entityId: staffId,
+              entityName: staffMember?.name,
+              userName,
+              customDescription: 'Removed profile photo',
             });
           }
 

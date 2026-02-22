@@ -60,6 +60,7 @@ export function StaffProfile() {
   // Photo state — kept separate so it doesn't affect dirty tracking
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [originalPhotoUrl, setOriginalPhotoUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   // Form state — mirrors StaffDetailContent pattern
@@ -97,6 +98,7 @@ export function StaffProfile() {
           emergency_contact_name: data.emergency_contact_name ?? '',
           emergency_contact_phone: data.emergency_contact_phone ?? '',
         };
+        setOriginalPhotoUrl((data as any).photo_url ?? null);
         if ((data as any).photo_url) setPhotoPreview((data as any).photo_url);
         setFormData(d);
         setOriginalData(d);
@@ -114,9 +116,10 @@ export function StaffProfile() {
       });
   }, [staffId]);
 
-  // Dirty tracking
+  // Dirty tracking — photo dirty if new file selected OR preview differs from original (deletion)
+  const isPhotoDirty = photoFile !== null || photoPreview !== originalPhotoUrl;
   const isDirty =
-    photoFile !== null ||
+    isPhotoDirty ||
     (originalData !== null &&
       Object.keys(originalData).some(
         (k) => formData[k] !== originalData[k]
@@ -133,8 +136,7 @@ export function StaffProfile() {
     if (!staffId) return;
     setSaving(true);
     try {
-      // Step 1: Upload photo if pending
-      let newPhotoUrl: string | null = null;
+      // Step 1: Upload photo if pending, or clear it if deleted
       if (photoFile) {
         const ext = photoFile.name.split('.').pop();
         const path = `${staffId}/profile/${Date.now()}.${ext}`;
@@ -143,14 +145,20 @@ export function StaffProfile() {
           .upload(path, photoFile, { upsert: true });
         if (uploadErr) throw uploadErr;
         const { data: urlData } = supabase.storage.from('staff-documents').getPublicUrl(path);
-        newPhotoUrl = urlData.publicUrl;
+        const newPhotoUrl = urlData.publicUrl;
 
         await supabase.from('staff').update({ photo_url: newPhotoUrl }).eq('id', staffId);
+        setOriginalPhotoUrl(newPhotoUrl);
 
         // Update header avatar immediately
         if (setUser && user) setUser({ ...user, photo_url: newPhotoUrl });
         setPhotoFile(null);
         setPhotoPreview(newPhotoUrl);
+      } else if (photoPreview === null && originalPhotoUrl !== null) {
+        // Photo was deleted — clear it in the DB
+        await supabase.from('staff').update({ photo_url: null }).eq('id', staffId);
+        setOriginalPhotoUrl(null);
+        if (setUser && user) setUser({ ...user, photo_url: null });
       }
 
       // Step 2: Save form fields via useStaff hook (mirrors StaffDetailContent)

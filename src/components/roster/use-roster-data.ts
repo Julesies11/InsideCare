@@ -22,6 +22,7 @@ export interface StaffShift {
   id: string;
   staff_id: string;
   shift_date: string;
+  end_date: string;
   start_time: string;
   end_time: string;
   house_id: string | null;
@@ -116,7 +117,7 @@ export function useRosterData() {
             name: sp.participant.name,
           })) || [],
           staff_name: shift.staff?.name || 'Unassigned',
-          duration_hours: calculateDuration(shift.start_time, shift.end_time),
+          duration_hours: calculateDuration(shift.start_time, shift.end_time, shift.shift_date, shift.end_date ?? shift.shift_date),
         }));
 
         return formattedShifts;
@@ -162,7 +163,7 @@ export function useRosterData() {
             } : null)
             .filter((p) => p !== null) || [];
 
-          const duration = calculateDuration(shift.start_time, shift.end_time);
+          const duration = calculateDuration(shift.start_time, shift.end_time, shift.shift_date, shift.end_date ?? shift.shift_date);
 
           return {
             ...shift,

@@ -121,9 +121,9 @@ export function StaffLeaveForm() {
     if (!attachmentFile) return existingAttachmentUrl;
     const ext = attachmentFile.name.split('.').pop();
     const path = `leave-attachments/${staffId}/${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from('documents').upload(path, attachmentFile);
+    const { error } = await supabase.storage.from('staff-documents').upload(path, attachmentFile);
     if (error) { toast.error('Failed to upload attachment'); return null; }
-    const { data } = supabase.storage.from('documents').getPublicUrl(path);
+    const { data } = supabase.storage.from('staff-documents').getPublicUrl(path);
     return data.publicUrl;
   };
 

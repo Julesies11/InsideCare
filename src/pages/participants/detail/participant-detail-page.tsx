@@ -24,14 +24,16 @@ export function ParticipantDetailPage() {
   const [originalData, setOriginalData] = useState<any>(null);
   const [pendingChanges, setPendingChanges] = useState<ParticipantPendingChanges>(emptyParticipantPendingChanges);
   const [saving, setSaving] = useState(false);
+  const [photoDirty, setPhotoDirty] = useState(false);
   const saveHandlerRef = useRef<(() => Promise<void>) | null>(null);
 
   // Use centralized dirty tracking with json-diff-ts
-  const { isDirty } = useDirtyTracker({
+  const { isDirty: formIsDirty } = useDirtyTracker({
     formData: formData || {},
     originalData: originalData || {},
     pendingChanges,
   });
+  const isDirty = formIsDirty || photoDirty;
 
   // Warn user before leaving page with unsaved changes
   useEffect(() => {
@@ -101,6 +103,7 @@ export function ParticipantDetailPage() {
           pendingChanges={pendingChanges}
           onPendingChangesChange={setPendingChanges}
           updateParticipant={updateParticipant}
+          onPhotoDirtyChange={setPhotoDirty}
         />
       </Container>
     </Fragment>

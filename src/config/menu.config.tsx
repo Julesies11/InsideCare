@@ -82,11 +82,8 @@ export const MENU_SIDEBAR: MenuConfig = [
   {
     title: 'Leave Requests',
     icon: Umbrella,
+    path: '/staff/leave',
     roles: ['staff'],
-    children: [
-      { title: 'My Leave', path: '/staff/leave' },
-      { title: 'New Request', path: '/staff/leave/new' },
-    ],
   },
   {
     title: 'My Timesheets',

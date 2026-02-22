@@ -42,6 +42,7 @@ export interface Staff {
   drivers_license_expiry?: string | null;
   comprehensive_car_insurance?: boolean | null;
   comprehensive_car_insurance_expiry?: string | null;
+  photo_url?: string | null;
 }
 
 export interface StaffCompliance {

@@ -17,6 +17,7 @@ import {
   Search,
   X,
 } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Alert } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { StatusBadge } from '@/components/ui/status-badge';
@@ -132,13 +133,27 @@ const StaffTable = () => {
       header: ({ column }) => (
         <DataGridColumnHeader title="Name" column={column} />
       ),
-      cell: ({ row }) => (
-        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-          {row.original.name}
-        </span>
-      ),
+      cell: ({ row }) => {
+        const name = row.original.name;
+        const initials = name
+          ? name.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2)
+          : '??';
+        return (
+          <div className="flex items-center gap-2.5">
+            <Avatar className="size-9">
+              {row.original.photo_url && (
+                <AvatarImage src={row.original.photo_url} alt={name ?? ''} />
+              )}
+              <AvatarFallback>{initials}</AvatarFallback>
+            </Avatar>
+            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+              {name || '-'}
+            </span>
+          </div>
+        );
+      },
       enableSorting: true,
-      size: 160,
+      size: 200,
     },
     {
       id: 'email',

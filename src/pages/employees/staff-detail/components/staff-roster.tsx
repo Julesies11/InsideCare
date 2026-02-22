@@ -94,7 +94,7 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
   };
 
   const handleSaveShift = async (formData: ShiftFormData) => {
-    if (!formData.shift_date || !formData.start_time || !formData.end_time) {
+    if (!formData.shift_date || !formData.end_date || !formData.start_time || !formData.end_time) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -104,6 +104,7 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
         // UPDATE EXISTING SHIFT
         const updates = {
           shift_date: formData.shift_date,
+          end_date: formData.end_date,
           start_time: formData.start_time,
           end_time: formData.end_time,
           house_id: formData.house_id || null,
@@ -140,7 +141,7 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
                 ...updates,
                 house: house ? { id: house.id, name: house.name } : undefined,
                 participants: shiftParticipants,
-                duration_hours: calculateDuration(updates.start_time, updates.end_time),
+                duration_hours: calculateDuration(updates.start_time, updates.end_time, updates.shift_date, updates.end_date),
               }
             : shift
         ));
@@ -151,6 +152,7 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
         const shiftData = {
           staff_id: staffId,
           shift_date: formData.shift_date,
+          end_date: formData.end_date,
           start_time: formData.start_time,
           end_time: formData.end_time,
           house_id: formData.house_id || null,
@@ -180,7 +182,7 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
           ...data,
           house: house ? { id: house.id, name: house.name } : undefined,
           participants: shiftParticipants,
-          duration_hours: calculateDuration(data.start_time, data.end_time),
+          duration_hours: calculateDuration(data.start_time, data.end_time, data.shift_date, data.end_date ?? data.shift_date),
         };
 
         setShifts(prevShifts => [...prevShifts, newShift]);

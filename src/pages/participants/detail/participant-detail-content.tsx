@@ -53,6 +53,7 @@ interface ParticipantDetailContentProps {
   pendingChanges?: ParticipantPendingChanges;
   onPendingChangesChange?: (changes: ParticipantPendingChanges) => void;
   updateParticipant?: (id: string, updates: Partial<Participant>) => Promise<{ data: any; error: string | null }>;
+  onPhotoDirtyChange?: (dirty: boolean) => void;
 }
 
 export function ParticipantDetailContent({
@@ -63,6 +64,7 @@ export function ParticipantDetailContent({
   updateParticipant,
   pendingChanges,
   onPendingChangesChange,
+  onPhotoDirtyChange,
 }: ParticipantDetailContentProps) {
   const { id } = useParams<{ id: string }>();
   const isMobile = useIsMobile();
@@ -89,6 +91,7 @@ export function ParticipantDetailContent({
   // Photo state — kept separate so it doesn't pollute dirty tracking
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [originalPhotoUrl, setOriginalPhotoUrl] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<any>({
     name: '',
@@ -236,6 +239,7 @@ mtmp_details: '',
           mtmp_details: data.mtmp_details ?? '',
         };
         setFormData(initialData);
+        setOriginalPhotoUrl(data.photo_url ?? null);
         if (data.photo_url) setPhotoPreview(data.photo_url);
         
         // Notify parent of initial data
@@ -263,6 +267,13 @@ mtmp_details: '',
   useEffect(() => {
     setSidebarSticky(scrollPosition > 100);
   }, [scrollPosition]);
+
+  // Notify parent when photo dirty state changes
+  // Dirty if: new file selected OR preview differs from original (e.g. deleted)
+  useEffect(() => {
+    const photoDirty = photoFile !== null || photoPreview !== originalPhotoUrl;
+    onPhotoDirtyChange?.(photoDirty);
+  }, [photoFile, photoPreview, originalPhotoUrl, onPhotoDirtyChange]);
 
   // Get the sticky class based on the current layout
   const stickyClass = 'top-[calc(var(--header-height)+1rem)]';
@@ -887,7 +898,7 @@ mtmp_details: '',
       }
 
       // Step 6: Save main participant form data
-      // Handle photo upload if there's a new photo file
+      // Handle photo upload if there's a new photo file, or clear if deleted
       let photoUrl = formData.photo_url;
       if (photoFile && photoFile instanceof File) {
         const fileExt = photoFile.name.split('.').pop();
@@ -905,14 +916,18 @@ mtmp_details: '',
           throw new Error(`Failed to upload photo: ${uploadError.message}`);
         }
 
-        // Get public URL
         const { data } = supabase.storage
           .from('participants')
           .getPublicUrl(filePath);
 
         photoUrl = data.publicUrl;
+        setOriginalPhotoUrl(photoUrl);
         setPhotoFile(null);
         setPhotoPreview(photoUrl);
+      } else if (photoPreview === null && originalPhotoUrl !== null) {
+        // Photo was deleted — write null to DB
+        photoUrl = null;
+        setOriginalPhotoUrl(null);
       }
 
       // Helper function to convert empty strings to null

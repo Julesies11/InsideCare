@@ -36,14 +36,25 @@ export const formatDuration = (hours: number): string => {
   return hours % 1 === 0 ? `${hours}h` : `${hours}h`;
 };
 
-export const calculateDuration = (startTime: string, endTime: string): number => {
+export const calculateDuration = (startTime: string, endTime: string, startDate?: string, endDate?: string): number => {
   const [startHour, startMinute] = startTime.split(':').map(Number);
   const [endHour, endMinute] = endTime.split(':').map(Number);
-  
+
   const startMinutes = startHour * 60 + startMinute;
   const endMinutes = endHour * 60 + endMinute;
-  
-  const durationMinutes = endMinutes - startMinutes;
+
+  let durationMinutes = endMinutes - startMinutes;
+
+  // If dates are provided, use them to calculate cross-day difference
+  if (startDate && endDate && startDate !== endDate) {
+    const start = new Date(`${startDate}T${startTime}`);
+    const end = new Date(`${endDate}T${endTime}`);
+    durationMinutes = (end.getTime() - start.getTime()) / 60000;
+  } else if (durationMinutes < 0) {
+    // No dates but end time is before start time — assume next day
+    durationMinutes += 24 * 60;
+  }
+
   return Math.round((durationMinutes / 60) * 100) / 100;
 };
 

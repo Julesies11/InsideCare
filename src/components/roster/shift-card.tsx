@@ -7,6 +7,7 @@ import { getShiftTypeColor, getStatusVariant, formatTime } from './roster-utils'
 export interface ShiftCardData {
   id: string;
   shift_date: string;
+  end_date?: string;
   start_time: string;
   end_time: string;
   shift_type: string;
@@ -38,7 +39,10 @@ export function ShiftCard({ shift, compact, showStaffName, onClick, onWriteNote,
       >
         <div className="flex items-center justify-between gap-1 mb-0.5">
           <span className="text-[10px] font-medium truncate">
-            {formatTime(shift.start_time)} - {formatTime(shift.end_time)}
+            {formatTime(shift.start_time)} – {formatTime(shift.end_time)}
+            {shift.end_date && shift.end_date !== shift.shift_date && (
+              <span className="ml-1 text-orange-500" title="Overnight shift">+1</span>
+            )}
           </span>
           <Badge className={`${getShiftTypeColor(shift.shift_type)} text-[10px] px-1 py-0`}>
             {shift.shift_type}
@@ -101,7 +105,10 @@ export function ShiftCard({ shift, compact, showStaffName, onClick, onWriteNote,
         <div className="flex items-center gap-1.5">
           <Clock className="h-3 w-3 text-muted-foreground flex-shrink-0" />
           <span className="text-xs font-medium truncate flex-1">
-            {formatTime(shift.start_time)} - {formatTime(shift.end_time)}
+            {formatTime(shift.start_time)} – {formatTime(shift.end_time)}
+            {shift.end_date && shift.end_date !== shift.shift_date && (
+              <span className="ml-1 text-orange-500 text-[10px]" title="Overnight shift">+1 day</span>
+            )}
           </span>
         </div>
         

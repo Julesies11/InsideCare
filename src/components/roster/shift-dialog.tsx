@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 export interface ShiftFormData {
   staff_id: string;
   shift_date: string;
+  end_date: string;
   start_time: string;
   end_time: string;
   house_id: string;
@@ -64,6 +65,7 @@ export function ShiftDialog({
   const [formData, setFormData] = useState<ShiftFormData>({
     staff_id: staffId || '',
     shift_date: format(new Date(), 'yyyy-MM-dd'),
+    end_date: format(new Date(), 'yyyy-MM-dd'),
     start_time: '09:00',
     end_time: '17:00',
     house_id: '',
@@ -97,6 +99,7 @@ export function ShiftDialog({
       setFormData({
         staff_id: shift.staff_id || staffId || '',
         shift_date: shift.shift_date,
+        end_date: shift.end_date || shift.shift_date,
         start_time: shift.start_time,
         end_time: shift.end_time,
         house_id: shift.house_id || '',
@@ -115,6 +118,7 @@ export function ShiftDialog({
       setFormData({
         staff_id: staffId || '',
         shift_date: format(new Date(), 'yyyy-MM-dd'),
+        end_date: format(new Date(), 'yyyy-MM-dd'),
         start_time: '09:00',
         end_time: '17:00',
         house_id: '',
@@ -316,18 +320,26 @@ export function ShiftDialog({
                 </SelectContent>
               </Select>
             </div>
+            <div />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="shift_date">Date *</Label>
+              <Label htmlFor="shift_date">Start Date *</Label>
               <Input
                 id="shift_date"
                 type="date"
                 value={formData.shift_date}
-                onChange={(e) => setFormData({ ...formData, shift_date: e.target.value })}
+                onChange={(e) => {
+                  const newStart = e.target.value;
+                  setFormData(prev => ({
+                    ...prev,
+                    shift_date: newStart,
+                    end_date: prev.end_date < newStart ? newStart : prev.end_date,
+                  }));
+                }}
               />
             </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="start_time">Start Time *</Label>
               <Input
@@ -335,6 +347,19 @@ export function ShiftDialog({
                 type="time"
                 value={formData.start_time}
                 onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="end_date">End Date *</Label>
+              <Input
+                id="end_date"
+                type="date"
+                value={formData.end_date}
+                min={formData.shift_date}
+                onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
               />
             </div>
             <div>
