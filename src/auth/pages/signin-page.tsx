@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { SupabaseAdapter } from '@/auth/adapters/supabase-adapter';
 import { useAuth } from '@/auth/context/auth-context';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AlertCircle, Check, Eye, EyeOff } from 'lucide-react';
@@ -17,7 +16,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Icons } from '@/components/common/icons';
 import { getSigninSchema, SigninSchemaType } from '../forms/signin-schema';
 import { LoaderCircleIcon } from 'lucide-react';
 
@@ -32,7 +30,6 @@ export function SignInPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   // Check for success message from password reset or error messages
   useEffect(() => {
@@ -142,36 +139,6 @@ export function SignInPage() {
     }
   }
 
-  // Handle Google Sign In with Supabase OAuth
-  const handleGoogleSignIn = async () => {
-    try {
-      setIsGoogleLoading(true);
-      setError(null);
-
-      // Get the next path if available
-      const nextPath = searchParams.get('next');
-
-      // Calculate the redirect URL
-      const redirectTo = nextPath
-        ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`
-        : `${window.location.origin}/auth/callback`;
-
-      console.log('Initiating Google sign-in with redirect:', redirectTo);
-
-      // Use our adapter to initiate the OAuth flow
-      await SupabaseAdapter.signInWithOAuth('google', { redirectTo });
-
-      // The browser will be redirected automatically
-    } catch (err) {
-      console.error('Google sign-in error:', err);
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Failed to sign in with Google. Please try again.',
-      );
-      setIsGoogleLoading(false);
-    }
-  };
 
   return (
     <Form {...form}>
@@ -184,35 +151,6 @@ export function SignInPage() {
           <p className="text-sm text-muted-foreground">
             Welcome back! Log in with your credentials.
           </p>
-        </div>
-
-        <div className="flex flex-col gap-3.5">
-          <Button
-            variant="outline"
-            type="button"
-            onClick={handleGoogleSignIn}
-            disabled={isGoogleLoading}
-          >
-            {isGoogleLoading ? (
-              <span className="flex items-center gap-2">
-                <LoaderCircleIcon className="size-4! animate-spin" /> Signing in with
-                Google...
-              </span>
-            ) : (
-              <>
-                <Icons.googleColorful className="size-5!" /> Sign in with Google
-              </>
-            )}
-          </Button>
-        </div>
-
-        <div className="relative py-1.5">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background px-2 text-muted-foreground">or</span>
-          </div>
         </div>
 
         {error && (

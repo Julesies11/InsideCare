@@ -2,14 +2,12 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/auth/context/auth-context';
 import { StoreClientTopbar } from '@/pages/store-client/components/common/topbar';
 import { SearchDialog } from '@/partials/dialogs/search/search-dialog';
-import { AppsDropdownMenu } from '@/partials/topbar/apps-dropdown-menu';
 import { ChatSheet } from '@/partials/topbar/chat-sheet';
 import { NotificationsSheet } from '@/partials/topbar/notifications-sheet';
 import { UserDropdownMenu } from '@/partials/topbar/user-dropdown-menu';
 import { useNotifications } from '@/hooks/useNotifications';
 import {
   Bell,
-  LayoutGrid,
   Menu,
   MessageCircleMore,
   Search,
@@ -172,18 +170,6 @@ export function Header() {
                     className="size-9 hover:bg-primary/10 hover:[&_svg]:text-primary"
                   >
                     <MessageCircleMore className="size-4.5!" />
-                  </Button>
-                }
-              />
-              <AppsDropdownMenu
-                trigger={
-                  <Button
-                    variant="ghost"
-                    mode="icon"
-                    shape="circle"
-                    className="size-9 hover:bg-primary/10 hover:[&_svg]:text-primary"
-                  >
-                    <LayoutGrid className="size-4.5!" />
                   </Button>
                 }
               />

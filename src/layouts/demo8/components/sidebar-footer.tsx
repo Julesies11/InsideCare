@@ -1,7 +1,6 @@
-import { AppsDropdownMenu } from '@/partials/topbar/apps-dropdown-menu';
 import { ChatSheet } from '@/partials/topbar/chat-sheet';
 import { UserDropdownMenu } from '@/partials/topbar/user-dropdown-menu';
-import { LayoutGrid, MessageCircleMore } from 'lucide-react';
+import { MessageCircleMore } from 'lucide-react';
 import { toAbsoluteUrl } from '@/lib/helpers';
 import { Button } from '@/components/ui/button';
 
@@ -17,17 +16,6 @@ export function SidebarFooter() {
               className="hover:bg-background hover:[&_svg]:text-primary"
             >
               <MessageCircleMore className="size-4.5!" />
-            </Button>
-          }
-        />
-        <AppsDropdownMenu
-          trigger={
-            <Button
-              variant="ghost"
-              mode="icon"
-              className="hover:bg-background hover:[&_svg]:text-primary"
-            >
-              <LayoutGrid className="size-4.5!" />
             </Button>
           }
         />

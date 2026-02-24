@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import { AppsDropdownMenu } from '@/partials/topbar/apps-dropdown-menu';
 import { ChatSheet } from '@/partials/topbar/chat-sheet';
 import { UserDropdownMenu } from '@/partials/topbar/user-dropdown-menu';
 import {
@@ -7,7 +6,6 @@ import {
   Bell,
   CheckSquare,
   Code,
-  LayoutGrid,
   MessageCircleMore,
   MessageSquare,
   Settings,
@@ -187,17 +185,6 @@ export function SidebarPrimary() {
                 className="size-9 hover:bg-background hover:[&_svg]:text-primary"
               >
                 <MessageCircleMore className="size-4.5!" />
-              </Button>
-            }
-          />
-          <AppsDropdownMenu
-            trigger={
-              <Button
-                variant="ghost"
-                mode="icon"
-                className="size-9 hover:bg-background hover:[&_svg]:text-primary"
-              >
-                <LayoutGrid className="size-4.5!" />
               </Button>
             }
           />
