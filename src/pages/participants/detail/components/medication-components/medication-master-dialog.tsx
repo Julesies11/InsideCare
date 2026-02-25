@@ -113,6 +113,8 @@ export function MedicationMasterDialog({
         name: medicationData.name!,
         category: medicationData.category || null,
         common_dosages: medicationData.common_dosages || null,
+        side_effects: medicationData.side_effects || null,
+        interactions: medicationData.interactions || null,
         is_active: medicationData.is_active ?? true,
         created_by: null,
         updated_by: null,
@@ -191,6 +193,8 @@ export function MedicationMasterDialog({
                       <SortIcon field="category" />
                     </TableHead>
                     <TableHead>Common Dosages</TableHead>
+                    <TableHead>General Side Effects</TableHead>
+                    <TableHead>Contraindication/Interactions</TableHead>
                     <TableHead 
                       className="cursor-pointer select-none"
                       onClick={() => handleSort('is_active')}
@@ -216,6 +220,24 @@ export function MedicationMasterDialog({
                         {medication.common_dosages ? (
                           <span className="text-sm text-muted-foreground">
                             {medication.common_dosages}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {medication.side_effects ? (
+                          <span className="text-sm text-muted-foreground max-w-xs truncate block" title={medication.side_effects}>
+                            {medication.side_effects}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {medication.interactions ? (
+                          <span className="text-sm text-muted-foreground max-w-xs truncate block" title={medication.interactions}>
+                            {medication.interactions}
                           </span>
                         ) : (
                           <span className="text-muted-foreground text-sm">-</span>

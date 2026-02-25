@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Plus, Edit, Trash2, Pill, Clock } from 'lucide-react';
@@ -61,6 +62,19 @@ export function Medications({
       return masterMed?.name || 'Unknown Medication';
     }
     return 'Unknown Medication';
+  };
+
+  // Helper function to get medication master data
+  const getMedicationMaster = (med: any) => {
+    // If it has the joined medication object, use that
+    if (med.medication) {
+      return med.medication;
+    }
+    // For pending medications, look up from master list
+    if (med.medication_id) {
+      return medicationsMaster.find(m => m.id === med.medication_id);
+    }
+    return null;
   };
 
   const form = useForm<MedicationFormValues>({
@@ -407,6 +421,59 @@ export function Medications({
                   </FormItem>
                 )}
               />
+              {editingMedication && (() => {
+                const masterMed = getMedicationMaster(editingMedication);
+                return masterMed ? (
+                  <>
+                    <FormItem>
+                      <FormLabel>General Side Effects</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          value={masterMed.side_effects || ''}
+                          readOnly
+                          placeholder="No side effects information available"
+                          className="bg-muted/50"
+                          rows={2}
+                        />
+                      </FormControl>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        This information comes from the Medications Master list. 
+                        <Button 
+                          variant="link" 
+                          size="sm" 
+                          className="p-0 h-auto ml-1"
+                          onClick={() => setShowMasterDialog(true)}
+                        >
+                          Manage Master List
+                        </Button>
+                      </div>
+                    </FormItem>
+                    <FormItem>
+                      <FormLabel>Contraindication/Interactions</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          value={masterMed.interactions || ''}
+                          readOnly
+                          placeholder="No interactions information available"
+                          className="bg-muted/50"
+                          rows={2}
+                        />
+                      </FormControl>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        This information comes from the Medications Master list. 
+                        <Button 
+                          variant="link" 
+                          size="sm" 
+                          className="p-0 h-auto ml-1"
+                          onClick={() => setShowMasterDialog(true)}
+                        >
+                          Manage Master List
+                        </Button>
+                      </div>
+                    </FormItem>
+                  </>
+                ) : null;
+              })()}
               <FormField
                 control={form.control}
                 name="is_active"

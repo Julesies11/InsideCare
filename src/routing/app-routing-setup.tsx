@@ -47,6 +47,10 @@ import {
   FundingFormPage,
 } from '@/pages/participants';
 import {
+  HousesProfilesPage,
+  HouseDetailPage,
+} from '@/pages/houses';
+import {
   StaffProfilesPage,
   StaffDetailPage,
 } from '@/pages/employees';
@@ -294,22 +298,6 @@ export function AppRoutingSetup() {
             element={<ShiftNotesPage />}
           />
           <Route
-            path="/participants/funding"
-            element={<FundingPage />}
-          />
-          <Route
-            path="/participants/funding/add"
-            element={<FundingFormPage />}
-          />
-          <Route
-            path="/participants/funding/:id/edit"
-            element={<FundingFormPage />}
-          />
-          <Route
-            path="/participants/funding/:id"
-            element={<FundingDetailPage />}
-          />
-          <Route
             path="/participants/detail/:id"
             element={<ParticipantDetailPage />}
           />
@@ -333,6 +321,14 @@ export function AppRoutingSetup() {
             <Route
               path="/employees/leave-requests"
               element={<AdminLeaveRequestsPage />}
+            />
+            <Route
+              path="/houses/profiles"
+              element={<HousesProfilesPage />}
+            />
+            <Route
+              path="/houses/detail/:id"
+              element={<HouseDetailPage />}
             />
             <Route
               path="/roster-board"

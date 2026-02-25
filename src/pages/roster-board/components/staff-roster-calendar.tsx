@@ -30,6 +30,7 @@ interface StaffRosterCalendarProps {
   statusFilter: string;
   canEdit: boolean;
   showLeave?: boolean;
+  groupByHouse?: boolean;
 }
 
 export function StaffRosterCalendar({
@@ -42,6 +43,7 @@ export function StaffRosterCalendar({
   statusFilter,
   canEdit,
   showLeave = true,
+  groupByHouse = false,
 }: StaffRosterCalendarProps) {
   const [shifts, setShifts] = useState<StaffShift[]>([]);
   const [leaveBlocks, setLeaveBlocks] = useState<LeaveBlock[]>([]);
@@ -326,6 +328,8 @@ export function StaffRosterCalendar({
         onEditShift={handleEditShift}
         onWriteNote={handleWriteNote}
         onNotesClick={handleNotesClick}
+        groupByHouse={groupByHouse}
+        houses={houses}
       />
 
       <ShiftDialog

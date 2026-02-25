@@ -6,10 +6,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { ClipboardList, Pencil, Plus, Trash2, X } from 'lucide-react';
-import { format } from 'date-fns';
+import { ClipboardList, Pencil, Plus, Trash2, X, AlertTriangle } from 'lucide-react';
+import { format, parseISO, isWithinInterval, areIntervalsOverlapping } from 'date-fns';
 import { useShiftNotes, ShiftNote } from '@/hooks/useShiftNotes';
 import { toast } from 'sonner';
+import { supabase } from '@/lib/supabase';
 
 export interface ShiftFormData {
   staff_id: string;
@@ -77,6 +78,10 @@ export function ShiftDialog({
 
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [doubleBookingWarning, setDoubleBookingWarning] = useState<{
+    hasWarning: boolean;
+    conflictingShifts: any[];
+  }>({ hasWarning: false, conflictingShifts: [] });
 
   // Shift Notes state
   const [existingNotes, setExistingNotes] = useState<ShiftNote[]>([]);
@@ -93,6 +98,66 @@ export function ShiftDialog({
   const [deletingNoteId, setDeletingNoteId] = useState<string | null>(null);
 
   const isEdit = shift !== null;
+
+  // Check for double bookings
+  const checkDoubleBooking = async (staffId: string, shiftDate: string, startTime: string, endTime: string, excludeShiftId?: string) => {
+    if (!staffId || !shiftDate || !startTime || !endTime) {
+      setDoubleBookingWarning({ hasWarning: false, conflictingShifts: [] });
+      return;
+    }
+
+    try {
+      const { data: existingShifts, error } = await supabase
+        .from('staff_shifts')
+        .select(`
+          *,
+          house:houses(id, name)
+        `)
+        .eq('staff_id', staffId)
+        .eq('shift_date', shiftDate)
+        .neq('status', 'Cancelled')
+        .neq('id', excludeShiftId || '');
+
+      if (error) {
+        console.error('Error checking double bookings:', error);
+        return;
+      }
+
+      // Check for overlapping time intervals
+      const currentStart = new Date(`${shiftDate}T${startTime}`);
+      const currentEnd = new Date(`${shiftDate}T${endTime}`);
+
+      const conflictingShifts = (existingShifts || []).filter(existingShift => {
+        const existingStart = new Date(`${existingShift.shift_date}T${existingShift.start_time}`);
+        const existingEnd = new Date(`${existingShift.shift_date}T${existingShift.end_time}`);
+        
+        return areIntervalsOverlapping(
+          { start: currentStart, end: currentEnd },
+          { start: existingStart, end: existingEnd }
+        );
+      });
+
+      setDoubleBookingWarning({
+        hasWarning: conflictingShifts.length > 0,
+        conflictingShifts
+      });
+    } catch (error) {
+      console.error('Error checking double bookings:', error);
+    }
+  };
+
+  // Check for double bookings when relevant form fields change
+  useEffect(() => {
+    if (formData.staff_id && formData.shift_date && formData.start_time && formData.end_time) {
+      checkDoubleBooking(
+        formData.staff_id,
+        formData.shift_date,
+        formData.start_time,
+        formData.end_time,
+        shift?.id
+      );
+    }
+  }, [formData.staff_id, formData.shift_date, formData.start_time, formData.end_time, shift?.id]);
 
   useEffect(() => {
     if (shift) {
@@ -372,6 +437,38 @@ export function ShiftDialog({
               />
             </div>
           </div>
+
+          {/* Double Booking Warning */}
+          {doubleBookingWarning.hasWarning && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+                <div className="space-y-2">
+                  <h4 className="font-medium text-red-800">Double Booking Detected!</h4>
+                  <p className="text-sm text-red-700">
+                    This staff member already has conflicting shifts:
+                  </p>
+                  <div className="space-y-1">
+                    {doubleBookingWarning.conflictingShifts.map((conflict, index) => (
+                      <div key={conflict.id} className="text-sm text-red-600 bg-white rounded p-2 border border-red-100">
+                        <div className="font-medium">
+                          {format(parseISO(conflict.shift_date), 'MMM d, yyyy')} • {conflict.start_time} - {conflict.end_time}
+                        </div>
+                        <div className="text-xs">
+                          House: {conflict.house?.name || 'Unassigned'} | 
+                          Type: {conflict.shift_type} | 
+                          Status: {conflict.status}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-red-600">
+                    Staff can work at different houses on the same day, but the time periods cannot overlap.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
           
           <div className="grid grid-cols-2 gap-4">
             <div>

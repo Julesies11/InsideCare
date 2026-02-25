@@ -7,6 +7,8 @@ import { RosterCalendarHeader } from '@/components/roster/roster-calendar-header
 import { ViewMode } from '@/components/roster/roster-utils';
 import { supabase } from '@/lib/supabase';
 import { format, addWeeks, addMonths, addDays } from 'date-fns';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 interface Staff {
   id: string;
@@ -32,6 +34,7 @@ export function RosterBoardContent() {
   const [houses, setHouses] = useState<House[]>([]);
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [loading, setLoading] = useState(true);
+  const [groupByHouse, setGroupByHouse] = useState(true);
   
   const [houseFilter, setHouseFilter] = useState<string>('all');
   const [participantFilter, setParticipantFilter] = useState<string>('all');
@@ -102,7 +105,11 @@ export function RosterBoardContent() {
       return format(currentDate, 'EEEE, MMMM d, yyyy');
     } else if (viewMode === 'week') {
       const weekStart = new Date(currentDate);
-      weekStart.setDate(currentDate.getDate() - currentDate.getDay());
+      // Adjust to make Monday the start of the week (0 = Sunday, 1 = Monday, etc.)
+      const dayOfWeek = currentDate.getDay();
+      const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // If Sunday, go back 6 days; otherwise go back to Monday
+      weekStart.setDate(currentDate.getDate() - daysToMonday);
+      
       const weekEnd = new Date(weekStart);
       weekEnd.setDate(weekStart.getDate() + 6);
       return `Week of ${format(weekStart, 'MMM d')} - ${format(weekEnd, 'MMM d, yyyy')}`;
@@ -148,28 +155,40 @@ export function RosterBoardContent() {
       {/* Controls */}
       <Card>
         <CardContent className="p-6">
-          <RosterCalendarHeader
-            viewMode={viewMode}
-            onViewModeChange={setViewMode}
-            currentDate={currentDate}
-            onNavigate={navigatePeriod}
-            getPeriodLabel={getPeriodLabel}
-            showStaffFilter={true}
-            showParticipantFilter={true}
-            staffFilter={selectedStaffId}
-            onStaffFilterChange={setSelectedStaffId}
-            staffList={staff}
-            participantFilter={participantFilter}
-            onParticipantFilterChange={setParticipantFilter}
-            participantList={participants}
-            houseFilter={houseFilter}
-            onHouseFilterChange={setHouseFilter}
-            houseList={houses}
-            shiftTypeFilter={shiftTypeFilter}
-            onShiftTypeFilterChange={setShiftTypeFilter}
-            statusFilter={statusFilter}
-            onStatusFilterChange={setStatusFilter}
-          />
+          <div className="space-y-4">
+            {/* Group By House Toggle */}
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="group-by-house"
+                checked={groupByHouse}
+                onCheckedChange={setGroupByHouse}
+              />
+              <Label htmlFor="group-by-house">Group By House</Label>
+            </div>
+            
+            <RosterCalendarHeader
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+              currentDate={currentDate}
+              onNavigate={navigatePeriod}
+              getPeriodLabel={getPeriodLabel}
+              showStaffFilter={true}
+              showParticipantFilter={true}
+              staffFilter={selectedStaffId}
+              onStaffFilterChange={setSelectedStaffId}
+              staffList={staff}
+              participantFilter={participantFilter}
+              onParticipantFilterChange={setParticipantFilter}
+              participantList={participants}
+              houseFilter={houseFilter}
+              onHouseFilterChange={setHouseFilter}
+              houseList={houses}
+              shiftTypeFilter={shiftTypeFilter}
+              onShiftTypeFilterChange={setShiftTypeFilter}
+              statusFilter={statusFilter}
+              onStatusFilterChange={setStatusFilter}
+            />
+          </div>
         </CardContent>
       </Card>
 
@@ -184,6 +203,7 @@ export function RosterBoardContent() {
           shiftTypeFilter={shiftTypeFilter}
           statusFilter={statusFilter}
           canEdit={true}
+          groupByHouse={groupByHouse}
         />
       )}
     </div>

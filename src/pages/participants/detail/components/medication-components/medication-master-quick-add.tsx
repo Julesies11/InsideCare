@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
@@ -13,6 +14,8 @@ const medicationSchema = z.object({
   name: z.string().min(1, 'Medication name is required'),
   category: z.string().optional(),
   common_dosages: z.string().optional(),
+  side_effects: z.string().optional(),
+  interactions: z.string().optional(),
   is_active: z.boolean().default(true),
 });
 
@@ -37,6 +40,8 @@ export function MedicationMasterQuickAdd({
       name: '',
       category: '',
       common_dosages: '',
+      side_effects: '',
+      interactions: '',
       is_active: true,
     },
   });
@@ -47,6 +52,8 @@ export function MedicationMasterQuickAdd({
         name: editingMedication.name,
         category: editingMedication.category || '',
         common_dosages: editingMedication.common_dosages || '',
+        side_effects: editingMedication.side_effects || '',
+        interactions: editingMedication.interactions || '',
         is_active: editingMedication.is_active,
       });
     } else if (open) {
@@ -54,6 +61,8 @@ export function MedicationMasterQuickAdd({
         name: '',
         category: '',
         common_dosages: '',
+        side_effects: '',
+        interactions: '',
         is_active: true,
       });
     }
@@ -64,6 +73,8 @@ export function MedicationMasterQuickAdd({
       name: data.name,
       category: data.category || null,
       common_dosages: data.common_dosages || null,
+      side_effects: data.side_effects || null,
+      interactions: data.interactions || null,
       is_active: data.is_active,
     });
   };
@@ -114,6 +125,40 @@ export function MedicationMasterQuickAdd({
                     <Input
                       {...field}
                       placeholder="e.g., 0.5mg, 1mg, 2mg, 3mg, 4mg"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="side_effects"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>General Side Effects</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      {...field}
+                      placeholder="e.g., Drowsiness, dizziness, dry mouth, constipation"
+                      rows={3}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="interactions"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Contraindication/Interactions</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      {...field}
+                      placeholder="e.g., MAO inhibitors, alcohol, other CNS depressants"
+                      rows={3}
                     />
                   </FormControl>
                   <FormMessage />

@@ -2,11 +2,12 @@ import { useMemo } from 'react';
 import { diff } from 'json-diff-ts';
 import { StaffPendingChanges, hasStaffPendingChanges } from '@/models/staff-pending-changes';
 import { ParticipantPendingChanges, hasParticipantPendingChanges } from '@/models/participant-pending-changes';
+import { HousePendingChanges, hasHousePendingChanges } from '@/models/house-pending-changes';
 
 interface UseDirtyTrackerOptions {
   formData: any;
   originalData: any;
-  pendingChanges?: StaffPendingChanges | ParticipantPendingChanges;
+  pendingChanges?: StaffPendingChanges | ParticipantPendingChanges | HousePendingChanges;
 }
 
 /**
@@ -25,7 +26,11 @@ export function useDirtyTracker({ formData, originalData, pendingChanges }: UseD
       // Check if it's StaffPendingChanges (has training property)
       if ('training' in pendingChanges) {
         hasPendingChildChanges = hasStaffPendingChanges(pendingChanges as StaffPendingChanges);
+      } else if ('participants' in pendingChanges) {
+        // Check if it's HousePendingChanges (has participants property)
+        hasPendingChildChanges = hasHousePendingChanges(pendingChanges as HousePendingChanges);
       } else {
+        // Otherwise, treat as ParticipantPendingChanges
         hasPendingChildChanges = hasParticipantPendingChanges(pendingChanges as ParticipantPendingChanges);
       }
     }

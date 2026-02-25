@@ -17,6 +17,8 @@ interface ShiftCalendarProps {
   onEditShift: (shift: ShiftCardData) => void;
   onWriteNote?: (shift: ShiftCardData) => void;
   onNotesClick?: (shift: ShiftCardData) => void;
+  groupByHouse?: boolean;
+  houses?: Array<{ id: string; name: string }>;
 }
 
 function LeaveBlockBadge({ leave }: { leave: LeaveBlock }) {
@@ -47,6 +49,8 @@ export function ShiftCalendar({
   onEditShift,
   onWriteNote,
   onNotesClick,
+  groupByHouse = false,
+  houses = [],
 }: ShiftCalendarProps) {
   const getShiftsForDate = (date: Date) => {
     return shifts.filter(shift =>
@@ -65,9 +69,29 @@ export function ShiftCalendar({
     });
   };
 
+  const getShiftsForHouseAndDate = (houseId: string, date: Date) => {
+    return shifts.filter(shift =>
+      shift.house?.id === houseId && isSameDay(parseISO(shift.shift_date), date)
+    );
+  };
+
+  const checkForDoubleBookings = (staffId: string, date: Date, excludeShiftId?: string) => {
+    const staffShifts = shifts.filter(shift => 
+      shift.staff_id === staffId && 
+      isSameDay(parseISO(shift.shift_date), date) &&
+      shift.id !== excludeShiftId &&
+      shift.status !== 'Cancelled' // Ignore cancelled shifts
+    );
+    return staffShifts.length > 0;
+  };
+
   const renderMonthView = () => {
     const days = generateMonthDays(currentDate);
     const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+    if (groupByHouse && houses.length > 0) {
+      return renderHouseGroupedMonthView(days, weekDays);
+    }
 
     return (
       <div className="space-y-4">
@@ -133,8 +157,126 @@ export function ShiftCalendar({
     );
   };
 
+  const renderHouseGroupedMonthView = (days: Date[], weekDays: string[]) => {
+    // Group days by weeks
+    const weeks = [];
+    for (let i = 0; i < days.length; i += 7) {
+      weeks.push(days.slice(i, i + 7));
+    }
+
+    // Add 'Unassigned' house to the list if there are any unassigned shifts
+    const allHouses = [...houses];
+    const hasUnassignedShifts = shifts.some(shift => !shift.house);
+    if (hasUnassignedShifts) {
+      allHouses.push({ id: 'unassigned', name: 'Unassigned' });
+    }
+
+    return (
+      <div className="space-y-2">
+        {/* Week headers */}
+        {weeks.map((week, weekIndex) => (
+          <div key={weekIndex} className="space-y-1">
+            {/* Week day headers */}
+            <div className="grid grid-cols-8 gap-1 border-b pb-2">
+              <div className="font-medium text-sm p-2">House</div>
+              {weekDays.map(day => (
+                <div key={day} className="text-center font-medium text-sm p-2">
+                  {day}
+                </div>
+              ))}
+            </div>
+            
+            {/* House rows for this week */}
+            {allHouses.map((house) => (
+              <div key={house.id} className="grid grid-cols-8 gap-1 border-b">
+                {/* House name column */}
+                <div className="font-medium text-sm p-2 bg-muted/50 rounded">
+                  {house.name}
+                </div>
+                
+                {/* Day columns for this house */}
+                {week.map((day, dayIndex) => {
+                  const houseShifts = house.id === 'unassigned' 
+                    ? shifts.filter(shift => !shift.house && isSameDay(parseISO(shift.shift_date), day))
+                    : getShiftsForHouseAndDate(house.id, day);
+                  const isCurrentMonth = isSameMonth(day, currentDate);
+                  const isToday = isSameDay(day, new Date());
+                  
+                  return (
+                    <div
+                      key={dayIndex}
+                      className={`min-h-[80px] p-1 border rounded-lg group relative ${
+                        !isCurrentMonth ? 'bg-muted/30' : 'bg-card'
+                      } ${isToday ? 'ring-2 ring-primary' : ''}`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <div className={`text-xs font-medium ${!isCurrentMonth ? 'text-muted-foreground' : ''}`}>
+                          {format(day, 'd')}
+                        </div>
+                        {canEdit && isCurrentMonth && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-3 w-3 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onAddShift(day);
+                            }}
+                          >
+                            <Plus className="h-2 w-2" />
+                          </Button>
+                        )}
+                      </div>
+                      
+                      <div className="space-y-1">
+                        {houseShifts.map(shift => {
+                          const hasDoubleBooking = shift.staff_id ? 
+                            checkForDoubleBookings(shift.staff_id, day, shift.id) : false;
+                          
+                          return (
+                            <div key={shift.id} className={hasDoubleBooking ? 'relative' : ''}>
+                              {hasDoubleBooking && (
+                                <div className="absolute -top-1 -right-1 z-10">
+                                  <div className="bg-red-500 text-white text-xs rounded-full w-3 h-3 flex items-center justify-center" title="Double booking detected!">
+                                    !
+                                  </div>
+                                </div>
+                              )}
+                              <ShiftCard
+                                shift={shift}
+                                compact={true}
+                                showStaffName={true}
+                                onClick={() => onEditShift(shift)}
+                                onWriteNote={onWriteNote}
+                                onNotesClick={onNotesClick}
+                              />
+                            </div>
+                          );
+                        })}
+                        
+                        {houseShifts.length === 0 && (
+                          <div className="text-center py-0 text-muted-foreground text-xs">
+                            No shifts
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   const renderWeekView = () => {
     const days = generateWeekDays(currentDate);
+
+    if (groupByHouse && houses.length > 0) {
+      return renderHouseGroupedWeekView(days);
+    }
 
     return (
       <div className="grid grid-cols-1 lg:grid-cols-7 gap-4">
@@ -190,6 +332,106 @@ export function ShiftCalendar({
             </div>
           );
         })}
+      </div>
+    );
+  };
+
+  const renderHouseGroupedWeekView = (days: Date[]) => {
+    const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    
+    // Add 'Unassigned' house to the list if there are any unassigned shifts
+    const allHouses = [...houses];
+    const hasUnassignedShifts = shifts.some(shift => !shift.house);
+    if (hasUnassignedShifts) {
+      allHouses.push({ id: 'unassigned', name: 'Unassigned' });
+    }
+    
+    return (
+      <div className="space-y-2">
+        {/* Header row */}
+        <div className="grid grid-cols-8 gap-1 border-b pb-2">
+          <div className="font-medium text-sm p-2">House</div>
+          {days.map((day, index) => (
+            <div key={index} className="text-center font-medium text-sm p-2">
+              <div>{weekDays[day.getDay() === 0 ? 6 : day.getDay() - 1]}</div>
+              <div className="text-lg">{format(day, 'd')}</div>
+            </div>
+          ))}
+        </div>
+        
+        {/* House rows */}
+        {allHouses.map((house) => (
+          <div key={house.id} className="grid grid-cols-8 gap-1 border-b">
+            {/* House name column */}
+            <div className="font-medium text-sm p-2 bg-muted/50 rounded">
+              {house.name}
+            </div>
+            
+            {/* Day columns for this house */}
+            {days.map((day, dayIndex) => {
+              const houseShifts = house.id === 'unassigned' 
+                ? shifts.filter(shift => !shift.house && isSameDay(parseISO(shift.shift_date), day))
+                : getShiftsForHouseAndDate(house.id, day);
+              const isToday = isSameDay(day, new Date());
+              
+              return (
+                <div
+                  key={dayIndex}
+                  className={`min-h-[80px] p-1 border rounded-lg group relative ${
+                    isToday ? 'ring-2 ring-primary' : 'bg-card'
+                  }`}
+                >
+                  <div className="space-y-1">
+                    {canEdit && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-4 w-4 p-0 opacity-0 group-hover:opacity-100 transition-opacity absolute top-1 right-1"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onAddShift(day);
+                        }}
+                      >
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                    )}
+                    
+                    {houseShifts.map(shift => {
+                      const hasDoubleBooking = shift.staff_id ? 
+                        checkForDoubleBookings(shift.staff_id, day, shift.id) : false;
+                      
+                      return (
+                        <div key={shift.id} className={hasDoubleBooking ? 'relative' : ''}>
+                          {hasDoubleBooking && (
+                            <div className="absolute -top-1 -right-1 z-10">
+                              <div className="bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center" title="Double booking detected!">
+                                !
+                              </div>
+                            </div>
+                          )}
+                          <ShiftCard
+                            shift={shift}
+                            compact={true}
+                            showStaffName={true}
+                            onClick={() => onEditShift(shift)}
+                            onWriteNote={onWriteNote}
+                            onNotesClick={onNotesClick}
+                          />
+                        </div>
+                      );
+                    })}
+                    
+                    {houseShifts.length === 0 && (
+                      <div className="text-center py-1 text-muted-foreground text-xs">
+                        No shifts
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ))}
       </div>
     );
   };

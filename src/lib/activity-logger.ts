@@ -38,6 +38,10 @@ const fieldLabels: Record<string, string> = {
   certifications: 'certifications',
   employment_type: 'employment type',
   working_hours: 'working hours',
+  capacity: 'capacity',
+  current_occupancy: 'current occupancy',
+  house_manager: 'house manager',
+  status: 'status',
 };
 
 function formatValue(value: any): string {
@@ -69,6 +73,14 @@ function generateDescription(
 
   if (activityType === 'delete') {
     return `Deleted ${entityType.replace('_', ' ')}`;
+  }
+
+  if (activityType === 'archive') {
+    return `Archived ${entityType.replace('_', ' ')}`;
+  }
+
+  if (activityType === 'activate') {
+    return `Activated ${entityType.replace('_', ' ')}`;
   }
 
   // For updates, generate description based on what changed

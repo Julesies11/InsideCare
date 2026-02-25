@@ -28,6 +28,7 @@ import {
   Grid,
   Heart,
   HelpCircle,
+  House,
   Kanban,
   Key,
   Layout,
@@ -110,7 +111,6 @@ export const MENU_SIDEBAR: MenuConfig = [
         children: [{ title: 'Detail', path: '/participants/detail/:id' }],
       },
       { title: 'Shift Notes', path: '/participants/shift-notes' },
-      { title: 'Funding', path: '/participants/funding' },
     ],
   },
   {
@@ -128,6 +128,12 @@ export const MENU_SIDEBAR: MenuConfig = [
       { title: 'Timesheets', path: '/employees/timesheets' },
       { title: 'Leave Requests', path: '/employees/leave-requests' },
     ],
+  },
+  {
+    title: 'Houses',
+    icon: House,
+    path: '/houses/profiles',
+    roles: ['admin'],
   },
   {
     title: 'Roster Board',

@@ -17,7 +17,6 @@ import { Goals } from './components/goals';
 import { Documents } from './components/documents';
 import { Medications } from './components/medications';
 import { Contacts } from './components/contacts';
-import { Funding } from './components/funding';
 import { RestrictivePractices } from './components/restrictive-practices';
 import { ShiftNotes } from './components/shift-notes';
 import { ActivityLog } from './components/activity-log';
@@ -77,7 +76,6 @@ export function ParticipantDetailContent({
     documents: 0,
     medications: 0,
     contacts: 0,
-    funding: 0,
     shiftNotes: 0,
     activityLog: 0,
   });
@@ -683,131 +681,6 @@ mtmp_details: '',
         }
       }
 
-      // Step 5: Process pending funding
-      if (pendingChanges?.funding.toAdd.length) {
-        for (const funding of pendingChanges.funding.toAdd) {
-          const { error } = await supabase
-            .from('participant_funding')
-            .insert({
-              participant_id: id,
-              funding_source_id: funding.funding_source_id,
-              funding_type_id: funding.funding_type_id,
-              code: funding.code || null,
-              invoice_recipient: funding.invoice_recipient || null,
-              allocated_amount: funding.allocated_amount,
-              used_amount: funding.used_amount,
-              remaining_amount: funding.remaining_amount || null,
-              status: funding.status,
-              end_date: funding.end_date || null,
-              notes: funding.notes || null,
-            });
-
-          if (error) {
-            throw new Error(`Failed to add funding: ${error.message}`);
-          }
-
-          // Get funding source and type names for logging
-          const { data: sourceData } = await supabase
-            .from('funding_sources_master')
-            .select('name')
-            .eq('id', funding.funding_source_id)
-            .single();
-          
-          const { data: typeData } = await supabase
-            .from('funding_types_master')
-            .select('name')
-            .eq('id', funding.funding_type_id)
-            .single();
-
-          await logActivity({
-            activityType: 'create',
-            entityType: 'participant',
-            entityId: id,
-            entityName: participant?.name,
-            userName,
-            customDescription: `Added funding "${sourceData?.name || 'Unknown'}" (${typeData?.name || 'Unknown'})`,
-          });
-        }
-      }
-
-      if (pendingChanges?.funding.toUpdate.length) {
-        for (const funding of pendingChanges.funding.toUpdate) {
-          const { error } = await supabase
-            .from('participant_funding')
-            .update({
-              funding_source_id: funding.funding_source_id,
-              funding_type_id: funding.funding_type_id,
-              code: funding.code || null,
-              invoice_recipient: funding.invoice_recipient || null,
-              allocated_amount: funding.allocated_amount,
-              used_amount: funding.used_amount,
-              remaining_amount: funding.remaining_amount || null,
-              status: funding.status,
-              end_date: funding.end_date || null,
-              notes: funding.notes || null,
-            })
-            .eq('id', funding.id);
-
-          if (error) {
-            throw new Error(`Failed to update funding: ${error.message}`);
-          }
-
-          // Get funding source and type names for logging
-          const { data: sourceData } = await supabase
-            .from('funding_sources_master')
-            .select('name')
-            .eq('id', funding.funding_source_id)
-            .single();
-          
-          const { data: typeData } = await supabase
-            .from('funding_types_master')
-            .select('name')
-            .eq('id', funding.funding_type_id)
-            .single();
-
-          await logActivity({
-            activityType: 'update',
-            entityType: 'participant',
-            entityId: id,
-            entityName: participant?.name,
-            userName,
-            customDescription: `Updated funding "${sourceData?.name || 'Unknown'}" (${typeData?.name || 'Unknown'})`,
-          });
-        }
-      }
-
-      if (pendingChanges?.funding.toDelete.length) {
-        for (const fundingId of pendingChanges.funding.toDelete) {
-          // Get funding data with joined names before deleting
-          const { data: fundingData } = await supabase
-            .from('participant_funding')
-            .select(`
-              funding_source:funding_sources_master(name),
-              funding_type:funding_types_master(name)
-            `)
-            .eq('id', fundingId)
-            .single();
-
-          const { error } = await supabase
-            .from('participant_funding')
-            .delete()
-            .eq('id', fundingId);
-
-          if (error) {
-            throw new Error(`Failed to delete funding: ${error.message}`);
-          }
-
-          await logActivity({
-            activityType: 'delete',
-            entityType: 'participant',
-            entityId: id,
-            entityName: participant?.name,
-            userName,
-            customDescription: `Deleted funding "${fundingData?.funding_source?.name || 'Unknown'}" (${fundingData?.funding_type?.name || 'Unknown'})`,
-          });
-        }
-      }
-
       // Step 6: Process pending shift notes
       if (pendingChanges?.shiftNotes.toAdd.length) {
         for (const note of pendingChanges.shiftNotes.toAdd) {
@@ -1205,7 +1078,6 @@ mtmp_details: '',
         documents: (pendingChanges?.documents.toAdd.length || 0) > 0 || (pendingChanges?.documents.toDelete.length || 0) > 0,
         medications: (pendingChanges?.medications.toAdd.length || 0) > 0 || (pendingChanges?.medications.toUpdate.length || 0) > 0 || (pendingChanges?.medications.toDelete.length || 0) > 0,
         contacts: (pendingChanges?.contacts.toAdd.length || 0) > 0 || (pendingChanges?.contacts.toUpdate.length || 0) > 0 || (pendingChanges?.contacts.toDelete.length || 0) > 0,
-        funding: (pendingChanges?.funding.toAdd.length || 0) > 0 || (pendingChanges?.funding.toUpdate.length || 0) > 0 || (pendingChanges?.funding.toDelete.length || 0) > 0,
         shiftNotes: (pendingChanges?.shiftNotes.toAdd.length || 0) > 0 || (pendingChanges?.shiftNotes.toUpdate.length || 0) > 0 || (pendingChanges?.shiftNotes.toDelete.length || 0) > 0,
       };
 
@@ -1214,25 +1086,13 @@ mtmp_details: '',
       const hasChildChanges = Object.values(changedEntities).some(changed => changed);
       const hasAnyChanges = hasParticipantChanges || hasChildChanges;
 
-      // Only increment refresh keys for entities that had changes
-      setRefreshKeys(prev => ({
-        goals: changedEntities.goals ? prev.goals + 1 : prev.goals,
-        documents: changedEntities.documents ? prev.documents + 1 : prev.documents,
-        medications: changedEntities.medications ? prev.medications + 1 : prev.medications,
-        contacts: changedEntities.contacts ? prev.contacts + 1 : prev.contacts,
-        funding: changedEntities.funding ? prev.funding + 1 : prev.funding,
-        shiftNotes: changedEntities.shiftNotes ? prev.shiftNotes + 1 : prev.shiftNotes,
-        activityLog: hasAnyChanges ? prev.activityLog + 1 : prev.activityLog,
-      }));
-
-      // Step 6: Clear pending changes after successful save
-      if (onPendingChangesChange && pendingChanges) {
+      // Reset pending changes after successful save
+      if (onPendingChangesChange) {
         onPendingChangesChange({
           goals: { toAdd: [], toUpdate: [], toDelete: [] },
           documents: { toAdd: [], toDelete: [] },
           medications: { toAdd: [], toUpdate: [], toDelete: [] },
           contacts: { toAdd: [], toUpdate: [], toDelete: [] },
-          funding: { toAdd: [], toUpdate: [], toDelete: [] },
           shiftNotes: { toAdd: [], toUpdate: [], toDelete: [] },
           staffCompliance: { toAdd: [], toUpdate: [], toDelete: [] },
           staffResources: { toAdd: [], toUpdate: [], toDelete: [] },
@@ -1361,14 +1221,6 @@ mtmp_details: '',
         />
         <ShiftNotes 
           key={`shift-notes-${refreshKeys.shiftNotes}`}
-          participantId={id} 
-          canAdd={canAdd} 
-          canDelete={canDelete}
-          pendingChanges={pendingChanges}
-          onPendingChangesChange={onPendingChangesChange}
-        />
-        <Funding 
-          key={`funding-${refreshKeys.funding}`}
           participantId={id} 
           canAdd={canAdd} 
           canDelete={canDelete}

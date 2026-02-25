@@ -29,6 +29,11 @@ export interface Staff {
   department_info?: { id: string; name: string; } | null;
   employment_type_info?: { id: string; name: string; } | null;
   manager_info?: { id: string; name: string; } | null;
+  role?: {
+    id: string;
+    name: string;
+    description?: string;
+  } | null;
   // Compliance checklist fields
   ndis_worker_screening_check?: boolean | null;
   ndis_worker_screening_check_expiry?: string | null;
@@ -112,7 +117,8 @@ export function useStaff() {
         .select(`
           *,
           department_info:departments(id, name),
-          employment_type_info:employment_types_master(id, name)
+          employment_type_info:employment_types_master(id, name),
+          role:roles!staff_role_id_fkey(id, name, description)
         `)
         .order('name', { ascending: true });
 

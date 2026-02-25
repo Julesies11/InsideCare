@@ -95,10 +95,6 @@ export function ParticipantDetailSidebar() {
       target: 'contacts',
     },
     {
-      title: 'Funding',
-      target: 'funding',
-    },
-    {
       title: 'Documents',
       target: 'documents',
     },
