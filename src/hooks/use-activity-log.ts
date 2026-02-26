@@ -51,3 +51,52 @@ export function useActivityLog({ entityId, entityType, limit = 50 }: UseActivity
 
   return { activities, loading, error, refetch: fetchActivities };
 }
+
+interface LogActivityParams {
+  activityType: 'create' | 'update' | 'delete';
+  entityType: ActivityLog['entity_type'];
+  entityId: string;
+  entityName?: string;
+  userName?: string;
+  customDescription?: string;
+  metadata?: any;
+}
+
+export async function logActivity({
+  activityType,
+  entityType,
+  entityId,
+  entityName,
+  userName,
+  customDescription,
+  metadata
+}: LogActivityParams) {
+  try {
+    const descriptions = {
+      create: `New ${entityType} created: ${entityName || entityId}`,
+      update: `${entityType} updated: ${entityName || entityId}`,
+      delete: `${entityType} deleted: ${entityName || entityId}`
+    };
+
+    const { data, error } = await supabase
+      .from('activity_log')
+      .insert([{
+        activity_type: activityType,
+        entity_type: entityType,
+        entity_id: entityId,
+        entity_name: entityName,
+        description: customDescription || descriptions[activityType],
+        user_name: userName,
+        metadata: metadata
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { data, error: null };
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : 'Failed to log activity';
+    console.error('Error logging activity:', err);
+    return { data: null, error: errorMessage };
+  }
+}

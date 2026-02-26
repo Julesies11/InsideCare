@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Users, UserCheck, AlertTriangle, CheckSquare } from 'lucide-react';
-import { WelcomeBanner, StatCard, MotivationalBanner, RecentActivity } from './components';
+import { WelcomeBanner, StatCard, MotivationalBanner, RecentActivity, UpcomingShifts } from './components';
 import { useParticipants } from '@/hooks/use-participants';
 import { useStaff } from '@/hooks/useStaff';
 
@@ -34,10 +34,14 @@ export function HomeContent() {
         />
       </div>
 
-      <MotivationalBanner />
-      
-      <div className="grid lg:grid-cols-1 gap-5 lg:gap-7.5">
-        <RecentActivity />
+      <div className="grid lg:grid-cols-3 gap-5 lg:gap-7.5 items-start">
+        <div className="lg:col-span-1">
+          <UpcomingShifts />
+        </div>
+        <div className="lg:col-span-2 space-y-5 lg:gap-7.5">
+          <MotivationalBanner />
+          <RecentActivity />
+        </div>
       </div>
     </div>
   );
