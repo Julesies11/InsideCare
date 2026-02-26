@@ -153,6 +153,10 @@ export function HouseCalendarEvents({
 
     const eventData = {
       ...formData,
+      participant_id: formData.participant_id || null,
+      assigned_staff_id: formData.assigned_staff_id || null,
+      start_time: formData.start_time || null,
+      end_time: formData.end_time || null,
       created_by: user?.id,
     };
 

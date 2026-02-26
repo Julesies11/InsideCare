@@ -174,6 +174,20 @@ export function HouseDetailContent({
         return;
       }
 
+      // Get the staff record ID for the current authenticated user
+      let currentStaffId = null;
+      if (user?.id) {
+        const { data: staffData } = await supabase
+          .from('staff')
+          .select('id')
+          .eq('auth_user_id', user.id)
+          .maybeSingle();
+        
+        if (staffData) {
+          currentStaffId = staffData.id;
+        }
+      }
+
       // Step 2: Process pending staff assignments
       if (pendingChanges?.staff.toAdd.length) {
         for (const staffAssignment of pendingChanges.staff.toAdd) {
@@ -244,7 +258,7 @@ export function HouseDetailContent({
               status: event.status || 'scheduled',
               location: event.location || null,
               notes: event.notes || null,
-              created_by: user?.id || null,
+              created_by: currentStaffId,
             });
 
           if (error) {
@@ -316,7 +330,7 @@ export function HouseDetailContent({
               file_path: filePath,
               file_size: doc.file.size,
               file_type: doc.file.type,
-              uploaded_by: user?.id || null,
+              uploaded_by: currentStaffId,
             });
 
           if (error) {
