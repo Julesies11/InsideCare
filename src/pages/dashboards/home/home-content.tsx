@@ -6,44 +6,31 @@ import { useStaff } from '@/hooks/useStaff';
 
 export function HomeContent() {
   const navigate = useNavigate();
-  const { participants } = useParticipants();
-  const { staff } = useStaff();
-
-  const participantCount = participants?.length || 0;
-  const staffCount = staff?.length || 0;
+  
+  // Fetch active participants (large pageSize to get total count)
+  const { count: participantCount } = useParticipants(0, 1000, [], { statuses: ['active'] });
+  
+  // Fetch active staff (large pageSize to get total count)
+  const { count: staffCount } = useStaff(0, 1000, [], { statuses: ['active'] });
 
   return (
     <div className="grid gap-5 lg:gap-7.5">
       <WelcomeBanner />
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-7.5">
+      <div className="grid grid-cols-2 lg:grid-cols-2 gap-5 lg:gap-7.5">
         <StatCard
-          title="Participants"
+          title="Active Participants"
           value={participantCount}
           icon={Users}
           color="bg-blue-500"
           onClick={() => navigate('/participants/profiles')}
         />
         <StatCard
-          title="Staff"
+          title="Active Staff"
           value={staffCount}
           icon={UserCheck}
           color="bg-green-500"
           onClick={() => navigate('/employees/staff-profiles')}
-        />
-        <StatCard
-          title="Incidents"
-          value={0}
-          icon={AlertTriangle}
-          color="bg-orange-500"
-          disabled
-        />
-        <StatCard
-          title="Tasks"
-          value={0}
-          icon={CheckSquare}
-          color="bg-purple-500"
-          disabled
         />
       </div>
 
