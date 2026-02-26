@@ -88,92 +88,45 @@ export function useRosterData() {
   const loadShifts = useCallback(async (staffId: string, startDate: string, endDate: string): Promise<StaffShift[]> => {
     setLoading(true);
     try {
-      if (staffId === 'all') {
-        const { data, error } = await supabase
-          .from('staff_shifts')
-          .select(`
-            *,
-            house:houses(id, name),
-            participants:shift_participants(
-              participant:participants(id, name)
-            ),
-            staff:staff(id, name)
-          `)
-          .gte('shift_date', startDate)
-          .lte('shift_date', endDate)
-          .order('shift_date', { ascending: true })
-          .order('start_time', { ascending: true });
-
-        if (error) {
-          console.error('Error loading shifts:', error);
-          toast.error('Failed to load shifts');
-          return [];
-        }
-
-        const formattedShifts = (data || []).map(shift => ({
-          ...shift,
-          participants: shift.participants?.map((sp: any) => ({
-            id: sp.participant.id,
-            name: sp.participant.name,
-          })) || [],
-          staff_name: shift.staff?.name || 'Unassigned',
-          duration_hours: calculateDuration(shift.start_time, shift.end_time, shift.shift_date, shift.end_date ?? shift.shift_date),
-        }));
-
-        return formattedShifts;
-      } else {
-        const { data: shifts, error: shiftsError } = await supabase
-          .from('staff_shifts')
-          .select('*, house:houses(id, name)')
-          .eq('staff_id', staffId)
-          .gte('shift_date', startDate)
-          .lte('shift_date', endDate)
-          .order('shift_date', { ascending: true })
-          .order('start_time', { ascending: true });
-
-        if (shiftsError) {
-          console.error('Error loading shifts:', shiftsError);
-          toast.error('Failed to load shifts');
-          return [];
-        }
-
-        if (!shifts || shifts.length === 0) {
-          return [];
-        }
-
-        const shiftIds = shifts.map((s) => s.id);
-        const { data: participantsData, error: participantsError } = await supabase
-          .from('shift_participants')
-          .select(`
-            shift_id,
+      // Build the base query with all joins
+      let query = supabase
+        .from('staff_shifts')
+        .select(`
+          *,
+          house:houses(id, name),
+          staff:staff(id, name),
+          participants:shift_participants(
             participant:participants(id, name)
-          `)
-          .in('shift_id', shiftIds);
+          )
+        `)
+        .gte('shift_date', startDate)
+        .lte('shift_date', endDate)
+        .order('shift_date', { ascending: true })
+        .order('start_time', { ascending: true });
 
-        if (participantsError) {
-          console.error('Error fetching participants:', participantsError);
-        }
-
-        const shiftsWithParticipants = shifts.map((shift) => {
-          const shiftParticipants = participantsData
-            ?.filter((p) => p.shift_id === shift.id)
-            .map((p) => p.participant ? {
-              id: p.participant.id,
-              name: p.participant.name
-            } : null)
-            .filter((p) => p !== null) || [];
-
-          const duration = calculateDuration(shift.start_time, shift.end_time, shift.shift_date, shift.end_date ?? shift.shift_date);
-
-          return {
-            ...shift,
-            participants: shiftParticipants,
-            duration_hours: duration,
-          };
-        });
-
-        return shiftsWithParticipants;
+      // Apply staff filter if not 'all'
+      if (staffId !== 'all') {
+        query = query.eq('staff_id', staffId);
       }
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('Error loading shifts:', error);
+        toast.error('Failed to load shifts');
+        return [];
+      }
+
+      // Shared mapping logic
+      return (data || []).map(shift => ({
+        ...shift,
+        participants: shift.participants?.map((sp: any) => ({
+          id: sp.participant.id,
+          name: sp.participant.name,
+        })) || [],
+        staff_name: shift.staff?.name || 'Unassigned',
+        duration_hours: calculateDuration(shift.start_time, shift.end_time, shift.shift_date, shift.end_date ?? shift.shift_date),
+      }));
     } finally {
       setLoading(false);
     }
