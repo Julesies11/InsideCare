@@ -123,8 +123,8 @@ export function AdminTimesheetsPage() {
         break_minutes, shift_notes_text, notes, status, admin_notes, rejection_reason,
         submitted_at, incident_tag, sick_shift, overtime_hours, travel_km,
         overtime_explanation, created_at,
-        staff:staff(id, name, auth_user_id),
-        shift:staff_shifts(shift_date, end_date, start_time, end_time, shift_type, house:houses(name))
+        staff:staff_id(id, name, auth_user_id),
+        shift:shift_id(shift_date, end_date, start_time, end_time, shift_type, house:house_id(name))
       `)
       .order('submitted_at', { ascending: false, nullsFirst: false });
 

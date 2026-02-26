@@ -881,3 +881,63 @@ create index IF not exists idx_house_forms_status on public.house_forms using bt
 create trigger update_house_forms_updated_at BEFORE
 update on house_forms for EACH row
 execute FUNCTION update_updated_at_column ();
+
+create table public.timesheets (
+  id uuid not null default gen_random_uuid (),
+  staff_id uuid not null,
+  shift_id uuid null,
+  clock_in timestamp with time zone not null,
+  clock_out timestamp with time zone not null,
+  break_minutes integer not null default 0,
+  notes text null,
+  status text not null default 'pending'::text,
+  admin_notes text null,
+  created_at timestamp with time zone not null default now(),
+  updated_at timestamp with time zone not null default now(),
+  actual_start timestamp with time zone null,
+  actual_end timestamp with time zone null,
+  overtime_hours numeric(5, 2) not null default 0,
+  overtime_explanation text null,
+  travel_km numeric(6, 2) not null default 0,
+  incident_tag boolean not null default false,
+  sick_shift boolean not null default false,
+  shift_notes_text text null,
+  submitted_at timestamp with time zone null,
+  rejection_reason text null,
+  approved_at timestamp with time zone null,
+  approved_by uuid null,
+  late_submission boolean not null default false,
+  constraint timesheets_pkey primary key (id),
+  constraint timesheets_shift_staff_unique unique (shift_id, staff_id),
+  constraint timesheets_approved_by_fkey foreign KEY (approved_by) references staff (id) on delete set null,
+  constraint timesheets_shift_id_fkey foreign KEY (shift_id) references staff_shifts (id) on delete set null,
+  constraint timesheets_staff_id_fkey foreign KEY (staff_id) references staff (id) on delete CASCADE,
+  constraint timesheets_status_check check (
+    (
+      status = any (
+        array[
+          'draft'::text,
+          'pending'::text,
+          'approved'::text,
+          'rejected'::text
+        ]
+      )
+    )
+  )
+) TABLESPACE pg_default;
+
+create index IF not exists idx_timesheets_staff_id on public.timesheets using btree (staff_id) TABLESPACE pg_default;
+
+create index IF not exists idx_timesheets_shift_id on public.timesheets using btree (shift_id) TABLESPACE pg_default;
+
+create index IF not exists idx_timesheets_status on public.timesheets using btree (status) TABLESPACE pg_default;
+
+create index IF not exists idx_timesheets_submitted_at on public.timesheets using btree (submitted_at) TABLESPACE pg_default;
+
+create index IF not exists idx_timesheets_incident_tag on public.timesheets using btree (incident_tag) TABLESPACE pg_default
+where
+  (incident_tag = true);
+
+create index IF not exists idx_timesheets_sick_shift on public.timesheets using btree (sick_shift) TABLESPACE pg_default
+where
+  (sick_shift = true);
