@@ -43,6 +43,7 @@ import { DataGrid, useDataGrid } from '@/components/ui/data-grid';
 import { DataGridColumnHeader } from '@/components/ui/data-grid-column-header';
 import { DataGridColumnVisibility } from '@/components/ui/data-grid-column-visibility';
 import { DataGridPagination } from '@/components/ui/data-grid-pagination';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   DataGridTable,
   DataGridTableRowSelect,
@@ -155,15 +156,13 @@ function getInitials(name: string | null | undefined): string {
 }
 
 const Participants = () => {
-  const { participants, loading, error, updateParticipant } = useParticipants();
-  const { houses } = useHouses();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useDebouncedSearchParams(300);
 
   // Helper functions to parse URL params into initial state
   const getInitialPagination = (): PaginationState => ({
     pageIndex: Math.max(0, parseInt(searchParams.get('page') || '1') - 1), // Convert to 0-indexed
-    pageSize: parseInt(searchParams.get('pageSize') || '50'),
+    pageSize: parseInt(searchParams.get('pageSize') || '10'),
   });
 
   const getInitialSorting = (): SortingState => {
@@ -196,35 +195,26 @@ const Participants = () => {
   const [selectedHouses, setSelectedHouses] = useState<string[]>(getInitialHouses());
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>(getInitialStatuses());
 
-  // Filtered data based on search, house, and status
-  const filteredData = useMemo(() => {
-    return participants.filter((item) => {
-      // Status filter
-      if (!selectedStatuses.includes(item.status)) {
-        return false;
-      }
+  const filters = useMemo(() => ({
+    search: searchQuery,
+    houses: selectedHouses,
+    statuses: selectedStatuses
+  }), [searchQuery, selectedHouses, selectedStatuses]);
 
-      // House filter
-      const matchesHouse =
-        !selectedHouses.length ||
-        (item.house_id && selectedHouses.includes(item.house_id));
+  const { participants, loading, error, count, updateParticipant } = useParticipants(
+    pagination.pageIndex,
+    pagination.pageSize,
+    sorting,
+    filters
+  );
+  
+  const { houses } = useHouses();
 
-      // Search across all columns
-      const searchLower = searchQuery.toLowerCase();
-      const matchesSearch =
-        !searchQuery ||
-        (item.name && item.name.toLowerCase().includes(searchLower)) ||
-        (item.email && item.email.toLowerCase().includes(searchLower)) ||
-        (item.ndis_number && item.ndis_number.toLowerCase().includes(searchLower)) ||
-        ((item as ParticipantWithHouse).house_name && (item as ParticipantWithHouse).house_name!.toLowerCase().includes(searchLower)) ||
-        (item.address && item.address.toLowerCase().includes(searchLower));
-
-      return matchesHouse && matchesSearch;
-    });
-  }, [participants, searchQuery, selectedHouses, selectedStatuses]);
-
-  // Count of participants per house
+  // Count of participants per house (This still uses the full list if we want accurate badges, 
+  // but for now we'll simplify or keep it as is if useHouses has the counts)
   const houseCounts = useMemo(() => {
+    // Note: This logic only counts from the CURRENT PAGE now. 
+    // For a production app, the house counts should ideally come from a separate count query or summary.
     return participants.reduce((acc, item) => {
       if (item.house_id) {
         acc[item.house_id] = (acc[item.house_id] || 0) + 1;
@@ -252,7 +242,7 @@ const Participants = () => {
     if (pagination.pageIndex > 0) {
       params.set('page', (pagination.pageIndex + 1).toString()); // Convert to 1-indexed
     }
-    if (pagination.pageSize !== 50) {
+    if (pagination.pageSize !== 10) {
       params.set('pageSize', pagination.pageSize.toString());
     }
     
@@ -307,6 +297,17 @@ const Participants = () => {
             </div>
           </div>
         ),
+        meta: {
+          skeleton: (
+            <div className="flex items-center gap-2.5">
+              <Skeleton className="size-9 rounded-full" />
+              <div className="flex flex-col gap-1">
+                <Skeleton className="h-3 w-24" />
+                <Skeleton className="h-3 w-16" />
+              </div>
+            </div>
+          ),
+        },
         enableSorting: true,
         size: 300,
       },
@@ -321,6 +322,9 @@ const Participants = () => {
             {row.original.ndis_number || '-'}
           </span>
         ),
+        meta: {
+          skeleton: <Skeleton className="h-3 w-20" />,
+        },
         enableSorting: true,
         size: 165,
       },
@@ -335,6 +339,9 @@ const Participants = () => {
             {(row.original as ParticipantWithHouse).house_name || '-'}
           </span>
         ),
+        meta: {
+          skeleton: <Skeleton className="h-3 w-24" />,
+        },
         enableSorting: true,
         size: 165,
       },
@@ -347,6 +354,9 @@ const Participants = () => {
         cell: ({ row }) => (
           <StatusBadge status={row.original.status} />
         ),
+        meta: {
+          skeleton: <Skeleton className="h-5 w-16 rounded-full" />,
+        },
         enableSorting: true,
         size: 165,
       },
@@ -354,23 +364,42 @@ const Participants = () => {
         id: 'actions',
         header: 'Actions',
         cell: ({ row }) => <ActionsCell row={row} updateParticipant={updateParticipant} />,
+        meta: {
+          skeleton: <Skeleton className="h-8 w-20" />,
+        },
         enableSorting: false,
         size: 150,
       },
     ],
-    []
+    [updateParticipant]
   );
+
+  const pageCount = useMemo(() => {
+    return Math.ceil(count / pagination.pageSize);
+  }, [count, pagination.pageSize]);
 
   const table = useReactTable({
     columns,
-    data: filteredData,
-    pageCount: Math.ceil((filteredData?.length || 0) / pagination.pageSize),
+    data: participants,
+    pageCount,
     getRowId: (row: ParticipantWithHouse) => row.id,
+    manualPagination: true,
+    manualSorting: true,
+    manualFiltering: true,
     state: {
       pagination,
       sorting,
     },
-    onPaginationChange: setPagination,
+    onPaginationChange: (updater) => {
+      setPagination((prev) => {
+        const next = typeof updater === 'function' ? updater(prev) : updater;
+        // If pageSize changed, reset pageIndex to 0
+        if (next.pageSize !== prev.pageSize) {
+          return { ...next, pageIndex: 0 };
+        }
+        return next;
+      });
+    },
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -383,7 +412,8 @@ const Participants = () => {
   return (
     <DataGrid
       table={table}
-      recordCount={filteredData?.length || 0}
+      recordCount={count}
+      isLoading={loading}
       tableLayout={{
         columnsPinnable: true,
         columnsMovable: true,

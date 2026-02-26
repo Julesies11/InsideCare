@@ -33,6 +33,7 @@ import {
 import { DataGrid } from '@/components/ui/data-grid';
 import { DataGridColumnHeader } from '@/components/ui/data-grid-column-header';
 import { DataGridPagination } from '@/components/ui/data-grid-pagination';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   DataGridTable,
 } from '@/components/ui/data-grid-table';
@@ -73,14 +74,13 @@ function ActionsCell({ row }: { row: Row<Staff> }) {
 }
 
 const StaffTable = () => {
-  const { staff, loading, error, updateStaff } = useStaff();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useDebouncedSearchParams(300);
 
   // Helper functions to parse URL params into initial state
   const getInitialPagination = (): PaginationState => ({
     pageIndex: Math.max(0, parseInt(searchParams.get('page') || '1') - 1), // Convert to 0-indexed
-    pageSize: parseInt(searchParams.get('pageSize') || '50'),
+    pageSize: parseInt(searchParams.get('pageSize') || '10'),
   });
 
   const getInitialSorting = (): SortingState => {
@@ -101,30 +101,23 @@ const StaffTable = () => {
     return param.split(',').filter((s) => STAFF_STATUS_OPTIONS.some(opt => opt.value === s));
   };
 
-  const [selectedStatuses, setSelectedStatuses] = useState<string[]>(getInitialStatuses());
-
   // Initialize state from URL params
   const [pagination, setPagination] = useState<PaginationState>(getInitialPagination());
   const [sorting, setSorting] = useState<SortingState>(getInitialSorting());
   const [searchQuery, setSearchQuery] = useState(getInitialSearch());
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>(getInitialStatuses());
 
-  // Filtered data based on search and active status
-  const filteredData = useMemo(() => {
-    return staff.filter((item) => {
-      if (!selectedStatuses.includes(item.status)) {
-        return false;
-      }
+  const filters = useMemo(() => ({
+    search: searchQuery,
+    statuses: selectedStatuses
+  }), [searchQuery, selectedStatuses]);
 
-      const searchLower = searchQuery.toLowerCase();
-      const matchesSearch =
-        !searchQuery ||
-        (item.name && item.name.toLowerCase().includes(searchLower)) ||
-        (item.email && item.email.toLowerCase().includes(searchLower)) ||
-        (item.department && item.department.toLowerCase().includes(searchLower));
-
-      return matchesSearch;
-    });
-  }, [staff, searchQuery, selectedStatuses]);
+  const { staff, count, loading, error, updateStaff } = useStaff(
+    pagination.pageIndex,
+    pagination.pageSize,
+    sorting,
+    filters
+  );
 
   const columns: ColumnDef<Staff>[] = [
     {
@@ -152,6 +145,14 @@ const StaffTable = () => {
           </div>
         );
       },
+      meta: {
+        skeleton: (
+          <div className="flex items-center gap-2.5">
+            <Skeleton className="size-9 rounded-full" />
+            <Skeleton className="h-3 w-24" />
+          </div>
+        ),
+      },
       enableSorting: true,
       size: 200,
     },
@@ -171,6 +172,14 @@ const StaffTable = () => {
           </span>
         </div>
       ),
+      meta: {
+        skeleton: (
+          <div className="flex flex-col gap-1">
+            <Skeleton className="h-3 w-32" />
+            <Skeleton className="h-2.5 w-20" />
+          </div>
+        ),
+      },
       enableSorting: true,
       size: 230,
     },
@@ -185,6 +194,9 @@ const StaffTable = () => {
           {row.original.department_info?.name || '-'}
         </span>
       ),
+      meta: {
+        skeleton: <Skeleton className="h-3 w-20" />,
+      },
       enableSorting: true,
       size: 120,
     },
@@ -199,6 +211,9 @@ const StaffTable = () => {
           {row.original.employment_type_info?.name || 'Not Specified'}
         </Badge>
       ),
+      meta: {
+        skeleton: <Skeleton className="h-5 w-24 rounded-full" />,
+      },
       size: 130,
     },
     {
@@ -210,12 +225,18 @@ const StaffTable = () => {
       cell: ({ row }) => (
         <StatusBadge status={row.original.status} />
       ),
+      meta: {
+        skeleton: <Skeleton className="h-5 w-16 rounded-full" />,
+      },
       size: 80,
     },
     {
       id: 'actions',
       header: 'Actions',
       cell: ActionsCell,
+      meta: {
+        skeleton: <Skeleton className="h-8 w-20" />,
+      },
       size: 100,
     },
   ];
@@ -228,7 +249,7 @@ const StaffTable = () => {
     if (pagination.pageIndex > 0) {
       params.set('page', (pagination.pageIndex + 1).toString()); // Convert to 1-indexed
     }
-    if (pagination.pageSize !== 50) {
+    if (pagination.pageSize !== 10) {
       params.set('pageSize', pagination.pageSize.toString());
     }
     
@@ -250,28 +271,44 @@ const StaffTable = () => {
     setSearchParams(params, { replace: true });
   }, [pagination, sorting, searchQuery, selectedStatuses, setSearchParams]);
 
+  const pageCount = useMemo(() => {
+    return Math.ceil(count / pagination.pageSize);
+  }, [count, pagination.pageSize]);
+
   const table = useReactTable({
-    data: filteredData,
+    data: staff,
     columns,
     state: {
       pagination,
       sorting,
     },
-    onPaginationChange: setPagination,
+    onPaginationChange: (updater) => {
+      setPagination((prev) => {
+        const next = typeof updater === 'function' ? updater(prev) : updater;
+        // If pageSize changed, reset pageIndex to 0
+        if (next.pageSize !== prev.pageSize) {
+          return { ...next, pageIndex: 0 };
+        }
+        return next;
+      });
+    },
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    manualPagination: false,
-    pageCount: Math.ceil(filteredData.length / pagination.pageSize),
+    manualPagination: true,
+    manualSorting: true,
+    manualFiltering: true,
+    pageCount,
     autoResetPageIndex: false,
   });
 
   return (
     <DataGrid
       table={table}
-      recordCount={filteredData?.length || 0}
+      recordCount={count}
+      isLoading={loading}
       tableLayout={{
         columnsPinnable: true,
         columnsMovable: true,

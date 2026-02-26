@@ -50,7 +50,7 @@ export function AppRouting() {
     if (!CSS.escape(window.location.hash)) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  }, [previousLocation]);
+  }, [path]);
 
   return <AppRoutingSetup />;
 }

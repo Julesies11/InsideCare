@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ColumnDef,
   getCoreRowModel,
@@ -50,6 +50,9 @@ import { logActivity } from '@/lib/activity-logger';
 import { useAuth } from '@/auth/context/auth-context';
 import { parseSupabaseError } from '@/lib/error-parser';
 
+import { useDebouncedSearchParams } from '@/hooks/use-debounced-search-params';
+import { Skeleton } from '@/components/ui/skeleton';
+
 const HOUSE_STATUS_OPTIONS: StatusOption[] = [
   { value: 'active', label: 'Active', badge: 'success' },
   { value: 'inactive', label: 'Inactive', badge: 'secondary' },
@@ -81,10 +84,6 @@ function createGoogleMapsUrl(address: string) {
 function ActionsCell({ row, updateHouse }: { row: Row<House>; updateHouse: (id: string, updates: Partial<House>) => Promise<{ data: any; error: string | null }> }) {
   const navigate = useNavigate();
   const { user } = useAuth();
-
-  const handleView = () => {
-    navigate(`/houses/detail/${row.original.id}`);
-  };
 
   const handleEdit = () => {
     navigate(`/houses/detail/${row.original.id}`);
@@ -141,40 +140,83 @@ function ActionsCell({ row, updateHouse }: { row: Row<House>; updateHouse: (id: 
 }
 
 export function Houses() {
-  const { houses, loading, error, updateHouse } = useHouses();
-  const { participants } = useParticipants(); // Fetch all participants
-  const { houseStaffAssignments } = useHouseStaffAssignments(); // Fetch all house staff assignments
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedStatuses, setSelectedStatuses] = useState<string[]>(['active', 'inactive']);
+  const [searchParams, setSearchParams] = useDebouncedSearchParams(300);
 
-  // Table state
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 50,
+  // Helper functions to parse URL params into initial state
+  const getInitialPagination = (): PaginationState => ({
+    pageIndex: Math.max(0, parseInt(searchParams.get('page') || '1') - 1), // Convert to 0-indexed
+    pageSize: parseInt(searchParams.get('pageSize') || '10'),
   });
 
-  // Filtered data based on search and status
-  const filteredData = useMemo(() => {
-    return houses.filter((item) => {
-      // Status filter
-      if (!selectedStatuses.includes(item.status || 'active')) {
-        return false;
-      }
+  const getInitialSorting = (): SortingState => {
+    const sortParam = searchParams.get('sort');
+    if (!sortParam) return [];
+    
+    const [field, direction] = sortParam.split('.');
+    return [{ id: field, desc: direction === 'desc' }];
+  };
 
-      // Search across all columns
-      const searchLower = searchQuery.toLowerCase();
-      const matchesSearch =
-        !searchQuery ||
-        (item.name && item.name.toLowerCase().includes(searchLower)) ||
-        (item.address && item.address.toLowerCase().includes(searchLower)) ||
-        (item.phone && item.phone.toLowerCase().includes(searchLower)) ||
-        (item.house_manager && item.house_manager.toLowerCase().includes(searchLower));
+  const getInitialSearch = (): string => {
+    return searchParams.get('search') || '';
+  };
 
-      return matchesSearch;
-    });
-  }, [houses, searchQuery, selectedStatuses]);
+  const getInitialStatuses = (): string[] => {
+    const param = searchParams.get('statuses');
+    if (!param) return ['active', 'inactive']; // default visible
+    return param.split(',').filter((s) => HOUSE_STATUS_OPTIONS.some(opt => opt.value === s));
+  };
+
+  // Initialize state from URL params
+  const [pagination, setPagination] = useState<PaginationState>(getInitialPagination());
+  const [sorting, setSorting] = useState<SortingState>(getInitialSorting());
+  const [searchQuery, setSearchQuery] = useState(getInitialSearch());
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>(getInitialStatuses());
+
+  const filters = useMemo(() => ({
+    search: searchQuery,
+    statuses: selectedStatuses
+  }), [searchQuery, selectedStatuses]);
+
+  const { houses, count, loading, error, updateHouse } = useHouses(
+    pagination.pageIndex,
+    pagination.pageSize,
+    sorting,
+    filters
+  );
+
+  const { participants } = useParticipants(); // Fetch all participants (still needed for nested data)
+  const { houseStaffAssignments } = useHouseStaffAssignments(); // Fetch all house staff assignments (still needed for nested data)
+
+  // Sync state changes to URL query parameters
+  useEffect(() => {
+    const params = new URLSearchParams();
+    
+    // Pagination - only add if not default
+    if (pagination.pageIndex > 0) {
+      params.set('page', (pagination.pageIndex + 1).toString()); // Convert to 1-indexed
+    }
+    if (pagination.pageSize !== 10) {
+      params.set('pageSize', pagination.pageSize.toString());
+    }
+    
+    // Sorting
+    if (sorting.length > 0) {
+      const sort = sorting[0];
+      params.set('sort', `${sort.id}.${sort.desc ? 'desc' : 'asc'}`);
+    }
+    
+    // Search
+    if (searchQuery) {
+      params.set('search', searchQuery);
+    }
+    
+    // Always update the URL with the current list
+    params.set('statuses', selectedStatuses.join(','));
+
+    // Update URL without adding to history
+    setSearchParams(params, { replace: true });
+  }, [pagination, sorting, searchQuery, selectedStatuses, setSearchParams]);
 
   // Table columns
   const columns: ColumnDef<House>[] = useMemo(
@@ -211,6 +253,17 @@ export function Houses() {
             </div>
           </div>
         ),
+        meta: {
+          skeleton: (
+            <div className="flex items-center gap-3">
+              <Skeleton className="size-8 rounded-full" />
+              <div className="flex flex-col gap-1">
+                <Skeleton className="h-3 w-32" />
+                <Skeleton className="h-2.5 w-40" />
+              </div>
+            </div>
+          ),
+        },
         size: 250,
       },
       {
@@ -231,14 +284,6 @@ export function Houses() {
           const percentage = capacity > 0 ? (currentOccupancy / capacity) * 100 : 0;
           const occupancyText = capacity > 0 ? `${currentOccupancy}/${capacity}` : `${currentOccupancy}/0`;
           
-          // Color coding based on occupancy
-          let progressColor = 'bg-green-500';
-          if (percentage >= 100) {
-            progressColor = 'bg-red-500';
-          } else if (percentage >= 80) {
-            progressColor = 'bg-yellow-500';
-          }
-          
           return (
             <div className="flex flex-col gap-1">
               <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
@@ -255,6 +300,14 @@ export function Houses() {
               </div>
             </div>
           );
+        },
+        meta: {
+          skeleton: (
+            <div className="flex flex-col gap-2">
+              <Skeleton className="h-3 w-12" />
+              <Skeleton className="h-2 w-full" />
+            </div>
+          ),
         },
         size: 150,
       },
@@ -289,6 +342,9 @@ export function Houses() {
             </Badge>
           );
         },
+        meta: {
+          skeleton: <Skeleton className="h-5 w-16 rounded-full" />,
+        },
         size: 100,
       },
       {
@@ -316,6 +372,9 @@ export function Houses() {
               </div>
             </div>
           );
+        },
+        meta: {
+          skeleton: <Skeleton className="h-6 w-24 rounded-full" />,
         },
         size: 120,
       },
@@ -346,29 +405,51 @@ export function Houses() {
             </div>
           );
         },
+        meta: {
+          skeleton: <Skeleton className="h-3 w-32" />,
+        },
         size: 200,
       },
       {
         id: 'actions',
         header: 'Actions',
         cell: ({ row }) => <ActionsCell row={row} updateHouse={updateHouse} />,
+        meta: {
+          skeleton: <Skeleton className="h-8 w-20" />,
+        },
         enableSorting: false,
         size: 150,
       },
     ],
-    [updateHouse]
+    [updateHouse, participants, houseStaffAssignments]
   );
+
+  const pageCount = useMemo(() => {
+    return Math.ceil(count / pagination.pageSize);
+  }, [count, pagination.pageSize]);
 
   const table = useReactTable({
     columns,
-    data: filteredData,
-    pageCount: Math.ceil((filteredData?.length || 0) / pagination.pageSize),
+    data: houses,
+    pageCount,
     getRowId: (row: House) => row.id,
+    manualPagination: true,
+    manualSorting: true,
+    manualFiltering: true,
     state: {
       pagination,
       sorting,
     },
-    onPaginationChange: setPagination,
+    onPaginationChange: (updater) => {
+      setPagination((prev) => {
+        const next = typeof updater === 'function' ? updater(prev) : updater;
+        // If pageSize changed, reset pageIndex to 0
+        if (next.pageSize !== prev.pageSize) {
+          return { ...next, pageIndex: 0 };
+        }
+        return next;
+      });
+    },
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -390,7 +471,8 @@ export function Houses() {
   return (
     <DataGrid
       table={table}
-      recordCount={filteredData?.length || 0}
+      recordCount={count}
+      isLoading={loading}
       tableLayout={{
         columnsPinnable: true,
         columnsMovable: true,
@@ -429,13 +511,6 @@ export function Houses() {
           </div>
         </CardHeader>
 
-        {loading && <div className="p-4 text-center">Loading houses...</div>}
-        {error && (
-          <Alert variant="destructive" className="m-4">
-            {error}
-          </Alert>
-        )}
-
         <CardTable>
           <ScrollArea>
             <DataGridTable />
@@ -449,3 +524,4 @@ export function Houses() {
     </DataGrid>
   );
 }
+

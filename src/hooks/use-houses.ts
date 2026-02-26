@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 
 export interface House {
@@ -16,34 +16,72 @@ export interface House {
   updated_at?: string;
 }
 
-export function useHouses(branchId?: string) {
+export interface HousesFilter {
+  search?: string;
+  statuses?: string[];
+}
+
+export interface HousesSort {
+  id: string;
+  desc: boolean;
+}
+
+export function useHouses(
+  pageIndex: number = 0,
+  pageSize: number = 10,
+  sort: HousesSort[] = [],
+  filters: HousesFilter = {},
+  branchId?: string
+) {
   const [houses, setHouses] = useState<House[]>([]);
+  const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchHouses();
-  }, [branchId]);
-
-  async function fetchHouses() {
+  const fetchHouses = useCallback(async () => {
     try {
       setLoading(true);
       
+      // Build base query
       let query = supabase
         .from('houses')
-        .select('*')
-        .order('name', { ascending: true });
+        .select('*', { count: 'exact' });
 
       // Filter by branch if specified
       if (branchId) {
         query = query.eq('branch_id', branchId);
       }
 
-      const { data, error } = await query;
+      // Apply search filter
+      if (filters.search) {
+        query = query.or(`name.ilike.%${filters.search}%,address.ilike.%${filters.search}%,phone.ilike.%${filters.search}%,house_manager.ilike.%${filters.search}%`);
+      }
+
+      // Apply status filter
+      if (filters.statuses && filters.statuses.length > 0) {
+        query = query.in('status', filters.statuses);
+      }
+
+      // Apply sorting
+      if (sort.length > 0) {
+        sort.forEach(s => {
+          query = query.order(s.id, { ascending: !s.desc });
+        });
+      } else {
+        query = query.order('name', { ascending: true });
+      }
+
+      // Apply pagination
+      const from = pageIndex * pageSize;
+      const to = from + pageSize - 1;
+      query = query.range(from, to);
+
+      const { data, error, count: totalCount } = await query;
 
       if (error) throw error;
 
       setHouses(data || []);
+      setCount(totalCount || 0);
       setError(null);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch houses';
@@ -52,7 +90,11 @@ export function useHouses(branchId?: string) {
     } finally {
       setLoading(false);
     }
-  }
+  }, [pageIndex, pageSize, JSON.stringify(sort), JSON.stringify(filters), branchId]);
+
+  useEffect(() => {
+    fetchHouses();
+  }, [fetchHouses]);
 
   async function addHouse(house: Omit<House, 'id' | 'created_at' | 'updated_at'>) {
     try {
@@ -116,6 +158,7 @@ export function useHouses(branchId?: string) {
 
   return {
     houses,
+    count,
     loading,
     error,
     addHouse,

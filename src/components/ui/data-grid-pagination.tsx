@@ -162,39 +162,37 @@ function DataGridPagination(props: DataGridPaginationProps) {
         ) : (
           <>
             <div className="text-sm text-muted-foreground text-nowrap order-2 sm:order-1">{paginationInfo}</div>
-            {pageCount > 1 && (
-              <div className="flex items-center space-x-1 order-1 sm:order-2">
-                <Button
-                  size="sm"
-                  mode="icon"
-                  variant="ghost"
-                  className={btnArrowClasses}
-                  onClick={() => table.previousPage()}
-                  disabled={!table.getCanPreviousPage()}
-                >
-                  <span className="sr-only">Go to previous page</span>
-                  <ChevronLeftIcon className="size-4" />
-                </Button>
+            <div className="flex items-center space-x-1 order-1 sm:order-2">
+              <Button
+                size="sm"
+                mode="icon"
+                variant="ghost"
+                className={btnArrowClasses}
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+              >
+                <span className="sr-only">Go to previous page</span>
+                <ChevronLeftIcon className="size-4" />
+              </Button>
 
-                {renderEllipsisPrevButton()}
+              {renderEllipsisPrevButton()}
 
-                {renderPageButtons()}
+              {renderPageButtons()}
 
-                {renderEllipsisNextButton()}
+              {renderEllipsisNextButton()}
 
-                <Button
-                  size="sm"
-                  mode="icon"
-                  variant="ghost"
-                  className={btnArrowClasses}
-                  onClick={() => table.nextPage()}
-                  disabled={!table.getCanNextPage()}
-                >
-                  <span className="sr-only">Go to next page</span>
-                  <ChevronRightIcon className="size-4" />
-                </Button>
-              </div>
-            )}
+              <Button
+                size="sm"
+                mode="icon"
+                variant="ghost"
+                className={btnArrowClasses}
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+              >
+                <span className="sr-only">Go to next page</span>
+                <ChevronRightIcon className="size-4" />
+              </Button>
+            </div>
           </>
         )}
       </div>

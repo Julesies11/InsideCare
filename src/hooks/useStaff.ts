@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 
 export type StaffStatus = 'draft' | 'active' | 'inactive' | 'archived';
@@ -100,31 +100,73 @@ export interface StaffUpdateData {
   status?: StaffStatus;
 }
 
-export function useStaff() {
+export interface StaffFilter {
+  search?: string;
+  statuses?: string[];
+}
+
+export interface StaffSort {
+  id: string;
+  desc: boolean;
+}
+
+export function useStaff(
+  pageIndex: number = 0,
+  pageSize: number = 10,
+  sort: StaffSort[] = [],
+  filters: StaffFilter = {}
+) {
   const [staff, setStaff] = useState<Staff[]>([]);
+  const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchStaff();
-  }, []);
-
-  async function fetchStaff(silent = false) {
+  const fetchStaff = useCallback(async (silent = false) => {
     try {
       if (!silent) setLoading(true);
-      const { data, error } = await supabase
+      
+      // Build base query
+      let query = supabase
         .from('staff')
         .select(`
           *,
           department_info:departments(id, name),
           employment_type_info:employment_types_master(id, name),
           role:roles!staff_role_id_fkey(id, name, description)
-        `)
-        .order('name', { ascending: true });
+        `, { count: 'exact' });
+
+      // Apply search filter
+      if (filters.search) {
+        query = query.or(`name.ilike.%${filters.search}%,email.ilike.%${filters.search}%`);
+      }
+
+      // Apply status filter
+      if (filters.statuses && filters.statuses.length > 0) {
+        query = query.in('status', filters.statuses);
+      }
+
+      // Apply sorting
+      if (sort.length > 0) {
+        sort.forEach(s => {
+          // Map accessorKey to DB columns if needed
+          const column = s.id === 'department' ? 'department_id' : s.id;
+          query = query.order(column, { ascending: !s.desc });
+        });
+      } else {
+        query = query.order('name', { ascending: true });
+      }
+
+      // Apply pagination
+      const from = pageIndex * pageSize;
+      const to = from + pageSize - 1;
+      query = query.range(from, to);
+
+      const { data, error, count: totalCount } = await query;
 
       if (error) throw error;
 
       setStaff(data || []);
+      setCount(totalCount || 0);
       setError(null);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch staff';
@@ -133,7 +175,11 @@ export function useStaff() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [pageIndex, pageSize, JSON.stringify(sort), JSON.stringify(filters)]);
+
+  useEffect(() => {
+    fetchStaff();
+  }, [fetchStaff]);
 
   async function getStaffById(id: string) {
     try {
@@ -276,6 +322,7 @@ export function useStaff() {
 
   return {
     staff,
+    count,
     loading,
     error,
     createStaff,
