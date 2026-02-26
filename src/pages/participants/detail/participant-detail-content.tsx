@@ -41,7 +41,7 @@ const stickySidebarClasses: Record<string, string> = {
   'demo10-layout': 'top-[1.5rem]',
 };
 
-import { ParticipantPendingChanges } from '@/models/participant-pending-changes';
+import { ParticipantPendingChanges, emptyParticipantPendingChanges } from '@/models/participant-pending-changes';
 import { MealtimeManagement } from './components/mealtime-management';
 
 interface ParticipantDetailContentProps {
@@ -1086,17 +1086,17 @@ mtmp_details: '',
       const hasChildChanges = Object.values(changedEntities).some(changed => changed);
       const hasAnyChanges = hasParticipantChanges || hasChildChanges;
 
+            // Trigger refresh of child components that had changes
+            setRefreshKeys(prev => ({
+              goals: (pendingChanges?.goals.toAdd.length || 0) > 0 || (pendingChanges?.goals.toUpdate.length || 0) > 0 || (pendingChanges?.goals.toDelete.length || 0) > 0 ? prev.goals + 1 : prev.goals,
+              documents: (pendingChanges?.documents.toAdd.length || 0) > 0 || (pendingChanges?.documents.toDelete.length || 0) > 0 ? prev.documents + 1 : prev.documents,
+                      medications: (pendingChanges?.medications.toAdd.length || 0) > 0 || (pendingChanges?.medications.toUpdate.length || 0) > 0 || (pendingChanges?.medications.toDelete.length || 0) > 0 ? prev.medications + 1 : prev.medications,
+                      contacts: (pendingChanges?.contacts.toAdd.length || 0) > 0 || (pendingChanges?.contacts.toUpdate.length || 0) > 0 || (pendingChanges?.contacts.toDelete.length || 0) > 0 ? prev.contacts + 1 : prev.contacts,
+                      shiftNotes: (pendingChanges?.shiftNotes.toAdd.length || 0) > 0 || (pendingChanges?.shiftNotes.toUpdate.length || 0) > 0 || (pendingChanges?.shiftNotes.toDelete.length || 0) > 0 ? prev.shiftNotes + 1 : prev.shiftNotes,              activityLog: (Object.keys(changedFields).length > 0 || hasChildChanges) ? prev.activityLog + 1 : prev.activityLog,
+            }));
       // Reset pending changes after successful save
       if (onPendingChangesChange) {
-        onPendingChangesChange({
-          goals: { toAdd: [], toUpdate: [], toDelete: [] },
-          documents: { toAdd: [], toDelete: [] },
-          medications: { toAdd: [], toUpdate: [], toDelete: [] },
-          contacts: { toAdd: [], toUpdate: [], toDelete: [] },
-          shiftNotes: { toAdd: [], toUpdate: [], toDelete: [] },
-          staffCompliance: { toAdd: [], toUpdate: [], toDelete: [] },
-          staffResources: { toAdd: [], toUpdate: [], toDelete: [] },
-        });
+        onPendingChangesChange(emptyParticipantPendingChanges);
       }
 
       toast.success('Changes saved successfully');

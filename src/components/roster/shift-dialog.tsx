@@ -107,7 +107,7 @@ export function ShiftDialog({
     }
 
     try {
-      const { data: existingShifts, error } = await supabase
+      let query = supabase
         .from('staff_shifts')
         .select(`
           *,
@@ -115,8 +115,13 @@ export function ShiftDialog({
         `)
         .eq('staff_id', staffId)
         .eq('shift_date', shiftDate)
-        .neq('status', 'Cancelled')
-        .neq('id', excludeShiftId || '');
+        .neq('status', 'Cancelled');
+
+      if (excludeShiftId) {
+        query = query.neq('id', excludeShiftId);
+      }
+
+      const { data: existingShifts, error } = await query;
 
       if (error) {
         console.error('Error checking double bookings:', error);

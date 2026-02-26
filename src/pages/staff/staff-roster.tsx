@@ -40,7 +40,7 @@ export function StaffRoster() {
   const [tab, setTab] = useState<TabView>('calendar');
 
   // Calendar state
-  const [viewMode, setViewMode] = useState<ViewMode>('month');
+  const [viewMode, setViewMode] = useState<ViewMode>('week');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [houseFilter, setHouseFilter] = useState('all');
   const [shiftTypeFilter, setShiftTypeFilter] = useState('all');

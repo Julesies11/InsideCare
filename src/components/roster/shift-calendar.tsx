@@ -85,6 +85,34 @@ export function ShiftCalendar({
     return staffShifts.length > 0;
   };
 
+  const renderShiftCardWithWarning = (shift: ShiftCardData, date: Date, compact: boolean = true) => {
+    const hasDoubleBooking = shift.staff_id ? 
+      checkForDoubleBookings(shift.staff_id, date, shift.id) : false;
+    
+    return (
+      <div key={shift.id} className={hasDoubleBooking ? 'relative' : ''}>
+        {hasDoubleBooking && (
+          <div className="absolute -top-1 -right-1 z-10">
+            <div 
+              className={`bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center ${compact ? 'w-3 h-3' : 'w-4 h-4'}`} 
+              title="Double booking detected!"
+            >
+              !
+            </div>
+          </div>
+        )}
+        <ShiftCard
+          shift={shift}
+          compact={compact}
+          showStaffName={staffId === 'all' || groupByHouse}
+          onClick={() => onEditShift(shift)}
+          onWriteNote={onWriteNote}
+          onNotesClick={onNotesClick}
+        />
+      </div>
+    );
+  };
+
   const renderMonthView = () => {
     const days = generateMonthDays(currentDate);
     const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -137,17 +165,7 @@ export function ShiftCalendar({
                   {getLeaveForDate(day).map(leave => (
                     <LeaveBlockBadge key={leave.id} leave={leave} />
                   ))}
-                  {dayShifts.map(shift => (
-                    <ShiftCard
-                      key={shift.id}
-                      shift={shift}
-                      compact={true}
-                      showStaffName={staffId === 'all'}
-                      onClick={() => onEditShift(shift)}
-                      onWriteNote={onWriteNote}
-                      onNotesClick={onNotesClick}
-                    />
-                  ))}
+                  {dayShifts.map(shift => renderShiftCardWithWarning(shift, day, true))}
                 </div>
               </div>
             );
@@ -229,30 +247,7 @@ export function ShiftCalendar({
                       </div>
                       
                       <div className="space-y-1">
-                        {houseShifts.map(shift => {
-                          const hasDoubleBooking = shift.staff_id ? 
-                            checkForDoubleBookings(shift.staff_id, day, shift.id) : false;
-                          
-                          return (
-                            <div key={shift.id} className={hasDoubleBooking ? 'relative' : ''}>
-                              {hasDoubleBooking && (
-                                <div className="absolute -top-1 -right-1 z-10">
-                                  <div className="bg-red-500 text-white text-xs rounded-full w-3 h-3 flex items-center justify-center" title="Double booking detected!">
-                                    !
-                                  </div>
-                                </div>
-                              )}
-                              <ShiftCard
-                                shift={shift}
-                                compact={true}
-                                showStaffName={true}
-                                onClick={() => onEditShift(shift)}
-                                onWriteNote={onWriteNote}
-                                onNotesClick={onNotesClick}
-                              />
-                            </div>
-                          );
-                        })}
+                        {houseShifts.map(shift => renderShiftCardWithWarning(shift, day, true))}
                         
                         {houseShifts.length === 0 && (
                           <div className="text-center py-0 text-muted-foreground text-xs">
@@ -312,17 +307,7 @@ export function ShiftCalendar({
                 {getLeaveForDate(day).map(leave => (
                   <LeaveBlockBadge key={leave.id} leave={leave} />
                 ))}
-                {dayShifts.map(shift => (
-                  <ShiftCard
-                    key={shift.id}
-                    shift={shift}
-                    compact={false}
-                    showStaffName={staffId === 'all'}
-                    onClick={() => onEditShift(shift)}
-                    onWriteNote={onWriteNote}
-                    onNotesClick={onNotesClick}
-                  />
-                ))}
+                {dayShifts.map(shift => renderShiftCardWithWarning(shift, day, false))}
                 {dayShifts.length === 0 && getLeaveForDate(day).length === 0 && (
                   <div className="text-center py-4 text-muted-foreground text-xs">
                     No shifts
@@ -396,30 +381,7 @@ export function ShiftCalendar({
                       </Button>
                     )}
                     
-                    {houseShifts.map(shift => {
-                      const hasDoubleBooking = shift.staff_id ? 
-                        checkForDoubleBookings(shift.staff_id, day, shift.id) : false;
-                      
-                      return (
-                        <div key={shift.id} className={hasDoubleBooking ? 'relative' : ''}>
-                          {hasDoubleBooking && (
-                            <div className="absolute -top-1 -right-1 z-10">
-                              <div className="bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center" title="Double booking detected!">
-                                !
-                              </div>
-                            </div>
-                          )}
-                          <ShiftCard
-                            shift={shift}
-                            compact={true}
-                            showStaffName={true}
-                            onClick={() => onEditShift(shift)}
-                            onWriteNote={onWriteNote}
-                            onNotesClick={onNotesClick}
-                          />
-                        </div>
-                      );
-                    })}
+                    {houseShifts.map(shift => renderShiftCardWithWarning(shift, day, true))}
                     
                     {houseShifts.length === 0 && (
                       <div className="text-center py-1 text-muted-foreground text-xs">
@@ -467,17 +429,7 @@ export function ShiftCalendar({
         )}
         {todayShifts.length > 0 ? (
           <div className="grid gap-4">
-            {todayShifts.map(shift => (
-              <ShiftCard
-                key={shift.id}
-                shift={shift}
-                compact={false}
-                showStaffName={staffId === 'all'}
-                onClick={() => onEditShift(shift)}
-                onWriteNote={onWriteNote}
-                onNotesClick={onNotesClick}
-              />
-            ))}
+            {todayShifts.map(shift => renderShiftCardWithWarning(shift, currentDate, false))}
           </div>
         ) : (
           <div className="text-center py-8 text-muted-foreground">

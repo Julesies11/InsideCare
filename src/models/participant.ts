@@ -9,6 +9,7 @@ export interface Participant {
   personal_mobile?: string | null;
   address?: string | null;
   date_of_birth?: string | null;
+  move_in_date?: string | null;
   ndis_number?: string | null;
   house_id?: string | null;
   status: ParticipantStatus;

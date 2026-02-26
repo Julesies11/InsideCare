@@ -41,7 +41,7 @@ export function ContactTypeMasterDialog({
   };
 
   const sortedAndFilteredContactTypes = useMemo(() => {
-    let filtered = contactTypes.filter((ct) =>
+    const filtered = contactTypes.filter((ct) =>
       ct.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 

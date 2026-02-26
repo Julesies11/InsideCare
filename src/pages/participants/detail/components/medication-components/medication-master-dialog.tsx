@@ -41,7 +41,7 @@ export function MedicationMasterDialog({
   };
 
   const sortedAndFilteredMedications = useMemo(() => {
-    let filtered = medications.filter((med) =>
+    const filtered = medications.filter((med) =>
       med.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (med.category && med.category.toLowerCase().includes(searchQuery.toLowerCase()))
     );

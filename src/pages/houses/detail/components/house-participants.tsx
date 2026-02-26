@@ -11,6 +11,7 @@ import { useHouseParticipants } from '@/hooks/useHouseParticipants';
 import { useParticipants } from '@/hooks/use-participants';
 import { ParticipantCombobox } from './participant-combobox';
 import { useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
@@ -46,9 +47,14 @@ export function HouseParticipants({
 
   const { houseParticipants, loading } = useHouseParticipants(houseId);
   const { participants } = useParticipants();
+  const navigate = useNavigate();
 
   // Helper function to get participant name
   const getParticipantName = (participant: any) => {
+    // If it has a direct name (from useHouseParticipants), use it
+    if (participant.name) {
+      return participant.name;
+    }
     // If it has the joined participant object, use that
     if (participant.participant?.name) {
       return participant.participant.name;
@@ -63,6 +69,10 @@ export function HouseParticipants({
 
   // Helper function to get participant data
   const getParticipantData = (participant: any) => {
+    // If it has a name directly, it's already the participant data
+    if (participant.name) {
+      return participant;
+    }
     // If it has the joined participant object, use that
     if (participant.participant) {
       return participant.participant;
@@ -86,9 +96,9 @@ export function HouseParticipants({
   useEffect(() => {
     if (showDialog && editingParticipant) {
       form.reset({
-        participant_id: editingParticipant.participant_id,
+        participant_id: editingParticipant.participant_id || editingParticipant.id || '',
         move_in_date: editingParticipant.move_in_date || '',
-        is_active: editingParticipant.is_active,
+        is_active: editingParticipant.status === 'active' || editingParticipant.is_active === true,
       });
     } else if (showDialog) {
       form.reset({
@@ -253,8 +263,12 @@ export function HouseParticipants({
               <TableBody>
                 {visibleParticipants.map((participant) => {
                   const isPendingAdd = 'tempId' in participant;
-                  const isPendingUpdate = pendingChanges?.participants?.toUpdate?.some(p => p.id === participant.id);
+                  const pendingUpdate = pendingChanges?.participants?.toUpdate?.find(p => p.id === participant.id);
+                  const isPendingUpdate = !!pendingUpdate;
                   const isPendingDelete = pendingChanges?.participants?.toDelete?.includes(participant.id);
+                  
+                  // Use data from pending update if it exists
+                  const displayData = pendingUpdate ? { ...participant, ...pendingUpdate } : participant;
                   
                   return (
                     <TableRow 
@@ -268,7 +282,15 @@ export function HouseParticipants({
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Users className="size-4 text-muted-foreground" />
-                          <span className={`font-medium ${isPendingDelete ? 'line-through' : ''}`}>
+                          <span 
+                            className={`font-medium cursor-pointer text-primary hover:underline ${isPendingDelete ? 'line-through' : ''}`}
+                            onClick={() => {
+                              const pId = participant.id || participant.participant_id;
+                              if (pId && !pId.startsWith('temp-')) {
+                                navigate(`/participants/detail/${pId}`);
+                              }
+                            }}
+                          >
                             {getParticipantName(participant)}
                           </span>
                           {isPendingAdd && (
@@ -293,25 +315,25 @@ export function HouseParticipants({
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          {participant.move_in_date && (
+                          {displayData.move_in_date && (
                             <>
                               <Calendar className="size-4 text-muted-foreground" />
-                              {new Date(participant.move_in_date).toLocaleDateString()}
+                              {new Date(displayData.move_in_date).toLocaleDateString()}
                             </>
                           )}
-                          {!participant.move_in_date && 'N/A'}
+                          {!displayData.move_in_date && 'N/A'}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={participant.is_active ? 'success' : 'secondary'}>
-                          {participant.is_active ? 'Active' : 'Inactive'}
+                        <Badge variant={(displayData.status === 'active' || displayData.is_active) ? 'success' : 'secondary'}>
+                          {(displayData.status === 'active' || displayData.is_active) ? 'Active' : 'Inactive'}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex justify-end gap-1">
                           {!isPendingDelete && (
                             <>
-                              <Button variant="ghost" size="sm" onClick={() => handleEdit(participant)}>
+                              <Button variant="ghost" size="sm" onClick={() => handleEdit(displayData)}>
                                 <Edit className="size-4" />
                               </Button>
                               {canDelete && (

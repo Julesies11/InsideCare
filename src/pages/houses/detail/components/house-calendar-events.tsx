@@ -32,7 +32,7 @@ export function HouseCalendarEvents({
   pendingChanges,
   onPendingChangesChange 
 }: HouseCalendarEventsProps) {
-  const [viewMode, setViewMode] = useState<ViewMode>('month');
+  const [viewMode, setViewMode] = useState<ViewMode>('week');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showEventDialog, setShowEventDialog] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<any>(null);

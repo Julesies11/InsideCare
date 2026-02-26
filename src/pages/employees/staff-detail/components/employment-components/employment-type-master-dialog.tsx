@@ -40,7 +40,7 @@ export function EmploymentTypeMasterDialog({
   };
 
   const sortedAndFilteredEmploymentTypes = useMemo(() => {
-    let filtered = employmentTypes.filter((type) =>
+    const filtered = employmentTypes.filter((type) =>
       type.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (type.description && type.description.toLowerCase().includes(searchQuery.toLowerCase()))
     );

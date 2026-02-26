@@ -1,5 +1,5 @@
 // Participant-specific pending changes model
-// This model includes goals, medications, contacts, funding, and shift notes
+// This model includes goals, medications, contacts, and shift notes
 
 export interface PendingGoal {
   tempId?: string;
@@ -42,21 +42,6 @@ export interface PendingContact {
   is_active: boolean;
 }
 
-export interface PendingFunding {
-  tempId?: string;
-  id?: string;
-  funding_source_id: string;
-  funding_type_id: string;
-  code?: string;
-  invoice_recipient?: string;
-  allocated_amount: number;
-  used_amount: number;
-  remaining_amount?: number;
-  status: 'Active' | 'Near Depletion' | 'Expired' | 'Inactive';
-  end_date?: string;
-  notes?: string;
-}
-
 export interface PendingShiftNote {
   tempId?: string;
   id?: string;
@@ -87,11 +72,6 @@ export interface ParticipantPendingChanges {
     toUpdate: PendingContact[];
     toDelete: string[];
   };
-  funding: {
-    toAdd: PendingFunding[];
-    toUpdate: PendingFunding[];
-    toDelete: string[];
-  };
   shiftNotes: {
     toAdd: PendingShiftNote[];
     toUpdate: PendingShiftNote[];
@@ -119,11 +99,6 @@ export const emptyParticipantPendingChanges: ParticipantPendingChanges = {
     toUpdate: [],
     toDelete: [],
   },
-  funding: {
-    toAdd: [],
-    toUpdate: [],
-    toDelete: [],
-  },
   shiftNotes: {
     toAdd: [],
     toUpdate: [],
@@ -145,9 +120,6 @@ export function hasParticipantPendingChanges(pending: ParticipantPendingChanges)
     pending.contacts.toAdd.length > 0 ||
     pending.contacts.toUpdate.length > 0 ||
     pending.contacts.toDelete.length > 0 ||
-    pending.funding.toAdd.length > 0 ||
-    pending.funding.toUpdate.length > 0 ||
-    pending.funding.toDelete.length > 0 ||
     pending.shiftNotes.toAdd.length > 0 ||
     pending.shiftNotes.toUpdate.length > 0 ||
     pending.shiftNotes.toDelete.length > 0
@@ -168,9 +140,6 @@ export function countParticipantPendingChanges(pending: ParticipantPendingChange
     pending.contacts.toAdd.length +
     pending.contacts.toUpdate.length +
     pending.contacts.toDelete.length +
-    pending.funding.toAdd.length +
-    pending.funding.toUpdate.length +
-    pending.funding.toDelete.length +
     pending.shiftNotes.toAdd.length +
     pending.shiftNotes.toUpdate.length +
     pending.shiftNotes.toDelete.length

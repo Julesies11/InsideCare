@@ -5,7 +5,3 @@ export * from './page-navbar';
 export * from './detail';
 export * from './shift-notes/shift-notes-basic-content';
 export * from './shift-notes/shift-notes-basic-page';
-export * from './funding/funding-content';
-export * from './funding/funding-page';
-export * from './funding/funding-detail-page';
-export * from './funding/funding-form-page';

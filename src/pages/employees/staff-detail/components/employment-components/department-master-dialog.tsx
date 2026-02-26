@@ -40,7 +40,7 @@ export function DepartmentMasterDialog({
   };
 
   const sortedAndFilteredDepartments = useMemo(() => {
-    let filtered = departments.filter((dept) =>
+    const filtered = departments.filter((dept) =>
       dept.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (dept.description && dept.description.toLowerCase().includes(searchQuery.toLowerCase()))
     );

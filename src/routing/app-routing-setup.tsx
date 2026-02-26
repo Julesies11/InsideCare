@@ -42,9 +42,6 @@ import {
   ParticipantsProfilesPage,
   ParticipantDetailPage,
   ShiftNotesPage,
-  FundingPage,
-  FundingDetailPage,
-  FundingFormPage,
 } from '@/pages/participants';
 import {
   HousesProfilesPage,

@@ -59,6 +59,7 @@ create table public.participants (
   psychiatrist_location text null,
   medical_routine_other text null,
   medical_routine_general_process text null,
+  move_in_date date null,
   constraint participants_pkey primary key (id),
   constraint participants_house_id_fkey foreign KEY (house_id) references houses (id) on update CASCADE on delete set null,
   constraint participant_email_required_when_active check (

@@ -138,6 +138,16 @@ export function HouseDetailContent({
     fetchHouse();
   }, [id]);
 
+  const [refreshKeys, setRefreshKeys] = useState({
+    staff: 0,
+    calendarEvents: 0,
+    documents: 0,
+    checklists: 0,
+    forms: 0,
+    resources: 0,
+    participants: 0,
+  });
+
   const handleFieldChange = (field: string, value: any) => {
     const updatedData = { ...formData, [field]: value };
     setFormData(updatedData);
@@ -676,7 +686,7 @@ export function HouseDetailContent({
             .update({
               house_id: id,
               move_in_date: participant.move_in_date || null,
-              is_active: participant.is_active,
+              status: participant.is_active ? 'active' : 'inactive',
             })
             .eq('id', participant.participant_id);
 
@@ -693,7 +703,7 @@ export function HouseDetailContent({
             .update({
               house_id: id,
               move_in_date: participant.move_in_date || null,
-              is_active: participant.is_active,
+              status: participant.is_active ? 'active' : 'inactive',
             })
             .eq('id', participant.participant_id);
 
@@ -709,7 +719,7 @@ export function HouseDetailContent({
             .from('participants')
             .update({
               house_id: null,
-              is_active: false,
+              status: 'inactive',
             })
             .eq('id', participantId);
 
@@ -749,6 +759,17 @@ export function HouseDetailContent({
       if (onOriginalDataChange) onOriginalDataChange(updatedHouseData);
       if (onFormDataChange) onFormDataChange(updatedHouseData);
       
+      // Trigger refresh of child components that had changes
+      setRefreshKeys(prev => ({
+        staff: (pendingChanges?.staff.toAdd.length || 0) > 0 || (pendingChanges?.staff.toUpdate.length || 0) > 0 || (pendingChanges?.staff.toDelete.length || 0) > 0 ? prev.staff + 1 : prev.staff,
+        calendarEvents: (pendingChanges?.calendarEvents.toAdd.length || 0) > 0 || (pendingChanges?.calendarEvents.toUpdate.length || 0) > 0 || (pendingChanges?.calendarEvents.toDelete.length || 0) > 0 ? prev.calendarEvents + 1 : prev.calendarEvents,
+        documents: (pendingChanges?.documents.toAdd.length || 0) > 0 || (pendingChanges?.documents.toDelete.length || 0) > 0 ? prev.documents + 1 : prev.documents,
+        checklists: (pendingChanges?.checklists.toAdd.length || 0) > 0 || (pendingChanges?.checklists.toUpdate.length || 0) > 0 || (pendingChanges?.checklists.toDelete.length || 0) > 0 || (pendingChanges?.checklists.checklistItems.toAdd.length || 0) > 0 || (pendingChanges?.checklists.checklistItems.toUpdate.length || 0) > 0 || (pendingChanges?.checklists.checklistItems.toDelete.length || 0) > 0 ? prev.checklists + 1 : prev.checklists,
+        forms: (pendingChanges?.forms.toAdd.length || 0) > 0 || (pendingChanges?.forms.toUpdate.length || 0) > 0 || (pendingChanges?.forms.toDelete.length || 0) > 0 || (pendingChanges?.formAssignments.toAdd.length || 0) > 0 || (pendingChanges?.formAssignments.toUpdate.length || 0) > 0 || (pendingChanges?.formAssignments.toDelete.length || 0) > 0 ? prev.forms + 1 : prev.forms,
+        resources: (pendingChanges?.resources.toAdd.length || 0) > 0 || (pendingChanges?.resources.toUpdate.length || 0) > 0 || (pendingChanges?.resources.toDelete.length || 0) > 0 ? prev.resources + 1 : prev.resources,
+        participants: (pendingChanges?.participants.toAdd.length || 0) > 0 || (pendingChanges?.participants.toUpdate.length || 0) > 0 || (pendingChanges?.participants.toDelete.length || 0) > 0 ? prev.participants + 1 : prev.participants,
+      }));
+
       // Clear pending changes after successful save
       if (onPendingChangesChange) {
         onPendingChangesChange(emptyHousePendingChanges);
@@ -893,6 +914,7 @@ export function HouseDetailContent({
           </Card>
 
           <HouseStaff
+            key={`staff-${refreshKeys.staff}`}
             houseId={id}
             canAdd={canAdd}
             canDelete={canDelete}
@@ -901,6 +923,7 @@ export function HouseDetailContent({
           />
 
           <HouseCalendarEvents
+            key={`calendar-${refreshKeys.calendarEvents}`}
             houseId={id}
             canAdd={canAdd}
             canDelete={canDelete}
@@ -909,6 +932,7 @@ export function HouseDetailContent({
           />
 
           <HouseDocuments
+            key={`documents-${refreshKeys.documents}`}
             houseId={id}
             houseName={formData?.name}
             canAdd={canAdd}
@@ -918,6 +942,7 @@ export function HouseDetailContent({
           />
 
           <HouseChecklists
+            key={`checklists-${refreshKeys.checklists}`}
             houseId={id}
             canAdd={canAdd}
             canDelete={canDelete}
@@ -926,6 +951,7 @@ export function HouseDetailContent({
           />
 
           <HouseForms
+            key={`forms-${refreshKeys.forms}`}
             houseId={id}
             canAdd={canAdd}
             canDelete={canDelete}
@@ -934,6 +960,7 @@ export function HouseDetailContent({
           />
 
           <HouseResources
+            key={`resources-${refreshKeys.resources}`}
             houseId={id}
             houseName={formData?.name}
             canAdd={canAdd}
@@ -943,12 +970,13 @@ export function HouseDetailContent({
           />
 
           <HouseParticipants
-          houseId={id}
-          canAdd={canAdd}
-          canDelete={canDelete}
-          pendingChanges={pendingChanges}
-          onPendingChangesChange={onPendingChangesChange}
-        />
+            key={`participants-${refreshKeys.participants}`}
+            houseId={id}
+            canAdd={canAdd}
+            canDelete={canDelete}
+            pendingChanges={pendingChanges}
+            onPendingChangesChange={onPendingChangesChange}
+          />
       </div>
     </div>
   );

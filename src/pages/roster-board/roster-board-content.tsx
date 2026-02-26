@@ -27,7 +27,7 @@ interface Participant {
 
 
 export function RosterBoardContent() {
-  const [viewMode, setViewMode] = useState<ViewMode>('month');
+  const [viewMode, setViewMode] = useState<ViewMode>('week');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedStaffId, setSelectedStaffId] = useState<string>('all');
   const [staff, setStaff] = useState<Staff[]>([]);

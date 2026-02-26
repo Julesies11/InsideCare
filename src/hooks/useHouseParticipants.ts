@@ -9,6 +9,7 @@ export interface HouseParticipant {
   house_id?: string;
   house_phone?: string;
   personal_mobile?: string;
+  move_in_date?: string;
   created_at: string;
   updated_at: string;
 }
@@ -39,6 +40,7 @@ export function useHouseParticipants(houseId?: string) {
             house_id,
             house_phone,
             personal_mobile,
+            move_in_date,
             created_at,
             updated_at
           `)
