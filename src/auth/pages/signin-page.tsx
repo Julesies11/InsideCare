@@ -18,6 +18,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { getSigninSchema, SigninSchemaType } from '../forms/signin-schema';
 import { LoaderCircleIcon } from 'lucide-react';
+import { toAbsoluteUrl } from '@/lib/helpers';
 
 const TEST_ADMIN = { email: 'admin@demo.com', password: 'demo' };
 const TEST_STAFF = { email: 'staff@demo.com', password: 'demo' };
@@ -147,6 +148,16 @@ export function SignInPage() {
         className="block w-full space-y-5"
       >
         <div className="text-center space-y-1 pb-3">
+          <img 
+            src={toAbsoluteUrl('/media/app/default-logo.png')} 
+            className="dark:hidden h-12 mx-auto mb-4" 
+            alt="InsideCare" 
+          />
+          <img 
+            src={toAbsoluteUrl('/media/app/default-logo-dark.png')} 
+            className="light:hidden h-12 mx-auto mb-4" 
+            alt="InsideCare" 
+          />
           <h1 className="text-2xl font-semibold tracking-tight">Sign In</h1>
           <p className="text-sm text-muted-foreground">
             Welcome back! Log in with your credentials.
@@ -261,11 +272,11 @@ export function SignInPage() {
         </Button>
 
         <div className="border-t pt-4 mt-2">
-          <p className="text-xs text-center text-muted-foreground mb-2 font-medium uppercase tracking-wide">DEV — Quick Login</p>
+          <p className="text-xs text-center text-muted-foreground mb-2 font-medium uppercase tracking-wide">TEST LOGIN</p>
           <div className="grid grid-cols-2 gap-2">
             <Button
               type="button"
-              variant="outline"
+              className="bg-purple-600 text-white hover:bg-purple-700 border-none"
               size="sm"
               onClick={() => loginAs(TEST_ADMIN)}
               disabled={isProcessing}
@@ -274,7 +285,7 @@ export function SignInPage() {
             </Button>
             <Button
               type="button"
-              variant="outline"
+              className="bg-purple-600 text-white hover:bg-purple-700 border-none"
               size="sm"
               onClick={() => loginAs(TEST_STAFF)}
               disabled={isProcessing}

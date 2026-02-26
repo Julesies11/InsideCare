@@ -15,6 +15,7 @@ import {
   ToolbarDescription,
   ToolbarActions,
 } from '@/partials/common/toolbar';
+import { WelcomeBanner } from '../dashboards/home/components';
 
 interface UpcomingShift {
   id: string;
@@ -98,19 +99,8 @@ export function StaffDashboard() {
 
   return (
     <>
-      <Container>
-        <Toolbar>
-          <ToolbarHeading>
-            <ToolbarPageTitle text={`${greeting()}, ${user?.first_name || 'there'}`} />
-            <ToolbarDescription>Here's your overview for today</ToolbarDescription>
-          </ToolbarHeading>
-          <ToolbarActions>
-            <Button variant="outline" onClick={() => navigate('/staff/leave/new')}>
-              <Plus className="size-4 me-1.5" />
-              Request Leave
-            </Button>
-          </ToolbarActions>
-        </Toolbar>
+      <Container className="mb-6 mt-4">
+        <WelcomeBanner />
       </Container>
 
       <Container>

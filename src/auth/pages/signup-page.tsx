@@ -18,6 +18,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { LoaderCircleIcon } from 'lucide-react';
 import { getSignupSchema, SignupSchemaType } from '../forms/signup-schema';
+import { toAbsoluteUrl } from '@/lib/helpers';
 
 export function SignUpPage() {
   const navigate = useNavigate();

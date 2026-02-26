@@ -1,11 +1,13 @@
 import { useNavigate } from 'react-router-dom';
-import { Users, UserCheck, AlertTriangle, CheckSquare } from 'lucide-react';
+import { Users, UserCheck, AlertTriangle, CheckSquare, ClipboardList } from 'lucide-react';
 import { WelcomeBanner, StatCard, MotivationalBanner, RecentActivity, UpcomingShifts } from './components';
 import { useParticipants } from '@/hooks/use-participants';
 import { useStaff } from '@/hooks/useStaff';
+import { useAuth } from '@/auth/context/auth-context';
 
 export function HomeContent() {
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
   
   // Fetch active participants (large pageSize to get total count)
   const { count: participantCount } = useParticipants(0, 1000, [], { statuses: ['active'] });
@@ -17,7 +19,7 @@ export function HomeContent() {
     <div className="grid gap-5 lg:gap-7.5">
       <WelcomeBanner />
 
-      <div className="grid grid-cols-2 lg:grid-cols-2 gap-5 lg:gap-7.5">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-7.5">
         <StatCard
           title="Active Participants"
           value={participantCount}
@@ -32,6 +34,24 @@ export function HomeContent() {
           color="bg-green-500"
           onClick={() => navigate('/employees/staff-profiles')}
         />
+        {isAdmin && (
+          <>
+            <StatCard
+              title="Pending Timesheets"
+              value="8"
+              icon={ClipboardList}
+              color="bg-orange-500"
+              onClick={() => navigate('/employees/timesheets')}
+            />
+            <StatCard
+              title="Leave Requests"
+              value="3"
+              icon={CheckSquare}
+              color="bg-purple-500"
+              onClick={() => navigate('/employees/leave-requests')}
+            />
+          </>
+        )}
       </div>
 
       <div className="grid lg:grid-cols-3 gap-5 lg:gap-7.5 items-start">

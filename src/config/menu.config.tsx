@@ -93,12 +93,6 @@ export const MENU_SIDEBAR: MenuConfig = [
     roles: ['staff'],
   },
   {
-    title: 'My Profile',
-    icon: UserCircle,
-    path: '/staff/profile',
-    roles: ['staff'],
-  },
-  {
     title: 'Participants',
     icon: PeopleIcon,
     roles: ['admin'],

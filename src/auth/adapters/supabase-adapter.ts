@@ -209,12 +209,18 @@ export const SupabaseAdapter = {
    * Get user profile from user metadata
    */
   async getUserProfile(): Promise<UserModel> {
+    console.log('SupabaseAdapter: Fetching user from auth.getUser()...');
     const {
       data: { user },
       error,
     } = await supabase.auth.getUser();
 
-    if (error || !user) throw new Error(error?.message || 'User not found');
+    if (error || !user) {
+      console.error('SupabaseAdapter: auth.getUser() failed:', error);
+      throw new Error(error?.message || 'User not found');
+    }
+
+    console.log('SupabaseAdapter: auth.getUser() success for', user.email);
 
     // Get user metadata and transform to UserModel format
     const metadata = user.user_metadata || {};
@@ -222,13 +228,22 @@ export const SupabaseAdapter = {
     // Look up linked staff record for ALL users (admins may also have a staff record)
     let staff_id: string | undefined;
     let photo_url: string | null = null;
-    const { data: staffRow } = await supabase
+    
+    console.log('SupabaseAdapter: Querying staff table for auth_user_id:', user.id);
+    const { data: staffRow, error: staffError } = await supabase
       .from('staff')
       .select('id, photo_url')
       .eq('auth_user_id', user.id)
       .maybeSingle();
+      
+    if (staffError) {
+      console.warn('SupabaseAdapter: Staff table query error (non-fatal):', staffError);
+    }
+    
     staff_id = staffRow?.id ?? undefined;
     photo_url = staffRow?.photo_url ?? null;
+    
+    console.log('SupabaseAdapter: Profile construction complete', { staff_id, has_photo: !!photo_url });
 
     // Format data to maintain compatibility with existing UI
     return {

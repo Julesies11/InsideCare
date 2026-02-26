@@ -21,6 +21,7 @@ import {
   getResetRequestSchema,
   ResetRequestSchemaType,
 } from '../forms/reset-password-schema';
+import { toAbsoluteUrl } from '@/lib/helpers';
 
 export function ResetPasswordPage() {
   const {} = useAuth();

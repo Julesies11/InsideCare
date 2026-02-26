@@ -7,11 +7,18 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
 // Fetch user profile with a hard timeout so we never hang forever
-async function fetchUserWithTimeout(timeoutMs = 10000): Promise<UserModel | null> {
+async function fetchUserWithTimeout(timeoutMs = 30000): Promise<UserModel | null> {
+  console.log(`AuthProvider: Starting profile fetch with ${timeoutMs}ms timeout...`);
   return Promise.race([
-    SupabaseAdapter.getCurrentUser(),
+    SupabaseAdapter.getCurrentUser().then(user => {
+      console.log('AuthProvider: Profile fetch completed successfully');
+      return user;
+    }),
     new Promise<null>((_, reject) =>
-      setTimeout(() => reject(new Error('Auth profile fetch timed out')), timeoutMs)
+      setTimeout(() => {
+        console.warn('AuthProvider: Profile fetch timed out!');
+        reject(new Error('Auth profile fetch timed out'));
+      }, timeoutMs)
     ),
   ]);
 }
@@ -106,7 +113,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
           setCurrentUser(prev => {
             if (prev) return prev; // already have a user — keep it
             // Kick off async fetch without blocking the state update
-            fetchUserWithTimeout(15000)
+            fetchUserWithTimeout(30000)
               .then(u => setCurrentUser(u || undefined))
               .catch((err: any) => {
                 console.error('Failed to load user profile on sign-in:', err.message);

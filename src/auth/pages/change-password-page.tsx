@@ -20,6 +20,7 @@ import {
   getNewPasswordSchema,
   NewPasswordSchemaType,
 } from '../forms/reset-password-schema';
+import { toAbsoluteUrl } from '@/lib/helpers';
 
 export function ChangePasswordPage() {
   const navigate = useNavigate();
