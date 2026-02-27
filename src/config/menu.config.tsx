@@ -121,6 +121,7 @@ export const MENU_SIDEBAR: MenuConfig = [
       },
       { title: 'Timesheets', path: '/employees/timesheets' },
       { title: 'Leave Requests', path: '/employees/leave-requests' },
+      { title: 'Checklist Templates', path: '/admin/checklist-templates' },
     ],
   },
   {

@@ -373,7 +373,7 @@ export function HouseDetailContent({
               name: checklist.name,
               frequency: checklist.frequency,
               description: checklist.description || null,
-              is_global: checklist.is_global,
+              master_id: checklist.master_id || null,
             })
             .select()
             .single();
@@ -383,7 +383,7 @@ export function HouseDetailContent({
           }
 
           // Insert checklist items
-          if (checklist.items.length > 0) {
+          if (checklist.items && checklist.items.length > 0) {
             const itemsToInsert = checklist.items.map(item => ({
               checklist_id: checklistData.id,
               title: item.title,
@@ -406,13 +406,13 @@ export function HouseDetailContent({
 
       if (pendingChanges?.checklists.toUpdate.length) {
         for (const checklist of pendingChanges.checklists.toUpdate) {
+          if (!checklist.id) continue;
           const { error } = await supabase
             .from('house_checklists')
             .update({
               name: checklist.name,
               frequency: checklist.frequency,
               description: checklist.description || null,
-              is_global: checklist.is_global,
             })
             .eq('id', checklist.id);
 
@@ -424,6 +424,7 @@ export function HouseDetailContent({
 
       if (pendingChanges?.checklists.toDelete.length) {
         for (const checklistId of pendingChanges.checklists.toDelete) {
+          if (!checklistId) continue;
           const { error } = await supabase
             .from('house_checklists')
             .delete()

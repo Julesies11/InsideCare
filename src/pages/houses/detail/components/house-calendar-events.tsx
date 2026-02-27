@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar, Clock, MapPin, Users, Edit, Trash2, Plus, CalendarDays } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, Edit, Trash2, Plus, CalendarDays, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { format, addMonths, addWeeks, addDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameMonth, isSameDay } from 'date-fns';
 import { useHouseCalendarEvents } from '@/hooks/useHouseCalendarEvents';
 import { useParticipants } from '@/hooks/use-participants';
@@ -317,212 +317,290 @@ export function HouseCalendarEvents({
               <CalendarDays className="size-5" />
               Calendar Events
             </CardTitle>
-            <Button variant="secondary" size="sm" className="border border-gray-300" onClick={() => handleAddEvent(new Date())} disabled={!houseId || !canAdd}>
-              <Plus className="size-4 me-1.5" />
-              Add Event
-            </Button>
-          </div>
-          <div className="flex items-center gap-2">
-            <Select value={viewMode} onValueChange={(value: ViewMode) => setViewMode(value)}>
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="day">Day</SelectItem>
-                <SelectItem value="week">Week</SelectItem>
-                <SelectItem value="month">Month</SelectItem>
-              </SelectContent>
-            </Select>
-            <div className="flex items-center gap-1">
-              <Button variant="outline" size="sm" onClick={() => navigatePeriod('prev')}>
-                ←
-              </Button>
-              <span className="text-sm font-medium min-w-[150px] text-center">
-                {getPeriodLabel()}
-              </span>
-              <Button variant="outline" size="sm" onClick={() => navigatePeriod('next')}>
-                →
+            <div className="flex items-center gap-2">
+              <Select value={viewMode} onValueChange={(value: ViewMode) => setViewMode(value)}>
+                <SelectTrigger className="w-32 h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="day">Day</SelectItem>
+                  <SelectItem value="week">Week</SelectItem>
+                  <SelectItem value="month">Month</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button variant="secondary" size="sm" className="border border-gray-300 h-9" onClick={() => handleAddEvent(new Date())} disabled={!houseId || !canAdd}>
+                <Plus className="size-4 me-1.5" />
+                Add Event
               </Button>
             </div>
+          </div>
+          <div className="flex items-center justify-between bg-muted/30 p-2 rounded-lg mt-2">
+            <div className="flex items-center gap-1">
+              <Button variant="ghost" size="icon" className="size-8" onClick={() => navigatePeriod('prev')}>
+                <ChevronLeft className="size-4" />
+              </Button>
+              <Button variant="ghost" size="sm" className="h-8 text-xs font-semibold uppercase" onClick={() => setCurrentDate(new Date())}>
+                Today
+              </Button>
+              <Button variant="ghost" size="icon" className="size-8" onClick={() => navigatePeriod('next')}>
+                <ChevronRight className="size-4" />
+              </Button>
+            </div>
+            <span className="text-sm font-bold text-gray-700">
+              {getPeriodLabel()}
+            </span>
           </div>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="text-center py-8 text-muted-foreground">Loading calendar events...</div>
+            <div className="text-center py-12 text-muted-foreground flex flex-col items-center gap-2">
+              <Loader2 className="size-8 animate-spin text-primary" />
+              <p className="text-sm">Loading calendar events...</p>
+            </div>
           ) : (
-            <div className="space-y-4">
-              {/* Calendar View Placeholder */}
-              <div 
-                className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                onClick={() => handleAddEvent(new Date())}
-              >
-                <div className="text-center text-muted-foreground">
-                  <Calendar className="size-12 mx-auto mb-2 opacity-50" />
-                  <p>Calendar view will be implemented here</p>
-                  <p className="text-sm">Showing {getEventsForPeriod.length} events for {getPeriodLabel()}</p>
-                  <p className="text-xs mt-2 text-blue-600">Click here to add an event</p>
-                </div>
-              </div>
+            <div className="space-y-6">
+              {/* Visual Calendar View */}
+              <div className="border rounded-xl overflow-hidden bg-background">
+                {viewMode === 'week' ? (
+                  <div className="grid grid-cols-1 md:grid-cols-7 divide-x divide-gray-100">
+                    {Array.from({ length: 7 }).map((_, i) => {
+                      const day = addDays(startOfWeek(currentDate), i);
+                      const dayEvents = getEventsForPeriod.filter(e => isSameDay(new Date(e.event_date), day));
+                      const isToday = isSameDay(day, new Date());
 
-              {/* Events List */}
-              <div className="space-y-2">
-                {getEventsForPeriod.length === 0 ? (
-                  <div className="text-center py-8">
-                    <div className="flex flex-col items-center gap-4">
-                      <div className="flex size-14 items-center justify-center rounded-full bg-muted">
-                        <Calendar className="size-7 text-muted-foreground" />
-                      </div>
-                      <div className="text-center">
-                        <p className="font-medium">No events scheduled for this period</p>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Click "Add Event" to create a new calendar event.
-                        </p>
-                      </div>
-                      <Button variant="outline" onClick={() => handleAddEvent(new Date())} disabled={!houseId || !canAdd}>
+                      return (
+                        <div key={i} className={`min-h-[200px] flex flex-col group/day ${isToday ? 'bg-primary/[0.02]' : ''}`}>
+                          <div 
+                            className={`p-2 border-b border-gray-100 transition-colors ${isToday ? 'bg-primary/5' : 'bg-gray-50/50'}`}
+                          >
+                            <div className="flex items-start justify-between">
+                              <div className="text-center flex-1">
+                                <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight">{format(day, 'EEE')}</div>
+                                <div className={`size-7 mx-auto flex items-center justify-center rounded-full text-sm font-bold mt-0.5 ${isToday ? 'bg-primary text-white' : 'text-gray-900'}`}>
+                                  {format(day, 'd')}
+                                </div>
+                              </div>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="size-6 opacity-0 group-hover/day:opacity-100 transition-opacity -mr-1"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAddEvent(day);
+                                }}
+                              >
+                                <Plus className="size-3 text-primary" />
+                              </Button>
+                            </div>
+                          </div>
+                          <div className="flex-1 p-1.5 space-y-1.5 overflow-y-auto max-h-[400px]">
+                            {dayEvents.length === 0 ? (
+                              <div className="h-full min-h-[100px] flex items-center justify-center italic text-[10px] text-muted-foreground/30">
+                                No events
+                              </div>
+                            ) : (
+                              dayEvents.map(event => (
+                                <div 
+                                  key={event.id || event.tempId}
+                                  onClick={() => handleEditEvent(event)}
+                                  className={`p-2 rounded-lg border text-left cursor-pointer transition-all hover:shadow-sm hover:scale-[1.02] active:scale-[0.98] ${
+                                    event.tempId ? 'bg-primary/5 border-primary/20' : 
+                                    pendingChanges?.calendarEvents.toDelete.includes(event.id) ? 'opacity-40 bg-destructive/5' :
+                                    'bg-white border-gray-100'
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-1.5 mb-1">
+                                    <div className={`size-1.5 rounded-full bg-${getTypeColor(event.type)}-500`} />
+                                    <span className="text-[10px] font-bold text-gray-900 truncate leading-none">{event.title}</span>
+                                  </div>
+                                  {event.start_time && (
+                                    <div className="text-[9px] text-muted-foreground font-medium flex items-center gap-1">
+                                      <Clock className="size-2.5" />
+                                      {event.start_time}
+                                    </div>
+                                  )}
+                                  <div className="mt-1 flex flex-wrap gap-1">
+                                    <Badge variant="outline" className={`text-[8px] h-3.5 px-1 border-${getStatusColor(event.status)}-200 text-${getStatusColor(event.status)}-700 bg-${getStatusColor(event.status)}-50 uppercase font-bold`}>
+                                      {event.status}
+                                    </Badge>
+                                  </div>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : viewMode === 'day' ? (
+                  <div className="p-4 flex flex-col gap-4 min-h-[300px]">
+                    <div className="flex items-center justify-between border-b pb-2">
+                      <h3 className="font-bold text-lg">{format(currentDate, 'EEEE, MMMM d')}</h3>
+                      <Button variant="outline" size="sm" onClick={() => handleAddEvent(currentDate)}>
                         <Plus className="size-4 me-1.5" />
                         Add Event
                       </Button>
                     </div>
-                  </div>
-                ) : (
-                  getEventsForPeriod.map((event) => {
-                    const isPendingAdd = 'tempId' in event;
-                    const isPendingUpdate = pendingChanges?.calendarEvents.toUpdate.some(e => e.id === event.id);
-                    const isPendingDelete = pendingChanges?.calendarEvents.toDelete.includes(event.id);
-                    const participantName = getParticipantName(event);
-                    const staffName = getStaffName(event);
-
-                    return (
-                      <div
-                        key={event.id || event.tempId}
-                        className={`border rounded-lg p-3 ${
-                          isPendingAdd ? 'bg-primary/5 border-primary/20' :
-                          isPendingDelete ? 'opacity-50 bg-destructive/5 border-destructive/20' :
-                          isPendingUpdate ? 'bg-warning/5 border-warning/20' : ''
-                        }`}
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <h4 className={`font-medium ${isPendingDelete ? 'line-through' : ''}`}>
-                                {event.title}
-                              </h4>
-                              <Badge variant="outline" className={`text-xs border-${getTypeColor(event.type)}-500 text-${getTypeColor(event.type)}-700`}>
-                                {event.type}
-                              </Badge>
-                              <Badge variant="outline" className={`text-xs border-${getStatusColor(event.status)}-500 text-${getStatusColor(event.status)}-700`}>
-                                {event.status}
-                              </Badge>
-                              {isPendingAdd && (
-                                <span className="text-xs text-primary flex items-center gap-1">
-                                  <Clock className="size-3" />
-                                  Pending add
-                                </span>
-                              )}
-                              {isPendingUpdate && (
-                                <span className="text-xs text-warning flex items-center gap-1">
-                                  <Clock className="size-3" />
-                                  Pending update
-                                </span>
-                              )}
-                              {isPendingDelete && (
-                                <span className="text-xs text-destructive flex items-center gap-1">
-                                  <Clock className="size-3" />
-                                  Pending deletion
-                                </span>
-                              )}
-                            </div>
-                            
-                            <div className="space-y-1 text-sm text-muted-foreground">
-                              <div className="flex items-center gap-2">
-                                <Calendar className="size-4" />
-                                {format(new Date(event.event_date), 'MMM d, yyyy')}
+                    <div className="space-y-3">
+                      {getEventsForPeriod.length === 0 ? (
+                        <div className="py-12 text-center text-muted-foreground italic">No events for this day</div>
+                      ) : (
+                        getEventsForPeriod.map(event => (
+                          <div 
+                            key={event.id || event.tempId}
+                            onClick={() => handleEditEvent(event)}
+                            className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 hover:border-primary/30 hover:bg-primary/[0.02] cursor-pointer transition-all group"
+                          >
+                            <div className={`w-1 self-stretch rounded-full bg-${getTypeColor(event.type)}-500`} />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h4 className="font-bold text-gray-900">{event.title}</h4>
+                                <Badge variant="outline" className={`text-[10px] border-${getStatusColor(event.status)}-200 text-${getStatusColor(event.status)}-700 bg-${getStatusColor(event.status)}-50`}>{event.status}</Badge>
+                              </div>
+                              <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
                                 {event.start_time && (
-                                  <>
-                                    <Clock className="size-4 ml-2" />
-                                    {event.start_time}
-                                    {event.end_time && ` - ${event.end_time}`}
-                                  </>
+                                  <div className="flex items-center gap-1.5">
+                                    <Clock className="size-3.5" />
+                                    {event.start_time} {event.end_time && `- ${event.end_time}`}
+                                  </div>
+                                )}
+                                {event.location && (
+                                  <div className="flex items-center gap-1.5">
+                                    <MapPin className="size-3.5" />
+                                    {event.location}
+                                  </div>
                                 )}
                               </div>
+                              {event.description && <p className="mt-2 text-xs text-gray-600 line-clamp-2">{event.description}</p>}
+                            </div>
+                            <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Edit className="size-4" />
+                            </Button>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  // Month View - Placeholder for now, but better than before
+                  <div className="p-8 text-center text-muted-foreground">
+                    <CalendarDays className="size-12 mx-auto mb-2 opacity-20" />
+                    <p className="font-medium">Monthly Grid View</p>
+                    <p className="text-sm">Currently showing {getEventsForPeriod.length} events in the list below</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Collapsible List of All Events */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 px-1">
+                  <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider">Event Details</h3>
+                  <div className="h-px flex-1 bg-gray-100" />
+                </div>
+                {getEventsForPeriod.length === 0 ? (
+                  <div className="text-center py-8 bg-gray-50/50 rounded-xl border border-dashed border-gray-200">
+                    <p className="text-sm text-muted-foreground">No events scheduled for this period</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-3">
+                    {getEventsForPeriod.sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime()).map((event) => {
+                      const isPendingAdd = 'tempId' in event;
+                      const isPendingUpdate = pendingChanges?.calendarEvents.toUpdate.some(e => e.id === event.id);
+                      const isPendingDelete = pendingChanges?.calendarEvents.toDelete.includes(event.id);
+                      const participantName = getParticipantName(event);
+                      const staffName = getStaffName(event);
+
+                      return (
+                        <div
+                          key={event.id || event.tempId}
+                          className={`border rounded-xl p-4 transition-all hover:shadow-sm ${
+                            isPendingAdd ? 'bg-primary/5 border-primary/20' :
+                            isPendingDelete ? 'opacity-50 bg-destructive/5 border-destructive/20' :
+                            isPendingUpdate ? 'bg-warning/5 border-warning/20' : 'bg-background border-gray-100'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                <h4 className={`font-bold text-gray-900 ${isPendingDelete ? 'line-through' : ''}`}>
+                                  {event.title}
+                                </h4>
+                                <Badge variant="outline" className={`text-[10px] border-${getTypeColor(event.type)}-200 text-${getTypeColor(event.type)}-700 bg-${getTypeColor(event.type)}-50 uppercase`}>
+                                  {event.type}
+                                </Badge>
+                                <Badge variant="outline" className={`text-[10px] border-${getStatusColor(event.status)}-200 text-${getStatusColor(event.status)}-700 bg-${getStatusColor(event.status)}-50 uppercase`}>
+                                  {event.status}
+                                </Badge>
+                                {isPendingAdd && <Badge variant="secondary" className="text-[10px] bg-primary/10 text-primary border-0">PENDING ADD</Badge>}
+                                {isPendingUpdate && <Badge variant="secondary" className="text-[10px] bg-warning/10 text-warning border-0">PENDING UPDATE</Badge>}
+                                {isPendingDelete && <Badge variant="secondary" className="text-[10px] bg-destructive/10 text-destructive border-0">PENDING DELETE</Badge>}
+                              </div>
                               
-                              {event.location && (
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-xs text-muted-foreground">
                                 <div className="flex items-center gap-2">
-                                  <MapPin className="size-4" />
-                                  {event.location}
+                                  <Calendar className="size-3.5 text-gray-400" />
+                                  <span className="font-medium text-gray-700">{format(new Date(event.event_date), 'MMMM d, yyyy')}</span>
                                 </div>
+                                {event.start_time && (
+                                  <div className="flex items-center gap-2">
+                                    <Clock className="size-3.5 text-gray-400" />
+                                    <span className="font-medium text-gray-700">{event.start_time} {event.end_time && `- ${event.end_time}`}</span>
+                                  </div>
+                                )}
+                                {event.location && (
+                                  <div className="flex items-center gap-2">
+                                    <MapPin className="size-3.5 text-gray-400" />
+                                    <span className="truncate">{event.location}</span>
+                                  </div>
+                                )}
+                                {participantName && (
+                                  <div className="flex items-center gap-2">
+                                    <Users className="size-3.5 text-gray-400" />
+                                    <span>Participant: <span className="font-medium text-gray-700">{participantName}</span></span>
+                                  </div>
+                                )}
+                              </div>
+                              {event.description && <p className="mt-3 text-xs text-gray-600 border-l-2 border-gray-100 pl-3">{event.description}</p>}
+                            </div>
+                            
+                            <div className="flex gap-1 ml-4 shrink-0">
+                              {!isPendingDelete && (
+                                <>
+                                  <Button variant="ghost" size="icon" className="size-8" onClick={() => handleEditEvent(event)}>
+                                    <Edit className="size-3.5" />
+                                  </Button>
+                                  {canDelete && (
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="size-8 text-destructive"
+                                      onClick={() => handleDeleteEvent(event)}
+                                    >
+                                      <Trash2 className="size-3.5" />
+                                    </Button>
+                                  )}
+                                </>
                               )}
-                              
-                              {participantName && (
-                                <div className="flex items-center gap-2">
-                                  <Users className="size-4" />
-                                  Participant: {participantName}
-                                </div>
-                              )}
-                              
-                              {staffName && (
-                                <div className="flex items-center gap-2">
-                                  <Users className="size-4" />
-                                  Staff: {staffName}
-                                </div>
-                              )}
-                              
-                              {event.description && (
-                                <div>{event.description}</div>
+                              {(isPendingAdd || isPendingUpdate || isPendingDelete) && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 text-[10px] font-bold"
+                                  onClick={() => {
+                                    if (isPendingAdd) handleCancelPendingAdd(event.tempId!);
+                                    else if (isPendingUpdate) handleCancelPendingUpdate(event.id);
+                                    else handleCancelPendingDelete(event.id);
+                                  }}
+                                >
+                                  UNDO
+                                </Button>
                               )}
                             </div>
                           </div>
-                          
-                          <div className="flex gap-1 ml-2">
-                            {!isPendingDelete && (
-                              <>
-                                <Button variant="ghost" size="sm" onClick={() => handleEditEvent(event)}>
-                                  <Edit className="size-4" />
-                                </Button>
-                                {canDelete && (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="text-destructive"
-                                    onClick={() => handleDeleteEvent(event)}
-                                  >
-                                    <Trash2 className="size-4" />
-                                  </Button>
-                                )}
-                              </>
-                            )}
-                            {isPendingAdd && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleCancelPendingAdd(event.tempId!)}
-                              >
-                                Remove
-                              </Button>
-                            )}
-                            {isPendingUpdate && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleCancelPendingUpdate(event.id)}
-                              >
-                                Undo
-                              </Button>
-                            )}
-                            {isPendingDelete && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleCancelPendingDelete(event.id)}
-                              >
-                                Undo
-                              </Button>
-                            )}
-                          </div>
                         </div>
-                      </div>
-                    );
-                  })
+                      );
+                    })}
+                  </div>
                 )}
               </div>
             </div>

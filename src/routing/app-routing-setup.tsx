@@ -120,6 +120,7 @@ import {
   AdminTimesheetsPage,
   AdminLeaveRequestsPage,
 } from '@/pages/employees';
+import { ChecklistMasterPage } from '@/pages/admin/checklists/checklist-master-page';
 
 export function AppRoutingSetup() {
   return (
@@ -318,6 +319,10 @@ export function AppRoutingSetup() {
             <Route
               path="/employees/leave-requests"
               element={<AdminLeaveRequestsPage />}
+            />
+            <Route
+              path="/admin/checklist-templates"
+              element={<ChecklistMasterPage />}
             />
             <Route
               path="/houses/profiles"

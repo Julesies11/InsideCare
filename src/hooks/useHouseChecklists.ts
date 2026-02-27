@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 
 export interface HouseChecklistItem {
@@ -23,6 +23,11 @@ export interface HouseChecklist {
   created_at: string;
   updated_at: string;
   items?: HouseChecklistItem[];
+  latest_submission?: {
+    id: string;
+    status: string;
+    updated_at: string;
+  };
 }
 
 export function useHouseChecklists(houseId?: string) {
@@ -30,60 +35,63 @@ export function useHouseChecklists(houseId?: string) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchHouseChecklists = useCallback(async () => {
     if (!houseId) {
       setHouseChecklists([]);
       setLoading(false);
       return;
     }
 
-    const fetchHouseChecklists = async () => {
-      try {
-        setLoading(true);
-        
-        const { data, error } = await supabase
-          .from('house_checklists')
-          .select(`
-            *,
-            house_checklist_items (
-              id,
-              title,
-              instructions,
-              priority,
-              is_required,
-              sort_order,
-              created_at,
-              updated_at
-            )
-          `)
-          .eq('house_id', houseId)
-          .order('created_at', { ascending: false });
+    try {
+      setLoading(true);
+      
+      // Fetch checklists with items
+      const { data: checklists, error: clError } = await supabase
+        .from('house_checklists')
+        .select(`
+          *,
+          house_checklist_items (*)
+        `)
+        .eq('house_id', houseId)
+        .order('created_at', { ascending: false });
 
-        if (error) throw error;
+      if (clError) throw clError;
 
-        // Sort items within each checklist
-        const checklistsWithSortedItems = (data || []).map(checklist => ({
-          ...checklist,
-          items: (checklist.house_checklist_items || []).sort((a, b) => a.sort_order - b.sort_order)
-        }));
+      // Fetch latest in_progress submissions for these checklists in this house
+      const { data: submissions, error: subError } = await supabase
+        .from('house_checklist_submissions')
+        .select('id, checklist_id, status, updated_at')
+        .eq('house_id', houseId)
+        .eq('status', 'in_progress');
 
-        setHouseChecklists(checklistsWithSortedItems);
-        setError(null);
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to fetch house checklists';
-        console.error('Error fetching house checklists:', err);
-        setError(errorMessage);
-      } finally {
-        setLoading(false);
-      }
-    };
+      if (subError) throw subError;
 
-    fetchHouseChecklists();
+      // Combine data
+      const combined = (checklists || []).map(cl => ({
+        ...cl,
+        items: (cl.house_checklist_items || []).sort((a: any, b: any) => a.sort_order - b.sort_order),
+        latest_submission: submissions?.find(s => s.checklist_id === cl.id)
+      }));
+
+      setHouseChecklists(combined);
+      setError(null);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch house checklists';
+      console.error('Error fetching house checklists:', err);
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   }, [houseId]);
+
+  useEffect(() => {
+    fetchHouseChecklists();
+  }, [fetchHouseChecklists]);
 
   return {
     houseChecklists,
     loading,
     error,
+    refresh: fetchHouseChecklists
   };
 }
