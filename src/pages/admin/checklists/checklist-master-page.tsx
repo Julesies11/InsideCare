@@ -13,6 +13,7 @@ import { useChecklistMaster, ChecklistMaster } from '@/hooks/useChecklistMaster'
 import { Sortable, SortableItem, SortableItemHandle } from '@/components/ui/sortable';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { handleSupabaseError } from '@/errors/error-handler';
 import { Toolbar, ToolbarActions, ToolbarBreadcrumbs, ToolbarHeading } from '@/layouts/demo1/components/toolbar';
 
 export function ChecklistMasterPage() {
@@ -73,7 +74,7 @@ export function ChecklistMasterPage() {
       toast.success('Template deleted successfully');
       refresh();
     } catch (error: any) {
-      toast.error('Failed to delete template', { description: error.message });
+      handleSupabaseError(error, 'Failed to delete template');
     }
   };
 
@@ -146,8 +147,7 @@ export function ChecklistMasterPage() {
       setShowEditDialog(false);
       refresh();
     } catch (error: any) {
-      console.error('Error saving template:', error);
-      toast.error('Failed to save template', { description: error.message });
+      handleSupabaseError(error, 'Failed to save template');
     }
   };
 

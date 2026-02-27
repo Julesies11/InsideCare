@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { logActivity } from '@/lib/activity-logger';
+import { handleSupabaseError } from '@/errors/error-handler';
 
 export function HousesProfilesContent() {
   const navigate = useNavigate();
@@ -38,8 +39,7 @@ export function HousesProfilesContent() {
       // Navigate to the detail page
       navigate(`/houses/detail/${data.id}`);
     } catch (error: any) {
-      console.error('Error creating house:', error);
-      toast.error('Failed to create house', { description: error.message });
+      handleSupabaseError(error, 'Failed to create house');
     }
   };
 

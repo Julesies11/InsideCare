@@ -19,7 +19,7 @@ import { HousePendingChanges, emptyHousePendingChanges } from '@/models/house-pe
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { logActivity, detectChanges } from '@/lib/activity-logger';
-import { parseSupabaseError } from '@/lib/error-parser';
+import { handleSupabaseError } from '@/errors/error-handler';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -169,8 +169,7 @@ export function HouseDetailContent({
         .single();
 
       if (houseError) {
-        const parsedError = parseSupabaseError(houseError);
-        toast.error(parsedError.title, { description: parsedError.description });
+        handleSupabaseError(houseError, 'Failed to save house details');
         return;
       }
 
@@ -790,8 +789,7 @@ export function HouseDetailContent({
         onPendingChangesChange(emptyHousePendingChanges);
       }
     } catch (error: any) {
-      console.error('Error saving house:', error);
-      toast.error('Failed to save house', { description: error.message });
+      handleSupabaseError(error, 'Error saving house details');
     } finally {
       if (onSavingChange) onSavingChange(false);
     }

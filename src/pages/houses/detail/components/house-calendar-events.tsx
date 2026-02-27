@@ -328,10 +328,6 @@ export function HouseCalendarEvents({
                   <SelectItem value="month">Month</SelectItem>
                 </SelectContent>
               </Select>
-              <Button variant="secondary" size="sm" className="border border-gray-300 h-9" onClick={() => handleAddEvent(new Date())} disabled={!houseId || !canAdd}>
-                <Plus className="size-4 me-1.5" />
-                Add Event
-              </Button>
             </div>
           </div>
           <div className="flex items-center justify-between bg-muted/30 p-2 rounded-lg mt-2">

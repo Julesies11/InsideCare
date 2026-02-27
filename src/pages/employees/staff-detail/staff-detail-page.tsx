@@ -7,6 +7,7 @@ import { ArrowLeft, Mail, CheckCircle } from 'lucide-react';
 import { StaffDetailContent } from './staff-detail-content.tsx';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { handleError } from '@/errors/error-handler';
 import {
   Toolbar,
   ToolbarActions,
@@ -73,7 +74,7 @@ export function StaffDetailPage() {
       setStaffAuthUserId(result.authUserId);
       toast.success('Invite sent! The staff member will receive an email to set their password.');
     } catch (err: any) {
-      toast.error(err.message || 'Failed to send invite');
+      handleError(err, { category: 'network', title: 'Invite Failed' });
     } finally {
       setInviting(false);
     }

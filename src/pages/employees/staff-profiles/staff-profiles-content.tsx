@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { logActivity } from '@/lib/activity-logger';
+import { handleSupabaseError } from '@/errors/error-handler';
 
 export function StaffProfilesContent() {
   const navigate = useNavigate();
@@ -37,8 +38,7 @@ export function StaffProfilesContent() {
       // Navigate to the detail page
       navigate(`/employees/staff-detail/${data.id}`);
     } catch (error: any) {
-      console.error('Error creating staff member:', error);
-      toast.error('Failed to create staff member', { description: error.message });
+      handleSupabaseError(error, 'Failed to create staff member');
     }
   };
 

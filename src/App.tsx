@@ -10,6 +10,7 @@ import { QueryProvider } from './providers/query-provider';
 import { SettingsProvider } from './providers/settings-provider';
 import { ThemeProvider } from './providers/theme-provider';
 import { TooltipsProvider } from './providers/tooltips-provider';
+import { GlobalErrorBoundary } from '@/errors/global-error-boundary';
 
 const { BASE_URL } = import.meta.env;
 
@@ -17,27 +18,29 @@ export function App() {
   const queryClient = new QueryClient();
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <SettingsProvider>
-          <ThemeProvider>
-            <I18nProvider>
-                <TooltipsProvider>
-                  <QueryProvider>
-                    <LoadingBarContainer>
-                      <BrowserRouter basename={BASE_URL}>
-                        <Toaster />
-                        <ModulesProvider>
-                          <AppRouting />
-                        </ModulesProvider>
-                      </BrowserRouter>
-                    </LoadingBarContainer>
-                  </QueryProvider>
-                </TooltipsProvider>
-            </I18nProvider>
-          </ThemeProvider>
-        </SettingsProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+    <GlobalErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <SettingsProvider>
+            <ThemeProvider>
+              <I18nProvider>
+                  <TooltipsProvider>
+                    <QueryProvider>
+                      <LoadingBarContainer>
+                        <BrowserRouter basename={BASE_URL}>
+                          <Toaster />
+                          <ModulesProvider>
+                            <AppRouting />
+                          </ModulesProvider>
+                        </BrowserRouter>
+                      </LoadingBarContainer>
+                    </QueryProvider>
+                  </TooltipsProvider>
+              </I18nProvider>
+            </ThemeProvider>
+          </SettingsProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </GlobalErrorBoundary>
   );
 }
