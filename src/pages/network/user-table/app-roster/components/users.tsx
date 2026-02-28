@@ -200,7 +200,7 @@ const data: IData[] = [
     phone: '(213) 555-3987',
     branch: 'Los Angeles, CA',
     logos: ['slack.svg', 'twitch-purple.svg'],
-    labels: ['Project Manager', 'Organizer'],
+    labels: ['Project Manager', 'Organiser'],
     switch: true,
   },
   {

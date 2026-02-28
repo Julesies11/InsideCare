@@ -28,7 +28,7 @@ export function AccountTeamsStarterContent() {
             Enhance team formation and management with easy-to-use tools for
             communication,
             <br />
-            task organization, and progress tracking, all in one place.
+            task organisation, and progress tracking, all in one place.
           </Fragment>
         }
         engage={{

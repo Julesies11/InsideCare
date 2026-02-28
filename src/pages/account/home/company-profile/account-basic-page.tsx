@@ -25,7 +25,7 @@ export function AccountCompanyProfilePage() {
             <ToolbarHeading>
               <ToolbarPageTitle />
               <ToolbarDescription>
-                Central Hub for Personal Customization
+                Central Hub for Personal Customisation
               </ToolbarDescription>
             </ToolbarHeading>
             <ToolbarActions>

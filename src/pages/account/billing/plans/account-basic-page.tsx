@@ -21,7 +21,7 @@ export function AccountPlansPage() {
           <Toolbar>
             <ToolbarHeading
               title="Plans"
-              description="Central Hub for Personal Customization"
+              description="Central Hub for Personal Customisation"
             />
             <ToolbarActions>
               <Button variant="outline">View Billing</Button>

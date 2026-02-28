@@ -74,9 +74,9 @@ export function ReportUserDialog({
         checked: false,
       },
       {
-        name: 'Off bumble behavior',
+        name: 'Off bumble behaviour',
         description:
-          'This person has engaged in behavior that is abusive, bullying',
+          'This person has engaged in behaviour that is abusive, bullying',
         checked: false,
       },
       {

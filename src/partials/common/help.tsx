@@ -6,7 +6,7 @@ export function Help() {
     <div className="grid lg:grid-cols-2 gap-5 lg:gap-7.5">
       <Engage
         title="Questions ?"
-        description="Visit our Help Center for detailed assistance on billing, payments, and subscriptions."
+        description="Visit our Help Centre for detailed assistance on billing, payments, and subscriptions."
         image={
           <>
             <img
@@ -21,7 +21,7 @@ export function Help() {
             />
           </>
         }
-        more={{ title: 'Go to Help Center', url: '#' }}
+        more={{ title: 'Go to Help Centre', url: '#' }}
       />
       <Engage
         title="Contact Support"

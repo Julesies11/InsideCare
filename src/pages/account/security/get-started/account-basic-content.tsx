@@ -26,7 +26,7 @@ export function AccountSecurityGetStartedContent() {
     {
       icon: Settings,
       title: 'Privacy Settings',
-      desc: 'Customize Your Privacy with User-Controlled Settings and Preferences.',
+      desc: 'Customise Your Privacy with User-Controlled Settings and Preferences.',
       path: '/account/security/privacy-settings',
     },
     {

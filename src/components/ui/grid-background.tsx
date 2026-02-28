@@ -147,13 +147,13 @@ function GridBackground({
                     // Position exactly on the horizontal grid line
                     top: `${horizontalPosition}%`,
                     left: beam.startPosition === 'start' ? '-12px' : 'calc(100% + 12px)',
-                    transform: 'translateY(-50%)', // Center on the line
+                    transform: 'translateY(-50%)', // Centre on the line
                   }
                 : {
                     // Position exactly on the vertical grid line
                     left: `${verticalPosition}%`,
                     top: beam.startPosition === 'start' ? '-12px' : 'calc(100% + 12px)',
-                    transform: 'translateX(-50%)', // Center on the line
+                    transform: 'translateX(-50%)', // Centre on the line
                   }),
             }}
             initial={{

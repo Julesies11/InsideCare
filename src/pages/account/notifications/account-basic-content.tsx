@@ -22,7 +22,7 @@ export function AccountNotificationsContent() {
       icon: MessageSquareText,
       title: 'Effective Communication: Instant Notification Tools',
       summary:
-        'Ensure timely communication with our instant notification tools. Customize alerts to stay ahead in real-time collaboration.',
+        'Ensure timely communication with our instant notification tools. Customise alerts to stay ahead in real-time collaboration.',
       path: '#',
     },
     {

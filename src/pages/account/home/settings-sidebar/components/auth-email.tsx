@@ -42,7 +42,7 @@ const AuthEmail = () => {
               </div>
               <span className="form-info text-foreground text-sm font-normal">
                 Input your email, designate as primary for priority updates.
-                Toggle to seamlessly customize your communication preferences
+                Toggle to seamlessly customise your communication preferences
               </span>
             </div>
           </div>

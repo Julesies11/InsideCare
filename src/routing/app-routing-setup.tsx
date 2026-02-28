@@ -1,3 +1,7 @@
+import { Fragment } from 'react';
+import {
+  Toolbar, ToolbarHeading, ToolbarPageTitle, ToolbarDescription,
+} from '@/partials/common/toolbar';
 import { AuthRouting } from '@/auth/auth-routing';
 import { RequireAuth, RequireAdmin, RequireStaff } from '@/auth/require-auth';
 import { ErrorRouting } from '@/errors/error-routing';

@@ -25,7 +25,7 @@ export function AccountSettingsSidebarPage() {
             <ToolbarHeading>
               <ToolbarPageTitle />
               <ToolbarDescription>
-                Intuitive Access to In-Depth Customization
+                Intuitive Access to In-Depth Customisation
               </ToolbarDescription>
             </ToolbarHeading>
             <ToolbarActions>

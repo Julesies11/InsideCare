@@ -190,7 +190,7 @@ const data: IData[] = [
       datetime: '16 Jan, 2024, 11:05:33 AM',
     },
     details: {
-      title: 'Database Optimization',
+      title: 'Database Optimisation',
       pages: '15',
       media: '60',
     },
@@ -346,7 +346,7 @@ const data: IData[] = [
       datetime: '16 Jan, 2024, 11:05:33 AM',
     },
     details: {
-      title: 'Database Optimization',
+      title: 'Database Optimisation',
       pages: '15',
       media: '60',
     },

@@ -44,7 +44,7 @@ export function Demo1LightSidebarPage() {
         <Toolbar>
           <ToolbarHeading
             title="Dashboard"
-            description="Central Hub for Personal Customization"
+            description="Central Hub for Personal Customisation"
           />
           <ToolbarActions>
             <Popover open={isOpen} onOpenChange={setIsOpen}>

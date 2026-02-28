@@ -145,7 +145,7 @@ const Projects2 = () => {
     {
       logo: 'google-analytics.svg',
       name: 'Golden Gate Analytics',
-      description: 'Note-taking and organization app',
+      description: 'Note-taking and organisation app',
       startDate: 'Mar 22',
       endDate: 'Dec 14',
       status: {

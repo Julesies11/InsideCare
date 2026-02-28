@@ -24,7 +24,17 @@ export function HouseDetailSidebar() {
     },
     {
       title: 'Checklists',
-      target: 'checklists',
+      target: 'checklists_section',
+      children: [
+        {
+          title: 'Checklist Setup',
+          target: 'checklists',
+        },
+        {
+          title: 'Checklist History',
+          target: 'checklist_history',
+        },
+      ]
     },
     {
       title: 'Forms',

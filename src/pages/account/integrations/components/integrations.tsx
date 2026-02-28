@@ -33,7 +33,7 @@ const Integrations = () => {
       path: '/account/billing/plans',
       name: 'Evernote',
       description:
-        'Organizes personal and professional documents, ideas, tasks.',
+        'Organises personal and professional documents, ideas, tasks.',
       actions: <Switch id="size-sm" size="sm" defaultChecked />,
     },
     {

@@ -25,7 +25,7 @@ const ApiCredentials = () => {
           <Button mode="link" asChild>
             <Link to="#">API authentication</Link>
           </Button>{' '}
-          and governing JavaScript customization
+          and governing JavaScript customisation
         </div>
         <div className="flex flex-col flex-wrap gap-4">
           <InputWrapper>

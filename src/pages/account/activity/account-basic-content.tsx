@@ -32,7 +32,7 @@ export function AccountActivityContent() {
         />
         <Engage
           title="Questions"
-          description="Visit our Help Center for detailed assistance on billing, payments, and subscriptions."
+          description="Visit our Help Centre for detailed assistance on billing, payments, and subscriptions."
           image={
             <Fragment>
               <img
@@ -48,7 +48,7 @@ export function AccountActivityContent() {
             </Fragment>
           }
           more={{
-            title: 'Go to Help Center',
+            title: 'Go to Help Centre',
             url: '#',
           }}
         />

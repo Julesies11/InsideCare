@@ -11,7 +11,8 @@ import { HouseParticipants } from './components/house-participants';
 import { HouseStaff } from './components/house-staff';
 import { HouseCalendarEvents } from './components/house-calendar-events';
 import { HouseDocuments } from './components/house-documents';
-import { HouseChecklists } from './components/house-checklists';
+import { HouseChecklistHistory } from './components/house-checklist-history';
+import { HouseChecklistSetup } from './components/house-checklist-setup';
 import { HouseForms } from './components/house-forms';
 import { HouseResources } from './components/house-resources';
 import { House } from '@/models/house';
@@ -390,6 +391,7 @@ export function HouseDetailContent({
               priority: item.priority,
               is_required: item.is_required,
               sort_order: item.sort_order,
+              master_item_id: item.master_item_id || null,
             }));
 
             const { error: itemsError } = await supabase
@@ -447,6 +449,7 @@ export function HouseDetailContent({
               priority: item.priority,
               is_required: item.is_required,
               sort_order: item.sort_order,
+              master_item_id: item.master_item_id || null,
             });
 
           if (error) {
@@ -465,6 +468,7 @@ export function HouseDetailContent({
               priority: item.priority,
               is_required: item.is_required,
               sort_order: item.sort_order,
+              master_item_id: item.master_item_id || null,
             })
             .eq('id', item.id);
 
@@ -954,14 +958,21 @@ export function HouseDetailContent({
             onPendingChangesChange={onPendingChangesChange}
           />
 
-          <HouseChecklists
-            key={`checklists-${refreshKeys.checklists}`}
-            houseId={id}
-            canAdd={canAdd}
-            canDelete={canDelete}
-            pendingChanges={pendingChanges}
-            onPendingChangesChange={onPendingChangesChange}
-          />
+          <div id="checklists_section" className="flex flex-col gap-5 lg:gap-7.5">
+            <HouseChecklistSetup
+              key={`checklists-${refreshKeys.checklists}`}
+              houseId={id}
+              canAdd={canAdd}
+              canDelete={canDelete}
+              pendingChanges={pendingChanges}
+              onPendingChangesChange={onPendingChangesChange}
+            />
+
+            <HouseChecklistHistory
+              houseId={id}
+              canAdd={canAdd}
+            />
+          </div>
 
           <HouseForms
             key={`forms-${refreshKeys.forms}`}

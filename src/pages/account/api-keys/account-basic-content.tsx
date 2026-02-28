@@ -29,9 +29,9 @@ export function AccountApiKeysContent() {
     },
     {
       icon: UsersRound,
-      title: 'Organizing Team Data: Efficient Roster Solutions',
+      title: 'Organising Team Data: Efficient Roster Solutions',
       summary:
-        'Organize your API data more with our detailed interface solutions. From quick setup guides to management, our tools are designed to streamline every step of your API data organization.',
+        'Organise your API data more with our detailed interface solutions. From quick setup guides to management, our tools are designed to streamline every step of your API data organisation.',
       path: '#',
     },
   ];

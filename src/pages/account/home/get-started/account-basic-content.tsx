@@ -81,7 +81,7 @@ export function AccountGetStartedContent() {
     {
       icon: LineChart,
       title: 'Activity',
-      desc: 'Central Hub for Personal Customization.',
+      desc: 'Central Hub for Personal Customisation.',
       path: '/account/activity',
     },
   ];

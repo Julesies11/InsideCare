@@ -29,7 +29,7 @@ const Demo1DarkSidebarPage = () => {
         <Toolbar>
           <ToolbarHeading
             title="Dashboard"
-            description="Central Hub for Personal Customization"
+            description="Central Hub for Personal Customisation"
           />
           <ToolbarActions>
             <Popover>

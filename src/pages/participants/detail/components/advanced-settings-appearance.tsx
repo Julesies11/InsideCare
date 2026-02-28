@@ -77,7 +77,7 @@ const AdvancedSettingsAppearance = ({
         <div className="mb-5">
           <h3 className="text-base font-medium text-mono">Theme mode</h3>
           <span className="text-sm text-secondary-foreground">
-            Select or customize your ui theme
+            Select or customise your ui theme
           </span>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-7.5">

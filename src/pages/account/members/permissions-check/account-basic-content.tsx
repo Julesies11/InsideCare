@@ -14,16 +14,16 @@ export function AccountPermissionsCheckContent() {
   const posts: HighlightedPostsItems = [
     {
       icon: UserCog,
-      title: 'Optimizing Team Coordination: Role Assignment Tools',
+      title: 'Optimising Team Coordination: Role Assignment Tools',
       summary:
         'Empower your team with dynamic role assignment capabilities. Utilize our intuitive tools to assign and manage user permissions effectively. Explore resources and best practices to maximize team efficiency.',
       path: '#',
     },
     {
       icon: ToggleRight,
-      title: 'Refining Access Control: Permissions Customization',
+      title: 'Refining Access Control: Permissions Customisation',
       summary:
-        "Tailor user experiences with customizable permission settings. Our detailed guides and resources provide streamlined processes for managing access levels. Ensure secure and precise control over your workspace's functionalities.",
+        "Tailor user experiences with customisable permission settings. Our detailed guides and resources provide streamlined processes for managing access levels. Ensure secure and precise control over your workspace's functionalities.",
       path: '#',
     },
     {

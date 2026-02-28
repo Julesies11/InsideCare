@@ -28,9 +28,9 @@ export function AccountAppearanceContent() {
     },
     {
       icon: MousePointer,
-      title: 'Media Handling: Autoplay Videos Customization Options',
+      title: 'Media Handling: Autoplay Videos Customisation Options',
       summary:
-        'Customize your video engagement experience with user-centric autoplay settings that align with your system preferences or manual selection for a tailored approach.',
+        'Customise your video engagement experience with user-centric autoplay settings that align with your system preferences or manual selection for a tailored approach.',
       path: '#',
     },
     {

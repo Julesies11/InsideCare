@@ -25,7 +25,7 @@ export function AccountTeamInfoPage() {
             <ToolbarHeading>
               <ToolbarPageTitle />
               <ToolbarDescription>
-                Efficient team organization with real-time updates
+                Efficient team organisation with real-time updates
               </ToolbarDescription>
             </ToolbarHeading>
             <ToolbarActions>

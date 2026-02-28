@@ -69,7 +69,7 @@ const PrivacySettings = () => {
           </Badge>
         </Fragment>
       ),
-      description: 'Customize how ads are targeted to your interests.',
+      description: 'Customise how ads are targeted to your interests.',
       actions: <Button variant="outline">Setup</Button>,
     },
     {

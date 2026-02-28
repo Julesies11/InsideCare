@@ -121,14 +121,16 @@ export const MENU_SIDEBAR: MenuConfig = [
       },
       { title: 'Timesheets', path: '/employees/timesheets' },
       { title: 'Leave Requests', path: '/employees/leave-requests' },
-      { title: 'Checklist Templates', path: '/admin/checklist-templates' },
     ],
   },
   {
     title: 'Houses',
     icon: House,
-    path: '/houses/profiles',
     roles: ['admin'],
+    children: [
+      { title: 'House Profiles', path: '/houses/profiles' },
+      { title: 'Checklist Templates', path: '/admin/checklist-templates' },
+    ],
   },
   {
     title: 'Roster Board',

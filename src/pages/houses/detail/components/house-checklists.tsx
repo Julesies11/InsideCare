@@ -239,10 +239,34 @@ export function HouseChecklists({
           itemNotes[item.item_id] = item.note || '';
         });
 
+        // Fetch existing attachments for this submission
+        const { data: attachmentData } = await supabase
+          .from('house_checklist_item_attachments')
+          .select('*')
+          .eq('submission_id', data.id);
+
+        const attachments: Record<string, any[]> = {};
+        if (attachmentData) {
+          attachmentData.forEach(att => {
+            if (!attachments[att.item_id]) attachments[att.item_id] = [];
+            
+            // Get signed/public URL
+            const { data: urlData } = supabase.storage
+              .from('checklist-attachments')
+              .getPublicUrl(att.file_path);
+
+            attachments[att.item_id].push({
+              ...att,
+              file_path: urlData.publicUrl
+            });
+          });
+        }
+
         setActiveSubmission({
           id: data.id,
           completedItems,
-          itemNotes
+          itemNotes,
+          attachments
         });
       } else {
         setActiveSubmission(null);
@@ -336,6 +360,71 @@ export function HouseChecklists({
     if (itemsError) {
       console.error('Error upserting submission items:', itemsError);
       throw itemsError;
+    }
+
+    // Step 3: Handle attachment deletions
+    if (results.toDeleteAttachments && results.toDeleteAttachments.length > 0) {
+      console.log('Processing attachment deletions:', results.toDeleteAttachments);
+      for (const attachmentId of results.toDeleteAttachments) {
+        // Get file path first
+        const { data: attData } = await supabase
+          .from('house_checklist_item_attachments')
+          .select('file_path')
+          .eq('id', attachmentId)
+          .single();
+
+        if (attData?.file_path) {
+          // Delete from storage
+          await supabase.storage
+            .from('checklist-attachments')
+            .remove([attData.file_path]);
+        }
+
+        // Delete from DB
+        await supabase
+          .from('house_checklist_item_attachments')
+          .delete()
+          .eq('id', attachmentId);
+      }
+    }
+
+    // Step 4: Handle file uploads
+    if (results.queuedAttachments) {
+      console.log('Processing queued attachments...');
+      for (const itemId in results.queuedAttachments) {
+        const files = results.queuedAttachments[itemId];
+        for (const queued of files) {
+          const file = queued.file;
+          const filePath = `${submissionId}/${itemId}/${Date.now()}-${file.name}`;
+          
+          console.log(`Uploading file: ${file.name} to ${filePath}`);
+          const { error: uploadError } = await supabase.storage
+            .from('checklist-attachments')
+            .upload(filePath, file);
+
+          if (uploadError) {
+            console.error(`Upload failed for ${file.name}:`, uploadError);
+            continue; // Continue with other files even if one fails
+          }
+
+          // Record attachment in database
+          const { error: dbError } = await supabase
+            .from('house_checklist_item_attachments')
+            .insert({
+              submission_id: submissionId,
+              item_id: itemId,
+              file_name: file.name,
+              file_path: filePath,
+              file_size: file.size,
+              mime_type: file.type,
+              uploaded_by: staffId || null
+            });
+
+          if (dbError) {
+            console.error(`Database record failed for ${file.name}:`, dbError);
+          }
+        }
+      }
     }
 
     console.log('persistExecution completed successfully');
@@ -714,9 +803,9 @@ export function HouseChecklists({
                       </div>
                     )}
                     <Button 
-                      variant={checklist.latest_submission?.status === 'in_progress' ? "primary" : "secondary"} 
+                      variant="secondary"
                       size="sm" 
-                      className="h-8 text-xs shadow-sm w-full mt-1"
+                      className="border border-gray-300 h-8 text-xs shadow-sm w-full mt-1"
                       onClick={() => handleStartExecution(checklist)}
                       disabled={isPendingAdd || isPendingUpdate || checklistItems.length === 0}
                     >
@@ -1037,7 +1126,8 @@ export function HouseChecklists({
                 }}
                 initialData={activeSubmission ? {
                   completedItems: activeSubmission.completedItems,
-                  itemNotes: activeSubmission.itemNotes
+                  itemNotes: activeSubmission.itemNotes,
+                  attachments: activeSubmission.attachments
                 } : undefined}
               />
             )}

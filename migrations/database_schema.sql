@@ -941,3 +941,39 @@ where
 create index IF not exists idx_timesheets_sick_shift on public.timesheets using btree (sick_shift) TABLESPACE pg_default
 where
   (sick_shift = true);
+
+  create table public.checklist_master (
+  id uuid not null default extensions.uuid_generate_v4 (),
+  name text not null,
+  frequency text not null,
+  description text null,
+  created_at timestamp with time zone null default now(),
+  updated_at timestamp with time zone null default now(),
+  constraint checklist_master_pkey primary key (id)
+) TABLESPACE pg_default;
+
+create index IF not exists idx_checklist_master_name on public.checklist_master using btree (name) TABLESPACE pg_default;
+
+create trigger update_checklist_master_updated_at BEFORE
+update on checklist_master for EACH row
+execute FUNCTION update_updated_at_column ();
+
+create table public.checklist_item_master (
+  id uuid not null default extensions.uuid_generate_v4 (),
+  master_id uuid not null,
+  title text not null,
+  instructions text null,
+  priority text null default 'medium'::text,
+  is_required boolean null default true,
+  sort_order integer null default 0,
+  created_at timestamp with time zone null default now(),
+  updated_at timestamp with time zone null default now(),
+  constraint checklist_item_master_pkey primary key (id),
+  constraint checklist_item_master_master_id_fkey foreign KEY (master_id) references checklist_master (id) on delete CASCADE
+) TABLESPACE pg_default;
+
+create index IF not exists idx_checklist_item_master_id on public.checklist_item_master using btree (master_id) TABLESPACE pg_default;
+
+create trigger update_checklist_item_master_updated_at BEFORE
+update on checklist_item_master for EACH row
+execute FUNCTION update_updated_at_column ();

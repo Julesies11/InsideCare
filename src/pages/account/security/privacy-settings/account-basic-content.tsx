@@ -15,9 +15,9 @@ export function AccountPrivacySettingsContent() {
   const posts: HighlightedPostsItems = [
     {
       icon: ToggleRight,
-      title: 'Fortifying Privacy Controls: Customization and Guidelines',
+      title: 'Fortifying Privacy Controls: Customisation and Guidelines',
       summary:
-        'Enhance your privacy framework with customizable settings. Understand and apply robust controls with our comprehensive guidelines to protect member data.',
+        'Enhance your privacy framework with customisable settings. Understand and apply robust controls with our comprehensive guidelines to protect member data.',
       path: '#',
     },
     {
