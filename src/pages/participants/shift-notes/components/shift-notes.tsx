@@ -43,7 +43,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
-import { ShiftNote, useShiftNotes } from '@/hooks/useShiftNotes';
+import { ShiftNote, useShiftNotes } from '@/hooks/use-shift-notes';
 import { useHouses } from '@/hooks/use-houses';
 import { format } from 'date-fns';
 import { Alert } from '@/components/ui/alert';

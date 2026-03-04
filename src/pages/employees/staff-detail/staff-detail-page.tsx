@@ -18,14 +18,14 @@ import {
 import { useSettings } from '@/providers/settings-provider';
 import { StaffPendingChanges, emptyStaffPendingChanges } from '@/models/staff-pending-changes';
 import { useDirtyTracker } from '@/hooks/useDirtyTracker';
-import { useStaff } from '@/hooks/useStaff';
+import { useStaff, useUpdateStaff } from '@/hooks/use-staff';
 
 export function StaffDetailPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { settings } = useSettings();
   const { user } = useAuth();
-  const { updateStaff } = useStaff();
+  const { mutateAsync: updateStaff } = useUpdateStaff();
   const [formData, setFormData] = useState<any>(null);
   const [originalData, setOriginalData] = useState<any>(null);
   const [pendingChanges, setPendingChanges] = useState<StaffPendingChanges>(emptyStaffPendingChanges);
@@ -57,21 +57,11 @@ export function StaffDetailPage() {
     }
     setInviting(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/invite-staff-user`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${session?.access_token}`,
-          },
-          body: JSON.stringify({ staffId: id, email: formData.email }),
-        },
-      );
-      const result = await res.json();
-      if (!res.ok) throw new Error(result.error || 'Invite failed');
-      setStaffAuthUserId(result.authUserId);
+      const { data, error } = await supabase.functions.invoke('invite-staff-user', {
+        body: { staffId: id, email: formData.email },
+      });
+      if (error) throw new Error(error.message || 'Invite failed');
+      setStaffAuthUserId(data.authUserId);
       toast.success('Invite sent! The staff member will receive an email to set their password.');
     } catch (err: any) {
       handleError(err, { category: 'network', title: 'Invite Failed' });

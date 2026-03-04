@@ -6,8 +6,7 @@ import { Sheet, SheetBody, SheetContent, SheetDescription, SheetFooter, SheetHea
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Plus, Download, Trash2, FileText, Clock } from 'lucide-react';
-import { useParticipantDocuments } from '@/hooks/useParticipantDocuments';
-import { ParticipantPendingChanges } from '@/models/participant-pending-changes';
+import { useParticipantDocuments, getParticipantFileUrl as getFileUrl } from '@/hooks/use-participant-documents';
 
 interface DocumentsProps {
   participantId?: string;
@@ -29,7 +28,7 @@ export function Documents({
   const [showUploadSheet, setShowUploadSheet] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const { documents, loading, getFileUrl } = useParticipantDocuments(participantId);
+  const { data: documents = [], isLoading: loading } = useParticipantDocuments(participantId);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {

@@ -6,8 +6,7 @@ import { Sheet, SheetBody, SheetContent, SheetDescription, SheetFooter, SheetHea
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Plus, Download, Trash2, FileText, Clock } from 'lucide-react';
-import { useStaffDocuments } from '@/hooks/useStaffDocuments';
-import { StaffPendingChanges } from '@/models/staff-pending-changes';
+import { useStaffDocuments, getStaffFileUrl as getFileUrl } from '@/hooks/use-staff-documents';
 
 interface DocumentsProps {
   staffId?: string;
@@ -29,7 +28,7 @@ export function Documents({
   const [showUploadSheet, setShowUploadSheet] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const { documents, loading, getFileUrl } = useStaffDocuments(staffId);
+  const { data: documents = [], isLoading: loading } = useStaffDocuments(staffId);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {

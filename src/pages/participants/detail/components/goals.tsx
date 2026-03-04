@@ -7,7 +7,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetBo
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Edit, Trash2, Target, MessageSquarePlus, Clock, ChevronRight, Send, Loader2, Check, X } from 'lucide-react';
-import { useParticipantGoals, ParticipantGoal, GoalProgress } from '@/hooks/useParticipantGoals';
+import { useParticipantGoals, ParticipantGoal, GoalProgress, useAddGoalProgress, useUpdateGoalProgress, useDeleteGoalProgress } from '@/hooks/use-participant-goals';
 import { ParticipantPendingChanges } from '@/models/participant-pending-changes';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -219,7 +219,13 @@ export function Goals({
   // Option D: Progress dialog state — selected goal for focused progress dialog
   const [progressDialogGoal, setProgressDialogGoal] = useState<ParticipantGoal | null>(null);
 
-  const { goals, goalProgress, loading, addProgress, updateProgress, deleteProgress } = useParticipantGoals(participantId);
+  const { data, isLoading: loading } = useParticipantGoals(participantId);
+  const goals = data?.goals || [];
+  const goalProgress = data?.progress || [];
+
+  const { mutateAsync: addProgress } = useAddGoalProgress();
+  const { mutateAsync: updateProgress } = useUpdateGoalProgress();
+  const { mutateAsync: deleteProgress } = useDeleteGoalProgress();
 
   const form = useForm<GoalFormValues>({
     resolver: zodResolver(goalSchema),
@@ -589,7 +595,7 @@ export function Goals({
 
       {/* Option B: Goal detail Sheet (right side panel) */}
       <Sheet open={!!sheetGoal} onOpenChange={(open) => { if (!open) setSheetGoal(null); }}>
-        <SheetContent side="right" className="w-full sm:max-w-lg flex flex-col gap-0 p-0">
+        <SheetContent title="Goal Details" side="right" className="w-full sm:max-w-lg flex flex-col gap-0 p-0">
           <SheetHeader className="px-6 pt-6 pb-4 border-b">
             <div className="flex items-center gap-2">
               <Target className="size-4 text-muted-foreground" />

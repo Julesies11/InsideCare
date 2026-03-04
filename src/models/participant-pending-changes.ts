@@ -49,7 +49,6 @@ export interface PendingShiftNote {
   shift_time?: string | null;
   staff_id?: string | null;
   full_note: string;
-  tags: string[];
 }
 
 export interface ParticipantPendingChanges {

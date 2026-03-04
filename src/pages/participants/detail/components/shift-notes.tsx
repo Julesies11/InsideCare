@@ -8,9 +8,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Edit, Trash2, Calendar, Clock } from 'lucide-react';
-import { useParticipantShiftNotes } from '@/hooks/useParticipantShiftNotes';
-import { useStaff } from '@/hooks/useStaff';
+import { useShiftNotesByParticipantId, useCreateShiftNote, useUpdateShiftNote, useDeleteShiftNote } from '@/hooks/use-shift-notes';
+import { useStaff } from '@/hooks/use-staff';
 import { ParticipantPendingChanges } from '@/models/participant-pending-changes';
+import { format } from 'date-fns';
 
 interface ShiftNotesProps {
   participantId?: string;
@@ -36,8 +37,13 @@ export function ShiftNotes({
     full_note: '',
   });
 
-  const { shiftNotes, loading } = useParticipantShiftNotes(participantId);
-  const { staff } = useStaff();
+  const { data: shiftNotes = [], isLoading: loading } = useShiftNotesByParticipantId(participantId);
+  const { data: staffData } = useStaff();
+  const staff = staffData?.data || [];
+
+  const { mutateAsync: createShiftNote } = useCreateShiftNote();
+  const { mutateAsync: updateShiftNote } = useUpdateShiftNote();
+  const { mutateAsync: deleteShiftNote } = useDeleteShiftNote();
 
   const handleAdd = () => {
     setEditingNote(null);
@@ -53,7 +59,7 @@ export function ShiftNotes({
   const handleEdit = (note: any) => {
     setEditingNote(note);
     setFormData({
-      shift_date: note.shift_date || new Date().toISOString().split('T')[0],
+      shift_date: note.shift_date,
       shift_time: note.shift_time || '',
       staff_id: note.staff_id || '',
       full_note: note.full_note || '',
@@ -61,312 +67,125 @@ export function ShiftNotes({
     setShowSheet(true);
   };
 
-  const handleSave = () => {
-    if (!formData.shift_date) {
-      return;
-    }
-    if (!pendingChanges || !onPendingChangesChange) return;
-
-    // Convert empty string to null for UUID fields
-    const dataToSave = {
-      ...formData,
-      staff_id: formData.staff_id || null,
-      shift_time: formData.shift_time || null,
-    };
-
-    if (editingNote) {
-      // Update existing shift note
-      if (editingNote.tempId) {
-        // Update pending add
-        const newPending = {
-          ...pendingChanges,
-          shiftNotes: {
-            ...pendingChanges.shiftNotes,
-            toAdd: pendingChanges.shiftNotes.toAdd.map(note =>
-              note.tempId === editingNote.tempId ? { ...note, ...dataToSave } : note
-            ),
-          },
-        };
-        onPendingChangesChange(newPending);
-      } else {
-        // Add to pending updates
-        const newPending = {
-          ...pendingChanges,
-          shiftNotes: {
-            ...pendingChanges.shiftNotes,
-            toUpdate: [
-              ...pendingChanges.shiftNotes.toUpdate.filter(n => n.id !== editingNote.id),
-              { id: editingNote.id, ...dataToSave },
-            ],
-          },
-        };
-        onPendingChangesChange(newPending);
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this shift note?')) {
+      try {
+        await deleteShiftNote(id);
+      } catch (error) {
+        console.error('Error deleting shift note:', error);
       }
-    } else {
-      // Add new shift note
-      const tempId = `temp-${Date.now()}-${Math.random()}`;
-      const newPending = {
-        ...pendingChanges,
-        shiftNotes: {
-          ...pendingChanges.shiftNotes,
-          toAdd: [
-            ...pendingChanges.shiftNotes.toAdd,
-            { tempId, ...dataToSave },
-          ],
-        },
-      };
-      onPendingChangesChange(newPending);
-    }
-    setShowSheet(false);
-  };
-
-  const handleDelete = (note: any) => {
-    if (!pendingChanges || !onPendingChangesChange) return;
-
-    // If it's a pending add, just remove it from the pending adds list
-    if (note.tempId) {
-      handleCancelPendingAdd(note.tempId);
-      return;
-    }
-
-    // Otherwise, mark existing shift note for deletion
-    if (confirm('Mark this shift note for deletion? It will be removed when you click Save Changes.')) {
-      const newPending = {
-        ...pendingChanges,
-        shiftNotes: {
-          ...pendingChanges.shiftNotes,
-          toDelete: [...pendingChanges.shiftNotes.toDelete, note.id],
-        },
-      };
-      onPendingChangesChange(newPending);
     }
   };
 
-  const handleCancelPendingAdd = (tempId: string) => {
-    if (!pendingChanges || !onPendingChangesChange) return;
-
-    const newPending = {
-      ...pendingChanges,
-      shiftNotes: {
-        ...pendingChanges.shiftNotes,
-        toAdd: pendingChanges.shiftNotes.toAdd.filter(note => note.tempId !== tempId),
-      },
-    };
-    onPendingChangesChange(newPending);
+  const handleSave = async () => {
+    try {
+      if (editingNote) {
+        if (participantId) {
+          await updateShiftNote({ id: editingNote.id, updates: { ...formData, participant_id: participantId } });
+        }
+      } else {
+        if (participantId) {
+          await createShiftNote({ ...formData, participant_id: participantId });
+        }
+      }
+      setShowSheet(false);
+    } catch (error) {
+      console.error('Error saving shift note:', error);
+    }
   };
-
-  const handleCancelPendingUpdate = (id: string) => {
-    if (!pendingChanges || !onPendingChangesChange) return;
-
-    const newPending = {
-      ...pendingChanges,
-      shiftNotes: {
-        ...pendingChanges.shiftNotes,
-        toUpdate: pendingChanges.shiftNotes.toUpdate.filter(note => note.id !== id),
-      },
-    };
-    onPendingChangesChange(newPending);
-  };
-
-  const handleCancelPendingDelete = (id: string) => {
-    if (!pendingChanges || !onPendingChangesChange) return;
-
-    const newPending = {
-      ...pendingChanges,
-      shiftNotes: {
-        ...pendingChanges.shiftNotes,
-        toDelete: pendingChanges.shiftNotes.toDelete.filter(noteId => noteId !== id),
-      },
-    };
-    onPendingChangesChange(newPending);
-  };
-
-  // Combine existing shift notes with pending adds, filter out pending deletes
-  const visibleShiftNotes = [
-    ...shiftNotes.filter(note => !pendingChanges?.shiftNotes.toDelete.includes(note.id)),
-    ...(pendingChanges?.shiftNotes.toAdd || []),
-  ];
 
   return (
-    <>
-      <Card className="pb-2.5" id="shift_notes">
-        <CardHeader>
-          <CardTitle>Shift Notes</CardTitle>
-          <Button variant="secondary" size="sm" className="border border-gray-300" onClick={handleAdd} disabled={!participantId || !canAdd}>
-            <Plus className="size-4 me-1.5" />
-            Add Shift Note
+    <Card id="shift_notes">
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle>Shift Notes</CardTitle>
+        {canAdd && (
+          <Button size="sm" onClick={handleAdd}>
+            <Plus className="size-4 me-1" />
+            Add Note
           </Button>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="text-center py-8 text-muted-foreground">Loading shift notes...</div>
-          ) : visibleShiftNotes.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">No shift notes recorded</div>
-          ) : (
-            <div className="space-y-4">
-              {visibleShiftNotes.map((note) => {
-                const isPendingAdd = 'tempId' in note;
-                const isPendingUpdate = pendingChanges?.shiftNotes.toUpdate.some(n => n.id === note.id);
-                const isPendingDelete = pendingChanges?.shiftNotes.toDelete.includes(note.id);
-                
-                return (
-                  <Card 
-                    key={note.id || note.tempId} 
-                    className={`border ${
-                      isPendingAdd ? 'bg-primary/5 border-primary/20' : 
-                      isPendingDelete ? 'opacity-50 bg-destructive/5 border-destructive/20' : 
-                      isPendingUpdate ? 'bg-warning/5 border-warning/20' : ''
-                    }`}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <div className="flex flex-col">
-                            <div className="flex items-center gap-2">
-                              <Calendar className="size-4 text-muted-foreground" />
-                              <span className={`font-medium ${isPendingDelete ? 'line-through' : ''}`}>
-                                {new Date(note.shift_date).toLocaleDateString('en-AU', {
-                                  year: 'numeric',
-                                  month: 'short',
-                                  day: 'numeric',
-                                })}
-                              </span>
-                              {note.shift_time && (
-                                <>
-                                  <Clock className="size-4 text-muted-foreground ms-2" />
-                                  <span className="text-sm text-muted-foreground">
-                                    {note.shift_time}
-                                  </span>
-                                </>
-                              )}
-                              {isPendingAdd && (
-                                <Badge variant="default" className="text-xs ms-2">
-                                  Pending add
-                                </Badge>
-                              )}
-                              {isPendingUpdate && (
-                                <Badge variant="warning" className="text-xs ms-2">
-                                  Pending update
-                                </Badge>
-                              )}
-                              {isPendingDelete && (
-                                <Badge variant="destructive" className="text-xs ms-2">
-                                  Pending deletion
-                                </Badge>
-                              )}
-                            </div>
-                            {note.staff && (
-                              <span className="text-xs text-muted-foreground mt-1">
-                                By {note.staff.name}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          {!isPendingDelete && (
-                            <>
-                              <Button variant="ghost" size="sm" onClick={() => handleEdit(note)}>
-                                <Edit className="size-4" />
-                              </Button>
-                              {canDelete && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="text-destructive"
-                                  onClick={() => handleDelete(note)}
-                                >
-                                  <Trash2 className="size-4" />
-                                </Button>
-                              )}
-                            </>
-                          )}
-                          {isPendingAdd && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleCancelPendingAdd(note.tempId!)}
-                            >
-                              Remove
-                            </Button>
-                          )}
-                          {isPendingUpdate && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleCancelPendingUpdate(note.id)}
-                            >
-                              Undo
-                            </Button>
-                          )}
-                          {isPendingDelete && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleCancelPendingDelete(note.id)}
-                            >
-                              Undo
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                      {note.full_note && (
-                        <p className={`text-sm text-muted-foreground whitespace-pre-wrap ${isPendingDelete ? 'line-through' : ''}`}>
-                          {note.full_note}
-                        </p>
-                      )}
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        )}
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <p className="text-sm text-muted-foreground">Loading shift notes...</p>
+        ) : shiftNotes.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No shift notes recorded for this participant.</p>
+        ) : (
+          <div className="space-y-4">
+            {shiftNotes.map((note) => (
+              <div key={note.id} className="border border-border rounded-lg p-4 bg-muted/20 relative group">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-3">
+                    <Badge variant="outline" className="bg-background">
+                      <Calendar className="size-3 me-1" />
+                      {format(new Date(note.shift_date), 'dd MMM yyyy')}
+                    </Badge>
+                    {note.shift_time && (
+                      <Badge variant="outline" className="bg-background">
+                        <Clock className="size-3 me-1" />
+                        {note.shift_time}
+                      </Badge>
+                    )}
+                    <span className="text-sm font-medium text-foreground">
+                      By: {note.staff_name || 'Unknown Staff'}
+                    </span>
+                  </div>
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button variant="ghost" size="icon" className="size-8" onClick={() => handleEdit(note)}>
+                      <Edit className="size-4" />
+                    </Button>
+                    {canDelete && (
+                      <Button variant="ghost" size="icon" className="size-8 text-destructive hover:text-destructive" onClick={() => handleDelete(note.id)}>
+                        <Trash2 className="size-4" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+                <p className="text-sm text-foreground whitespace-pre-wrap">{note.full_note}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
 
       <Sheet open={showSheet} onOpenChange={setShowSheet}>
-        <SheetContent className="sm:max-w-[800px]">
+        <SheetContent className="sm:max-w-[500px]">
           <SheetHeader>
             <SheetTitle>{editingNote ? 'Edit Shift Note' : 'Add Shift Note'}</SheetTitle>
             <SheetDescription>
-              {editingNote
-                ? 'Update shift note details'
-                : 'Record a new shift note for this participant'}
+              Record details about the participant's shift.
             </SheetDescription>
           </SheetHeader>
-          <SheetBody className="space-y-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="shift_date">Shift Date *</Label>
-                <Input
-                  id="shift_date"
-                  type="date"
-                  value={formData.shift_date}
-                  onChange={(e) => setFormData({ ...formData, shift_date: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="shift_time">Shift Time</Label>
-                <Input
-                  id="shift_time"
-                  type="time"
-                  value={formData.shift_time}
-                  onChange={(e) => setFormData({ ...formData, shift_time: e.target.value })}
-                />
-              </div>
+          <SheetBody className="space-y-4 pt-4">
+            <div className="grid gap-2">
+              <Label htmlFor="shift_date">Date</Label>
+              <Input
+                id="shift_date"
+                type="date"
+                value={formData.shift_date}
+                onChange={(e) => setFormData({ ...formData, shift_date: e.target.value })}
+              />
             </div>
-            <div className="space-y-2">
+            <div className="grid gap-2">
+              <Label htmlFor="shift_time">Time (Optional)</Label>
+              <Input
+                id="shift_time"
+                placeholder="e.g. 09:00 AM - 17:00 PM"
+                value={formData.shift_time}
+                onChange={(e) => setFormData({ ...formData, shift_time: e.target.value })}
+              />
+            </div>
+            <div className="grid gap-2">
               <Label htmlFor="staff_id">Staff Member</Label>
               <Select
-                value={formData.staff_id || 'none'}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, staff_id: value === 'none' ? '' : value })
-                }
+                value={formData.staff_id}
+                onValueChange={(value) => setFormData({ ...formData, staff_id: value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select staff member" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Select staff member</SelectItem>
+                  <SelectItem value="none" disabled>Select staff member</SelectItem>
                   {staff.map((s) => (
                     <SelectItem key={s.id} value={s.id}>
                       {s.name}
@@ -375,25 +194,23 @@ export function ShiftNotes({
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="full_note">Full Note</Label>
+            <div className="grid gap-2">
+              <Label htmlFor="full_note">Notes</Label>
               <Textarea
                 id="full_note"
+                rows={8}
+                placeholder="Enter detailed shift notes..."
                 value={formData.full_note}
                 onChange={(e) => setFormData({ ...formData, full_note: e.target.value })}
-                rows={8}
-                placeholder="Detailed shift notes..."
               />
             </div>
           </SheetBody>
           <SheetFooter>
-            <Button variant="outline" onClick={() => setShowSheet(false)}>
-              Cancel
-            </Button>
-            <Button variant="primary" onClick={handleSave}>Save</Button>
+            <Button variant="outline" onClick={() => setShowSheet(false)}>Cancel</Button>
+            <Button onClick={handleSave}>Save Note</Button>
           </SheetFooter>
         </SheetContent>
       </Sheet>
-    </>
+    </Card>
   );
 }

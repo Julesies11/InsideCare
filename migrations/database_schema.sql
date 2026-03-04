@@ -977,3 +977,54 @@ create index IF not exists idx_checklist_item_master_id on public.checklist_item
 create trigger update_checklist_item_master_updated_at BEFORE
 update on checklist_item_master for EACH row
 execute FUNCTION update_updated_at_column ();
+
+create table public.shift_notes (
+  id uuid not null default gen_random_uuid (),
+  participant_id uuid null,
+  staff_id uuid null,
+  shift_date date not null,
+  shift_time text null,
+  notes text null,
+  created_at timestamp with time zone null default now(),
+  updated_at timestamp with time zone null default now(),
+  full_note text null,
+  house_id uuid null,
+  shift_id uuid null,
+  constraint shift_notes_pkey primary key (id),
+  constraint shift_notes_house_id_fkey foreign KEY (house_id) references houses (id) on delete set null,
+  constraint shift_notes_participant_id_fkey foreign KEY (participant_id) references participants (id) on delete set null,
+  constraint shift_notes_shift_id_fkey foreign KEY (shift_id) references staff_shifts (id) on delete set null,
+  constraint shift_notes_staff_id_fkey foreign KEY (staff_id) references staff (id) on delete set null,
+  constraint shift_notes_shift_staff_unique unique (shift_id, staff_id)
+) TABLESPACE pg_default;
+
+create index IF not exists idx_shift_notes_participant on public.shift_notes using btree (participant_id) TABLESPACE pg_default;
+
+create index IF not exists idx_shift_notes_date on public.shift_notes using btree (shift_date) TABLESPACE pg_default;
+
+create index IF not exists idx_shift_notes_participant_id on public.shift_notes using btree (participant_id) TABLESPACE pg_default;
+
+create index IF not exists idx_shift_notes_staff_id on public.shift_notes using btree (staff_id) TABLESPACE pg_default;
+
+create index IF not exists idx_shift_notes_shift_date on public.shift_notes using btree (shift_date) TABLESPACE pg_default;
+
+create index IF not exists idx_shift_notes_house_id on public.shift_notes using btree (house_id) TABLESPACE pg_default;
+
+create index IF not exists idx_shift_notes_shift_id on public.shift_notes using btree (shift_id) TABLESPACE pg_default;
+
+create table public.activity_log (
+  id uuid not null default gen_random_uuid (),
+  activity_type text not null,
+  entity_type text not null,
+  entity_id text not null,
+  entity_name text null,
+  description text null,
+  user_name text null,
+  metadata jsonb null,
+  created_at timestamp with time zone not null default now(),
+  constraint activity_log_pkey primary key (id)
+) TABLESPACE pg_default;
+
+create index IF not exists idx_activity_log_entity_id on public.activity_log using btree (entity_id) TABLESPACE pg_default;
+create index IF not exists idx_activity_log_entity_type on public.activity_log using btree (entity_type) TABLESPACE pg_default;
+create index IF not exists idx_activity_log_created_at on public.activity_log using btree (created_at desc) TABLESPACE pg_default;

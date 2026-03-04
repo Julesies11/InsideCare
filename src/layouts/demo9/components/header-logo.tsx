@@ -54,6 +54,7 @@ export function HeaderLogo() {
             className="p-0 gap-0 w-[275px]"
             side="left"
             close={false}
+            title="Mobile Menu"
           >
             <SheetHeader className="p-0 space-y-0" />
             <SheetBody className="p-0 overflow-y-auto">

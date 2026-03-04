@@ -42,9 +42,9 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 import { House } from '@/models/house';
-import { useHouses } from '@/hooks/use-houses';
+import { useHouses, useUpdateHouse } from '@/hooks/use-houses';
 import { useParticipants } from '@/hooks/use-participants';
-import { useHouseStaffAssignments } from '@/hooks/useHouseStaffAssignments';
+import { useHouseStaffAssignments } from '@/hooks/use-house-staff-assignments';
 import { useNavigate } from 'react-router';
 import { logActivity } from '@/lib/activity-logger';
 import { useAuth } from '@/auth/context/auth-context';
@@ -81,7 +81,7 @@ function createGoogleMapsUrl(address: string) {
   return `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
 }
 
-function ActionsCell({ row, updateHouse }: { row: Row<House>; updateHouse: (id: string, updates: Partial<House>) => Promise<{ data: any; error: string | null }> }) {
+function ActionsCell({ row, updateHouse }: { row: Row<House>; updateHouse: (params: { id: string; updates: Partial<House> }) => Promise<any> }) {
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -91,13 +91,7 @@ function ActionsCell({ row, updateHouse }: { row: Row<House>; updateHouse: (id: 
 
   const handleArchive = async () => {
     try {
-      const { error } = await updateHouse(row.original.id, { status: 'inactive' });
-
-      if (error) {
-        const parsedError = parseSupabaseError(error);
-        toast.error(parsedError.title, { description: parsedError.description });
-        throw new Error(parsedError.description);
-      }
+      await updateHouse({ id: row.original.id, updates: { status: 'inactive' } });
 
       // Log activity
       await logActivity({
@@ -110,7 +104,9 @@ function ActionsCell({ row, updateHouse }: { row: Row<House>; updateHouse: (id: 
       });
 
       toast.success('House archived successfully');
-    } catch (error) {
+    } catch (error: any) {
+      const parsedError = parseSupabaseError(error);
+      toast.error(parsedError.title, { description: parsedError.description });
       console.error('Error archiving house:', error);
     }
   };
@@ -178,15 +174,20 @@ export function Houses() {
     statuses: selectedStatuses
   }), [searchQuery, selectedStatuses]);
 
-  const { houses, count, loading, error, updateHouse } = useHouses(
+  const { data, isLoading: loading, error } = useHouses(
     pagination.pageIndex,
     pagination.pageSize,
     sorting,
     filters
   );
+  const houses = data?.data || [];
+  const count = data?.count || 0;
 
-  const { participants } = useParticipants(); // Fetch all participants (still needed for nested data)
-  const { houseStaffAssignments } = useHouseStaffAssignments(); // Fetch all house staff assignments (still needed for nested data)
+  const { mutateAsync: updateHouse } = useUpdateHouse();
+  const { data: participantsData } = useParticipants(); // Fetch all participants (still needed for nested data)
+  const participants = participantsData?.data || [];
+  const { data: staffAssignmentsData } = useHouseStaffAssignments(); // Fetch all house staff assignments (still needed for nested data)
+  const houseStaffAssignments = staffAssignmentsData || [];
 
   // Sync state changes to URL query parameters
   useEffect(() => {

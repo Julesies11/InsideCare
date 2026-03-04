@@ -6,8 +6,7 @@ import { Sheet, SheetBody, SheetContent, SheetDescription, SheetFooter, SheetHea
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Plus, Download, Trash2, FileText, Clock } from 'lucide-react';
-import { useHouseDocuments } from '@/hooks/useHouseDocuments';
-import { HousePendingChanges } from '@/models/house-pending-changes';
+import { useHouseDocuments, getHouseFileUrl as getFileUrl } from '@/hooks/use-house-documents';
 
 interface HouseDocumentsProps {
   houseId?: string;
@@ -29,7 +28,7 @@ export function HouseDocuments({
   const [showUploadSheet, setShowUploadSheet] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const { houseDocuments, loading, getFileUrl } = useHouseDocuments(houseId);
+  const { data: houseDocuments = [], isLoading: loading } = useHouseDocuments(houseId);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {

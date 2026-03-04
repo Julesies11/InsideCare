@@ -9,8 +9,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Edit, Trash2, CheckSquare, Clock, PlayCircle, GripVertical, Loader2, ChevronDown, Copy } from 'lucide-react';
-import { useHouseChecklists } from '@/hooks/useHouseChecklists';
-import { useChecklistMaster } from '@/hooks/useChecklistMaster';
+import { useHouseChecklists } from '@/hooks/use-house-checklists';
+import { useChecklistMaster } from '@/hooks/use-checklist-master';
 import { HousePendingChanges } from '@/models/house-pending-changes';
 import { HouseChecklistExecution } from './house-checklist-execution';
 import { Sortable, SortableItem, SortableItemHandle } from '@/components/ui/sortable';
@@ -242,7 +242,7 @@ export function HouseChecklists({
         // Fetch existing attachments for this submission
         const { data: attachmentData } = await supabase
           .from('house_checklist_item_attachments')
-          .select('*')
+          .select('id, submission_id, item_id, file_name, file_path, file_size, mime_type, uploaded_by, created_at')
           .eq('submission_id', data.id);
 
         const attachments: Record<string, any[]> = {};

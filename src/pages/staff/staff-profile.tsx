@@ -18,7 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { PersonalDetails } from '@/pages/employees/staff-detail/components/personal-details';
 import { EmergencyContact } from '@/pages/employees/staff-detail/components/emergency-contact';
-import { useStaff, StaffTraining } from '@/hooks/useStaff';
+import { useStaff, useStaffMember, useUpdateStaff, StaffTraining } from '@/hooks/use-staff';
 
 type TrainingStatus = 'Current' | 'Expiring Soon' | 'Expired';
 
@@ -38,7 +38,7 @@ const trainingStatusVariant: Record<TrainingStatus, 'success' | 'warning' | 'des
 
 export function StaffProfile() {
   const { user, setUser } = useAuth();
-  const { updateStaff } = useStaff();
+  const { mutateAsync: updateStaff } = useUpdateStaff();
 
   // Resolve staffId directly from DB — works for both admin and staff users
   const [staffId, setStaffId] = useState<string | null>(null);
@@ -82,39 +82,39 @@ export function StaffProfile() {
   const [loadingTraining, setLoadingTraining] = useState(true);
 
   // Load staff record once staffId is known
-  const { getStaffById } = useStaff();
+  const { data: staffData } = useStaffMember(staffId ?? undefined);
+  
   useEffect(() => {
-    if (!staffId) return;
-    getStaffById(staffId).then(({ data }) => {
-      if (data) {
-        const d = {
-          name: data.name ?? '',
-          email: data.email ?? '',
-          phone: data.phone ?? '',
-          date_of_birth: data.date_of_birth ?? '',
-          address: data.address ?? '',
-          hobbies: data.hobbies ?? '',
-          allergies: data.allergies ?? '',
-          emergency_contact_name: data.emergency_contact_name ?? '',
-          emergency_contact_phone: data.emergency_contact_phone ?? '',
-        };
-        setOriginalPhotoUrl((data as any).photo_url ?? null);
-        if ((data as any).photo_url) setPhotoPreview((data as any).photo_url);
-        setFormData(d);
-        setOriginalData(d);
-      }
-    });
+    if (staffData) {
+      const d = {
+        name: staffData.name ?? '',
+        email: staffData.email ?? '',
+        phone: staffData.phone ?? '',
+        date_of_birth: staffData.date_of_birth ?? '',
+        address: staffData.address ?? '',
+        hobbies: staffData.hobbies ?? '',
+        allergies: staffData.allergies ?? '',
+        emergency_contact_name: staffData.emergency_contact_name ?? '',
+        emergency_contact_phone: staffData.emergency_contact_phone ?? '',
+      };
+      setOriginalPhotoUrl((staffData as any).photo_url ?? null);
+      if ((staffData as any).photo_url) setPhotoPreview((staffData as any).photo_url);
+      setFormData(d);
+      setOriginalData(d);
+    }
 
-    supabase
-      .from('staff_training')
-      .select('*')
-      .eq('staff_id', staffId)
-      .order('date_completed', { ascending: false })
-      .then(({ data }) => {
-        setTraining((data as StaffTraining[]) || []);
-        setLoadingTraining(false);
-      });
-  }, [staffId]);
+    if (staffId) {
+      supabase
+        .from('staff_training')
+        .select('id, staff_id, title, category, description, provider, date_completed, expiry_date, file_path, file_name, file_size, created_by, created_at, updated_at')
+        .eq('staff_id', staffId)
+        .order('date_completed', { ascending: false })
+        .then(({ data }) => {
+          setTraining((data as StaffTraining[]) || []);
+          setLoadingTraining(false);
+        });
+    }
+  }, [staffId, staffData]);
 
   // Dirty tracking — photo dirty if new file selected OR preview differs from original (deletion)
   const isPhotoDirty = photoFile !== null || photoPreview !== originalPhotoUrl;
@@ -175,8 +175,7 @@ export function StaffProfile() {
         emergency_contact_phone: toNull(formData.emergency_contact_phone),
       };
 
-      const { error } = await updateStaff(staffId, updates);
-      if (error) throw new Error(String(error));
+      await updateStaff({ id: staffId, updates: updates as any });
 
       setOriginalData({ ...formData });
       toast.success('Profile updated successfully');

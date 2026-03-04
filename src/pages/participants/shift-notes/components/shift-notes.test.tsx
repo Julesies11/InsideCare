@@ -1,190 +1,129 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { render } from '@/test/utils/test-utils';
-import { Participants } from './shift-notes';
+import { screen, waitFor, fireEvent } from '@testing-library/react';
+import { ShiftNotes } from './shift-notes';
+import { renderWithProviders } from '@/test/test-utils';
+import { http, HttpResponse } from 'msw';
+import { server } from '@/test/mocks/server';
 
-const mockParticipants = [
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+
+const mockShiftNotes = [
   {
-    id: '1',
-    name: 'John Doe',
-    email: 'john@example.com',
-    phone: '555-0001',
-    date_of_birth: '1990-01-15',
-    ndis_number: 'NDIS001',
-    house_id: 'house-1',
-    house_name: 'Main House',
-    is_active: true,
-    photo_url: null,
-    address: '123 Main St',
-  },
-  {
-    id: '2',
-    name: 'Jane Smith',
-    email: 'jane@example.com',
-    phone: '555-0002',
-    date_of_birth: '1985-05-20',
-    ndis_number: 'NDIS002',
-    house_id: 'house-2',
-    house_name: 'West House',
-    is_active: true,
-    photo_url: null,
-    address: '456 Oak Ave',
-  },
-  {
-    id: '3',
-    name: 'Bob Johnson',
-    email: 'bob@example.com',
-    phone: '555-0003',
-    date_of_birth: '1992-08-10',
-    ndis_number: 'NDIS003',
-    house_id: 'house-1',
-    house_name: 'Main House',
-    is_active: false,
-    photo_url: null,
-    address: '789 Pine Rd',
+    id: 'note-1',
+    shift_date: '2026-03-05',
+    shift_time: '08:00 - 16:00',
+    notes: 'Test note 1',
+    participant: { id: 'p-1', name: 'John Doe' },
+    staff: { id: 's-1', name: 'Staff Member' },
+    house: { id: 'h-1', name: 'House A' },
+    house_id: 'h-1',
+    shift: {
+        id: 'shift-1',
+        start_time: '08:00:00',
+        end_time: '16:00:00',
+        shift_type: 'Morning',
+        status: 'Completed'
+    }
   },
 ];
 
 const mockHouses = [
-  {
-    id: 'house-1',
-    name: 'Main House',
-    address: '100 Main St',
-    status: 'active',
-  },
-  {
-    id: 'house-2',
-    name: 'West House',
-    address: '200 West St',
-    status: 'active',
-  },
+  { id: 'h-1', name: 'House A', status: 'active' },
+  { id: 'h-2', name: 'House B', status: 'active' },
 ];
 
-// Mock the hooks before each test
-beforeEach(() => {
-  vi.clearAllMocks();
-});
+const mockParticipants = [
+    { id: 'p-1', name: 'John Doe' }
+];
 
-// Mock hooks
-vi.mock('@/hooks/use-participants', () => ({
-  useParticipants: vi.fn(() => ({
-    participants: mockParticipants,
-    loading: false,
-    error: null,
-    refetch: vi.fn(),
-  })),
-}));
+const mockStaff = [
+    { id: 's-1', name: 'Staff Member' }
+];
 
-vi.mock('@/hooks/use-houses', () => ({
-  useHouses: vi.fn(() => ({
-    houses: mockHouses,
-    loading: false,
-    error: null,
-  })),
-}));
-
-// Mock useNavigate
-vi.mock('react-router', async () => {
-  const actual = await vi.importActual('react-router');
-  return {
-    ...actual,
-    useNavigate: () => vi.fn(),
-  };
-});
-
-describe('Participants Component', () => {
-  it('should render without crashing', () => {
-    const { container } = render(<Participants />);
-    expect(container).toBeTruthy();
+describe('ShiftNotes', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    server.use(
+      http.get(`${SUPABASE_URL}/rest/v1/shift_notes`, () => {
+        return HttpResponse.json(mockShiftNotes);
+      }),
+      http.get(`${SUPABASE_URL}/rest/v1/houses`, () => {
+        return HttpResponse.json(mockHouses);
+      }),
+      http.get(`${SUPABASE_URL}/rest/v1/participants`, () => {
+        return HttpResponse.json(mockParticipants);
+      }),
+      http.get(`${SUPABASE_URL}/rest/v1/staff`, () => {
+        return HttpResponse.json(mockStaff);
+      })
+    );
   });
 
-  it('should render participant names', async () => {
-    render(<Participants />);
-
+  it('renders correctly and loads data', async () => {
+    renderWithProviders(<ShiftNotes />);
+    
     await waitFor(() => {
       expect(screen.getByText('John Doe')).toBeInTheDocument();
-      expect(screen.getByText('Jane Smith')).toBeInTheDocument();
-    }, { timeout: 3000 });
+      expect(screen.getByText('House A')).toBeInTheDocument();
+    });
   });
 
-  it('should render NDIS numbers', async () => {
-    render(<Participants />);
-
-    await waitFor(() => {
-      expect(screen.getByText('NDIS001')).toBeInTheDocument();
-      expect(screen.getByText('NDIS002')).toBeInTheDocument();
-    }, { timeout: 3000 });
-  });
-
-  it('should render house assignments', async () => {
-    render(<Participants />);
-
-    await waitFor(() => {
-      const mainHouseElements = screen.getAllByText('Main House');
-      expect(mainHouseElements.length).toBeGreaterThan(0);
-    }, { timeout: 3000 });
-  });
-
-  it('should render search input', () => {
-    render(<Participants />);
-    const searchInput = screen.getByPlaceholderText('Search Participants...');
-    expect(searchInput).toBeInTheDocument();
-  });
-
-  it('should render active users toggle', () => {
-    render(<Participants />);
-    const activeToggle = screen.getByLabelText(/active users/i);
-    expect(activeToggle).toBeInTheDocument();
-  });
-
-  it('should render house filter button', () => {
-    render(<Participants />);
-    const houseButton = screen.getByRole('button', { name: /^house$/i });
-    expect(houseButton).toBeInTheDocument();
-  });
-
-  it('should filter by search term', async () => {
-    const user = userEvent.setup();
-    render(<Participants />);
+  it('filters by search query', async () => {
+    renderWithProviders(<ShiftNotes />);
 
     await waitFor(() => {
       expect(screen.getByText('John Doe')).toBeInTheDocument();
     });
 
-    const searchInput = screen.getByPlaceholderText('Search Participants...');
-    await user.clear(searchInput);
-    await user.type(searchInput, 'John');
+    const searchInput = screen.getByPlaceholderText(/Search notes.../i);
+    fireEvent.change(searchInput, { target: { value: 'Non-existent' } });
 
+    await waitFor(() => {
+      expect(screen.queryByText('John Doe')).not.toBeInTheDocument();
+    });
+    
+    fireEvent.change(searchInput, { target: { value: 'John' } });
     await waitFor(() => {
       expect(screen.getByText('John Doe')).toBeInTheDocument();
     });
   });
 
-  it('should show only active participants by default', async () => {
-    render(<Participants />);
+  it('opens edit dialog when Edit is clicked', async () => {
+    renderWithProviders(<ShiftNotes />);
 
     await waitFor(() => {
-      expect(screen.getByText('John Doe')).toBeInTheDocument();
-      expect(screen.getByText('Jane Smith')).toBeInTheDocument();
-      // Bob Johnson is inactive, should not appear
-      expect(screen.queryByText('Bob Johnson')).not.toBeInTheDocument();
-    }, { timeout: 3000 });
+      const editButtons = screen.getAllByText(/Edit/i);
+      expect(editButtons.length).toBeGreaterThan(0);
+    });
+
+    const editButton = screen.getAllByRole('button', { name: /Edit/i })[0];
+    fireEvent.click(editButton);
+
+    await waitFor(() => {
+        expect(screen.getByText(/Edit Shift Note/i)).toBeInTheDocument();
+        expect(screen.getByText(/Update the shift note details below./i)).toBeInTheDocument();
+    });
   });
 
-  it('should toggle to show all participants', async () => {
-    const user = userEvent.setup();
-    render(<Participants />);
+  it('filters by house using popover', async () => {
+    const { user } = renderWithProviders(<ShiftNotes />);
 
     await waitFor(() => {
       expect(screen.getByText('John Doe')).toBeInTheDocument();
     });
 
-    const activeToggle = screen.getByRole('switch');
-    await user.click(activeToggle);
+    // Click House filter button — select the one with popover trigger
+    const houseFilterBtn = screen.getAllByRole('button', { name: /House/i }).find(
+      (btn) => btn.getAttribute('data-slot') === 'popover-trigger'
+    ) || screen.getAllByRole('button', { name: /House/i })[0];
+    await user.click(houseFilterBtn);
+
+    // Find and click House B checkbox (which has no notes in mockShiftNotes)
+    const houseBCheckbox = await screen.findByLabelText(/House B/i);
+    await user.click(houseBCheckbox);
 
     await waitFor(() => {
-      expect(screen.getByText('Bob Johnson')).toBeInTheDocument();
-    }, { timeout: 3000 });
+        expect(screen.queryByText('John Doe')).not.toBeInTheDocument();
+    });
   });
 });

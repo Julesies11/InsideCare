@@ -7,7 +7,7 @@ import { ShiftCardData } from '@/components/roster/shift-card';
 import { useRosterData, StaffShift } from '@/components/roster/use-roster-data';
 import { getDateRange, calculateDuration, ViewMode } from '@/components/roster/roster-utils';
 import { EditShiftNoteDialog } from '@/pages/participants/shift-notes/components/edit-shift-note-dialog';
-import { useShiftNotes } from '@/hooks/useShiftNotes';
+import { useShiftNotes } from '@/hooks/use-shift-notes';
 import { supabase } from '@/lib/supabase';
 import { eachDayOfInterval, parseISO, isWithinInterval } from 'date-fns';
 

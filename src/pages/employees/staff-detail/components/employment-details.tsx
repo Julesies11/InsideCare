@@ -8,7 +8,7 @@ import { DepartmentCombobox } from './employment-components/department-combobox'
 import { EmploymentTypeCombobox } from './employment-components/employment-type-combobox';
 import { DepartmentMasterDialog } from './employment-components/department-master-dialog';
 import { EmploymentTypeMasterDialog } from './employment-components/employment-type-master-dialog';
-import { useStaff } from '@/hooks/useStaff';
+import { useStaff } from '@/hooks/use-staff';
 
 interface EmploymentDetailsProps {
   formData: any;

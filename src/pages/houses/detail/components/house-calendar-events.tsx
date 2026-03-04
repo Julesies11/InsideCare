@@ -11,7 +11,7 @@ import { Calendar, Clock, MapPin, Users, Edit, Trash2, Plus, CalendarDays, Chevr
 import { format, addMonths, addWeeks, addDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameMonth, isSameDay } from 'date-fns';
 import { useHouseCalendarEvents } from '@/hooks/useHouseCalendarEvents';
 import { useParticipants } from '@/hooks/use-participants';
-import { useStaff } from '@/hooks/useStaff';
+import { useStaff } from '@/hooks/use-staff';
 import { useAuth } from '@/auth/context/auth-context';
 import { HousePendingChanges } from '@/models/house-pending-changes';
 

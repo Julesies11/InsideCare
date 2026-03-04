@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { Users, UserCheck, AlertTriangle, CheckSquare, ClipboardList } from 'lucide-react';
 import { WelcomeBanner, StatCard, MotivationalBanner, RecentActivity, UpcomingShifts } from './components';
 import { useParticipants } from '@/hooks/use-participants';
-import { useStaff } from '@/hooks/useStaff';
+import { useStaff } from '@/hooks/use-staff';
 import { useAuth } from '@/auth/context/auth-context';
 
 export function HomeContent() {

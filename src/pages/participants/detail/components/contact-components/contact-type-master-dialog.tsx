@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Edit, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
-import { useContactTypesMaster } from '@/hooks/useContactTypesMaster';
+import { useContactTypesMaster, useAddContactTypeMaster, useUpdateContactTypeMaster } from '@/hooks/use-contact-types-master';
 import { ContactTypeMaster } from '@/models/contact-type-master';
 import { ContactTypeMasterQuickAdd } from './contact-type-master-quick-add';
 import { toast } from 'sonner';
@@ -24,7 +24,9 @@ export function ContactTypeMasterDialog({
   onClose,
   onUpdate,
 }: ContactTypeMasterDialogProps) {
-  const { contactTypes, loading, addContactType, updateContactType, refresh } = useContactTypesMaster();
+  const { data: contactTypes = [], isLoading: loading } = useContactTypesMaster();
+  const { mutateAsync: addContactType } = useAddContactTypeMaster();
+  const { mutateAsync: updateContactType } = useUpdateContactTypeMaster();
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingContactType, setEditingContactType] = useState<ContactTypeMaster | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -77,42 +79,33 @@ export function ContactTypeMasterDialog({
 
   const handleToggleStatus = async (contactType: ContactTypeMaster) => {
     const newStatus = !contactType.is_active;
-    const { error } = await updateContactType(contactType.id, { is_active: newStatus });
-    if (error) {
-      toast.error(`Failed to ${newStatus ? 'activate' : 'deactivate'} contact type: ` + error);
-    } else {
+    try {
+      await updateContactType({ id: contactType.id, updates: { is_active: newStatus }, oldContactType: contactType });
       toast.success(`Contact type ${newStatus ? 'activated' : 'deactivated'} successfully`);
-      await refresh();
       onUpdate();
+    } catch (error: any) {
+      toast.error(`Failed to ${newStatus ? 'activate' : 'deactivate'} contact type: ` + error.message);
     }
   };
 
   const handleSave = async (contactTypeData: Partial<ContactTypeMaster>) => {
-    if (editingContactType) {
-      const { error } = await updateContactType(editingContactType.id, contactTypeData);
-      if (error) {
-        toast.error('Failed to update contact type: ' + error);
-      } else {
+    try {
+      if (editingContactType) {
+        await updateContactType({ id: editingContactType.id, updates: contactTypeData, oldContactType: editingContactType });
         toast.success('Contact type updated successfully');
-        setShowAddDialog(false);
-        await refresh();
-        onUpdate();
-      }
-    } else {
-      const { error } = await addContactType({
-        name: contactTypeData.name!,
-        is_active: contactTypeData.is_active ?? true,
-        created_by: null,
-        updated_by: null,
-      });
-      if (error) {
-        toast.error('Failed to add contact type: ' + error);
       } else {
+        await addContactType({
+          name: contactTypeData.name!,
+          is_active: contactTypeData.is_active ?? true,
+          created_by: null,
+          updated_by: null,
+        });
         toast.success('Contact type added successfully');
-        setShowAddDialog(false);
-        await refresh();
-        onUpdate();
       }
+      setShowAddDialog(false);
+      onUpdate();
+    } catch (error: any) {
+      toast.error(`Failed to ${editingContactType ? 'update' : 'add'} contact type: ` + error.message);
     }
   };
 

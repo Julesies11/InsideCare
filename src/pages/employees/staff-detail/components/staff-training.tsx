@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, Edit, Trash2, FileText, Download, Clock } from 'lucide-react';
-import { useStaff, StaffTraining } from '@/hooks/useStaff';
+import { useStaff, StaffTraining } from '@/hooks/use-staff';
 import { toast } from 'sonner';
 import { StaffPendingChanges } from '@/models/staff-pending-changes';
 import { cn } from '@/lib/utils';

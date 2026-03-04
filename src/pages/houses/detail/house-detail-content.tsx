@@ -46,7 +46,7 @@ interface HouseDetailContentProps {
   onOriginalDataChange?: (data: any) => void;
   onSavingChange?: (saving: boolean) => void;
   saveHandlerRef?: React.MutableRefObject<(() => Promise<void>) | null>;
-  updateHouse?: (id: string, updates: Partial<House>) => Promise<{ data: any; error: string | null }>;
+  updateHouse?: (params: { id: string; updates: Partial<House> }) => Promise<any>;
   pendingChanges?: HousePendingChanges;
   onPendingChangesChange?: (changes: HousePendingChanges) => void;
 }
@@ -108,7 +108,7 @@ export function HouseDetailContent({
         setLoading(true);
         const { data, error } = await supabase
           .from('houses')
-          .select('*')
+          .select('id, name, branch_id, address, phone, capacity, current_occupancy, house_manager, status, notes, created_at, updated_at')
           .eq('id', id)
           .single();
 

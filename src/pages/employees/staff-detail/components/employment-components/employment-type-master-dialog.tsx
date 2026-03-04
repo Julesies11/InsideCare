@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Edit, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
-import { useEmploymentTypesMaster, EmploymentType } from '@/hooks/useEmploymentTypesMaster';
+import { useEmploymentTypesMaster, useAddEmploymentTypeMaster, useUpdateEmploymentTypeMaster, EmploymentType } from '@/hooks/use-employment-types-master';
 import { EmploymentTypeMasterQuickAdd } from './employment-type-master-quick-add';
 import { toast } from 'sonner';
 
@@ -23,7 +23,9 @@ export function EmploymentTypeMasterDialog({
   onClose,
   onUpdate,
 }: EmploymentTypeMasterDialogProps) {
-  const { employmentTypes, loading, addEmploymentType, updateEmploymentType, refresh } = useEmploymentTypesMaster();
+  const { data: employmentTypes = [], isLoading: loading } = useEmploymentTypesMaster();
+  const { mutateAsync: addEmploymentType } = useAddEmploymentTypeMaster();
+  const { mutateAsync: updateEmploymentType } = useUpdateEmploymentTypeMaster();
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingEmploymentType, setEditingEmploymentType] = useState<EmploymentType | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -77,37 +79,32 @@ export function EmploymentTypeMasterDialog({
 
   const handleToggleStatus = async (employmentType: EmploymentType) => {
     const newStatus = employmentType.status === 'Active' ? 'Inactive' : 'Active';
-    const { error } = await updateEmploymentType(employmentType.id, { status: newStatus });
-    if (error) {
-      toast.error(`Failed to ${newStatus === 'Active' ? 'activate' : 'deactivate'} employment type: ` + error);
-    } else {
+    try {
+      await updateEmploymentType({ id: employmentType.id, updates: { status: newStatus } });
       toast.success(`Employment type ${newStatus === 'Active' ? 'activated' : 'deactivated'} successfully`);
-      await refresh();
       onUpdate();
+    } catch (error: any) {
+      toast.error(`Failed to ${newStatus === 'Active' ? 'activate' : 'deactivate'} employment type: ` + error.message);
     }
   };
 
   const handleSave = async (employmentTypeData: Partial<EmploymentType>) => {
-    if (editingEmploymentType) {
-      const { error } = await updateEmploymentType(editingEmploymentType.id, employmentTypeData);
-      if (error) {
-        toast.error('Failed to update employment type: ' + error);
-      } else {
+    try {
+      if (editingEmploymentType) {
+        await updateEmploymentType({ id: editingEmploymentType.id, updates: employmentTypeData });
         toast.success('Employment type updated successfully');
-        setShowAddDialog(false);
-        await refresh();
-        onUpdate();
-      }
-    } else {
-      const { error } = await addEmploymentType(employmentTypeData as Omit<EmploymentType, 'id' | 'created_at' | 'updated_at'>);
-      if (error) {
-        toast.error('Failed to add employment type: ' + error);
       } else {
+        await addEmploymentType({
+          name: employmentTypeData.name!,
+          description: employmentTypeData.description || null,
+          status: employmentTypeData.status || 'Active',
+        });
         toast.success('Employment type added successfully');
-        setShowAddDialog(false);
-        await refresh();
-        onUpdate();
       }
+      setShowAddDialog(false);
+      onUpdate();
+    } catch (error: any) {
+      toast.error(`Failed to ${editingEmploymentType ? 'update' : 'add'} employment type: ` + error.message);
     }
   };
 

@@ -14,12 +14,12 @@ import {
 import { useSettings } from '@/providers/settings-provider';
 import { ParticipantPendingChanges, emptyParticipantPendingChanges } from '@/models/participant-pending-changes';
 import { useDirtyTracker } from '@/hooks/useDirtyTracker';
-import { useParticipants } from '@/hooks/use-participants';
+import { useParticipants, useUpdateParticipant } from '@/hooks/use-participants';
 
 export function ParticipantDetailPage() {
   const navigate = useNavigate();
   const { settings } = useSettings();
-  const { updateParticipant } = useParticipants();
+  const { mutateAsync: updateParticipant } = useUpdateParticipant();
   const [formData, setFormData] = useState<any>(null);
   const [originalData, setOriginalData] = useState<any>(null);
   const [pendingChanges, setPendingChanges] = useState<ParticipantPendingChanges>(emptyParticipantPendingChanges);

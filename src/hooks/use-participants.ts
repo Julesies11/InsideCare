@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import { Participant } from '@/models/participant';
+import { Participant, ParticipantWithHouse } from '@/models/participant';
 
 export interface ParticipantsFilter {
   search?: string;
@@ -13,47 +13,49 @@ export interface ParticipantsSort {
   desc: boolean;
 }
 
+const PARTICIPANT_COLUMNS = `
+  id, name, photo_url, email, house_phone, personal_mobile, address, date_of_birth, move_in_date, 
+  ndis_number, house_id, status, support_level, support_coordinator, primary_diagnosis, 
+  secondary_diagnosis, allergies, routine, hygiene_support, current_goals, current_medications, 
+  restrictive_practices, service_providers, behaviour_of_concern, pbsp_engaged, bsp_available, 
+  restrictive_practices_yn, specialist_name, specialist_phone, specialist_email, 
+  restrictive_practice_authorisation, restrictive_practice_details, mtmp_required, mtmp_details, 
+  mobility_support, meal_prep_support, household_support, communication_type, communication_notes, 
+  communication_language_needs, finance_support, health_wellbeing_support, cultural_religious_support, 
+  other_support, mental_health_plan, medical_plan, natural_disaster_plan, pharmacy_name, 
+  pharmacy_contact, pharmacy_location, gp_name, gp_contact, gp_location, psychiatrist_name, 
+  psychiatrist_contact, psychiatrist_location, medical_routine_other, medical_routine_general_process, 
+  created_at, updated_at,
+  houses!house_id (
+    name
+  )
+`;
+
 export function useParticipants(
   pageIndex: number = 0,
   pageSize: number = 10,
   sort: ParticipantsSort[] = [],
   filters: ParticipantsFilter = {}
 ) {
-  const [participants, setParticipants] = useState<Participant[]>([]);
-  const [count, setCount] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchParticipants = useCallback(async () => {
-    try {
-      setLoading(true);
-      
-      // Build base query
+  const query = useQuery({
+    queryKey: ['participants', { pageIndex, pageSize, sort, filters }],
+    queryFn: async () => {
       let query = supabase
         .from('participants')
-        .select(`
-          *,
-          houses!house_id (
-            name
-          )
-        `, { count: 'exact' });
+        .select(PARTICIPANT_COLUMNS, { count: 'exact' });
 
-      // Apply search filter if present
       if (filters.search) {
         query = query.or(`name.ilike.%${filters.search}%,email.ilike.%${filters.search}%,ndis_number.ilike.%${filters.search}%,address.ilike.%${filters.search}%`);
       }
 
-      // Apply house filter
       if (filters.houses && filters.houses.length > 0) {
         query = query.in('house_id', filters.houses);
       }
 
-      // Apply status filter
       if (filters.statuses && filters.statuses.length > 0) {
         query = query.in('status', filters.statuses);
       }
 
-      // Apply sorting
       if (sort.length > 0) {
         sort.forEach(s => {
           query = query.order(s.id, { ascending: !s.desc });
@@ -62,110 +64,94 @@ export function useParticipants(
         query = query.order('name', { ascending: true });
       }
 
-      // Apply pagination
       const from = pageIndex * pageSize;
       const to = from + pageSize - 1;
       query = query.range(from, to);
 
-      const { data, error, count: totalCount } = await query;
-
+      const { data, error, count } = await query;
       if (error) throw error;
 
-      // Transform data to include house_name
       const participantsWithHouse = (data || []).map((p: any) => ({
         ...p,
         house_name: p.houses?.name || null,
-      }));
+      })) as ParticipantWithHouse[];
 
-      setParticipants(participantsWithHouse);
-      setCount(totalCount || 0);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-      console.error('Error fetching participants:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [pageIndex, pageSize, JSON.stringify(sort), JSON.stringify(filters)]);
+      return { data: participantsWithHouse, count: count || 0 };
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
 
-  useEffect(() => {
-    fetchParticipants();
-  }, [fetchParticipants]);
+  return {
+    ...query,
+    participants: query.data?.data || [],
+    count: query.data?.count || 0,
+    loading: query.isLoading,
+    error: query.error ? (query.error as any).message : null,
+  };
+}
 
-  async function addParticipant(participant: Omit<Participant, 'id' | 'created_at' | 'updated_at'>) {
-    try {
+export function useAddParticipant() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (participant: Omit<Participant, 'id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
         .from('participants')
         .insert([participant])
-        .select()
+        .select(PARTICIPANT_COLUMNS)
         .single();
 
       if (error) throw error;
+      return data as Participant;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['participants'] });
+    },
+  });
+}
 
-      setParticipants(prevParticipants => [...prevParticipants, data]);
-      
-      return { data, error: null };
-    } catch (err) {
-      console.error('Error adding participant:', err);
-      return { data: null, error: err };
-    }
-  }
+export function useUpdateParticipant() {
+  const queryClient = useQueryClient();
 
-  async function updateParticipant(id: string, updates: Partial<Participant>) {
-    try {
+  return useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: Partial<Participant> }) => {
       const { data, error } = await supabase
         .from('participants')
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq('id', id)
-        .select(`
-          *,
-          houses!house_id (
-            name
-          )
-        `)
+        .select(PARTICIPANT_COLUMNS)
         .single();
 
       if (error) throw error;
 
-      // Transform data to include house_name
       const participantWithHouse = {
         ...data,
         house_name: (data as any).houses?.name || null,
       };
 
-      setParticipants(prevParticipants => prevParticipants.map(p => p.id === id ? participantWithHouse : p));
-      return { data: participantWithHouse, error: null };
-    } catch (err) {
-      console.error('Error updating participant:', err);
-      return { data: null, error: err };
-    }
-  }
+      return participantWithHouse as ParticipantWithHouse;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['participants'] });
+      queryClient.invalidateQueries({ queryKey: ['participants', data.id] });
+    },
+  });
+}
 
-  async function deleteParticipant(id: string) {
-    try {
+export function useDeleteParticipant() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
       const { error } = await supabase
         .from('participants')
         .delete()
         .eq('id', id);
 
       if (error) throw error;
-
-      setParticipants(prevParticipants => prevParticipants.filter(p => p.id !== id));
-      
-      return { error: null };
-    } catch (err) {
-      console.error('Error deleting participant:', err);
-      return { error: err };
-    }
-  }
-
-  return {
-    participants,
-    count: participants.length,
-    loading,
-    error,
-    addParticipant,
-    updateParticipant,
-    deleteParticipant,
-    refetch: fetchParticipants,
-  };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['participants'] });
+    },
+  });
 }

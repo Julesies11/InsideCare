@@ -19,18 +19,7 @@ import { StaffRosterCalendar } from '@/pages/roster-board/components/staff-roste
 import { RosterCalendarHeader } from '@/components/roster/roster-calendar-header';
 import { ViewMode } from '@/components/roster/roster-utils';
 
-interface Shift {
-  id: string;
-  shift_date: string;
-  start_time: string;
-  end_time: string;
-  shift_type: string;
-  status: string;
-  house: { name: string } | null;
-  has_timesheet?: boolean;
-}
-
-type TabView = 'calendar' | 'list';
+import { useStaffRoster, RosterShift as Shift } from '@/hooks/use-staff-roster';
 
 export function StaffRoster() {
   const { user } = useAuth();
@@ -47,42 +36,7 @@ export function StaffRoster() {
   const [statusFilter, setStatusFilter] = useState('all');
 
   // List state
-  const [shifts, setShifts] = useState<Shift[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (tab !== 'list') return;
-    if (!user?.staff_id) { setLoading(false); return; }
-
-    const fetchShifts = async () => {
-      setLoading(true);
-      const { data: shiftsData, error } = await supabase
-        .from('staff_shifts')
-        .select('id, shift_date, start_time, end_time, shift_type, status, house:houses(name)')
-        .eq('staff_id', user.staff_id)
-        .order('shift_date', { ascending: false });
-
-      if (error || !shiftsData) { setLoading(false); return; }
-
-      const shiftIds = shiftsData.map((s) => s.id);
-      const { data: timesheetData } = await supabase
-        .from('timesheets')
-        .select('shift_id')
-        .in('shift_id', shiftIds.length > 0 ? shiftIds : ['00000000-0000-0000-0000-000000000000']);
-
-      const timesheetedIds = new Set((timesheetData || []).map((t) => t.shift_id));
-      setShifts(
-        shiftsData.map((s) => ({
-          ...s,
-          house: s.house as { name: string } | null,
-          has_timesheet: timesheetedIds.has(s.id),
-        }))
-      );
-      setLoading(false);
-    };
-
-    fetchShifts();
-  }, [tab, user?.staff_id]);
+  const { data: shifts = [], isLoading: loading } = useStaffRoster(user?.staff_id);
 
   const navigatePeriod = (direction: 'prev' | 'next') => {
     if (viewMode === 'today') {

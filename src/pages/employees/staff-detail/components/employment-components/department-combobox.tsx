@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Settings } from 'lucide-react';
-import { useDepartmentsMaster } from '@/hooks/useDepartmentsMaster';
+import { useDepartmentsMaster } from '@/hooks/use-departments-master';
 
 interface DepartmentComboboxProps {
   value: string;
@@ -35,13 +35,7 @@ export function DepartmentCombobox({
   onRefresh,
 }: DepartmentComboboxProps) {
   const [open, setOpen] = useState(false);
-  const { departments, loading, refresh } = useDepartmentsMaster();
-
-  useEffect(() => {
-    if (onRefresh) {
-      refresh();
-    }
-  }, [onRefresh]);
+  const { data: departments = [], isLoading: loading } = useDepartmentsMaster();
 
   // Filter active departments for the dropdown list
   const activeDepartments = departments.filter((dept) => dept.status === 'Active');

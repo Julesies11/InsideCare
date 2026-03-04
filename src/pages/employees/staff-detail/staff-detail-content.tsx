@@ -8,7 +8,7 @@ import { Scrollspy } from '@/components/ui/scrollspy';
 import { StaffDetailForm } from './components/staff-detail-form';
 import { StaffDetailSidebar } from './components/staff-detail-sidebar';
 import { Documents } from './components/documents';
-import { Staff, StaffUpdateData, useStaff } from '@/hooks/useStaff';
+import { Staff, StaffUpdateData, useStaff, useUpdateStaff } from '@/hooks/use-staff';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { StaffPendingChanges } from '@/models/staff-pending-changes';
@@ -38,7 +38,7 @@ interface StaffDetailContentProps {
   saveHandlerRef?: React.MutableRefObject<(() => Promise<void>) | null>;
   pendingChanges?: StaffPendingChanges;
   onPendingChangesChange?: (changes: StaffPendingChanges) => void;
-  updateStaff?: (id: string, updates: StaffUpdateData) => Promise<{ data: any; error: string | null }>;
+  updateStaff?: (params: { id: string; updates: StaffUpdateData }) => Promise<any>;
   onSaveSuccess?: () => void;
   onPhotoDirtyChange?: (dirty: boolean) => void;
 }
@@ -104,7 +104,8 @@ export function StaffDetailContent({
   const parentRef = useRef<HTMLElement | Document>(document);
   const scrollPosition = useScrollPosition({ targetRef: parentRef });
 
-  const { getStaffById, updateStaff: updateStaffFromHook } = useStaff();
+  const { getStaffById } = useStaff();
+  const { mutateAsync: updateStaffFromHook } = useUpdateStaff();
   // Use prop if available, otherwise use hook instance
   const updateStaffFn = updateStaff || updateStaffFromHook;
   
@@ -692,8 +693,10 @@ export function StaffDetailContent({
               return;
             }
 
-            const { error } = await updateStaffFn(staffId, changedFields);
-            if (error) {
+            try {
+              await updateStaffFn({ id: staffId, updates: changedFields });
+              console.log('Successfully saved changes to database');
+            } catch (error: any) {
               // Parse error using centralized error parser
               const parsedError = parseSupabaseError(error);
               
@@ -709,7 +712,6 @@ export function StaffDetailContent({
               toast.error(parsedError.title, { description: parsedError.description });
               throw new Error(parsedError.description);
             }
-            console.log('Successfully saved changes to database');
           } else {
             console.log('No changes detected in main form fields');
           }

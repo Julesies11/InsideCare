@@ -40,7 +40,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
-import { Staff, useStaff } from '@/hooks/useStaff';
+import { Staff, useStaff } from '@/hooks/use-staff';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router';
 import { useDebouncedSearchParams } from '@/hooks/use-debounced-search-params';
@@ -112,12 +112,14 @@ const StaffTable = () => {
     statuses: selectedStatuses
   }), [searchQuery, selectedStatuses]);
 
-  const { staff, count, loading, error, updateStaff } = useStaff(
+  const { data, isLoading: loading, error } = useStaff(
     pagination.pageIndex,
     pagination.pageSize,
     sorting,
     filters
   );
+  const staff = data?.data || [];
+  const count = data?.count || 0;
 
   const columns: ColumnDef<Staff>[] = [
     {

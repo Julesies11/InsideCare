@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Edit, Trash2, CheckSquare, GripVertical, Search, ClipboardList } from 'lucide-react';
-import { useChecklistMaster, ChecklistMaster } from '@/hooks/useChecklistMaster';
+import { useChecklistMaster, ChecklistMaster } from '@/hooks/use-checklist-master';
 import { Sortable, SortableItem, SortableItemHandle } from '@/components/ui/sortable';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';

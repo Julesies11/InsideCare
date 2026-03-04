@@ -1,0 +1,80 @@
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/lib/supabase';
+
+export interface HouseChecklistItem {
+  id: string;
+  checklist_id: string;
+  title: string;
+  instructions?: string;
+  priority: string;
+  is_required: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface HouseChecklist {
+  id: string;
+  house_id: string;
+  name: string;
+  frequency: string;
+  description?: string;
+  is_global: boolean;
+  created_at: string;
+  updated_at: string;
+  items?: HouseChecklistItem[];
+  latest_submission?: {
+    id: string;
+    status: string;
+    updated_at: string;
+  };
+}
+
+const HOUSE_CHECKLIST_COLUMNS = `
+  id, house_id, name, frequency, description, is_global, created_at, updated_at,
+  items:house_checklist_items (id, checklist_id, title, instructions, priority, is_required, sort_order, created_at, updated_at)
+`;
+
+export function useHouseChecklists(houseId?: string) {
+  const query = useQuery({
+    queryKey: ['house-checklists', houseId],
+    queryFn: async () => {
+      if (!houseId) return [];
+
+      // Fetch checklists with items
+      const { data: checklists, error: clError } = await supabase
+        .from('house_checklists')
+        .select(HOUSE_CHECKLIST_COLUMNS)
+        .eq('house_id', houseId)
+        .order('created_at', { ascending: false });
+
+      if (clError) throw clError;
+
+      // Fetch latest in_progress submissions for these checklists in this house
+      const { data: submissions, error: subError } = await supabase
+        .from('house_checklist_submissions')
+        .select('id, checklist_id, status, updated_at')
+        .eq('house_id', houseId)
+        .eq('status', 'in_progress');
+
+      if (subError) throw subError;
+
+      // Combine data
+      return (checklists || []).map(cl => ({
+        ...cl,
+        items: (cl.items || []).sort((a: any, b: any) => a.sort_order - b.sort_order),
+        latest_submission: submissions?.find(s => s.checklist_id === cl.id)
+      })) as HouseChecklist[];
+    },
+    enabled: !!houseId,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  return {
+    ...query,
+    houseChecklists: query.data || [],
+    loading: query.isLoading,
+    error: query.error ? (query.error as any).message : null,
+    refresh: query.refetch,
+  };
+}

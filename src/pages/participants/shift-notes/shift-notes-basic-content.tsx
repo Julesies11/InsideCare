@@ -3,7 +3,7 @@ import { ClipboardList, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ShiftNotes, EditShiftNoteDialog } from './components';
-import { useShiftNotes, ShiftNoteUpdateData } from '@/hooks/useShiftNotes';
+import { useShiftNotes, ShiftNoteUpdateData } from '@/hooks/use-shift-notes';
 
 export function ShiftNotesContent() {
   const { createShiftNote, updateShiftNote, refetch } = useShiftNotes();

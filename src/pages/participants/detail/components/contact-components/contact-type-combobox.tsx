@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button, ButtonArrow } from '@/components/ui/button';
 import {
   Command,
@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Settings } from 'lucide-react';
-import { useContactTypesMaster } from '@/hooks/useContactTypesMaster';
+import { useContactTypesMaster } from '@/hooks/use-contact-types-master';
 
 interface ContactTypeComboboxProps {
   value: string;
@@ -35,13 +35,7 @@ export function ContactTypeCombobox({
   onRefresh,
 }: ContactTypeComboboxProps) {
   const [open, setOpen] = useState(false);
-  const { contactTypes, loading, refresh } = useContactTypesMaster();
-
-  useEffect(() => {
-    if (onRefresh) {
-      refresh();
-    }
-  }, [onRefresh]);
+  const { data: contactTypes = [], isLoading: loading } = useContactTypesMaster();
 
   const activeContactTypes = contactTypes.filter((ct) => ct.is_active);
   const selectedContactType = contactTypes.find((ct) => ct.id === value);

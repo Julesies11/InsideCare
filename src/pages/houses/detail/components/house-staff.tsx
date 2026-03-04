@@ -9,8 +9,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Plus, Edit, Trash2, Users, Clock, Star } from 'lucide-react';
-import { useHouseStaffAssignments } from '@/hooks/useHouseStaffAssignmentsForHouse';
-import { useStaff } from '@/hooks/useStaff';
+import { useHouseStaffAssignments } from '@/hooks/use-house-staff-assignments';
+import { useStaff } from '@/hooks/use-staff';
 import { StaffCombobox } from './staff-combobox';
 import { HousePendingChanges } from '@/models/house-pending-changes';
 
@@ -39,7 +39,7 @@ export function HouseStaff({
     notes: '',
   });
 
-  const { houseStaffAssignments, loading } = useHouseStaffAssignments(houseId);
+  const { data: houseStaffAssignments = [], isLoading: loading } = useHouseStaffAssignments(houseId);
   const { staff } = useStaff();
 
   const handleAdd = () => {

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/auth/context/auth-context';
-import { StoreClientTopbar } from '@/pages/store-client/components/common/topbar';
 import { SearchDialog } from '@/partials/dialogs/search/search-dialog';
 import { ChatSheet } from '@/partials/topbar/chat-sheet';
 import { NotificationsSheet } from '@/partials/topbar/notifications-sheet';
@@ -10,8 +9,6 @@ import {
   Bell,
   Menu,
   MessageCircleMore,
-  Search,
-  SquareChevronRight,
 } from 'lucide-react';
 import { useLocation } from 'react-router';
 import { Link } from 'react-router-dom';
@@ -30,13 +27,10 @@ import {
 } from '@/components/ui/sheet';
 import { Container } from '@/components/common/container';
 import { Breadcrumb } from './breadcrumb';
-import { MegaMenu } from './mega-menu';
-import { MegaMenuMobile } from './mega-menu-mobile';
 import { SidebarMenu } from './sidebar-menu';
 
 export function Header() {
   const [isSidebarSheetOpen, setIsSidebarSheetOpen] = useState(false);
-  const [isMegaMenuSheetOpen, setIsMegaMenuSheetOpen] = useState(false);
   const { unreadCount } = useNotifications();
   const { user } = useAuth();
   const initials = [user?.first_name, user?.last_name]
@@ -53,7 +47,6 @@ export function Header() {
   // Close sheet when route changes
   useEffect(() => {
     setIsSidebarSheetOpen(false);
-    setIsMegaMenuSheetOpen(false);
   }, [pathname]);
 
   return (
@@ -88,6 +81,7 @@ export function Header() {
                   className="p-0 gap-0 w-[275px]"
                   side="left"
                   close={false}
+                  title="Sidebar Menu"
                 >
                   <SheetHeader className="p-0 space-y-0" />
                   <SheetBody className="p-0 overflow-y-auto">
@@ -96,30 +90,9 @@ export function Header() {
                 </SheetContent>
               </Sheet>
             )}
-            {mobileMode && (
-              <Sheet
-                open={isMegaMenuSheetOpen}
-                onOpenChange={setIsMegaMenuSheetOpen}
-              >
-                <SheetTrigger asChild>
-                  <Button variant="ghost" mode="icon">
-                    <SquareChevronRight className="text-muted-foreground/70" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent
-                  className="p-0 gap-0 w-[275px]"
-                  side="left"
-                  close={false}
-                >
-                  <SheetHeader className="p-0 space-y-0" />
-                  <SheetBody className="p-0 overflow-y-auto">
-                    <MegaMenuMobile />
-                  </SheetBody>
-                </SheetContent>
-              </Sheet>
-            )}
           </div>
         </div>
+
 
         {/* Main Content (MegaMenu or Breadcrumbs) */}
         <div className="flex items-center grow">
@@ -128,25 +101,8 @@ export function Header() {
 
         {/* HeaderTopbar */}
         <div className="flex items-center gap-3">
-          {pathname.startsWith('/store-client') ? (
-            <StoreClientTopbar />
-          ) : (
-            <>
-              {!mobileMode && (
-                <SearchDialog
-                  trigger={
-                    <Button
-                      variant="ghost"
-                      mode="icon"
-                      shape="circle"
-                      className="size-9 hover:bg-primary/10 hover:[&_svg]:text-primary"
-                    >
-                      <Search className="size-4.5!" />
-                    </Button>
-                  }
-                />
-              )}
-              <NotificationsSheet
+          <>
+            <NotificationsSheet
                 trigger={
                   <Button
                     variant="ghost"
@@ -182,7 +138,6 @@ export function Header() {
                 }
               />
             </>
-          )}
         </div>
       </Container>
     </header>

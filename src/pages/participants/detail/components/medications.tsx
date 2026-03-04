@@ -10,8 +10,8 @@ import { Switch } from '@/components/ui/switch';
 import { Plus, Edit, Trash2, Pill, Clock } from 'lucide-react';
 import { MedicationCombobox } from './medication-components/medication-combobox';
 import { MedicationMasterDialog } from './medication-components/medication-master-dialog';
-import { useParticipantMedications } from '@/hooks/useParticipantMedications';
-import { useMedicationsMaster } from '@/hooks/useMedicationsMaster';
+import { useParticipantMedications } from '@/hooks/use-participant-medications';
+import { useMedicationsMaster } from '@/hooks/use-medications-master';
 import { ParticipantPendingChanges } from '@/models/participant-pending-changes';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -47,8 +47,8 @@ export function Medications({
   const [showMasterDialog, setShowMasterDialog] = useState(false);
   const [refreshMedicationKey, setRefreshMedicationKey] = useState(0);
 
-  const { medications, loading } = useParticipantMedications(participantId);
-  const { medications: medicationsMaster } = useMedicationsMaster();
+  const { data: medications = [], isLoading: loading } = useParticipantMedications(participantId);
+  const { data: medicationsMaster = [] } = useMedicationsMaster();
 
   // Helper function to get medication name
   const getMedicationName = (med: any) => {

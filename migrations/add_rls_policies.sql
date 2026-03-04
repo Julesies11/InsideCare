@@ -128,8 +128,55 @@ CREATE POLICY "Users can update own notifications"
   TO authenticated
   USING (user_id = auth.uid());
 
--- Service role / admins can insert notifications for any user
-CREATE POLICY "Admins can insert notifications"
+-- All authenticated users can insert notifications (e.g. staff notifying admins)
+CREATE POLICY "Authenticated users can insert notifications"
   ON notifications FOR INSERT
   TO authenticated
+  WITH CHECK (true);
+
+-- ============================================================
+-- SHIFT_NOTES table policies
+-- ============================================================
+
+ALTER TABLE shift_notes ENABLE ROW LEVEL SECURITY;
+
+-- Admins can do everything
+CREATE POLICY "Admins have full access to shift_notes"
+  ON shift_notes FOR ALL
+  TO authenticated
+  USING ((auth.jwt() -> 'user_metadata' ->> 'is_admin')::boolean = true)
   WITH CHECK ((auth.jwt() -> 'user_metadata' ->> 'is_admin')::boolean = true);
+
+-- Staff can read and create shift notes
+CREATE POLICY "Staff can read all shift notes"
+  ON shift_notes FOR SELECT
+  TO authenticated
+  USING (true);
+
+CREATE POLICY "Staff can create shift notes"
+  ON shift_notes FOR INSERT
+  TO authenticated
+  WITH CHECK (true);
+
+CREATE POLICY "Staff can update own shift notes"
+  ON shift_notes FOR UPDATE
+  TO authenticated
+  USING (staff_id IN (SELECT id FROM staff WHERE auth_user_id = auth.uid()));
+
+-- ============================================================
+-- ACTIVITY_LOG table policies
+-- ============================================================
+
+ALTER TABLE activity_log ENABLE ROW LEVEL SECURITY;
+
+-- Everyone can read activity log
+CREATE POLICY "Authenticated users can read activity log"
+  ON activity_log FOR SELECT
+  TO authenticated
+  USING (true);
+
+-- Everyone can insert into activity log
+CREATE POLICY "Authenticated users can insert activity log"
+  ON activity_log FOR INSERT
+  TO authenticated
+  WITH CHECK (true);

@@ -454,7 +454,7 @@ export function AdminTimesheetsPage() {
       </Container>
             {/* Review / Detail slide-out */}
       <Sheet open={!!selected} onOpenChange={(open) => { if (!open) { setSelected(null); setAction(null); } }}>
-        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+        <SheetContent title="Timesheet Details" className="w-full sm:max-w-lg overflow-y-auto">
           {selected && (
             <>
               <SheetHeader className="pb-4 border-b">

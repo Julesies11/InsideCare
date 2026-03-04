@@ -1,93 +1,128 @@
 import { http, HttpResponse } from 'msw';
 
-// Mock data
-const mockParticipants = [
-  {
-    id: '1',
-    name: 'John Doe',
-    email: 'john@example.com',
-    house_phone: '555-0001',
-    personal_mobile: '555-0002',
-    date_of_birth: '1990-01-15',
-    ndis_number: 'NDIS001',
-    house_id: 'house-1',
-    house_name: 'Main House',
-    status: 'draft',
-    photo_url: null,
-    address: '123 Main St',
-  },
-  {
-    id: '2',
-    name: 'Jane Smith',
-    email: 'jane@example.com',
-    house_phone: '555-0002',
-    personal_mobile: '555-0003',
-    date_of_birth: '1985-05-20',
-    ndis_number: 'NDIS002',
-    house_id: 'house-2',
-    house_name: 'West House',
-    status: 'draft',
-    photo_url: null,
-    address: '456 Oak Ave',
-  },
-  {
-    id: '3',
-    name: 'Bob Johnson',
-    email: 'bob@example.com',
-    house_phone: '555-0003',
-    personal_mobile: '555-0004',
-    date_of_birth: '1992-08-10',
-    ndis_number: 'NDIS003',
-    house_id: 'house-1',
-    house_name: 'Main House',
-    status: 'draft',
-    photo_url: null,
-    address: '789 Pine Rd',
-  },
-];
-
-const mockHouses = [
-  {
-    id: 'house-1',
-    name: 'Main House',
-    address: '100 Main St',
-    status: 'active',
-  },
-  {
-    id: 'house-2',
-    name: 'West House',
-    address: '200 West St',
-    status: 'active',
-  },
-];
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://jxxpufmygwbfzzpioryu.supabase.co';
 
 export const handlers = [
-  // Get participants
-  http.get('*/rest/v1/participants', () => {
-    return HttpResponse.json(mockParticipants);
+  // Auth Mocks
+  http.get(`${SUPABASE_URL}/auth/v1/user`, () => {
+    return HttpResponse.json({
+      id: 'test-user-id',
+      email: 'test@example.com',
+      user_metadata: { is_admin: true },
+    });
   }),
 
-  // Get houses
-  http.get('*/rest/v1/houses', () => {
-    return HttpResponse.json(mockHouses);
+  // Database Mocks - Houses
+  http.get(`${SUPABASE_URL}/rest/v1/houses`, () => {
+    return HttpResponse.json([
+      {
+        id: 'house-1',
+        name: 'Test House 1',
+        status: 'active',
+        capacity: 5,
+        address: '123 Test St',
+      },
+      {
+        id: 'house-2',
+        name: 'Test House 2',
+        status: 'inactive',
+        capacity: 3,
+        address: '456 Mock Ave',
+      },
+    ]);
   }),
 
-  // Get single participant
-  http.get('*/rest/v1/participants/:id', ({ params }) => {
-    const participant = mockParticipants.find(p => p.id === params.id);
-    if (participant) {
-      return HttpResponse.json(participant);
+  // Database Mocks - Participants
+  http.get(`${SUPABASE_URL}/rest/v1/participants`, ({ request }) => {
+    const url = new URL(request.url);
+    const idParam = url.searchParams.get('id');
+    
+    const participants = [
+      {
+        id: 'participant-1',
+        name: 'John Doe',
+        email: 'john@example.com',
+        status: 'active',
+        house_id: 'house-1',
+        houses: { name: 'Test House 1' },
+        ndis_number: 'NDIS123',
+      },
+    ];
+
+    if (idParam && idParam.startsWith('eq.')) {
+      const id = idParam.replace('eq.', '');
+      const participant = participants.find(p => p.id === id);
+      if (participant) {
+        if (request.headers.get('Accept')?.includes('vnd.pgrst.object+json')) {
+          return HttpResponse.json(participant);
+        }
+        return HttpResponse.json([participant]);
+      }
     }
-    return new HttpResponse(null, { status: 404 });
+
+    return HttpResponse.json(participants);
   }),
 
-  // Update participant
-  http.patch('*/rest/v1/participants/:id', async ({ request, params }) => {
-    const updates = await request.json();
-    const participant = mockParticipants.find(p => p.id === params.id);
-    if (participant) {
-      return HttpResponse.json({ ...participant, ...updates });
-    }
-    return new HttpResponse(null, { status: 404 });
+  http.patch(`${SUPABASE_URL}/rest/v1/participants`, async ({ request }) => {
+    const body = await request.json();
+    return HttpResponse.json({ 
+      id: 'participant-1',
+      name: 'John Doe',
+      ...body 
+    });
+  }),
+
+  // Database Mocks - Activity Log
+  http.get(`${SUPABASE_URL}/rest/v1/activity_log`, () => {
+    return HttpResponse.json([
+      {
+        id: 'log-1',
+        activity_type: 'create',
+        entity_type: 'participant',
+        entity_id: 'participant-1',
+        entity_name: 'John Doe',
+        description: 'New participant created: John Doe',
+        user_name: 'admin@example.com',
+        created_at: new Date().toISOString(),
+      },
+    ]);
+  }),
+
+  http.post(`${SUPABASE_URL}/rest/v1/activity_log`, () => {
+    return HttpResponse.json({ success: true }, { status: 201 });
+  }),
+
+  // Database Mocks - Staff
+  http.get(`${SUPABASE_URL}/rest/v1/staff`, () => {
+    return HttpResponse.json([
+      {
+        id: 'staff-1',
+        name: 'Admin User',
+        email: 'admin@example.com',
+        status: 'active',
+        role: { name: 'Administrator' }
+      },
+    ]);
+  }),
+
+  // Database Mocks - Shift Notes
+  http.get(`${SUPABASE_URL}/rest/v1/shift_notes`, () => {
+    return HttpResponse.json([
+      {
+        id: 'note-1',
+        participant_id: 'participant-1',
+        staff_id: 'staff-1',
+        shift_date: new Date().toISOString().split('T')[0],
+        notes: 'Everything went well.',
+        participant: { id: 'participant-1', name: 'John Doe' },
+        staff: { id: 'staff-1', name: 'Admin User' },
+      },
+    ]);
+  }),
+
+  // Generic handler for all other rest requests to avoid "unhandled request" errors
+  // This MUST be last
+  http.get(`${SUPABASE_URL}/rest/v1/:table`, () => {
+    return HttpResponse.json([]);
   }),
 ];

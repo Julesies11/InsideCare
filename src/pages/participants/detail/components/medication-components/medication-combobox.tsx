@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Settings } from 'lucide-react';
-import { useMedicationsMaster } from '@/hooks/useMedicationsMaster';
+import { useMedicationsMaster } from '@/hooks/use-medications-master';
 
 interface MedicationComboboxProps {
   value: string;
@@ -35,13 +35,7 @@ export function MedicationCombobox({
   onRefresh,
 }: MedicationComboboxProps) {
   const [open, setOpen] = useState(false);
-  const { medications, loading, refresh } = useMedicationsMaster();
-
-  useEffect(() => {
-    if (onRefresh) {
-      refresh();
-    }
-  }, [onRefresh]);
+  const { data: medications = [], isLoading: loading } = useMedicationsMaster();
 
   const activeMedications = medications.filter((med) => med.is_active);
   const selectedMedication = medications.find((med) => med.id === value);

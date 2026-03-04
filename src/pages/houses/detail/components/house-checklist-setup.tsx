@@ -8,8 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Edit, Trash2, CheckSquare, GripVertical, Loader2, ChevronDown, Copy } from 'lucide-react';
-import { useHouseChecklists } from '@/hooks/useHouseChecklists';
-import { useChecklistMaster } from '@/hooks/useChecklistMaster';
+import { useHouseChecklists } from '@/hooks/use-house-checklists';
+import { useChecklistMaster } from '@/hooks/use-checklist-master';
 import { HousePendingChanges } from '@/models/house-pending-changes';
 import { Sortable, SortableItem, SortableItemHandle } from '@/components/ui/sortable';
 import { toast } from 'sonner';
@@ -236,13 +236,13 @@ export function HouseChecklistSetup({
   };
 
   const visibleChecklists = [
-    ...houseChecklists
-      .filter(checklist => !pendingChanges?.checklists.toDelete.includes(checklist.id))
+    ...(houseChecklists || [])
+      .filter(checklist => !pendingChanges?.checklists?.toDelete?.includes(checklist.id))
       .map(checklist => {
-        const update = pendingChanges?.checklists.toUpdate.find(u => u.id === checklist.id);
+        const update = pendingChanges?.checklists?.toUpdate?.find(u => u.id === checklist.id);
         return update ? { ...checklist, ...update } : checklist;
       }),
-    ...(pendingChanges?.checklists.toAdd || []),
+    ...(pendingChanges?.checklists?.toAdd || []),
   ];
 
   return (

@@ -13,7 +13,7 @@ export function ActivityLog({ participantId, refreshTrigger }: ActivityLogProps)
   const [showAll, setShowAll] = useState(false);
   const limit = showAll ? 100 : 10;
   
-  const { activities, loading, error, refetch } = useActivityLog({
+  const { data: activities = [], isLoading: loading, error, refetch } = useActivityLog({
     entityId: participantId,
     limit,
   });
@@ -30,6 +30,8 @@ export function ActivityLog({ participantId, refreshTrigger }: ActivityLogProps)
     setShowAll(!showAll);
   };
 
+  const errorMessage = error instanceof Error ? error.message : typeof error === 'string' ? error : 'An error occurred';
+
   return (
     <Card className="pb-2.5" id="activity_log">
       <CardHeader>
@@ -39,7 +41,7 @@ export function ActivityLog({ participantId, refreshTrigger }: ActivityLogProps)
         {loading ? (
           <div className="text-center py-8 text-muted-foreground">Loading activity log...</div>
         ) : error ? (
-          <div className="text-center py-8 text-destructive">{error}</div>
+          <div className="text-center py-8 text-destructive">{errorMessage}</div>
         ) : activities.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">No activity recorded yet</div>
         ) : (

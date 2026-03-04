@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { useStaff } from '@/hooks/useStaff';
+import { useStaff } from '@/hooks/use-staff';
 import { useHouses } from '@/hooks/use-houses';
 import { useParticipants } from '@/hooks/use-participants';
 
@@ -68,7 +68,7 @@ export function ShiftNoteDetailContent({
       setLoading(true);
       const { data, error } = await supabase
         .from('shift_notes')
-        .select('*')
+        .select('id, participant_id, staff_id, shift_date, shift_time, house_id, shift_id, notes, full_note, tags, created_at, updated_at, participant:participants(id, name), staff:staff(id, name), house:houses(id, name), shift:staff_shifts(id, start_time, end_time, shift_type, status)')
         .eq('id', id)
         .single();
 

@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { ClipboardList, Pencil, Plus, Trash2, X, AlertTriangle } from 'lucide-react';
 import { format, parseISO, isWithinInterval, areIntervalsOverlapping } from 'date-fns';
-import { useShiftNotes, ShiftNote } from '@/hooks/useShiftNotes';
+import { useShiftNotes, ShiftNote } from '@/hooks/use-shift-notes';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 

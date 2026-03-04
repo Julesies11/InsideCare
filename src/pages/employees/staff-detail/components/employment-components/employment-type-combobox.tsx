@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Settings } from 'lucide-react';
-import { useEmploymentTypesMaster } from '@/hooks/useEmploymentTypesMaster';
+import { useEmploymentTypesMaster } from '@/hooks/use-employment-types-master';
 
 interface EmploymentTypeComboboxProps {
   value: string;
@@ -35,13 +35,7 @@ export function EmploymentTypeCombobox({
   onRefresh,
 }: EmploymentTypeComboboxProps) {
   const [open, setOpen] = useState(false);
-  const { employmentTypes, loading, refresh } = useEmploymentTypesMaster();
-
-  useEffect(() => {
-    if (onRefresh) {
-      refresh();
-    }
-  }, [onRefresh]);
+  const { data: employmentTypes = [], isLoading: loading } = useEmploymentTypesMaster();
 
   // Filter active employment types for the dropdown list
   const activeEmploymentTypes = employmentTypes.filter((type) => type.status === 'Active');

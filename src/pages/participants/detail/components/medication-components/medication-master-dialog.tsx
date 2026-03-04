@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Edit, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
-import { useMedicationsMaster } from '@/hooks/useMedicationsMaster';
+import { useMedicationsMaster, useAddMedicationMaster, useUpdateMedicationMaster } from '@/hooks/use-medications-master';
 import { MedicationMaster } from '@/models/medication-master';
 import { MedicationMasterQuickAdd } from './medication-master-quick-add';
 import { toast } from 'sonner';
@@ -24,7 +24,9 @@ export function MedicationMasterDialog({
   onClose,
   onUpdate,
 }: MedicationMasterDialogProps) {
-  const { medications, loading, addMedication, updateMedication, refresh } = useMedicationsMaster();
+  const { data: medications = [], isLoading: loading } = useMedicationsMaster();
+  const { mutateAsync: addMedication } = useAddMedicationMaster();
+  const { mutateAsync: updateMedication } = useUpdateMedicationMaster();
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingMedication, setEditingMedication] = useState<MedicationMaster | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -78,63 +80,44 @@ export function MedicationMasterDialog({
 
   const handleToggleStatus = async (medication: MedicationMaster) => {
     const newStatus = !medication.is_active;
-    const { error } = await updateMedication(medication.id, { is_active: newStatus });
-    if (error) {
-      toast.error(`Failed to ${newStatus ? 'activate' : 'deactivate'} medication: ` + error);
-    } else {
+    try {
+      await updateMedication({ id: medication.id, updates: { is_active: newStatus }, oldMedication: medication });
       toast.success(`Medication ${newStatus ? 'activated' : 'deactivated'} successfully`);
-      await refresh();
       onUpdate();
+    } catch (error: any) {
+      toast.error(`Failed to ${newStatus ? 'activate' : 'deactivate'} medication: ` + error.message);
     }
   };
 
   const handleSave = async (medicationData: Partial<MedicationMaster>) => {
-    if (editingMedication) {
-      const { error } = await updateMedication(editingMedication.id, medicationData);
-      if (error) {
-        // Check for duplicate name constraint
-        if (error === 'DUPLICATE_NAME') {
-          toast.error('Duplicate medication name', {
-            description: 'A medication with this name already exists. Please use a different name.'
-          });
-        } else {
-          toast.error('Failed to update medication', {
-            description: error
-          });
-        }
-      } else {
+    try {
+      if (editingMedication) {
+        await updateMedication({ id: editingMedication.id, updates: medicationData, oldMedication: editingMedication });
         toast.success('Medication updated successfully');
-        setShowAddDialog(false);
-        await refresh();
-        onUpdate();
-      }
-    } else {
-      const { error } = await addMedication({
-        name: medicationData.name!,
-        category: medicationData.category || null,
-        common_dosages: medicationData.common_dosages || null,
-        side_effects: medicationData.side_effects || null,
-        interactions: medicationData.interactions || null,
-        is_active: medicationData.is_active ?? true,
-        created_by: null,
-        updated_by: null,
-      });
-      if (error) {
-        // Check for duplicate name constraint
-        if (error === 'DUPLICATE_NAME') {
-          toast.error('Duplicate medication name', {
-            description: 'A medication with this name already exists. Please use a different name.'
-          });
-        } else {
-          toast.error('Failed to add medication', {
-            description: error
-          });
-        }
       } else {
+        await addMedication({
+          name: medicationData.name!,
+          category: medicationData.category || null,
+          common_dosages: medicationData.common_dosages || null,
+          side_effects: medicationData.side_effects || null,
+          interactions: medicationData.interactions || null,
+          is_active: medicationData.is_active ?? true,
+          created_by: null,
+          updated_by: null,
+        });
         toast.success('Medication added successfully');
-        setShowAddDialog(false);
-        await refresh();
-        onUpdate();
+      }
+      setShowAddDialog(false);
+      onUpdate();
+    } catch (error: any) {
+      if (error.message === 'DUPLICATE_NAME') {
+        toast.error('Duplicate medication name', {
+          description: 'A medication with this name already exists. Please use a different name.'
+        });
+      } else {
+        toast.error(`Failed to ${editingMedication ? 'update' : 'add'} medication`, {
+          description: error.message
+        });
       }
     }
   };

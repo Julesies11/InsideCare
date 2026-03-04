@@ -9,8 +9,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Plus, Edit, Trash2, Users, Clock } from 'lucide-react';
-import { useParticipantContacts } from '@/hooks/useParticipantContacts';
-import { useContactTypesMaster } from '@/hooks/useContactTypesMaster';
+import { useParticipantContacts } from '@/hooks/use-participant-contacts';
+import { useContactTypesMaster } from '@/hooks/use-contact-types-master';
 import { ContactTypeCombobox } from './contact-components/contact-type-combobox';
 import { ContactTypeMasterDialog } from './contact-components/contact-type-master-dialog';
 import { ParticipantPendingChanges } from '@/models/participant-pending-changes';
@@ -44,8 +44,8 @@ export function Contacts({
     is_active: true,
   });
 
-  const { contacts, loading } = useParticipantContacts(participantId);
-  const { contactTypes } = useContactTypesMaster();
+  const { data: contacts = [], isLoading: loading } = useParticipantContacts(participantId);
+  const { data: contactTypes = [] } = useContactTypesMaster();
 
   const handleAdd = () => {
     setEditingContact(null);

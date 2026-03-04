@@ -40,9 +40,9 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { useShiftNotes, ShiftNote } from '@/hooks/useShiftNotes';
+import { useShiftNotes, ShiftNote } from '@/hooks/use-shift-notes';
 import { useHouses } from '@/hooks/use-houses';
-import { useStaff } from '@/hooks/useStaff';
+import { useStaff } from '@/hooks/use-staff';
 import { useNavigate } from 'react-router';
 import { format } from 'date-fns';
 

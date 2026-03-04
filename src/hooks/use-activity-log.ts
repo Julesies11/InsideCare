@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { ActivityLog } from '@/models/activity-log';
 
@@ -8,21 +8,15 @@ interface UseActivityLogOptions {
   limit?: number;
 }
 
+const ACTIVITY_LOG_COLUMNS = 'id, activity_type, entity_type, entity_id, entity_name, description, user_name, metadata, created_at';
+
 export function useActivityLog({ entityId, entityType, limit = 50 }: UseActivityLogOptions = {}) {
-  const [activities, setActivities] = useState<ActivityLog[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetchActivities();
-  }, [entityId, entityType, limit]);
-
-  const fetchActivities = async () => {
-    try {
-      setLoading(true);
+  const query = useQuery({
+    queryKey: ['activity-log', { entityId, entityType, limit }],
+    queryFn: async () => {
       let query = supabase
         .from('activity_log')
-        .select('*')
+        .select(ACTIVITY_LOG_COLUMNS)
         .order('created_at', { ascending: false })
         .limit(limit);
 
@@ -35,21 +29,18 @@ export function useActivityLog({ entityId, entityType, limit = 50 }: UseActivity
       }
 
       const { data, error } = await query;
-
       if (error) throw error;
+      return data as ActivityLog[];
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
 
-      setActivities(data || []);
-      setError(null);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch activity log';
-      console.error('Error fetching activity log:', err);
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
-    }
+  return {
+    ...query,
+    activities: query.data || [],
+    loading: query.isLoading,
+    error: query.error ? (query.error as any).message : null,
   };
-
-  return { activities, loading, error, refetch: fetchActivities };
 }
 
 interface LogActivityParams {
@@ -62,41 +53,163 @@ interface LogActivityParams {
   metadata?: any;
 }
 
-export async function logActivity({
-  activityType,
-  entityType,
-  entityId,
-  entityName,
-  userName,
-  customDescription,
-  metadata
-}: LogActivityParams) {
-  try {
-    const descriptions = {
-      create: `New ${entityType} created: ${entityName || entityId}`,
-      update: `${entityType} updated: ${entityName || entityId}`,
-      delete: `${entityType} deleted: ${entityName || entityId}`
-    };
+export function useLogActivity() {
+  const queryClient = useQueryClient();
 
-    const { data, error } = await supabase
-      .from('activity_log')
-      .insert([{
-        activity_type: activityType,
-        entity_type: entityType,
-        entity_id: entityId,
-        entity_name: entityName,
-        description: customDescription || descriptions[activityType],
-        user_name: userName,
-        metadata: metadata
-      }])
-      .select()
-      .single();
+  return useMutation({
+    mutationFn: async ({
+      activityType,
+      entityType,
+      entityId,
+      entityName,
+      userName,
+      customDescription,
+      metadata
+    }: LogActivityParams) => {
+      const descriptions = {
+        create: `New ${entityType} created: ${entityName || entityId}`,
+        update: `${entityType} updated: ${entityName || entityId}`,
+        delete: `${entityType} deleted: ${entityName || entityId}`
+      };
 
-    if (error) throw error;
-    return { data, error: null };
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : 'Failed to log activity';
-    console.error('Error logging activity:', err);
-    return { data: null, error: errorMessage };
-  }
+      const { data, error } = await supabase
+        .from('activity_log')
+        .insert([{
+          activity_type: activityType,
+          entity_type: entityType,
+          entity_id: entityId,
+          entity_name: entityName,
+          description: customDescription || descriptions[activityType],
+          user_name: userName,
+          metadata: metadata
+        }])
+        .select(ACTIVITY_LOG_COLUMNS)
+        .single();
+
+      if (error) throw error;
+      return data as ActivityLog;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['activity-log'] });
+    },
+  });
+}
+
+export function useActivityLogHelpers() {
+  const { mutateAsync: logActivity } = useLogActivity();
+
+  const logParticipantActivity = (
+    type: 'create' | 'update' | 'delete',
+    participantId: string,
+    participantName: string,
+    userName?: string
+  ) => logActivity({
+    activityType: type,
+    entityType: 'participant',
+    entityId: participantId,
+    entityName: participantName,
+    userName
+  });
+
+  const logStaffActivity = (
+    type: 'create' | 'update' | 'delete',
+    staffId: string,
+    staffName: string,
+    userName?: string
+  ) => logActivity({
+    activityType: type,
+    entityType: 'staff',
+    entityId: staffId,
+    entityName: staffName,
+    userName
+  });
+
+  const logIncidentActivity = (
+    type: 'create' | 'update' | 'delete',
+    incidentId: string,
+    incidentType: string,
+    userName?: string
+  ) => logActivity({
+    activityType: type,
+    entityType: 'incident',
+    entityId: incidentId,
+    entityName: incidentType,
+    userName
+  });
+
+  const logComplianceActivity = (
+    type: 'create' | 'update' | 'delete',
+    complianceId: string,
+    complianceName: string,
+    staffName: string,
+    userName?: string
+  ) => logActivity({
+    activityType: type,
+    entityType: 'compliance',
+    entityId: complianceId,
+    entityName: complianceName,
+    userName,
+    metadata: { staff_name: staffName }
+  });
+
+  const logShiftNoteActivity = (
+    type: 'create' | 'update' | 'delete',
+    noteId: string,
+    summary: string,
+    userName?: string
+  ) => logActivity({
+    activityType: type,
+    entityType: 'shift_note',
+    entityId: noteId,
+    entityName: summary,
+    userName
+  });
+
+  const logBranchActivity = (
+    type: 'create' | 'update' | 'delete',
+    branchId: string,
+    branchName: string,
+    userName?: string
+  ) => logActivity({
+    activityType: type,
+    entityType: 'branch',
+    entityId: branchId,
+    entityName: branchName,
+    userName
+  });
+
+  return {
+    logParticipantActivity,
+    logStaffActivity,
+    logIncidentActivity,
+    logComplianceActivity,
+    logShiftNoteActivity,
+    logBranchActivity,
+  };
+}
+
+// Keeping a non-hook version for places where hooks can't be used
+export async function logActivity(params: LogActivityParams) {
+  const descriptions = {
+    create: `New ${params.entityType} created: ${params.entityName || params.entityId}`,
+    update: `${params.entityType} updated: ${params.entityName || params.entityId}`,
+    delete: `${params.entityType} deleted: ${params.entityName || params.entityId}`
+  };
+
+  const { data, error } = await supabase
+    .from('activity_log')
+    .insert([{
+      activity_type: params.activityType,
+      entity_type: params.entityType,
+      entity_id: params.entityId,
+      entity_name: params.entityName,
+      description: params.customDescription || descriptions[params.activityType],
+      user_name: params.userName,
+      metadata: params.metadata
+    }])
+    .select(ACTIVITY_LOG_COLUMNS)
+    .single();
+
+  if (error) throw error;
+  return { data, error: null };
 }

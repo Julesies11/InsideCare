@@ -49,6 +49,7 @@ export function Header() {
             className="p-0 gap-0 w-(--sidebar-width)"
             side="left"
             close={false}
+            title="Mobile Menu"
           >
             <SheetHeader className="p-0 space-y-0" />
             <SheetBody className="px-0 pt-5 flex flex-col grow">

@@ -65,7 +65,7 @@ export function ChecklistExecutionDialog({
         // Fetch existing attachments
         const { data: attachmentData } = await supabase
           .from('house_checklist_item_attachments')
-          .select('*')
+          .select('id, submission_id, item_id, file_name, file_path, file_size, mime_type, uploaded_by, created_at')
           .eq('submission_id', data.id);
 
         const attachments: Record<string, any[]> = {};

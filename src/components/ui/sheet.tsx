@@ -4,7 +4,7 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { X } from 'lucide-react';
-import { Dialog as SheetPrimitive } from 'radix-ui';
+import { Dialog as SheetPrimitive, VisuallyHidden } from 'radix-ui';
 
 function Sheet({ ...props }: React.ComponentProps<typeof SheetPrimitive.Root>) {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />;
@@ -59,12 +59,14 @@ interface SheetContentProps
     VariantProps<typeof sheetVariants> {
   overlay?: boolean;
   close?: boolean;
+  title?: string;
 }
 
 function SheetContent({
   side = 'right',
   overlay = true,
   close = true,
+  title,
   className,
   children,
   ...props
@@ -73,6 +75,11 @@ function SheetContent({
     <SheetPortal>
       {overlay && <SheetOverlay />}
       <SheetPrimitive.Content className={cn(sheetVariants({ side }), className)} {...props}>
+        {title && (
+          <VisuallyHidden.Root>
+            <SheetTitle>{title}</SheetTitle>
+          </VisuallyHidden.Root>
+        )}
         {children}
         {close && (
           <SheetPrimitive.Close
@@ -144,4 +151,5 @@ export {
   SheetPortal,
   SheetTitle,
   SheetTrigger,
+  VisuallyHidden,
 };

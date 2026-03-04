@@ -68,7 +68,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Participant, ParticipantWithHouse }  from '@/models/participant';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Archive, Edit, Eye } from 'lucide-react';
-import { useParticipants } from '@/hooks/use-participants';
+import { useParticipants, useUpdateParticipant } from '@/hooks/use-participants';
 import { useHouses } from '@/hooks/use-houses';
 import { useNavigate } from 'react-router';
 import { supabase } from '@/lib/supabase';
@@ -82,7 +82,7 @@ const PARTICIPANT_STATUS_OPTIONS: StatusOption[] = [
   { value: 'inactive', label: 'Inactive', badge: 'secondary' },
 ];
 
-function ActionsCell({ row, updateParticipant }: { row: Row<ParticipantWithHouse>; updateParticipant: (id: string, updates: Partial<Participant>) => Promise<{ data: any; error: string | null }> }) {
+function ActionsCell({ row, updateParticipant }: { row: Row<ParticipantWithHouse>; updateParticipant: (params: { id: string; updates: Partial<Participant> }) => Promise<any> }) {
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -96,13 +96,7 @@ function ActionsCell({ row, updateParticipant }: { row: Row<ParticipantWithHouse
 
   const handleArchive = async () => {
     try {
-      const { error } = await updateParticipant(row.original.id, { status: 'inactive' });
-
-      if (error) {
-        const parsedError = parseSupabaseError(error);
-        toast.error(parsedError.title, { description: parsedError.description });
-        throw new Error(parsedError.description);
-      }
+      await updateParticipant({ id: row.original.id, updates: { status: 'inactive' } });
 
       // Log activity
       await logActivity({
@@ -115,7 +109,9 @@ function ActionsCell({ row, updateParticipant }: { row: Row<ParticipantWithHouse
       });
 
       toast.success('Participant archived successfully');
-    } catch (error) {
+    } catch (error: any) {
+      const parsedError = parseSupabaseError(error);
+      toast.error(parsedError.title, { description: parsedError.description });
       console.error('Error archiving participant:', error);
     }
   };
@@ -201,14 +197,19 @@ const Participants = () => {
     statuses: selectedStatuses
   }), [searchQuery, selectedHouses, selectedStatuses]);
 
-  const { participants, loading, error, count, updateParticipant } = useParticipants(
+  const { data, isLoading: loading, error } = useParticipants(
     pagination.pageIndex,
     pagination.pageSize,
     sorting,
     filters
   );
+  const participants = data?.data || [];
+  const count = data?.count || 0;
+
+  const { mutateAsync: updateParticipant } = useUpdateParticipant();
   
-  const { houses } = useHouses();
+  const { data: housesData } = useHouses();
+  const houses = housesData?.data || [];
 
   // Count of participants per house (This still uses the full list if we want accurate badges, 
   // but for now we'll simplify or keep it as is if useHouses has the counts)

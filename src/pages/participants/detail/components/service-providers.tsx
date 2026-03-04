@@ -9,8 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Plus, Edit, Trash2, Building2, Clock } from 'lucide-react';
-import { useParticipantProviders } from '@/hooks/useParticipantProviders';
-import { ParticipantPendingChanges } from '@/models/participant-pending-changes';
+import { useParticipantProviders } from '@/hooks/use-participant-providers';
 
 interface ServiceProvidersProps {
   participantId?: string;
@@ -36,7 +35,7 @@ export function ServiceProviders({
     is_active: true,
   });
 
-  const { providers, loading } = useParticipantProviders(participantId);
+  const { data: providers = [], isLoading: loading } = useParticipantProviders(participantId);
 
   const handleAdd = () => {
     setEditingProvider(null);

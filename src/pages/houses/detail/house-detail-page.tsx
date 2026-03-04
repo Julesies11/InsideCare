@@ -13,13 +13,13 @@ import {
 } from '@/partials/common/toolbar';
 import { useSettings } from '@/providers/settings-provider';
 import { useDirtyTracker } from '@/hooks/useDirtyTracker';
-import { useHouses } from '@/hooks/use-houses';
+import { useHouses, useUpdateHouse } from '@/hooks/use-houses';
 import { HousePendingChanges, emptyHousePendingChanges } from '@/models/house-pending-changes';
 
 export function HouseDetailPage() {
   const navigate = useNavigate();
   const { settings } = useSettings();
-  const { updateHouse } = useHouses();
+  const { mutateAsync: updateHouse } = useUpdateHouse();
   const [formData, setFormData] = useState<any>(null);
   const [originalData, setOriginalData] = useState<any>(null);
   const [pendingChanges, setPendingChanges] = useState<HousePendingChanges>(emptyHousePendingChanges);

@@ -172,7 +172,7 @@ mtmp_details: '',
       setLoading(true);
       const { data, error } = await supabase
         .from('participants')
-        .select('*')
+        .select('id, name, photo_url, email, house_phone, personal_mobile, address, date_of_birth, move_in_date, ndis_number, house_id, status, support_level, support_coordinator, primary_diagnosis, secondary_diagnosis, allergies, routine, hygiene_support, current_goals, current_medications, restrictive_practices, service_providers, behaviour_of_concern, pbsp_engaged, bsp_available, restrictive_practices_yn, specialist_name, specialist_phone, specialist_email, restrictive_practice_authorisation, restrictive_practice_details, mtmp_required, mtmp_details, mobility_support, meal_prep_support, household_support, communication_type, communication_notes, communication_language_needs, finance_support, health_wellbeing_support, cultural_religious_support, other_support, mental_health_plan, medical_plan, natural_disaster_plan, pharmacy_name, pharmacy_contact, pharmacy_location, gp_name, gp_contact, gp_location, psychiatrist_name, psychiatrist_contact, psychiatrist_location, medical_routine_other, medical_routine_general_process, created_at, updated_at')
         .eq('id', id)
         .single();
 
@@ -692,7 +692,6 @@ mtmp_details: '',
               shift_time: note.shift_time,
               staff_id: note.staff_id,
               full_note: note.full_note,
-              tags: note.tags,
             });
 
           if (error) {
@@ -720,7 +719,6 @@ mtmp_details: '',
               shift_time: note.shift_time,
               staff_id: note.staff_id,
               full_note: note.full_note,
-              tags: note.tags,
             })
             .eq('id', note.id);
 
@@ -938,8 +936,10 @@ mtmp_details: '',
 
         // If updateParticipant is available (from profiles page), use it to sync hook state
         if (updateParticipant) {
-          const { error } = await updateParticipant(id, changedFields);
-          if (error) {
+          try {
+            await updateParticipant({ id, updates: changedFields });
+            console.log('Successfully saved changes via updateParticipant hook');
+          } catch (error: any) {
             const parsedError = parseSupabaseError(error);
             
             // Check if error is related to specific fields
@@ -957,7 +957,6 @@ mtmp_details: '',
             toast.error(parsedError.title, { description: parsedError.description });
             throw new Error(parsedError.description);
           }
-          console.log('Successfully saved changes via updateParticipant hook');
         } else {
           // Fallback to direct Supabase call if not available
           const { error } = await supabase

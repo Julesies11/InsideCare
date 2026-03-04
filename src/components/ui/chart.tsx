@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import DOMPurify from 'dompurify';
 import { cn } from '@/lib/utils';
 import * as RechartsPrimitive from 'recharts';
 
@@ -71,7 +72,7 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
   return (
     <style
       dangerouslySetInnerHTML={{
-        __html: Object.entries(THEMES)
+        __html: DOMPurify.sanitize(Object.entries(THEMES)
           .map(
             ([theme, prefix]) => `
 ${prefix} [data-chart=${id}] {
@@ -84,7 +85,7 @@ ${colorConfig
 }
 `,
           )
-          .join('\n'),
+          .join('\n')),
       }}
     />
   );

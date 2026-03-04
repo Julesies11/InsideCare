@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Edit, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
-import { useDepartmentsMaster, Department } from '@/hooks/useDepartmentsMaster';
+import { useDepartmentsMaster, useAddDepartmentMaster, useUpdateDepartmentMaster, Department } from '@/hooks/use-departments-master';
 import { DepartmentMasterQuickAdd } from './department-master-quick-add';
 import { toast } from 'sonner';
 
@@ -23,7 +23,9 @@ export function DepartmentMasterDialog({
   onClose,
   onUpdate,
 }: DepartmentMasterDialogProps) {
-  const { departments, loading, addDepartment, updateDepartment, refresh } = useDepartmentsMaster();
+  const { data: departments = [], isLoading: loading } = useDepartmentsMaster();
+  const { mutateAsync: addDepartment } = useAddDepartmentMaster();
+  const { mutateAsync: updateDepartment } = useUpdateDepartmentMaster();
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -77,37 +79,28 @@ export function DepartmentMasterDialog({
 
   const handleToggleStatus = async (department: Department) => {
     const newStatus = department.status === 'Active' ? 'Inactive' : 'Active';
-    const { error } = await updateDepartment(department.id, { status: newStatus });
-    if (error) {
-      toast.error(`Failed to ${newStatus === 'Active' ? 'activate' : 'deactivate'} department: ` + error);
-    } else {
+    try {
+      await updateDepartment({ id: department.id, updates: { status: newStatus } });
       toast.success(`Department ${newStatus === 'Active' ? 'activated' : 'deactivated'} successfully`);
-      await refresh();
       onUpdate();
+    } catch (error: any) {
+      toast.error(`Failed to ${newStatus === 'Active' ? 'activate' : 'deactivate'} department: ` + error.message);
     }
   };
 
   const handleSave = async (departmentData: Partial<Department>) => {
-    if (editingDepartment) {
-      const { error } = await updateDepartment(editingDepartment.id, departmentData);
-      if (error) {
-        toast.error('Failed to update department: ' + error);
-      } else {
+    try {
+      if (editingDepartment) {
+        await updateDepartment({ id: editingDepartment.id, updates: departmentData });
         toast.success('Department updated successfully');
-        setShowAddDialog(false);
-        await refresh();
-        onUpdate();
-      }
-    } else {
-      const { error } = await addDepartment(departmentData as Omit<Department, 'id' | 'created_at' | 'updated_at'>);
-      if (error) {
-        toast.error('Failed to add department: ' + error);
       } else {
+        await addDepartment(departmentData as Omit<Department, 'id' | 'created_at' | 'updated_at'>);
         toast.success('Department added successfully');
-        setShowAddDialog(false);
-        await refresh();
-        onUpdate();
       }
+      setShowAddDialog(false);
+      onUpdate();
+    } catch (error: any) {
+      toast.error(`Failed to ${editingDepartment ? 'update' : 'add'} department: ` + error.message);
     }
   };
 

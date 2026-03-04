@@ -31,9 +31,9 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import { ShiftNote, ShiftNoteUpdateData } from '@/hooks/useShiftNotes';
+import { ShiftNote, ShiftNoteUpdateData } from '@/hooks/use-shift-notes';
 import { useParticipants } from '@/hooks/use-participants';
-import { useStaff } from '@/hooks/useStaff';
+import { useStaff } from '@/hooks/use-staff';
 import { useHouses } from '@/hooks/use-houses';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
@@ -80,7 +80,8 @@ export function EditShiftNoteDialog({
   initialLinkedShift = null,
 }: EditShiftNoteDialogProps) {
   const { participants } = useParticipants();
-  const { staff } = useStaff();
+  const { data: staffData, isLoading: loadingStaff } = useStaff();
+  const staff = staffData?.data || [];
   const { houses } = useHouses();
 
   const [formData, setFormData] = useState<ShiftNoteUpdateData>({

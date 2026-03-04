@@ -13,8 +13,8 @@ import {
   Edit,
   Eye
 } from 'lucide-react';
-import { useChecklistHistory, ChecklistSubmission } from '@/hooks/useChecklistHistory';
-import { useHouseChecklists } from '@/hooks/useHouseChecklists';
+import { useChecklistHistory, ChecklistSubmission } from '@/hooks/use-checklist-history';
+import { useHouseChecklists } from '@/hooks/use-house-checklists';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { HouseChecklistExecution } from './house-checklist-execution';
 import { format } from 'date-fns';
@@ -39,13 +39,13 @@ export function HouseChecklistHistory({ houseId, canAdd }: HouseChecklistHistory
   const [activeSubmission, setActiveSubmission] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredHistory = submissions.filter(s => 
+  const filteredHistory = (submissions || []).filter(s => 
     s.checklist_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     s.staff_name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleStartNew = async (checklist: any) => {
-    const existing = submissions.find(s => s.checklist_id === checklist.id && s.status === 'in_progress');
+    const existing = (submissions || []).find(s => s.checklist_id === checklist.id && s.status === 'in_progress');
     if (existing) {
       handleResume(existing);
       return;
@@ -57,7 +57,7 @@ export function HouseChecklistHistory({ houseId, canAdd }: HouseChecklistHistory
   };
 
   const handleResume = async (submission: ChecklistSubmission) => {
-    const checklist = houseChecklists.find(c => c.id === submission.checklist_id);
+    const checklist = (houseChecklists || []).find(c => c.id === submission.checklist_id);
     if (!checklist) {
       toast.error('Checklist template not found');
       return;
@@ -66,12 +66,12 @@ export function HouseChecklistHistory({ houseId, canAdd }: HouseChecklistHistory
     try {
       const { data: itemData } = await supabase
         .from('house_checklist_submission_items')
-        .select('*')
+        .select('id, submission_id, item_id, is_completed, completed_at, completed_by, notes')
         .eq('submission_id', submission.id);
 
       const { data: attachmentData } = await supabase
         .from('house_checklist_item_attachments')
-        .select('*')
+        .select('id, submission_id, item_id, file_name, file_path, file_size, mime_type, uploaded_by, created_at')
         .eq('submission_id', submission.id);
 
       const completedItems: Record<string, boolean> = {};
