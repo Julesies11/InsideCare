@@ -49,15 +49,15 @@ export function MedicationMasterDialog({
     );
 
     filtered.sort((a, b) => {
-      let aVal: any = a[sortField];
-      let bVal: any = b[sortField];
+      let aVal: string | number = a[sortField] || '';
+      let bVal: string | number = b[sortField] || '';
 
       if (sortField === 'is_active') {
         aVal = a.is_active ? 1 : 0;
         bVal = b.is_active ? 1 : 0;
       } else {
-        aVal = (aVal || '').toString().toLowerCase();
-        bVal = (bVal || '').toString().toLowerCase();
+        aVal = aVal.toString().toLowerCase();
+        bVal = bVal.toString().toLowerCase();
       }
 
       if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
@@ -84,8 +84,9 @@ export function MedicationMasterDialog({
       await updateMedication({ id: medication.id, updates: { is_active: newStatus }, oldMedication: medication });
       toast.success(`Medication ${newStatus ? 'activated' : 'deactivated'} successfully`);
       onUpdate();
-    } catch (error: any) {
-      toast.error(`Failed to ${newStatus ? 'activate' : 'deactivate'} medication: ` + error.message);
+    } catch (error) {
+      const err = error as Error;
+      toast.error(`Failed to ${newStatus ? 'activate' : 'deactivate'} medication: ` + err.message);
     }
   };
 
@@ -109,14 +110,15 @@ export function MedicationMasterDialog({
       }
       setShowAddDialog(false);
       onUpdate();
-    } catch (error: any) {
-      if (error.message === 'DUPLICATE_NAME') {
+    } catch (error) {
+      const err = error as Error;
+      if (err.message === 'DUPLICATE_NAME') {
         toast.error('Duplicate medication name', {
           description: 'A medication with this name already exists. Please use a different name.'
         });
       } else {
         toast.error(`Failed to ${editingMedication ? 'update' : 'add'} medication`, {
-          description: error.message
+          description: err.message
         });
       }
     }

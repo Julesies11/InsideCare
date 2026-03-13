@@ -96,7 +96,7 @@ export function StaffTimesheetForm() {
       }
 
       if (tsRes.data) {
-        const d = tsRes.data as any;
+        const d = tsRes.data as { id: string; actual_start?: string; actual_end?: string; break_minutes?: number; shift_notes_text?: string; overtime_explanation?: string; travel_km?: number; incident_tag?: boolean; sick_shift?: boolean; notes?: string };
         setExistingId(d.id);
         if (d.actual_start)          setActualStart(d.actual_start.slice(0, 16));
         if (d.actual_end)            setActualEnd(d.actual_end.slice(0, 16));
@@ -141,7 +141,7 @@ export function StaffTimesheetForm() {
         .upsert({ ...payload, created_at: new Date().toISOString() }, { onConflict: 'shift_id,staff_id' })
         .select('id')
         .single();
-      if (data) setExistingId((data as any).id);
+      if (data) setExistingId(data.id);
     }
     setLastSaved(new Date());
   }, [user?.staff_id, shiftId, shift, actualStart, actualEnd, breakMins, shiftNotes,
@@ -152,7 +152,7 @@ export function StaffTimesheetForm() {
     if (autosaveRef.current) clearTimeout(autosaveRef.current);
     autosaveRef.current = setTimeout(saveDraft, 3000);
     return () => { if (autosaveRef.current) clearTimeout(autosaveRef.current); };
-  }, [shiftNotes, actualStart, actualEnd, breakMins, travelKm, incidentTag, sickShift, sickReason]);
+  }, [shift, loading, saveDraft, shiftNotes, actualStart, actualEnd, breakMins, travelKm, incidentTag, sickShift, sickReason]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -194,7 +194,7 @@ export function StaffTimesheetForm() {
         .select('id')
         .single();
       if (error) { toast.error('Failed to submit timesheet'); setSaving(false); return; }
-      tsId = (data as any).id;
+      tsId = data.id;
     }
 
     await supabase.from('shift_notes').upsert({

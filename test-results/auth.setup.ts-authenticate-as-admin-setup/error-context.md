@@ -1,0 +1,47 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - region "Notifications alt+T"
+  - generic [ref=e4]:
+    - link [ref=e6] [cursor=pointer]:
+      - /url: /
+    - generic [ref=e9]:
+      - generic [ref=e10]:
+        - heading "Sign In" [level=1] [ref=e11]
+        - paragraph [ref=e12]: Welcome back! Log in with your credentials.
+      - alert [ref=e13]:
+        - img [ref=e15]
+        - generic [ref=e17]:
+          - strong [ref=e18]: "Quick Test Login:"
+          - text: Click the buttons below to sign in with test credentials.
+      - generic [ref=e19]:
+        - button "Org Admin (Leesa)" [ref=e20] [cursor=pointer]
+        - button "Supervisor (Nick)" [ref=e21] [cursor=pointer]
+        - generic [ref=e22]:
+          - button "Participant (Jackie)" [ref=e23] [cursor=pointer]
+          - button "Participant (Bill)" [ref=e24] [cursor=pointer]
+      - generic [ref=e29]: or sign in manually
+      - generic [ref=e30]:
+        - generic [ref=e31]: Email
+        - textbox "Email" [ref=e32]:
+          - /placeholder: Your email
+          - text: demo@kt.com
+      - generic [ref=e33]:
+        - generic [ref=e35]: Password
+        - generic [ref=e36]:
+          - textbox "Your password" [ref=e37]: demo123
+          - button [ref=e38] [cursor=pointer]:
+            - img [ref=e39]
+      - generic [ref=e43]:
+        - generic [ref=e44]:
+          - checkbox "Remember me" [checked] [ref=e45]:
+            - generic:
+              - img
+          - checkbox [checked]
+          - generic [ref=e46] [cursor=pointer]: Remember me
+        - link "Forgot Password?" [ref=e47] [cursor=pointer]:
+          - /url: /auth/reset-password
+      - button "Sign In" [ref=e48] [cursor=pointer]
+      - generic [ref=e49]: Powered by Mentoring Program
+```

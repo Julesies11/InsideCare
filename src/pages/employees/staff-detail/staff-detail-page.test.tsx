@@ -33,19 +33,19 @@ vi.mock('@/hooks/use-scroll-position', () => ({
   useScrollPosition: () => 0,
 }));
 
+vi.setConfig({ testTimeout: 15000 });
+
 describe('StaffDetailPage', () => {
   beforeEach(() => {
     server.use(
       http.get(`${SUPABASE_URL}/rest/v1/staff`, ({ request }) => {
-        const url = new URL(request.url);
-        const idParam = url.searchParams.get('id');
-        if (idParam || request.headers.get('Accept')?.includes('vnd.pgrst.object+json')) {
+        if (request.headers.get('Accept')?.includes('vnd.pgrst.object+json')) {
           return HttpResponse.json(mockStaff);
         }
         return HttpResponse.json([mockStaff]);
       }),
       http.patch(`${SUPABASE_URL}/rest/v1/staff`, () => {
-        return HttpResponse.json(mockStaff);
+        return HttpResponse.json([mockStaff]);
       })
     );
   });

@@ -1,6 +1,5 @@
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { ClipboardList, Clock, MapPin, User, Users } from 'lucide-react';
 import { getShiftTypeColor, getStatusVariant, formatTime } from './roster-utils';
 
@@ -78,7 +77,10 @@ export function ShiftCard({ shift, compact, showStaffName, onClick, onWriteNote,
           </Badge>
           <button
             type="button"
-            onClick={(e) => { e.stopPropagation(); onNotesClick ? onNotesClick(shift) : onWriteNote?.(shift); }}
+            onClick={(e) => { 
+              e.stopPropagation(); 
+              if (onNotesClick) { onNotesClick(shift); } else { onWriteNote?.(shift); } 
+            }}
             className={`flex items-center gap-0.5 p-0.5 rounded transition-colors ${
               (shift.notesCount ?? 0) > 0
                 ? 'text-emerald-600 hover:text-emerald-700'
@@ -150,7 +152,10 @@ export function ShiftCard({ shift, compact, showStaffName, onClick, onWriteNote,
 
         <button
           type="button"
-          onClick={(e) => { e.stopPropagation(); onNotesClick ? onNotesClick(shift) : onWriteNote?.(shift); }}
+          onClick={(e) => { 
+            e.stopPropagation(); 
+            if (onNotesClick) { onNotesClick(shift); } else { onWriteNote?.(shift); } 
+          }}
           className={`w-full flex items-center justify-center gap-1 h-6 text-[10px] font-medium rounded px-2 mt-1 transition-colors ${
             (shift.notesCount ?? 0) > 0
               ? 'text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/30'

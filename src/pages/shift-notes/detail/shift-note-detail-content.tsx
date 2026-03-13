@@ -15,8 +15,8 @@ import { useHouses } from '@/hooks/use-houses';
 import { useParticipants } from '@/hooks/use-participants';
 
 interface ShiftNoteDetailContentProps {
-  onFormDataChange?: (data: any) => void;
-  onOriginalDataChange?: (data: any) => void;
+  onFormDataChange?: (data: Record<string, any>) => void;
+  onOriginalDataChange?: (data: Record<string, any>) => void;
   onSavingChange?: (saving: boolean) => void;
   saveHandlerRef?: MutableRefObject<(() => Promise<void>) | null>;
 }
@@ -49,19 +49,7 @@ export function ShiftNoteDetailContent({
 
   const isNewNote = id === 'new';
 
-  useEffect(() => {
-    if (isNewNote) {
-      setLoading(false);
-      const initialData = { ...formData };
-      setFormData(initialData);
-      if (onFormDataChange) onFormDataChange(initialData);
-      if (onOriginalDataChange) onOriginalDataChange(initialData);
-    } else {
-      fetchShiftNote();
-    }
-  }, [id]);
-
-  const fetchShiftNote = async () => {
+  const fetchShiftNote = useCallback(async () => {
     if (!id || id === 'new') return;
 
     try {
@@ -96,7 +84,19 @@ export function ShiftNoteDetailContent({
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, onFormDataChange, onOriginalDataChange]);
+
+  useEffect(() => {
+    if (isNewNote) {
+      setLoading(false);
+      const initialData = { ...formData };
+      setFormData(initialData);
+      if (onFormDataChange) onFormDataChange(initialData);
+      if (onOriginalDataChange) onOriginalDataChange(initialData);
+    } else {
+      fetchShiftNote();
+    }
+  }, [id, isNewNote, fetchShiftNote, onFormDataChange, onOriginalDataChange]);
 
   const handleFormChange = (field: string, value: any) => {
     const updatedData = { ...formData, [field]: value };
@@ -117,7 +117,7 @@ export function ShiftNoteDetailContent({
     handleFormChange('tags', newTags);
   };
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     try {
       if (onSavingChange) onSavingChange(true);
 
@@ -163,14 +163,14 @@ export function ShiftNoteDetailContent({
     } finally {
       if (onSavingChange) onSavingChange(false);
     }
-  };
+  }, [formData, isNewNote, id, navigate, shiftNote, onOriginalDataChange, onSavingChange]);
 
   // Expose save handler to parent
   useEffect(() => {
     if (saveHandlerRef) {
       saveHandlerRef.current = handleSave;
     }
-  }, [formData, saveHandlerRef]);
+  }, [handleSave, saveHandlerRef]);
 
   if (loading) {
     return (

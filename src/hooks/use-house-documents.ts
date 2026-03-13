@@ -43,7 +43,7 @@ export function useHouseDocuments(houseId?: string) {
     ...query,
     documents: query.data || [],
     loading: query.isLoading,
-    error: query.error ? (query.error as any).message : null,
+    error: query.error ? (query.error as Error).message : null,
     refresh: query.refetch,
   };
 }

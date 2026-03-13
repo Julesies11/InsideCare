@@ -1,5 +1,4 @@
 import { Fragment, useState, useRef, useCallback, useEffect } from 'react';
-import { useNavigate } from 'react-router';
 import { Container } from '@/components/common/container';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
@@ -11,17 +10,14 @@ import {
   ToolbarHeading,
   ToolbarPageTitle,
 } from '@/partials/common/toolbar';
-import { useSettings } from '@/providers/settings-provider';
 import { useDirtyTracker } from '@/hooks/useDirtyTracker';
-import { useHouses, useUpdateHouse } from '@/hooks/use-houses';
+import { useUpdateHouse } from '@/hooks/use-houses';
 import { HousePendingChanges, emptyHousePendingChanges } from '@/models/house-pending-changes';
 
 export function HouseDetailPage() {
-  const navigate = useNavigate();
-  const { settings } = useSettings();
   const { mutateAsync: updateHouse } = useUpdateHouse();
-  const [formData, setFormData] = useState<any>(null);
-  const [originalData, setOriginalData] = useState<any>(null);
+  const [formData, setFormData] = useState<Record<string, any> | null>(null);
+  const [originalData, setOriginalData] = useState<Record<string, any> | null>(null);
   const [pendingChanges, setPendingChanges] = useState<HousePendingChanges>(emptyHousePendingChanges);
   const [saving, setSaving] = useState(false);
   const saveHandlerRef = useRef<(() => Promise<void>) | null>(null);
@@ -98,7 +94,6 @@ export function HouseDetailPage() {
           onOriginalDataChange={setOriginalData}
           onSavingChange={setSaving}
           saveHandlerRef={saveHandlerRef}
-          updateHouse={updateHouse}
           pendingChanges={pendingChanges}
           onPendingChangesChange={setPendingChanges}
         />

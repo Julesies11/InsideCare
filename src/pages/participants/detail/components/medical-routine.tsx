@@ -5,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 
 interface MedicalRoutineProps {
   canEdit: boolean;
-  formData: any;
+  formData: Record<string, any>;
   onFormChange: (field: string, value: any) => void;
 }
 

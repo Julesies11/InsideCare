@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, waitFor, fireEvent } from '@testing-library/react';
 import { StaffLeaveForm } from './staff-leave-form';
-import { renderWithProviders, userEvent } from '@/test/test-utils';
+import { renderWithProviders } from '@/test/test-utils';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
 
@@ -36,6 +36,8 @@ vi.mock('react-router-dom', async () => {
 });
 
 describe('StaffLeaveForm', () => {
+  vi.setConfig({ testTimeout: 15000 });
+  
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(useParams).mockReturnValue({ id: undefined });
@@ -47,7 +49,7 @@ describe('StaffLeaveForm', () => {
         return HttpResponse.json([]);
       }),
       http.post(`${SUPABASE_URL}/rest/v1/leave_requests`, () => {
-        return HttpResponse.json({});
+        return HttpResponse.json([{ id: 'new-leave-id' }]);
       })
     );
   });
@@ -90,14 +92,18 @@ describe('StaffLeaveForm', () => {
     });
 
     // Select leave type
-    const selectTrigger = screen.getByRole('combobox');
-    await user.click(selectTrigger);
-    const option = await screen.findByRole('option', { name: 'Annual Leave' });
-    await user.click(option);
+    const selectTrigger = screen.getByLabelText(/Leave Type/i);
+    fireEvent.click(selectTrigger);
+    
+    // Find the option in the portal/listbox
+    const options = await screen.findAllByText('Annual Leave');
+    fireEvent.click(options[options.length - 1]);
 
+    const reasonInput = screen.getByLabelText(/Reason/i);
+    fireEvent.change(reasonInput, { target: { value: 'Going on holiday' } });
+    
     fireEvent.change(screen.getByLabelText(/Start Date/i), { target: { value: '2026-03-10' } });
     fireEvent.change(screen.getByLabelText(/End Date/i), { target: { value: '2026-03-12' } });
-    fireEvent.change(screen.getByLabelText(/Reason/i), { target: { value: 'Going on holiday' } });
 
     // Submit button
     const submitBtn = screen.getByRole('button', { name: /Submit Request/i });

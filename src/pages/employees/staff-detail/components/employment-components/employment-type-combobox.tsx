@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button, ButtonArrow } from '@/components/ui/button';
 import {
   Command,
@@ -24,7 +24,6 @@ interface EmploymentTypeComboboxProps {
   onChange: (value: string) => void;
   canEdit: boolean;
   onManageList: () => void;
-  onRefresh?: () => void;
 }
 
 export function EmploymentTypeCombobox({
@@ -32,7 +31,6 @@ export function EmploymentTypeCombobox({
   onChange,
   canEdit,
   onManageList,
-  onRefresh,
 }: EmploymentTypeComboboxProps) {
   const [open, setOpen] = useState(false);
   const { data: employmentTypes = [], isLoading: loading } = useEmploymentTypesMaster();

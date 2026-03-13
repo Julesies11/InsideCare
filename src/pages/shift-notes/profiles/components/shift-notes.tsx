@@ -72,7 +72,6 @@ const ShiftNotes = () => {
   const { shiftNotes, loading, error } = useShiftNotes();
   const { houses } = useHouses();
   const { staff } = useStaff();
-  const navigate = useNavigate();
 
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
@@ -257,7 +256,6 @@ const ShiftNotes = () => {
   });
 
   const Toolbar = () => {
-    const { table } = useDataGrid();
     return (
       <CardToolbar>
         <div className="flex flex-wrap items-center gap-2.5">

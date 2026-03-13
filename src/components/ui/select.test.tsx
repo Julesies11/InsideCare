@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './select';
 import userEvent from '@testing-library/user-event';
 

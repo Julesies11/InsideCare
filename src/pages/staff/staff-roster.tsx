@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/auth/context/auth-context';
 import { format, parseISO, addDays, addWeeks, addMonths } from 'date-fns';
 import { ClipboardList, Calendar, List } from 'lucide-react';
@@ -20,6 +19,8 @@ import { RosterCalendarHeader } from '@/components/roster/roster-calendar-header
 import { ViewMode } from '@/components/roster/roster-utils';
 
 import { useStaffRoster, RosterShift as Shift } from '@/hooks/use-staff-roster';
+
+type TabView = 'calendar' | 'list';
 
 export function StaffRoster() {
   const { user } = useAuth();
@@ -113,7 +114,6 @@ export function StaffRoster() {
                   <RosterCalendarHeader
                     viewMode={viewMode}
                     onViewModeChange={setViewMode}
-                    currentDate={currentDate}
                     onNavigate={navigatePeriod}
                     getPeriodLabel={getPeriodLabel}
                     showStaffFilter={false}

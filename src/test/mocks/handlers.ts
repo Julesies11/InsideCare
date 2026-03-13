@@ -8,7 +8,8 @@ export const handlers = [
     return HttpResponse.json({
       id: 'test-user-id',
       email: 'test@example.com',
-      user_metadata: { is_admin: true },
+      staff_id: 'staff-1',
+      user_metadata: { is_admin: true, staff_id: 'staff-1' },
     });
   }),
 
@@ -93,16 +94,33 @@ export const handlers = [
   }),
 
   // Database Mocks - Staff
-  http.get(`${SUPABASE_URL}/rest/v1/staff`, () => {
-    return HttpResponse.json([
+  http.get(`${SUPABASE_URL}/rest/v1/staff`, ({ request }) => {
+    const url = new URL(request.url);
+    const idParam = url.searchParams.get('id');
+    
+    const staff = [
       {
         id: 'staff-1',
-        name: 'Admin User',
-        email: 'admin@example.com',
+        name: 'John Staff',
+        email: 'john.staff@example.com',
         status: 'active',
+        auth_user_id: 'test-user-id',
         role: { name: 'Administrator' }
       },
-    ]);
+    ];
+
+    if (idParam && idParam.startsWith('eq.')) {
+      const id = idParam.replace('eq.', '');
+      const member = staff.find(s => s.id === id);
+      if (member) {
+        if (request.headers.get('Accept')?.includes('vnd.pgrst.object+json')) {
+          return HttpResponse.json(member);
+        }
+        return HttpResponse.json([member]);
+      }
+    }
+
+    return HttpResponse.json(staff);
   }),
 
   // Database Mocks - Shift Notes

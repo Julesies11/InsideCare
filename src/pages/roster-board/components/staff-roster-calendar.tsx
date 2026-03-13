@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
 import { ShiftCalendar } from '@/components/roster/shift-calendar';
 import { ShiftDialog, ShiftFormData } from '@/components/roster/shift-dialog';
 import { ShiftCardData } from '@/components/roster/shift-card';
@@ -9,7 +8,6 @@ import { getDateRange, calculateDuration, ViewMode } from '@/components/roster/r
 import { EditShiftNoteDialog } from '@/pages/participants/shift-notes/components/edit-shift-note-dialog';
 import { useShiftNotes } from '@/hooks/use-shift-notes';
 import { supabase } from '@/lib/supabase';
-import { eachDayOfInterval, parseISO, isWithinInterval } from 'date-fns';
 
 export interface LeaveBlock {
   id: string;
@@ -49,7 +47,6 @@ export function StaffRosterCalendar({
   const [leaveBlocks, setLeaveBlocks] = useState<LeaveBlock[]>([]);
   const [showShiftDialog, setShowShiftDialog] = useState(false);
   const [selectedShift, setSelectedShift] = useState<StaffShift | null>(null);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   // Write Note state
   const [showNoteDialog, setShowNoteDialog] = useState(false);
@@ -110,11 +107,11 @@ export function StaffRosterCalendar({
       if (staffId !== 'all') query.eq('staff_id', staffId);
       const { data } = await query;
       setLeaveBlocks(
-        (data || []).map((r: any) => ({
+        (data || []).map((r: { id: string; start_date: string; end_date: string; status: 'pending' | 'approved' | 'rejected'; leave_type?: { name: string }; staff_id: string }) => ({
           id: r.id,
           start_date: r.start_date,
           end_date: r.end_date,
-          status: r.status,
+          status: r.status as 'pending' | 'approved' | 'rejected',
           leave_type_name: r.leave_type?.name ?? 'Leave',
           staff_id: r.staff_id,
         }))
@@ -156,15 +153,13 @@ export function StaffRosterCalendar({
     }).map(shift => ({ ...shift, notesCount: notesCounts[shift.id] ?? 0 }));
   }, [shifts, houseFilter, participantFilter, shiftTypeFilter, statusFilter, notesCounts]);
 
-  const handleAddShift = (date: Date) => {
-    setSelectedDate(date);
+  const handleAddShift = () => {
     setSelectedShift(null);
     setShowShiftDialog(true);
   };
 
   const handleEditShift = (shift: StaffShift) => {
     setSelectedShift(shift);
-    setSelectedDate(null);
     setScrollToNotes(false);
     setShowShiftDialog(true);
   };
@@ -172,7 +167,6 @@ export function StaffRosterCalendar({
   const handleNotesClick = (shift: ShiftCardData) => {
     const fullShift = shifts.find(s => s.id === shift.id) || null;
     setSelectedShift(fullShift);
-    setSelectedDate(null);
     setScrollToNotes(true);
     setShowShiftDialog(true);
   };

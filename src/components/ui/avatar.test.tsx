@@ -6,7 +6,7 @@ describe('Avatar', () => {
   it('renders correctly with an image', async () => {
     // Mock image loading
     const originalImage = window.Image;
-    // @ts-ignore
+    // @ts-expect-error - Mocking window.Image for testing
     window.Image = class {
       onload: () => void = () => {};
       src: string = '';

@@ -3,20 +3,18 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Sheet, SheetBody, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Download, Trash2, FileText, Clock, MapPin, Phone, ExternalLink, Edit } from 'lucide-react';
+import { Plus, Download, Trash2, FileText, Clock, MapPin, Phone, Edit } from 'lucide-react';
 import { useHouseResources } from '@/hooks/useHouseResources';
 import { useAuth } from '@/auth/context/auth-context';
 import { HousePendingChanges } from '@/models/house-pending-changes';
 
 interface HouseResourcesProps {
   houseId?: string;
-  houseName?: string;
   canAdd: boolean;
   canDelete: boolean;
   pendingChanges?: HousePendingChanges;
@@ -25,16 +23,13 @@ interface HouseResourcesProps {
 
 export function HouseResources({ 
   houseId, 
-  houseName, 
   canAdd, 
   canDelete,
   pendingChanges,
   onPendingChangesChange 
 }: HouseResourcesProps) {
-  const [showUploadSheet, setShowUploadSheet] = useState(false);
   const [showResourceDialog, setShowResourceDialog] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [editingResource, setEditingResource] = useState<any>(null);
+  const [editingResource, setEditingResource] = useState<{ id?: string; tempId?: string; title: string; category: string; type: string; description?: string; priority?: string; phone?: string; address?: string; notes?: string } | null>(null);
   const [formData, setFormData] = useState({
     title: '',
     category: '',
@@ -46,14 +41,8 @@ export function HouseResources({
     notes: '',
   });
 
-  const { houseResources, loading, getFileUrl } = useHouseResources(houseId);
+  const { houseResources, loading } = useHouseResources(houseId);
   const { user } = useAuth();
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setSelectedFile(e.target.files[0]);
-    }
-  };
 
   const handleAdd = () => {
     setEditingResource(null);
@@ -70,7 +59,7 @@ export function HouseResources({
     setShowResourceDialog(true);
   };
 
-  const handleEdit = (resource: any) => {
+  const handleEdit = (resource: { id?: string; tempId?: string; title: string; category: string; type: string; description?: string; priority?: string; phone?: string; address?: string; notes?: string }) => {
     setEditingResource(resource);
     setFormData({
       title: resource.title,
@@ -143,7 +132,7 @@ export function HouseResources({
     setShowResourceDialog(false);
   };
 
-  const handleDelete = (resource: any) => {
+  const handleDelete = (resource: { id: string; tempId?: string }) => {
     if (!pendingChanges || !onPendingChangesChange) return;
 
     // If it's a pending add, just remove it from the pending adds list

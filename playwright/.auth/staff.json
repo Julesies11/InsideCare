@@ -1,0 +1,14 @@
+{
+  "cookies": [],
+  "origins": [
+    {
+      "origin": "http://localhost:5173",
+      "localStorage": [
+        {
+          "name": "InsideCare-auth-v1.0",
+          "value": "{\"access_token\":\"fake-staff-token\",\"refresh_token\":\"fake-staff-refresh-token\"}"
+        }
+      ]
+    }
+  ]
+}

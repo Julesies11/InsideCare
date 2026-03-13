@@ -1,6 +1,5 @@
 import { Fragment, useState, useRef, useCallback, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router';
-import { useAuth } from '@/auth/context/auth-context';
+import { useParams } from 'react-router';
 import { Container } from '@/components/common/container';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Mail, CheckCircle } from 'lucide-react';
@@ -15,40 +14,24 @@ import {
   ToolbarHeading,
   ToolbarPageTitle,
 } from '@/partials/common/toolbar';
-import { useSettings } from '@/providers/settings-provider';
 import { StaffPendingChanges, emptyStaffPendingChanges } from '@/models/staff-pending-changes';
 import { useDirtyTracker } from '@/hooks/useDirtyTracker';
-import { useStaff, useUpdateStaff } from '@/hooks/use-staff';
+import { useUpdateStaff, useStaffMember } from '@/hooks/use-staff';
 
 export function StaffDetailPage() {
-  const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { settings } = useSettings();
-  const { user } = useAuth();
+  const { data: staffMember } = useStaffMember(id);
   const { mutateAsync: updateStaff } = useUpdateStaff();
-  const [formData, setFormData] = useState<any>(null);
-  const [originalData, setOriginalData] = useState<any>(null);
+  const [formData, setFormData] = useState<Record<string, any> | null>(null);
+  const [originalData, setOriginalData] = useState<Record<string, any> | null>(null);
   const [pendingChanges, setPendingChanges] = useState<StaffPendingChanges>(emptyStaffPendingChanges);
   const [saving, setSaving] = useState(false);
   const [photoDirty, setPhotoDirty] = useState(false);
   const saveHandlerRef = useRef<(() => Promise<void>) | null>(null);
-  const [staffAuthUserId, setStaffAuthUserId] = useState<string | null | undefined>(undefined);
   const [inviting, setInviting] = useState(false);
-  const [isNewRecord, setIsNewRecord] = useState(false);
 
-  useEffect(() => {
-    if (!id) return;
-    supabase
-      .from('staff')
-      .select('auth_user_id, email, name, created_at')
-      .eq('id', id)
-      .maybeSingle()
-      .then(({ data }) => {
-        setStaffAuthUserId(data?.auth_user_id ?? null);
-        // A record is "new" if it has no name yet (just created as a blank draft)
-        setIsNewRecord(!data?.name);
-      });
-  }, [id]);
+  const staffAuthUserId = staffMember?.auth_user_id;
+  const isNewRecord = !staffAuthUserId;
 
   const handleInvite = async () => {
     if (!id || !formData?.email) {
@@ -57,14 +40,14 @@ export function StaffDetailPage() {
     }
     setInviting(true);
     try {
-      const { data, error } = await supabase.functions.invoke('invite-staff-user', {
+      const { error } = await supabase.functions.invoke('invite-staff-user', {
         body: { staffId: id, email: formData.email },
       });
       if (error) throw new Error(error.message || 'Invite failed');
-      setStaffAuthUserId(data.authUserId);
       toast.success('Invite sent! The staff member will receive an email to set their password.');
-    } catch (err: any) {
-      handleError(err, { category: 'network', title: 'Invite Failed' });
+    } catch (err) {
+      const error = err as Error;
+      handleError(error, { category: 'network', title: 'Invite Failed' });
     } finally {
       setInviting(false);
     }
@@ -96,7 +79,6 @@ export function StaffDetailPage() {
       const confirmLeave = window.confirm('You have unsaved changes. Are you sure you want to leave?');
       if (!confirmLeave) return;
     }
-    // Use browser back to preserve URL state from previous page
     window.history.back();
   }, [isDirty]);
 
@@ -119,55 +101,50 @@ export function StaffDetailPage() {
                 </Button>
                 <div>
                   <ToolbarPageTitle text="Staff Details" />
-                  <ToolbarDescription>
-                    View and manage staff member information
-                  </ToolbarDescription>
+                  <ToolbarDescription>View and manage staff member information</ToolbarDescription>
                 </div>
               </div>
             </ToolbarHeading>
             <ToolbarActions>
-              {staffAuthUserId === null && (
-                <Button
-                  variant="outline"
-                  onClick={handleInvite}
-                  disabled={inviting}
-                >
-                  <Mail className="size-4 me-1.5" />
-                  {inviting ? 'Sending...' : 'Invite to Portal'}
+              <div className="flex items-center gap-2.5">
+                {staffAuthUserId ? (
+                  <span className="flex items-center gap-1.5 text-sm text-green-600 font-medium">
+                    <CheckCircle className="size-4" /> Portal Access Active
+                  </span>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleInvite}
+                    disabled={inviting || !formData?.email || isNewRecord}
+                  >
+                    <Mail className="size-4 me-1.5" />
+                    {inviting ? 'Sending...' : 'Invite to Portal'}
+                  </Button>
+                )}
+                <Button onClick={handleSave} disabled={!isDirty || saving} size="sm">
+                  {saving ? 'Saving...' : 'Save Changes'}
                 </Button>
-              )}
-              {staffAuthUserId && (
-                <span className="flex items-center gap-1.5 text-sm text-green-600 font-medium">
-                  <CheckCircle className="size-4" /> Portal Access Active
-                </span>
-              )}
-              <Button
-                onClick={handleSave}
-                disabled={(!isDirty && !isNewRecord && !photoDirty) || saving}
-                variant={(isDirty || isNewRecord || photoDirty) ? 'primary' : 'secondary'}
-              >
-                {saving ? 'Saving...' : 'Save Changes'}
-              </Button>
+              </div>
             </ToolbarActions>
           </Toolbar>
         </Container>
       </div>
-      <Container>
-        <StaffDetailContent
-          staffId={id}
-          onFormDataChange={setFormData}
-          onOriginalDataChange={setOriginalData}
-          onSavingChange={setSaving}
-          saveHandlerRef={saveHandlerRef}
-          pendingChanges={pendingChanges}
-          onPendingChangesChange={setPendingChanges}
-          updateStaff={updateStaff}
-          onSaveSuccess={() => {
-            setPendingChanges(emptyStaffPendingChanges);
-            setIsNewRecord(false);
-          }}
-          onPhotoDirtyChange={setPhotoDirty}
-        />
+
+      <Container className="py-6">
+        {id && (
+          <StaffDetailContent
+            staffId={id}
+            onFormDataChange={setFormData}
+            onOriginalDataChange={setOriginalData}
+            onSavingChange={setSaving}
+            saveHandlerRef={saveHandlerRef}
+            pendingChanges={pendingChanges}
+            onPendingChangesChange={setPendingChanges}
+            updateStaff={updateStaff}
+            onPhotoDirtyChange={setPhotoDirty}
+          />
+        )}
       </Container>
     </Fragment>
   );

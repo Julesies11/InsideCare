@@ -4,7 +4,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { StaffTable } from './components';
 import { useNavigate } from 'react-router';
 import { supabase } from '@/lib/supabase';
-import { toast } from 'sonner';
 import { logActivity } from '@/lib/activity-logger';
 import { handleSupabaseError } from '@/errors/error-handler';
 
@@ -37,7 +36,7 @@ export function StaffProfilesContent() {
 
       // Navigate to the detail page
       navigate(`/employees/staff-detail/${data.id}`);
-    } catch (error: any) {
+    } catch (error) {
       handleSupabaseError(error, 'Failed to create staff member');
     }
   };

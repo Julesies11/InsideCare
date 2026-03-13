@@ -10,8 +10,8 @@ import { Documents } from './documents';
 
 interface StaffDetailFormProps {
   staffId: string;
-  formData: any;
-  onFormDataChange: (data: any) => void;
+  formData: Record<string, any>;
+  onFormDataChange: (data: Record<string, any>) => void;
   canEdit: boolean;
   pendingChanges?: StaffPendingChanges;
   onPendingChangesChange?: (changes: StaffPendingChanges) => void;
@@ -73,6 +73,7 @@ export function StaffDetailForm({
       />
       <StaffTrainingSection
         key={`training-${trainingRefreshKey}`}
+        staffId={staffId}
         pendingChanges={pendingChanges}
         onPendingChangesChange={onPendingChangesChange}
         refreshKey={trainingRefreshKey}

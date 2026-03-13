@@ -1,5 +1,3 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -8,7 +6,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 
 interface BehaviourSupportProps {
   canEdit: boolean;
-  formData: any;
+  formData: Record<string, any>;
   onFormChange: (field: string, value: any) => void;
   onSave: () => void;
 }
@@ -17,16 +15,7 @@ export function BehaviourSupport({
   canEdit,
   formData,
   onFormChange,
-  onSave,
 }: BehaviourSupportProps) {
-  const [saving, setSaving] = useState(false);
-
-  const handleSave = async () => {
-    setSaving(true);
-    await onSave();
-    setSaving(false);
-  };
-
   return (
     <Card className="pb-2.5" id="behaviour">
       <CardHeader>

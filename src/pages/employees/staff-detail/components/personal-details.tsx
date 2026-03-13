@@ -5,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { AvatarInput } from '@/components/image-input/avatar-input';
 
 interface PersonalDetailsProps {
-  formData: any;
+  formData: Record<string, any>;
   onFormChange: (field: string, value: any) => void;
   canEdit: boolean;
   validationErrors?: Record<string, string>;

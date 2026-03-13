@@ -17,8 +17,8 @@ export function ShiftNoteDetailPage() {
   const navigate = useNavigate();
   const { settings } = useSettings();
   const { id } = useParams();
-  const [formData, setFormData] = useState<any>(null);
-  const [originalData, setOriginalData] = useState<any>(null);
+  const [formData, setFormData] = useState<Record<string, any> | null>(null);
+  const [originalData, setOriginalData] = useState<Record<string, any> | null>(null);
   const [saving, setSaving] = useState(false);
   const saveHandlerRef = useRef<(() => Promise<void>) | null>(null);
 

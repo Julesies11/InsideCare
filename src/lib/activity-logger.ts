@@ -6,7 +6,7 @@ interface LogActivityParams {
   entityType: EntityType;
   entityId: string;
   entityName?: string;
-  changes?: Record<string, { old: any; new: any }>;
+  changes?: Record<string, { old: unknown; new: unknown }>;
   userName?: string;
   customDescription?: string;
 }
@@ -44,7 +44,7 @@ const fieldLabels: Record<string, string> = {
   status: 'status',
 };
 
-function formatValue(value: any): string {
+function formatValue(value: unknown): string {
   if (value === null || value === undefined || value === '') {
     return '(empty)';
   }
@@ -60,7 +60,7 @@ function formatValue(value: any): string {
 function generateDescription(
   activityType: ActivityType,
   entityType: EntityType,
-  changes?: Record<string, { old: any; new: any }>,
+  changes?: Record<string, { old: unknown; new: unknown }>,
   customDescription?: string
 ): string {
   if (customDescription) {
@@ -140,7 +140,7 @@ export async function logActivity({
       entity_name: entityName || null,
       description,
       user_name: userName || null,
-      metadata: changes ? { changes } : null,
+      metadata: changes ? { changes } as any : null,
     });
   } catch (error) {
     console.error('Failed to log activity:', error);
@@ -149,7 +149,7 @@ export async function logActivity({
 }
 
 // Helper to normalize values for comparison (treat null, undefined, and empty string as equivalent)
-function normalizeValue(value: any): any {
+function normalizeValue(value: unknown): unknown {
   if (value === null || value === undefined || value === '') {
     return null;
   }
@@ -157,8 +157,8 @@ function normalizeValue(value: any): any {
 }
 
 // Helper to detect changes between old and new objects
-export function detectChanges(oldData: any, newData: any): Record<string, { old: any; new: any }> {
-  const changes: Record<string, { old: any; new: any }> = {};
+export function detectChanges(oldData: Record<string, unknown>, newData: Record<string, unknown>): Record<string, { old: unknown; new: unknown }> {
+  const changes: Record<string, { old: unknown; new: unknown }> = {};
 
   for (const key in newData) {
     // Skip system fields and temporary fields

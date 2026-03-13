@@ -1,16 +1,27 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { ReactNode } from 'react';
 
 interface ChecklistCardProps {
-  checklist: any;
+  checklist: {
+    id?: string;
+    tempId?: string;
+    name: string;
+    frequency: string;
+    description?: string;
+    items?: Array<{
+      id?: string;
+      tempId?: string;
+      title: string;
+      is_required?: boolean;
+    }>;
+  };
   isPendingAdd?: boolean;
   isPendingUpdate?: boolean;
   isPendingDelete?: boolean;
-  onEdit?: (checklist: any) => void;
-  onDelete?: (checklist: any) => void;
+  onDelete?: (checklist: ChecklistCardProps['checklist']) => void;
   footer?: ReactNode;
   showTasksPreview?: boolean;
 }
@@ -23,7 +34,6 @@ export function ChecklistCard({
   isPendingAdd, 
   isPendingUpdate, 
   isPendingDelete,
-  onEdit,
   onDelete,
   footer,
   showTasksPreview = true
@@ -82,7 +92,7 @@ export function ChecklistCard({
                 No tasks defined yet
               </div>
             ) : (
-              checklistItems.slice(0, 3).map((item: any, index: number) => (
+              checklistItems.slice(0, 3).map((item, index: number) => (
                 <div key={item.id || item.tempId} className="flex items-start gap-3 relative z-10">
                   <div className="shrink-0 size-5 rounded-full bg-background border border-muted-foreground/30 flex items-center justify-center text-[10px] font-bold text-muted-foreground">
                     {index + 1}

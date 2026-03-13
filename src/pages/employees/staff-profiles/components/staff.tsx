@@ -41,7 +41,6 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 import { Staff, useStaff } from '@/hooks/use-staff';
-import { format } from 'date-fns';
 import { useNavigate } from 'react-router';
 import { useDebouncedSearchParams } from '@/hooks/use-debounced-search-params';
 
@@ -74,7 +73,6 @@ function ActionsCell({ row }: { row: Row<Staff> }) {
 }
 
 const StaffTable = () => {
-  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useDebouncedSearchParams(300);
 
   // Helper functions to parse URL params into initial state

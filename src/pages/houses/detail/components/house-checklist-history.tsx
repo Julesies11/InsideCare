@@ -5,12 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { 
   PlayCircle, 
   History, 
-  Clock, 
   Plus, 
   Search,
-  Download,
-  FileText,
-  Edit,
   Eye
 } from 'lucide-react';
 import { useChecklistHistory, ChecklistSubmission } from '@/hooks/use-checklist-history';
@@ -26,10 +22,9 @@ import { Input } from '@/components/ui/input';
 
 interface HouseChecklistHistoryProps {
   houseId?: string;
-  canAdd: boolean;
 }
 
-export function HouseChecklistHistory({ houseId, canAdd }: HouseChecklistHistoryProps) {
+export function HouseChecklistHistory({ houseId }: HouseChecklistHistoryProps) {
   const { user } = useAuth();
   const { submissions, loading: loadingHistory, refresh: refreshHistory } = useChecklistHistory(houseId);
   const { houseChecklists, loading: loadingChecklists, refresh: refreshChecklists } = useHouseChecklists(houseId);

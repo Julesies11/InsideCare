@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/auth/context/auth-context';
@@ -56,7 +56,7 @@ export function StaffLeaveList() {
   const [deleteTarget, setDeleteTarget] = useState<LeaveRequest | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  const fetchRequests = async () => {
+  const fetchRequests = useCallback(async () => {
     if (!user?.staff_id) { setLoading(false); return; }
     const { data } = await supabase
       .from('leave_requests')
@@ -65,10 +65,9 @@ export function StaffLeaveList() {
       .order('created_at', { ascending: false });
     setRequests((data as LeaveRequest[]) || []);
     setLoading(false);
-  };
+  }, [user?.staff_id]);
 
-  useEffect(() => { fetchRequests(); }, [user?.staff_id]);
-
+  useEffect(() => { fetchRequests(); }, [fetchRequests]);
   const dayCount = (req: LeaveRequest) => {
     const ms = new Date(req.end_date).getTime() - new Date(req.start_date).getTime();
     return Math.round(ms / 86400000) + 1;

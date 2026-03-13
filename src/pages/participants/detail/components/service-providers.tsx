@@ -27,7 +27,7 @@ export function ServiceProviders({
   onPendingChangesChange 
 }: ServiceProvidersProps) {
   const [showDialog, setShowDialog] = useState(false);
-  const [editingProvider, setEditingProvider] = useState<any>(null);
+  const [editingProvider, setEditingProvider] = useState<{ id?: string; tempId?: string; provider_name: string; provider_type?: string; provider_description?: string; is_active: boolean } | null>(null);
   const [formData, setFormData] = useState({
     provider_name: '',
     provider_type: '',
@@ -48,7 +48,7 @@ export function ServiceProviders({
     setShowDialog(true);
   };
 
-  const handleEdit = (provider: any) => {
+  const handleEdit = (provider: { id?: string; tempId?: string; provider_name: string; provider_type?: string; provider_description?: string; is_active: boolean }) => {
     setEditingProvider(provider);
     setFormData({
       provider_name: provider.provider_name,
@@ -111,7 +111,7 @@ export function ServiceProviders({
     setShowDialog(false);
   };
 
-  const handleDelete = (provider: any) => {
+  const handleDelete = (provider: { id: string; tempId?: string }) => {
     if (!pendingChanges || !onPendingChangesChange) return;
 
     // If it's a pending add, just remove it from the pending adds list

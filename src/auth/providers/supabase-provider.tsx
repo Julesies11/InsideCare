@@ -56,9 +56,18 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
         if (error) {
           console.error('Auth bootstrap error:', error.message);
-          toast.error('Failed to restore your session. Please sign in again.');
-          saveAuth(undefined);
-          setCurrentUser(undefined);
+          
+          // If it's a refresh token error, we need to be aggressive about clearing state
+          if (error.message.includes('refresh_token') || error.message.includes('Invalid Refresh Token')) {
+            console.warn('Refresh token is invalid, signing out...');
+            await supabase.auth.signOut();
+            saveAuth(undefined);
+            setCurrentUser(undefined);
+          } else {
+            toast.error('Failed to restore your session. Please sign in again.');
+            saveAuth(undefined);
+            setCurrentUser(undefined);
+          }
           return;
         }
 
@@ -71,8 +80,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
           try {
             const user = await fetchUserWithTimeout();
             if (mounted) setCurrentUser(user || undefined);
-          } catch (err: any) {
-            console.error('Failed to load user profile:', err.message);
+          } catch (err) {
+            const error = err as Error;
+            console.error('Failed to load user profile:', error.message);
             if (mounted) {
               toast.error('Could not load your profile. Please refresh the page.', {
                 action: { label: 'Refresh', onClick: () => window.location.reload() },
@@ -115,8 +125,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
             // Kick off async fetch without blocking the state update
             fetchUserWithTimeout(30000)
               .then(u => setCurrentUser(u || undefined))
-              .catch((err: any) => {
-                console.error('Failed to load user profile on sign-in:', err.message);
+              .catch((err) => {
+                const error = err as Error;
+                console.error('Failed to load user profile on sign-in:', error.message);
                 toast.error('Signed in but could not load your profile. Please refresh.', {
                   action: { label: 'Refresh', onClick: () => window.location.reload() },
                 });
@@ -159,7 +170,18 @@ export function AuthProvider({ children }: PropsWithChildren) {
   // Guards should NOT call this — they should read loading/auth from context
   const verify = useCallback(async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error('verify() error:', error.message);
+        if (error.message.includes('refresh_token') || error.message.includes('Invalid Refresh Token')) {
+          await supabase.auth.signOut();
+        }
+        saveAuth(undefined);
+        setCurrentUser(undefined);
+        return;
+      }
+
       if (session) {
         saveAuth({
           access_token: session.access_token,
@@ -169,8 +191,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
         saveAuth(undefined);
         setCurrentUser(undefined);
       }
-    } catch (err: any) {
-      console.error('verify() error:', err.message);
+    } catch (err) {
+      const error = err as Error;
+      console.error('verify() unexpected error:', error.message);
       saveAuth(undefined);
       setCurrentUser(undefined);
     }

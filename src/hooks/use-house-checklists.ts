@@ -62,7 +62,7 @@ export function useHouseChecklists(houseId?: string) {
       // Combine data
       return (checklists || []).map(cl => ({
         ...cl,
-        items: (cl.items || []).sort((a: any, b: any) => a.sort_order - b.sort_order),
+        items: ((cl.items as HouseChecklistItem[]) || []).sort((a, b) => a.sort_order - b.sort_order),
         latest_submission: submissions?.find(s => s.checklist_id === cl.id)
       })) as HouseChecklist[];
     },
@@ -74,7 +74,7 @@ export function useHouseChecklists(houseId?: string) {
     ...query,
     houseChecklists: query.data || [],
     loading: query.isLoading,
-    error: query.error ? (query.error as any).message : null,
+    error: query.error ? (query.error as Error).message : null,
     refresh: query.refetch,
   };
 }

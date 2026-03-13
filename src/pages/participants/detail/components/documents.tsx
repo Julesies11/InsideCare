@@ -8,13 +8,18 @@ import { Label } from '@/components/ui/label';
 import { Plus, Download, Trash2, FileText, Clock } from 'lucide-react';
 import { useParticipantDocuments, getParticipantFileUrl as getFileUrl } from '@/hooks/use-participant-documents';
 
+interface DocumentPendingChanges {
+  toAdd: any[];
+  toDelete: any[];
+}
+
 interface DocumentsProps {
   participantId?: string;
   participantName?: string;
   canAdd: boolean;
   canDelete: boolean;
-  pendingChanges?: ParticipantPendingChanges;
-  onPendingChangesChange?: (changes: ParticipantPendingChanges) => void;
+  pendingChanges?: DocumentPendingChanges;
+  onPendingChangesChange?: (changes: DocumentPendingChanges) => void;
 }
 
 export function Documents({ 
@@ -43,17 +48,14 @@ export function Documents({
     const tempId = `temp-${Date.now()}-${Math.random()}`;
     const newPending = {
       ...pendingChanges,
-      documents: {
-        ...pendingChanges.documents,
-        toAdd: [
-          ...pendingChanges.documents.toAdd,
-          {
-            file: selectedFile,
-            fileName: selectedFile.name,
-            tempId,
-          },
-        ],
-      },
+      toAdd: [
+        ...pendingChanges.toAdd,
+        {
+          file: selectedFile,
+          fileName: selectedFile.name,
+          tempId,
+        },
+      ],
     };
     
     onPendingChangesChange(newPending);
@@ -73,13 +75,10 @@ export function Documents({
       // Add to pending deletes instead of immediate delete
       const newPending = {
         ...pendingChanges,
-        documents: {
-          ...pendingChanges.documents,
-          toDelete: [
-            ...pendingChanges.documents.toDelete,
-            { id, filePath, fileName },
-          ],
-        },
+        toDelete: [
+          ...pendingChanges.toDelete,
+          { id, filePath, fileName },
+        ],
       };
       
       onPendingChangesChange(newPending);
@@ -91,10 +90,7 @@ export function Documents({
     
     const newPending = {
       ...pendingChanges,
-      documents: {
-        ...pendingChanges.documents,
-        toAdd: pendingChanges.documents.toAdd.filter(doc => doc.tempId !== tempId),
-      },
+      toAdd: pendingChanges.toAdd.filter(doc => doc.tempId !== tempId),
     };
     
     onPendingChangesChange(newPending);
@@ -105,10 +101,7 @@ export function Documents({
     
     const newPending = {
       ...pendingChanges,
-      documents: {
-        ...pendingChanges.documents,
-        toDelete: pendingChanges.documents.toDelete.filter(doc => doc.id !== id),
-      },
+      toDelete: pendingChanges.toDelete.filter(doc => doc.id !== id),
     };
     
     onPendingChangesChange(newPending);
@@ -116,7 +109,7 @@ export function Documents({
 
   // Filter out documents marked for deletion
   const visibleDocuments = documents.filter(
-    doc => !pendingChanges?.documents.toDelete.some(pending => pending.id === doc.id)
+    doc => !pendingChanges?.toDelete?.some(pending => pending.id === doc.id)
   );
 
   return (
@@ -132,7 +125,7 @@ export function Documents({
         <CardContent>
           {loading ? (
             <div className="text-center py-8 text-muted-foreground">Loading documents...</div>
-          ) : visibleDocuments.length === 0 && (!pendingChanges?.documents.toAdd.length) ? (
+          ) : visibleDocuments.length === 0 && (!pendingChanges?.toAdd?.length) ? (
             <div className="text-center py-8 text-muted-foreground">No documents uploaded yet</div>
           ) : (
             <Table>
@@ -146,7 +139,7 @@ export function Documents({
               <TableBody>
                 {/* Existing documents */}
                 {visibleDocuments.map((doc) => {
-                  const isPendingDelete = pendingChanges?.documents.toDelete.some(pending => pending.id === doc.id);
+                  const isPendingDelete = pendingChanges?.toDelete?.some(pending => pending.id === doc.id);
                   return (
                     <TableRow key={doc.id} className={isPendingDelete ? 'opacity-50 bg-destructive/5' : ''}>
                       <TableCell>
@@ -203,7 +196,7 @@ export function Documents({
                 })}
                 
                 {/* Pending uploads */}
-                {pendingChanges?.documents.toAdd.map((pending) => (
+                {pendingChanges?.toAdd?.map((pending) => (
                   <TableRow key={pending.tempId} className="bg-primary/5">
                     <TableCell>
                       <div className="flex items-center gap-2">

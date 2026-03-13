@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -12,18 +12,25 @@ import { MedicationCombobox } from './medication-components/medication-combobox'
 import { MedicationMasterDialog } from './medication-components/medication-master-dialog';
 import { useParticipantMedications } from '@/hooks/use-participant-medications';
 import { useMedicationsMaster } from '@/hooks/use-medications-master';
-import { ParticipantPendingChanges } from '@/models/participant-pending-changes';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
+import { cn } from '@/lib/utils';
+
+interface MedicationPendingChanges {
+  toAdd: any[];
+  toUpdate: any[];
+  toDelete: string[];
+}
 
 interface MedicationsProps {
   participantId?: string;
   canAdd: boolean;
   canDelete: boolean;
-  pendingChanges?: ParticipantPendingChanges;
-  onPendingChangesChange?: (changes: ParticipantPendingChanges) => void;
+  canEdit: boolean;
+  pendingChanges?: MedicationPendingChanges;
+  onPendingChangesChange?: (changes: MedicationPendingChanges) => void;
 }
 
 const medicationSchema = z.object({
@@ -39,43 +46,17 @@ export function Medications({
   participantId, 
   canAdd, 
   canDelete,
+  canEdit,
   pendingChanges,
   onPendingChangesChange 
 }: MedicationsProps) {
   const [showDialog, setShowDialog] = useState(false);
-  const [editingMedication, setEditingMedication] = useState<any>(null);
+  const [editingMedication, setEditingMedication] = useState<{ id?: string; tempId?: string; medication_id: string; dosage?: string; frequency?: string; is_active: boolean } | null>(null);
   const [showMasterDialog, setShowMasterDialog] = useState(false);
   const [refreshMedicationKey, setRefreshMedicationKey] = useState(0);
 
   const { data: medications = [], isLoading: loading } = useParticipantMedications(participantId);
   const { data: medicationsMaster = [] } = useMedicationsMaster();
-
-  // Helper function to get medication name
-  const getMedicationName = (med: any) => {
-    // If it has the joined medication object, use that
-    if (med.medication?.name) {
-      return med.medication.name;
-    }
-    // For pending medications, look up the name from master list
-    if (med.medication_id) {
-      const masterMed = medicationsMaster.find(m => m.id === med.medication_id);
-      return masterMed?.name || 'Unknown Medication';
-    }
-    return 'Unknown Medication';
-  };
-
-  // Helper function to get medication master data
-  const getMedicationMaster = (med: any) => {
-    // If it has the joined medication object, use that
-    if (med.medication) {
-      return med.medication;
-    }
-    // For pending medications, look up from master list
-    if (med.medication_id) {
-      return medicationsMaster.find(m => m.id === med.medication_id);
-    }
-    return null;
-  };
 
   const form = useForm<MedicationFormValues>({
     resolver: zodResolver(medicationSchema),
@@ -110,7 +91,7 @@ export function Medications({
     setShowDialog(true);
   };
 
-  const handleEdit = (medication: any) => {
+  const handleEdit = (medication: { id?: string; tempId?: string; medication_id: string; dosage?: string; frequency?: string; is_active: boolean }) => {
     setEditingMedication(medication);
     setShowDialog(true);
   };
@@ -124,25 +105,19 @@ export function Medications({
         // Update pending add
         const newPending = {
           ...pendingChanges,
-          medications: {
-            ...pendingChanges.medications,
-            toAdd: pendingChanges.medications.toAdd.map(med =>
-              med.tempId === editingMedication.tempId ? { ...med, ...data } : med
-            ),
-          },
+          toAdd: pendingChanges.toAdd.map(med =>
+            med.tempId === editingMedication.tempId ? { ...med, ...data } : med
+          ),
         };
         onPendingChangesChange(newPending);
       } else {
         // Add to pending updates
         const newPending = {
           ...pendingChanges,
-          medications: {
-            ...pendingChanges.medications,
-            toUpdate: [
-              ...pendingChanges.medications.toUpdate.filter(m => m.id !== editingMedication.id),
-              { id: editingMedication.id, ...data },
-            ],
-          },
+          toUpdate: [
+            ...pendingChanges.toUpdate.filter(m => m.id !== editingMedication.id),
+            { id: editingMedication.id, ...data },
+          ],
         };
         onPendingChangesChange(newPending);
       }
@@ -151,85 +126,73 @@ export function Medications({
       const tempId = `temp-${Date.now()}-${Math.random()}`;
       const newPending = {
         ...pendingChanges,
-        medications: {
-          ...pendingChanges.medications,
-          toAdd: [
-            ...pendingChanges.medications.toAdd,
-            { tempId, ...data },
-          ],
-        },
+        toAdd: [
+          ...pendingChanges.toAdd,
+          { tempId, ...data },
+        ],
       };
       onPendingChangesChange(newPending);
     }
+
     setShowDialog(false);
   };
 
-  const handleDelete = (medication: any) => {
+  const handleDelete = (medication: { id?: string; tempId?: string; medication_id: string }) => {
     if (!pendingChanges || !onPendingChangesChange) return;
 
-    // If it's a pending add, just remove it from the pending adds list
     if (medication.tempId) {
-      handleCancelPendingAdd(medication.tempId);
+      // Remove from pending add
+      const newPending = {
+        ...pendingChanges,
+        toAdd: pendingChanges.toAdd.filter(m => m.tempId !== medication.tempId),
+      };
+      onPendingChangesChange(newPending);
       return;
     }
 
-    // Otherwise, mark existing medication for deletion
     if (confirm('Mark this medication for deletion? It will be removed when you click Save Changes.')) {
       const newPending = {
         ...pendingChanges,
-        medications: {
-          ...pendingChanges.medications,
-          toDelete: [...pendingChanges.medications.toDelete, medication.id],
-        },
+        toDelete: [...pendingChanges.toDelete, medication.id!],
       };
       onPendingChangesChange(newPending);
     }
-  };
-
-  const handleCancelPendingAdd = (tempId: string) => {
-    if (!pendingChanges || !onPendingChangesChange) return;
-
-    const newPending = {
-      ...pendingChanges,
-      medications: {
-        ...pendingChanges.medications,
-        toAdd: pendingChanges.medications.toAdd.filter(med => med.tempId !== tempId),
-      },
-    };
-    onPendingChangesChange(newPending);
   };
 
   const handleCancelPendingUpdate = (id: string) => {
     if (!pendingChanges || !onPendingChangesChange) return;
-
     const newPending = {
       ...pendingChanges,
-      medications: {
-        ...pendingChanges.medications,
-        toUpdate: pendingChanges.medications.toUpdate.filter(med => med.id !== id),
-      },
+      toUpdate: pendingChanges.toUpdate.filter(m => m.id !== id),
     };
     onPendingChangesChange(newPending);
   };
 
   const handleCancelPendingDelete = (id: string) => {
     if (!pendingChanges || !onPendingChangesChange) return;
-
     const newPending = {
       ...pendingChanges,
-      medications: {
-        ...pendingChanges.medications,
-        toDelete: pendingChanges.medications.toDelete.filter(medId => medId !== id),
-      },
+      toDelete: pendingChanges.toDelete.filter(medId => medId !== id),
     };
     onPendingChangesChange(newPending);
   };
 
-  // Combine existing medications with pending adds, filter out pending deletes
-  const visibleMedications = [
-    ...medications.filter(med => !pendingChanges?.medications.toDelete.includes(med.id)),
-    ...(pendingChanges?.medications.toAdd || []),
+  // Combine actual and pending medications
+  const visibleMedications = medications
+    .filter(m => !pendingChanges?.toDelete.includes(m.id))
+    .map(m => {
+      const update = pendingChanges?.toUpdate.find(u => u.id === m.id);
+      return update ? { ...m, ...update, isPendingUpdate: true } : m;
+    });
+
+  const allMedications = [
+    ...visibleMedications,
+    ...(pendingChanges?.toAdd.map(m => ({ ...m, isPendingAdd: true })) || []),
   ];
+
+  const getMedicationName = (id: string) => {
+    return medicationsMaster.find(m => m.id === id)?.name || 'Unknown Medication';
+  };
 
   return (
     <>
@@ -244,8 +207,8 @@ export function Medications({
         <CardContent>
           {loading ? (
             <div className="text-center py-8 text-muted-foreground">Loading medications...</div>
-          ) : visibleMedications.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">No medications recorded</div>
+          ) : allMedications.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">No medications recorded yet</div>
           ) : (
             <Table>
               <TableHeader>
@@ -258,96 +221,62 @@ export function Medications({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {visibleMedications.map((med) => {
-                  const isPendingAdd = 'tempId' in med;
-                  const isPendingUpdate = pendingChanges?.medications.toUpdate.some(m => m.id === med.id);
-                  const isPendingDelete = pendingChanges?.medications.toDelete.includes(med.id);
-                  
+                {allMedications.map((med) => {
+                  const isPendingDelete = !med.isPendingAdd && pendingChanges?.toDelete.includes(med.id);
+                  const isPendingUpdate = med.isPendingUpdate;
+                  const isPendingAdd = med.isPendingAdd;
+
                   return (
                     <TableRow 
-                      key={med.id || med.tempId} 
-                      className={
-                        isPendingAdd ? 'bg-primary/5' : 
-                        isPendingDelete ? 'opacity-50 bg-destructive/5' : 
-                        isPendingUpdate ? 'bg-warning/5' : ''
-                      }
+                      key={med.id || med.tempId}
+                      className={cn(
+                        isPendingAdd && 'bg-primary/5',
+                        isPendingUpdate && 'bg-warning/5',
+                        isPendingDelete && 'opacity-50 grayscale bg-red-50'
+                      )}
                     >
-                      <TableCell>
+                      <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
                           <Pill className="size-4 text-muted-foreground" />
-                          <span className={`font-medium ${isPendingDelete ? 'line-through' : ''}`}>
-                            {getMedicationName(med)}
+                          <span className={cn(isPendingDelete && 'line-through')}>
+                            {getMedicationName(med.medication_id)}
                           </span>
-                          {isPendingAdd && (
-                            <span className="text-xs text-primary flex items-center gap-1">
-                              <Clock className="size-3" />
-                              Pending add
-                            </span>
-                          )}
-                          {isPendingUpdate && (
-                            <span className="text-xs text-warning flex items-center gap-1">
-                              <Clock className="size-3" />
-                              Pending update
-                            </span>
-                          )}
-                          {isPendingDelete && (
-                            <span className="text-xs text-destructive flex items-center gap-1">
-                              <Clock className="size-3" />
-                              Pending deletion
-                            </span>
-                          )}
+                          {isPendingAdd && <Badge variant="outline" className="text-[10px] uppercase">New</Badge>}
+                          {isPendingUpdate && <Badge variant="outline" className="text-[10px] uppercase border-warning text-warning">Pending Update</Badge>}
+                          {isPendingDelete && <Badge variant="destructive" className="text-[10px] uppercase">Pending Delete</Badge>}
                         </div>
                       </TableCell>
-                      <TableCell>{med.dosage || 'N/A'}</TableCell>
-                      <TableCell>{med.frequency || 'N/A'}</TableCell>
+                      <TableCell className={cn(isPendingDelete && 'line-through')}>{med.dosage}</TableCell>
+                      <TableCell className={cn(isPendingDelete && 'line-through')}>{med.frequency}</TableCell>
                       <TableCell>
                         <Badge variant={med.is_active ? 'success' : 'secondary'}>
                           {med.is_active ? 'Active' : 'Inactive'}
                         </Badge>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
-                          {!isPendingDelete && (
+                          {!isPendingDelete && !isPendingAdd && !isPendingUpdate && (
                             <>
-                              <Button variant="ghost" size="sm" onClick={() => handleEdit(med)}>
+                              <Button variant="ghost" size="sm" onClick={() => handleEdit(med)} disabled={!canAdd}>
                                 <Edit className="size-4" />
                               </Button>
-                              {canDelete && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="text-destructive"
-                                  onClick={() => handleDelete(med)}
-                                >
-                                  <Trash2 className="size-4" />
-                                </Button>
-                              )}
+                              <Button variant="ghost" size="sm" className="text-destructive" onClick={() => handleDelete(med)} disabled={!canDelete}>
+                                <Trash2 className="size-4" />
+                              </Button>
                             </>
                           )}
                           {isPendingAdd && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleCancelPendingAdd(med.tempId!)}
-                            >
+                            <Button variant="ghost" size="sm" onClick={() => handleDelete(med)}>
                               Remove
                             </Button>
                           )}
                           {isPendingUpdate && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleCancelPendingUpdate(med.id)}
-                            >
+                            <Button variant="ghost" size="sm" onClick={() => handleCancelPendingUpdate(med.id)}>
                               Undo
                             </Button>
                           )}
                           {isPendingDelete && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleCancelPendingDelete(med.id)}
-                            >
+                            <Button variant="ghost" size="sm" onClick={() => handleCancelPendingDelete(med.id)}>
                               Undo
                             </Button>
                           )}
@@ -363,137 +292,103 @@ export function Medications({
       </Card>
 
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>
-              {editingMedication ? 'Edit Medication' : 'Add Medication'}
-            </DialogTitle>
+            <DialogTitle>{editingMedication ? 'Edit Medication' : 'Add Medication'}</DialogTitle>
             <DialogDescription>
-              {editingMedication
-                ? 'Update medication details'
-                : 'Add a new medication for this participant'}
+              {editingMedication ? 'Update medication details' : 'Add a new medication for this participant'}
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSave)} className="space-y-4 py-4">
+            <form onSubmit={form.handleSubmit(handleSave)} className="space-y-4 py-2">
               <FormField
                 control={form.control}
                 name="medication_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Medication Name *</FormLabel>
-                    <FormControl>
-                      <MedicationCombobox
-                        value={field.value}
-                        onChange={field.onChange}
-                        canEdit={canAdd}
-                        onManageList={() => setShowMasterDialog(true)}
-                        onRefresh={refreshMedicationKey > 0 ? () => {} : undefined}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="dosage"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Dosage</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="e.g., 10mg" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="frequency"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Frequency</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="e.g., Twice daily" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              {editingMedication && (() => {
-                const masterMed = getMedicationMaster(editingMedication);
-                return masterMed ? (
-                  <>
-                    <FormItem>
-                      <FormLabel>General Side Effects</FormLabel>
+                    <FormLabel>Medication *</FormLabel>
+                    <div className="flex gap-2">
                       <FormControl>
-                        <Textarea
-                          value={masterMed.side_effects || ''}
-                          readOnly
-                          placeholder="No side effects information available"
-                          className="bg-muted/50"
-                          rows={2}
+                        <MedicationCombobox
+                          value={field.value}
+                          onChange={field.onChange}
+                          canEdit={canEdit}
+                          onManageList={() => setShowMasterDialog(true)}
                         />
                       </FormControl>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        This information comes from the Medications Master list. 
-                        <Button 
-                          variant="link" 
-                          size="sm" 
-                          className="p-0 h-auto ml-1"
-                          onClick={() => setShowMasterDialog(true)}
-                        >
-                          Manage Master List
-                        </Button>
-                      </div>
-                    </FormItem>
-                    <FormItem>
-                      <FormLabel>Contraindication/Interactions</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          value={masterMed.interactions || ''}
-                          readOnly
-                          placeholder="No interactions information available"
-                          className="bg-muted/50"
-                          rows={2}
-                        />
-                      </FormControl>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        This information comes from the Medications Master list. 
-                        <Button 
-                          variant="link" 
-                          size="sm" 
-                          className="p-0 h-auto ml-1"
-                          onClick={() => setShowMasterDialog(true)}
-                        >
-                          Manage Master List
-                        </Button>
-                      </div>
-                    </FormItem>
-                  </>
-                ) : null;
-              })()}
-              <FormField
-                control={form.control}
-                name="is_active"
-                render={({ field }) => (
-                  <FormItem>
-                    <div className="flex items-center gap-2">
-                      <FormControl>
-                        <Switch checked={field.value} onCheckedChange={field.onChange} />
-                      </FormControl>
-                      <FormLabel>Active</FormLabel>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="icon" 
+                        onClick={() => setShowMasterDialog(true)}
+                        title="Add new medication to master list"
+                      >
+                        <Plus className="size-4" />
+                      </Button>
                     </div>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="dosage"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Dosage</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="e.g. 500mg" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="frequency"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Frequency</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="e.g. Twice daily" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="is_active"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between rounded-lg border p-3 shadow-sm">
+                    <div className="space-y-0.5">
+                      <FormLabel>Active Status</FormLabel>
+                      <DialogDescription>
+                        Is the participant currently taking this?
+                      </DialogDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setShowDialog(false)}>
                   Cancel
                 </Button>
-                <Button type="submit" variant="primary">Save</Button>
+                <Button type="submit">
+                  {editingMedication ? 'Update Queue' : 'Add to Queue'}
+                </Button>
               </DialogFooter>
             </form>
           </Form>
@@ -502,13 +397,8 @@ export function Medications({
 
       <MedicationMasterDialog
         open={showMasterDialog}
-        onClose={() => {
-          setShowMasterDialog(false);
-          setRefreshMedicationKey(prev => prev + 1);
-        }}
-        onUpdate={() => {
-          // Refresh will happen automatically via the hook
-        }}
+        onOpenChange={setShowMasterDialog}
+        onSuccess={() => setRefreshMedicationKey(prev => prev + 1)}
       />
     </>
   );

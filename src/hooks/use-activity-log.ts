@@ -39,7 +39,7 @@ export function useActivityLog({ entityId, entityType, limit = 50 }: UseActivity
     ...query,
     activities: query.data || [],
     loading: query.isLoading,
-    error: query.error ? (query.error as any).message : null,
+    error: query.error ? (query.error as Error).message : null,
   };
 }
 
@@ -50,7 +50,7 @@ interface LogActivityParams {
   entityName?: string;
   userName?: string;
   customDescription?: string;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 }
 
 export function useLogActivity() {

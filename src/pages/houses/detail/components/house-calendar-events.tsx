@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar, Clock, MapPin, Users, Edit, Trash2, Plus, CalendarDays, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
-import { format, addMonths, addWeeks, addDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameMonth, isSameDay } from 'date-fns';
+import { format, addMonths, addWeeks, addDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameDay } from 'date-fns';
 import { useHouseCalendarEvents } from '@/hooks/useHouseCalendarEvents';
 import { useParticipants } from '@/hooks/use-participants';
 import { useStaff } from '@/hooks/use-staff';
@@ -17,7 +17,6 @@ import { HousePendingChanges } from '@/models/house-pending-changes';
 
 interface HouseCalendarEventsProps {
   houseId?: string;
-  canAdd: boolean;
   canDelete: boolean;
   pendingChanges?: HousePendingChanges;
   onPendingChangesChange?: (changes: HousePendingChanges) => void;
@@ -27,7 +26,6 @@ type ViewMode = 'month' | 'week' | 'day';
 
 export function HouseCalendarEvents({ 
   houseId, 
-  canAdd, 
   canDelete,
   pendingChanges,
   onPendingChangesChange 
@@ -36,7 +34,6 @@ export function HouseCalendarEvents({
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showEventDialog, setShowEventDialog] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [formData, setFormData] = useState({
     title: '',
     type: 'meeting',
@@ -108,7 +105,6 @@ export function HouseCalendarEvents({
   };
 
   const handleAddEvent = (date: Date) => {
-    setSelectedDate(date);
     setSelectedEvent(null);
     setFormData({
       title: '',
@@ -128,7 +124,6 @@ export function HouseCalendarEvents({
 
   const handleEditEvent = (event: any) => {
     setSelectedEvent(event);
-    setSelectedDate(null);
     setFormData({
       title: event.title,
       type: event.type,
@@ -504,7 +499,6 @@ export function HouseCalendarEvents({
                       const isPendingUpdate = pendingChanges?.calendarEvents.toUpdate.some(e => e.id === event.id);
                       const isPendingDelete = pendingChanges?.calendarEvents.toDelete.includes(event.id);
                       const participantName = getParticipantName(event);
-                      const staffName = getStaffName(event);
 
                       return (
                         <div

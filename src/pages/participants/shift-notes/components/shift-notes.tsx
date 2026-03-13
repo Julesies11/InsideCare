@@ -51,9 +51,10 @@ import { formatTime } from '@/components/roster/roster-utils';
 import { EditShiftNoteDialog } from './edit-shift-note-dialog';
 
 interface ShiftNotesProps {
+  participantId?: string;
 }
 
-const ShiftNotes = ({}: ShiftNotesProps) => {
+const ShiftNotes = () => {
   const { shiftNotes, loading, error, updateShiftNote, createShiftNote, refetch } = useShiftNotes();
   const { houses } = useHouses();
 
@@ -110,6 +111,10 @@ const ShiftNotes = ({}: ShiftNotesProps) => {
   };
 
   const handleEditNote = (note: ShiftNote) => {
+    if (!note.id) {
+      toast.error('Cannot edit shift note: Missing ID');
+      return;
+    }
     setEditNote(note);
     setDialogMode('edit');
     setIsEditDialogOpen(true);
@@ -222,7 +227,7 @@ const ShiftNotes = ({}: ShiftNotesProps) => {
         size: 120,
       },
     ],
-    []
+    [ActionsCell]
   );
 
   const table = useReactTable({
@@ -250,6 +255,26 @@ const ShiftNotes = ({}: ShiftNotesProps) => {
         </div>
       </CardToolbar>
     );
+  };
+
+  const handleUpdateNote = async (id: string, updates: any) => {
+    try {
+      await updateShiftNote({ id, updates });
+      return { data: null, error: null };
+    } catch (err: any) {
+      console.error('Error updating shift note:', err);
+      return { data: null, error: err.message || 'Failed to update shift note' };
+    }
+  };
+
+  const handleCreateNote = async (updates: any) => {
+    try {
+      await createShiftNote(updates);
+      return { data: null, error: null };
+    } catch (err: any) {
+      console.error('Error creating shift note:', err);
+      return { data: null, error: err.message || 'Failed to create shift note' };
+    }
   };
 
   return (
@@ -355,8 +380,8 @@ const ShiftNotes = ({}: ShiftNotesProps) => {
         open={isEditDialogOpen}
         onOpenChange={setIsEditDialogOpen}
         shiftNote={editNote}
-        onSave={updateShiftNote}
-        onCreate={createShiftNote}
+        onSave={handleUpdateNote}
+        onCreate={handleCreateNote}
         onSuccess={() => refetch(true)}
         mode={dialogMode}
       />

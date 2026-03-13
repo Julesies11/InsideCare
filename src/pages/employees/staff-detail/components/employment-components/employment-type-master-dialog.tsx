@@ -23,7 +23,7 @@ export function EmploymentTypeMasterDialog({
   onClose,
   onUpdate,
 }: EmploymentTypeMasterDialogProps) {
-  const { data: employmentTypes = [], isLoading: loading } = useEmploymentTypesMaster();
+  const { data: employmentTypes = [] } = useEmploymentTypesMaster();
   const { mutateAsync: addEmploymentType } = useAddEmploymentTypeMaster();
   const { mutateAsync: updateEmploymentType } = useUpdateEmploymentTypeMaster();
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -48,15 +48,15 @@ export function EmploymentTypeMasterDialog({
     );
 
     filtered.sort((a, b) => {
-      let aVal: any = a[sortField];
-      let bVal: any = b[sortField];
+      let aVal: string | number = a[sortField] || '';
+      let bVal: string | number = b[sortField] || '';
 
       if (sortField === 'status') {
         aVal = a.status === 'Active' ? 1 : 0;
         bVal = b.status === 'Active' ? 1 : 0;
       } else {
-        aVal = (aVal || '').toString().toLowerCase();
-        bVal = (bVal || '').toString().toLowerCase();
+        aVal = aVal.toString().toLowerCase();
+        bVal = bVal.toString().toLowerCase();
       }
 
       if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
@@ -83,8 +83,9 @@ export function EmploymentTypeMasterDialog({
       await updateEmploymentType({ id: employmentType.id, updates: { status: newStatus } });
       toast.success(`Employment type ${newStatus === 'Active' ? 'activated' : 'deactivated'} successfully`);
       onUpdate();
-    } catch (error: any) {
-      toast.error(`Failed to ${newStatus === 'Active' ? 'activate' : 'deactivate'} employment type: ` + error.message);
+    } catch (error) {
+      const err = error as Error;
+      toast.error(`Failed to ${newStatus === 'Active' ? 'activate' : 'deactivate'} employment type: ` + err.message);
     }
   };
 
@@ -103,8 +104,9 @@ export function EmploymentTypeMasterDialog({
       }
       setShowAddDialog(false);
       onUpdate();
-    } catch (error: any) {
-      toast.error(`Failed to ${editingEmploymentType ? 'update' : 'add'} employment type: ` + error.message);
+    } catch (error) {
+      const err = error as Error;
+      toast.error(`Failed to ${editingEmploymentType ? 'update' : 'add'} employment type: ` + err.message);
     }
   };
 

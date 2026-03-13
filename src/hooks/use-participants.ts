@@ -90,6 +90,37 @@ export function useParticipants(
   };
 }
 
+export function useParticipant(id?: string) {
+  const query = useQuery({
+    queryKey: ['participants', id],
+    queryFn: async () => {
+      if (!id) return null;
+      const { data, error } = await supabase
+        .from('participants')
+        .select(PARTICIPANT_COLUMNS)
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+
+      const participantWithHouse = {
+        ...data,
+        house_name: (data as any).houses?.name || null,
+      };
+
+      return participantWithHouse as ParticipantWithHouse;
+    },
+    enabled: !!id,
+  });
+
+  return {
+    ...query,
+    participant: query.data || null,
+    loading: query.isLoading,
+    error: query.error ? (query.error as any).message : null,
+  };
+}
+
 export function useAddParticipant() {
   const queryClient = useQueryClient();
 

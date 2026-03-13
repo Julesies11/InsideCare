@@ -9,7 +9,7 @@ interface UseDetailFormProps<T> {
   onSave?: (changedFields: Partial<T>) => Promise<void>;
 }
 
-export function useDetailForm<T extends Record<string, any>>({
+export function useDetailForm<T extends Record<string, unknown>>({
   initialData,
   onFormDataChange,
   onOriginalDataChange,
@@ -39,7 +39,7 @@ export function useDetailForm<T extends Record<string, any>>({
     onSavingChange?.(saving);
   }, [saving, onSavingChange]);
 
-  const updateField = useCallback((field: keyof T, value: any) => {
+  const updateField = useCallback((field: keyof T, value: unknown) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   }, []);
 

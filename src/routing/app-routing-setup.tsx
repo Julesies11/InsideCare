@@ -1,4 +1,3 @@
-import { Fragment } from 'react';
 import { AuthRouting } from '@/auth/auth-routing';
 import { RequireAuth, RequireAdmin } from '@/auth/require-auth';
 import { ErrorRouting } from '@/errors/error-routing';

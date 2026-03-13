@@ -23,7 +23,7 @@ export function DepartmentMasterDialog({
   onClose,
   onUpdate,
 }: DepartmentMasterDialogProps) {
-  const { data: departments = [], isLoading: loading } = useDepartmentsMaster();
+  const { data: departments = [] } = useDepartmentsMaster();
   const { mutateAsync: addDepartment } = useAddDepartmentMaster();
   const { mutateAsync: updateDepartment } = useUpdateDepartmentMaster();
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -48,15 +48,15 @@ export function DepartmentMasterDialog({
     );
 
     filtered.sort((a, b) => {
-      let aVal: any = a[sortField];
-      let bVal: any = b[sortField];
+      let aVal: string | number = a[sortField] || '';
+      let bVal: string | number = b[sortField] || '';
 
       if (sortField === 'status') {
         aVal = a.status === 'Active' ? 1 : 0;
         bVal = b.status === 'Active' ? 1 : 0;
       } else {
-        aVal = (aVal || '').toString().toLowerCase();
-        bVal = (bVal || '').toString().toLowerCase();
+        aVal = aVal.toString().toLowerCase();
+        bVal = bVal.toString().toLowerCase();
       }
 
       if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
@@ -83,8 +83,9 @@ export function DepartmentMasterDialog({
       await updateDepartment({ id: department.id, updates: { status: newStatus } });
       toast.success(`Department ${newStatus === 'Active' ? 'activated' : 'deactivated'} successfully`);
       onUpdate();
-    } catch (error: any) {
-      toast.error(`Failed to ${newStatus === 'Active' ? 'activate' : 'deactivate'} department: ` + error.message);
+    } catch (error) {
+      const err = error as Error;
+      toast.error(`Failed to ${newStatus === 'Active' ? 'activate' : 'deactivate'} department: ` + err.message);
     }
   };
 
@@ -99,8 +100,9 @@ export function DepartmentMasterDialog({
       }
       setShowAddDialog(false);
       onUpdate();
-    } catch (error: any) {
-      toast.error(`Failed to ${editingDepartment ? 'update' : 'add'} department: ` + error.message);
+    } catch (error) {
+      const err = error as Error;
+      toast.error(`Failed to ${editingDepartment ? 'update' : 'add'} department: ` + err.message);
     }
   };
 

@@ -1,4 +1,11 @@
 # ===============================
+# 0. PERSONA & EXPERTISE
+# ===============================
+- **Role**: Senior Full Stack Developer.
+- **Expertise**: React 19, Tailwind CSS, Metronic Template v9, and Supabase.
+- **Standards**: High-performance, type-safe, and visually polished implementations following Metronic and React best practices.
+
+# ===============================
 # 1. TERMINAL OUTPUT RULES
 # ===============================
 - Keep output minimal and concise.
@@ -13,6 +20,14 @@
 - Do NOT run 'npm run build', 'npm run dev', or any scripts automatically.
 - Do NOT run unit tests (e.g., 'npm test', 'vitest', 'npx vitest') automatically.
 - Only execute build or test steps if I explicitly ask for them.
+
+# ===============================
+# 3. GEMINI CONTEXT & DOCUMENTATION
+# ===============================
+For detailed information on the project architecture, database, and features, refer to:
+- [Architecture Overview](./docs/gemini/ARCHITECTURE.md) - Patterns, State Management, Saving logic.
+- [Database Schema](./docs/gemini/DATABASE.md) - Tables, Relationships, and Data rules.
+- [Features & Modules](./docs/gemini/FEATURES.md) - Overview of Participant, Staff, House, and Roster modules.
 
 # Gemini Project Instructions — Metronic React (Vite) + TanStack Query + Supabase
 This project uses:
@@ -55,7 +70,7 @@ This ensures:
 - Group page-specific components in a `components` subfolder next to the page (e.g., `src/pages/roster-board/components/`).
 - Shared UI components go in `src/components/`.
 - Data fetching hooks go in `src/hooks/`.
-- API logic goes in `src/lib/api/`.
+- API logic goes in `src/lib/`.
 
 ## TanStack Query Conventions
 - Use stable query keys.
@@ -80,7 +95,7 @@ This ensures:
 - Keep JSX minimal, clean, and Metronic-compliant.
 
 # ===============================
-# 3. MOBILE UI STANDARDS (Supervisor Section)
+# 4. MOBILE UI STANDARDS (Supervisor Section)
 # ===============================
 - **Header & Global Spacing:**
   - Hide the top title/toolbar (Breadcrumbs, Page Title, Description) on mobile (`hidden sm:block`).

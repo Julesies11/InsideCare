@@ -226,9 +226,6 @@ export const SupabaseAdapter = {
     const metadata = user.user_metadata || {};
 
     // Look up linked staff record for ALL users (admins may also have a staff record)
-    let staff_id: string | undefined;
-    let photo_url: string | null = null;
-    
     console.log('SupabaseAdapter: Querying staff table for auth_user_id:', user.id);
     const { data: staffRow, error: staffError } = await supabase
       .from('staff')
@@ -240,8 +237,8 @@ export const SupabaseAdapter = {
       console.warn('SupabaseAdapter: Staff table query error (non-fatal):', staffError);
     }
     
-    staff_id = staffRow?.id ?? undefined;
-    photo_url = staffRow?.photo_url ?? null;
+    const staff_id = staffRow?.id ?? undefined;
+    const photo_url = staffRow?.photo_url ?? null;
     
     console.log('SupabaseAdapter: Profile construction complete', { staff_id, has_photo: !!photo_url });
 

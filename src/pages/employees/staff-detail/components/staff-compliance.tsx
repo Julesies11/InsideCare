@@ -11,7 +11,7 @@ interface ComplianceItem {
 }
 
 interface StaffComplianceSectionProps {
-  formData: any;
+  formData: Record<string, any>;
   onFormChange: (field: string, value: any) => void;
   canEdit: boolean;
 }

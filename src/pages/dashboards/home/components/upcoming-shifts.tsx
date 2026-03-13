@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, MapPin, User, Users } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users } from 'lucide-react';
 import { useRosterData, StaffShift } from '@/components/roster/use-roster-data';
-import { format, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ShiftDialog, ShiftFormData } from '@/components/roster/shift-dialog';
 import { toast } from 'sonner';

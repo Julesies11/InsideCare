@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { RiCheckboxCircleFill } from '@remixicon/react';
 import {
   ColumnDef,
   getCoreRowModel,
@@ -14,18 +13,13 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import {
-  EllipsisVertical,
   Filter,
   Search,
-  Settings2,
-  UserRoundPlus,
   X,
 } from 'lucide-react';
 import { useDebouncedSearchParams } from '@/hooks/use-debounced-search-params';
 import { toast } from 'sonner';
-import { toAbsoluteUrl } from '@/lib/helpers';
-import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
-import { Alert, AlertIcon, AlertTitle } from '@/components/ui/alert';
+import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Button } from '@/components/ui/button';
@@ -34,28 +28,16 @@ import {
   Card,
   CardFooter,
   CardHeader,
-  CardHeading,
   CardTable,
-  CardToolbar,
 } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { DataGrid, useDataGrid } from '@/components/ui/data-grid';
+import { DataGrid } from '@/components/ui/data-grid';
 import { DataGridColumnHeader } from '@/components/ui/data-grid-column-header';
-import { DataGridColumnVisibility } from '@/components/ui/data-grid-column-visibility';
 import { DataGridPagination } from '@/components/ui/data-grid-pagination';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   DataGridTable,
-  DataGridTableRowSelect,
-  DataGridTableRowSelectAll,
 } from '@/components/ui/data-grid-table';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -67,11 +49,10 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 import { Participant, ParticipantWithHouse }  from '@/models/participant';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Archive, Edit, Eye } from 'lucide-react';
+import { Archive, Edit } from 'lucide-react';
 import { useParticipants, useUpdateParticipant } from '@/hooks/use-participants';
 import { useHouses } from '@/hooks/use-houses';
 import { useNavigate } from 'react-router';
-import { supabase } from '@/lib/supabase';
 import { logActivity } from '@/lib/activity-logger';
 import { useAuth } from '@/auth/context/auth-context';
 import { parseSupabaseError } from '@/lib/error-parser';
@@ -82,16 +63,12 @@ const PARTICIPANT_STATUS_OPTIONS: StatusOption[] = [
   { value: 'inactive', label: 'Inactive', badge: 'secondary' },
 ];
 
-function ActionsCell({ row, updateParticipant }: { row: Row<ParticipantWithHouse>; updateParticipant: (params: { id: string; updates: Partial<Participant> }) => Promise<any> }) {
+function ActionsCell({ row, updateParticipant }: { row: Row<ParticipantWithHouse>; updateParticipant: (params: { id: string; updates: Partial<Participant> }) => Promise<void> }) {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const handleView = () => {
-    navigate(`/participants/detail/${row.original.id}`);
-  };
-
   const handleEdit = () => {
-    navigate(`/participants/detail/${row.original.id}/edit`);
+    navigate(`/participants/detail/${row.original.id}`);
   };
 
   const handleArchive = async () => {
@@ -109,8 +86,9 @@ function ActionsCell({ row, updateParticipant }: { row: Row<ParticipantWithHouse
       });
 
       toast.success('Participant archived successfully');
-    } catch (error: any) {
-      const parsedError = parseSupabaseError(error);
+    } catch (error) {
+      const err = error as Error;
+      const parsedError = parseSupabaseError(err);
       toast.error(parsedError.title, { description: parsedError.description });
       console.error('Error archiving participant:', error);
     }
@@ -152,7 +130,6 @@ function getInitials(name: string | null | undefined): string {
 }
 
 const Participants = () => {
-  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useDebouncedSearchParams(300);
 
   // Helper functions to parse URL params into initial state
@@ -203,13 +180,13 @@ const Participants = () => {
     sorting,
     filters
   );
-  const participants = data?.data || [];
+  const participants = useMemo(() => data?.data || [], [data]);
   const count = data?.count || 0;
 
   const { mutateAsync: updateParticipant } = useUpdateParticipant();
   
   const { data: housesData } = useHouses();
-  const houses = housesData?.data || [];
+  const houses = useMemo(() => housesData?.data || [], [housesData]);
 
   // Count of participants per house (This still uses the full list if we want accurate badges, 
   // but for now we'll simplify or keep it as is if useHouses has the counts)

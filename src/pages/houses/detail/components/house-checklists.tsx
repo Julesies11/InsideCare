@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -18,7 +18,6 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/auth/context/auth-context';
 import { toast } from 'sonner';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { handleSupabaseError } from '@/errors/error-handler';
 
 interface HouseChecklistsProps {
   houseId?: string;
@@ -41,12 +40,17 @@ export function HouseChecklists({
   const [showTemplateDialog, setShowTemplateDialog] = useState(false);
   const [showItemDialog, setShowItemDialog] = useState(false);
   const [showExecutionDialog, setShowExecutionDialog] = useState(false);
-  const [loadingSubmission, setLoadingSubmission] = useState(false);
-  const [selectedChecklist, setSelectedChecklist] = useState<any>(null);
-  const [executingChecklist, setExecutingChecklist] = useState<any>(null);
-  const [activeSubmission, setActiveSubmission] = useState<any>(null);
-  const [selectedItem, setSelectedItem] = useState<any>(null);
-  const [checklistFormData, setChecklistFormData] = useState<any>({
+  const [selectedChecklist, setSelectedChecklist] = useState<{ id?: string; tempId?: string; name: string; frequency: string; description?: string; is_global?: boolean; items?: any[] } | null>(null);
+  const [executingChecklist, setExecutingChecklist] = useState<{ id: string; name: string; items: any[] } | null>(null);
+  const [activeSubmission, setActiveSubmission] = useState<{ id: string; completedItems: Record<string, boolean>; itemNotes: Record<string, string>; attachments?: any } | null>(null);
+  const [selectedItem, setSelectedItem] = useState<{ id?: string; tempId?: string; title: string; instructions?: string; priority?: string; is_required?: boolean; sort_order?: number } | null>(null);
+  const [checklistFormData, setChecklistFormData] = useState<{
+    name: string;
+    frequency: string;
+    description: string;
+    is_global: boolean;
+    items: Array<{ id?: string; tempId?: string; title: string; instructions?: string; priority?: string; is_required?: boolean; sort_order?: number }>;
+  }>({
     name: '',
     frequency: 'daily',
     description: '',
@@ -75,7 +79,7 @@ export function HouseChecklists({
     setShowChecklistDialog(true);
   };
 
-  const handleEditChecklist = (checklist: any) => {
+  const handleEditChecklist = (checklist: { id?: string; tempId?: string; name: string; frequency: string; description?: string; is_global?: boolean; items?: any[] }) => {
     setSelectedChecklist(checklist);
     setChecklistFormData({
       name: checklist.name,
@@ -197,23 +201,9 @@ export function HouseChecklists({
     }
   };
 
-  const handleAddItem = (checklistId: string) => {
-    setSelectedChecklist(checklistId);
-    setSelectedItem(null);
-    setItemFormData({
-      title: '',
-      instructions: '',
-      priority: 'medium',
-      is_required: true,
-      sort_order: 0,
-    });
-    setShowItemDialog(true);
-  };
-
   const handleStartExecution = async (checklist: any) => {
     if (!houseId) return;
     
-    setLoadingSubmission(true);
     try {
       // Check for existing in_progress submission for this checklist and house
       const { data, error } = await supabase
@@ -274,11 +264,9 @@ export function HouseChecklists({
 
       setExecutingChecklist(checklist);
       setShowExecutionDialog(true);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error fetching submission:', error);
       toast.error('Failed to load checklist progress');
-    } finally {
-      setLoadingSubmission(false);
     }
   };
 
@@ -431,25 +419,43 @@ export function HouseChecklists({
     return submissionId;
   };
 
-  const handleSaveExecution = async (results: any) => {
+  const handleSaveExecution = async (results: {
+    checklist_id: string;
+    items: Array<{
+      item_id: string;
+      is_completed: boolean;
+      note: string;
+    }>;
+    toDeleteAttachments?: string[];
+    queuedAttachments?: any;
+  }) => {
     try {
       const id = await persistExecution(results, 'in_progress');
       // Update local state for active submission so next save works
       const completedItems: Record<string, boolean> = {};
       const itemNotes: Record<string, string> = {};
-      results.items.forEach((item: any) => {
+      results.items.forEach((item) => {
         completedItems[item.item_id] = item.is_completed;
         itemNotes[item.item_id] = item.note || '';
       });
       setActiveSubmission({ id, completedItems, itemNotes });
       refresh();
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error saving progress:', error);
       throw error;
     }
   };
 
-  const handleCompleteExecution = async (results: any) => {
+  const handleCompleteExecution = async (results: {
+    checklist_id: string;
+    items: Array<{
+      item_id: string;
+      is_completed: boolean;
+      note: string;
+    }>;
+    toDeleteAttachments?: string[];
+    queuedAttachments?: any;
+  }) => {
     try {
       await persistExecution(results, 'completed');
       setShowExecutionDialog(false);
@@ -457,7 +463,7 @@ export function HouseChecklists({
       setActiveSubmission(null);
       // Refresh the list to update button states (from Start to Resume or back)
       refresh();
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error completing checklist:', error);
       throw error;
     }
@@ -497,19 +503,6 @@ export function HouseChecklists({
     toast.success(`Checklist created from template: ${template.name}`);
   };
 
-  const handleEditItem = (checklistId: string, item: any) => {
-    setSelectedChecklist(checklistId);
-    setSelectedItem(item);
-    setItemFormData({
-      title: item.title,
-      instructions: item.instructions || '',
-      priority: item.priority,
-      is_required: item.is_required,
-      sort_order: item.sort_order,
-    });
-    setShowItemDialog(true);
-  };
-
   const handleSaveItem = () => {
     if (!itemFormData.title.trim()) return;
 
@@ -547,41 +540,6 @@ export function HouseChecklists({
     });
   };
 
-  const handleDeleteItem = (checklistId: string, item: any) => {
-    if (!pendingChanges || !onPendingChangesChange) return;
-
-    if (item.tempId) {
-      const newPending = {
-        ...pendingChanges,
-        checklists: {
-          ...pendingChanges.checklists,
-          toAdd: pendingChanges.checklists.toAdd.map(checklist =>
-            checklist.tempId === checklistId ? {
-              ...checklist,
-              items: checklist.items.filter(i => i.tempId !== item.tempId)
-            } : checklist
-          ),
-        },
-      };
-      onPendingChangesChange(newPending);
-      return;
-    }
-
-    if (confirm('Mark this checklist item for deletion? It will be removed when you click Save Changes.')) {
-      const newPending = {
-        ...pendingChanges,
-        checklists: {
-          ...pendingChanges.checklists,
-          checklistItems: {
-            ...pendingChanges.checklists.checklistItems,
-            toDelete: [...pendingChanges.checklists.checklistItems.toDelete, item.id],
-          },
-        },
-      };
-      onPendingChangesChange(newPending);
-    }
-  };
-
   const handleCancelPendingAdd = (tempId: string) => {
     if (!pendingChanges || !onPendingChangesChange) return;
 
@@ -590,32 +548,6 @@ export function HouseChecklists({
       checklists: {
         ...pendingChanges.checklists,
         toAdd: pendingChanges.checklists.toAdd.filter(checklist => checklist.tempId !== tempId),
-      },
-    };
-    onPendingChangesChange(newPending);
-  };
-
-  const handleCancelPendingUpdate = (id: string) => {
-    if (!pendingChanges || !onPendingChangesChange) return;
-
-    const newPending = {
-      ...pendingChanges,
-      checklists: {
-        ...pendingChanges.checklists,
-        toUpdate: pendingChanges.checklists.toUpdate.filter(checklist => checklist.id !== id),
-      },
-    };
-    onPendingChangesChange(newPending);
-  };
-
-  const handleCancelPendingDelete = (id: string) => {
-    if (!pendingChanges || !onPendingChangesChange) return;
-
-    const newPending = {
-      ...pendingChanges,
-      checklists: {
-        ...pendingChanges.checklists,
-        toDelete: pendingChanges.checklists.toDelete.filter(checklistId => checklistId !== id),
       },
     };
     onPendingChangesChange(newPending);

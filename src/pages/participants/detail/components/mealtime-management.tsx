@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 
 interface MealtimeManagementProps {
   canEdit: boolean;
-  formData: any;
+  formData: Record<string, any>;
   onFormChange: (field: string, value: any) => void;
   validationErrors?: Record<string, string>;
 }

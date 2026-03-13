@@ -60,7 +60,7 @@ const HOUSE_STATUS_OPTIONS: StatusOption[] = [
 ];
 
 // Helper function to get participants for a house
-function getHouseParticipants(houseId: string, allParticipants: any[]) {
+function getHouseParticipants(houseId: string, allParticipants: Array<{ id: string; name: string; house_id?: string; status: string }>) {
   return allParticipants
     .filter(participant => participant.house_id === houseId && participant.status === 'active')
     .map(participant => participant.name)
@@ -68,7 +68,7 @@ function getHouseParticipants(houseId: string, allParticipants: any[]) {
 }
 
 // Helper function to get active staff count for a house
-function getHouseStaffCount(houseId: string, houseStaffAssignments: any[]) {
+function getHouseStaffCount(houseId: string, houseStaffAssignments: Array<{ house_id: string; end_date?: string }>) {
   return houseStaffAssignments
     .filter(assignment => assignment.house_id === houseId && !assignment.end_date)
     .length;
@@ -81,7 +81,7 @@ function createGoogleMapsUrl(address: string) {
   return `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
 }
 
-function ActionsCell({ row, updateHouse }: { row: Row<House>; updateHouse: (params: { id: string; updates: Partial<House> }) => Promise<any> }) {
+function ActionsCell({ row, updateHouse }: { row: Row<House>; updateHouse: (params: { id: string; updates: Partial<House> }) => Promise<void> }) {
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -104,8 +104,9 @@ function ActionsCell({ row, updateHouse }: { row: Row<House>; updateHouse: (para
       });
 
       toast.success('House archived successfully');
-    } catch (error: any) {
-      const parsedError = parseSupabaseError(error);
+    } catch (error) {
+      const err = error as Error;
+      const parsedError = parseSupabaseError(err);
       toast.error(parsedError.title, { description: parsedError.description });
       console.error('Error archiving house:', error);
     }
@@ -136,7 +137,6 @@ function ActionsCell({ row, updateHouse }: { row: Row<House>; updateHouse: (para
 }
 
 export function Houses() {
-  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useDebouncedSearchParams(300);
 
   // Helper functions to parse URL params into initial state
@@ -185,9 +185,9 @@ export function Houses() {
 
   const { mutateAsync: updateHouse } = useUpdateHouse();
   const { data: participantsData } = useParticipants(); // Fetch all participants (still needed for nested data)
-  const participants = participantsData?.data || [];
+  const participants = useMemo(() => participantsData?.data || [], [participantsData]);
   const { data: staffAssignmentsData } = useHouseStaffAssignments(); // Fetch all house staff assignments (still needed for nested data)
-  const houseStaffAssignments = staffAssignmentsData || [];
+  const houseStaffAssignments = useMemo(() => staffAssignmentsData || [], [staffAssignmentsData]);
 
   // Sync state changes to URL query parameters
   useEffect(() => {

@@ -28,7 +28,6 @@ interface HouseChecklistSetupProps {
 export function HouseChecklistSetup({ 
   houseId, 
   canAdd, 
-  canDelete,
   pendingChanges,
   onPendingChangesChange 
 }: HouseChecklistSetupProps) {
@@ -41,7 +40,12 @@ export function HouseChecklistSetup({
   const [selectedChecklist, setSelectedChecklist] = useState<any>(null);
   const [selectedItem, setSelectedItem] = useState<any>(null);
   
-  const [checklistFormData, setChecklistFormData] = useState<any>({
+  const [checklistFormData, setChecklistFormData] = useState<{
+    name: string;
+    frequency: string;
+    description: string;
+    items: any[];
+  }>({
     name: '',
     frequency: 'daily',
     description: '',

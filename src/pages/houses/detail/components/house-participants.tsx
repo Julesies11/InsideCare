@@ -15,14 +15,18 @@ import { useNavigate } from 'react-router';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
 
 interface HouseParticipantsProps {
   houseId?: string;
   canAdd: boolean;
   canDelete: boolean;
-  pendingChanges?: any;
+  pendingChanges?: {
+    participants: {
+      toAdd: any[];
+      toUpdate: any[];
+      toDelete: string[];
+    }
+  };
   onPendingChangesChange?: (changes: any) => void;
 }
 
@@ -43,7 +47,6 @@ export function HouseParticipants({
 }: HouseParticipantsProps) {
   const [showDialog, setShowDialog] = useState(false);
   const [editingParticipant, setEditingParticipant] = useState<any>(null);
-  const [refreshKey, setRefreshKey] = useState(0);
 
   const { houseParticipants, loading } = useHouseParticipants(houseId);
   const { participants } = useParticipants();
@@ -65,23 +68,6 @@ export function HouseParticipants({
       return participantData?.name || 'Unknown Participant';
     }
     return 'Unknown Participant';
-  };
-
-  // Helper function to get participant data
-  const getParticipantData = (participant: any) => {
-    // If it has a name directly, it's already the participant data
-    if (participant.name) {
-      return participant;
-    }
-    // If it has the joined participant object, use that
-    if (participant.participant) {
-      return participant.participant;
-    }
-    // For pending participants, look up from participants list
-    if (participant.participant_id) {
-      return participants.find(p => p.id === participant.participant_id);
-    }
-    return null;
   };
 
   const form = useForm<ParticipantFormValues>({

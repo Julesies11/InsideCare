@@ -36,9 +36,10 @@ export function ParticipantsProfilesContent() {
 
       // Navigate to the detail page
       navigate(`/participants/detail/${data.id}`);
-    } catch (error: any) {
-      console.error('Error creating participant:', error);
-      toast.error('Failed to create participant', { description: error.message });
+    } catch (error) {
+      const err = error as Error;
+      console.error('Error creating participant:', err);
+      toast.error('Failed to create participant', { description: err.message });
     }
   };
 

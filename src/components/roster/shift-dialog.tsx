@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { ClipboardList, Pencil, Plus, Trash2, X, AlertTriangle } from 'lucide-react';
-import { format, parseISO, isWithinInterval, areIntervalsOverlapping } from 'date-fns';
+import { format, parseISO, areIntervalsOverlapping } from 'date-fns';
 import { useShiftNotes, ShiftNote } from '@/hooks/use-shift-notes';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
@@ -28,7 +28,19 @@ export interface ShiftFormData {
 interface ShiftDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  shift: any | null;
+  shift: {
+    id: string;
+    staff_id: string;
+    shift_date: string;
+    end_date?: string;
+    start_time: string;
+    end_time: string;
+    house_id?: string;
+    shift_type: string;
+    status: string;
+    notes?: string;
+    participants?: Array<{ id: string; name: string }>;
+  } | null;
   staffId?: string;
   staffList: Array<{ id: string; name: string }>;
   staffSelectionDisabled: boolean;
@@ -100,7 +112,7 @@ export function ShiftDialog({
   const isEdit = shift !== null;
 
   // Check for double bookings
-  const checkDoubleBooking = async (staffId: string, shiftDate: string, startTime: string, endTime: string, excludeShiftId?: string) => {
+  const checkDoubleBooking = useCallback(async (staffId: string, shiftDate: string, startTime: string, endTime: string, excludeShiftId?: string) => {
     if (!staffId || !shiftDate || !startTime || !endTime) {
       setDoubleBookingWarning({ hasWarning: false, conflictingShifts: [] });
       return;
@@ -149,7 +161,7 @@ export function ShiftDialog({
     } catch (error) {
       console.error('Error checking double bookings:', error);
     }
-  };
+  }, []);
 
   // Check for double bookings when relevant form fields change
   useEffect(() => {
@@ -162,9 +174,11 @@ export function ShiftDialog({
         shift?.id
       );
     }
-  }, [formData.staff_id, formData.shift_date, formData.start_time, formData.end_time, shift?.id]);
+  }, [formData.staff_id, formData.shift_date, formData.start_time, formData.end_time, shift?.id, checkDoubleBooking]);
 
   useEffect(() => {
+    if (!open) return;
+
     if (shift) {
       setFormData({
         staff_id: shift.staff_id || staffId || '',
@@ -200,7 +214,7 @@ export function ShiftDialog({
       setExistingNotes([]);
     }
     setDraftNotes([]);
-  }, [shift, staffId, open]);
+  }, [shift, staffId, open, fetchShiftNotesByShiftId]);
 
   useEffect(() => {
     if (open && scrollToNotes && notesSectionRef.current) {
@@ -454,7 +468,7 @@ export function ShiftDialog({
                     This staff member already has conflicting shifts:
                   </p>
                   <div className="space-y-1">
-                    {doubleBookingWarning.conflictingShifts.map((conflict, index) => (
+                    {doubleBookingWarning.conflictingShifts.map((conflict) => (
                       <div key={conflict.id} className="text-sm text-red-600 bg-white rounded p-2 border border-red-100">
                         <div className="font-medium">
                           {format(parseISO(conflict.shift_date), 'MMM d, yyyy')} • {conflict.start_time} - {conflict.end_time}

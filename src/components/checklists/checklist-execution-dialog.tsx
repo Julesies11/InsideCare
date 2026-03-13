@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { PlayCircle } from 'lucide-react';
 import { HouseChecklistExecution } from '@/pages/houses/detail/components/house-checklist-execution';
@@ -9,7 +9,17 @@ import { toast } from 'sonner';
 interface ChecklistExecutionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  checklist: any;
+  checklist: {
+    id: string;
+    name: string;
+    master_id?: string;
+    items?: Array<{
+      id: string;
+      title: string;
+      is_required?: boolean;
+      master_item_id?: string;
+    }>;
+  };
   houseId: string;
   onSuccess?: () => void;
 }
@@ -26,19 +36,15 @@ export function ChecklistExecutionDialog({
   onSuccess 
 }: ChecklistExecutionDialogProps) {
   const { user } = useAuth();
-  const [activeSubmission, setActiveSubmission] = useState<any>(null);
+  const [activeSubmission, setActiveSubmission] = useState<{
+    id: string;
+    completedItems: Record<string, boolean>;
+    itemNotes: Record<string, string>;
+    attachments: Record<string, any[]>;
+  } | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Fetch draft when checklist changes or dialog opens
-  useEffect(() => {
-    if (open && checklist && houseId) {
-      fetchDraft();
-    } else {
-      setActiveSubmission(null);
-    }
-  }, [open, checklist?.id, houseId]);
-
-  const fetchDraft = async () => {
+  const fetchDraft = useCallback(async () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -57,7 +63,7 @@ export function ChecklistExecutionDialog({
       if (data) {
         const completedItems: Record<string, boolean> = {};
         const itemNotes: Record<string, string> = {};
-        data.house_checklist_submission_items.forEach((item: any) => {
+        data.house_checklist_submission_items.forEach((item: { item_id: string; is_completed: boolean; note?: string | null }) => {
           completedItems[item.item_id] = item.is_completed;
           itemNotes[item.item_id] = item.note || '';
         });
@@ -84,9 +90,27 @@ export function ChecklistExecutionDialog({
     } finally {
       setLoading(false);
     }
-  };
+  }, [checklist.id, houseId]);
 
-  const persistExecution = async (results: any, status: 'in_progress' | 'completed') => {
+  // Fetch draft when checklist changes or dialog opens
+  useEffect(() => {
+    if (open && checklist && houseId) {
+      fetchDraft();
+    } else {
+      setActiveSubmission(null);
+    }
+  }, [open, checklist.id, houseId, fetchDraft]);
+
+  const persistExecution = async (results: {
+    checklist_id: string;
+    items: Array<{
+      item_id: string;
+      is_completed: boolean;
+      note: string;
+    }>;
+    toDeleteAttachments?: string[];
+    queuedAttachments?: Record<string, Array<{ file: File }>>;
+  }, status: 'in_progress' | 'completed') => {
     const staffId = user?.staff_id;
     let submissionId = activeSubmission?.id;
 
@@ -117,8 +141,8 @@ export function ChecklistExecutionDialog({
       if (error) throw error;
     }
 
-    const submissionItems = results.items.map((item: any) => {
-      const originalItem = checklist?.items?.find((i: any) => i.id === item.item_id);
+    const submissionItems = results.items.map((item) => {
+      const originalItem = checklist?.items?.find((i) => i.id === item.item_id);
       return {
         submission_id: submissionId,
         item_id: item.item_id,
@@ -130,7 +154,7 @@ export function ChecklistExecutionDialog({
     });
     await supabase.from('house_checklist_submission_items').upsert(submissionItems, { onConflict: 'submission_id,item_id' });
 
-    if (results.toDeleteAttachments?.length > 0) {
+    if (results.toDeleteAttachments && results.toDeleteAttachments.length > 0) {
       for (const attId of results.toDeleteAttachments) {
         const { data: att } = await supabase.from('house_checklist_item_attachments').select('file_path').eq('id', attId).single();
         if (att?.file_path) await supabase.storage.from('checklist-attachments').remove([att.file_path]);
@@ -159,13 +183,22 @@ export function ChecklistExecutionDialog({
     return submissionId;
   };
 
-  const handleSave = async (results: any) => {
+  const handleSave = async (results: {
+    checklist_id: string;
+    items: Array<{
+      item_id: string;
+      is_completed: boolean;
+      note: string;
+    }>;
+    toDeleteAttachments?: string[];
+    queuedAttachments?: Record<string, Array<{ file: File }>>;
+  }) => {
     try {
       const id = await persistExecution(results, 'in_progress');
       if (!activeSubmission) {
         const completedItems: Record<string, boolean> = {};
         const itemNotes: Record<string, string> = {};
-        results.items.forEach((item: any) => {
+        results.items.forEach((item) => {
           completedItems[item.item_id] = item.is_completed;
           itemNotes[item.item_id] = item.note || '';
         });
@@ -178,7 +211,16 @@ export function ChecklistExecutionDialog({
     }
   };
 
-  const handleComplete = async (results: any) => {
+  const handleComplete = async (results: {
+    checklist_id: string;
+    items: Array<{
+      item_id: string;
+      is_completed: boolean;
+      note: string;
+    }>;
+    toDeleteAttachments?: string[];
+    queuedAttachments?: Record<string, Array<{ file: File }>>;
+  }) => {
     try {
       await persistExecution(results, 'completed');
       onOpenChange(false);

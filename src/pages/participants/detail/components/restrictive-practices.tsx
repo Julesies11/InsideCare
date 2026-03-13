@@ -1,12 +1,10 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 
 interface RestrictivePracticesProps {
   canEdit: boolean;
-  formData: any;
+  formData: Record<string, any>;
   onFormChange: (field: string, value: string) => void;
   onSave: () => void;
 }
@@ -15,16 +13,7 @@ export function RestrictivePractices({
   canEdit,
   formData,
   onFormChange,
-  onSave,
 }: RestrictivePracticesProps) {
-  const [saving, setSaving] = useState(false);
-
-  const handleSave = async () => {
-    setSaving(true);
-    await onSave();
-    setSaving(false);
-  };
-
   return (
     <Card className="pb-2.5" id="practices">
       <CardHeader>

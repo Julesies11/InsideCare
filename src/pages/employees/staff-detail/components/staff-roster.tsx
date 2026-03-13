@@ -19,7 +19,6 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
   const [shifts, setShifts] = useState<StaffShift[]>([]);
   const [showShiftDialog, setShowShiftDialog] = useState(false);
   const [selectedShift, setSelectedShift] = useState<StaffShift | null>(null);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   
   const [houseFilter, setHouseFilter] = useState<string>('all');
   const [shiftTypeFilter, setShiftTypeFilter] = useState<string>('all');
@@ -81,15 +80,13 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
     }
   };
 
-  const handleAddShift = (date: Date) => {
-    setSelectedDate(date);
+  const handleAddShift = () => {
     setSelectedShift(null);
     setShowShiftDialog(true);
   };
 
   const handleEditShift = (shift: StaffShift) => {
     setSelectedShift(shift);
-    setSelectedDate(null);
     setShowShiftDialog(true);
   };
 
@@ -217,7 +214,6 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
         <RosterCalendarHeader
           viewMode={viewMode}
           onViewModeChange={setViewMode}
-          currentDate={currentDate}
           onNavigate={navigatePeriod}
           getPeriodLabel={getPeriodLabel}
           showStaffFilter={false}

@@ -30,7 +30,7 @@ export function HouseStaff({
   onPendingChangesChange 
 }: StaffProps) {
   const [showDialog, setShowDialog] = useState(false);
-  const [editingStaff, setEditingStaff] = useState<any>(null);
+  const [editingStaff, setEditingStaff] = useState<{ id?: string; tempId?: string; staff_id: string; is_primary?: boolean; start_date?: string; end_date?: string; notes?: string } | null>(null);
   const [formData, setFormData] = useState({
     staff_id: '',
     is_primary: false,
@@ -54,7 +54,7 @@ export function HouseStaff({
     setShowDialog(true);
   };
 
-  const handleEdit = (staffAssignment: any) => {
+  const handleEdit = (staffAssignment: { id?: string; tempId?: string; staff_id: string; is_primary?: boolean; start_date?: string; end_date?: string; notes?: string }) => {
     setEditingStaff(staffAssignment);
     setFormData({
       staff_id: staffAssignment.staff_id || '',
@@ -118,7 +118,7 @@ export function HouseStaff({
     setShowDialog(false);
   };
 
-  const handleDelete = (staffAssignment: any) => {
+  const handleDelete = (staffAssignment: { id: string; tempId?: string }) => {
     if (!pendingChanges || !onPendingChangesChange) return;
 
     // If it's a pending add, just remove it from the pending adds list

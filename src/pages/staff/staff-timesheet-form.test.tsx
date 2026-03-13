@@ -44,7 +44,7 @@ describe('StaffTimesheetForm', () => {
       http.get(`${SUPABASE_URL}/rest/v1/staff_shifts`, () => {
         return HttpResponse.json([mockShift]);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/timesheets`, ({ request }) => {
+      http.get(`${SUPABASE_URL}/rest/v1/timesheets`, () => {
         return HttpResponse.json([]);
       }),
       http.get(`${SUPABASE_URL}/rest/v1/staff`, () => {

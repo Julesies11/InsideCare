@@ -11,10 +11,9 @@ import { EmploymentTypeMasterDialog } from './employment-components/employment-t
 import { useStaff } from '@/hooks/use-staff';
 
 interface EmploymentDetailsProps {
-  formData: any;
+  formData: Record<string, any>;
   onFormChange: (field: string, value: any) => void;
   canEdit: boolean;
-  validationErrors?: Record<string, string>;
   currentStaffId?: string;
 }
 
@@ -22,13 +21,10 @@ export function EmploymentDetails({
   formData,
   onFormChange,
   canEdit,
-  validationErrors = {},
   currentStaffId,
 }: EmploymentDetailsProps) {
   const [showDepartmentDialog, setShowDepartmentDialog] = useState(false);
   const [showEmploymentTypeDialog, setShowEmploymentTypeDialog] = useState(false);
-  const [refreshDepartmentKey, setRefreshDepartmentKey] = useState(0);
-  const [refreshEmploymentTypeKey, setRefreshEmploymentTypeKey] = useState(0);
   const { staff } = useStaff();
 
   // Filter active staff for manager dropdown, excluding current staff member
@@ -59,7 +55,6 @@ export function EmploymentDetails({
               onChange={(value) => onFormChange('department_id', value)}
               canEdit={canEdit}
               onManageList={() => setShowDepartmentDialog(true)}
-              onRefresh={refreshDepartmentKey > 0 ? () => {} : undefined}
             />
           </div>
         </div>
@@ -72,7 +67,6 @@ export function EmploymentDetails({
               onChange={(value) => onFormChange('employment_type_id', value)}
               canEdit={canEdit}
               onManageList={() => setShowEmploymentTypeDialog(true)}
-              onRefresh={refreshEmploymentTypeKey > 0 ? () => {} : undefined}
             />
           </div>
         </div>
@@ -177,19 +171,13 @@ export function EmploymentDetails({
 
     <DepartmentMasterDialog
       open={showDepartmentDialog}
-      onClose={() => {
-        setShowDepartmentDialog(false);
-        setRefreshDepartmentKey(prev => prev + 1);
-      }}
+      onClose={() => setShowDepartmentDialog(false)}
       onUpdate={() => {}}
     />
 
     <EmploymentTypeMasterDialog
       open={showEmploymentTypeDialog}
-      onClose={() => {
-        setShowEmploymentTypeDialog(false);
-        setRefreshEmploymentTypeKey(prev => prev + 1);
-      }}
+      onClose={() => setShowEmploymentTypeDialog(false)}
       onUpdate={() => {}}
     />
     </>

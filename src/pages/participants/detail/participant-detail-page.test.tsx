@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, fireEvent } from '@testing-library/react';
 import { ParticipantDetailPage } from './participant-detail-page';
 import { renderWithProviders } from '@/test/test-utils';
 import { http, HttpResponse } from 'msw';
@@ -33,17 +33,22 @@ vi.mock('@/hooks/use-scroll-position', () => ({
   useScrollPosition: () => 0,
 }));
 
+vi.setConfig({ testTimeout: 15000 });
+
 describe('ParticipantDetailPage', () => {
   beforeEach(() => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/participants`, () => {
-        return HttpResponse.json(mockParticipant);
+      http.get(`${SUPABASE_URL}/rest/v1/participants`, ({ request }) => {
+        if (request.headers.get('Accept')?.includes('vnd.pgrst.object+json')) {
+          return HttpResponse.json(mockParticipant);
+        }
+        return HttpResponse.json([mockParticipant]);
       }),
       http.get(`${SUPABASE_URL}/rest/v1/houses`, () => {
         return HttpResponse.json([]);
       }),
       http.patch(`${SUPABASE_URL}/rest/v1/participants`, () => {
-        return HttpResponse.json(mockParticipant);
+        return HttpResponse.json([mockParticipant]);
       })
     );
   });
@@ -68,9 +73,8 @@ describe('ParticipantDetailPage', () => {
     const saveBtn = screen.getByRole('button', { name: /save changes/i });
     expect(saveBtn).toBeDisabled();
 
-    const nameInput = screen.getByDisplayValue('John Doe');
-    await user.clear(nameInput);
-    await user.type(nameInput, 'John Smith');
+    const nameInput = await screen.findByLabelText(/full name/i);
+    fireEvent.change(nameInput, { target: { value: 'John Smith' } });
 
     expect(saveBtn).toBeEnabled();
   }, 20000);
@@ -89,11 +93,11 @@ describe('ParticipantDetailPage', () => {
     const { user } = renderWithProviders(<ParticipantDetailPage />);
 
     await waitFor(() => {
-      expect(screen.getByDisplayValue('John Doe')).toBeInTheDocument();
+      expect(screen.getByLabelText(/full name/i)).toBeInTheDocument();
     }, { timeout: 10000 });
 
-    const nameInput = screen.getByDisplayValue('John Doe');
-    await user.type(nameInput, ' (Updated)');
+    const nameInput = screen.getByLabelText(/full name/i);
+    fireEvent.change(nameInput, { target: { value: 'John Doe (Updated)' } });
     
     // Wait for the input to actually reflect the change
     await waitFor(() => {

@@ -1,6 +1,6 @@
 import { ActivityLog, ActivityType } from '@/models/activity-log';
 import { TimelineItem } from './timeline-item';
-import { Plus, Edit, Trash2, FileText, Users, AlertCircle, CheckCircle, Building2 } from 'lucide-react';
+import { Plus, Edit, Trash2, FileText } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { LucideIcon } from 'lucide-react';
 
@@ -13,21 +13,6 @@ const activityTypeIcons: Record<ActivityType, LucideIcon> = {
   create: Plus,
   update: Edit,
   delete: Trash2,
-};
-
-const entityTypeIcons: Record<string, LucideIcon> = {
-  participant: Users,
-  staff: Users,
-  incident: AlertCircle,
-  compliance: CheckCircle,
-  shift_note: FileText,
-  branch: Building2,
-};
-
-const activityTypeColors: Record<ActivityType, string> = {
-  create: 'text-green-600',
-  update: 'text-blue-600',
-  delete: 'text-red-600',
 };
 
 export function ActivityLogItem({ activity, isLast }: ActivityLogItemProps) {

@@ -266,24 +266,18 @@ export function Goals({
       if (editingGoal.tempId) {
         const newPending = {
           ...pendingChanges,
-          goals: {
-            ...pendingChanges.goals,
-            toAdd: pendingChanges.goals.toAdd.map(g =>
-              g.tempId === editingGoal.tempId ? { ...g, ...data } : g
-            ),
-          },
+          toAdd: pendingChanges.toAdd.map(g =>
+            g.tempId === editingGoal.tempId ? { ...g, ...data } : g
+          ),
         };
         onPendingChangesChange(newPending);
       } else {
         const newPending = {
           ...pendingChanges,
-          goals: {
-            ...pendingChanges.goals,
-            toUpdate: [
-              ...pendingChanges.goals.toUpdate.filter(g => g.id !== editingGoal.id),
-              { id: editingGoal.id, ...data },
-            ],
-          },
+          toUpdate: [
+            ...pendingChanges.toUpdate.filter(g => g.id !== editingGoal.id),
+            { id: editingGoal.id, ...data },
+          ],
         };
         onPendingChangesChange(newPending);
       }
@@ -291,13 +285,10 @@ export function Goals({
       const tempId = `temp-${Date.now()}-${Math.random()}`;
       const newPending = {
         ...pendingChanges,
-        goals: {
-          ...pendingChanges.goals,
-          toAdd: [
-            ...pendingChanges.goals.toAdd,
-            { tempId, ...data },
-          ],
-        },
+        toAdd: [
+          ...pendingChanges.toAdd,
+          { tempId, ...data },
+        ],
       };
       onPendingChangesChange(newPending);
     }
@@ -315,10 +306,7 @@ export function Goals({
     if (confirm('Mark this goal for deletion? It will be removed when you click Save Changes.')) {
       const newPending = {
         ...pendingChanges,
-        goals: {
-          ...pendingChanges.goals,
-          toDelete: [...pendingChanges.goals.toDelete, goal.id],
-        },
+        toDelete: [...pendingChanges.toDelete, goal.id],
       };
       onPendingChangesChange(newPending);
     }
@@ -328,10 +316,7 @@ export function Goals({
     if (!pendingChanges || !onPendingChangesChange) return;
     const newPending = {
       ...pendingChanges,
-      goals: {
-        ...pendingChanges.goals,
-        toAdd: pendingChanges.goals.toAdd.filter(g => g.tempId !== tempId),
-      },
+      toAdd: pendingChanges.toAdd.filter(g => g.tempId !== tempId),
     };
     onPendingChangesChange(newPending);
   };
@@ -340,10 +325,7 @@ export function Goals({
     if (!pendingChanges || !onPendingChangesChange) return;
     const newPending = {
       ...pendingChanges,
-      goals: {
-        ...pendingChanges.goals,
-        toUpdate: pendingChanges.goals.toUpdate.filter(g => g.id !== id),
-      },
+      toUpdate: pendingChanges.toUpdate.filter(g => g.id !== id),
     };
     onPendingChangesChange(newPending);
   };
@@ -352,13 +334,11 @@ export function Goals({
     if (!pendingChanges || !onPendingChangesChange) return;
     const newPending = {
       ...pendingChanges,
-      goals: {
-        ...pendingChanges.goals,
-        toDelete: pendingChanges.goals.toDelete.filter(gId => gId !== id),
-      },
+      toDelete: pendingChanges.toDelete.filter(goalId => goalId !== id),
     };
     onPendingChangesChange(newPending);
   };
+
 
   const handleAddNote = async (goalId: string, text: string) => {
     await addProgress({ goal_id: goalId, progress_note: text });
@@ -373,8 +353,8 @@ export function Goals({
   };
 
   const visibleGoals = [
-    ...goals.filter(g => !pendingChanges?.goals.toDelete.includes(g.id)),
-    ...(pendingChanges?.goals.toAdd || []),
+    ...goals.filter(g => !pendingChanges?.toDelete?.includes(g.id)),
+    ...(pendingChanges?.toAdd || []),
   ];
 
   const sheetNotes = sheetGoal ? goalProgress.filter(p => p.goal_id === sheetGoal.id) : [];
@@ -408,8 +388,8 @@ export function Goals({
               <TableBody>
                 {visibleGoals.map((goal) => {
                   const isPendingAdd = 'tempId' in goal;
-                  const isPendingUpdate = pendingChanges?.goals.toUpdate.some(g => g.id === goal.id);
-                  const isPendingDelete = pendingChanges?.goals.toDelete.includes(goal.id);
+                  const isPendingUpdate = pendingChanges?.toUpdate?.some(g => g.id === goal.id);
+                  const isPendingDelete = pendingChanges?.toDelete?.includes(goal.id);
                   const noteCount = goalProgress.filter(p => p.goal_id === goal.id).length;
                   const isSaved = !isPendingAdd;
 

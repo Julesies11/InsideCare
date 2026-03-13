@@ -3,18 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/auth/context/auth-context';
 import { format } from 'date-fns';
-import { Calendar, Umbrella, ClipboardList, ChevronRight, Plus } from 'lucide-react';
+import { Calendar, Umbrella, ClipboardList, ChevronRight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Container } from '@/components/common/container';
-import {
-  Toolbar,
-  ToolbarHeading,
-  ToolbarPageTitle,
-  ToolbarDescription,
-  ToolbarActions,
-} from '@/partials/common/toolbar';
 import { WelcomeBanner } from '../dashboards/home/components';
 
 interface UpcomingShift {
@@ -89,13 +82,6 @@ export function StaffDashboard() {
 
     fetchData();
   }, [user?.staff_id]);
-
-  const greeting = () => {
-    const h = new Date().getHours();
-    if (h < 12) return 'Good morning';
-    if (h < 17) return 'Good afternoon';
-    return 'Good evening';
-  };
 
   return (
     <>

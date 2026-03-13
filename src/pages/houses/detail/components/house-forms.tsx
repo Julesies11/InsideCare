@@ -57,9 +57,9 @@ export function HouseForms({
 }: HouseFormsProps) {
   const [showFormDialog, setShowFormDialog] = useState(false);
   const [showAssignmentDialog, setShowAssignmentDialog] = useState(false);
-  const [editingForm, setEditingForm] = useState<any>(null);
-  const [selectedForm, setSelectedForm] = useState<any>(null);
-  const [editingAssignment, setEditingAssignment] = useState<any>(null);
+  const [editingForm, setEditingForm] = useState<{ id?: string; tempId?: string; name: string; type: string; description?: string; frequency: string; is_global?: boolean; status?: string; assignments?: any[] } | null>(null);
+  const [selectedForm, setSelectedForm] = useState<{ id: string; name: string } | null>(null);
+  const [editingAssignment, setEditingAssignment] = useState<{ id?: string; tempId?: string; participant_id?: string; staff_id?: string; due_date?: string; status: string; notes?: string } | null>(null);
 
   const { houseForms, loading } = useHouseForms(houseId);
   const { participants } = useParticipants();
@@ -136,7 +136,7 @@ export function HouseForms({
     setShowFormDialog(true);
   };
 
-  const handleEditForm = (form: any) => {
+  const handleEditForm = (form: { id?: string; tempId?: string; name: string; type: string; description?: string; frequency: string; is_global?: boolean; status?: string; assignments?: any[] }) => {
     setEditingForm(form);
     setShowFormDialog(true);
   };
@@ -196,7 +196,7 @@ export function HouseForms({
     setShowFormDialog(false);
   };
 
-  const handleDeleteForm = (form: any) => {
+  const handleDeleteForm = (form: { id?: string; tempId?: string }) => {
     if (!pendingChanges || !onPendingChangesChange) return;
 
     // If it's a pending add, just remove it from the pending adds list
@@ -218,13 +218,13 @@ export function HouseForms({
     }
   };
 
-  const handleAddAssignment = (form: any) => {
+  const handleAddAssignment = (form: { id: string; name: string }) => {
     setSelectedForm(form);
     setEditingAssignment(null);
     setShowAssignmentDialog(true);
   };
 
-  const handleEditAssignment = (form: any, assignment: any) => {
+  const handleEditAssignment = (form: { id: string; name: string }, assignment: { id?: string; tempId?: string; participant_id?: string; staff_id?: string; due_date?: string; status: string; notes?: string }) => {
     setSelectedForm(form);
     setEditingAssignment(assignment);
     setShowAssignmentDialog(true);
@@ -285,7 +285,7 @@ export function HouseForms({
     setShowAssignmentDialog(false);
   };
 
-  const handleDeleteAssignment = (assignment: any) => {
+  const handleDeleteAssignment = (assignment: { id?: string; tempId?: string }) => {
     if (!pendingChanges || !onPendingChangesChange) return;
 
     // If it's a pending add, just remove it from the pending adds list

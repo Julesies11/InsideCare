@@ -13,7 +13,7 @@ interface ErrorOptions {
  * Centralized error handler for the application.
  * Categorizes errors and provides consistent UI feedback.
  */
-export const handleError = (error: any, options: ErrorOptions = {}) => {
+export const handleError = (error: unknown, options: ErrorOptions = {}) => {
   const { 
     category = 'unknown', 
     title = 'An error occurred', 
@@ -21,12 +21,14 @@ export const handleError = (error: any, options: ErrorOptions = {}) => {
     logToConsole = true 
   } = options;
 
+  const err = error as any;
+
   // 1. Log to console for developers
   if (logToConsole) {
     console.group(`[Error][${category.toUpperCase()}] ${title}`);
     console.error(error);
-    if (error?.details) console.error('Details:', error.details);
-    if (error?.hint) console.info('Hint:', error.hint);
+    if (err?.details) console.error('Details:', err.details);
+    if (err?.hint) console.info('Hint:', err.hint);
     console.groupEnd();
   }
 
@@ -35,13 +37,13 @@ export const handleError = (error: any, options: ErrorOptions = {}) => {
   
   if (typeof error === 'string') {
     message = error;
-  } else if (error?.message) {
-    message = error.message;
+  } else if (err?.message) {
+    message = err.message;
   }
 
   // Handle specific Supabase error codes
-  if (error?.code) {
-    switch (error.code) {
+  if (err?.code) {
+    switch (err.code) {
       case 'PGRST204':
         message = 'The requested resource was not found.';
         break;
@@ -68,7 +70,7 @@ export const handleError = (error: any, options: ErrorOptions = {}) => {
 /**
  * Specifically handles Supabase response errors
  */
-export const handleSupabaseError = (error: any, title?: string) => {
+export const handleSupabaseError = (error: unknown, title?: string) => {
   return handleError(error, { category: 'database', title: title || 'Database Error' });
 };
 

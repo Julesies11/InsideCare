@@ -23,7 +23,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
 import { Calendar } from '@/components/ui/calendar';
 import {
   Popover,
@@ -80,7 +79,7 @@ export function EditShiftNoteDialog({
   initialLinkedShift = null,
 }: EditShiftNoteDialogProps) {
   const { participants } = useParticipants();
-  const { data: staffData, isLoading: loadingStaff } = useStaff();
+  const { data: staffData } = useStaff();
   const staff = staffData?.data || [];
   const { houses } = useHouses();
 
@@ -237,6 +236,9 @@ export function EditShiftNoteDialog({
           onSuccess?.();
         }
       } else if (shiftNote) {
+        if (!shiftNote.id) {
+          throw new Error('Missing shift note ID');
+        }
         const { error } = await onSave(shiftNote.id, formData);
         if (error) {
           toast.error(error);
@@ -247,7 +249,9 @@ export function EditShiftNoteDialog({
         }
       }
     } catch (err) {
-      toast.error(mode === 'create' ? 'Failed to create shift note' : 'Failed to update shift note');
+      console.error('Error submitting shift note:', err);
+      const error = err as Error;
+      toast.error(mode === 'create' ? 'Failed to create shift note' : 'Failed to update shift note', { description: error.message });
     } finally {
       setSaving(false);
     }

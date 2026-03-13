@@ -23,15 +23,20 @@ export function ChecklistMasterPage() {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showItemDialog, setShowItemDialog] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<ChecklistMaster | null>(null);
-  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [selectedItem, setSelectedItem] = useState<{ id?: string; tempId?: string; title: string; instructions?: string; priority?: string; is_required?: boolean; sort_order?: number } | null>(null);
   
-  const [formData, setFormData] = useState<any>({
+  const [formData, setFormData] = useState<{
+    name: string;
+    frequency: string;
+    description: string;
+    items: Array<{ id?: string; tempId?: string; title: string; instructions?: string; priority?: string; is_required?: boolean; sort_order?: number }>;
+  }>({
     name: '',
     frequency: 'daily',
     description: '',
     items: [],
   });
-  const [initialFormData, setInitialFormData] = useState<any>(null);
+  const [initialFormData, setInitialFormData] = useState<typeof formData | null>(null);
 
   const hasEdits = useMemo(() => {
     if (!initialFormData) return false;
@@ -84,7 +89,7 @@ export function ChecklistMasterPage() {
       if (error) throw error;
       toast.success('Master checklist deleted successfully');
       refresh();
-    } catch (error: any) {
+    } catch (error) {
       handleSupabaseError(error, 'Failed to delete checklist');
     }
   };
@@ -121,7 +126,7 @@ export function ChecklistMasterPage() {
 
       // Handle items
       const originalItems = selectedTemplate?.items || [];
-      const currentItems = formData.items.map((item: any, index: number) => ({
+      const currentItems = formData.items.map((item, index: number) => ({
         ...item,
         master_id: masterId,
         sort_order: index,
@@ -129,7 +134,7 @@ export function ChecklistMasterPage() {
 
       // Delete items
       const itemsToDelete = originalItems
-        .filter(orig => !currentItems.some((curr: any) => curr.id === orig.id))
+        .filter(orig => !currentItems.some((curr) => curr.id === orig.id))
         .map(i => i.id);
       
       if (itemsToDelete.length > 0) {
@@ -139,26 +144,26 @@ export function ChecklistMasterPage() {
       // Separate updates from inserts to avoid PostgREST bulk array null key issues
       if (currentItems.length > 0) {
         const itemsToUpdate = currentItems
-          .filter((item: any) => item.id && !item.id.startsWith('temp-'))
-          .map((item: any) => ({
-            id: item.id,
-            master_id: masterId,
+          .filter((item) => !!(item.id && !item.id.startsWith('temp-')))
+          .map((item) => ({
+            id: item.id as string,
+            master_id: masterId as string,
             title: item.title,
-            instructions: item.instructions,
-            priority: item.priority,
-            is_required: item.is_required,
-            sort_order: item.sort_order,
+            instructions: item.instructions || '',
+            priority: item.priority || 'medium',
+            is_required: !!item.is_required,
+            sort_order: item.sort_order || 0,
           }));
 
         const itemsToInsert = currentItems
-          .filter((item: any) => !item.id || item.id.startsWith('temp-'))
-          .map((item: any) => ({
-            master_id: masterId,
+          .filter((item) => !item.id || item.id.startsWith('temp-'))
+          .map((item) => ({
+            master_id: masterId as string,
             title: item.title,
-            instructions: item.instructions,
-            priority: item.priority,
-            is_required: item.is_required,
-            sort_order: item.sort_order,
+            instructions: item.instructions || '',
+            priority: item.priority || 'medium',
+            is_required: !!item.is_required,
+            sort_order: item.sort_order || 0,
           }));
 
         if (itemsToUpdate.length > 0) {
@@ -179,7 +184,7 @@ export function ChecklistMasterPage() {
       toast.success('Master checklist saved successfully');
       setShowEditDialog(false);
       refresh();
-    } catch (error: any) {
+    } catch (error) {
       handleSupabaseError(error, 'Failed to save checklist');
     }
   };
@@ -190,7 +195,7 @@ export function ChecklistMasterPage() {
     if (selectedItem) {
       setFormData({
         ...formData,
-        items: formData.items.map((item: any) => 
+        items: formData.items.map((item) => 
           (item.id && item.id === selectedItem.id) || (item.tempId && item.tempId === selectedItem.tempId) 
             ? { ...item, ...itemFormData } 
             : item

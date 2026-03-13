@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, Edit, Trash2, FileText, Download, Clock } from 'lucide-react';
-import { useStaff, StaffTraining } from '@/hooks/use-staff';
+import { StaffTraining, useStaffTraining } from '@/hooks/use-staff';
 import { toast } from 'sonner';
 import { StaffPendingChanges } from '@/models/staff-pending-changes';
 import { cn } from '@/lib/utils';
@@ -16,6 +16,7 @@ import { format, differenceInDays, parseISO } from 'date-fns';
 import { supabase } from '@/lib/supabase';
 
 interface StaffTrainingSectionProps {
+  staffId?: string;
   pendingChanges?: StaffPendingChanges;
   onPendingChangesChange?: (changes: StaffPendingChanges) => void;
   refreshKey?: number;
@@ -47,12 +48,11 @@ function getStatusBadgeVariant(status: TrainingStatus): "success" | "warning" | 
 }
 
 export function StaffTrainingSection({
+  staffId,
   pendingChanges,
   onPendingChangesChange,
   refreshKey = 0
 }: StaffTrainingSectionProps) {
-  const [training, setTraining] = useState<StaffTraining[]>([]);
-  const [loading, setLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
   const [editingItem, setEditingItem] = useState<StaffTraining | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -66,18 +66,14 @@ export function StaffTrainingSection({
     expiry_date: '',
   });
 
-  const { getStaffTraining } = useStaff();
+  const { training: serverTraining, loading, refresh } = useStaffTraining(staffId);
 
-  const fetchTraining = async () => {
-    setLoading(true);
-    const { data } = await getStaffTraining();
-    if (data) setTraining(data);
-    setLoading(false);
-  };
-
+  // Trigger refresh when refreshKey changes
   useEffect(() => {
-    fetchTraining();
-  }, [refreshKey]);
+    if (refreshKey > 0) {
+      refresh();
+    }
+  }, [refreshKey, refresh]);
 
   const handleAdd = () => {
     setEditingItem(null);
@@ -93,8 +89,8 @@ export function StaffTrainingSection({
     setShowDialog(true);
   };
 
-  const handleEdit = (item: any) => {
-    setEditingItem(item);
+  const handleEdit = (item: StaffTraining | (StaffTraining & { tempId: string })) => {
+    setEditingItem(item as StaffTraining);
     setSelectedFile(null);
     setFormData({
       title: item.title,
@@ -265,10 +261,19 @@ export function StaffTrainingSection({
     }
   };
 
-  const visibleTraining = [
-    ...training.filter(item => !pendingChanges?.training.toDelete.some((d: any) => d.id === item.id)),
-    ...(pendingChanges?.training.toAdd || []),
-  ];
+  const visibleTraining = useMemo(() => {
+    const fromServer = serverTraining.filter(item => !pendingChanges?.training.toDelete.some((d) => d.id === item.id));
+    // Apply updates from pending changes
+    const withUpdates = fromServer.map(item => {
+      const update = pendingChanges?.training.toUpdate.find(u => u.id === item.id);
+      return update ? { ...item, ...update } : item;
+    });
+    
+    return [
+      ...withUpdates,
+      ...(pendingChanges?.training.toAdd || []),
+    ];
+  }, [serverTraining, pendingChanges?.training]);
 
   const currentStatus = calculateTrainingStatus(formData.expiry_date || null);
 
@@ -302,8 +307,8 @@ export function StaffTrainingSection({
               <TableBody>
                 {visibleTraining.map((item) => {
                   const isPendingAdd = 'tempId' in item;
-                  const isPendingUpdate = pendingChanges?.training.toUpdate.some((p: any) => p.id === item.id);
-                  const isPendingDelete = item.id ? pendingChanges?.training.toDelete.some((d: any) => d.id === item.id) : false;
+                  const isPendingUpdate = pendingChanges?.training.toUpdate.some((p) => p.id === item.id);
+                  const isPendingDelete = item.id ? pendingChanges?.training.toDelete.some((d) => d.id === item.id) : false;
                   const status = calculateTrainingStatus(item.expiry_date);
                   const hasFile = (item as any).file_path || (item as any).filePath || (item as any).file;
 

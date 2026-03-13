@@ -25,6 +25,6 @@ describe('useStaff', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(result.current.data?.data).toHaveLength(1);
-    expect(result.current.data?.data[0].name).toBe('Admin User');
+    expect(result.current.data?.data[0].name).toBe('John Staff');
   });
 });

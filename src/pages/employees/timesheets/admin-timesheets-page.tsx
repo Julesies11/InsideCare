@@ -165,7 +165,7 @@ export function AdminTimesheetsPage() {
     setSaving(true);
     const newStatus = action === 'approve' ? 'approved' : 'rejected';
     const now = new Date().toISOString();
-    const updatePayload: Record<string, any> = {
+    const updatePayload: Record<string, unknown> = {
       status: newStatus, admin_notes: adminNotes || null, updated_at: now,
     };
     if (action === 'approve') {

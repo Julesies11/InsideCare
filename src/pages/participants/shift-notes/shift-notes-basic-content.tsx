@@ -3,7 +3,7 @@ import { ClipboardList, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ShiftNotes, EditShiftNoteDialog } from './components';
-import { useShiftNotes, ShiftNoteUpdateData } from '@/hooks/use-shift-notes';
+import { useShiftNotes } from '@/hooks/use-shift-notes';
 
 export function ShiftNotesContent() {
   const { createShiftNote, updateShiftNote, refetch } = useShiftNotes();
@@ -11,6 +11,26 @@ export function ShiftNotesContent() {
 
   const handleAddShiftNote = () => {
     setIsAddDialogOpen(true);
+  };
+
+  const handleUpdateNote = async (id: string, updates: any) => {
+    try {
+      await updateShiftNote({ id, updates });
+      return { data: null, error: null };
+    } catch (err: any) {
+      console.error('Error updating shift note:', err);
+      return { data: null, error: err.message || 'Failed to update shift note' };
+    }
+  };
+
+  const handleCreateNote = async (updates: any) => {
+    try {
+      await createShiftNote(updates);
+      return { data: null, error: null };
+    } catch (err: any) {
+      console.error('Error creating shift note:', err);
+      return { data: null, error: err.message || 'Failed to create shift note' };
+    }
   };
 
   return (
@@ -59,8 +79,8 @@ export function ShiftNotesContent() {
         open={isAddDialogOpen}
         onOpenChange={setIsAddDialogOpen}
         shiftNote={null}
-        onSave={updateShiftNote}
-        onCreate={createShiftNote}
+        onSave={handleUpdateNote}
+        onCreate={handleCreateNote}
         onSuccess={() => refetch(true)}
         mode="create"
       />

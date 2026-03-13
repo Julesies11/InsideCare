@@ -6,7 +6,7 @@ import { format, isToday, parseISO } from 'date-fns';
 import { Check, X, AlertTriangle, Paperclip, CalendarClock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTable } from '@/components/ui/card';
+import { Card, CardContent, CardTable } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,

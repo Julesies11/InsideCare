@@ -1,42 +1,26 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Participant } from '@/models/participant';
 import { useHouses } from '@/hooks/use-houses';
 import { AvatarInput } from '@/components/image-input/avatar-input';
-import { supabase } from '@/lib/supabase';
-import { toast } from 'sonner';
 
 interface PersonalDetailsProps {
-  participant?: Participant;
   canEdit: boolean;
-  formData: any;
+  formData: Record<string, any>;
   onFormChange: (field: string, value: any) => void;
   onSave: () => void;
   validationErrors?: Record<string, string>;
 }
 
 export function PersonalDetails({
-  participant,
   canEdit,
   formData,
   onFormChange,
-  onSave,
   validationErrors = {},
 }: PersonalDetailsProps) {
   const { houses } = useHouses();
-  const [saving, setSaving] = useState(false);
-  const [uploadingPhoto, setUploadingPhoto] = useState(false);
-
-  const handleSave = async () => {
-    setSaving(true);
-    await onSave();
-    setSaving(false);
-  };
 
   const handlePhotoChange = (file: File | null, dataURL: string | null) => {
     // Store the file and dataURL locally, will upload when Save is clicked
@@ -48,16 +32,6 @@ export function PersonalDetails({
       onFormChange('photo_file', null);
     }
   };
-
-  function getInitials(name: string): string {
-    if (!name) return 'NA';
-    return name
-      .split(' ')
-      .map((word) => word[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  }
 
   return (
     <Card className="pb-2.5" id="personal_details">
@@ -74,7 +48,6 @@ export function PersonalDetails({
               onChange={handlePhotoChange}
               size="lg"
             />
-            {uploadingPhoto && <span className="text-sm text-muted-foreground">Uploading...</span>}
             {!canEdit && <span className="text-sm text-muted-foreground">View only</span>}
           </div>
         </div>
@@ -82,7 +55,7 @@ export function PersonalDetails({
         {/* Form Fields */}
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <Label className="flex w-full max-w-56">Full Name {formData.status !== 'draft' && '*'}</Label>
+            <Label htmlFor="name" className="flex w-full max-w-56">Full Name {formData.status !== 'draft' && '*'}</Label>
             <div className="grow">
               <Input
                 id="name"
@@ -100,7 +73,7 @@ export function PersonalDetails({
 
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <Label className="flex w-full max-w-56">NDIS Number</Label>
+            <Label htmlFor="ndis_number" className="flex w-full max-w-56">NDIS Number</Label>
             <Input
               id="ndis_number"
               value={formData.ndis_number}
@@ -112,7 +85,7 @@ export function PersonalDetails({
 
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <Label className="flex w-full max-w-56">Date of Birth</Label>
+            <Label htmlFor="date_of_birth" className="flex w-full max-w-56">Date of Birth</Label>
             <Input
               id="date_of_birth"
               type="date"

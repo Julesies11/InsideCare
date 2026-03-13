@@ -13,8 +13,7 @@ import { StaffMobileNav } from './components/staff-mobile-nav';
 export function Demo1Layout() {
   const isMobile = useIsMobile();
   const { pathname } = useLocation();
-  const { getCurrentItem } = useMenu(pathname);
-  const item = getCurrentItem(MENU_SIDEBAR);
+  useMenu(pathname);
   const { settings, setOption } = useSettings();
   const { isStaff, isAdmin } = useAuth();
   const showStaffMobileNav = isMobile && isStaff && !isAdmin;

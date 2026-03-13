@@ -9,7 +9,6 @@ interface RosterCalendarHeaderProps {
   onViewModeChange: (mode: ViewMode) => void;
   
   // Date navigation
-  currentDate: Date;
   onNavigate: (direction: 'prev' | 'next') => void;
   getPeriodLabel: () => string;
   
@@ -40,7 +39,6 @@ interface RosterCalendarHeaderProps {
 export function RosterCalendarHeader({
   viewMode,
   onViewModeChange,
-  currentDate,
   onNavigate,
   getPeriodLabel,
   showStaffFilter = false,

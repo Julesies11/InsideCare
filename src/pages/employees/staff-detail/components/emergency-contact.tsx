@@ -3,7 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 interface EmergencyContactProps {
-  formData: any;
+  formData: Record<string, any>;
   onFormChange: (field: string, value: any) => void;
   canEdit: boolean;
 }

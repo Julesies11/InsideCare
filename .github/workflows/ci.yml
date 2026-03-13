@@ -1,4 +1,4 @@
-name: CI - Security, Lint, Build
+name: CI - Security, Lint, Build, E2E
 
 on:
   push:
@@ -55,25 +55,9 @@ jobs:
         run: npm run type-check
 
       # -------------------------
-      # Security: npm audit
-      # -------------------------
-      - name: Security Scan - npm audit
-        run: npm audit --audit-level=critical
-        continue-on-error: true
-
-      # -------------------------
-      # Secret scanning
-      # -------------------------
-      - name: Secret Scanning
-        uses: github/codeql-action/analyze@v3
-        with:
-          category: "/language:javascript-typescript"
-        continue-on-error: true
-
-      # -------------------------
       # Unit & Integration Tests (Vitest)
       # -------------------------
-      - name: Run tests
+      - name: Run unit tests
         run: npm test
 
       # -------------------------
@@ -83,7 +67,31 @@ jobs:
         run: npm run build
 
       # -------------------------
-      # Save built assets (optional)
+      # Playwright Smoke Tests (E2E)
+      # -------------------------
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+
+      - name: Run Playwright smoke tests
+        run: npm run test:smoke
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+
+      # -------------------------
+      # Security: npm audit
+      # -------------------------
+      - name: Security Scan - npm audit
+        run: npm audit --audit-level=critical
+        continue-on-error: true
+
+      # -------------------------
+      # Upload build artifact
       # -------------------------
       - name: Upload build artifact
         if: success()

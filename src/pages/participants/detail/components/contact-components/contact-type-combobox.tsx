@@ -24,7 +24,6 @@ interface ContactTypeComboboxProps {
   onChange: (value: string) => void;
   canEdit: boolean;
   onManageList: () => void;
-  onRefresh?: () => void;
 }
 
 export function ContactTypeCombobox({
@@ -32,7 +31,6 @@ export function ContactTypeCombobox({
   onChange,
   canEdit,
   onManageList,
-  onRefresh,
 }: ContactTypeComboboxProps) {
   const [open, setOpen] = useState(false);
   const { data: contactTypes = [], isLoading: loading } = useContactTypesMaster();

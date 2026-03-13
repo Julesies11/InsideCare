@@ -37,7 +37,7 @@ export function useChecklistMaster() {
 
       return (data || []).map(checklist => ({
         ...checklist,
-        items: (checklist.items || []).sort((a: any, b: any) => a.sort_order - b.sort_order)
+        items: ((checklist.items as ChecklistMasterItem[]) || []).sort((a, b) => a.sort_order - b.sort_order)
       })) as ChecklistMaster[];
     },
     staleTime: 1000 * 60 * 60, // 1 hour
@@ -47,6 +47,6 @@ export function useChecklistMaster() {
     ...query,
     masterChecklists: query.data || [],
     loading: query.isLoading,
-    error: query.error ? (query.error as any).message : null,
+    error: query.error ? (query.error as Error).message : null,
   };
 }

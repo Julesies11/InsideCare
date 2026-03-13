@@ -65,7 +65,7 @@ export function useHouses(
     houses: query.data?.data || [],
     count: query.data?.count || 0,
     loading: query.isLoading,
-    error: query.error ? (query.error as any).message : null,
+    error: query.error ? (query.error as Error).message : null,
   };
 }
 

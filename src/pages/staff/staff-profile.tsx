@@ -18,7 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { PersonalDetails } from '@/pages/employees/staff-detail/components/personal-details';
 import { EmergencyContact } from '@/pages/employees/staff-detail/components/emergency-contact';
-import { useStaff, useStaffMember, useUpdateStaff, StaffTraining } from '@/hooks/use-staff';
+import { useStaffMember, useUpdateStaff, StaffTraining } from '@/hooks/use-staff';
 
 type TrainingStatus = 'Current' | 'Expiring Soon' | 'Expired';
 
@@ -64,7 +64,7 @@ export function StaffProfile() {
   const [saving, setSaving] = useState(false);
 
   // Form state — mirrors StaffDetailContent pattern
-  const [formData, setFormData] = useState<any>({
+  const [formData, setFormData] = useState<Record<string, any>>({
     name: '',
     email: '',
     phone: '',
@@ -75,7 +75,7 @@ export function StaffProfile() {
     emergency_contact_name: '',
     emergency_contact_phone: '',
   });
-  const [originalData, setOriginalData] = useState<any>(null);
+  const [originalData, setOriginalData] = useState<Record<string, any> | null>(null);
 
   // Training
   const [training, setTraining] = useState<StaffTraining[]>([]);
@@ -97,8 +97,8 @@ export function StaffProfile() {
         emergency_contact_name: staffData.emergency_contact_name ?? '',
         emergency_contact_phone: staffData.emergency_contact_phone ?? '',
       };
-      setOriginalPhotoUrl((staffData as any).photo_url ?? null);
-      if ((staffData as any).photo_url) setPhotoPreview((staffData as any).photo_url);
+      setOriginalPhotoUrl(staffData.photo_url ?? null);
+      if (staffData.photo_url) setPhotoPreview(staffData.photo_url);
       setFormData(d);
       setOriginalData(d);
     }
@@ -129,7 +129,7 @@ export function StaffProfile() {
   const handleFormChange = (field: string, value: any) => {
     if (field === 'photo_file') { setPhotoFile(value); return; }
     if (field === 'photo_url_preview') { setPhotoPreview(value); return; }
-    setFormData((prev: any) => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSave = async () => {
@@ -162,7 +162,7 @@ export function StaffProfile() {
       }
 
       // Step 2: Save form fields via useStaff hook (mirrors StaffDetailContent)
-      const toNull = (v: any) => (v === '' ? null : v);
+      const toNull = (v: string | null) => (v === '' ? null : v);
       const updates: Record<string, any> = {
         name: formData.name,
         email: formData.email,
@@ -175,12 +175,13 @@ export function StaffProfile() {
         emergency_contact_phone: toNull(formData.emergency_contact_phone),
       };
 
-      await updateStaff({ id: staffId, updates: updates as any });
+      await updateStaff({ id: staffId, updates: updates });
 
       setOriginalData({ ...formData });
       toast.success('Profile updated successfully');
-    } catch (err: any) {
-      toast.error('Failed to save profile', { description: err.message });
+    } catch (err) {
+      const error = err as Error;
+      toast.error('Failed to save profile', { description: error.message });
     } finally {
       setSaving(false);
     }

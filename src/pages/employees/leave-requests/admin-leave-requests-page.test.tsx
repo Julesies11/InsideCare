@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import { AdminLeaveRequestsPage } from './admin-leave-requests-page';
 import { renderWithProviders } from '@/test/test-utils';

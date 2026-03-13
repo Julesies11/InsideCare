@@ -120,7 +120,7 @@ export function useRosterData() {
       // Shared mapping logic
       return (data || []).map(shift => ({
         ...shift,
-        participants: shift.participants?.map((sp: any) => ({
+        participants: (shift.participants as any[])?.map((sp) => ({
           id: sp.participant.id,
           name: sp.participant.name,
         })) || [],
@@ -132,7 +132,7 @@ export function useRosterData() {
     }
   }, []);
 
-  const createShift = useCallback(async (shiftData: any) => {
+  const createShift = useCallback(async (shiftData: Partial<StaffShift>) => {
     const { data, error } = await supabase
       .from('staff_shifts')
       .insert([shiftData])
@@ -147,7 +147,7 @@ export function useRosterData() {
     return data;
   }, []);
 
-  const updateShift = useCallback(async (shiftId: string, updates: any) => {
+  const updateShift = useCallback(async (shiftId: string, updates: Partial<StaffShift>) => {
     const { error } = await supabase
       .from('staff_shifts')
       .update(updates)

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -13,27 +13,34 @@ import { useParticipantContacts } from '@/hooks/use-participant-contacts';
 import { useContactTypesMaster } from '@/hooks/use-contact-types-master';
 import { ContactTypeCombobox } from './contact-components/contact-type-combobox';
 import { ContactTypeMasterDialog } from './contact-components/contact-type-master-dialog';
-import { ParticipantPendingChanges } from '@/models/participant-pending-changes';
+import { cn } from '@/lib/utils';
+
+interface ContactPendingChanges {
+  toAdd: any[];
+  toUpdate: any[];
+  toDelete: string[];
+}
 
 interface ContactsProps {
   participantId?: string;
   canAdd: boolean;
   canDelete: boolean;
-  pendingChanges?: ParticipantPendingChanges;
-  onPendingChangesChange?: (changes: ParticipantPendingChanges) => void;
+  canEdit: boolean;
+  pendingChanges?: ContactPendingChanges;
+  onPendingChangesChange?: (changes: ContactPendingChanges) => void;
 }
 
 export function Contacts({ 
   participantId, 
   canAdd, 
   canDelete,
+  canEdit,
   pendingChanges,
   onPendingChangesChange 
 }: ContactsProps) {
   const [showDialog, setShowDialog] = useState(false);
   const [showContactTypeMasterDialog, setShowContactTypeMasterDialog] = useState(false);
-  const [editingContact, setEditingContact] = useState<any>(null);
-  const [refreshContactTypeKey, setRefreshContactTypeKey] = useState(0);
+  const [editingContact, setEditingContact] = useState<{ id?: string; tempId?: string; contact_name: string; contact_type_id?: string; phone?: string; email?: string; address?: string; notes?: string; is_active: boolean } | null>(null);
   const [formData, setFormData] = useState({
     contact_name: '',
     contact_type_id: '',
@@ -76,136 +83,96 @@ export function Contacts({
   };
 
   const handleSave = () => {
-    if (!formData.contact_name.trim()) {
-      return;
-    }
     if (!pendingChanges || !onPendingChangesChange) return;
 
     if (editingContact) {
-      // Update existing contact
       if (editingContact.tempId) {
-        // Update pending add
         const newPending = {
           ...pendingChanges,
-          contacts: {
-            ...pendingChanges.contacts,
-            toAdd: pendingChanges.contacts.toAdd.map(cont =>
-              cont.tempId === editingContact.tempId ? { ...cont, ...formData } : cont
-            ),
-          },
+          toAdd: pendingChanges.toAdd.map(c => 
+            c.tempId === editingContact.tempId ? { ...c, ...formData } : c
+          ),
         };
         onPendingChangesChange(newPending);
       } else {
-        // Add to pending updates
         const newPending = {
           ...pendingChanges,
-          contacts: {
-            ...pendingChanges.contacts,
-            toUpdate: [
-              ...pendingChanges.contacts.toUpdate.filter(c => c.id !== editingContact.id),
-              { id: editingContact.id, ...formData },
-            ],
-          },
+          toUpdate: [
+            ...pendingChanges.toUpdate.filter(c => c.id !== editingContact.id),
+            { id: editingContact.id, ...formData },
+          ],
         };
         onPendingChangesChange(newPending);
       }
     } else {
-      // Add new contact
       const tempId = `temp-${Date.now()}-${Math.random()}`;
       const newPending = {
         ...pendingChanges,
-        contacts: {
-          ...pendingChanges.contacts,
-          toAdd: [
-            ...pendingChanges.contacts.toAdd,
-            { tempId, ...formData },
-          ],
-        },
+        toAdd: [
+          ...pendingChanges.toAdd,
+          { tempId, ...formData },
+        ],
       };
       onPendingChangesChange(newPending);
     }
+
     setShowDialog(false);
   };
 
   const handleDelete = (contact: any) => {
     if (!pendingChanges || !onPendingChangesChange) return;
 
-    // If it's a pending add, just remove it from the pending adds list
     if (contact.tempId) {
-      handleCancelPendingAdd(contact.tempId);
+      const newPending = {
+        ...pendingChanges,
+        toAdd: pendingChanges.toAdd.filter(c => c.tempId !== contact.tempId),
+      };
+      onPendingChangesChange(newPending);
       return;
     }
 
-    // Otherwise, mark existing contact for deletion
     if (confirm('Mark this contact for deletion? It will be removed when you click Save Changes.')) {
       const newPending = {
         ...pendingChanges,
-        contacts: {
-          ...pendingChanges.contacts,
-          toDelete: [...pendingChanges.contacts.toDelete, contact.id],
-        },
+        toDelete: [...pendingChanges.toDelete, contact.id],
       };
       onPendingChangesChange(newPending);
     }
   };
 
-  const handleCancelPendingAdd = (tempId: string) => {
-    if (!pendingChanges || !onPendingChangesChange) return;
-
-    const newPending = {
-      ...pendingChanges,
-      contacts: {
-        ...pendingChanges.contacts,
-        toAdd: pendingChanges.contacts.toAdd.filter(cont => cont.tempId !== tempId),
-      },
-    };
-    onPendingChangesChange(newPending);
-  };
-
   const handleCancelPendingUpdate = (id: string) => {
     if (!pendingChanges || !onPendingChangesChange) return;
-
     const newPending = {
       ...pendingChanges,
-      contacts: {
-        ...pendingChanges.contacts,
-        toUpdate: pendingChanges.contacts.toUpdate.filter(cont => cont.id !== id),
-      },
+      toUpdate: pendingChanges.toUpdate.filter(c => c.id !== id),
     };
     onPendingChangesChange(newPending);
   };
 
   const handleCancelPendingDelete = (id: string) => {
     if (!pendingChanges || !onPendingChangesChange) return;
-
     const newPending = {
       ...pendingChanges,
-      contacts: {
-        ...pendingChanges.contacts,
-        toDelete: pendingChanges.contacts.toDelete.filter(contId => contId !== id),
-      },
+      toDelete: pendingChanges.toDelete.filter(contactId => contactId !== id),
     };
     onPendingChangesChange(newPending);
   };
 
-  // Helper function to get contact type name
-  const getContactTypeName = (contact: any) => {
-    // If contact has contact_type object (from database join), use it
-    if (contact.contact_type?.name) {
-      return contact.contact_type.name;
-    }
-    // Otherwise, look up by contact_type_id (for pending contacts)
-    if (contact.contact_type_id) {
-      const contactType = contactTypes.find(ct => ct.id === contact.contact_type_id);
-      return contactType?.name || 'N/A';
-    }
-    return 'N/A';
+  const getContactTypeName = (id: string) => {
+    return contactTypes.find(t => t.id === id)?.name || 'Unknown Type';
   };
 
-  // Combine existing contacts with pending adds, filter out pending deletes
-  const visibleContacts = [
-    ...contacts.filter(cont => !pendingChanges?.contacts.toDelete.includes(cont.id)),
-    ...(pendingChanges?.contacts.toAdd || []),
+  // Combine actual and pending contacts
+  const visibleContacts = contacts
+    .filter(c => !pendingChanges?.toDelete.includes(c.id))
+    .map(c => {
+      const update = pendingChanges?.toUpdate.find(u => u.id === c.id);
+      return update ? { ...c, ...update, isPendingUpdate: true } : c;
+    });
+
+  const allContacts = [
+    ...visibleContacts,
+    ...(pendingChanges?.toAdd.map(c => ({ ...c, isPendingAdd: true })) || []),
   ];
 
   return (
@@ -221,114 +188,74 @@ export function Contacts({
         <CardContent>
           {loading ? (
             <div className="text-center py-8 text-muted-foreground">Loading contacts...</div>
-          ) : visibleContacts.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">No contacts recorded</div>
+          ) : allContacts.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">No contacts recorded yet</div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
+                  <TableHead>Contact Name</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Phone</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {visibleContacts.map((contact) => {
-                  const isPendingAdd = 'tempId' in contact;
-                  const isPendingUpdate = pendingChanges?.contacts.toUpdate.some(c => c.id === contact.id);
-                  const isPendingDelete = pendingChanges?.contacts.toDelete.includes(contact.id);
-                  
+                {allContacts.map((contact) => {
+                  const isPendingDelete = !contact.isPendingAdd && pendingChanges?.toDelete.includes(contact.id);
+                  const isPendingUpdate = contact.isPendingUpdate;
+                  const isPendingAdd = contact.isPendingAdd;
+
                   return (
                     <TableRow 
-                      key={contact.id || contact.tempId} 
-                      className={
-                        isPendingAdd ? 'bg-primary/5' : 
-                        isPendingDelete ? 'opacity-50 bg-destructive/5' : 
-                        isPendingUpdate ? 'bg-warning/5' : ''
-                      }
+                      key={contact.id || contact.tempId}
+                      className={cn(
+                        isPendingAdd && 'bg-primary/5',
+                        isPendingUpdate && 'bg-warning/5',
+                        isPendingDelete && 'opacity-50 grayscale bg-red-50'
+                      )}
                     >
-                      <TableCell>
+                      <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
                           <Users className="size-4 text-muted-foreground" />
-                          <span className={`font-medium ${isPendingDelete ? 'line-through' : ''}`}>
+                          <span className={cn(isPendingDelete && 'line-through')}>
                             {contact.contact_name}
                           </span>
-                          {isPendingAdd && (
-                            <span className="text-xs text-primary flex items-center gap-1">
-                              <Clock className="size-3" />
-                              Pending add
-                            </span>
-                          )}
-                          {isPendingUpdate && (
-                            <span className="text-xs text-warning flex items-center gap-1">
-                              <Clock className="size-3" />
-                              Pending update
-                            </span>
-                          )}
-                          {isPendingDelete && (
-                            <span className="text-xs text-destructive flex items-center gap-1">
-                              <Clock className="size-3" />
-                              Pending deletion
-                            </span>
-                          )}
+                          {isPendingAdd && <Badge variant="outline" className="text-[10px] uppercase">New</Badge>}
+                          {isPendingUpdate && <Badge variant="outline" className="text-[10px] uppercase border-warning text-warning">Pending Update</Badge>}
+                          {isPendingDelete && <Badge variant="destructive" className="text-[10px] uppercase">Pending Delete</Badge>}
                         </div>
                       </TableCell>
-                      <TableCell>{getContactTypeName(contact)}</TableCell>
-                      <TableCell>{contact.phone || 'N/A'}</TableCell>
-                      <TableCell className="max-w-xs truncate">
-                        {contact.email || 'N/A'}
+                      <TableCell className={cn(isPendingDelete && 'line-through')}>
+                        {getContactTypeName(contact.contact_type_id)}
                       </TableCell>
-                      <TableCell>
-                        <Badge variant={contact.is_active ? 'success' : 'secondary'}>
-                          {contact.is_active ? 'Active' : 'Inactive'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
+                      <TableCell className={cn(isPendingDelete && 'line-through')}>{contact.phone}</TableCell>
+                      <TableCell className={cn(isPendingDelete && 'line-through')}>{contact.email}</TableCell>
+                      <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
-                          {!isPendingDelete && (
+                          {!isPendingDelete && !isPendingAdd && !isPendingUpdate && (
                             <>
-                              <Button variant="ghost" size="sm" onClick={() => handleEdit(contact)}>
+                              <Button variant="ghost" size="sm" onClick={() => handleEdit(contact)} disabled={!canAdd}>
                                 <Edit className="size-4" />
                               </Button>
-                              {canDelete && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="text-destructive"
-                                  onClick={() => handleDelete(contact)}
-                                >
-                                  <Trash2 className="size-4" />
-                                </Button>
-                              )}
+                              <Button variant="ghost" size="sm" className="text-destructive" onClick={() => handleDelete(contact)} disabled={!canDelete}>
+                                <Trash2 className="size-4" />
+                              </Button>
                             </>
                           )}
                           {isPendingAdd && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleCancelPendingAdd(contact.tempId!)}
-                            >
+                            <Button variant="ghost" size="sm" onClick={() => handleDelete(contact)}>
                               Remove
                             </Button>
                           )}
                           {isPendingUpdate && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleCancelPendingUpdate(contact.id)}
-                            >
+                            <Button variant="ghost" size="sm" onClick={() => handleCancelPendingUpdate(contact.id)}>
                               Undo
                             </Button>
                           )}
                           {isPendingDelete && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleCancelPendingDelete(contact.id)}
-                            >
+                            <Button variant="ghost" size="sm" onClick={() => handleCancelPendingDelete(contact.id)}>
                               Undo
                             </Button>
                           )}
@@ -344,17 +271,15 @@ export function Contacts({
       </Card>
 
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>{editingContact ? 'Edit Contact' : 'Add Contact'}</DialogTitle>
             <DialogDescription>
-              {editingContact
-                ? 'Update contact details'
-                : 'Add a new contact for this participant'}
+              {editingContact ? 'Update contact details' : 'Add a new contact for this participant'}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
               <Label htmlFor="contact_name">Contact Name *</Label>
               <Input
                 id="contact_name"
@@ -362,82 +287,73 @@ export function Contacts({
                 onChange={(e) => setFormData({ ...formData, contact_name: e.target.value })}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="contact_type">Contact Type</Label>
-              <ContactTypeCombobox
-                value={formData.contact_type_id}
-                onChange={(value) => setFormData({ ...formData, contact_type_id: value })}
-                canEdit={true}
-                onManageList={() => setShowContactTypeMasterDialog(true)}
-                onRefresh={refreshContactTypeKey > 0 ? () => {} : undefined}
-              />
+            <div className="grid gap-2">
+              <Label htmlFor="contact_type">Contact Type *</Label>
+              <div className="flex gap-2">
+                <ContactTypeCombobox
+                  value={formData.contact_type_id}
+                  onChange={(val) => setFormData({ ...formData, contact_type_id: val })}
+                  canEdit={canEdit}
+                  onManageList={() => setShowContactTypeMasterDialog(true)}
+                />
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
+              <div className="grid gap-2">
                 <Label htmlFor="phone">Phone</Label>
                 <Input
                   id="phone"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  placeholder="e.g., (555) 123-4567"
                 />
               </div>
-              <div className="space-y-2">
+              <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="e.g., contact@example.com"
                 />
               </div>
             </div>
-            <div className="space-y-2">
+            <div className="grid gap-2">
               <Label htmlFor="address">Address</Label>
-              <Textarea
+              <Input
                 id="address"
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                rows={2}
-                placeholder="Physical address"
               />
             </div>
-            <div className="space-y-2">
+            <div className="grid gap-2">
               <Label htmlFor="notes">Notes</Label>
               <Textarea
                 id="notes"
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                rows={3}
-                placeholder="Additional notes"
               />
             </div>
             <div className="flex items-center gap-2">
               <Switch
-                id="is_active_contact"
+                id="contact_active"
                 checked={formData.is_active}
                 onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
               />
-              <Label htmlFor="is_active_contact">Active</Label>
+              <Label htmlFor="contact_active">Active Contact</Label>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDialog(false)}>
-              Cancel
+            <Button variant="outline" onClick={() => setShowDialog(false)}>Cancel</Button>
+            <Button onClick={handleSave} disabled={!formData.contact_name || !formData.contact_type_id}>
+              {editingContact ? 'Update Queue' : 'Add to Queue'}
             </Button>
-            <Button variant="primary" onClick={handleSave}>Save</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       <ContactTypeMasterDialog
         open={showContactTypeMasterDialog}
-        onClose={() => {
-          setShowContactTypeMasterDialog(false);
-          setRefreshContactTypeKey(prev => prev + 1);
-        }}
-        onUpdate={() => {}}
+        onOpenChange={setShowContactTypeMasterDialog}
       />
     </>
   );

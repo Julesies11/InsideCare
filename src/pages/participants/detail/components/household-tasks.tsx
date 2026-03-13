@@ -4,7 +4,7 @@ import { Textarea } from '@/components/ui/textarea';
 
 interface HouseholdTasksProps {
   canEdit: boolean;
-  formData: any;
+  formData: Record<string, any>;
   onFormChange: (field: string, value: any) => void;
 }
 

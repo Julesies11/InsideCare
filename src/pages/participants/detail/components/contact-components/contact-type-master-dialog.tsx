@@ -48,8 +48,8 @@ export function ContactTypeMasterDialog({
     );
 
     filtered.sort((a, b) => {
-      let aVal: any = a[sortField];
-      let bVal: any = b[sortField];
+      let aVal: string | number = a[sortField];
+      let bVal: string | number = b[sortField];
 
       if (sortField === 'is_active') {
         aVal = a.is_active ? 1 : 0;
@@ -83,8 +83,9 @@ export function ContactTypeMasterDialog({
       await updateContactType({ id: contactType.id, updates: { is_active: newStatus }, oldContactType: contactType });
       toast.success(`Contact type ${newStatus ? 'activated' : 'deactivated'} successfully`);
       onUpdate();
-    } catch (error: any) {
-      toast.error(`Failed to ${newStatus ? 'activate' : 'deactivate'} contact type: ` + error.message);
+    } catch (error) {
+      const err = error as Error;
+      toast.error(`Failed to ${newStatus ? 'activate' : 'deactivate'} contact type: ` + err.message);
     }
   };
 
@@ -104,8 +105,9 @@ export function ContactTypeMasterDialog({
       }
       setShowAddDialog(false);
       onUpdate();
-    } catch (error: any) {
-      toast.error(`Failed to ${editingContactType ? 'update' : 'add'} contact type: ` + error.message);
+    } catch (error) {
+      const err = error as Error;
+      toast.error(`Failed to ${editingContactType ? 'update' : 'add'} contact type: ` + err.message);
     }
   };
 

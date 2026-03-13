@@ -1,5 +1,5 @@
 import { Fragment, useState, useRef, useCallback, useEffect } from 'react';
-import { useNavigate } from 'react-router';
+import { useParams } from 'react-router';
 import { Container } from '@/components/common/container';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
@@ -11,17 +11,16 @@ import {
   ToolbarHeading,
   ToolbarPageTitle,
 } from '@/partials/common/toolbar';
-import { useSettings } from '@/providers/settings-provider';
 import { ParticipantPendingChanges, emptyParticipantPendingChanges } from '@/models/participant-pending-changes';
 import { useDirtyTracker } from '@/hooks/useDirtyTracker';
-import { useParticipants, useUpdateParticipant } from '@/hooks/use-participants';
+import { useUpdateParticipant, useParticipant } from '@/hooks/use-participants';
 
 export function ParticipantDetailPage() {
-  const navigate = useNavigate();
-  const { settings } = useSettings();
+  const { id } = useParams<{ id: string }>();
+  const { data: participant } = useParticipant(id);
   const { mutateAsync: updateParticipant } = useUpdateParticipant();
-  const [formData, setFormData] = useState<any>(null);
-  const [originalData, setOriginalData] = useState<any>(null);
+  const [formData, setFormData] = useState<Record<string, any> | null>(null);
+  const [originalData, setOriginalData] = useState<Record<string, any> | null>(null);
   const [pendingChanges, setPendingChanges] = useState<ParticipantPendingChanges>(emptyParticipantPendingChanges);
   const [saving, setSaving] = useState(false);
   const [photoDirty, setPhotoDirty] = useState(false);
@@ -53,7 +52,6 @@ export function ParticipantDetailPage() {
       const confirmLeave = window.confirm('You have unsaved changes. Are you sure you want to leave?');
       if (!confirmLeave) return;
     }
-    // Use browser back to preserve URL state from previous page
     window.history.back();
   }, [isDirty]);
 
@@ -83,28 +81,27 @@ export function ParticipantDetailPage() {
               </div>
             </ToolbarHeading>
             <ToolbarActions>
-              <Button 
-                onClick={handleSave} 
-                disabled={!isDirty || saving}
-                variant={isDirty ? 'primary' : 'secondary'}
-              >
+              <Button onClick={handleSave} disabled={!isDirty || saving} size="sm">
                 {saving ? 'Saving...' : 'Save Changes'}
               </Button>
             </ToolbarActions>
           </Toolbar>
         </Container>
       </div>
-      <Container>
-        <ParticipantDetailContent 
-          onFormDataChange={setFormData}
-          onOriginalDataChange={setOriginalData}
-          onSavingChange={setSaving}
-          saveHandlerRef={saveHandlerRef}
-          pendingChanges={pendingChanges}
-          onPendingChangesChange={setPendingChanges}
-          updateParticipant={updateParticipant}
-          onPhotoDirtyChange={setPhotoDirty}
-        />
+
+      <Container className="py-6">
+        {id && (
+          <ParticipantDetailContent
+            onFormDataChange={setFormData}
+            onOriginalDataChange={setOriginalData}
+            onSavingChange={setSaving}
+            saveHandlerRef={saveHandlerRef}
+            pendingChanges={pendingChanges}
+            onPendingChangesChange={setPendingChanges}
+            updateParticipant={updateParticipant}
+            onPhotoDirtyChange={setPhotoDirty}
+          />
+        )}
       </Container>
     </Fragment>
   );

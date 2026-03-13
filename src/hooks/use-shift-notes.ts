@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { useCallback } from 'react';
 
 export interface ShiftNote {
   id: string;
@@ -94,7 +95,7 @@ export function useShiftNotes() {
   const { mutateAsync: updateShiftNote } = useUpdateShiftNote();
   const { mutateAsync: deleteShiftNote } = useDeleteShiftNote();
 
-  const fetchShiftNotesByShiftId = async (shiftId: string) => {
+  const fetchShiftNotesByShiftId = useCallback(async (shiftId: string) => {
     const { data, error } = await supabase
       .from('shift_notes')
       .select(SHIFT_NOTE_COLUMNS)
@@ -103,7 +104,7 @@ export function useShiftNotes() {
 
     if (error) throw error;
     return data as ShiftNote[];
-  };
+  }, []);
 
   return {
     ...query,
@@ -189,6 +190,9 @@ export function useUpdateShiftNote() {
 
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: ShiftNoteUpdateData }) => {
+      if (!id || id === 'undefined') {
+        throw new Error('Shift note ID is required for update');
+      }
       const { data, error } = await supabase
         .from('shift_notes')
         .update({ ...updates, updated_at: new Date().toISOString() })

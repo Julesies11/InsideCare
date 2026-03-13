@@ -38,13 +38,19 @@ export function useChecklistHistory(houseId?: string) {
 
       if (error) throw error;
 
-      return (data || []).map(sub => ({
-        ...sub,
-        checklist_name: (sub.house_checklists as any)?.name || 'Deleted Checklist',
-        staff_name: (sub.staff as any)?.name || 'Unknown Staff',
-        item_count: (sub as any).house_checklist_submission_items?.length || 0,
-        completed_item_count: (sub as any).house_checklist_submission_items?.filter((i: any) => i.is_completed).length || 0
-      })) as ChecklistSubmission[];
+      return (data || []).map(sub => {
+        const checklists = sub.house_checklists as unknown as { name: string } | null;
+        const staff = sub.staff as unknown as { name: string } | null;
+        const items = (sub.house_checklist_submission_items as unknown as Array<{ is_completed: boolean }>) || [];
+        
+        return {
+          ...sub,
+          checklist_name: checklists?.name || 'Deleted Checklist',
+          staff_name: staff?.name || 'Unknown Staff',
+          item_count: items.length || 0,
+          completed_item_count: items.filter((i) => i.is_completed).length || 0
+        };
+      }) as ChecklistSubmission[];
     },
     enabled: !!houseId,
     staleTime: 1000 * 60 * 5,
@@ -54,7 +60,7 @@ export function useChecklistHistory(houseId?: string) {
     ...query,
     submissions: query.data || [],
     loading: query.isLoading,
-    error: query.error ? (query.error as any).message : null,
+    error: query.error ? (query.error as Error).message : null,
     refresh: query.refetch,
   };
 }

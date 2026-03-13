@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -26,7 +26,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
 
 const stickySidebarClasses: Record<string, string> = {
   'demo1-layout': 'top-[calc(var(--header-height)+1rem)]',
@@ -42,11 +41,10 @@ const stickySidebarClasses: Record<string, string> = {
 };
 
 interface HouseDetailContentProps {
-  onFormDataChange?: (data: any) => void;
-  onOriginalDataChange?: (data: any) => void;
+  onFormDataChange?: (data: Record<string, any>) => void;
+  onOriginalDataChange?: (data: Record<string, any>) => void;
   onSavingChange?: (saving: boolean) => void;
   saveHandlerRef?: React.MutableRefObject<(() => Promise<void>) | null>;
-  updateHouse?: (params: { id: string; updates: Partial<House> }) => Promise<any>;
   pendingChanges?: HousePendingChanges;
   onPendingChangesChange?: (changes: HousePendingChanges) => void;
 }
@@ -56,7 +54,6 @@ export function HouseDetailContent({
   onOriginalDataChange,
   onSavingChange,
   saveHandlerRef,
-  updateHouse,
   pendingChanges,
   onPendingChangesChange,
 }: HouseDetailContentProps) {
@@ -76,7 +73,7 @@ export function HouseDetailContent({
   const parentRef = useRef<HTMLElement | Document>(document);
   const scrollPosition = useScrollPosition({ targetRef: parentRef });
 
-  const [formData, setFormData] = useState<any>({
+  const [formData, setFormData] = useState<Record<string, any>>({
     name: '',
     address: '',
     phone: '',
@@ -128,16 +125,17 @@ export function HouseDetailContent({
         setFormData(houseData);
         if (onOriginalDataChange) onOriginalDataChange(houseData);
         if (onFormDataChange) onFormDataChange(houseData);
-      } catch (error: any) {
+      } catch (error) {
+        const err = error as Error;
         console.error('Error fetching house:', error);
-        toast.error('Failed to load house details', { description: error.message });
+        toast.error('Failed to load house details', { description: err.message });
       } finally {
         setLoading(false);
       }
     };
 
     fetchHouse();
-  }, [id]);
+  }, [id, onFormDataChange, onOriginalDataChange]);
 
   const [refreshKeys, setRefreshKeys] = useState({
     staff: 0,
@@ -155,7 +153,7 @@ export function HouseDetailContent({
     if (onFormDataChange) onFormDataChange(updatedData);
   };
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     if (!house || !id) return;
 
     try {
@@ -792,18 +790,18 @@ export function HouseDetailContent({
       if (onPendingChangesChange) {
         onPendingChangesChange(emptyHousePendingChanges);
       }
-    } catch (error: any) {
+    } catch (error) {
       handleSupabaseError(error, 'Error saving house details');
     } finally {
       if (onSavingChange) onSavingChange(false);
     }
-  };
+  }, [house, id, formData, user, pendingChanges, onFormDataChange, onOriginalDataChange, onPendingChangesChange, onSavingChange]);
 
   useEffect(() => {
     if (saveHandlerRef) {
       saveHandlerRef.current = handleSave;
     }
-  }, [handleSave]);
+  }, [handleSave, saveHandlerRef]);
 
   if (loading) {
     return (
@@ -970,7 +968,6 @@ export function HouseDetailContent({
 
             <HouseChecklistHistory
               houseId={id}
-              canAdd={canAdd}
             />
           </div>
 
@@ -986,7 +983,6 @@ export function HouseDetailContent({
           <HouseResources
             key={`resources-${refreshKeys.resources}`}
             houseId={id}
-            houseName={formData?.name}
             canAdd={canAdd}
             canDelete={canDelete}
             pendingChanges={pendingChanges}

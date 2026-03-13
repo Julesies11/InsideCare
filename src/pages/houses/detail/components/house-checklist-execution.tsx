@@ -36,8 +36,27 @@ interface QueuedAttachment {
 
 interface HouseChecklistExecutionProps {
   checklist: Checklist;
-  onComplete: (results: any) => void;
-  onSave: (results: any) => void;
+  onComplete: (results: {
+    checklist_id: string;
+    items: Array<{
+      item_id: string;
+      is_completed: boolean;
+      note: string;
+    }>;
+    queuedAttachments: Record<string, QueuedAttachment[]>;
+    toDeleteAttachments: string[];
+    completed_at?: string;
+  }) => void;
+  onSave: (results: {
+    checklist_id: string;
+    items: Array<{
+      item_id: string;
+      is_completed: boolean;
+      note: string;
+    }>;
+    queuedAttachments: Record<string, QueuedAttachment[]>;
+    toDeleteAttachments: string[];
+  }) => void;
   onCancel: () => void;
   isReadOnly?: boolean;
   initialData?: {
@@ -147,7 +166,7 @@ export function HouseChecklistExecution({
       // Reset local changes state
       setQueuedAttachments({});
       setToDeleteAttachments([]);
-    } catch (error) {
+    } catch {
       // toast shown by parent
     } finally {
       setIsSubmitting(false);
@@ -167,7 +186,7 @@ export function HouseChecklistExecution({
         ...getResults(),
         completed_at: new Date().toISOString(),
       });
-    } catch (error) {
+    } catch {
       // toast shown by parent
     } finally {
       setIsSubmitting(false);
