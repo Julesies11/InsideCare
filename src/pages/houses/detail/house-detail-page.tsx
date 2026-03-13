@@ -88,7 +88,7 @@ export function HouseDetailPage() {
           </Toolbar>
         </Container>
       </div>
-      <Container>
+      <Container className="py-6">
         <HouseDetailContent 
           onFormDataChange={setFormData}
           onOriginalDataChange={setOriginalData}

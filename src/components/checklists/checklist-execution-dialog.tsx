@@ -99,7 +99,7 @@ export function ChecklistExecutionDialog({
     } else {
       setActiveSubmission(null);
     }
-  }, [open, checklist.id, houseId, fetchDraft]);
+  }, [open, checklist, houseId, fetchDraft]);
 
   const persistExecution = async (results: {
     checklist_id: string;

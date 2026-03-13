@@ -326,7 +326,7 @@ export function ServiceProviders({
               <Label htmlFor="provider_name">Provider Name *</Label>
               <Input
                 id="provider_name"
-                value={formData.provider_name}
+                value={formData.provider_name || ''}
                 onChange={(e) => setFormData({ ...formData, provider_name: e.target.value })}
               />
             </div>
@@ -334,7 +334,7 @@ export function ServiceProviders({
               <Label htmlFor="provider_type">Type</Label>
               <Input
                 id="provider_type"
-                value={formData.provider_type}
+                value={formData.provider_type || ''}
                 onChange={(e) => setFormData({ ...formData, provider_type: e.target.value })}
                 placeholder="e.g., GP, Physiotherapist"
               />
@@ -343,7 +343,7 @@ export function ServiceProviders({
               <Label htmlFor="provider_description">Description</Label>
               <Textarea
                 id="provider_description"
-                value={formData.provider_description}
+                value={formData.provider_description || ''}
                 onChange={(e) =>
                   setFormData({ ...formData, provider_description: e.target.value })
                 }

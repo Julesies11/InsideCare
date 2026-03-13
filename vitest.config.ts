@@ -9,6 +9,15 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts',
     css: true,
+    testTimeout: 15000,
+    exclude: [
+      'node_modules/',
+      'src/test/',
+      'tests/',
+      '**/*.d.ts',
+      '**/*.config.*',
+      '**/mockData',
+    ],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

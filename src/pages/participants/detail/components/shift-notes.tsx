@@ -279,7 +279,7 @@ export function ShiftNotes({
                 <Input
                   id="date"
                   type="date"
-                  value={formData.shift_date}
+                  value={formData.shift_date || ''}
                   onChange={(e) => setFormData({ ...formData, shift_date: e.target.value })}
                 />
               </div>
@@ -288,7 +288,7 @@ export function ShiftNotes({
                 <Input
                   id="time"
                   type="time"
-                  value={formData.shift_time}
+                  value={formData.shift_time || ''}
                   onChange={(e) => setFormData({ ...formData, shift_time: e.target.value })}
                 />
               </div>
@@ -315,7 +315,7 @@ export function ShiftNotes({
                 id="note"
                 rows={10}
                 placeholder="Detailed observations and actions during shift..."
-                value={formData.full_note}
+                value={formData.full_note || ''}
                 onChange={(e) => setFormData({ ...formData, full_note: e.target.value })}
               />
             </div>

@@ -767,7 +767,7 @@ export function StaffDetailContent({
     } finally {
       onSavingChange?.(false);
     }
-  }, [staffId, staffMember, userName, updateStaffFn, onSavingChange, onOriginalDataChange, onPendingChangesChange, onSaveSuccess, clearAllErrors, scrollToField, setFieldError, setUser, user, photoFile, photoPreview, originalPhotoUrl, queryClient]);
+  }, [staffId, staffMember, userName, updateStaffFn, onSavingChange, onOriginalDataChange, onFormDataChange, onPendingChangesChange, onSaveSuccess, clearAllErrors, scrollToField, setFieldError, setUser, user, photoFile, photoPreview, originalPhotoUrl, queryClient]);
 
   useEffect(() => {
     if (saveHandlerRef) {

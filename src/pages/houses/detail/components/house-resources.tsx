@@ -256,7 +256,7 @@ export function HouseResources({
               </div>
             </div>
           ) : (
-            <Table>
+            <div className="overflow-x-auto"><Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Title</TableHead>
@@ -421,7 +421,7 @@ export function HouseResources({
                   );
                 })}
               </TableBody>
-            </Table>
+            </Table></div>
           )}
         </CardContent>
       </Card>

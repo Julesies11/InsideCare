@@ -89,7 +89,7 @@ describe('ShiftNotes', () => {
   });
 
   it('opens edit dialog when Edit is clicked', async () => {
-    renderWithProviders(<ShiftNotes />);
+    const { user } = renderWithProviders(<ShiftNotes />);
 
     await waitFor(() => {
       const editButtons = screen.getAllByText(/Edit/i);
@@ -97,7 +97,7 @@ describe('ShiftNotes', () => {
     });
 
     const editButton = screen.getAllByRole('button', { name: /Edit/i })[0];
-    fireEvent.click(editButton);
+    await user.click(editButton);
 
     await waitFor(() => {
         expect(screen.getByText(/Edit Shift Note/i)).toBeInTheDocument();

@@ -110,7 +110,15 @@ export interface StaffSort {
   desc: boolean;
 }
 
-const STAFF_COLUMNS = `
+const STAFF_LIST_COLUMNS = `
+  id, name, email, phone, status, branch_id, role_id, photo_url, 
+  created_at, updated_at,
+  department_info:departments(id, name),
+  employment_type_info:employment_types_master(id, name),
+  role:roles!staff_role_id_fkey(id, name, description)
+`;
+
+const STAFF_DETAIL_COLUMNS = `
   id, name, email, phone, date_of_birth, address, hobbies, allergies, 
   emergency_contact_name, emergency_contact_phone, department_id, 
   employment_type_id, manager_id, hire_date, separation_date, 
@@ -123,11 +131,7 @@ const STAFF_COLUMNS = `
   comprehensive_car_insurance_expiry, photo_url,
   department_info:departments(id, name),
   employment_type_info:employment_types_master(id, name),
-  role:roles!staff_role_id_fkey(id, name, description)
-`;
-
-const STAFF_DETAIL_COLUMNS = `
-  ${STAFF_COLUMNS},
+  role:roles!staff_role_id_fkey(id, name, description),
   manager_info:staff!manager_id(id, name)
 `;
 
@@ -142,7 +146,7 @@ export function useStaff(
     queryFn: async () => {
       let query = supabase
         .from('staff')
-        .select(STAFF_COLUMNS, { count: 'exact' });
+        .select(STAFF_LIST_COLUMNS, { count: 'exact' });
 
       if (filters.search) {
         query = query.or(`name.ilike.%${filters.search}%,email.ilike.%${filters.search}%`);
@@ -194,7 +198,7 @@ export function useStaff(
         .from('staff')
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq('id', id)
-        .select(STAFF_COLUMNS)
+        .select(STAFF_DETAIL_COLUMNS)
         .single();
       return { data, error: error ? error.message : null };
     },
@@ -278,7 +282,7 @@ export function useCreateStaff() {
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         }])
-        .select(STAFF_COLUMNS)
+        .select(STAFF_DETAIL_COLUMNS)
         .single();
 
       if (error) throw error;
@@ -299,7 +303,7 @@ export function useUpdateStaff() {
         .from('staff')
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq('id', id)
-        .select(STAFF_COLUMNS)
+        .select(STAFF_DETAIL_COLUMNS)
         .single();
 
       if (error) throw error;

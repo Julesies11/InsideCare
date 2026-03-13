@@ -283,7 +283,7 @@ export function Contacts({
               <Label htmlFor="contact_name">Contact Name *</Label>
               <Input
                 id="contact_name"
-                value={formData.contact_name}
+                value={formData.contact_name || ''}
                 onChange={(e) => setFormData({ ...formData, contact_name: e.target.value })}
               />
             </div>
@@ -291,7 +291,7 @@ export function Contacts({
               <Label htmlFor="contact_type">Contact Type *</Label>
               <div className="flex gap-2">
                 <ContactTypeCombobox
-                  value={formData.contact_type_id}
+                  value={formData.contact_type_id || ''}
                   onChange={(val) => setFormData({ ...formData, contact_type_id: val })}
                   canEdit={canEdit}
                   onManageList={() => setShowContactTypeMasterDialog(true)}
@@ -303,7 +303,7 @@ export function Contacts({
                 <Label htmlFor="phone">Phone</Label>
                 <Input
                   id="phone"
-                  value={formData.phone}
+                  value={formData.phone || ''}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 />
               </div>
@@ -312,7 +312,7 @@ export function Contacts({
                 <Input
                   id="email"
                   type="email"
-                  value={formData.email}
+                  value={formData.email || ''}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 />
               </div>
@@ -321,7 +321,7 @@ export function Contacts({
               <Label htmlFor="address">Address</Label>
               <Input
                 id="address"
-                value={formData.address}
+                value={formData.address || ''}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
               />
             </div>
@@ -329,7 +329,7 @@ export function Contacts({
               <Label htmlFor="notes">Notes</Label>
               <Textarea
                 id="notes"
-                value={formData.notes}
+                value={formData.notes || ''}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               />
             </div>

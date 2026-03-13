@@ -246,8 +246,12 @@ export function ParticipantDetailContent({
       setOriginalData(initialData);
       latestFormData.current = initialData;
       latestOriginalData.current = initialData;
-      onOriginalDataChange?.(initialData);
-      onFormDataChange?.(initialData);
+
+      // Wrap in requestAnimationFrame to avoid "Cannot update a component while rendering a different component"
+      requestAnimationFrame(() => {
+        onOriginalDataChange?.(initialData);
+        onFormDataChange?.(initialData);
+      });
       
       setOriginalPhotoUrl(participantData.photo_url ?? null);
       if (participantData.photo_url) setPhotoPreview(participantData.photo_url);

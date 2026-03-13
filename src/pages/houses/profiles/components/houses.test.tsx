@@ -43,7 +43,9 @@ describe('Houses Component', () => {
 
     // Verify filter options are visible
     // We look for the label in the popover
-    expect(screen.getByRole('dialog').querySelector('label[for="status-active"]')).toHaveTextContent('Active');
+    await waitFor(() => {
+      expect(screen.getByRole('dialog').querySelector('label[for="status-active"]')).toHaveTextContent('Active');
+    });
   });
 
   it('navigates to detail page when edit is clicked', async () => {

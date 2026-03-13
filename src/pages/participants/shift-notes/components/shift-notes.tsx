@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import {
   ColumnDef,
   getCoreRowModel,
@@ -120,7 +120,7 @@ const ShiftNotes = () => {
     setIsEditDialogOpen(true);
   };
 
-  const ActionsCell = ({ row }: { row: Row<ShiftNote> }) => {
+  const ActionsCell = useCallback(({ row }: { row: Row<ShiftNote> }) => {
     return (
       <div className="flex items-center gap-2">
         <Button
@@ -134,7 +134,7 @@ const ShiftNotes = () => {
         </Button>
       </div>
     );
-  };
+  }, []);
 
   const columns = useMemo<ColumnDef<ShiftNote>[]>(
     () => [

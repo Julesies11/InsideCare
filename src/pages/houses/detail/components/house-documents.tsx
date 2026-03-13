@@ -143,7 +143,7 @@ export function HouseDocuments({
           ) : visibleDocuments.length === 0 && (!pendingChanges?.documents.toAdd.length) ? (
             <div className="text-center py-8 text-muted-foreground">No documents uploaded yet</div>
           ) : (
-            <Table>
+            <div className="overflow-x-auto"><Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Document Name</TableHead>
@@ -258,7 +258,7 @@ export function HouseDocuments({
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
+            </Table></div>
           )}
         </CardContent>
       </Card>

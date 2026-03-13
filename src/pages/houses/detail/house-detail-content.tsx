@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router';
+import { useQueryClient } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useScrollPosition } from '@/hooks/use-scroll-position';
@@ -58,6 +59,7 @@ export function HouseDetailContent({
   onPendingChangesChange,
 }: HouseDetailContentProps) {
   const { id } = useParams<{ id: string }>();
+  const queryClient = useQueryClient();
   const isMobile = useIsMobile();
   const { user } = useAuth();
   const { settings } = useSettings();
@@ -68,6 +70,18 @@ export function HouseDetailContent({
   const canEdit = true;
   const canAdd = true;
   const canDelete = true;
+
+  // Use refs to avoid stale closures in handleSave
+  const latestPendingChanges = useRef<HousePendingChanges>(pendingChanges || emptyHousePendingChanges);
+  const latestFormData = useRef<Record<string, any>>({});
+  const latestOriginalData = useRef<Record<string, any>>({});
+
+  // Sync refs when state/props change
+  useEffect(() => {
+    if (pendingChanges) {
+      latestPendingChanges.current = pendingChanges;
+    }
+  }, [pendingChanges]);
 
   // Initialize ref for parentEl
   const parentRef = useRef<HTMLElement | Document>(document);
@@ -83,14 +97,6 @@ export function HouseDetailContent({
     status: 'active',
     notes: '',
   });
-
-  // Effect to update parentRef after the component mounts
-  useEffect(() => {
-    const scrollableElement = document.getElementById('scrollable_content');
-    if (scrollableElement) {
-      parentRef.current = scrollableElement;
-    }
-  }, []);
 
   // Handle scroll position and sidebar stickiness
   useEffect(() => {
@@ -122,9 +128,16 @@ export function HouseDetailContent({
           status: data.status || 'active',
           notes: data.notes || '',
         };
+        
         setFormData(houseData);
-        if (onOriginalDataChange) onOriginalDataChange(houseData);
-        if (onFormDataChange) onFormDataChange(houseData);
+        latestFormData.current = houseData;
+        latestOriginalData.current = houseData;
+        
+        // Wrap in requestAnimationFrame to avoid "Cannot update a component while rendering a different component"
+        requestAnimationFrame(() => {
+          if (onOriginalDataChange) onOriginalDataChange(houseData);
+          if (onFormDataChange) onFormDataChange(houseData);
+        });
       } catch (error) {
         const err = error as Error;
         console.error('Error fetching house:', error);
@@ -150,10 +163,13 @@ export function HouseDetailContent({
   const handleFieldChange = (field: string, value: any) => {
     const updatedData = { ...formData, [field]: value };
     setFormData(updatedData);
+    latestFormData.current = updatedData;
     if (onFormDataChange) onFormDataChange(updatedData);
   };
 
   const handleSave = useCallback(async () => {
+    const currentPending = latestPendingChanges.current;
+    const currentFormData = latestFormData.current;
     if (!house || !id) return;
 
     try {
@@ -162,7 +178,7 @@ export function HouseDetailContent({
       // Step 1: Save basic house details
       const { data: houseData, error: houseError } = await supabase
         .from('houses')
-        .update(formData)
+        .update(currentFormData)
         .eq('id', id)
         .select()
         .single();
@@ -187,8 +203,8 @@ export function HouseDetailContent({
       }
 
       // Step 2: Process pending staff assignments
-      if (pendingChanges?.staff.toAdd.length) {
-        for (const staffAssignment of pendingChanges.staff.toAdd) {
+      if (currentPending.staff.toAdd.length) {
+        for (const staffAssignment of currentPending.staff.toAdd) {
           const { error } = await supabase
             .from('house_staff_assignments')
             .insert({
@@ -206,8 +222,8 @@ export function HouseDetailContent({
         }
       }
 
-      if (pendingChanges?.staff.toUpdate.length) {
-        for (const staffAssignment of pendingChanges.staff.toUpdate) {
+      if (currentPending.staff.toUpdate.length) {
+        for (const staffAssignment of currentPending.staff.toUpdate) {
           const { error } = await supabase
             .from('house_staff_assignments')
             .update({
@@ -225,8 +241,8 @@ export function HouseDetailContent({
         }
       }
 
-      if (pendingChanges?.staff.toDelete.length) {
-        for (const staffAssignmentId of pendingChanges.staff.toDelete) {
+      if (currentPending.staff.toDelete.length) {
+        for (const staffAssignmentId of currentPending.staff.toDelete) {
           const { error } = await supabase
             .from('house_staff_assignments')
             .delete()
@@ -239,8 +255,8 @@ export function HouseDetailContent({
       }
 
       // Step 3: Process pending calendar events
-      if (pendingChanges?.calendarEvents.toAdd.length) {
-        for (const event of pendingChanges.calendarEvents.toAdd) {
+      if (currentPending.calendarEvents.toAdd.length) {
+        for (const event of currentPending.calendarEvents.toAdd) {
           const { error } = await supabase
             .from('house_calendar_events')
             .insert({
@@ -265,8 +281,8 @@ export function HouseDetailContent({
         }
       }
 
-      if (pendingChanges?.calendarEvents.toUpdate.length) {
-        for (const event of pendingChanges.calendarEvents.toUpdate) {
+      if (currentPending.calendarEvents.toUpdate.length) {
+        for (const event of currentPending.calendarEvents.toUpdate) {
           const { error } = await supabase
             .from('house_calendar_events')
             .update({
@@ -290,8 +306,8 @@ export function HouseDetailContent({
         }
       }
 
-      if (pendingChanges?.calendarEvents.toDelete.length) {
-        for (const eventId of pendingChanges.calendarEvents.toDelete) {
+      if (currentPending.calendarEvents.toDelete.length) {
+        for (const eventId of currentPending.calendarEvents.toDelete) {
           const { error } = await supabase
             .from('house_calendar_events')
             .delete()
@@ -304,8 +320,8 @@ export function HouseDetailContent({
       }
 
       // Step 4: Process pending documents
-      if (pendingChanges?.documents.toAdd.length) {
-        for (const doc of pendingChanges.documents.toAdd) {
+      if (currentPending.documents.toAdd.length) {
+        for (const doc of currentPending.documents.toAdd) {
           // Upload to storage
           const fileExt = doc.file.name.split('.').pop();
           const fileName = `${id}-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
@@ -337,8 +353,8 @@ export function HouseDetailContent({
         }
       }
 
-      if (pendingChanges?.documents.toDelete.length) {
-        for (const doc of pendingChanges.documents.toDelete) {
+      if (currentPending.documents.toDelete.length) {
+        for (const doc of currentPending.documents.toDelete) {
           // Delete from storage
           const { error: storageError } = await supabase.storage
             .from('house-documents')
@@ -361,8 +377,8 @@ export function HouseDetailContent({
       }
 
       // Step 5: Process pending checklists
-      if (pendingChanges?.checklists.toAdd.length) {
-        for (const checklist of pendingChanges.checklists.toAdd) {
+      if (currentPending.checklists.toAdd.length) {
+        for (const checklist of currentPending.checklists.toAdd) {
           // Insert checklist
           const { data: checklistData, error: checklistError } = await supabase
             .from('house_checklists')
@@ -403,8 +419,8 @@ export function HouseDetailContent({
         }
       }
 
-      if (pendingChanges?.checklists.toUpdate.length) {
-        for (const checklist of pendingChanges.checklists.toUpdate) {
+      if (currentPending.checklists.toUpdate.length) {
+        for (const checklist of currentPending.checklists.toUpdate) {
           if (!checklist.id) continue;
           const { error } = await supabase
             .from('house_checklists')
@@ -421,8 +437,8 @@ export function HouseDetailContent({
         }
       }
 
-      if (pendingChanges?.checklists.toDelete.length) {
-        for (const checklistId of pendingChanges.checklists.toDelete) {
+      if (currentPending.checklists.toDelete.length) {
+        for (const checklistId of currentPending.checklists.toDelete) {
           if (!checklistId) continue;
           const { error } = await supabase
             .from('house_checklists')
@@ -436,8 +452,8 @@ export function HouseDetailContent({
       }
 
       // Step 6: Process pending checklist items
-      if (pendingChanges?.checklists.checklistItems.toAdd.length) {
-        for (const item of pendingChanges.checklists.checklistItems.toAdd) {
+      if (currentPending.checklists.checklistItems.toAdd.length) {
+        for (const item of currentPending.checklists.checklistItems.toAdd) {
           const { error } = await supabase
             .from('house_checklist_items')
             .insert({
@@ -456,8 +472,8 @@ export function HouseDetailContent({
         }
       }
 
-      if (pendingChanges?.checklists.checklistItems.toUpdate.length) {
-        for (const item of pendingChanges.checklists.checklistItems.toUpdate) {
+      if (currentPending.checklists.checklistItems.toUpdate.length) {
+        for (const item of currentPending.checklists.checklistItems.toUpdate) {
           const { error } = await supabase
             .from('house_checklist_items')
             .update({
@@ -476,8 +492,8 @@ export function HouseDetailContent({
         }
       }
 
-      if (pendingChanges?.checklists.checklistItems.toDelete.length) {
-        for (const itemId of pendingChanges.checklists.checklistItems.toDelete) {
+      if (currentPending.checklists.checklistItems.toDelete.length) {
+        for (const itemId of currentPending.checklists.checklistItems.toDelete) {
           const { error } = await supabase
             .from('house_checklist_items')
             .delete()
@@ -490,9 +506,9 @@ export function HouseDetailContent({
       }
 
       // Step 7: Process pending forms
-      if (pendingChanges?.forms.toAdd.length) {
-        for (const form of pendingChanges.forms.toAdd) {
-          const { data: formData, error: formError } = await supabase
+      if (currentPending.forms.toAdd.length) {
+        for (const form of currentPending.forms.toAdd) {
+          const { data: currentFormData, error: formError } = await supabase
             .from('house_forms')
             .insert({
               house_id: id,
@@ -512,13 +528,13 @@ export function HouseDetailContent({
           }
 
           // If there are form assignments for this form, add them
-          const assignments = pendingChanges?.formAssignments.toAdd.filter(
+          const assignments = currentPending.formAssignments.toAdd.filter(
             assignment => assignment.form_id === form.tempId
           );
 
           if (assignments.length > 0) {
             const assignmentsToInsert = assignments.map(assignment => ({
-              form_id: formData.id,
+              form_id: currentFormData.id,
               participant_id: assignment.participant_id || null,
               staff_id: assignment.staff_id || null,
               due_date: assignment.due_date || null,
@@ -538,8 +554,8 @@ export function HouseDetailContent({
         }
       }
 
-      if (pendingChanges?.forms.toUpdate.length) {
-        for (const form of pendingChanges.forms.toUpdate) {
+      if (currentPending.forms.toUpdate.length) {
+        for (const form of currentPending.forms.toUpdate) {
           const { error } = await supabase
             .from('house_forms')
             .update({
@@ -558,8 +574,8 @@ export function HouseDetailContent({
         }
       }
 
-      if (pendingChanges?.forms.toDelete.length) {
-        for (const formId of pendingChanges.forms.toDelete) {
+      if (currentPending.forms.toDelete.length) {
+        for (const formId of currentPending.forms.toDelete) {
           const { error } = await supabase
             .from('house_forms')
             .delete()
@@ -572,10 +588,10 @@ export function HouseDetailContent({
       }
 
       // Step 8: Process pending form assignments
-      if (pendingChanges?.formAssignments.toAdd.length) {
+      if (currentPending.formAssignments.toAdd.length) {
         // Filter out assignments that were already processed with form creation
-        const remainingAssignments = pendingChanges.formAssignments.toAdd.filter(
-          assignment => !pendingChanges.forms.toAdd.some(form => form.tempId === assignment.form_id)
+        const remainingAssignments = currentPending.formAssignments.toAdd.filter(
+          assignment => !currentPending.forms.toAdd.some(form => form.tempId === assignment.form_id)
         );
 
         for (const assignment of remainingAssignments) {
@@ -597,8 +613,8 @@ export function HouseDetailContent({
         }
       }
 
-      if (pendingChanges?.formAssignments.toUpdate.length) {
-        for (const assignment of pendingChanges.formAssignments.toUpdate) {
+      if (currentPending.formAssignments.toUpdate.length) {
+        for (const assignment of currentPending.formAssignments.toUpdate) {
           const { error } = await supabase
             .from('house_form_assignments')
             .update({
@@ -616,8 +632,8 @@ export function HouseDetailContent({
         }
       }
 
-      if (pendingChanges?.formAssignments.toDelete.length) {
-        for (const assignmentId of pendingChanges.formAssignments.toDelete) {
+      if (currentPending.formAssignments.toDelete.length) {
+        for (const assignmentId of currentPending.formAssignments.toDelete) {
           const { error } = await supabase
             .from('house_form_assignments')
             .delete()
@@ -630,8 +646,8 @@ export function HouseDetailContent({
       }
 
       // Step 9: Process pending resources
-      if (pendingChanges?.resources.toAdd.length) {
-        for (const resource of pendingChanges.resources.toAdd) {
+      if (currentPending.resources.toAdd.length) {
+        for (const resource of currentPending.resources.toAdd) {
           const { error } = await supabase
             .from('house_resources')
             .insert({
@@ -656,8 +672,8 @@ export function HouseDetailContent({
         }
       }
 
-      if (pendingChanges?.resources.toUpdate.length) {
-        for (const resource of pendingChanges.resources.toUpdate) {
+      if (currentPending.resources.toUpdate.length) {
+        for (const resource of currentPending.resources.toUpdate) {
           const { error } = await supabase
             .from('house_resources')
             .update({
@@ -681,8 +697,8 @@ export function HouseDetailContent({
         }
       }
 
-      if (pendingChanges?.resources.toDelete.length) {
-        for (const resourceId of pendingChanges.resources.toDelete) {
+      if (currentPending.resources.toDelete.length) {
+        for (const resourceId of currentPending.resources.toDelete) {
           const { error } = await supabase
             .from('house_resources')
             .delete()
@@ -695,8 +711,8 @@ export function HouseDetailContent({
       }
 
       // Step 10: Process pending participants
-      if (pendingChanges?.participants.toAdd.length) {
-        for (const participant of pendingChanges.participants.toAdd) {
+      if (currentPending.participants.toAdd.length) {
+        for (const participant of currentPending.participants.toAdd) {
           const { error } = await supabase
             .from('participants')
             .update({
@@ -712,8 +728,8 @@ export function HouseDetailContent({
         }
       }
 
-      if (pendingChanges?.participants.toUpdate.length) {
-        for (const participant of pendingChanges.participants.toUpdate) {
+      if (currentPending.participants.toUpdate.length) {
+        for (const participant of currentPending.participants.toUpdate) {
           const { error } = await supabase
             .from('participants')
             .update({
@@ -729,8 +745,8 @@ export function HouseDetailContent({
         }
       }
 
-      if (pendingChanges?.participants.toDelete.length) {
-        for (const participantId of pendingChanges.participants.toDelete) {
+      if (currentPending.participants.toDelete.length) {
+        for (const participantId of currentPending.participants.toDelete) {
           const { error } = await supabase
             .from('participants')
             .update({
@@ -775,27 +791,39 @@ export function HouseDetailContent({
       if (onOriginalDataChange) onOriginalDataChange(updatedHouseData);
       if (onFormDataChange) onFormDataChange(updatedHouseData);
       
-      // Trigger refresh of child components that had changes
-      setRefreshKeys(prev => ({
-        staff: (pendingChanges?.staff.toAdd.length || 0) > 0 || (pendingChanges?.staff.toUpdate.length || 0) > 0 || (pendingChanges?.staff.toDelete.length || 0) > 0 ? prev.staff + 1 : prev.staff,
-        calendarEvents: (pendingChanges?.calendarEvents.toAdd.length || 0) > 0 || (pendingChanges?.calendarEvents.toUpdate.length || 0) > 0 || (pendingChanges?.calendarEvents.toDelete.length || 0) > 0 ? prev.calendarEvents + 1 : prev.calendarEvents,
-        documents: (pendingChanges?.documents.toAdd.length || 0) > 0 || (pendingChanges?.documents.toDelete.length || 0) > 0 ? prev.documents + 1 : prev.documents,
-        checklists: (pendingChanges?.checklists.toAdd.length || 0) > 0 || (pendingChanges?.checklists.toUpdate.length || 0) > 0 || (pendingChanges?.checklists.toDelete.length || 0) > 0 || (pendingChanges?.checklists.checklistItems.toAdd.length || 0) > 0 || (pendingChanges?.checklists.checklistItems.toUpdate.length || 0) > 0 || (pendingChanges?.checklists.checklistItems.toDelete.length || 0) > 0 ? prev.checklists + 1 : prev.checklists,
-        forms: (pendingChanges?.forms.toAdd.length || 0) > 0 || (pendingChanges?.forms.toUpdate.length || 0) > 0 || (pendingChanges?.forms.toDelete.length || 0) > 0 || (pendingChanges?.formAssignments.toAdd.length || 0) > 0 || (pendingChanges?.formAssignments.toUpdate.length || 0) > 0 || (pendingChanges?.formAssignments.toDelete.length || 0) > 0 ? prev.forms + 1 : prev.forms,
-        resources: (pendingChanges?.resources.toAdd.length || 0) > 0 || (pendingChanges?.resources.toUpdate.length || 0) > 0 || (pendingChanges?.resources.toDelete.length || 0) > 0 ? prev.resources + 1 : prev.resources,
-        participants: (pendingChanges?.participants.toAdd.length || 0) > 0 || (pendingChanges?.participants.toUpdate.length || 0) > 0 || (pendingChanges?.participants.toDelete.length || 0) > 0 ? prev.participants + 1 : prev.participants,
-      }));
+      // Invalidate queries to ensure child components fetch fresh data
+      queryClient.invalidateQueries({ queryKey: ['house-staff-assignments', { houseId: id }] });
+      queryClient.invalidateQueries({ queryKey: ['house-participants', { houseId: id }] });
+      queryClient.invalidateQueries({ queryKey: ['house-calendar-events', { houseId: id }] });
+      queryClient.invalidateQueries({ queryKey: ['house-checklists', id] });
+      queryClient.invalidateQueries({ queryKey: ['house-forms', id] });
+      queryClient.invalidateQueries({ queryKey: ['house-resources', id] });
 
-      // Clear pending changes after successful save
-      if (onPendingChangesChange) {
-        onPendingChangesChange(emptyHousePendingChanges);
-      }
+      // Trigger refresh of child components that had changes
+      // Small delay to allow Supabase to complete any replication
+      setTimeout(() => {
+        setRefreshKeys(prev => ({
+          staff: (currentPending.staff.toAdd.length || 0) > 0 || (currentPending.staff.toUpdate.length || 0) > 0 || (currentPending.staff.toDelete.length || 0) > 0 ? prev.staff + 1 : prev.staff,
+          calendarEvents: (currentPending.calendarEvents.toAdd.length || 0) > 0 || (currentPending.calendarEvents.toUpdate.length || 0) > 0 || (currentPending.calendarEvents.toDelete.length || 0) > 0 ? prev.calendarEvents + 1 : prev.calendarEvents,
+          documents: (currentPending.documents.toAdd.length || 0) > 0 || (currentPending.documents.toDelete.length || 0) > 0 ? prev.documents + 1 : prev.documents,
+          checklists: (currentPending.checklists.toAdd.length || 0) > 0 || (currentPending.checklists.toUpdate.length || 0) > 0 || (currentPending.checklists.toDelete.length || 0) > 0 || (currentPending.checklists.checklistItems.toAdd.length || 0) > 0 || (currentPending.checklists.checklistItems.toUpdate.length || 0) > 0 || (currentPending.checklists.checklistItems.toDelete.length || 0) > 0 ? prev.checklists + 1 : prev.checklists,
+          forms: (currentPending.forms.toAdd.length || 0) > 0 || (currentPending.forms.toUpdate.length || 0) > 0 || (currentPending.forms.toDelete.length || 0) > 0 || (currentPending.formAssignments.toAdd.length || 0) > 0 || (currentPending.formAssignments.toUpdate.length || 0) > 0 || (currentPending.formAssignments.toDelete.length || 0) > 0 ? prev.forms + 1 : prev.forms,
+          resources: (currentPending.resources.toAdd.length || 0) > 0 || (currentPending.resources.toUpdate.length || 0) > 0 || (currentPending.resources.toDelete.length || 0) > 0 ? prev.resources + 1 : prev.resources,
+          participants: (currentPending.participants.toAdd.length || 0) > 0 || (currentPending.participants.toUpdate.length || 0) > 0 || (currentPending.participants.toDelete.length || 0) > 0 ? prev.participants + 1 : prev.participants,
+        }));
+
+        // Clear pending changes after successful save
+        if (onPendingChangesChange) {
+          onPendingChangesChange(emptyHousePendingChanges);
+          latestPendingChanges.current = emptyHousePendingChanges;
+        }
+      }, 500);
     } catch (error) {
       handleSupabaseError(error, 'Error saving house details');
     } finally {
       if (onSavingChange) onSavingChange(false);
     }
-  }, [house, id, formData, user, pendingChanges, onFormDataChange, onOriginalDataChange, onPendingChangesChange, onSavingChange]);
+  }, [house, id, user, onFormDataChange, onOriginalDataChange, onPendingChangesChange, onSavingChange, queryClient]);
 
   useEffect(() => {
     if (saveHandlerRef) {
@@ -819,7 +847,10 @@ export function HouseDetailContent({
     );
   }
 
-  const stickyClass = stickySidebarClasses[settings.layout] || 'top-[3rem]';
+  const stickyClass = settings?.layout
+    ? stickySidebarClasses[`${settings?.layout}-layout`] ||
+      'top-[calc(var(--header-height)+1rem)]'
+    : 'top-[calc(var(--header-height)+1rem)]';
 
   return (
     <div className="flex grow gap-5 lg:gap-7.5">
@@ -837,15 +868,15 @@ export function HouseDetailContent({
           </div>
         </div>
       )}
-      <div className="flex flex-col items-stretch grow gap-5 lg:gap-7.5" id="scrollable_content">
-        <Card id="house_details">
+      <div className="flex flex-col items-stretch grow gap-5 lg:gap-7.5">
+        <Card id="house_details" className="pb-2.5">
             <CardHeader>
               <CardTitle>House Details</CardTitle>
             </CardHeader>
-            <CardContent className="grid gap-5">
-              <div className="grid gap-5 lg:grid-cols-2">
-                <div className="flex flex-col gap-2.5">
-                  <Label htmlFor="name" className="form-label required">House Name</Label>
+            <CardContent className="grid gap-2.5">
+              <div className="w-full">
+                <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+                  <Label htmlFor="name" className="flex w-full max-w-56">House Name *</Label>
                   <Input
                     id="name"
                     value={formData.name}
@@ -854,8 +885,11 @@ export function HouseDetailContent({
                     disabled={!canEdit}
                   />
                 </div>
-                <div className="flex flex-col gap-2.5">
-                  <Label htmlFor="status" className="form-label required">Status</Label>
+              </div>
+
+              <div className="w-full">
+                <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+                  <Label htmlFor="status" className="flex w-full max-w-56">Status *</Label>
                   <Select
                     value={formData.status}
                     onValueChange={(value) => handleFieldChange('status', value)}
@@ -872,58 +906,73 @@ export function HouseDetailContent({
                   </Select>
                 </div>
               </div>
-              <div className="flex flex-col gap-2.5">
-                <Label htmlFor="address" className="form-label">Address</Label>
-                <Textarea
-                  id="address"
-                  value={formData.address}
-                  onChange={(e) => handleFieldChange('address', e.target.value)}
-                  placeholder="Enter full address"
-                  rows={3}
-                  disabled={!canEdit}
-                />
+
+              <div className="w-full">
+                <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+                  <Label htmlFor="address" className="flex w-full max-w-56">Address</Label>
+                  <Textarea
+                    id="address"
+                    value={formData.address}
+                    onChange={(e) => handleFieldChange('address', e.target.value)}
+                    placeholder="Enter full address"
+                    rows={3}
+                    disabled={!canEdit}
+                  />
+                </div>
               </div>
-              <div className="flex flex-col gap-2.5">
-                <Label htmlFor="phone" className="form-label">Phone Number</Label>
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => handleFieldChange('phone', e.target.value)}
-                  placeholder="Enter phone number"
-                  disabled={!canEdit}
-                />
+
+              <div className="w-full">
+                <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+                  <Label htmlFor="phone" className="flex w-full max-w-56">Phone Number</Label>
+                  <Input
+                    id="phone"
+                    value={formData.phone}
+                    onChange={(e) => handleFieldChange('phone', e.target.value)}
+                    placeholder="Enter phone number"
+                    disabled={!canEdit}
+                  />
+                </div>
               </div>
-              <div className="flex flex-col gap-2.5">
-                <Label htmlFor="capacity" className="form-label">Maximum Capacity</Label>
-                <Input
-                  id="capacity"
-                  type="number"
-                  value={formData.capacity}
-                  onChange={(e) => handleFieldChange('capacity', parseInt(e.target.value) || 0)}
-                  placeholder="Enter maximum capacity"
-                  disabled={!canEdit}
-                />
+
+              <div className="w-full">
+                <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+                  <Label htmlFor="capacity" className="flex w-full max-w-56">Maximum Capacity</Label>
+                  <Input
+                    id="capacity"
+                    type="number"
+                    value={formData.capacity}
+                    onChange={(e) => handleFieldChange('capacity', parseInt(e.target.value) || 0)}
+                    placeholder="Enter maximum capacity"
+                    disabled={!canEdit}
+                  />
+                </div>
               </div>
-              <div className="flex flex-col gap-2.5">
-                <Label htmlFor="house_manager" className="form-label">House Manager</Label>
-                <Input
-                  id="house_manager"
-                  value={formData.house_manager}
-                  onChange={(e) => handleFieldChange('house_manager', e.target.value)}
-                  placeholder="Enter house manager name"
-                  disabled={!canEdit}
-                />
+
+              <div className="w-full">
+                <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+                  <Label htmlFor="house_manager" className="flex w-full max-w-56">House Manager</Label>
+                  <Input
+                    id="house_manager"
+                    value={formData.house_manager}
+                    onChange={(e) => handleFieldChange('house_manager', e.target.value)}
+                    placeholder="Enter house manager name"
+                    disabled={!canEdit}
+                  />
+                </div>
               </div>
-              <div className="flex flex-col gap-2.5">
-                <Label htmlFor="notes" className="form-label">Additional Notes</Label>
-                <Textarea
-                  id="notes"
-                  value={formData.notes}
-                  onChange={(e) => handleFieldChange('notes', e.target.value)}
-                  placeholder="Enter any additional notes about this house"
-                  rows={4}
-                  disabled={!canEdit}
-                />
+
+              <div className="w-full">
+                <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+                  <Label htmlFor="notes" className="flex w-full max-w-56">Additional Notes</Label>
+                  <Textarea
+                    id="notes"
+                    value={formData.notes}
+                    onChange={(e) => handleFieldChange('notes', e.target.value)}
+                    placeholder="Enter any additional notes about this house"
+                    rows={4}
+                    disabled={!canEdit}
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>

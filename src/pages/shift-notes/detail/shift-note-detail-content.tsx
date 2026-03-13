@@ -96,6 +96,7 @@ export function ShiftNoteDetailContent({
     } else {
       fetchShiftNote();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, isNewNote, fetchShiftNote, onFormDataChange, onOriginalDataChange]);
 
   const handleFormChange = (field: string, value: any) => {

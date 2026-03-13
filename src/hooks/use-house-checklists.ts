@@ -19,7 +19,7 @@ export interface HouseChecklist {
   name: string;
   frequency: string;
   description?: string;
-  is_global: boolean;
+  master_id?: string;
   created_at: string;
   updated_at: string;
   items?: HouseChecklistItem[];
@@ -31,8 +31,8 @@ export interface HouseChecklist {
 }
 
 const HOUSE_CHECKLIST_COLUMNS = `
-  id, house_id, name, frequency, description, is_global, created_at, updated_at,
-  items:house_checklist_items (id, checklist_id, title, instructions, priority, is_required, sort_order, created_at, updated_at)
+  id, house_id, name, frequency, description, master_id, created_at, updated_at,
+  house_checklist_items (id, checklist_id, title, instructions, priority, is_required, sort_order, created_at, updated_at)
 `;
 
 export function useHouseChecklists(houseId?: string) {
@@ -62,7 +62,7 @@ export function useHouseChecklists(houseId?: string) {
       // Combine data
       return (checklists || []).map(cl => ({
         ...cl,
-        items: ((cl.items as HouseChecklistItem[]) || []).sort((a, b) => a.sort_order - b.sort_order),
+        items: ((cl.house_checklist_items as HouseChecklistItem[]) || []).sort((a, b) => a.sort_order - b.sort_order),
         latest_submission: submissions?.find(s => s.checklist_id === cl.id)
       })) as HouseChecklist[];
     },

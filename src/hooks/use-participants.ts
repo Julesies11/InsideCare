@@ -13,7 +13,15 @@ export interface ParticipantsSort {
   desc: boolean;
 }
 
-const PARTICIPANT_COLUMNS = `
+const PARTICIPANT_LIST_COLUMNS = `
+  id, name, photo_url, email, house_phone, personal_mobile, address, date_of_birth, move_in_date, 
+  ndis_number, house_id, status, support_level, created_at, updated_at,
+  houses!house_id (
+    name
+  )
+`;
+
+const PARTICIPANT_DETAIL_COLUMNS = `
   id, name, photo_url, email, house_phone, personal_mobile, address, date_of_birth, move_in_date, 
   ndis_number, house_id, status, support_level, support_coordinator, primary_diagnosis, 
   secondary_diagnosis, allergies, routine, hygiene_support, current_goals, current_medications, 
@@ -42,7 +50,7 @@ export function useParticipants(
     queryFn: async () => {
       let query = supabase
         .from('participants')
-        .select(PARTICIPANT_COLUMNS, { count: 'exact' });
+        .select(PARTICIPANT_LIST_COLUMNS, { count: 'exact' });
 
       if (filters.search) {
         query = query.or(`name.ilike.%${filters.search}%,email.ilike.%${filters.search}%,ndis_number.ilike.%${filters.search}%,address.ilike.%${filters.search}%`);
@@ -97,7 +105,7 @@ export function useParticipant(id?: string) {
       if (!id) return null;
       const { data, error } = await supabase
         .from('participants')
-        .select(PARTICIPANT_COLUMNS)
+        .select(PARTICIPANT_DETAIL_COLUMNS)
         .eq('id', id)
         .single();
 
@@ -129,7 +137,7 @@ export function useAddParticipant() {
       const { data, error } = await supabase
         .from('participants')
         .insert([participant])
-        .select(PARTICIPANT_COLUMNS)
+        .select(PARTICIPANT_DETAIL_COLUMNS)
         .single();
 
       if (error) throw error;
@@ -150,7 +158,7 @@ export function useUpdateParticipant() {
         .from('participants')
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq('id', id)
-        .select(PARTICIPANT_COLUMNS)
+        .select(PARTICIPANT_DETAIL_COLUMNS)
         .single();
 
       if (error) throw error;

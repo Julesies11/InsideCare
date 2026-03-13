@@ -253,7 +253,7 @@ export function HouseStaff({
           ) : visibleStaffAssignments.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">No staff assigned to this house</div>
           ) : (
-            <Table>
+            <div className="overflow-x-auto"><Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Staff Member</TableHead>
@@ -391,7 +391,7 @@ export function HouseStaff({
                   );
                 })}
               </TableBody>
-            </Table>
+            </Table></div>
           )}
         </CardContent>
       </Card>

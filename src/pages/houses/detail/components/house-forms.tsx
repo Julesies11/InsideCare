@@ -511,7 +511,7 @@ export function HouseForms({
                             No assignments for this form
                           </div>
                         ) : (
-                          <Table>
+                          <div className="overflow-x-auto"><Table>
                             <TableHeader>
                               <TableRow>
                                 <TableHead>Assigned To</TableHead>
@@ -635,7 +635,7 @@ export function HouseForms({
                                 );
                               })}
                             </TableBody>
-                          </Table>
+                          </Table></div>
                         )}
                       </div>
                     </CardContent>

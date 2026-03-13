@@ -40,7 +40,7 @@ export function HouseChecklists({
   const [showTemplateDialog, setShowTemplateDialog] = useState(false);
   const [showItemDialog, setShowItemDialog] = useState(false);
   const [showExecutionDialog, setShowExecutionDialog] = useState(false);
-  const [selectedChecklist, setSelectedChecklist] = useState<{ id?: string; tempId?: string; name: string; frequency: string; description?: string; is_global?: boolean; items?: any[] } | null>(null);
+  const [selectedChecklist, setSelectedChecklist] = useState<{ id?: string; tempId?: string; name: string; frequency: string; description?: string; master_id?: string; items?: any[] } | null>(null);
   const [executingChecklist, setExecutingChecklist] = useState<{ id: string; name: string; items: any[] } | null>(null);
   const [activeSubmission, setActiveSubmission] = useState<{ id: string; completedItems: Record<string, boolean>; itemNotes: Record<string, string>; attachments?: any } | null>(null);
   const [selectedItem, setSelectedItem] = useState<{ id?: string; tempId?: string; title: string; instructions?: string; priority?: string; is_required?: boolean; sort_order?: number } | null>(null);
@@ -48,13 +48,13 @@ export function HouseChecklists({
     name: string;
     frequency: string;
     description: string;
-    is_global: boolean;
+    master_id?: string;
     items: Array<{ id?: string; tempId?: string; title: string; instructions?: string; priority?: string; is_required?: boolean; sort_order?: number }>;
   }>({
     name: '',
     frequency: 'daily',
     description: '',
-    is_global: false,
+    master_id: undefined,
     items: [],
   });
   const [itemFormData, setItemFormData] = useState({
@@ -73,19 +73,19 @@ export function HouseChecklists({
       name: '',
       frequency: 'daily',
       description: '',
-      is_global: false,
+      master_id: undefined,
       items: [],
     });
     setShowChecklistDialog(true);
   };
 
-  const handleEditChecklist = (checklist: { id?: string; tempId?: string; name: string; frequency: string; description?: string; is_global?: boolean; items?: any[] }) => {
+  const handleEditChecklist = (checklist: { id?: string; tempId?: string; name: string; frequency: string; description?: string; master_id?: string; items?: any[] }) => {
     setSelectedChecklist(checklist);
     setChecklistFormData({
       name: checklist.name,
       frequency: checklist.frequency,
       description: checklist.description || '',
-      is_global: checklist.is_global || false,
+      master_id: checklist.master_id,
       items: checklist.items || [],
     });
     setShowChecklistDialog(true);
@@ -671,8 +671,8 @@ export function HouseChecklists({
                           </Badge>
                         )}
                       </div>
-                      {checklist.is_global && (
-                        <span className="text-[10px] text-blue-600 font-medium uppercase tracking-wider">Global Template</span>
+                      {checklist.master_id && (
+                        <span className="text-[10px] text-blue-600 font-medium uppercase tracking-wider">From Template</span>
                       )}
                       {checklist.description && (
                         <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{checklist.description}</p>

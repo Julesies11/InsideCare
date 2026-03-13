@@ -59,7 +59,7 @@ export function PersonalDetails({
             <div className="grow">
               <Input
                 id="name"
-                value={formData.name}
+                value={formData.name || ''}
                 onChange={(e) => onFormChange('name', e.target.value)}
                 disabled={!canEdit}
                 className={validationErrors.name ? 'border-red-500 focus-visible:ring-red-500' : ''}
@@ -76,7 +76,7 @@ export function PersonalDetails({
             <Label htmlFor="ndis_number" className="flex w-full max-w-56">NDIS Number</Label>
             <Input
               id="ndis_number"
-              value={formData.ndis_number}
+              value={formData.ndis_number || ''}
               onChange={(e) => onFormChange('ndis_number', e.target.value)}
               disabled={!canEdit}
             />
@@ -89,7 +89,7 @@ export function PersonalDetails({
             <Input
               id="date_of_birth"
               type="date"
-              value={formData.date_of_birth}
+              value={formData.date_of_birth || ''}
               onChange={(e) => onFormChange('date_of_birth', e.target.value)}
               disabled={!canEdit}
             />
@@ -102,7 +102,7 @@ export function PersonalDetails({
             <Input
               id="house_phone"
               type="tel"
-              value={formData.house_phone}
+              value={formData.house_phone || ''}
               onChange={(e) => onFormChange('house_phone', e.target.value)}
               disabled={!canEdit}
             />
@@ -115,7 +115,7 @@ export function PersonalDetails({
             <Input
               id="personal_mobile"
               type="tel"
-              value={formData.personal_mobile}
+              value={formData.personal_mobile || ''}
               onChange={(e) => onFormChange('personal_mobile', e.target.value)}
               disabled={!canEdit}
             />
@@ -129,7 +129,7 @@ export function PersonalDetails({
               <Input
                 id="email"
                 type="email"
-                value={formData.email}
+                value={formData.email || ''}
                 onChange={(e) => onFormChange('email', e.target.value)}
                 disabled={!canEdit}
                 className={validationErrors.email ? 'border-red-500 focus-visible:ring-red-500' : ''}
@@ -146,7 +146,7 @@ export function PersonalDetails({
             <Label className="flex w-full max-w-56">Address</Label>
             <Textarea
               id="address"
-              value={formData.address}
+              value={formData.address || ''}
               onChange={(e) => onFormChange('address', e.target.value)}
               rows={2}
               disabled={!canEdit}
@@ -180,7 +180,7 @@ export function PersonalDetails({
             <Label className="flex w-full max-w-56">Support Coordinator</Label>
             <Input
               id="support_coordinator"
-              value={formData.support_coordinator}
+              value={formData.support_coordinator || ''}
               onChange={(e) => onFormChange('support_coordinator', e.target.value)}
               disabled={!canEdit}
             />

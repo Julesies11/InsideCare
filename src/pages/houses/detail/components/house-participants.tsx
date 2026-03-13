@@ -237,7 +237,7 @@ export function HouseParticipants({
           ) : visibleParticipants.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">No participants linked to this house</div>
           ) : (
-            <Table>
+            <div className="overflow-x-auto"><Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Participant</TableHead>
@@ -367,7 +367,7 @@ export function HouseParticipants({
                   );
                 })}
               </TableBody>
-            </Table>
+            </Table></div>
           )}
         </CardContent>
       </Card>

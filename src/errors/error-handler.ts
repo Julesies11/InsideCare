@@ -1,4 +1,5 @@
 import { toast } from 'sonner';
+import { supabase } from '@/lib/supabase';
 
 export type ErrorCategory = 'database' | 'network' | 'auth' | 'validation' | 'unknown';
 
@@ -7,18 +8,77 @@ interface ErrorOptions {
   title?: string;
   showToast?: boolean;
   logToConsole?: boolean;
+  logToDatabase?: boolean;
+}
+
+const OFFLINE_ERRORS_KEY = 'insidecare_offline_errors';
+
+interface ErrorLogPayload {
+  message: string;
+  category: string;
+  details: any;
+  url: string;
+  user_agent: string;
+  app_version: string;
+  user_id?: string;
+}
+
+/**
+ * Saves error to localStorage if offline or if DB insert fails
+ */
+function saveErrorOffline(payload: ErrorLogPayload) {
+  try {
+    const existing = localStorage.getItem(OFFLINE_ERRORS_KEY);
+    const errors: ErrorLogPayload[] = existing ? JSON.parse(existing) : [];
+    errors.push(payload);
+    // Keep only the last 50 to prevent localStorage bloat
+    if (errors.length > 50) errors.shift();
+    localStorage.setItem(OFFLINE_ERRORS_KEY, JSON.stringify(errors));
+  } catch (e) {
+    console.error('Failed to save error offline', e);
+  }
+}
+
+/**
+ * Attempts to sync offline errors to Supabase
+ */
+export async function syncOfflineErrors() {
+  if (!navigator.onLine) return;
+
+  try {
+    const existing = localStorage.getItem(OFFLINE_ERRORS_KEY);
+    if (!existing) return;
+
+    const errors: ErrorLogPayload[] = JSON.parse(existing);
+    if (errors.length === 0) return;
+
+    const { error } = await supabase.from('error_logs').insert(errors);
+    
+    if (!error) {
+      localStorage.removeItem(OFFLINE_ERRORS_KEY);
+      console.log(`Synced ${errors.length} offline errors`);
+    }
+  } catch (e) {
+    console.error('Failed to sync offline errors', e);
+  }
+}
+
+// Add a listener to sync when coming back online
+if (typeof window !== 'undefined') {
+  window.addEventListener('online', syncOfflineErrors);
 }
 
 /**
  * Centralized error handler for the application.
- * Categorizes errors and provides consistent UI feedback.
+ * Categorizes errors and provides consistent UI feedback and logging.
  */
 export const handleError = (error: unknown, options: ErrorOptions = {}) => {
   const { 
     category = 'unknown', 
     title = 'An error occurred', 
     showToast = true, 
-    logToConsole = true 
+    logToConsole = true,
+    logToDatabase = true,
   } = options;
 
   const err = error as any;
@@ -56,7 +116,45 @@ export const handleError = (error: unknown, options: ErrorOptions = {}) => {
     }
   }
 
-  // 3. Show UI Notification
+  // 3. Log to database
+  if (logToDatabase && category !== 'validation') {
+    const payload: ErrorLogPayload = {
+      message: message,
+      category,
+      details: {
+        title,
+        original_error: err?.message || err,
+        code: err?.code,
+        hint: err?.hint,
+        stack: err?.stack,
+      },
+      url: typeof window !== 'undefined' ? window.location.href : 'unknown',
+      user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
+      app_version: import.meta.env.VITE_APP_VERSION || '1.0.0', // Using env var if available
+    };
+
+    // Fire and forget
+    supabase.auth.getUser().then(({ data }) => {
+      payload.user_id = data?.user?.id;
+      
+      if (!navigator.onLine) {
+        saveErrorOffline(payload);
+        return;
+      }
+
+      supabase.from('error_logs').insert([payload]).then(({ error: insertError }) => {
+        if (insertError) {
+          console.error('Failed to log error to database', insertError);
+          saveErrorOffline(payload);
+        }
+      });
+    }).catch(() => {
+      // If getting user fails, log without user_id
+      saveErrorOffline(payload);
+    });
+  }
+
+  // 4. Show UI Notification
   if (showToast) {
     toast.error(title, {
       description: message,
@@ -78,5 +176,5 @@ export const handleSupabaseError = (error: unknown, title?: string) => {
  * Specifically handles validation errors (e.g., from Zod or manual checks)
  */
 export const handleValidationError = (message: string, title?: string) => {
-  return handleError(message, { category: 'validation', title: title || 'Validation Failed' });
+  return handleError(message, { category: 'validation', title: title || 'Validation Failed', logToDatabase: false });
 };

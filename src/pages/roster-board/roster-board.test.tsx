@@ -66,7 +66,7 @@ describe('RosterBoard', () => {
   it('allows toggling Group By House', async () => {
     const { user } = renderWithProviders(<RosterBoard />);
     
-    const toggle = screen.getByLabelText(/group by house/i);
+    const toggle = await screen.findByLabelText(/group by house/i);
     expect(toggle).toBeChecked();
     
     await user.click(toggle);

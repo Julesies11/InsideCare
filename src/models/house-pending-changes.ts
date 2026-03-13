@@ -85,7 +85,7 @@ export interface HousePendingChanges {
       name: string;
       frequency: string;
       description?: string;
-      is_global: boolean;
+      master_id?: string;
       items: Array<{
         tempId: string;
         title: string;
@@ -100,7 +100,7 @@ export interface HousePendingChanges {
       name?: string;
       frequency?: string;
       description?: string;
-      is_global?: boolean;
+      master_id?: string;
     }>;
     toDelete: string[];
     checklistItems: {
@@ -131,7 +131,7 @@ export interface HousePendingChanges {
       type: string;
       description?: string;
       frequency: string;
-      is_global: boolean;
+      master_id?: string;
       status: string;
     }>;
     toUpdate: Array<{
@@ -140,7 +140,7 @@ export interface HousePendingChanges {
       type?: string;
       description?: string;
       frequency?: string;
-      is_global?: boolean;
+      master_id?: string;
       status?: string;
     }>;
     toDelete: string[];
