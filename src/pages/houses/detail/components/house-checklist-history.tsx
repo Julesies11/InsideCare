@@ -7,13 +7,14 @@ import {
   History, 
   Plus, 
   Search,
-  Eye
+  Eye,
+  AlertCircle
 } from 'lucide-react';
 import { useChecklistHistory, ChecklistSubmission } from '@/hooks/use-checklist-history';
 import { useHouseChecklists } from '@/hooks/use-house-checklists';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { HouseChecklistExecution } from './house-checklist-execution';
-import { format } from 'date-fns';
+import { format, subDays } from 'date-fns';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/auth/context/auth-context';
 import { toast } from 'sonner';
@@ -33,6 +34,12 @@ export function HouseChecklistHistory({ houseId }: HouseChecklistHistoryProps) {
   const [executingChecklist, setExecutingChecklist] = useState<any>(null);
   const [activeSubmission, setActiveSubmission] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
+
+  const yesterdayStr = format(subDays(new Date(), 1), 'yyyy-MM-dd');
+  const incompleteYesterday = (submissions || []).filter(s => 
+    s.scheduled_date === yesterdayStr && 
+    (s.status === 'in_progress' || s.completed_item_count < s.item_count)
+  );
 
   const filteredHistory = (submissions || []).filter(s => 
     s.checklist_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -107,6 +114,7 @@ export function HouseChecklistHistory({ houseId }: HouseChecklistHistoryProps) {
           master_id: executingChecklist?.master_id || null,
           submitted_by: staffId || null,
           status: status,
+          scheduled_date: format(new Date(), 'yyyy-MM-dd'),
           completed_at: status === 'completed' ? new Date().toISOString() : null
         })
         .select().single();
@@ -198,6 +206,29 @@ export function HouseChecklistHistory({ houseId }: HouseChecklistHistoryProps) {
 
   return (
     <div className="flex flex-col gap-5 lg:gap-7.5" id="checklist_history">
+      {incompleteYesterday.length > 0 && (
+        <div className="flex items-center gap-3 p-4 bg-destructive/10 border border-destructive/20 rounded-xl animate-in fade-in slide-in-from-top-4 duration-500">
+          <AlertCircle className="size-5 text-destructive animate-pulse" />
+          <div className="flex-1">
+            <h4 className="text-sm font-bold text-destructive">Incomplete tasks from yesterday!</h4>
+            <p className="text-xs text-destructive/80">
+              There are {incompleteYesterday.length} checklist(s) with unfinished items from {format(subDays(new Date(), 1), 'MMMM d')}.
+            </p>
+          </div>
+          <Button 
+            variant="destructive" 
+            size="sm" 
+            className="h-8 text-[10px] font-bold"
+            onClick={() => {
+              setSearchTerm(format(subDays(new Date(), 1), 'MMM d'));
+              document.getElementById('checklist_history')?.scrollIntoView({ behavior: 'smooth' });
+            }}
+          >
+            REVIEW TASKS
+          </Button>
+        </div>
+      )}
+
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <div className="flex items-center gap-2">
@@ -247,7 +278,7 @@ export function HouseChecklistHistory({ houseId }: HouseChecklistHistoryProps) {
               <thead className="bg-gray-50 border-b font-bold text-gray-600 uppercase tracking-wider text-[10px]">
                 <tr>
                   <th className="px-4 py-3">Checklist</th>
-                  <th className="px-4 py-3">Staff / Submitter</th>
+                  <th className="px-4 py-3">Scheduled Date</th>
                   <th className="px-4 py-3 text-center">Status / Progress</th>
                   <th className="px-4 py-3">Last Activity</th>
                   <th className="px-4 py-3 text-right">Actions</th>
@@ -266,7 +297,9 @@ export function HouseChecklistHistory({ houseId }: HouseChecklistHistoryProps) {
                         <td className="px-4 py-3">
                           <div className="font-bold text-gray-900">{sub.checklist_name}</div>
                         </td>
-                        <td className="px-4 py-3 text-gray-600 font-medium">{sub.staff_name}</td>
+                        <td className="px-4 py-3 text-gray-600 font-medium">
+                          {sub.scheduled_date ? format(new Date(sub.scheduled_date), 'MMM d, yyyy') : 'N/A'}
+                        </td>
                         <td className="px-4 py-3 text-center">
                           {isInProgress ? (
                             <Badge className="bg-primary/10 text-primary border-0 text-[10px] font-bold">

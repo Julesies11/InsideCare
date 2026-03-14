@@ -38,9 +38,10 @@ const fieldLabels: Record<string, string> = {
   certifications: 'certifications',
   employment_type: 'employment type',
   working_hours: 'working hours',
-  capacity: 'capacity',
+  capacity: 'house ratio',
   current_occupancy: 'current occupancy',
   house_manager: 'house manager',
+  house_type_id: 'house type',
   status: 'status',
 };
 

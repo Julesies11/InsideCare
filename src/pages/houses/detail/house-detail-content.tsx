@@ -11,11 +11,14 @@ import { HouseDetailSidebar } from './house-detail-sidebar';
 import { HouseParticipants } from './components/house-participants';
 import { HouseStaff } from './components/house-staff';
 import { HouseCalendarEvents } from './components/house-calendar-events';
+import { HouseComms } from './components/house-comms';
 import { HouseDocuments } from './components/house-documents';
 import { HouseChecklistHistory } from './components/house-checklist-history';
 import { HouseChecklistSetup } from './components/house-checklist-setup';
 import { HouseForms } from './components/house-forms';
 import { HouseResources } from './components/house-resources';
+import { HouseTypeCombobox } from './components/house-type-components/HouseTypeCombobox';
+import { HouseTypeMasterDialog } from './components/house-type-components/HouseTypeMasterDialog';
 import { House } from '@/models/house';
 import { HousePendingChanges, emptyHousePendingChanges } from '@/models/house-pending-changes';
 import { supabase } from '@/lib/supabase';
@@ -91,12 +94,15 @@ export function HouseDetailContent({
     name: '',
     address: '',
     phone: '',
+    house_type_id: '',
     capacity: 0,
     current_occupancy: 0,
     house_manager: '',
     status: 'active',
     notes: '',
   });
+
+  const [showHouseTypeDialog, setShowHouseTypeDialog] = useState(false);
 
   // Handle scroll position and sidebar stickiness
   useEffect(() => {
@@ -111,7 +117,7 @@ export function HouseDetailContent({
         setLoading(true);
         const { data, error } = await supabase
           .from('houses')
-          .select('id, name, branch_id, address, phone, capacity, current_occupancy, house_manager, status, notes, created_at, updated_at')
+          .select('id, name, branch_id, address, phone, house_type_id, capacity, current_occupancy, house_manager, status, notes, created_at, updated_at')
           .eq('id', id)
           .single();
 
@@ -122,6 +128,7 @@ export function HouseDetailContent({
           name: data.name || '',
           address: data.address || '',
           phone: data.phone || '',
+          house_type_id: data.house_type_id || '',
           capacity: data.capacity || 0,
           current_occupancy: data.current_occupancy || 0,
           house_manager: data.house_manager || '',
@@ -263,6 +270,7 @@ export function HouseDetailContent({
               house_id: id,
               title: event.title,
               type: event.type,
+              event_type_id: event.event_type_id || null,
               description: event.description || null,
               event_date: event.event_date,
               start_time: event.start_time || null,
@@ -288,6 +296,7 @@ export function HouseDetailContent({
             .update({
               title: event.title,
               type: event.type,
+              event_type_id: event.event_type_id || null,
               description: event.description || null,
               event_date: event.event_date,
               start_time: event.start_time || null,
@@ -781,6 +790,7 @@ export function HouseDetailContent({
         name: houseData.name || '',
         address: houseData.address || '',
         phone: houseData.phone || '',
+        house_type_id: houseData.house_type_id || '',
         capacity: houseData.capacity || 0,
         current_occupancy: houseData.current_occupancy || 0,
         house_manager: houseData.house_manager || '',
@@ -936,13 +946,25 @@ export function HouseDetailContent({
 
               <div className="w-full">
                 <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-                  <Label htmlFor="capacity" className="flex w-full max-w-56">Maximum Capacity</Label>
+                  <Label className="flex w-full max-w-56">House Type</Label>
+                  <HouseTypeCombobox
+                    value={formData.house_type_id || ''}
+                    onChange={(value) => handleFieldChange('house_type_id', value)}
+                    canEdit={canEdit}
+                    onManageList={() => setShowHouseTypeDialog(true)}
+                  />
+                </div>
+              </div>
+
+              <div className="w-full">
+                <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+                  <Label htmlFor="capacity" className="flex w-full max-w-56">House Ratio</Label>
                   <Input
                     id="capacity"
                     type="number"
                     value={formData.capacity}
                     onChange={(e) => handleFieldChange('capacity', parseInt(e.target.value) || 0)}
-                    placeholder="Enter maximum capacity"
+                    placeholder="Enter house ratio"
                     disabled={!canEdit}
                   />
                 </div>
@@ -993,6 +1015,10 @@ export function HouseDetailContent({
             canDelete={canDelete}
             pendingChanges={pendingChanges}
             onPendingChangesChange={onPendingChangesChange}
+          />
+
+          <HouseComms
+            houseId={id}
           />
 
           <HouseDocuments
@@ -1047,6 +1073,12 @@ export function HouseDetailContent({
             onPendingChangesChange={onPendingChangesChange}
           />
       </div>
+
+      <HouseTypeMasterDialog
+        open={showHouseTypeDialog}
+        onClose={() => setShowHouseTypeDialog(false)}
+        onUpdate={() => {}}
+      />
     </div>
   );
 }

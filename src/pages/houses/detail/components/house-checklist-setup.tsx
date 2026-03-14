@@ -239,14 +239,25 @@ export function HouseChecklistSetup({
     }
   };
 
+  const todayDayName = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+  const todayFrequency = `weekly_${todayDayName}`;
+
   const visibleChecklists = [
     ...(houseChecklists || [])
       .filter(checklist => !pendingChanges?.checklists?.toDelete?.includes(checklist.id))
+      .filter(checklist => {
+        const freq = checklist.frequency?.toLowerCase();
+        return freq === 'daily' || freq === todayFrequency;
+      })
       .map(checklist => {
         const update = pendingChanges?.checklists?.toUpdate?.find(u => u.id === checklist.id);
         return update ? { ...checklist, ...update } : checklist;
       }),
-    ...(pendingChanges?.checklists?.toAdd || []),
+    ...(pendingChanges?.checklists?.toAdd || [])
+      .filter(checklist => {
+        const freq = checklist.frequency?.toLowerCase();
+        return freq === 'daily' || freq === todayFrequency;
+      }),
   ];
 
   return (
@@ -342,7 +353,13 @@ export function HouseChecklistSetup({
                   <SelectTrigger id="setup-freq"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="daily">Daily</SelectItem>
-                    <SelectItem value="weekly">Weekly</SelectItem>
+                    <SelectItem value="weekly_monday">Weekly (Monday)</SelectItem>
+                    <SelectItem value="weekly_tuesday">Weekly (Tuesday)</SelectItem>
+                    <SelectItem value="weekly_wednesday">Weekly (Wednesday)</SelectItem>
+                    <SelectItem value="weekly_thursday">Weekly (Thursday)</SelectItem>
+                    <SelectItem value="weekly_friday">Weekly (Friday)</SelectItem>
+                    <SelectItem value="weekly_saturday">Weekly (Saturday)</SelectItem>
+                    <SelectItem value="weekly_sunday">Weekly (Sunday)</SelectItem>
                     <SelectItem value="monthly">Monthly</SelectItem>
                   </SelectContent>
                 </Select>

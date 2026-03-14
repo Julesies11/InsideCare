@@ -273,7 +273,7 @@ export function Houses() {
           <DataGridColumnHeader
             column={column}
             title="Occupancy"
-            tooltip="Current occupancy vs capacity"
+            tooltip="Current occupancy vs house ratio"
           />
         ),
         cell: ({ row }) => {

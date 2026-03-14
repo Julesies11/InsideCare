@@ -14,6 +14,11 @@ import { useParticipants } from '@/hooks/use-participants';
 import { useStaff } from '@/hooks/use-staff';
 import { useAuth } from '@/auth/context/auth-context';
 import { HousePendingChanges } from '@/models/house-pending-changes';
+import { HouseCalendarEventTypeCombobox } from './house-calendar-event-type-components/HouseCalendarEventTypeCombobox';
+import { HouseCalendarEventTypeMasterDialog } from './house-calendar-event-type-components/HouseCalendarEventTypeMasterDialog';
+import { HouseCalendarEventAttachments, QueuedAttachment } from './HouseCalendarEventAttachments';
+import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 
 interface HouseCalendarEventsProps {
   houseId?: string;
@@ -33,10 +38,12 @@ export function HouseCalendarEvents({
   const [viewMode, setViewMode] = useState<ViewMode>('week');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showEventDialog, setShowEventDialog] = useState(false);
+  const [showEventTypeDialog, setShowEventTypeDialog] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const [formData, setFormData] = useState({
     title: '',
     type: 'meeting',
+    event_type_id: '',
     description: '',
     event_date: '',
     start_time: '',
@@ -46,6 +53,9 @@ export function HouseCalendarEvents({
     status: 'scheduled',
     location: '',
     notes: '',
+    existingAttachments: [] as any[],
+    queuedAttachments: [] as QueuedAttachment[],
+    toDeleteAttachments: [] as string[],
   });
 
   const { houseCalendarEvents, loading } = useHouseCalendarEvents(houseId);
@@ -109,6 +119,7 @@ export function HouseCalendarEvents({
     setFormData({
       title: '',
       type: 'meeting',
+      event_type_id: '',
       description: '',
       event_date: format(date, 'yyyy-MM-dd'),
       start_time: '',
@@ -118,6 +129,9 @@ export function HouseCalendarEvents({
       status: 'scheduled',
       location: '',
       notes: '',
+      existingAttachments: [],
+      queuedAttachments: [],
+      toDeleteAttachments: [],
     });
     setShowEventDialog(true);
   };
@@ -127,6 +141,7 @@ export function HouseCalendarEvents({
     setFormData({
       title: event.title,
       type: event.type,
+      event_type_id: event.event_type_id || '',
       description: event.description || '',
       event_date: event.event_date,
       start_time: event.start_time || '',
@@ -136,69 +151,169 @@ export function HouseCalendarEvents({
       status: event.status || 'scheduled',
       location: event.location || '',
       notes: event.notes || '',
+      existingAttachments: event.attachments || [],
+      queuedAttachments: [],
+      toDeleteAttachments: [],
     });
     setShowEventDialog(true);
   };
 
-  const handleSaveEvent = () => {
+  const handleMarkAttachmentForDeletion = (attachmentId: string) => {
+    setFormData(prev => ({
+      ...prev,
+      toDeleteAttachments: [...prev.toDeleteAttachments, attachmentId]
+    }));
+  };
+
+  const handleAddQueuedFile = (file: File) => {
+    const tempId = `temp-${Date.now()}-${Math.random()}`;
+    setFormData(prev => ({
+      ...prev,
+      queuedAttachments: [...prev.queuedAttachments, { file, tempId }]
+    }));
+  };
+
+  const handleRemoveQueuedFile = (tempId: string) => {
+    setFormData(prev => ({
+      ...prev,
+      queuedAttachments: prev.queuedAttachments.filter(f => f.tempId !== tempId)
+    }));
+  };
+
+  const handleSaveEvent = async () => {
     if (!formData.title.trim() || !formData.event_date) {
       return;
     }
     if (!pendingChanges || !onPendingChangesChange) return;
 
-    const eventData = {
-      ...formData,
-      participant_id: formData.participant_id || null,
-      assigned_staff_id: formData.assigned_staff_id || null,
-      start_time: formData.start_time || null,
-      end_time: formData.end_time || null,
-      created_by: user?.id,
-    };
-
-    if (selectedEvent) {
-      // Update existing event
-      if (selectedEvent.tempId) {
-        // Update pending add
-        const newPending = {
-          ...pendingChanges,
-          calendarEvents: {
-            ...pendingChanges.calendarEvents,
-            toAdd: pendingChanges.calendarEvents.toAdd.map(event =>
-              event.tempId === selectedEvent.tempId ? { ...event, ...eventData } : event
-            ),
-          },
-        };
-        onPendingChangesChange(newPending);
-      } else {
-        // Add to pending updates
-        const newPending = {
-          ...pendingChanges,
-          calendarEvents: {
-            ...pendingChanges.calendarEvents,
-            toUpdate: [
-              ...pendingChanges.calendarEvents.toUpdate.filter(e => e.id !== selectedEvent.id),
-              { id: selectedEvent.id, ...eventData },
-            ],
-          },
-        };
-        onPendingChangesChange(newPending);
-      }
-    } else {
-      // Add new event
-      const tempId = `temp-${Date.now()}-${Math.random()}`;
-      const newPending = {
-        ...pendingChanges,
-        calendarEvents: {
-          ...pendingChanges.calendarEvents,
-          toAdd: [
-            ...pendingChanges.calendarEvents.toAdd,
-            { tempId, house_id: houseId, ...eventData },
-          ],
-        },
+    try {
+      const eventData = {
+        title: formData.title,
+        type: formData.type,
+        event_type_id: formData.event_type_id || null,
+        description: formData.description || null,
+        event_date: formData.event_date,
+        start_time: formData.start_time || null,
+        end_time: formData.end_time || null,
+        participant_id: formData.participant_id || null,
+        assigned_staff_id: formData.assigned_staff_id || null,
+        status: formData.status || 'scheduled',
+        location: formData.location || null,
+        notes: formData.notes || null,
+        created_by: user?.id,
       };
-      onPendingChangesChange(newPending);
+
+      let finalEventId: string | null = null;
+
+      if (selectedEvent) {
+        // Update existing event
+        if (selectedEvent.tempId) {
+          // Update pending add
+          const newPending = {
+            ...pendingChanges,
+            calendarEvents: {
+              ...pendingChanges.calendarEvents,
+              toAdd: pendingChanges.calendarEvents.toAdd.map(event =>
+                event.tempId === selectedEvent.tempId ? { ...event, ...eventData } : event
+              ),
+            },
+          };
+          onPendingChangesChange(newPending);
+          // For temp events, we still can't upload attachments until real ID exists
+        } else {
+          finalEventId = selectedEvent.id;
+          // Add to pending updates
+          const newPending = {
+            ...pendingChanges,
+            calendarEvents: {
+              ...pendingChanges.calendarEvents,
+              toUpdate: [
+                ...pendingChanges.calendarEvents.toUpdate.filter(e => e.id !== selectedEvent.id),
+                { id: selectedEvent.id, ...eventData },
+              ],
+            },
+          };
+          onPendingChangesChange(newPending);
+        }
+      } else {
+        // Add new event - since user wants to upload NOW, we must CREATE the event now to get an ID
+        // instead of putting it in "pendingChanges"
+        if (formData.queuedAttachments.length > 0) {
+          toast.loading('Creating event and uploading attachments...');
+          
+          const { data: newEvent, error: insertError } = await supabase
+            .from('house_calendar_events')
+            .insert({
+              ...eventData,
+              house_id: houseId,
+            })
+            .select()
+            .single();
+
+          if (insertError) throw insertError;
+          finalEventId = newEvent.id;
+          toast.dismiss();
+        } else {
+          // Normal flow for events without attachments (keep them pending)
+          const tempId = `temp-${Date.now()}-${Math.random()}`;
+          const newPending = {
+            ...pendingChanges,
+            calendarEvents: {
+              ...pendingChanges.calendarEvents,
+              toAdd: [
+                ...pendingChanges.calendarEvents.toAdd,
+                { tempId, house_id: houseId, ...eventData },
+              ],
+            },
+          };
+          onPendingChangesChange(newPending);
+        }
+      }
+
+      // Handle attachments if we have a real database ID
+      if (finalEventId) {
+        // 1. Delete marked attachments
+        if (formData.toDeleteAttachments.length > 0) {
+          for (const attId of formData.toDeleteAttachments) {
+            const att = formData.existingAttachments.find(a => a.id === attId);
+            if (att?.file_path) await supabase.storage.from('house-documents').remove([att.file_path]);
+            await supabase.from('house_calendar_event_attachments').delete().eq('id', attId);
+          }
+        }
+
+        // 2. Upload queued attachments
+        if (formData.queuedAttachments.length > 0) {
+          for (const queued of formData.queuedAttachments) {
+            const ext = queued.file.name.split('.').pop();
+            const filePath = `calendar-events/${finalEventId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
+            
+            const { error: uploadError } = await supabase.storage
+              .from('house-documents')
+              .upload(filePath, queued.file);
+            
+            if (uploadError) throw uploadError;
+
+            await supabase.from('house_calendar_event_attachments').insert({
+              event_id: finalEventId,
+              file_name: queued.file.name,
+              file_path: filePath,
+              file_size: queued.file.size,
+              mime_type: queued.file.type,
+              uploaded_by: user?.id,
+            });
+          }
+        }
+        
+        if (formData.toDeleteAttachments.length > 0 || formData.queuedAttachments.length > 0) {
+          toast.success('Event saved with attachments');
+        }
+      }
+
+      setShowEventDialog(false);
+    } catch (error: any) {
+      console.error('Error saving event attachments:', error);
+      toast.error('Failed to process attachments: ' + error.message);
     }
-    setShowEventDialog(false);
   };
 
   const handleDeleteEvent = (event: any) => {
@@ -293,14 +408,21 @@ export function HouseCalendarEvents({
   };
 
   // Get type color
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case 'meeting': return 'purple';
-      case 'appointment': return 'orange';
-      case 'activity': return 'green';
-      case 'maintenance': return 'red';
-      default: return 'gray';
+  const getTypeColor = (event: any) => {
+    // 1. Check if we have a direct color from the lookup
+    if (event.event_type_info?.color) {
+      return event.event_type_info.color;
     }
+
+    // 2. Fallback to name-based logic
+    const type = event.event_type_info?.name || event.type || '';
+    const lowerType = type.toLowerCase();
+    if (lowerType.includes('meeting') || lowerType.includes('visit')) return 'purple';
+    if (lowerType.includes('appointment')) return 'orange';
+    if (lowerType.includes('activity') || lowerType.includes('event')) return 'green';
+    if (lowerType.includes('community')) return 'blue';
+    if (lowerType.includes('maintenance')) return 'red';
+    return 'gray';
   };
 
   return (
@@ -401,19 +523,19 @@ export function HouseCalendarEvents({
                                   }`}
                                 >
                                   <div className="flex items-center gap-1.5 mb-1">
-                                    <div className={`size-1.5 rounded-full bg-${getTypeColor(event.type)}-500`} />
+                                    <div className={`size-1.5 rounded-full bg-${getTypeColor(event)}-500`} />
                                     <span className="text-[10px] font-bold text-gray-900 truncate leading-none">{event.title}</span>
                                   </div>
-                                  {event.start_time && (
-                                    <div className="text-[9px] text-muted-foreground font-medium flex items-center gap-1">
-                                      <Clock className="size-2.5" />
-                                      {event.start_time}
+                                  <div className="flex flex-col gap-0.5">
+                                    <div className="text-[9px] text-gray-600 font-bold uppercase tracking-tighter">
+                                      {event.event_type_info?.name || event.type}
                                     </div>
-                                  )}
-                                  <div className="mt-1 flex flex-wrap gap-1">
-                                    <Badge variant="outline" className={`text-[8px] h-3.5 px-1 border-${getStatusColor(event.status)}-200 text-${getStatusColor(event.status)}-700 bg-${getStatusColor(event.status)}-50 uppercase font-bold`}>
-                                      {event.status}
-                                    </Badge>
+                                    {(event.start_time || event.end_time) && (
+                                      <div className="text-[9px] text-muted-foreground font-medium flex items-center gap-1">
+                                        <Clock className="size-2.5" />
+                                        {event.start_time || '??'} {event.end_time && `- ${event.end_time}`}
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
                               ))
@@ -442,17 +564,19 @@ export function HouseCalendarEvents({
                             onClick={() => handleEditEvent(event)}
                             className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 hover:border-primary/30 hover:bg-primary/[0.02] cursor-pointer transition-all group"
                           >
-                            <div className={`w-1 self-stretch rounded-full bg-${getTypeColor(event.type)}-500`} />
+                            <div className={`w-1 self-stretch rounded-full bg-${getTypeColor(event)}-500`} />
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1">
                                 <h4 className="font-bold text-gray-900">{event.title}</h4>
-                                <Badge variant="outline" className={`text-[10px] border-${getStatusColor(event.status)}-200 text-${getStatusColor(event.status)}-700 bg-${getStatusColor(event.status)}-50`}>{event.status}</Badge>
+                                <Badge variant="outline" className={`text-[10px] border-${getTypeColor(event)}-200 text-${getTypeColor(event)}-700 bg-${getTypeColor(event)}-50 uppercase font-bold`}>
+                                  {event.event_type_info?.name || event.type}
+                                </Badge>
                               </div>
                               <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                                {event.start_time && (
+                                {(event.start_time || event.end_time) && (
                                   <div className="flex items-center gap-1.5">
                                     <Clock className="size-3.5" />
-                                    {event.start_time} {event.end_time && `- ${event.end_time}`}
+                                    {event.start_time || '??'} {event.end_time && `- ${event.end_time}`}
                                   </div>
                                 )}
                                 {event.location && (
@@ -478,118 +602,6 @@ export function HouseCalendarEvents({
                     <CalendarDays className="size-12 mx-auto mb-2 opacity-20" />
                     <p className="font-medium">Monthly Grid View</p>
                     <p className="text-sm">Currently showing {getEventsForPeriod.length} events in the list below</p>
-                  </div>
-                )}
-              </div>
-
-              {/* Collapsible List of All Events */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 px-1">
-                  <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider">Event Details</h3>
-                  <div className="h-px flex-1 bg-gray-100" />
-                </div>
-                {getEventsForPeriod.length === 0 ? (
-                  <div className="text-center py-8 bg-gray-50/50 rounded-xl border border-dashed border-gray-200">
-                    <p className="text-sm text-muted-foreground">No events scheduled for this period</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 gap-3">
-                    {getEventsForPeriod.sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime()).map((event) => {
-                      const isPendingAdd = 'tempId' in event;
-                      const isPendingUpdate = pendingChanges?.calendarEvents.toUpdate.some(e => e.id === event.id);
-                      const isPendingDelete = pendingChanges?.calendarEvents.toDelete.includes(event.id);
-                      const participantName = getParticipantName(event);
-
-                      return (
-                        <div
-                          key={event.id || event.tempId}
-                          className={`border rounded-xl p-4 transition-all hover:shadow-sm ${
-                            isPendingAdd ? 'bg-primary/5 border-primary/20' :
-                            isPendingDelete ? 'opacity-50 bg-destructive/5 border-destructive/20' :
-                            isPendingUpdate ? 'bg-warning/5 border-warning/20' : 'bg-background border-gray-100'
-                          }`}
-                        >
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-2 flex-wrap">
-                                <h4 className={`font-bold text-gray-900 ${isPendingDelete ? 'line-through' : ''}`}>
-                                  {event.title}
-                                </h4>
-                                <Badge variant="outline" className={`text-[10px] border-${getTypeColor(event.type)}-200 text-${getTypeColor(event.type)}-700 bg-${getTypeColor(event.type)}-50 uppercase`}>
-                                  {event.type}
-                                </Badge>
-                                <Badge variant="outline" className={`text-[10px] border-${getStatusColor(event.status)}-200 text-${getStatusColor(event.status)}-700 bg-${getStatusColor(event.status)}-50 uppercase`}>
-                                  {event.status}
-                                </Badge>
-                                {isPendingAdd && <Badge variant="secondary" className="text-[10px] bg-primary/10 text-primary border-0">PENDING ADD</Badge>}
-                                {isPendingUpdate && <Badge variant="secondary" className="text-[10px] bg-warning/10 text-warning border-0">PENDING UPDATE</Badge>}
-                                {isPendingDelete && <Badge variant="secondary" className="text-[10px] bg-destructive/10 text-destructive border-0">PENDING DELETE</Badge>}
-                              </div>
-                              
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-xs text-muted-foreground">
-                                <div className="flex items-center gap-2">
-                                  <Calendar className="size-3.5 text-gray-400" />
-                                  <span className="font-medium text-gray-700">{format(new Date(event.event_date), 'MMMM d, yyyy')}</span>
-                                </div>
-                                {event.start_time && (
-                                  <div className="flex items-center gap-2">
-                                    <Clock className="size-3.5 text-gray-400" />
-                                    <span className="font-medium text-gray-700">{event.start_time} {event.end_time && `- ${event.end_time}`}</span>
-                                  </div>
-                                )}
-                                {event.location && (
-                                  <div className="flex items-center gap-2">
-                                    <MapPin className="size-3.5 text-gray-400" />
-                                    <span className="truncate">{event.location}</span>
-                                  </div>
-                                )}
-                                {participantName && (
-                                  <div className="flex items-center gap-2">
-                                    <Users className="size-3.5 text-gray-400" />
-                                    <span>Participant: <span className="font-medium text-gray-700">{participantName}</span></span>
-                                  </div>
-                                )}
-                              </div>
-                              {event.description && <p className="mt-3 text-xs text-gray-600 border-l-2 border-gray-100 pl-3">{event.description}</p>}
-                            </div>
-                            
-                            <div className="flex gap-1 ml-4 shrink-0">
-                              {!isPendingDelete && (
-                                <>
-                                  <Button variant="ghost" size="icon" className="size-8" onClick={() => handleEditEvent(event)}>
-                                    <Edit className="size-3.5" />
-                                  </Button>
-                                  {canDelete && (
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="size-8 text-destructive"
-                                      onClick={() => handleDeleteEvent(event)}
-                                    >
-                                      <Trash2 className="size-3.5" />
-                                    </Button>
-                                  )}
-                                </>
-                              )}
-                              {(isPendingAdd || isPendingUpdate || isPendingDelete) && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 text-[10px] font-bold"
-                                  onClick={() => {
-                                    if (isPendingAdd) handleCancelPendingAdd(event.tempId!);
-                                    else if (isPendingUpdate) handleCancelPendingUpdate(event.id);
-                                    else handleCancelPendingDelete(event.id);
-                                  }}
-                                >
-                                  UNDO
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
                   </div>
                 )}
               </div>
@@ -621,18 +633,11 @@ export function HouseCalendarEvents({
               </div>
               <div className="space-y-2">
                 <Label htmlFor="type">Type</Label>
-                <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="meeting">Meeting</SelectItem>
-                    <SelectItem value="appointment">Appointment</SelectItem>
-                    <SelectItem value="activity">Activity</SelectItem>
-                    <SelectItem value="maintenance">Maintenance</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
+                <HouseCalendarEventTypeCombobox
+                  value={formData.event_type_id || ''}
+                  onChange={(value) => setFormData({ ...formData, event_type_id: value })}
+                  onManageList={() => setShowEventTypeDialog(true)}
+                />
               </div>
             </div>
 
@@ -747,6 +752,16 @@ export function HouseCalendarEvents({
                 rows={3}
               />
             </div>
+
+            <HouseCalendarEventAttachments
+              existingAttachments={formData.existingAttachments}
+              queuedAttachments={formData.queuedAttachments}
+              toDeleteAttachments={formData.toDeleteAttachments}
+              onAddQueuedFile={handleAddQueuedFile}
+              onRemoveQueuedFile={handleRemoveQueuedFile}
+              onMarkForDeletion={handleMarkAttachmentForDeletion}
+              canEdit={true}
+            />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowEventDialog(false)}>
@@ -756,6 +771,12 @@ export function HouseCalendarEvents({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <HouseCalendarEventTypeMasterDialog
+        open={showEventTypeDialog}
+        onClose={() => setShowEventTypeDialog(false)}
+        onUpdate={() => {}}
+      />
     </>
   );
 }

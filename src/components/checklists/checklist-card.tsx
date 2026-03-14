@@ -41,13 +41,12 @@ export function ChecklistCard({
   const checklistItems = checklist.items || [];
   
   const getFrequencyColor = (frequency: string) => {
-    switch (frequency?.toLowerCase()) {
-      case 'daily': return 'blue';
-      case 'weekly': return 'purple';
-      case 'monthly': return 'orange';
-      case 'quarterly': return 'pink';
-      default: return 'gray';
-    }
+    const freq = frequency?.toLowerCase() || '';
+    if (freq === 'daily') return 'blue';
+    if (freq.startsWith('weekly')) return 'purple';
+    if (freq === 'monthly') return 'orange';
+    if (freq === 'quarterly') return 'pink';
+    return 'gray';
   };
 
   return (

@@ -19,6 +19,10 @@ export function HouseDetailSidebar() {
       target: 'calendar_events',
     },
     {
+      title: 'Daily Comms',
+      target: 'house_comms',
+    },
+    {
       title: 'Documents',
       target: 'documents',
     },

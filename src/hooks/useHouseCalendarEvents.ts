@@ -1,11 +1,33 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 
+export interface HouseCalendarEventType {
+  id: string;
+  name: string;
+  description: string | null;
+  status: 'Active' | 'Inactive';
+  color: string;
+}
+
+export interface HouseCalendarEventAttachment {
+  id: string;
+  event_id: string;
+  file_name: string;
+  file_path: string;
+  file_size?: number;
+  mime_type?: string;
+  uploaded_by?: string;
+  created_at: string;
+}
+
 export interface HouseCalendarEvent {
   id: string;
   house_id: string;
   title: string;
   type: string;
+  event_type_id?: string | null;
+  event_type_info?: HouseCalendarEventType;
+  attachments?: HouseCalendarEventAttachment[];
   description?: string;
   event_date: string;
   start_time?: string;
@@ -55,6 +77,8 @@ export function useHouseCalendarEvents(houseId?: string) {
           .from('house_calendar_events')
           .select(`
             *,
+            event_type_info:house_calendar_event_types_master(*),
+            attachments:house_calendar_event_attachments(*),
             participant:participants(id, name, email),
             assigned_staff:staff!assigned_staff_id(id, name, email),
             creator:staff!created_by(id, name, email)

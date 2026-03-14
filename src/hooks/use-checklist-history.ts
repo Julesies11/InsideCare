@@ -7,6 +7,7 @@ export interface ChecklistSubmission {
   house_id: string;
   submitted_by?: string;
   status: string;
+  scheduled_date?: string;
   started_at: string;
   completed_at?: string;
   created_at: string;
@@ -18,7 +19,7 @@ export interface ChecklistSubmission {
 }
 
 const CHECKLIST_SUBMISSION_COLUMNS = `
-  id, checklist_id, house_id, submitted_by, status, started_at, completed_at, created_at, updated_at,
+  id, checklist_id, house_id, submitted_by, status, scheduled_date, started_at, completed_at, created_at, updated_at,
   house_checklists (name),
   staff (name),
   house_checklist_submission_items (is_completed)
