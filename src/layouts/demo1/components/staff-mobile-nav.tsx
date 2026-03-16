@@ -1,13 +1,13 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Calendar, Umbrella, ClipboardList, UserCircle } from 'lucide-react';
+import { LayoutDashboard, Calendar, Umbrella, ClipboardList, ClipboardCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
   { to: '/staff/dashboard', icon: LayoutDashboard, label: 'Home' },
   { to: '/staff/roster', icon: Calendar, label: 'Roster' },
-  { to: '/staff/leave', icon: Umbrella, label: 'Leave' },
+  { to: '/staff/checklists', icon: ClipboardCheck, label: 'Checklists' },
   { to: '/staff/timesheets', icon: ClipboardList, label: 'Timesheets' },
-  { to: '/staff/profile', icon: UserCircle, label: 'Profile' },
+  { to: '/staff/leave', icon: Umbrella, label: 'Leave' },
 ];
 
 export function StaffMobileNav() {

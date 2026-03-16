@@ -23,16 +23,20 @@ export function UserDropdownMenu({ trigger }: { trigger: ReactNode }) {
 
   // Use display data from currentUser
   const displayName =
+    user?.staff_name ||
     user?.fullname ||
     (user?.first_name && user?.last_name
       ? `${user.first_name} ${user.last_name}`
       : user?.username || 'User');
 
   const displayEmail = user?.email || '';
-  const initials = [user?.first_name, user?.last_name]
-    .filter(Boolean)
-    .map((n) => n![0].toUpperCase())
-    .join('') || (user?.email?.[0]?.toUpperCase() ?? '?');
+  const initials = (user?.staff_name
+    ? user.staff_name.split(' ').map(n => n[0]).join('').toUpperCase()
+    : [user?.first_name, user?.last_name]
+        .filter(Boolean)
+        .map((n) => n![0].toUpperCase())
+        .join('')
+  ) || (user?.email?.[0]?.toUpperCase() ?? '?');
 
   const handleThemeToggle = (checked: boolean) => {
     setTheme(checked ? 'dark' : 'light');

@@ -115,15 +115,23 @@ export function StaffTimesheetForm() {
 
   const saveDraft = useCallback(async () => {
     if (!user?.staff_id || !shiftId || !shift) return;
+
+    // Ensure timestamps are full ISO strings for Supabase
+    const formatToFullISO = (val: string) => {
+      if (!val) return null;
+      const d = new Date(val);
+      return isNaN(d.getTime()) ? null : d.toISOString();
+    };
+
     const payload = {
       staff_id:             user.staff_id,
       shift_id:             shiftId,
-      clock_in:             actualStart || `${shift.shift_date}T${shift.start_time.slice(0, 5)}`,
-      clock_out:            actualEnd   || `${(shift.end_date || shift.shift_date)}T${shift.end_time.slice(0, 5)}`,
-      actual_start:         actualStart || null,
-      actual_end:           actualEnd   || null,
+      clock_in:             formatToFullISO(actualStart) || `${shift.shift_date}T${shift.start_time.slice(0, 5)}:00Z`,
+      clock_out:            formatToFullISO(actualEnd)   || `${(shift.end_date || shift.shift_date)}T${shift.end_time.slice(0, 5)}:00Z`,
+      actual_start:         formatToFullISO(actualStart),
+      actual_end:           formatToFullISO(actualEnd),
       break_minutes:        parseInt(breakMins) || 0,
-      shift_notes_text:     shiftNotes || null,
+      shift_notes_text:     shiftNotes.trim() || null,
       overtime_explanation: overtimeExplanation || null,
       travel_km:            parseFloat(travelKm) || 0,
       incident_tag:         incidentTag,
@@ -133,6 +141,7 @@ export function StaffTimesheetForm() {
       status:               'draft',
       updated_at:           new Date().toISOString(),
     };
+
     if (existingId) {
       await supabase.from('timesheets').update(payload).eq('id', existingId);
     } else {
@@ -163,13 +172,30 @@ export function StaffTimesheetForm() {
 
     setSaving(true);
     const now = new Date().toISOString();
+    
+    // Ensure timestamps are full ISO strings for Supabase
+    const formatToFullISO = (val: string) => {
+      if (!val) return null;
+      const d = new Date(val);
+      return isNaN(d.getTime()) ? null : d.toISOString();
+    };
+
+    const clockIn = formatToFullISO(actualStart);
+    const clockOut = formatToFullISO(actualEnd);
+
+    if (!clockIn || !clockOut) {
+      toast.error('Missing required times. Please ensure start and end times are set.');
+      setSaving(false);
+      return;
+    }
+
     const payload = {
       staff_id:             user.staff_id,
       shift_id:             shiftId,
-      clock_in:             actualStart,
-      clock_out:            actualEnd,
-      actual_start:         actualStart,
-      actual_end:           actualEnd,
+      clock_in:             clockIn,
+      clock_out:            clockOut,
+      actual_start:         clockIn,
+      actual_end:           clockOut,
       break_minutes:        parseInt(breakMins) || 0,
       shift_notes_text:     shiftNotes.trim(),
       overtime_explanation: overtimeExplanation || null,
@@ -183,59 +209,72 @@ export function StaffTimesheetForm() {
       updated_at:           now,
     };
 
+    console.log('Timesheet: Submitting payload:', payload);
+
     let tsId: string | null = existingId;
-    if (existingId) {
-      const { error } = await supabase.from('timesheets').update(payload).eq('id', existingId);
-      if (error) { toast.error('Failed to submit timesheet'); setSaving(false); return; }
-    } else {
-      const { data, error } = await supabase
-        .from('timesheets')
-        .upsert({ ...payload, created_at: now }, { onConflict: 'shift_id,staff_id' })
-        .select('id')
-        .single();
-      if (error) { toast.error('Failed to submit timesheet'); setSaving(false); return; }
-      tsId = data.id;
+    try {
+      if (existingId) {
+        console.log('Timesheet: Updating existing record:', existingId);
+        const { error } = await supabase.from('timesheets').update(payload).eq('id', existingId);
+        if (error) throw error;
+      } else {
+        console.log('Timesheet: Inserting new record (upsert)');
+        const { data, error } = await supabase
+          .from('timesheets')
+          .upsert({ ...payload, created_at: now }, { onConflict: 'shift_id,staff_id' })
+          .select('id')
+          .single();
+        if (error) throw error;
+        tsId = data.id;
+      }
+
+      console.log('Timesheet: DB update successful, updating shift notes...');
+      await supabase.from('shift_notes').upsert({
+        staff_id:   user.staff_id,
+        shift_id:   shiftId,
+        shift_date: shift.shift_date,
+        full_note:  shiftNotes.trim(),
+        notes:      shiftNotes.trim().slice(0, 100),
+      }, { onConflict: 'shift_id,staff_id' });
+
+      console.log('Timesheet: Logging activity...');
+      const userName = user.fullname || user.email || 'Staff';
+      await logActivity({
+        activityType:      'submit',
+        entityType:        'timesheet',
+        entityId:          tsId ?? shiftId,
+        entityName:        `Timesheet – ${format(parseISO(shift.shift_date), 'dd MMM yyyy')}`,
+        userName,
+        customDescription: `Submitted timesheet for ${format(parseISO(shift.shift_date), 'dd MMM yyyy')}`,
+      });
+
+      console.log('Timesheet: Notifying admins...');
+      const { data: admins } = await supabase
+        .from('staff')
+        .select('auth_user_id')
+        .not('auth_user_id', 'is', null);
+
+      if (admins && admins.length > 0) {
+        const notifRows = admins
+          .filter((a) => a.auth_user_id)
+          .map((a) => ({
+            user_id: a.auth_user_id as string,
+            type:    'timesheet_submitted',
+            title:   'New Timesheet Submitted',
+            body:    `${userName} submitted a timesheet for ${format(parseISO(shift.shift_date), 'dd MMM yyyy')}.`,
+            link:    '/employees/timesheets',
+          }));
+        await supabase.from('notifications').insert(notifRows);
+      }
+
+      toast.success('Timesheet submitted successfully');
+      navigate('/staff/timesheets');
+    } catch (error: any) {
+      console.error('Timesheet submission error details:', error);
+      toast.error(`Failed to submit timesheet: ${error.message || 'Unknown error'}`);
+    } finally {
+      setSaving(false);
     }
-
-    await supabase.from('shift_notes').upsert({
-      staff_id:   user.staff_id,
-      shift_id:   shiftId,
-      shift_date: shift.shift_date,
-      full_note:  shiftNotes.trim(),
-      notes:      shiftNotes.trim().slice(0, 100),
-    }, { onConflict: 'shift_id,staff_id' });
-
-    const userName = user.fullname || user.email || 'Staff';
-    await logActivity({
-      activityType:      'submit',
-      entityType:        'timesheet',
-      entityId:          tsId ?? shiftId,
-      entityName:        `Timesheet – ${format(parseISO(shift.shift_date), 'dd MMM yyyy')}`,
-      userName,
-      customDescription: `Submitted timesheet for ${format(parseISO(shift.shift_date), 'dd MMM yyyy')}`,
-    });
-
-    const { data: admins } = await supabase
-      .from('staff')
-      .select('auth_user_id')
-      .not('auth_user_id', 'is', null);
-
-    if (admins && admins.length > 0) {
-      const notifRows = admins
-        .filter((a) => a.auth_user_id)
-        .map((a) => ({
-          user_id: a.auth_user_id as string,
-          type:    'timesheet_submitted',
-          title:   'New Timesheet Submitted',
-          body:    `${userName} submitted a timesheet for ${format(parseISO(shift.shift_date), 'dd MMM yyyy')}.`,
-          link:    '/employees/timesheets',
-        }));
-      await supabase.from('notifications').insert(notifRows);
-    }
-
-    toast.success('Timesheet submitted successfully');
-    navigate('/staff/timesheets');
-    setSaving(false);
   };
 
   if (loading) {
@@ -259,7 +298,7 @@ export function StaffTimesheetForm() {
   return (
     <>
       <Container>
-        <Toolbar>
+        <Toolbar className="hidden sm:flex">
           <ToolbarHeading>
             <div className="flex items-center gap-2">
               <Button variant="ghost" size="sm" onClick={() => navigate('/staff/roster')} className="-ml-2">
@@ -283,11 +322,11 @@ export function StaffTimesheetForm() {
         </Toolbar>
       </Container>
 
-      <Container>
+      <Container className="py-6 sm:py-0">
         <form onSubmit={handleSubmit} className="grid gap-5 lg:gap-7.5 max-w-2xl">
 
           {/* Section 1 — Shift Notes */}
-          <Card>
+          <Card className="border-0 sm:border">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2 text-base">
@@ -338,7 +377,7 @@ export function StaffTimesheetForm() {
           </Card>
 
           {/* Section 2 — Actual Hours */}
-          <Card>
+          <Card className="border-0 sm:border">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
                 <Clock className="size-4 text-primary" />
@@ -418,7 +457,7 @@ export function StaffTimesheetForm() {
           </Card>
 
           {/* Section 3 — Additional Options */}
-          <Card>
+          <Card className="border-0 sm:border">
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Additional Options</CardTitle>
             </CardHeader>

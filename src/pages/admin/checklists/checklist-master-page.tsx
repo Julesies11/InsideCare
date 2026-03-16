@@ -28,15 +28,19 @@ export function ChecklistMasterPage() {
   const [formData, setFormData] = useState<{
     name: string;
     frequency: string;
+    days_of_week: string[];
     description: string;
     items: Array<{ id?: string; tempId?: string; title: string; instructions?: string; priority?: string; is_required?: boolean; sort_order?: number }>;
   }>({
     name: '',
     frequency: 'daily',
+    days_of_week: [],
     description: '',
     items: [],
   });
   const [initialFormData, setInitialFormData] = useState<typeof formData | null>(null);
+
+  const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
   const hasEdits = useMemo(() => {
     if (!initialFormData) return false;
@@ -51,11 +55,21 @@ export function ChecklistMasterPage() {
     sort_order: 0,
   });
 
+  const handleDayToggle = (day: string) => {
+    setFormData(prev => ({
+      ...prev,
+      days_of_week: prev.days_of_week.includes(day)
+        ? prev.days_of_week.filter(d => d !== day)
+        : [...prev.days_of_week, day]
+    }));
+  };
+
   const handleAddTemplate = () => {
     setSelectedTemplate(null);
     const initialData = {
       name: '',
       frequency: 'daily',
+      days_of_week: [],
       description: '',
       items: [],
     };
@@ -69,6 +83,7 @@ export function ChecklistMasterPage() {
     const initialData = {
       name: template.name,
       frequency: template.frequency,
+      days_of_week: template.days_of_week || [],
       description: template.description || '',
       items: template.items || [],
     };
@@ -106,6 +121,7 @@ export function ChecklistMasterPage() {
           .update({
             name: formData.name,
             frequency: formData.frequency,
+            days_of_week: formData.days_of_week || null,
             description: formData.description,
           })
           .eq('id', masterId);
@@ -116,6 +132,7 @@ export function ChecklistMasterPage() {
           .insert({
             name: formData.name,
             frequency: formData.frequency,
+            days_of_week: formData.days_of_week || null,
             description: formData.description,
           })
           .select()
@@ -320,19 +337,44 @@ export function ChecklistMasterPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="tpl-freq">Default Frequency *</Label>
-                <Select value={formData.frequency} onValueChange={(v) => setFormData({ ...formData, frequency: v })}>
+                <Select value={formData.frequency} onValueChange={(v) => setFormData({ ...formData, frequency: v, days_of_week: v === 'daily' ? [] : formData.days_of_week })}>
                   <SelectTrigger id="tpl-freq">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="daily">Daily</SelectItem>
-                    <SelectItem value="weekly">Weekly</SelectItem>
+                    <SelectItem value="weekly">Weekly (Select Days)</SelectItem>
                     <SelectItem value="monthly">Monthly</SelectItem>
                     <SelectItem value="quarterly">Quarterly</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
+
+            {formData.frequency === 'weekly' && (
+              <div className="space-y-3 p-4 bg-muted/30 rounded-lg border border-dashed animate-in fade-in zoom-in-95 duration-200">
+                <Label className="text-xs font-bold text-muted-foreground uppercase">Active Days</Label>
+                <div className="flex flex-wrap gap-2">
+                  {DAYS.map(day => {
+                    const isActive = formData.days_of_week.includes(day);
+                    return (
+                      <button
+                        key={day}
+                        type="button"
+                        onClick={() => handleDayToggle(day)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${
+                          isActive 
+                            ? 'bg-primary border-primary text-white' 
+                            : 'bg-background border-gray-200 text-gray-500 hover:border-primary/50'
+                        }`}
+                      >
+                        {day.slice(0, 3)}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="tpl-desc">Description</Label>

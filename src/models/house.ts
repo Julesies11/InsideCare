@@ -20,6 +20,10 @@ export interface House extends Record<string, any> {
   house_type_info?: HouseType;
   status: 'active' | 'inactive' | 'maintenance';
   notes: string | null;
+  individuals_breakdown: string | null;
+  participant_dynamics: string | null;
+  observations: string | null;
+  general_house_details: string | null;
   created_at: string;
   updated_at: string;
 }

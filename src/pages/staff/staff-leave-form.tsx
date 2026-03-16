@@ -184,7 +184,7 @@ export function StaffLeaveForm() {
   return (
     <>
       <Container>
-        <Toolbar>
+        <Toolbar className="hidden sm:flex">
           <ToolbarHeading>
             <div className="flex items-center gap-3">
               <Button variant="outline" size="sm" onClick={() => navigate('/staff/leave')}>
@@ -210,11 +210,11 @@ export function StaffLeaveForm() {
         </Toolbar>
       </Container>
 
-      <Container>
+      <Container className="py-6 sm:py-0">
         <div className="max-w-2xl space-y-5">
           {/* Conflict warning */}
           {conflictingShifts.length > 0 && (
-            <div className="rounded-lg border border-warning/50 bg-warning/10 p-4 flex gap-3">
+            <div className="rounded-lg border border-warning/50 bg-warning/10 p-4 flex gap-3 mx-4 sm:mx-0">
               <AlertTriangle className="size-5 text-warning mt-0.5 shrink-0" />
               <div className="space-y-1">
                 <p className="text-sm font-medium">
@@ -236,8 +236,8 @@ export function StaffLeaveForm() {
             </div>
           )}
 
-          <Card>
-            <CardContent className="pt-6 pb-8">
+          <Card className="border-0 sm:border">
+            <CardContent className="pt-6 pb-8 px-4 sm:px-6">
               <form id="leave-form" onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="leaveType">Leave Type <span className="text-destructive">*</span></Label>

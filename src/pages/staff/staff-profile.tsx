@@ -225,7 +225,7 @@ export function StaffProfile() {
   return (
     <>
       <Container>
-        <Toolbar>
+        <Toolbar className="hidden sm:flex">
           <ToolbarHeading>
             <ToolbarPageTitle text="My Profile" />
             <ToolbarDescription>View and update your personal information</ToolbarDescription>
@@ -242,23 +242,27 @@ export function StaffProfile() {
         </Toolbar>
       </Container>
 
-      <Container>
+      <Container className="py-6 sm:py-0">
         <div className="max-w-3xl grid gap-5 lg:gap-7.5">
 
-          <PersonalDetails
-            formData={{ ...formData, photo_url_preview: photoPreview }}
-            onFormChange={handleFormChange}
-            canEdit={true}
-          />
+          <Card className="border-0 sm:border">
+            <PersonalDetails
+              formData={{ ...formData, photo_url_preview: photoPreview }}
+              onFormChange={handleFormChange}
+              canEdit={true}
+            />
+          </Card>
 
-          <EmergencyContact
-            formData={formData}
-            onFormChange={handleFormChange}
-            canEdit={true}
-          />
+          <Card className="border-0 sm:border">
+            <EmergencyContact
+              formData={formData}
+              onFormChange={handleFormChange}
+              canEdit={true}
+            />
+          </Card>
 
           {/* Training (read-only) */}
-          <Card className="pb-2.5" id="staff_training">
+          <Card className="pb-2.5 border-0 sm:border" id="staff_training">
             <CardHeader>
               <CardTitle>Training</CardTitle>
             </CardHeader>
@@ -270,10 +274,10 @@ export function StaffProfile() {
               ) : (
                 <Table>
                   <TableHeader>
-                    <TableRow>
+                    <TableRow className="hidden sm:table-row">
                       <TableHead>Training Name</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Date Completed</TableHead>
+                      <TableHead className="hidden md:table-cell">Category</TableHead>
+                      <TableHead className="hidden sm:table-cell">Date Completed</TableHead>
                       <TableHead>Expiry Date</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="text-right">Document</TableHead>
@@ -284,9 +288,14 @@ export function StaffProfile() {
                       const status = calcTrainingStatus(item.expiry_date);
                       return (
                         <TableRow key={item.id}>
-                          <TableCell className="font-medium">{item.title}</TableCell>
-                          <TableCell>{item.category}</TableCell>
-                          <TableCell>
+                          <TableCell className="font-medium">
+                            <div className="flex flex-col gap-1">
+                              <span>{item.title}</span>
+                              <span className="text-[10px] text-muted-foreground md:hidden">{item.category}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell">{item.category}</TableCell>
+                          <TableCell className="hidden sm:table-cell">
                             {item.date_completed
                               ? format(parseISO(item.date_completed), 'dd MMM yyyy')
                               : '—'}
@@ -297,7 +306,7 @@ export function StaffProfile() {
                               : '—'}
                           </TableCell>
                           <TableCell>
-                            <Badge variant={trainingStatusVariant[status]} size="sm">
+                            <Badge variant={trainingStatusVariant[status]} size="sm" className="text-[10px] font-bold px-1.5 h-4 uppercase">
                               {status}
                             </Badge>
                           </TableCell>

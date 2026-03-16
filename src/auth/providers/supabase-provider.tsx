@@ -7,20 +7,27 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
 // Fetch user profile with a hard timeout so we never hang forever
-async function fetchUserWithTimeout(timeoutMs = 30000): Promise<UserModel | null> {
+async function fetchUserWithTimeout(timeoutMs = 60000): Promise<UserModel | null> {
   console.log(`AuthProvider: Starting profile fetch with ${timeoutMs}ms timeout...`);
-  return Promise.race([
-    SupabaseAdapter.getCurrentUser().then(user => {
+  let timeoutId: any;
+  const timeoutPromise = new Promise<null>((_, reject) => {
+    timeoutId = setTimeout(() => {
+      console.warn('AuthProvider: Profile fetch timed out!');
+      reject(new Error('Auth profile fetch timed out'));
+    }, timeoutMs);
+  });
+
+  try {
+    const userPromise = SupabaseAdapter.getCurrentUser().then(user => {
+      clearTimeout(timeoutId);
       console.log('AuthProvider: Profile fetch completed successfully');
       return user;
-    }),
-    new Promise<null>((_, reject) =>
-      setTimeout(() => {
-        console.warn('AuthProvider: Profile fetch timed out!');
-        reject(new Error('Auth profile fetch timed out'));
-      }, timeoutMs)
-    ),
-  ]);
+    });
+    return await Promise.race([userPromise, timeoutPromise]);
+  } catch (err) {
+    clearTimeout(timeoutId);
+    throw err;
+  }
 }
 
 // Define the Supabase Auth Provider

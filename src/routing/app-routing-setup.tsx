@@ -30,6 +30,7 @@ import {
   StaffLeaveList,
   StaffLeaveForm,
   StaffProfile,
+  StaffChecklists,
 } from '@/pages/staff';
 import {
   AdminTimesheetsPage,
@@ -43,6 +44,7 @@ export function AppRoutingSetup() {
       <Route element={<RequireAuth />}>
         <Route element={<Demo1Layout />}>
           <Route path="/staff/dashboard" element={<StaffDashboard />} />
+          <Route path="/staff/checklists" element={<StaffChecklists />} />
           <Route path="/staff/roster" element={<StaffRoster />} />
           <Route path="/staff/roster/:shiftId/timesheet" element={<StaffTimesheetForm />} />
           <Route path="/staff/timesheets" element={<StaffTimesheetList />} />

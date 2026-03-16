@@ -20,6 +20,7 @@ interface HouseParticipantsProps {
   houseId?: string;
   canAdd: boolean;
   canDelete: boolean;
+  readOnly?: boolean;
   pendingChanges?: {
     participants: {
       toAdd: any[];
@@ -42,6 +43,7 @@ export function HouseParticipants({
   houseId, 
   canAdd, 
   canDelete,
+  readOnly = false,
   pendingChanges,
   onPendingChangesChange 
 }: HouseParticipantsProps) {
@@ -221,100 +223,96 @@ export function HouseParticipants({
     ...(pendingChanges?.participants?.toAdd || []),
   ];
 
-  return (
+  const content = (
     <>
-      <Card className="pb-2.5" id="participants">
-        <CardHeader>
-          <CardTitle>Participants</CardTitle>
+      <CardHeader className="flex flex-row items-center justify-between pb-2 px-0">
+        <CardTitle>Participants</CardTitle>
+        {!readOnly && (
           <Button variant="secondary" size="sm" className="border border-gray-300" onClick={handleAdd} disabled={!houseId || !canAdd}>
             <Plus className="size-4 me-1.5" />
             Add Participant
           </Button>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="text-center py-8 text-muted-foreground">Loading participants...</div>
-          ) : visibleParticipants.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">No participants linked to this house</div>
-          ) : (
-            <div className="overflow-x-auto"><Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Participant</TableHead>
-                  <TableHead>Move-in Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {visibleParticipants.map((participant) => {
-                  const isPendingAdd = 'tempId' in participant;
-                  const pendingUpdate = pendingChanges?.participants?.toUpdate?.find(p => p.id === participant.id);
-                  const isPendingUpdate = !!pendingUpdate;
-                  const isPendingDelete = pendingChanges?.participants?.toDelete?.includes(participant.id);
-                  
-                  // Use data from pending update if it exists
-                  const displayData = pendingUpdate ? { ...participant, ...pendingUpdate } : participant;
-                  
-                  return (
-                    <TableRow 
-                      key={participant.id || participant.tempId} 
-                      className={
-                        isPendingAdd ? 'bg-primary/5' : 
-                        isPendingDelete ? 'opacity-50 bg-destructive/5' : 
-                        isPendingUpdate ? 'bg-warning/5' : ''
-                      }
-                    >
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Users className="size-4 text-muted-foreground" />
-                          <span 
-                            className={`font-medium cursor-pointer text-primary hover:underline ${isPendingDelete ? 'line-through' : ''}`}
-                            onClick={() => {
-                              const pId = participant.id || participant.participant_id;
-                              if (pId && !pId.startsWith('temp-')) {
-                                navigate(`/participants/detail/${pId}`);
-                              }
-                            }}
-                          >
-                            {getParticipantName(participant)}
+        )}
+      </CardHeader>
+      <CardContent className="px-0">
+        {loading ? (
+          <div className="text-center py-8 text-muted-foreground">Loading participants...</div>
+        ) : visibleParticipants.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">No participants linked to this house</div>
+        ) : (
+          <div className="overflow-x-auto"><Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Participant</TableHead>
+                <TableHead>Move-in Date</TableHead>
+                <TableHead>Status</TableHead>
+                {!readOnly && <TableHead className="text-right">Actions</TableHead>}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {visibleParticipants.map((participant) => {
+                const isPendingAdd = 'tempId' in participant;
+                const pendingUpdate = pendingChanges?.participants?.toUpdate?.find(p => p.id === participant.id);
+                const isPendingUpdate = !!pendingUpdate;
+                const isPendingDelete = pendingChanges?.participants?.toDelete?.includes(participant.id);
+                
+                // Use data from pending update if it exists
+                const displayData = pendingUpdate ? { ...participant, ...pendingUpdate } : participant;
+                
+                return (
+                  <TableRow 
+                    key={participant.id || participant.tempId} 
+                    className={
+                      isPendingAdd ? 'bg-primary/5' : 
+                      isPendingDelete ? 'opacity-50 bg-destructive/5' : 
+                      isPendingUpdate ? 'bg-warning/5' : ''
+                    }
+                  >
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Users className="size-4 text-muted-foreground" />
+                        <span 
+                          className={`font-medium ${isPendingDelete ? 'line-through' : ''}`}
+                        >
+                          {getParticipantName(participant)}
+                        </span>
+                        {isPendingAdd && (
+                          <span className="text-xs text-primary flex items-center gap-1">
+                            <Clock className="size-3" />
+                            Pending add
                           </span>
-                          {isPendingAdd && (
-                            <span className="text-xs text-primary flex items-center gap-1">
-                              <Clock className="size-3" />
-                              Pending add
-                            </span>
-                          )}
-                          {isPendingUpdate && (
-                            <span className="text-xs text-warning flex items-center gap-1">
-                              <Clock className="size-3" />
-                              Pending update
-                            </span>
-                          )}
-                          {isPendingDelete && (
-                            <span className="text-xs text-destructive flex items-center gap-1">
-                              <Clock className="size-3" />
-                              Pending removal
-                            </span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          {displayData.move_in_date && (
-                            <>
-                              <Calendar className="size-4 text-muted-foreground" />
-                              {new Date(displayData.move_in_date).toLocaleDateString()}
-                            </>
-                          )}
-                          {!displayData.move_in_date && 'N/A'}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={(displayData.status === 'active' || displayData.is_active) ? 'success' : 'secondary'}>
-                          {(displayData.status === 'active' || displayData.is_active) ? 'Active' : 'Inactive'}
-                        </Badge>
-                      </TableCell>
+                        )}
+                        {isPendingUpdate && (
+                          <span className="text-xs text-warning flex items-center gap-1">
+                            <Clock className="size-3" />
+                            Pending update
+                          </span>
+                        )}
+                        {isPendingDelete && (
+                          <span className="text-xs text-destructive flex items-center gap-1">
+                            <Clock className="size-3" />
+                            Pending removal
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        {displayData.move_in_date && (
+                          <>
+                            <Calendar className="size-4 text-muted-foreground" />
+                            {new Date(displayData.move_in_date).toLocaleDateString()}
+                          </>
+                        )}
+                        {!displayData.move_in_date && 'N/A'}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={(displayData.status === 'active' || displayData.is_active) ? 'success' : 'secondary'}>
+                        {(displayData.status === 'active' || displayData.is_active) ? 'Active' : 'Inactive'}
+                      </Badge>
+                    </TableCell>
+                    {!readOnly && (
                       <TableCell>
                         <div className="flex justify-end gap-1">
                           {!isPendingDelete && (
@@ -363,14 +361,28 @@ export function HouseParticipants({
                           )}
                         </div>
                       </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table></div>
-          )}
-        </CardContent>
-      </Card>
+                    )}
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table></div>
+        )}
+      </CardContent>
+    </>
+  );
+
+  return (
+    <>
+      {readOnly ? (
+        <div id="participants" className="pb-2.5">
+          {content}
+        </div>
+      ) : (
+        <Card className="pb-2.5" id="participants">
+          {content}
+        </Card>
+      )}
 
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className="sm:max-w-[425px]">

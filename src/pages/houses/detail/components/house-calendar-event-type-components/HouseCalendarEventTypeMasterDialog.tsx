@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -123,6 +123,9 @@ export function HouseCalendarEventTypeMasterDialog({
         <DialogContent className="max-w-4xl max-h-[80vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Manage Event Types</DialogTitle>
+            <DialogDescription>
+              View and manage the master list of calendar event types.
+            </DialogDescription>
           </DialogHeader>
 
           <div className="flex items-center gap-2 mb-4">

@@ -17,6 +17,7 @@ import { HousePendingChanges } from '@/models/house-pending-changes';
 import { HouseCalendarEventTypeCombobox } from './house-calendar-event-type-components/HouseCalendarEventTypeCombobox';
 import { HouseCalendarEventTypeMasterDialog } from './house-calendar-event-type-components/HouseCalendarEventTypeMasterDialog';
 import { HouseCalendarEventAttachments, QueuedAttachment } from './HouseCalendarEventAttachments';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
@@ -46,6 +47,7 @@ export function HouseCalendarEvents({
     event_type_id: '',
     description: '',
     event_date: '',
+    end_date: '',
     start_time: '',
     end_time: '',
     participant_id: '',
@@ -116,12 +118,14 @@ export function HouseCalendarEvents({
 
   const handleAddEvent = (date: Date) => {
     setSelectedEvent(null);
+    const dateStr = format(date, 'yyyy-MM-dd');
     setFormData({
       title: '',
       type: 'meeting',
       event_type_id: '',
       description: '',
-      event_date: format(date, 'yyyy-MM-dd'),
+      event_date: dateStr,
+      end_date: dateStr,
       start_time: '',
       end_time: '',
       participant_id: '',
@@ -144,6 +148,7 @@ export function HouseCalendarEvents({
       event_type_id: event.event_type_id || '',
       description: event.description || '',
       event_date: event.event_date,
+      end_date: event.end_date || event.event_date,
       start_time: event.start_time || '',
       end_time: event.end_time || '',
       participant_id: event.participant_id || '',
@@ -193,6 +198,7 @@ export function HouseCalendarEvents({
         event_type_id: formData.event_type_id || null,
         description: formData.description || null,
         event_date: formData.event_date,
+        end_date: formData.end_date || formData.event_date,
         start_time: formData.start_time || null,
         end_time: formData.end_time || null,
         participant_id: formData.participant_id || null,
@@ -397,14 +403,20 @@ export function HouseCalendarEvents({
     return null;
   };
 
-  // Get status color
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'scheduled': return 'blue';
-      case 'completed': return 'green';
-      case 'cancelled': return 'red';
-      default: return 'gray';
-    }
+  // Get status color based on date/time calculation
+  const getStatusColor = (event: any) => {
+    const now = new Date();
+    const eventDate = new Date(`${event.event_date}T${event.start_time || '00:00'}`);
+    
+    if (eventDate > now) return 'blue'; // Upcoming
+    return 'green'; // Past
+  };
+
+  const getStatusText = (event: any) => {
+    const now = new Date();
+    const eventDate = new Date(`${event.event_date}T${event.start_time || '00:00'}`);
+    
+    return eventDate > now ? 'Upcoming' : 'Past';
   };
 
   // Get type color
@@ -429,7 +441,7 @@ export function HouseCalendarEvents({
     <>
       <Card className="pb-2.5" id="calendar_events">
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center flex-wrap gap-5">
             <CardTitle className="flex items-center gap-2">
               <CalendarDays className="size-5" />
               Calendar Events
@@ -652,14 +664,31 @@ export function HouseCalendarEvents({
               />
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-4 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="event_date">Date *</Label>
+                <Label htmlFor="event_date">Start Date *</Label>
                 <Input
                   id="event_date"
                   type="date"
                   value={formData.event_date}
-                  onChange={(e) => setFormData({ ...formData, event_date: e.target.value })}
+                  onChange={(e) => {
+                    const newStart = e.target.value;
+                    setFormData(prev => ({
+                      ...prev,
+                      event_date: newStart,
+                      end_date: prev.end_date < newStart ? newStart : prev.end_date,
+                    }));
+                  }}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="end_date">End Date</Label>
+                <Input
+                  id="end_date"
+                  type="date"
+                  value={formData.end_date}
+                  min={formData.event_date}
+                  onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
@@ -691,7 +720,9 @@ export function HouseCalendarEvents({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">None</SelectItem>
-                    {participants.map((participant) => (
+                    {participants
+                      .filter(p => p.status === 'active' || p.id === formData.participant_id)
+                      .map((participant) => (
                       <SelectItem key={participant.id} value={participant.id}>
                         {participant.name}
                       </SelectItem>
@@ -707,9 +738,17 @@ export function HouseCalendarEvents({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">None</SelectItem>
-                    {staff.map((staffMember) => (
+                    {staff
+                      .filter(s => (s as any).status === 'active' || s.id === formData.assigned_staff_id)
+                      .map((staffMember) => (
                       <SelectItem key={staffMember.id} value={staffMember.id}>
-                        {staffMember.name}
+                        <div className="flex items-center gap-2">
+                          <Avatar className="size-5">
+                            <AvatarImage src={(staffMember as any).photo_url} />
+                            <AvatarFallback className="text-[8px]">{staffMember.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                          </Avatar>
+                          <span>{staffMember.name}</span>
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -717,29 +756,14 @@ export function HouseCalendarEvents({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
-                <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="scheduled">Scheduled</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
-                    <SelectItem value="cancelled">Cancelled</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="location">Location</Label>
-                <Input
-                  id="location"
-                  value={formData.location}
-                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                  placeholder="Event location"
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="location">Location</Label>
+              <Input
+                id="location"
+                value={formData.location}
+                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                placeholder="Event location"
+              />
             </div>
 
             <div className="space-y-2">

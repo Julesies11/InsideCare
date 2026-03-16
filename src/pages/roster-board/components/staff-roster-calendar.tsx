@@ -47,6 +47,8 @@ export function StaffRosterCalendar({
   const [leaveBlocks, setLeaveBlocks] = useState<LeaveBlock[]>([]);
   const [showShiftDialog, setShowShiftDialog] = useState(false);
   const [selectedShift, setSelectedShift] = useState<StaffShift | null>(null);
+  const [preSelectedDate, setPreSelectedDate] = useState<Date | undefined>(undefined);
+  const [preSelectedHouseId, setPreSelectedHouseId] = useState<string | undefined>(undefined);
 
   // Write Note state
   const [showNoteDialog, setShowNoteDialog] = useState(false);
@@ -150,16 +152,21 @@ export function StaffRosterCalendar({
       const matchesParticipant = participantFilter === 'all' || 
         shift.participants?.some(p => p.id === participantFilter);
       return matchesHouse && matchesType && matchesStatus && matchesParticipant;
-    }).map(shift => ({ ...shift, notesCount: notesCounts[shift.id] ?? 0 }));
+    }).map(shift => ({ ...shift, notesCount: notesCounts[shift.id] ?? 0 }))
+      .sort((a, b) => a.start_time.localeCompare(b.start_time));
   }, [shifts, houseFilter, participantFilter, shiftTypeFilter, statusFilter, notesCounts]);
 
-  const handleAddShift = () => {
+  const handleAddShift = (date?: Date, houseId?: string) => {
     setSelectedShift(null);
+    setPreSelectedDate(date);
+    setPreSelectedHouseId(houseId);
     setShowShiftDialog(true);
   };
 
   const handleEditShift = (shift: StaffShift) => {
     setSelectedShift(shift);
+    setPreSelectedDate(undefined);
+    setPreSelectedHouseId(undefined);
     setScrollToNotes(false);
     setShowShiftDialog(true);
   };
@@ -171,14 +178,14 @@ export function StaffRosterCalendar({
     setShowShiftDialog(true);
   };
 
-  const handleSaveShift = async (formData: ShiftFormData): Promise<{ id: string } | void> => {
+  const handleSaveShift = async (formData: ShiftFormData, isCreateOverride: boolean = false): Promise<{ id: string } | void> => {
     if (!formData.staff_id || !formData.shift_date || !formData.start_time || !formData.end_time) {
       toast.error('Please fill in all required fields including staff member');
       return;
     }
 
     try {
-      if (selectedShift) {
+      if (selectedShift && !isCreateOverride) {
         // UPDATE EXISTING SHIFT
         const updates = {
           staff_id: formData.staff_id,
@@ -338,6 +345,8 @@ export function StaffRosterCalendar({
         }}
         shift={selectedShift}
         staffId={staffId !== 'all' ? staffId : undefined}
+        preSelectedDate={preSelectedDate}
+        preSelectedHouseId={preSelectedHouseId}
         staffList={staff}
         staffSelectionDisabled={false}
         houses={houses}

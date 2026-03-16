@@ -18,6 +18,7 @@ export interface HouseChecklist {
   house_id: string;
   name: string;
   frequency: string;
+  days_of_week?: string[];
   description?: string;
   master_id?: string;
   created_at: string;
@@ -27,6 +28,7 @@ export interface HouseChecklist {
     id: string;
     status: string;
     updated_at: string;
+    scheduled_date: string;
   };
 }
 
@@ -35,27 +37,38 @@ const HOUSE_CHECKLIST_COLUMNS = `
   house_checklist_items (id, checklist_id, title, instructions, priority, is_required, sort_order, created_at, updated_at)
 `;
 
-export function useHouseChecklists(houseId?: string) {
+export function useHouseChecklists(houseId?: string, scheduledDate?: string) {
   const query = useQuery({
-    queryKey: ['house-checklists', houseId],
+    queryKey: ['house-checklists', houseId, scheduledDate],
     queryFn: async () => {
       if (!houseId) return [];
 
       // Fetch checklists with items
       const { data: checklists, error: clError } = await supabase
         .from('house_checklists')
-        .select(HOUSE_CHECKLIST_COLUMNS)
+        .select(`
+          id, house_id, name, frequency, days_of_week, description, master_id, created_at, updated_at,
+          house_checklist_items (id, checklist_id, title, instructions, priority, is_required, sort_order, created_at, updated_at)
+        `)
         .eq('house_id', houseId)
         .order('created_at', { ascending: false });
 
       if (clError) throw clError;
 
       // Fetch latest in_progress submissions for these checklists in this house
-      const { data: submissions, error: subError } = await supabase
+      // If scheduledDate is provided, only fetch for that specific date
+      let subQuery = supabase
         .from('house_checklist_submissions')
-        .select('id, checklist_id, status, updated_at')
-        .eq('house_id', houseId)
-        .eq('status', 'in_progress');
+        .select('id, checklist_id, status, updated_at, scheduled_date')
+        .eq('house_id', houseId);
+        
+      if (scheduledDate) {
+        subQuery = subQuery.eq('scheduled_date', scheduledDate);
+      } else {
+        subQuery = subQuery.eq('status', 'in_progress');
+      }
+
+      const { data: submissions, error: subError } = await subQuery;
 
       if (subError) throw subError;
 

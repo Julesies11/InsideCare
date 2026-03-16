@@ -20,8 +20,8 @@ import { Settings } from 'lucide-react';
 import { useHouseTypesMaster } from '@/hooks/use-house-types-master';
 
 interface HouseTypeComboboxProps {
-  value: string;
-  onChange: (value: string) => void;
+  value: string | null;
+  onChange: (value: string | null) => void;
   canEdit: boolean;
   onManageList: () => void;
 }
@@ -42,7 +42,7 @@ export function HouseTypeCombobox({
   const selectedHouseType = houseTypes.find((type) => type.id === value);
 
   const handleSelect = (houseTypeId: string) => {
-    onChange(houseTypeId === value ? '' : houseTypeId);
+    onChange(houseTypeId === value ? null : houseTypeId);
     setOpen(false);
   };
 

@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { ClipboardList, Pencil, Plus, Trash2, X, AlertTriangle } from 'lucide-react';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { ClipboardList, Pencil, Plus, Trash2, X, AlertTriangle, Copy } from 'lucide-react';
 import { format, parseISO, areIntervalsOverlapping } from 'date-fns';
 import { useShiftNotes, ShiftNote } from '@/hooks/use-shift-notes';
 import { toast } from 'sonner';
@@ -42,11 +43,13 @@ interface ShiftDialogProps {
     participants?: Array<{ id: string; name: string }>;
   } | null;
   staffId?: string;
+  preSelectedDate?: Date;
+  preSelectedHouseId?: string;
   staffList: Array<{ id: string; name: string }>;
   staffSelectionDisabled: boolean;
   houses: Array<{ id: string; name: string }>;
-  participants: Array<{ id: string; name: string }>;
-  onSave: (formData: ShiftFormData) => Promise<{ id: string } | void>;
+  participants: Array<{ id: string; name: string; house_id?: string | null }>;
+  onSave: (formData: ShiftFormData, isCreateOverride?: boolean) => Promise<{ id: string } | void>;
   onDelete?: (shiftId: string) => Promise<void>;
   scrollToNotes?: boolean;
   readOnly?: boolean;
@@ -65,6 +68,8 @@ export function ShiftDialog({
   onOpenChange,
   shift,
   staffId,
+  preSelectedDate,
+  preSelectedHouseId,
   staffList,
   staffSelectionDisabled,
   houses,
@@ -75,6 +80,7 @@ export function ShiftDialog({
   readOnly = false,
 }: ShiftDialogProps) {
   const notesSectionRef = useRef<HTMLDivElement>(null);
+  const [isDuplicating, setIsDuplicating] = useState(false);
   const [formData, setFormData] = useState<ShiftFormData>({
     staff_id: staffId || '',
     shift_date: format(new Date(), 'yyyy-MM-dd'),
@@ -109,7 +115,7 @@ export function ShiftDialog({
   const [editBuffer, setEditBuffer] = useState<{ notes: string; full_note: string }>({ notes: '', full_note: '' });
   const [deletingNoteId, setDeletingNoteId] = useState<string | null>(null);
 
-  const isEdit = shift !== null;
+  const isEdit = shift !== null && !isDuplicating;
 
   // Check for double bookings
   const checkDoubleBooking = useCallback(async (staffId: string, shiftDate: string, startTime: string, endTime: string, excludeShiftId?: string) => {
@@ -117,6 +123,9 @@ export function ShiftDialog({
       setDoubleBookingWarning({ hasWarning: false, conflictingShifts: [] });
       return;
     }
+
+    // Reset warning while checking to avoid stale alerts
+    setDoubleBookingWarning({ hasWarning: false, conflictingShifts: [] });
 
     try {
       let query = supabase
@@ -141,17 +150,16 @@ export function ShiftDialog({
       }
 
       // Check for overlapping time intervals
-      const currentStart = new Date(`${shiftDate}T${startTime}`);
-      const currentEnd = new Date(`${shiftDate}T${endTime}`);
+      const currentStart = new Date(`${shiftDate}T${startTime}`).getTime();
+      const currentEnd = new Date(`${shiftDate}T${endTime}`).getTime();
 
       const conflictingShifts = (existingShifts || []).filter(existingShift => {
-        const existingStart = new Date(`${existingShift.shift_date}T${existingShift.start_time}`);
-        const existingEnd = new Date(`${existingShift.shift_date}T${existingShift.end_time}`);
+        const existingStart = new Date(`${existingShift.shift_date}T${existingShift.start_time}`).getTime();
+        const existingEnd = new Date(`${existingShift.shift_date}T${existingShift.end_time}`).getTime();
         
-        return areIntervalsOverlapping(
-          { start: currentStart, end: currentEnd },
-          { start: existingStart, end: existingEnd }
-        );
+        // Strict overlap check (allows back-to-back shifts)
+        // (StartA < EndB) AND (EndA > StartB)
+        return currentStart < existingEnd && currentEnd > existingStart;
       });
 
       setDoubleBookingWarning({
@@ -166,20 +174,28 @@ export function ShiftDialog({
   // Check for double bookings when relevant form fields change
   useEffect(() => {
     if (formData.staff_id && formData.shift_date && formData.start_time && formData.end_time) {
+      // Only exclude the shift ID if we are actually editing it.
+      // If duplicating, we are creating a NEW record, so we shouldn't exclude the source shift.
       checkDoubleBooking(
         formData.staff_id,
         formData.shift_date,
         formData.start_time,
         formData.end_time,
-        shift?.id
+        isEdit ? shift?.id : undefined
       );
     }
-  }, [formData.staff_id, formData.shift_date, formData.start_time, formData.end_time, shift?.id, checkDoubleBooking]);
+  }, [formData.staff_id, formData.shift_date, formData.start_time, formData.end_time, isEdit, shift?.id, checkDoubleBooking]);
+
+  useEffect(() => {
+    if (!open) {
+      setIsDuplicating(false);
+    }
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
 
-    if (shift) {
+    if (shift && !isDuplicating) {
       setFormData({
         staff_id: shift.staff_id || staffId || '',
         shift_date: shift.shift_date,
@@ -198,23 +214,40 @@ export function ShiftDialog({
         setExistingNotes(notes);
         setNotesLoading(false);
       });
+    } else if (isDuplicating && shift) {
+      // Keep most form data but it's now a new shift
+      // We don't reset formData here because it's already set from the shift
+      setExistingNotes([]);
+      setDraftNotes([]);
     } else {
+      const initialDate = preSelectedDate ? format(preSelectedDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
+      const initialHouseId = preSelectedHouseId || '';
+      
+      // Auto-assign participants if house is pre-selected
+      let initialParticipantIds: string[] = [];
+      if (initialHouseId) {
+        initialParticipantIds = participants
+          .filter(p => p.house_id === initialHouseId && p.status === 'active')
+          .map(p => p.id);
+      }
+
       setFormData({
         staff_id: staffId || '',
-        shift_date: format(new Date(), 'yyyy-MM-dd'),
-        end_date: format(new Date(), 'yyyy-MM-dd'),
+        shift_date: initialDate,
+        end_date: initialDate,
         start_time: '09:00',
         end_time: '17:00',
-        house_id: '',
+        house_id: initialHouseId,
         shift_type: 'SIL',
         status: 'Scheduled',
         notes: '',
-        participant_ids: [],
+        participant_ids: initialParticipantIds,
       });
       setExistingNotes([]);
+      setIsDuplicating(false);
     }
     setDraftNotes([]);
-  }, [shift, staffId, open, fetchShiftNotesByShiftId]);
+  }, [shift, staffId, open, fetchShiftNotesByShiftId, preSelectedDate, preSelectedHouseId, isDuplicating, participants]);
 
   useEffect(() => {
     if (open && scrollToNotes && notesSectionRef.current) {
@@ -224,10 +257,58 @@ export function ShiftDialog({
     }
   }, [open, scrollToNotes]);
 
+  // Handle auto-assignment when house changes
+  const handleHouseChange = (newHouseId: string) => {
+    const houseId = newHouseId === 'none' ? '' : newHouseId;
+    
+    // Auto-assign participants if it's SIL, ILO, or SDA
+    if (houseId && ['SIL', 'ILO', 'SDA'].includes(formData.shift_type)) {
+      const houseParticipants = participants
+        .filter(p => p.house_id === houseId && p.status === 'active')
+        .map(p => p.id);
+      
+      setFormData({
+        ...formData,
+        house_id: houseId,
+        participant_ids: houseParticipants,
+      });
+    } else {
+      setFormData({
+        ...formData,
+        house_id: houseId,
+      });
+    }
+  };
+
+  const handleShiftTypeChange = (newType: string) => {
+    // If switching TO SIL, ILO, or SDA and a house is selected, auto-assign
+    if (['SIL', 'ILO', 'SDA'].includes(newType) && formData.house_id) {
+      const houseParticipants = participants
+        .filter(p => p.house_id === formData.house_id && p.status === 'active')
+        .map(p => p.id);
+      
+      setFormData({
+        ...formData,
+        shift_type: newType,
+        participant_ids: houseParticipants,
+      });
+    } else {
+      setFormData({
+        ...formData,
+        shift_type: newType,
+      });
+    }
+  };
+
+  const handleDuplicate = () => {
+    setIsDuplicating(true);
+    toast.info('Shift duplicated. You are now creating a new shift based on the previous one.');
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
-      const result = await onSave(formData);
+      const result = await onSave(formData, isDuplicating);
       // In create mode, save any draft notes now that we have the shift id
       if (!isEdit && draftNotes.length > 0 && result?.id) {
         const newShiftId = result.id;
@@ -396,9 +477,17 @@ export function ShiftDialog({
                   <SelectValue placeholder="Select staff member" />
                 </SelectTrigger>
                 <SelectContent>
-                  {staffList.map(member => (
+                  {staffList
+                    .filter(member => (member as any).status === 'active' || member.id === formData.staff_id)
+                    .map(member => (
                     <SelectItem key={member.id} value={member.id}>
-                      {member.name || 'Unnamed Staff'}
+                      <div className="flex items-center gap-2">
+                        <Avatar className="size-5">
+                          <AvatarImage src={(member as any).photo_url} />
+                          <AvatarFallback className="text-[8px]">{member.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                        </Avatar>
+                        <span>{member.name || 'Unnamed Staff'}</span>
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -494,7 +583,7 @@ export function ShiftDialog({
               <Label htmlFor="house_id">House</Label>
               <Select 
                 value={formData.house_id || 'none'} 
-                onValueChange={(value) => setFormData({ ...formData, house_id: value === 'none' ? '' : value })}
+                onValueChange={handleHouseChange}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select house" />
@@ -507,30 +596,19 @@ export function ShiftDialog({
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <Label htmlFor="status">Status *</Label>
-              <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Scheduled">Scheduled</SelectItem>
-                  <SelectItem value="Completed">Completed</SelectItem>
-                  <SelectItem value="Cancelled">Cancelled</SelectItem>
-                  <SelectItem value="No Show">No Show</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <div />
           </div>
 
           <div>
             <Label htmlFor="shift_type">Shift Type *</Label>
-            <Select value={formData.shift_type} onValueChange={(value) => setFormData({ ...formData, shift_type: value })}>
+            <Select value={formData.shift_type} onValueChange={handleShiftTypeChange}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="SIL">SIL</SelectItem>
+                <SelectItem value="ILO">ILO</SelectItem>
+                <SelectItem value="SDA">SDA</SelectItem>
                 <SelectItem value="Community">Community</SelectItem>
                 <SelectItem value="Admin">Admin</SelectItem>
               </SelectContent>
@@ -547,7 +625,9 @@ export function ShiftDialog({
                 <SelectValue placeholder="Select participants" />
               </SelectTrigger>
               <SelectContent>
-                {participants.map(participant => (
+                {participants
+                  .filter(p => p.status === 'active' || formData.participant_ids.includes(p.id))
+                  .map(participant => (
                   <SelectItem key={participant.id} value={participant.id}>
                     {participant.name}
                   </SelectItem>
@@ -783,7 +863,7 @@ export function ShiftDialog({
         </div>
 
         <DialogFooter className="flex justify-between">
-          <div>
+          <div className="flex gap-2">
             {!readOnly && isEdit && onDelete && (
               <Button
                 variant="destructive"
@@ -792,6 +872,17 @@ export function ShiftDialog({
               >
                 <Trash2 className="h-4 w-4 mr-2" />
                 {deleting ? 'Deleting...' : 'Delete'}
+              </Button>
+            )}
+            {!readOnly && shift && !isDuplicating && (
+              <Button
+                variant="secondary"
+                onClick={handleDuplicate}
+                disabled={deleting || saving}
+                className="border border-gray-300"
+              >
+                <Copy className="h-4 w-4 mr-2" />
+                Duplicate
               </Button>
             )}
           </div>

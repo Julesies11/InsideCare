@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
@@ -81,6 +81,43 @@ export function HouseChecklistExecution({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeItemIdForUpload, setActiveItemIdForUpload] = useState<string | null>(null);
+
+  // Offline Resilience: Auto-save to local storage as you work
+  useEffect(() => {
+    if (isReadOnly) return;
+    
+    const offlineKey = `checklist_draft_${checklist.id}`;
+    const draft = {
+      completedItems,
+      itemNotes,
+      timestamp: Date.now()
+    };
+    
+    localStorage.setItem(offlineKey, JSON.stringify(draft));
+  }, [completedItems, itemNotes, checklist.id, isReadOnly]);
+
+  // Load from offline draft if it's newer than initialData
+  useEffect(() => {
+    if (isReadOnly) return;
+    
+    const offlineKey = `checklist_draft_${checklist.id}`;
+    const saved = localStorage.getItem(offlineKey);
+    if (saved) {
+      try {
+        const draft = JSON.parse(saved);
+        // Only restore if draft is from today (less than 12 hours old) AND we don't have server data
+        // If initialData exists and has items, it means we are resuming a server-saved draft, which takes precedence.
+        const hasServerData = initialData && Object.keys(initialData.completedItems).length > 0;
+        
+        if (!hasServerData && Date.now() - draft.timestamp < 1000 * 60 * 60 * 12) {
+          setCompletedItems(draft.completedItems);
+          setItemNotes(draft.itemNotes);
+        }
+      } catch (e) {
+        console.error('Failed to parse offline draft', e);
+      }
+    }
+  }, [checklist.id, isReadOnly, initialData]);
 
   const items = [...checklist.items].sort((a, b) => a.sort_order - b.sort_order);
   const completedCount = Object.values(completedItems).filter(Boolean).length;
@@ -166,6 +203,8 @@ export function HouseChecklistExecution({
       // Reset local changes state
       setQueuedAttachments({});
       setToDeleteAttachments([]);
+      // Clear offline draft on successful server save
+      localStorage.removeItem(`checklist_draft_${checklist.id}`);
     } catch {
       // toast shown by parent
     } finally {
@@ -186,6 +225,8 @@ export function HouseChecklistExecution({
         ...getResults(),
         completed_at: new Date().toISOString(),
       });
+      // Clear offline draft on successful completion
+      localStorage.removeItem(`checklist_draft_${checklist.id}`);
     } catch {
       // toast shown by parent
     } finally {

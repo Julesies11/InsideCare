@@ -15,12 +15,13 @@ export interface ChecklistMaster {
   id: string;
   name: string;
   frequency: string;
+  days_of_week?: string[];
   description?: string;
   items?: ChecklistMasterItem[];
 }
 
 const CHECKLIST_MASTER_COLUMNS = `
-  id, name, frequency, description,
+  id, name, frequency, days_of_week, description,
   items:checklist_item_master (id, master_id, title, instructions, priority, is_required, sort_order)
 `;
 

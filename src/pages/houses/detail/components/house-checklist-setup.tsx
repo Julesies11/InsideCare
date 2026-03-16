@@ -43,11 +43,13 @@ export function HouseChecklistSetup({
   const [checklistFormData, setChecklistFormData] = useState<{
     name: string;
     frequency: string;
+    days_of_week: string[];
     description: string;
     items: any[];
   }>({
     name: '',
     frequency: 'daily',
+    days_of_week: [],
     description: '',
     items: [],
   });
@@ -60,11 +62,14 @@ export function HouseChecklistSetup({
     sort_order: 0,
   });
 
+  const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
   const handleAddChecklist = () => {
     setSelectedChecklist(null);
     setChecklistFormData({
       name: '',
       frequency: 'daily',
+      days_of_week: [],
       description: '',
       items: [],
     });
@@ -76,10 +81,20 @@ export function HouseChecklistSetup({
     setChecklistFormData({
       name: checklist.name,
       frequency: checklist.frequency,
+      days_of_week: checklist.days_of_week || [],
       description: checklist.description || '',
       items: checklist.items || [],
     });
     setShowChecklistDialog(true);
+  };
+
+  const handleDayToggle = (day: string) => {
+    setChecklistFormData(prev => ({
+      ...prev,
+      days_of_week: prev.days_of_week.includes(day)
+        ? prev.days_of_week.filter(d => d !== day)
+        : [...prev.days_of_week, day]
+    }));
   };
 
   const handleSaveChecklist = () => {
@@ -239,25 +254,14 @@ export function HouseChecklistSetup({
     }
   };
 
-  const todayDayName = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-  const todayFrequency = `weekly_${todayDayName}`;
-
   const visibleChecklists = [
     ...(houseChecklists || [])
       .filter(checklist => !pendingChanges?.checklists?.toDelete?.includes(checklist.id))
-      .filter(checklist => {
-        const freq = checklist.frequency?.toLowerCase();
-        return freq === 'daily' || freq === todayFrequency;
-      })
       .map(checklist => {
         const update = pendingChanges?.checklists?.toUpdate?.find(u => u.id === checklist.id);
         return update ? { ...checklist, ...update } : checklist;
       }),
-    ...(pendingChanges?.checklists?.toAdd || [])
-      .filter(checklist => {
-        const freq = checklist.frequency?.toLowerCase();
-        return freq === 'daily' || freq === todayFrequency;
-      }),
+    ...(pendingChanges?.checklists?.toAdd || []),
   ];
 
   return (
@@ -349,23 +353,43 @@ export function HouseChecklistSetup({
               </div>
               <div className="space-y-2">
                 <Label htmlFor="setup-freq">Frequency *</Label>
-                <Select value={checklistFormData.frequency} onValueChange={(v) => setChecklistFormData({ ...checklistFormData, frequency: v })}>
+                <Select value={checklistFormData.frequency} onValueChange={(v) => setChecklistFormData({ ...checklistFormData, frequency: v, days_of_week: v === 'daily' ? [] : checklistFormData.days_of_week })}>
                   <SelectTrigger id="setup-freq"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="daily">Daily</SelectItem>
-                    <SelectItem value="weekly_monday">Weekly (Monday)</SelectItem>
-                    <SelectItem value="weekly_tuesday">Weekly (Tuesday)</SelectItem>
-                    <SelectItem value="weekly_wednesday">Weekly (Wednesday)</SelectItem>
-                    <SelectItem value="weekly_thursday">Weekly (Thursday)</SelectItem>
-                    <SelectItem value="weekly_friday">Weekly (Friday)</SelectItem>
-                    <SelectItem value="weekly_saturday">Weekly (Saturday)</SelectItem>
-                    <SelectItem value="weekly_sunday">Weekly (Sunday)</SelectItem>
+                    <SelectItem value="weekly">Weekly (Select Days)</SelectItem>
                     <SelectItem value="monthly">Monthly</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-            </div>
-            <div className="space-y-2">
+              </div>
+
+              {checklistFormData.frequency === 'weekly' && (
+              <div className="space-y-3 p-4 bg-muted/30 rounded-lg border border-dashed animate-in fade-in zoom-in-95 duration-200">
+                <Label className="text-xs font-bold text-muted-foreground uppercase">Active Days</Label>
+                <div className="flex flex-wrap gap-2">
+                  {DAYS.map(day => {
+                    const isActive = checklistFormData.days_of_week.includes(day);
+                    return (
+                      <button
+                        key={day}
+                        type="button"
+                        onClick={() => handleDayToggle(day)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${
+                          isActive 
+                            ? 'bg-primary border-primary text-white' 
+                            : 'bg-background border-gray-200 text-gray-500 hover:border-primary/50'
+                        }`}
+                      >
+                        {day.slice(0, 3)}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              )}
+
+              <div className="space-y-2">
               <Label htmlFor="setup-desc">Description</Label>
               <Textarea id="setup-desc" value={checklistFormData.description} onChange={(e) => setChecklistFormData({ ...checklistFormData, description: e.target.value })} rows={2} />
             </div>
@@ -404,16 +428,22 @@ export function HouseChecklistSetup({
           <div className="py-4">
             {loadingMaster ? <div className="py-12 text-center"><Loader2 className="size-8 animate-spin mx-auto mb-2 text-primary" /></div> : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                {masterChecklists.map(template => (
-                  <button key={template.id} onClick={() => handleSelectTemplate(template)} className="flex flex-col text-left p-4 rounded-lg border border-gray-200 hover:border-primary hover:bg-primary/5 transition-all group">
-                    <div className="flex items-center justify-between w-full mb-1">
-                      <span className="font-bold text-gray-900 group-hover:text-primary transition-colors">{template.name}</span>
-                      <Badge variant="outline" className="text-[10px] uppercase">{template.frequency}</Badge>
-                    </div>
-                    {template.description && <p className="text-xs text-muted-foreground line-clamp-2 mb-3">{template.description}</p>}
-                    <div className="mt-auto text-[10px] font-medium text-gray-500">{template.items?.length || 0} tasks</div>
-                  </button>
-                ))}
+                {masterChecklists.length === 0 ? (
+                  <div className="col-span-full py-12 text-center text-muted-foreground italic">
+                    No master templates found. Create some in the Admin section.
+                  </div>
+                ) : (
+                  masterChecklists.map(template => (
+                    <button key={template.id} onClick={() => handleSelectTemplate(template)} className="flex flex-col text-left p-4 rounded-lg border border-gray-200 hover:border-primary hover:bg-primary/5 transition-all group">
+                      <div className="flex items-center justify-between w-full mb-1">
+                        <span className="font-bold text-gray-900 group-hover:text-primary transition-colors">{template.name}</span>
+                        <Badge variant="outline" className="text-[10px] uppercase">{template.frequency}</Badge>
+                      </div>
+                      {template.description && <p className="text-xs text-muted-foreground line-clamp-2 mb-3">{template.description}</p>}
+                      <div className="mt-auto text-[10px] font-medium text-gray-500">{template.items?.length || 0} tasks</div>
+                    </button>
+                  ))
+                )}
               </div>
             )}
           </div>

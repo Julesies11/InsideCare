@@ -5,3 +5,4 @@ export { StaffTimesheetList } from './staff-timesheet-list';
 export { StaffLeaveList } from './staff-leave-list';
 export { StaffLeaveForm } from './staff-leave-form';
 export { StaffProfile } from './staff-profile';
+export { StaffChecklists } from './staff-checklists';

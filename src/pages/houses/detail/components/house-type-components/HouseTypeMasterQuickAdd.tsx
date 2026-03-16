@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -53,6 +53,9 @@ export function HouseTypeMasterQuickAdd({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{houseType ? 'Edit House Type' : 'Add House Type'}</DialogTitle>
+          <DialogDescription>
+            {houseType ? 'Update the details for this house type.' : 'Create a new house type for the master list.'}
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">

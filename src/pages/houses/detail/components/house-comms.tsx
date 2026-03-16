@@ -101,44 +101,42 @@ export function HouseComms({ houseId }: HouseCommsProps) {
 
   return (
     <Card className="pb-2.5" id="house_comms">
-      <CardHeader>
-        <div className="flex items-center justify-between">
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div className="flex flex-wrap items-center gap-5">
           <CardTitle className="flex items-center gap-2">
             <MessageSquare className="size-5 text-primary" />
             Daily Comms / Shift Handover
           </CardTitle>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center bg-muted rounded-lg p-1">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="size-8" 
-                onClick={() => navigateDate('prev')}
-              >
-                <ChevronLeft className="size-4" />
-              </Button>
-              <div className="px-3 flex items-center gap-2 min-w-[140px] justify-center">
-                <Calendar className="size-3.5 text-muted-foreground" />
-                <span className="text-xs font-bold">
-                  {isToday(selectedDate) ? 'Today' : format(selectedDate, 'MMM d, yyyy')}
-                </span>
-              </div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="size-8" 
-                onClick={() => navigateDate('next')}
-                disabled={isToday(selectedDate)}
-              >
-                <ChevronRight className="size-4" />
-              </Button>
+          <div className="flex items-center bg-muted rounded-lg p-1">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="size-8" 
+              onClick={() => navigateDate('prev')}
+            >
+              <ChevronLeft className="size-4" />
+            </Button>
+            <div className="px-3 flex items-center gap-2 min-w-[140px] justify-center">
+              <Calendar className="size-3.5 text-muted-foreground" />
+              <span className="text-xs font-bold">
+                {isToday(selectedDate) ? 'Today' : format(selectedDate, 'MMM d, yyyy')}
+              </span>
             </div>
-            <Button size="sm" onClick={() => setShowAddForm(!showAddForm)}>
-              <Plus className="size-4 me-1.5" />
-              Add Entry
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="size-8" 
+              onClick={() => navigateDate('next')}
+              disabled={isToday(selectedDate)}
+            >
+              <ChevronRight className="size-4" />
             </Button>
           </div>
         </div>
+        <Button variant="secondary" size="sm" className="border border-gray-300" onClick={() => setShowAddForm(!showAddForm)}>
+          <Plus className="size-4 me-1.5" />
+          Add Entry
+        </Button>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">

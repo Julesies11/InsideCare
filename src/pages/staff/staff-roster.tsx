@@ -67,7 +67,7 @@ export function StaffRoster() {
   return (
     <>
       <Container>
-        <Toolbar>
+        <Toolbar className="hidden sm:flex">
           <ToolbarHeading>
             <ToolbarPageTitle text="My Roster" />
             <ToolbarDescription>View your scheduled shifts</ToolbarDescription>
@@ -105,11 +105,11 @@ export function StaffRoster() {
         </Toolbar>
       </Container>
 
-      <Container>
+      <Container className="py-6 sm:py-0">
         {tab === 'calendar' ? (
           user?.staff_id ? (
             <div className="grid gap-5 lg:gap-7.5">
-              <Card>
+              <Card className="border-0 sm:border">
                 <CardContent className="p-4 lg:p-6">
                   <RosterCalendarHeader
                     viewMode={viewMode}
@@ -140,7 +140,7 @@ export function StaffRoster() {
               />
             </div>
           ) : (
-            <Card>
+            <Card className="border-0 sm:border">
               <CardContent className="py-10 text-center text-sm text-muted-foreground">
                 No staff profile linked to your account.
               </CardContent>
@@ -149,13 +149,13 @@ export function StaffRoster() {
         ) : (
           <div className="grid gap-5 lg:gap-7.5">
             {loading ? (
-              <Card>
+              <Card className="border-0 sm:border">
                 <CardContent className="py-10 text-center text-sm text-muted-foreground">
                   Loading shifts...
                 </CardContent>
               </Card>
             ) : shifts.length === 0 ? (
-              <Card>
+              <Card className="border-0 sm:border">
                 <CardContent className="py-16 flex flex-col items-center gap-4">
                   <div className="flex size-14 items-center justify-center rounded-full bg-muted">
                     <Calendar className="size-7 text-muted-foreground" />
@@ -169,7 +169,7 @@ export function StaffRoster() {
                 </CardContent>
               </Card>
             ) : (
-              <Card>
+              <Card className="border-0 sm:border">
                 <CardHeader className="py-4 px-5">
                   <span className="text-sm text-muted-foreground">
                     {shifts.length} shift{shifts.length !== 1 ? 's' : ''}

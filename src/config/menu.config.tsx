@@ -23,6 +23,12 @@ export const MENU_SIDEBAR: MenuConfig = [
     roles: ['staff'],
   },
   {
+    title: 'House Checklists',
+    icon: ClipboardList,
+    path: '/staff/checklists',
+    roles: ['staff'],
+  },
+  {
     title: 'My Roster',
     icon: Calendar,
     path: '/staff/roster',

@@ -84,6 +84,7 @@ export interface HousePendingChanges {
       tempId: string;
       name: string;
       frequency: string;
+      days_of_week?: string[];
       description?: string;
       master_id?: string;
       items: Array<{
@@ -99,6 +100,7 @@ export interface HousePendingChanges {
       id: string;
       name?: string;
       frequency?: string;
+      days_of_week?: string[];
       description?: string;
       master_id?: string;
     }>;

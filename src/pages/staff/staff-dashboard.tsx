@@ -1,87 +1,33 @@
-import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/auth/context/auth-context';
 import { format } from 'date-fns';
-import { Calendar, Umbrella, ClipboardList, ChevronRight } from 'lucide-react';
+import { Calendar, Umbrella, ClipboardList, ChevronRight, PlayCircle, Clock } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Container } from '@/components/common/container';
 import { WelcomeBanner } from '../dashboards/home/components';
-
-interface UpcomingShift {
-  id: string;
-  shift_date: string;
-  start_time: string;
-  end_time: string;
-  house: { name: string } | null;
-}
-
-interface PendingTimesheet {
-  id: string;
-  status: string;
-  clock_in: string;
-  shift: { shift_date: string } | null;
-}
-
-interface PendingLeave {
-  id: string;
-  leave_type: { name: string } | null;
-  start_date: string;
-  end_date: string;
-  status: string;
-}
+import { useStaffDashboardData } from '@/hooks/use-staff-dashboard-data';
 
 export function StaffDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [upcomingShifts, setUpcomingShifts] = useState<UpcomingShift[]>([]);
-  const [pendingLeave, setPendingLeave] = useState<PendingLeave[]>([]);
-  const [pendingTimesheets, setPendingTimesheets] = useState<PendingTimesheet[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data, isLoading } = useStaffDashboardData(user?.staff_id);
 
-  useEffect(() => {
-    if (!user?.staff_id) {
-      setLoading(false);
-      return;
-    }
+  const upcomingShifts = data?.upcomingShifts || [];
+  const pendingLeave = data?.pendingLeave || [];
+  const pendingTimesheets = data?.pendingTimesheets || [];
 
-    const fetchData = async () => {
-      const today = new Date().toISOString().split('T')[0];
-
-      const [shiftsRes, leaveRes, timesheetsRes] = await Promise.all([
-        supabase
-          .from('staff_shifts')
-          .select('id, shift_date, start_time, end_time, house:houses(name)')
-          .eq('staff_id', user.staff_id)
-          .gte('shift_date', today)
-          .order('shift_date', { ascending: true })
-          .limit(3),
-        supabase
-          .from('leave_requests')
-          .select('id, leave_type:leave_types(name), start_date, end_date, status')
-          .eq('staff_id', user.staff_id)
-          .in('status', ['pending', 'approved'])
-          .order('start_date', { ascending: true })
-          .limit(3),
-        supabase
-          .from('timesheets')
-          .select('id, status, clock_in, shift:staff_shifts(shift_date)')
-          .eq('staff_id', user.staff_id)
-          .in('status', ['draft', 'pending'])
-          .order('clock_in', { ascending: false })
-          .limit(5),
-      ]);
-
-      setUpcomingShifts((shiftsRes.data as UpcomingShift[]) || []);
-      setPendingLeave((leaveRes.data as PendingLeave[]) || []);
-      setPendingTimesheets((timesheetsRes.data as PendingTimesheet[]) || []);
-      setLoading(false);
-    };
-
-    fetchData();
-  }, [user?.staff_id]);
+  // Identify if currently on shift
+  const now = new Date();
+  const nowTime = format(now, 'HH:mm:ss');
+  const todayStr = format(now, 'yyyy-MM-dd');
+  
+  const currentShift = upcomingShifts.find((s: any) => 
+    s.shift_date === todayStr && 
+    nowTime >= s.start_time && 
+    nowTime <= s.end_time
+  );
 
   return (
     <>
@@ -90,9 +36,39 @@ export function StaffDashboard() {
       </Container>
 
       <Container>
-        <div className="grid gap-5 lg:gap-7.5 lg:grid-cols-2">
+        <div className="grid gap-4 sm:gap-5 lg:gap-7.5 lg:grid-cols-2">
+          {/* Active Shift / Clock In Suggestion */}
+          {currentShift && (
+            <Card className="lg:col-span-2 border-primary/20 bg-primary/5 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
+              <CardContent className="p-6">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                  <div className="flex items-center gap-4">
+                    <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center animate-pulse">
+                      <PlayCircle className="size-6 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900">Active Shift: {currentShift.house?.name}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Started at {currentShift.start_time.slice(0, 5)} · Scheduled until {currentShift.end_time.slice(0, 5)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 w-full md:w-auto">
+                    <Button 
+                      className="flex-1 md:flex-none font-bold shadow-lg shadow-primary/20" 
+                      onClick={() => navigate('/staff/checklists')}
+                    >
+                      <ClipboardList className="size-4 me-2" />
+                      Go to Checklists
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Upcoming Shifts */}
-          <Card>
+          <Card className="border-0 sm:border">
             <CardHeader className="pb-2 flex flex-row items-center justify-between">
               <CardTitle className="text-base flex items-center gap-2">
                 <Calendar className="size-4" /> Upcoming Shifts
@@ -102,13 +78,16 @@ export function StaffDashboard() {
               </Button>
             </CardHeader>
             <CardContent>
-              {loading ? (
-                <p className="text-sm text-muted-foreground">Loading...</p>
+              {isLoading ? (
+                <div className="space-y-3 py-2">
+                  <div className="h-10 w-full bg-gray-100 animate-pulse rounded" />
+                  <div className="h-10 w-full bg-gray-100 animate-pulse rounded" />
+                </div>
               ) : upcomingShifts.length === 0 ? (
                 <p className="text-sm text-muted-foreground py-4 text-center">No upcoming shifts.</p>
               ) : (
                 <div className="divide-y">
-                  {upcomingShifts.map((shift) => (
+                  {upcomingShifts.map((shift: any) => (
                     <div key={shift.id} className="flex items-center justify-between py-2.5">
                       <div>
                         <p className="text-sm font-medium">{format(new Date(shift.shift_date), 'EEE dd MMM')}</p>
@@ -125,23 +104,19 @@ export function StaffDashboard() {
           </Card>
 
           {/* Leave Requests */}
-          <Card>
-            <CardHeader className="pb-2 flex flex-row items-center justify-between">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Umbrella className="size-4" /> Leave Requests
-              </CardTitle>
-              <Button variant="ghost" size="sm" onClick={() => navigate('/staff/leave')}>
-                View all <ChevronRight className="size-4 ms-1" />
-              </Button>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <p className="text-sm text-muted-foreground">Loading...</p>
-              ) : pendingLeave.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-4 text-center">No active leave requests.</p>
-              ) : (
+          {pendingLeave.length > 0 && (
+            <Card className="border-0 sm:border">
+              <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Umbrella className="size-4" /> Leave Requests
+                </CardTitle>
+                <Button variant="ghost" size="sm" onClick={() => navigate('/staff/leave')}>
+                  View all <ChevronRight className="size-4 ms-1" />
+                </Button>
+              </CardHeader>
+              <CardContent>
                 <div className="divide-y">
-                  {pendingLeave.map((req) => (
+                  {pendingLeave.map((req: any) => (
                     <div key={req.id} className="flex items-center justify-between py-2.5">
                       <div>
                         <p className="text-sm font-medium">{req.leave_type?.name ?? 'Leave'}</p>
@@ -155,19 +130,19 @@ export function StaffDashboard() {
                     </div>
                   ))}
                 </div>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Timesheets */}
-          <Card className="lg:col-span-2">
+          <Card className="lg:col-span-2 border-0 sm:border">
             <CardHeader className="pb-2 flex flex-row items-center justify-between">
               <CardTitle className="text-base flex items-center gap-2">
                 <ClipboardList className="size-4" /> Timesheets
                 {pendingTimesheets.length > 0 && (
                   <Badge variant="warning" appearance="light" className="ml-1">
-                    {pendingTimesheets.filter(t => t.status === 'draft').length > 0
-                      ? `${pendingTimesheets.filter(t => t.status === 'draft').length} draft${pendingTimesheets.filter(t => t.status === 'draft').length !== 1 ? 's' : ''}`
+                    {pendingTimesheets.filter((t: any) => t.status === 'draft').length > 0
+                      ? `${pendingTimesheets.filter((t: any) => t.status === 'draft').length} draft${pendingTimesheets.filter((t: any) => t.status === 'draft').length !== 1 ? 's' : ''}`
                       : `${pendingTimesheets.length} pending`}
                   </Badge>
                 )}
@@ -177,13 +152,16 @@ export function StaffDashboard() {
               </Button>
             </CardHeader>
             <CardContent>
-              {loading ? (
-                <p className="text-sm text-muted-foreground">Loading...</p>
+              {isLoading ? (
+                <div className="space-y-3 py-2">
+                  <div className="h-10 w-full bg-gray-100 animate-pulse rounded" />
+                  <div className="h-10 w-full bg-gray-100 animate-pulse rounded" />
+                </div>
               ) : pendingTimesheets.length === 0 ? (
                 <p className="text-sm text-muted-foreground py-4 text-center">No timesheets awaiting action.</p>
               ) : (
                 <div className="divide-y">
-                  {pendingTimesheets.map((ts) => (
+                  {pendingTimesheets.map((ts: any) => (
                     <div key={ts.id} className="flex items-center justify-between py-2.5">
                       <div>
                         <p className="text-sm font-medium">
@@ -204,7 +182,7 @@ export function StaffDashboard() {
           </Card>
 
           {/* Quick Actions */}
-          <Card className="lg:col-span-2">
+          <Card className="lg:col-span-2 border-0 sm:border">
             <CardHeader className="pb-2">
               <CardTitle className="text-base flex items-center gap-2">
                 <ClipboardList className="size-4" /> Quick Actions
@@ -214,6 +192,9 @@ export function StaffDashboard() {
               <div className="flex flex-wrap gap-3">
                 <Button variant="outline" onClick={() => navigate('/staff/leave/new')}>
                   <Umbrella className="size-4 me-1.5" /> Request Leave
+                </Button>
+                <Button variant="outline" onClick={() => navigate('/staff/checklists')}>
+                  <ClipboardList className="size-4 me-1.5" /> House Checklists
                 </Button>
                 <Button variant="outline" onClick={() => navigate('/staff/timesheets')}>
                   <ClipboardList className="size-4 me-1.5" /> My Timesheets

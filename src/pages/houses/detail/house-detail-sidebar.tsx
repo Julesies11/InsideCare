@@ -11,25 +11,31 @@ export function HouseDetailSidebar() {
       active: true,
     },
     {
-      title: 'Staff',
-      target: 'staff',
+      title: 'House Management',
+      target: 'house_management',
+      children: [
+        {
+          title: 'Participants',
+          target: 'house_participants',
+        },
+        {
+          title: 'House Details',
+          target: 'house_management_details',
+        },
+      ]
     },
     {
-      title: 'Calendar Events',
+      title: 'Calendar',
       target: 'calendar_events',
     },
     {
-      title: 'Daily Comms',
-      target: 'house_comms',
-    },
-    {
-      title: 'Documents',
-      target: 'documents',
-    },
-    {
-      title: 'Checklists',
-      target: 'checklists_section',
+      title: 'Checklist/Comms',
+      target: 'checklist_comms_section',
       children: [
+        {
+          title: 'Daily Comms',
+          target: 'house_comms',
+        },
         {
           title: 'Checklist Setup',
           target: 'checklists',
@@ -41,16 +47,16 @@ export function HouseDetailSidebar() {
       ]
     },
     {
-      title: 'Forms',
-      target: 'forms',
+      title: 'Docs',
+      target: 'documents',
     },
     {
       title: 'Resources',
       target: 'resources',
     },
     {
-      title: 'Participants',
-      target: 'participants',
+      title: 'Staff',
+      target: 'staff',
     },
   ];
 

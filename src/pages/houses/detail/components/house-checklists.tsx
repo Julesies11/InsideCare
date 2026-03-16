@@ -210,7 +210,7 @@ export function HouseChecklists({
         .from('house_checklist_submissions')
         .select(`
           *,
-          house_checklist_submission_items (*)
+          house_checklist_submission_items (id, submission_id, item_id, is_completed, note, completed_at)
         `)
         .eq('checklist_id', checklist.id)
         .eq('house_id', houseId)

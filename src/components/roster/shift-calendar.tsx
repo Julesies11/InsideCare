@@ -13,7 +13,7 @@ interface ShiftCalendarProps {
   loading: boolean;
   canEdit: boolean;
   leaveBlocks?: LeaveBlock[];
-  onAddShift: (date: Date) => void;
+  onAddShift: (date: Date, houseId?: string) => void;
   onEditShift: (shift: ShiftCardData) => void;
   onWriteNote?: (shift: ShiftCardData) => void;
   onNotesClick?: (shift: ShiftCardData) => void;
@@ -238,7 +238,7 @@ export function ShiftCalendar({
                             className="h-3 w-3 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                             onClick={(e) => {
                               e.stopPropagation();
-                              onAddShift(day);
+                              onAddShift(day, house.id === 'unassigned' ? undefined : house.id);
                             }}
                           >
                             <Plus className="h-2 w-2" />
@@ -374,7 +374,7 @@ export function ShiftCalendar({
                         className="h-4 w-4 p-0 opacity-0 group-hover:opacity-100 transition-opacity absolute top-1 right-1"
                         onClick={(e) => {
                           e.stopPropagation();
-                          onAddShift(day);
+                          onAddShift(day, house.id === 'unassigned' ? undefined : house.id);
                         }}
                       >
                         <Plus className="h-3 w-3" />

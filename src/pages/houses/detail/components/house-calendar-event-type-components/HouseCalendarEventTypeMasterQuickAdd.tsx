@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -56,6 +56,9 @@ export function HouseCalendarEventTypeMasterQuickAdd({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{eventType ? 'Edit Event Type' : 'Add Event Type'}</DialogTitle>
+          <DialogDescription>
+            {eventType ? 'Update the details for this calendar event type.' : 'Create a new calendar event type for the master list.'}
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">

@@ -11,6 +11,7 @@ export interface House {
 export interface Participant {
   id: string;
   name: string;
+  house_id?: string | null;
 }
 
 export interface Staff {
@@ -32,7 +33,7 @@ export interface StaffShift {
   created_at?: string;
   updated_at?: string;
   house?: { id: string; name: string };
-  participants?: Array<{ id: string; name: string }>;
+  participants?: Array<{ id: string; name: string; house_id?: string | null }>;
   staff_name?: string;
   duration_hours?: number;
 }
@@ -58,7 +59,7 @@ export function useRosterData() {
   const loadParticipants = useCallback(async () => {
     const { data, error } = await supabase
       .from('participants')
-      .select('id, name')
+      .select('id, name, house_id')
       .eq('status', 'active')
       .not('name', 'is', null)
       .order('name');

@@ -31,10 +31,13 @@ export function Header() {
   const [isSidebarSheetOpen, setIsSidebarSheetOpen] = useState(false);
   const { unreadCount } = useNotifications();
   const { user } = useAuth();
-  const initials = [user?.first_name, user?.last_name]
-    .filter(Boolean)
-    .map((n) => n![0].toUpperCase())
-    .join('') || (user?.email?.[0]?.toUpperCase() ?? '?');
+  const initials = (user?.staff_name
+    ? user.staff_name.split(' ').map(n => n[0]).join('').toUpperCase()
+    : [user?.first_name, user?.last_name]
+        .filter(Boolean)
+        .map((n) => n![0].toUpperCase())
+        .join('')
+  ) || (user?.email?.[0]?.toUpperCase() ?? '?');
 
   const { pathname } = useLocation();
   const mobileMode = useIsMobile();

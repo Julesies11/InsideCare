@@ -90,7 +90,7 @@ export function StaffLeaveList() {
   return (
     <>
       <Container>
-        <Toolbar>
+        <Toolbar className="hidden sm:flex">
           <ToolbarHeading>
             <ToolbarPageTitle text="Leave Requests" />
             <ToolbarDescription>View and manage your leave requests</ToolbarDescription>
@@ -104,16 +104,16 @@ export function StaffLeaveList() {
         </Toolbar>
       </Container>
 
-      <Container>
+      <Container className="py-6 sm:py-0">
         <div className="grid gap-5 lg:gap-7.5">
           {loading ? (
-            <Card>
+            <Card className="border-0 sm:border">
               <CardContent className="py-10 text-center text-sm text-muted-foreground">
                 Loading...
               </CardContent>
             </Card>
           ) : requests.length === 0 ? (
-            <Card>
+            <Card className="border-0 sm:border">
               <CardContent className="py-16 flex flex-col items-center gap-4">
                 <div className="flex size-14 items-center justify-center rounded-full bg-muted">
                   <Umbrella className="size-7 text-muted-foreground" />
@@ -129,7 +129,7 @@ export function StaffLeaveList() {
               </CardContent>
             </Card>
           ) : (
-            <Card>
+            <Card className="border-0 sm:border">
               <CardHeader className="py-4 px-5">
                 <span className="text-sm text-muted-foreground">{requests.length} request{requests.length !== 1 ? 's' : ''}</span>
               </CardHeader>

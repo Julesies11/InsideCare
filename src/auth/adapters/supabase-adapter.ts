@@ -229,7 +229,7 @@ export const SupabaseAdapter = {
     console.log('SupabaseAdapter: Querying staff table for auth_user_id:', user.id);
     const { data: staffRow, error: staffError } = await supabase
       .from('staff')
-      .select('id, photo_url')
+      .select('id, name, photo_url, role:roles(name)')
       .eq('auth_user_id', user.id)
       .maybeSingle();
       
@@ -238,9 +238,11 @@ export const SupabaseAdapter = {
     }
     
     const staff_id = staffRow?.id ?? undefined;
+    const staff_name = staffRow?.name ?? undefined;
     const photo_url = staffRow?.photo_url ?? null;
+    const role_name = (staffRow as any)?.role?.name ?? undefined;
     
-    console.log('SupabaseAdapter: Profile construction complete', { staff_id, has_photo: !!photo_url });
+    console.log('SupabaseAdapter: Profile construction complete', { staff_id, staff_name, role_name, has_photo: !!photo_url });
 
     // Format data to maintain compatibility with existing UI
     return {
@@ -260,7 +262,9 @@ export const SupabaseAdapter = {
       language: metadata.language || 'en',
       is_admin: metadata.is_admin || false,
       staff_id,
+      staff_name,
       photo_url,
+      role_name,
     };
   },
 

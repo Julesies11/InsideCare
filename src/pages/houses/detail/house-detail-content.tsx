@@ -8,15 +8,14 @@ import { useSettings } from '@/providers/settings-provider';
 import { useAuth } from '@/auth/context/auth-context';
 import { Scrollspy } from '@/components/ui/scrollspy';
 import { HouseDetailSidebar } from './house-detail-sidebar';
-import { HouseParticipants } from './components/house-participants';
 import { HouseStaff } from './components/house-staff';
 import { HouseCalendarEvents } from './components/house-calendar-events';
 import { HouseComms } from './components/house-comms';
 import { HouseDocuments } from './components/house-documents';
 import { HouseChecklistHistory } from './components/house-checklist-history';
 import { HouseChecklistSetup } from './components/house-checklist-setup';
-import { HouseForms } from './components/house-forms';
 import { HouseResources } from './components/house-resources';
+import { HouseManagement } from './components/house-management';
 import { HouseTypeCombobox } from './components/house-type-components/HouseTypeCombobox';
 import { HouseTypeMasterDialog } from './components/house-type-components/HouseTypeMasterDialog';
 import { House } from '@/models/house';
@@ -64,7 +63,9 @@ export function HouseDetailContent({
   const { id } = useParams<{ id: string }>();
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
+  const isSupervisor = user?.role_name?.toLowerCase().includes('supervisor');
+  const canEditManagement = isAdmin || isSupervisor;
   const { settings } = useSettings();
   const [sidebarSticky, setSidebarSticky] = useState(false);
   const [house, setHouse] = useState<House | undefined>();
@@ -90,16 +91,28 @@ export function HouseDetailContent({
   const parentRef = useRef<HTMLElement | Document>(document);
   const scrollPosition = useScrollPosition({ targetRef: parentRef });
 
+  // Effect to update parentRef after the component mounts
+  useEffect(() => {
+    const scrollableElement = document.getElementById('scrollable_content');
+    if (scrollableElement) {
+      parentRef.current = scrollableElement;
+    }
+  }, []);
+
   const [formData, setFormData] = useState<Record<string, any>>({
     name: '',
     address: '',
     phone: '',
-    house_type_id: '',
+    house_type_id: null,
     capacity: 0,
     current_occupancy: 0,
     house_manager: '',
     status: 'active',
     notes: '',
+    individuals_breakdown: '',
+    participant_dynamics: '',
+    observations: '',
+    general_house_details: '',
   });
 
   const [showHouseTypeDialog, setShowHouseTypeDialog] = useState(false);
@@ -117,7 +130,7 @@ export function HouseDetailContent({
         setLoading(true);
         const { data, error } = await supabase
           .from('houses')
-          .select('id, name, branch_id, address, phone, house_type_id, capacity, current_occupancy, house_manager, status, notes, created_at, updated_at')
+          .select('id, name, branch_id, address, phone, house_type_id, capacity, current_occupancy, house_manager, status, notes, individuals_breakdown, participant_dynamics, observations, general_house_details, created_at, updated_at')
           .eq('id', id)
           .single();
 
@@ -128,12 +141,16 @@ export function HouseDetailContent({
           name: data.name || '',
           address: data.address || '',
           phone: data.phone || '',
-          house_type_id: data.house_type_id || '',
+          house_type_id: data.house_type_id || null,
           capacity: data.capacity || 0,
           current_occupancy: data.current_occupancy || 0,
           house_manager: data.house_manager || '',
           status: data.status || 'active',
           notes: data.notes || '',
+          individuals_breakdown: data.individuals_breakdown || '',
+          participant_dynamics: data.participant_dynamics || '',
+          observations: data.observations || '',
+          general_house_details: data.general_house_details || '',
         };
         
         setFormData(houseData);
@@ -155,7 +172,7 @@ export function HouseDetailContent({
     };
 
     fetchHouse();
-  }, [id, onFormDataChange, onOriginalDataChange]);
+  }, [id, queryClient, onFormDataChange, onOriginalDataChange]);
 
   const [refreshKeys, setRefreshKeys] = useState({
     staff: 0,
@@ -185,7 +202,21 @@ export function HouseDetailContent({
       // Step 1: Save basic house details
       const { data: houseData, error: houseError } = await supabase
         .from('houses')
-        .update(currentFormData)
+        .update({
+          name: currentFormData.name,
+          address: currentFormData.address || null,
+          phone: currentFormData.phone || null,
+          house_type_id: currentFormData.house_type_id || null,
+          capacity: currentFormData.capacity || 0,
+          current_occupancy: currentFormData.current_occupancy || 0,
+          house_manager: currentFormData.house_manager || null,
+          status: currentFormData.status,
+          notes: currentFormData.notes || null,
+          individuals_breakdown: currentFormData.individuals_breakdown || null,
+          participant_dynamics: currentFormData.participant_dynamics || null,
+          observations: currentFormData.observations || null,
+          general_house_details: currentFormData.general_house_details || null,
+        })
         .eq('id', id)
         .select()
         .single();
@@ -209,7 +240,55 @@ export function HouseDetailContent({
         }
       }
 
-      // Step 2: Process pending staff assignments
+      // Step 2: Process pending participants
+      if (currentPending.participants.toAdd.length) {
+        for (const p of currentPending.participants.toAdd) {
+          const { error } = await supabase
+            .from('participants')
+            .update({
+              house_id: id,
+              move_in_date: p.move_in_date || null,
+              status: p.is_active ? 'active' : 'inactive',
+            })
+            .eq('id', p.participant_id);
+
+          if (error) {
+            throw new Error(`Failed to link participant: ${error.message}`);
+          }
+        }
+      }
+
+      if (currentPending.participants.toUpdate.length) {
+        for (const p of currentPending.participants.toUpdate) {
+          const updates: any = {};
+          if (p.move_in_date !== undefined) updates.move_in_date = p.move_in_date;
+          if (p.is_active !== undefined) updates.status = p.is_active ? 'active' : 'inactive';
+          
+          const { error } = await supabase
+            .from('participants')
+            .update(updates)
+            .eq('id', p.id);
+
+          if (error) {
+            throw new Error(`Failed to update participant: ${error.message}`);
+          }
+        }
+      }
+
+      if (currentPending.participants.toDelete.length) {
+        for (const pId of currentPending.participants.toDelete) {
+          const { error } = await supabase
+            .from('participants')
+            .update({ house_id: null })
+            .eq('id', pId);
+
+          if (error) {
+            throw new Error(`Failed to unlink participant: ${error.message}`);
+          }
+        }
+      }
+
+      // Step 3: Process pending staff assignments
       if (currentPending.staff.toAdd.length) {
         for (const staffAssignment of currentPending.staff.toAdd) {
           const { error } = await supabase
@@ -395,6 +474,7 @@ export function HouseDetailContent({
               house_id: id,
               name: checklist.name,
               frequency: checklist.frequency,
+              days_of_week: checklist.days_of_week || null,
               description: checklist.description || null,
               master_id: checklist.master_id || null,
             })
@@ -436,6 +516,7 @@ export function HouseDetailContent({
             .update({
               name: checklist.name,
               frequency: checklist.frequency,
+              days_of_week: checklist.days_of_week || null,
               description: checklist.description || null,
             })
             .eq('id', checklist.id);
@@ -517,7 +598,7 @@ export function HouseDetailContent({
       // Step 7: Process pending forms
       if (currentPending.forms.toAdd.length) {
         for (const form of currentPending.forms.toAdd) {
-          const { data: currentFormData, error: formError } = await supabase
+          const { error } = await supabase
             .from('house_forms')
             .insert({
               house_id: id,
@@ -525,40 +606,12 @@ export function HouseDetailContent({
               type: form.type,
               description: form.description || null,
               frequency: form.frequency,
-              is_global: form.is_global,
-              status: form.status,
-              created_by: user?.id || null,
-            })
-            .select()
-            .single();
+              status: form.status || 'active',
+              created_by: currentStaffId,
+            });
 
-          if (formError) {
-            throw new Error(`Failed to add form: ${formError.message}`);
-          }
-
-          // If there are form assignments for this form, add them
-          const assignments = currentPending.formAssignments.toAdd.filter(
-            assignment => assignment.form_id === form.tempId
-          );
-
-          if (assignments.length > 0) {
-            const assignmentsToInsert = assignments.map(assignment => ({
-              form_id: currentFormData.id,
-              participant_id: assignment.participant_id || null,
-              staff_id: assignment.staff_id || null,
-              due_date: assignment.due_date || null,
-              status: assignment.status,
-              notes: assignment.notes || null,
-              assigned_by: user?.id || null,
-            }));
-
-            const { error: assignmentError } = await supabase
-              .from('house_form_assignments')
-              .insert(assignmentsToInsert);
-
-            if (assignmentError) {
-              throw new Error(`Failed to add form assignments: ${assignmentError.message}`);
-            }
+          if (error) {
+            throw new Error(`Failed to add form: ${error.message}`);
           }
         }
       }
@@ -572,8 +625,7 @@ export function HouseDetailContent({
               type: form.type,
               description: form.description || null,
               frequency: form.frequency,
-              is_global: form.is_global,
-              status: form.status,
+              status: form.status || 'active',
             })
             .eq('id', form.id);
 
@@ -598,12 +650,7 @@ export function HouseDetailContent({
 
       // Step 8: Process pending form assignments
       if (currentPending.formAssignments.toAdd.length) {
-        // Filter out assignments that were already processed with form creation
-        const remainingAssignments = currentPending.formAssignments.toAdd.filter(
-          assignment => !currentPending.forms.toAdd.some(form => form.tempId === assignment.form_id)
-        );
-
-        for (const assignment of remainingAssignments) {
+        for (const assignment of currentPending.formAssignments.toAdd) {
           const { error } = await supabase
             .from('house_form_assignments')
             .insert({
@@ -611,9 +658,9 @@ export function HouseDetailContent({
               participant_id: assignment.participant_id || null,
               staff_id: assignment.staff_id || null,
               due_date: assignment.due_date || null,
-              status: assignment.status,
+              status: assignment.status || 'pending',
               notes: assignment.notes || null,
-              assigned_by: user?.id || null,
+              assigned_by: currentStaffId,
             });
 
           if (error) {
@@ -630,7 +677,7 @@ export function HouseDetailContent({
               participant_id: assignment.participant_id || null,
               staff_id: assignment.staff_id || null,
               due_date: assignment.due_date || null,
-              status: assignment.status,
+              status: assignment.status || 'pending',
               notes: assignment.notes || null,
             })
             .eq('id', assignment.id);
@@ -672,7 +719,7 @@ export function HouseDetailContent({
               file_name: resource.file_name || null,
               file_size: resource.file_size || null,
               notes: resource.notes || null,
-              created_by: user?.id || null,
+              created_by: currentStaffId,
             });
 
           if (error) {
@@ -719,148 +766,80 @@ export function HouseDetailContent({
         }
       }
 
-      // Step 10: Process pending participants
-      if (currentPending.participants.toAdd.length) {
-        for (const participant of currentPending.participants.toAdd) {
-          const { error } = await supabase
-            .from('participants')
-            .update({
-              house_id: id,
-              move_in_date: participant.move_in_date || null,
-              status: participant.is_active ? 'active' : 'inactive',
-            })
-            .eq('id', participant.participant_id);
-
-          if (error) {
-            throw new Error(`Failed to assign participant to house: ${error.message}`);
-          }
-        }
-      }
-
-      if (currentPending.participants.toUpdate.length) {
-        for (const participant of currentPending.participants.toUpdate) {
-          const { error } = await supabase
-            .from('participants')
-            .update({
-              house_id: id,
-              move_in_date: participant.move_in_date || null,
-              status: participant.is_active ? 'active' : 'inactive',
-            })
-            .eq('id', participant.participant_id);
-
-          if (error) {
-            throw new Error(`Failed to update participant assignment: ${error.message}`);
-          }
-        }
-      }
-
-      if (currentPending.participants.toDelete.length) {
-        for (const participantId of currentPending.participants.toDelete) {
-          const { error } = await supabase
-            .from('participants')
-            .update({
-              house_id: null,
-              status: 'inactive',
-            })
-            .eq('id', participantId);
-
-          if (error) {
-            throw new Error(`Failed to remove participant from house: ${error.message}`);
-          }
-        }
-      }
-
-      // Log activity for house changes
-      const changedFields = detectChanges(house, houseData);
-      if (changedFields.length > 0) {
-        await logActivity({
-          activityType: 'update',
-          entityType: 'house',
-          entityId: id,
-          entityName: houseData.name,
-          userName: user?.email || 'Unknown user',
-          changedFields,
-        });
-      }
-
-      toast.success('House saved successfully');
-      
+      // Final Step: Log Activity & Refresh
+      const updatedHouseData = { ...currentFormData };
       setHouse(houseData);
-      const updatedHouseData = {
-        name: houseData.name || '',
-        address: houseData.address || '',
-        phone: houseData.phone || '',
-        house_type_id: houseData.house_type_id || '',
-        capacity: houseData.capacity || 0,
-        current_occupancy: houseData.current_occupancy || 0,
-        house_manager: houseData.house_manager || '',
-        status: houseData.status || 'active',
-        notes: houseData.notes || '',
-      };
-      setFormData(updatedHouseData);
+      latestOriginalData.current = updatedHouseData;
       if (onOriginalDataChange) onOriginalDataChange(updatedHouseData);
       if (onFormDataChange) onFormDataChange(updatedHouseData);
-      
+
       // Invalidate queries to ensure child components fetch fresh data
       queryClient.invalidateQueries({ queryKey: ['house-staff-assignments', { houseId: id }] });
       queryClient.invalidateQueries({ queryKey: ['house-participants', { houseId: id }] });
       queryClient.invalidateQueries({ queryKey: ['house-calendar-events', { houseId: id }] });
+      queryClient.invalidateQueries({ queryKey: ['house-documents', id] });
       queryClient.invalidateQueries({ queryKey: ['house-checklists', id] });
       queryClient.invalidateQueries({ queryKey: ['house-forms', id] });
       queryClient.invalidateQueries({ queryKey: ['house-resources', id] });
 
-      // Trigger refresh of child components that had changes
-      // Small delay to allow Supabase to complete any replication
-      setTimeout(() => {
-        setRefreshKeys(prev => ({
-          staff: (currentPending.staff.toAdd.length || 0) > 0 || (currentPending.staff.toUpdate.length || 0) > 0 || (currentPending.staff.toDelete.length || 0) > 0 ? prev.staff + 1 : prev.staff,
-          calendarEvents: (currentPending.calendarEvents.toAdd.length || 0) > 0 || (currentPending.calendarEvents.toUpdate.length || 0) > 0 || (currentPending.calendarEvents.toDelete.length || 0) > 0 ? prev.calendarEvents + 1 : prev.calendarEvents,
-          documents: (currentPending.documents.toAdd.length || 0) > 0 || (currentPending.documents.toDelete.length || 0) > 0 ? prev.documents + 1 : prev.documents,
-          checklists: (currentPending.checklists.toAdd.length || 0) > 0 || (currentPending.checklists.toUpdate.length || 0) > 0 || (currentPending.checklists.toDelete.length || 0) > 0 || (currentPending.checklists.checklistItems.toAdd.length || 0) > 0 || (currentPending.checklists.checklistItems.toUpdate.length || 0) > 0 || (currentPending.checklists.checklistItems.toDelete.length || 0) > 0 ? prev.checklists + 1 : prev.checklists,
-          forms: (currentPending.forms.toAdd.length || 0) > 0 || (currentPending.forms.toUpdate.length || 0) > 0 || (currentPending.forms.toDelete.length || 0) > 0 || (currentPending.formAssignments.toAdd.length || 0) > 0 || (currentPending.formAssignments.toUpdate.length || 0) > 0 || (currentPending.formAssignments.toDelete.length || 0) > 0 ? prev.forms + 1 : prev.forms,
-          resources: (currentPending.resources.toAdd.length || 0) > 0 || (currentPending.resources.toUpdate.length || 0) > 0 || (currentPending.resources.toDelete.length || 0) > 0 ? prev.resources + 1 : prev.resources,
-          participants: (currentPending.participants.toAdd.length || 0) > 0 || (currentPending.participants.toUpdate.length || 0) > 0 || (currentPending.participants.toDelete.length || 0) > 0 ? prev.participants + 1 : prev.participants,
-        }));
+      toast.success('All changes saved successfully');
 
-        // Clear pending changes after successful save
-        if (onPendingChangesChange) {
-          onPendingChangesChange(emptyHousePendingChanges);
-          latestPendingChanges.current = emptyHousePendingChanges;
-        }
-      }, 500);
+      // Update counters based on what was changed
+      setRefreshKeys(prev => ({
+        ...prev,
+        staff: (currentPending.staff.toAdd.length || 0) > 0 || (currentPending.staff.toUpdate.length || 0) > 0 || (currentPending.staff.toDelete.length || 0) > 0 ? prev.staff + 1 : prev.staff,
+        calendarEvents: (currentPending.calendarEvents.toAdd.length || 0) > 0 || (currentPending.calendarEvents.toUpdate.length || 0) > 0 || (currentPending.calendarEvents.toDelete.length || 0) > 0 ? prev.calendarEvents + 1 : prev.calendarEvents,
+        documents: (currentPending.documents.toAdd.length || 0) > 0 || (currentPending.documents.toDelete.length || 0) > 0 ? prev.documents + 1 : prev.documents,
+        checklists: (currentPending.checklists.toAdd.length || 0) > 0 || (currentPending.checklists.toUpdate.length || 0) > 0 || (currentPending.checklists.toDelete.length || 0) > 0 || (currentPending.checklists.checklistItems.toAdd.length || 0) > 0 || (currentPending.checklists.checklistItems.toUpdate.length || 0) > 0 || (currentPending.checklists.checklistItems.toDelete.length || 0) > 0 ? prev.checklists + 1 : prev.checklists,
+        forms: (currentPending.forms.toAdd.length || 0) > 0 || (currentPending.forms.toUpdate.length || 0) > 0 || (currentPending.forms.toDelete.length || 0) > 0 || (currentPending.formAssignments.toAdd.length || 0) > 0 || (currentPending.formAssignments.toUpdate.length || 0) > 0 || (currentPending.formAssignments.toDelete.length || 0) > 0 ? prev.forms + 1 : prev.forms,
+        resources: (currentPending.resources.toAdd.length || 0) > 0 || (currentPending.resources.toUpdate.length || 0) > 0 || (currentPending.resources.toDelete.length || 0) > 0 ? prev.resources + 1 : prev.resources,
+        participants: (currentPending.participants.toAdd.length || 0) > 0 || (currentPending.participants.toUpdate.length || 0) > 0 || (currentPending.participants.toDelete.length || 0) > 0 ? prev.participants + 1 : prev.participants,
+      }));
+
+      // Clear pending changes after successful save
+      if (onPendingChangesChange) {
+        onPendingChangesChange(emptyHousePendingChanges);
+      }
+
     } catch (error) {
-      handleSupabaseError(error, 'Error saving house details');
+      const err = error as Error;
+      console.error('Error saving house changes:', error);
+      toast.error('Failed to save some changes', { description: err.message });
     } finally {
       if (onSavingChange) onSavingChange(false);
     }
-  }, [house, id, user, onFormDataChange, onOriginalDataChange, onPendingChangesChange, onSavingChange, queryClient]);
+  }, [id, house, user, queryClient, onOriginalDataChange, onFormDataChange, onSavingChange, onPendingChangesChange, isAdmin]);
 
   useEffect(() => {
     if (saveHandlerRef) {
       saveHandlerRef.current = handleSave;
     }
-  }, [handleSave, saveHandlerRef]);
+  }, [saveHandlerRef, handleSave]);
 
-  if (loading) {
+  // Get the sticky class based on the current layout
+  const stickyClass = settings?.layout
+    ? stickySidebarClasses[`${settings?.layout}-layout`] ||
+      'top-[calc(var(--header-height)+1rem)]'
+    : 'top-[calc(var(--header-height)+1rem)]';
+
+  if (loading && !house) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-sm text-gray-500">Loading house details...</div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-lg text-muted-foreground animate-pulse font-medium">Loading house details...</div>
       </div>
     );
   }
 
   if (!house) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-sm text-gray-500">House not found</div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-lg text-muted-foreground font-medium text-center">
+          <p>House not found.</p>
+          <Button variant="link" onClick={() => window.history.back()}>Go Back</Button>
+        </div>
       </div>
     );
   }
-
-  const stickyClass = settings?.layout
-    ? stickySidebarClasses[`${settings?.layout}-layout`] ||
-      'top-[calc(var(--header-height)+1rem)]'
-    : 'top-[calc(var(--header-height)+1rem)]';
 
   return (
     <div className="flex grow gap-5 lg:gap-7.5">
@@ -872,122 +851,125 @@ export function HouseDetailContent({
               sidebarSticky && `fixed z-10 start-auto ${stickyClass}`,
             )}
           >
-            <Scrollspy key={id} offset={100} targetRef={parentRef}>
+            <Scrollspy offset={100} targetRef={parentRef}>
               <HouseDetailSidebar />
             </Scrollspy>
           </div>
         </div>
       )}
-      <div className="flex flex-col items-stretch grow gap-5 lg:gap-7.5">
-        <Card id="house_details" className="pb-2.5">
+
+      {/* Main Content */}
+      <div className="flex flex-col items-stretch grow gap-5 lg:gap-7.5" id="scrollable_content">
+          <Card id="house_details">
             <CardHeader>
               <CardTitle>House Details</CardTitle>
             </CardHeader>
-            <CardContent className="grid gap-2.5">
-              <div className="w-full">
-                <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-                  <Label htmlFor="name" className="flex w-full max-w-56">House Name *</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => handleFieldChange('name', e.target.value)}
-                    placeholder="Enter house name"
-                    disabled={!canEdit}
-                  />
+            <CardContent>
+              <div className="grid gap-5">
+                <div className="w-full">
+                  <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+                    <Label className="flex w-full max-w-56">House Name</Label>
+                    <Input
+                      value={formData.name}
+                      onChange={(e) => handleFieldChange('name', e.target.value)}
+                      placeholder="Enter house name"
+                      disabled={!canEdit}
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div className="w-full">
-                <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-                  <Label htmlFor="status" className="flex w-full max-w-56">Status *</Label>
-                  <Select
-                    value={formData.status}
-                    onValueChange={(value) => handleFieldChange('status', value)}
-                    disabled={!canEdit}
-                  >
-                    <SelectTrigger id="status">
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
-                      <SelectItem value="maintenance">Maintenance</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="w-full">
+                  <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+                    <Label className="flex w-full max-w-56">Address</Label>
+                    <Textarea
+                      value={formData.address}
+                      onChange={(e) => handleFieldChange('address', e.target.value)}
+                      placeholder="Enter house address"
+                      rows={2}
+                      disabled={!canEdit}
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div className="w-full">
-                <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-                  <Label htmlFor="address" className="flex w-full max-w-56">Address</Label>
+                <div className="w-full">
+                  <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+                    <Label className="flex w-full max-w-56">Phone Number</Label>
+                    <Input
+                      value={formData.phone}
+                      onChange={(e) => handleFieldChange('phone', e.target.value)}
+                      placeholder="Enter phone number"
+                      disabled={!canEdit}
+                    />
+                  </div>
+                </div>
+
+                <div className="w-full">
+                  <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+                    <Label className="flex w-full max-w-56">House Type</Label>
+                    <HouseTypeCombobox
+                      value={formData.house_type_id}
+                      onChange={(value) => handleFieldChange('house_type_id', value)}
+                      canEdit={canEdit}
+                      onManageList={() => setShowHouseTypeDialog(true)}
+                    />
+                  </div>
+                </div>
+
+                <div className="w-full">
+                  <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+                    <Label className="flex w-full max-w-56">Capacity</Label>
+                    <Input
+                      type="number"
+                      value={formData.capacity}
+                      onChange={(e) => handleFieldChange('capacity', parseInt(e.target.value))}
+                      disabled={!canEdit}
+                    />
+                  </div>
+                </div>
+
+                <div className="w-full">
+                  <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+                    <Label className="flex w-full max-w-56">Current Occupancy</Label>
+                    <Input
+                      type="number"
+                      value={formData.current_occupancy}
+                      onChange={(e) => handleFieldChange('current_occupancy', parseInt(e.target.value))}
+                      disabled={!canEdit}
+                    />
+                  </div>
+                </div>
+
+                <div className="w-full">
+                  <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+                    <Label className="flex w-full max-w-56">House Manager</Label>
+                    <Input
+                      value={formData.house_manager}
+                      onChange={(e) => handleFieldChange('house_manager', e.target.value)}
+                      placeholder="Enter manager name"
+                      disabled={!canEdit}
+                    />
+                  </div>
+                </div>
+
+                <div className="w-full">
+                  <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+                    <Label className="flex w-full max-w-56">Status</Label>
+                    <Select value={formData.status} onValueChange={(value) => handleFieldChange('status', value)} disabled={!canEdit}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                        <SelectItem value="maintenance">Maintenance</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="w-full">
+                  <Label className="mb-2.5 block">Internal Notes</Label>
                   <Textarea
-                    id="address"
-                    value={formData.address}
-                    onChange={(e) => handleFieldChange('address', e.target.value)}
-                    placeholder="Enter full address"
-                    rows={3}
-                    disabled={!canEdit}
-                  />
-                </div>
-              </div>
-
-              <div className="w-full">
-                <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-                  <Label htmlFor="phone" className="flex w-full max-w-56">Phone Number</Label>
-                  <Input
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) => handleFieldChange('phone', e.target.value)}
-                    placeholder="Enter phone number"
-                    disabled={!canEdit}
-                  />
-                </div>
-              </div>
-
-              <div className="w-full">
-                <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-                  <Label className="flex w-full max-w-56">House Type</Label>
-                  <HouseTypeCombobox
-                    value={formData.house_type_id || ''}
-                    onChange={(value) => handleFieldChange('house_type_id', value)}
-                    canEdit={canEdit}
-                    onManageList={() => setShowHouseTypeDialog(true)}
-                  />
-                </div>
-              </div>
-
-              <div className="w-full">
-                <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-                  <Label htmlFor="capacity" className="flex w-full max-w-56">House Ratio</Label>
-                  <Input
-                    id="capacity"
-                    type="number"
-                    value={formData.capacity}
-                    onChange={(e) => handleFieldChange('capacity', parseInt(e.target.value) || 0)}
-                    placeholder="Enter house ratio"
-                    disabled={!canEdit}
-                  />
-                </div>
-              </div>
-
-              <div className="w-full">
-                <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-                  <Label htmlFor="house_manager" className="flex w-full max-w-56">House Manager</Label>
-                  <Input
-                    id="house_manager"
-                    value={formData.house_manager}
-                    onChange={(e) => handleFieldChange('house_manager', e.target.value)}
-                    placeholder="Enter house manager name"
-                    disabled={!canEdit}
-                  />
-                </div>
-              </div>
-
-              <div className="w-full">
-                <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-                  <Label htmlFor="notes" className="flex w-full max-w-56">Additional Notes</Label>
-                  <Textarea
-                    id="notes"
                     value={formData.notes}
                     onChange={(e) => handleFieldChange('notes', e.target.value)}
                     placeholder="Enter any additional notes about this house"
@@ -999,13 +981,11 @@ export function HouseDetailContent({
             </CardContent>
           </Card>
 
-          <HouseStaff
-            key={`staff-${refreshKeys.staff}`}
+          <HouseManagement
             houseId={id}
-            canAdd={canAdd}
-            canDelete={canDelete}
-            pendingChanges={pendingChanges}
-            onPendingChangesChange={onPendingChangesChange}
+            formData={formData}
+            onFieldChange={handleFieldChange}
+            canEdit={canEditManagement}
           />
 
           <HouseCalendarEvents
@@ -1017,21 +997,11 @@ export function HouseDetailContent({
             onPendingChangesChange={onPendingChangesChange}
           />
 
-          <HouseComms
-            houseId={id}
-          />
+          <div id="checklist_comms_section" className="flex flex-col gap-5 lg:gap-7.5">
+            <HouseComms
+              houseId={id}
+            />
 
-          <HouseDocuments
-            key={`documents-${refreshKeys.documents}`}
-            houseId={id}
-            houseName={formData?.name}
-            canAdd={canAdd}
-            canDelete={canDelete}
-            pendingChanges={pendingChanges}
-            onPendingChangesChange={onPendingChangesChange}
-          />
-
-          <div id="checklists_section" className="flex flex-col gap-5 lg:gap-7.5">
             <HouseChecklistSetup
               key={`checklists-${refreshKeys.checklists}`}
               houseId={id}
@@ -1046,9 +1016,10 @@ export function HouseDetailContent({
             />
           </div>
 
-          <HouseForms
-            key={`forms-${refreshKeys.forms}`}
+          <HouseDocuments
+            key={`documents-${refreshKeys.documents}`}
             houseId={id}
+            houseName={formData?.name}
             canAdd={canAdd}
             canDelete={canDelete}
             pendingChanges={pendingChanges}
@@ -1064,8 +1035,8 @@ export function HouseDetailContent({
             onPendingChangesChange={onPendingChangesChange}
           />
 
-          <HouseParticipants
-            key={`participants-${refreshKeys.participants}`}
+          <HouseStaff
+            key={`staff-${refreshKeys.staff}`}
             houseId={id}
             canAdd={canAdd}
             canDelete={canDelete}

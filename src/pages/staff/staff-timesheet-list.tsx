@@ -116,7 +116,7 @@ export function StaffTimesheetList() {
   return (
     <>
       <Container>
-        <Toolbar>
+        <Toolbar className="hidden sm:flex">
           <ToolbarHeading>
             <ToolbarPageTitle text="My Timesheets" />
             <ToolbarDescription>Track and submit your shift timesheets</ToolbarDescription>
@@ -124,11 +124,11 @@ export function StaffTimesheetList() {
         </Toolbar>
       </Container>
 
-      <Container>
+      <Container className="py-6 sm:py-0">
         <div className="grid gap-5 lg:gap-7.5">
 
           {/* Tab bar */}
-          <div className="flex items-center gap-1 rounded-xl border bg-muted/40 p-1 overflow-x-auto">
+          <div className="flex items-center gap-1 rounded-xl border sm:border-muted/40 p-1 overflow-x-auto bg-muted/40 sm:bg-muted/40">
             {TABS.map(({ key, label, icon: Icon }) => (
               <button
                 key={key}
@@ -185,13 +185,13 @@ export function StaffTimesheetList() {
           )}
 
           {loading ? (
-            <Card>
+            <Card className="border-0 sm:border">
               <CardContent className="py-10 text-center text-sm text-muted-foreground">
                 Loading...
               </CardContent>
             </Card>
           ) : visible.length === 0 ? (
-            <Card>
+            <Card className="border-0 sm:border">
               <CardContent className="py-16 flex flex-col items-center gap-4">
                 <div className="flex size-14 items-center justify-center rounded-full bg-muted">
                   <ClipboardList className="size-7 text-muted-foreground" />
@@ -207,7 +207,7 @@ export function StaffTimesheetList() {
               </CardContent>
             </Card>
           ) : (
-            <Card>
+            <Card className="border-0 sm:border">
               <CardHeader className="py-4 px-5 border-b">
                 <span className="text-sm text-muted-foreground">
                   {visible.length} timesheet{visible.length !== 1 ? 's' : ''}
