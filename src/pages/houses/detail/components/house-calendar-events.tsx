@@ -739,7 +739,7 @@ export function HouseCalendarEvents({
                   <SelectContent>
                     <SelectItem value="none">None</SelectItem>
                     {staff
-                      .filter(s => (s as any).status === 'active' || s.id === formData.assigned_staff_id)
+                      .filter(s => (s as any).status?.toLowerCase() === 'active' || s.id === formData.assigned_staff_id)
                       .map((staffMember) => (
                       <SelectItem key={staffMember.id} value={staffMember.id}>
                         <div className="flex items-center gap-2">

@@ -13,6 +13,8 @@ import { Label } from '@/components/ui/label';
 interface Staff {
   id: string;
   name: string;
+  photo_url?: string | null;
+  status?: string;
 }
 
 interface House {
@@ -23,6 +25,7 @@ interface House {
 interface Participant {
   id: string;
   name: string;
+  status?: string;
 }
 
 
@@ -51,8 +54,8 @@ export function RosterBoardContent() {
     // Load staff (only active/non-draft staff with names)
     const { data: staffData, error: staffError } = await supabase
       .from('staff')
-      .select('id, name')
-      .neq('status', 'draft')
+      .select('id, name, photo_url, status')
+      .ilike('status', 'active')
       .not('name', 'is', null)
       .order('name');
 
@@ -61,14 +64,14 @@ export function RosterBoardContent() {
     }
     
     if (!staffError && staffData) {
-      setStaff(staffData);
+      setStaff(staffData as Staff[]);
     }
 
     // Load houses (only active)
     const { data: housesData, error: housesError } = await supabase
       .from('houses')
       .select('id, name')
-      .eq('status', 'active')
+      .ilike('status', 'active')
       .order('name');
 
     if (!housesError && housesData) {
@@ -78,13 +81,13 @@ export function RosterBoardContent() {
     // Load participants (only active)
     const { data: participantsData, error: participantsError } = await supabase
       .from('participants')
-      .select('id, name')
-      .eq('status', 'active')
+      .select('id, name, status')
+      .ilike('status', 'active')
       .not('name', 'is', null)
       .order('name');
 
     if (!participantsError && participantsData) {
-      setParticipants(participantsData);
+      setParticipants(participantsData as Participant[]);
     }
 
     setLoading(false);

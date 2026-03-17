@@ -6,17 +6,21 @@ import { calculateDuration } from './roster-utils';
 export interface House {
   id: string;
   name: string;
+  status?: string;
 }
 
 export interface Participant {
   id: string;
   name: string;
   house_id?: string | null;
+  status?: string;
 }
 
 export interface Staff {
   id: string;
   name: string;
+  photo_url?: string | null;
+  status?: string;
 }
 
 export interface StaffShift {
@@ -45,45 +49,84 @@ export function useRosterData() {
   const [loading, setLoading] = useState(false);
 
   const loadHouses = useCallback(async () => {
-    const { data, error } = await supabase
-      .from('houses')
-      .select('id, name')
-      .eq('status', 'active')
-      .order('name');
-    
-    if (!error && data) {
-      setHouses(data);
+    try {
+      // Use ilike for case-insensitive matching
+      const { data, error } = await supabase
+        .from('houses')
+        .select('id, name, status')
+        .ilike('status', 'active')
+        .order('name');
+      
+      if (error) {
+        console.error('Error loading houses for roster:', error);
+        return;
+      }
+      
+      if (data) {
+        setHouses(data);
+      }
+    } catch (err) {
+      console.error('Exception loading houses:', err);
     }
   }, []);
 
   const loadParticipants = useCallback(async () => {
-    const { data, error } = await supabase
-      .from('participants')
-      .select('id, name, house_id')
-      .eq('status', 'active')
-      .not('name', 'is', null)
-      .order('name');
-    
-    if (!error && data) {
-      setParticipants(data);
+    try {
+      const { data, error } = await supabase
+        .from('participants')
+        .select('id, name, house_id, status')
+        .ilike('status', 'active')
+        .not('name', 'is', null)
+        .order('name');
+      
+      if (error) {
+        console.error('Error loading participants for roster:', error);
+        return;
+      }
+      
+      if (data) {
+        setParticipants(data);
+      }
+    } catch (err) {
+      console.error('Exception loading participants:', err);
     }
   }, []);
 
   const loadStaff = useCallback(async () => {
-    const { data, error } = await supabase
-      .from('staff')
-      .select('id, name')
-      .neq('status', 'draft')
-      .not('name', 'is', null)
-      .order('name');
-    
-    if (!error && data) {
-      setStaff(data);
+    try {
+      console.log('Fetching active staff members...');
+      const { data, error } = await supabase
+        .from('staff')
+        .select('id, name, photo_url, status')
+        .ilike('status', 'active')
+        .not('name', 'is', null)
+        .order('name');
+      
+      if (error) {
+        console.error('Error loading staff for roster:', error);
+        return;
+      }
+      
+      console.log(`Loaded ${data?.length || 0} active staff members`);
+      if (data) {
+        setStaff(data as Staff[]);
+      }
+    } catch (err) {
+      console.error('Exception loading staff:', err);
     }
   }, []);
 
   const loadAllData = useCallback(async () => {
-    await Promise.all([loadHouses(), loadParticipants(), loadStaff()]);
+    setLoading(true);
+    try {
+      await Promise.all([
+        loadHouses(), 
+        loadParticipants(), 
+        loadStaff()
+      ]);
+    } finally {
+      setLoading(false);
+    }
   }, [loadHouses, loadParticipants, loadStaff]);
 
   const loadShifts = useCallback(async (staffId: string, startDate: string, endDate: string): Promise<StaffShift[]> => {

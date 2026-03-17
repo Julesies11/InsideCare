@@ -45,10 +45,10 @@ interface ShiftDialogProps {
   staffId?: string;
   preSelectedDate?: Date;
   preSelectedHouseId?: string;
-  staffList: Array<{ id: string; name: string }>;
+  staffList: Array<{ id: string; name: string; photo_url?: string | null; status?: string }>;
   staffSelectionDisabled: boolean;
   houses: Array<{ id: string; name: string }>;
-  participants: Array<{ id: string; name: string; house_id?: string | null }>;
+  participants: Array<{ id: string; name: string; status?: string; house_id?: string | null }>;
   onSave: (formData: ShiftFormData, isCreateOverride?: boolean) => Promise<{ id: string } | void>;
   onDelete?: (shiftId: string) => Promise<void>;
   scrollToNotes?: boolean;
@@ -478,7 +478,7 @@ export function ShiftDialog({
                 </SelectTrigger>
                 <SelectContent>
                   {staffList
-                    .filter(member => (member as any).status === 'active' || member.id === formData.staff_id)
+                    .filter(member => member.status?.toLowerCase() === 'active' || member.id === formData.staff_id)
                     .map(member => (
                     <SelectItem key={member.id} value={member.id}>
                       <div className="flex items-center gap-2">
@@ -626,7 +626,7 @@ export function ShiftDialog({
               </SelectTrigger>
               <SelectContent>
                 {participants
-                  .filter(p => p.status === 'active' || formData.participant_ids.includes(p.id))
+                  .filter(p => p.status?.toLowerCase() === 'active' || formData.participant_ids.includes(p.id))
                   .map(participant => (
                   <SelectItem key={participant.id} value={participant.id}>
                     {participant.name}

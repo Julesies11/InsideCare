@@ -29,7 +29,7 @@ export function EmploymentDetails({
 
   // Filter active staff for manager dropdown, excluding current staff member
   const activeStaff = staff.filter(s => 
-    s.status === 'active' && s.id !== currentStaffId
+    s.status?.toLowerCase() === 'active' && s.id !== currentStaffId
   );
   
   // Include currently selected manager even if inactive, so it displays after save
