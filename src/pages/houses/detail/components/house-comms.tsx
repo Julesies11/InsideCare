@@ -3,12 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { MessageSquare, Plus, Calendar, User, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MessageSquare, Plus, Calendar, User, Clock, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/auth/context/auth-context';
 import { format, subDays, addDays, isToday, parseISO } from 'date-fns';
 import { toast } from 'sonner';
+import { HousePendingChanges } from '@/models/house-pending-changes';
 
 interface HouseCommEntry {
   id: string;
@@ -23,16 +23,21 @@ interface HouseCommEntry {
 
 interface HouseCommsProps {
   houseId: string;
+  pendingChanges?: HousePendingChanges;
+  onPendingChangesChange?: (changes: HousePendingChanges) => void;
 }
 
-export function HouseComms({ houseId }: HouseCommsProps) {
+export function HouseComms({ 
+  houseId,
+  pendingChanges,
+  onPendingChangesChange
+}: HouseCommsProps) {
   const { user } = useAuth();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [entries, setEntries] = useState<HouseCommEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [newEntryContent, setNewEntryContent] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
-  const [saving, setSaving] = useState(false);
 
   const fetchEntries = async (date: Date) => {
     try {
@@ -65,39 +70,57 @@ export function HouseComms({ houseId }: HouseCommsProps) {
     }
   }, [houseId, selectedDate]);
 
-  const handleAddEntry = async () => {
-    if (!newEntryContent.trim()) return;
+  const handleAddEntry = () => {
+    if (!newEntryContent.trim() || !pendingChanges || !onPendingChangesChange) return;
 
-    try {
-      setSaving(true);
-      const dateStr = format(selectedDate, 'yyyy-MM-dd');
-      
-      const { error } = await supabase
-        .from('house_comms')
-        .insert({
-          house_id: houseId,
-          entry_date: dateStr,
-          content: newEntryContent.trim(),
-          created_by: user?.staff_id,
-        });
+    const dateStr = format(selectedDate, 'yyyy-MM-dd');
+    const tempId = `temp-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+    
+    const newPending = {
+      ...pendingChanges,
+      comms: {
+        ...pendingChanges.comms,
+        toAdd: [
+          ...pendingChanges.comms.toAdd,
+          {
+            tempId,
+            content: newEntryContent.trim(),
+            entry_date: dateStr,
+            created_by: user?.staff_id,
+            creator_name: user?.name || 'Staff Member',
+          },
+        ],
+      },
+    };
 
-      if (error) throw error;
+    onPendingChangesChange(newPending);
+    setNewEntryContent('');
+    setShowAddForm(false);
+    toast.info('Entry added to save queue');
+  };
 
-      toast.success('Communication entry added');
-      setNewEntryContent('');
-      setShowAddForm(false);
-      fetchEntries(selectedDate);
-    } catch (error: any) {
-      console.error('Error adding house comms:', error);
-      toast.error('Failed to add entry: ' + error.message);
-    } finally {
-      setSaving(false);
-    }
+  const handleRemovePendingEntry = (tempId: string) => {
+    if (!pendingChanges || !onPendingChangesChange) return;
+
+    const newPending = {
+      ...pendingChanges,
+      comms: {
+        ...pendingChanges.comms,
+        toAdd: pendingChanges.comms.toAdd.filter(entry => entry.tempId !== tempId),
+      },
+    };
+
+    onPendingChangesChange(newPending);
   };
 
   const navigateDate = (direction: 'prev' | 'next') => {
     setSelectedDate(prev => direction === 'next' ? addDays(prev, 1) : subDays(prev, 1));
   };
+
+  const dateStr = format(selectedDate, 'yyyy-MM-dd');
+  const pendingForSelectedDate = pendingChanges?.comms.toAdd.filter(
+    entry => entry.entry_date === dateStr
+  ) || [];
 
   return (
     <Card className="pb-2.5" id="house_comms">
@@ -154,8 +177,8 @@ export function HouseComms({ houseId }: HouseCommsProps) {
               />
               <div className="flex justify-end gap-2 mt-3">
                 <Button variant="outline" size="sm" onClick={() => setShowAddForm(false)}>Cancel</Button>
-                <Button size="sm" onClick={handleAddEntry} disabled={saving || !newEntryContent.trim()}>
-                  {saving ? 'Saving...' : 'Post Entry'}
+                <Button size="sm" onClick={handleAddEntry} disabled={!newEntryContent.trim()}>
+                  Add to Queue
                 </Button>
               </div>
             </div>
@@ -165,7 +188,7 @@ export function HouseComms({ houseId }: HouseCommsProps) {
             <div className="py-12 text-center text-muted-foreground animate-pulse">
               Loading entries...
             </div>
-          ) : entries.length === 0 ? (
+          ) : (entries.length === 0 && pendingForSelectedDate.length === 0) ? (
             <div className="py-12 text-center bg-gray-50/50 rounded-xl border border-dashed border-gray-200">
               <MessageSquare className="size-10 mx-auto mb-3 opacity-20" />
               <p className="text-sm text-muted-foreground italic">No communication entries for this date.</p>
@@ -177,10 +200,43 @@ export function HouseComms({ houseId }: HouseCommsProps) {
             </div>
           ) : (
             <div className="relative space-y-4 before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-gray-200 before:to-transparent">
-              {entries.map((entry) => (
-                <div key={entry.id} className="relative flex items-start gap-4 animate-in fade-in duration-300">
+              {/* Render Pending Entries First */}
+              {pendingForSelectedDate.map((entry) => (
+                <div key={entry.tempId} className="relative flex items-start gap-4 animate-in fade-in duration-300">
                   <div className="absolute left-0 flex items-center justify-center w-10 h-10 rounded-full bg-white border-2 border-primary shadow-sm z-10">
                     <User className="size-5 text-primary" />
+                  </div>
+                  <div className="flex-1 ml-12 bg-primary/5 rounded-xl border border-primary/20 p-4 shadow-sm relative">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="absolute top-2 right-2 size-6 text-muted-foreground hover:text-destructive"
+                      onClick={() => handleRemovePendingEntry(entry.tempId)}
+                    >
+                      <X className="size-3" />
+                    </Button>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold text-gray-900">{entry.creator_name || 'Staff Member'}</span>
+                        <span className="size-1 rounded-full bg-gray-300" />
+                        <div className="flex items-center gap-1 text-[10px] text-primary font-bold uppercase tracking-wider">
+                          <Clock className="size-3" />
+                          Pending Save
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                      {entry.content}
+                    </p>
+                  </div>
+                </div>
+              ))}
+
+              {/* Render Existing Entries */}
+              {entries.map((entry) => (
+                <div key={entry.id} className="relative flex items-start gap-4 animate-in fade-in duration-300">
+                  <div className="absolute left-0 flex items-center justify-center w-10 h-10 rounded-full bg-white border-2 border-gray-200 shadow-sm z-10">
+                    <User className="size-5 text-gray-400" />
                   </div>
                   <div className="flex-1 ml-12 bg-white rounded-xl border border-gray-100 p-4 shadow-sm hover:border-primary/20 transition-colors">
                     <div className="flex items-center justify-between mb-2">
@@ -206,3 +262,4 @@ export function HouseComms({ houseId }: HouseCommsProps) {
     </Card>
   );
 }
+

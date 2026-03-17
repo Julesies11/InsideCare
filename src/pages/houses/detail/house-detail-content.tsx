@@ -182,6 +182,7 @@ export function HouseDetailContent({
     forms: 0,
     resources: 0,
     participants: 0,
+    comms: 0,
   });
 
   const handleFieldChange = (field: string, value: any) => {
@@ -766,6 +767,24 @@ export function HouseDetailContent({
         }
       }
 
+      // Step 10: Process pending comms
+      if (currentPending.comms.toAdd.length) {
+        for (const entry of currentPending.comms.toAdd) {
+          const { error } = await supabase
+            .from('house_comms')
+            .insert({
+              house_id: id,
+              entry_date: entry.entry_date,
+              content: entry.content,
+              created_by: currentStaffId || entry.created_by,
+            });
+
+          if (error) {
+            throw new Error(`Failed to add communication entry: ${error.message}`);
+          }
+        }
+      }
+
       // Final Step: Log Activity & Refresh
       const updatedHouseData = { ...currentFormData };
       setHouse(houseData);
@@ -781,6 +800,7 @@ export function HouseDetailContent({
       queryClient.invalidateQueries({ queryKey: ['house-checklists', id] });
       queryClient.invalidateQueries({ queryKey: ['house-forms', id] });
       queryClient.invalidateQueries({ queryKey: ['house-resources', id] });
+      queryClient.invalidateQueries({ queryKey: ['house_comms', { houseId: id }] });
 
       toast.success('All changes saved successfully');
 
@@ -794,6 +814,7 @@ export function HouseDetailContent({
         forms: (currentPending.forms.toAdd.length || 0) > 0 || (currentPending.forms.toUpdate.length || 0) > 0 || (currentPending.forms.toDelete.length || 0) > 0 || (currentPending.formAssignments.toAdd.length || 0) > 0 || (currentPending.formAssignments.toUpdate.length || 0) > 0 || (currentPending.formAssignments.toDelete.length || 0) > 0 ? prev.forms + 1 : prev.forms,
         resources: (currentPending.resources.toAdd.length || 0) > 0 || (currentPending.resources.toUpdate.length || 0) > 0 || (currentPending.resources.toDelete.length || 0) > 0 ? prev.resources + 1 : prev.resources,
         participants: (currentPending.participants.toAdd.length || 0) > 0 || (currentPending.participants.toUpdate.length || 0) > 0 || (currentPending.participants.toDelete.length || 0) > 0 ? prev.participants + 1 : prev.participants,
+        comms: (currentPending.comms.toAdd.length || 0) > 0 ? prev.comms + 1 : prev.comms,
       }));
 
       // Clear pending changes after successful save
@@ -999,7 +1020,10 @@ export function HouseDetailContent({
 
           <div id="checklist_comms_section" className="flex flex-col gap-5 lg:gap-7.5">
             <HouseComms
+              key={`comms-${refreshKeys.comms}`}
               houseId={id}
+              pendingChanges={pendingChanges}
+              onPendingChangesChange={onPendingChangesChange}
             />
 
             <HouseChecklistSetup

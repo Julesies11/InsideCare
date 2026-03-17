@@ -199,6 +199,16 @@ export interface HousePendingChanges {
     }>;
     toDelete: string[];
   };
+  comms: {
+    toAdd: Array<{
+      tempId: string;
+      content: string;
+      entry_date: string;
+      created_by?: string;
+      creator_name?: string;
+    }>;
+    toDelete: string[];
+  };
 }
 
 export const emptyHousePendingChanges: HousePendingChanges = {
@@ -246,6 +256,10 @@ export const emptyHousePendingChanges: HousePendingChanges = {
     toUpdate: [],
     toDelete: [],
   },
+  comms: {
+    toAdd: [],
+    toDelete: [],
+  },
 };
 
 // Helper to check if there are any pending changes for houses
@@ -276,7 +290,9 @@ export function hasHousePendingChanges(pending: HousePendingChanges): boolean {
     pending.formAssignments.toDelete.length > 0 ||
     pending.resources.toAdd.length > 0 ||
     pending.resources.toUpdate.length > 0 ||
-    pending.resources.toDelete.length > 0
+    pending.resources.toDelete.length > 0 ||
+    pending.comms.toAdd.length > 0 ||
+    pending.comms.toDelete.length > 0
   );
 }
 
@@ -308,6 +324,9 @@ export function countHousePendingChanges(pending: HousePendingChanges): number {
     pending.formAssignments.toDelete.length +
     pending.resources.toAdd.length +
     pending.resources.toUpdate.length +
-    pending.resources.toDelete.length
+    pending.resources.toDelete.length +
+    pending.comms.toAdd.length +
+    pending.comms.toDelete.length
   );
 }
+
