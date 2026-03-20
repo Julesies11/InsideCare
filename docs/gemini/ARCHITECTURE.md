@@ -7,7 +7,25 @@ This document describes the architectural patterns and state management strategi
 
 1.  **Direct Supabase Usage**: Use basic Supabase features only (`select`, `insert`, `update`, `delete`, `auth`).
 2.  **No Server-Side Logic**: Do NOT create Supabase SQL functions, triggers, stored procedures, RPC endpoints, or views.
-3.  **Client-Side Transforms**: All data transformations, joins, groupings, and aggregations must be done in the app (API utility functions, custom hooks, or TanStack Query `select` transformers).
+3.  **Client-Side Transforms**: All data transformations, joins, groupings, and aggregations must be done in the app.
+4.  **Enum Querying**: Enum columns (like `status`) do NOT support `.ilike()`. Always use `.eq()` or `.in()` for these fields.
+
+## 2. Security & Row Level Security (RLS)
+The application enforces strict role-based access control (RBAC) via Supabase RLS.
+
+### Admin Access
+- **Global Policy**: A "policy factory" grants users with `is_admin: true` in their JWT metadata full (`FOR ALL`) access to every table in the `public` schema.
+- **Storage**: Admins have full access to all storage buckets.
+
+### Staff Access
+- **Clinical Awareness**: Staff have `SELECT` access to all Participants and their clinical child entities (medications, routines, notes) to ensure they can provide informed care anywhere.
+- **House-Scoped Access**: Access to operational data (Checklists, Calendars, Resources) is strictly scoped to the houses the staff member is assigned to in `house_staff_assignments`.
+- **Self-Service**: Staff can manage their own profiles, timesheets, and leave requests (while status is `pending`).
+
+### Non-Recursive Assignment Pattern
+To prevent "Infinite Recursion" errors in RLS:
+- **Rule**: `house_staff_assignments` is configured with a simple `FOR SELECT USING (true)` policy for authenticated users.
+- **Purpose**: This allows the table to act as a stable "lookup" for other tables (like `house_checklists`) to verify assignments without the table querying itself.
 
 ## 2. State Management & Data Fetching
 - **TanStack Query**: Used for all data fetching and caching.

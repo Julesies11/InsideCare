@@ -55,7 +55,7 @@ export function RosterBoardContent() {
     const { data: staffData, error: staffError } = await supabase
       .from('staff')
       .select('id, name, photo_url, status')
-      .ilike('status', 'active')
+      .eq('status', 'active')
       .not('name', 'is', null)
       .order('name');
 
@@ -71,7 +71,7 @@ export function RosterBoardContent() {
     const { data: housesData, error: housesError } = await supabase
       .from('houses')
       .select('id, name')
-      .ilike('status', 'active')
+      .eq('status', 'active')
       .order('name');
 
     if (!housesError && housesData) {
@@ -82,7 +82,7 @@ export function RosterBoardContent() {
     const { data: participantsData, error: participantsError } = await supabase
       .from('participants')
       .select('id, name, status')
-      .ilike('status', 'active')
+      .eq('status', 'active')
       .not('name', 'is', null)
       .order('name');
 

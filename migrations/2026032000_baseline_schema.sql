@@ -121,13 +121,14 @@ CREATE TABLE IF NOT EXISTS public.house_calendar_event_types_master (
 CREATE TABLE IF NOT EXISTS public.checklist_master (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   name text NOT NULL,
-  frequency text NULL,
+  frequency text NOT NULL,
   description text NULL,
   days_of_week text[] DEFAULT NULL,
   created_at timestamp with time zone NULL DEFAULT now(),
   updated_at timestamp with time zone NULL DEFAULT now(),
   CONSTRAINT checklist_master_pkey PRIMARY KEY (id)
 );
+CREATE INDEX IF NOT EXISTS idx_checklist_master_name ON public.checklist_master USING btree (name);
 
 CREATE TABLE IF NOT EXISTS public.checklist_item_master (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -142,6 +143,7 @@ CREATE TABLE IF NOT EXISTS public.checklist_item_master (
   CONSTRAINT checklist_item_master_pkey PRIMARY KEY (id),
   CONSTRAINT checklist_item_master_master_id_fkey FOREIGN KEY (master_id) REFERENCES checklist_master (id) ON DELETE CASCADE
 );
+CREATE INDEX IF NOT EXISTS idx_checklist_item_master_id ON public.checklist_item_master USING btree (master_id);
 
 -- ============================================================
 -- 3. CORE ENTITIES
@@ -186,8 +188,23 @@ CREATE TABLE IF NOT EXISTS public.staff (
   contracted_hours numeric(5, 2) DEFAULT 0.00,
   created_at timestamp with time zone NULL DEFAULT now(),
   updated_at timestamp with time zone NULL DEFAULT now(),
-  CONSTRAINT staff_pkey PRIMARY KEY (id)
+  CONSTRAINT staff_pkey PRIMARY KEY (id),
+  CONSTRAINT staff_name_required_when_active CHECK (
+    (status <> 'active'::status_enum) OR (name IS NOT NULL AND length(TRIM(name)) > 0)
+  ),
+  CONSTRAINT staff_email_required_when_active CHECK (
+    (status <> 'active'::status_enum) OR (email IS NOT NULL)
+  )
 );
+CREATE INDEX IF NOT EXISTS idx_staff_email ON public.staff (email);
+CREATE INDEX IF NOT EXISTS idx_staff_name ON public.staff (name);
+CREATE INDEX IF NOT EXISTS idx_staff_branch_id ON public.staff (branch_id);
+CREATE INDEX IF NOT EXISTS idx_staff_role_id ON public.staff (role_id);
+CREATE INDEX IF NOT EXISTS idx_staff_status ON public.staff (status);
+CREATE INDEX IF NOT EXISTS idx_staff_department_id ON public.staff (department_id);
+CREATE INDEX IF NOT EXISTS idx_staff_employment_type_id ON public.staff (employment_type_id);
+CREATE INDEX IF NOT EXISTS idx_staff_manager_id ON public.staff (manager_id);
+CREATE INDEX IF NOT EXISTS idx_staff_auth_user_id ON public.staff (auth_user_id);
 
 CREATE TABLE IF NOT EXISTS public.houses (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -209,6 +226,9 @@ CREATE TABLE IF NOT EXISTS public.houses (
   updated_at timestamp with time zone NULL DEFAULT now(),
   CONSTRAINT houses_pkey PRIMARY KEY (id)
 );
+CREATE INDEX IF NOT EXISTS idx_houses_branch_id ON public.houses (branch_id);
+CREATE INDEX IF NOT EXISTS idx_houses_name ON public.houses (name);
+CREATE INDEX IF NOT EXISTS idx_houses_status ON public.houses (status);
 
 CREATE TABLE IF NOT EXISTS public.participants (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -272,11 +292,356 @@ CREATE TABLE IF NOT EXISTS public.participants (
   move_in_date date NULL,
   created_at timestamp with time zone NULL DEFAULT now(),
   updated_at timestamp with time zone NULL DEFAULT now(),
-  CONSTRAINT participants_pkey PRIMARY KEY (id)
+  CONSTRAINT participants_pkey PRIMARY KEY (id),
+  CONSTRAINT participant_email_required_when_active CHECK (
+    (status <> 'active'::status_enum) OR (email IS NOT NULL)
+  ),
+  CONSTRAINT participant_name_required_when_active CHECK (
+    (status <> 'active'::status_enum) OR (name IS NOT NULL AND length(TRIM(name)) > 0)
+  ),
+  CONSTRAINT participants_mtmp_details_required CHECK (
+    (mtmp_required = false) OR (mtmp_details IS NOT NULL AND length(TRIM(mtmp_details)) > 0)
+  )
 );
+CREATE INDEX IF NOT EXISTS idx_participants_house_id ON public.participants (house_id);
+CREATE INDEX IF NOT EXISTS idx_participants_status ON public.participants (status);
 
 -- ============================================================
--- 4. DEPENDENT TABLES
+-- 4. HOUSE & PARTICIPANT CHILD ENTITIES
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS public.house_staff_assignments (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  house_id uuid NOT NULL REFERENCES houses (id) ON DELETE CASCADE,
+  staff_id uuid NOT NULL REFERENCES staff (id) ON DELETE CASCADE,
+  is_primary boolean NULL DEFAULT false,
+  start_date date NULL,
+  end_date date NULL,
+  notes text NULL,
+  created_at timestamp with time zone NULL DEFAULT now(),
+  updated_at timestamp with time zone NULL DEFAULT now(),
+  CONSTRAINT house_staff_assignments_pkey PRIMARY KEY (id),
+  CONSTRAINT house_staff_assignments_house_id_staff_id_key UNIQUE (house_id, staff_id)
+);
+CREATE INDEX IF NOT EXISTS idx_house_staff_house_id ON public.house_staff_assignments (house_id);
+CREATE INDEX IF NOT EXISTS idx_house_staff_staff_id ON public.house_staff_assignments (staff_id);
+CREATE INDEX IF NOT EXISTS idx_house_staff_is_primary ON public.house_staff_assignments (is_primary);
+
+CREATE TABLE IF NOT EXISTS public.participant_medications (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  participant_id uuid NOT NULL REFERENCES participants (id) ON DELETE CASCADE,
+  medication_id uuid NULL REFERENCES medications_master (id) ON DELETE RESTRICT,
+  dosage text NULL,
+  frequency text NULL,
+  is_active boolean NULL DEFAULT true,
+  created_at timestamp with time zone NULL DEFAULT now(),
+  updated_at timestamp with time zone NULL DEFAULT now(),
+  CONSTRAINT participant_medications_pkey PRIMARY KEY (id)
+);
+CREATE INDEX IF NOT EXISTS idx_medications_participant ON public.participant_medications (participant_id);
+CREATE INDEX IF NOT EXISTS idx_medications_active ON public.participant_medications (is_active);
+CREATE INDEX IF NOT EXISTS idx_participant_medications_medication_id ON public.participant_medications (medication_id);
+
+CREATE TABLE IF NOT EXISTS public.participant_notes (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  participant_id uuid NOT NULL REFERENCES participants (id) ON DELETE CASCADE,
+  note_type text NULL,
+  content text NOT NULL,
+  is_important boolean NULL DEFAULT false,
+  is_private boolean NULL DEFAULT false,
+  created_by uuid NULL REFERENCES staff (id) ON DELETE SET NULL,
+  created_at timestamp with time zone NULL DEFAULT now(),
+  updated_at timestamp with time zone NULL DEFAULT now(),
+  CONSTRAINT participant_notes_pkey PRIMARY KEY (id)
+);
+CREATE INDEX IF NOT EXISTS idx_notes_participant ON public.participant_notes (participant_id);
+
+CREATE TABLE IF NOT EXISTS public.participant_documents (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  participant_id uuid NOT NULL REFERENCES participants (id) ON DELETE CASCADE,
+  file_name text NOT NULL,
+  file_path text NOT NULL,
+  file_size integer NULL,
+  mime_type text NULL,
+  uploaded_by uuid NULL REFERENCES staff (id) ON DELETE SET NULL,
+  is_restricted boolean NULL DEFAULT false,
+  created_at timestamp with time zone NULL DEFAULT now(),
+  updated_at timestamp with time zone NULL DEFAULT now(),
+  CONSTRAINT participant_documents_pkey PRIMARY KEY (id)
+);
+CREATE INDEX IF NOT EXISTS idx_documents_participant ON public.participant_documents (participant_id);
+
+CREATE TABLE IF NOT EXISTS public.participant_goals (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  participant_id uuid NOT NULL REFERENCES participants (id) ON DELETE CASCADE,
+  goal_type text NOT NULL,
+  description text NOT NULL,
+  is_active boolean NULL DEFAULT true,
+  created_at timestamp with time zone NULL DEFAULT now(),
+  updated_at timestamp with time zone NULL DEFAULT now(),
+  CONSTRAINT participant_goals_pkey PRIMARY KEY (id)
+);
+CREATE INDEX IF NOT EXISTS idx_goals_participant ON public.participant_goals (participant_id);
+CREATE INDEX IF NOT EXISTS idx_goals_active ON public.participant_goals (is_active);
+CREATE INDEX IF NOT EXISTS idx_goals_type ON public.participant_goals (goal_type);
+
+CREATE TABLE IF NOT EXISTS public.participant_goal_progress (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  goal_id uuid NOT NULL REFERENCES participant_goals (id) ON DELETE CASCADE,
+  progress_note text NOT NULL,
+  created_at timestamp with time zone NULL DEFAULT now(),
+  updated_at timestamp with time zone NULL DEFAULT now(),
+  CONSTRAINT participant_goal_progress_pkey PRIMARY KEY (id)
+);
+CREATE INDEX IF NOT EXISTS idx_goal_progress_goal ON public.participant_goal_progress (goal_id);
+
+CREATE TABLE IF NOT EXISTS public.participant_funding (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  participant_id uuid NOT NULL REFERENCES participants (id) ON DELETE CASCADE,
+  house_id uuid NULL REFERENCES houses (id) ON DELETE SET NULL,
+  funding_source_id uuid NULL REFERENCES funding_sources_master (id) ON DELETE RESTRICT,
+  funding_type_id uuid NULL REFERENCES funding_types_master (id) ON DELETE RESTRICT,
+  code text NULL,
+  invoice_recipient text NULL,
+  allocated_amount numeric(12, 2) NOT NULL,
+  used_amount numeric(12, 2) NULL DEFAULT 0,
+  remaining_amount numeric(12, 2) NULL,
+  status text NULL DEFAULT 'Active'::text,
+  end_date date NULL,
+  notes text NULL,
+  created_at timestamp with time zone NULL DEFAULT now(),
+  updated_at timestamp with time zone NULL DEFAULT now(),
+  CONSTRAINT participant_funding_pkey PRIMARY KEY (id),
+  CONSTRAINT participant_funding_status_check CHECK (
+    status IN ('Active', 'Near Depletion', 'Expired', 'Inactive')
+  )
+);
+CREATE INDEX IF NOT EXISTS idx_participant_funding_participant_id ON public.participant_funding (participant_id);
+CREATE INDEX IF NOT EXISTS idx_participant_funding_source_id ON public.participant_funding (funding_source_id);
+CREATE INDEX IF NOT EXISTS idx_participant_funding_type_id ON public.participant_funding (funding_type_id);
+
+CREATE TABLE IF NOT EXISTS public.participant_forms (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  participant_id uuid NOT NULL REFERENCES participants (id) ON DELETE CASCADE,
+  form_type text NOT NULL,
+  form_title text NOT NULL,
+  form_data jsonb NULL,
+  submitted_by uuid NULL REFERENCES staff (id) ON DELETE SET NULL,
+  submission_date date NULL DEFAULT CURRENT_DATE,
+  created_at timestamp with time zone NULL DEFAULT now(),
+  updated_at timestamp with time zone NULL DEFAULT now(),
+  CONSTRAINT participant_forms_pkey PRIMARY KEY (id)
+);
+CREATE INDEX IF NOT EXISTS idx_forms_participant ON public.participant_forms (participant_id);
+
+CREATE TABLE IF NOT EXISTS public.participant_hygiene_routines (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  participant_id uuid NOT NULL REFERENCES participants (id) ON DELETE CASCADE,
+  routine_type text NOT NULL,
+  support_level text NOT NULL,
+  frequency text NULL,
+  time_of_day text NULL,
+  duration_minutes integer NULL,
+  specific_instructions text NULL,
+  equipment_needed text NULL,
+  notes text NULL,
+  created_at timestamp with time zone NULL DEFAULT now(),
+  updated_at timestamp with time zone NULL DEFAULT now(),
+  CONSTRAINT participant_hygiene_routines_pkey PRIMARY KEY (id)
+);
+CREATE INDEX IF NOT EXISTS idx_hygiene_participant ON public.participant_hygiene_routines (participant_id);
+
+CREATE TABLE IF NOT EXISTS public.participant_restrictive_practices (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  participant_id uuid NOT NULL REFERENCES participants (id) ON DELETE CASCADE,
+  practice_type text NOT NULL,
+  description text NOT NULL,
+  justification text NOT NULL,
+  authorization_date date NULL,
+  authorized_by text NULL,
+  review_date date NOT NULL,
+  status text NULL DEFAULT 'Active'::text,
+  conditions text NULL,
+  alternatives_considered text NULL,
+  monitoring_requirements text NULL,
+  incident_reporting_protocol text NULL,
+  is_ndis_reportable boolean NULL DEFAULT true,
+  created_by uuid NULL REFERENCES staff (id) ON DELETE SET NULL,
+  created_at timestamp with time zone NULL DEFAULT now(),
+  updated_at timestamp with time zone NULL DEFAULT now(),
+  CONSTRAINT participant_restrictive_practices_pkey PRIMARY KEY (id)
+);
+CREATE INDEX IF NOT EXISTS idx_restrictive_participant ON public.participant_restrictive_practices (participant_id);
+
+CREATE TABLE IF NOT EXISTS public.participant_contacts (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  participant_id uuid NOT NULL REFERENCES participants (id) ON DELETE CASCADE,
+  contact_type_id uuid NULL REFERENCES contact_types_master (id) ON DELETE RESTRICT,
+  contact_name text NOT NULL,
+  phone text NULL,
+  email text NULL,
+  address text NULL,
+  is_active boolean NULL DEFAULT true,
+  notes text NULL,
+  created_at timestamp with time zone NULL DEFAULT now(),
+  updated_at timestamp with time zone NULL DEFAULT now(),
+  CONSTRAINT participant_contacts_pkey PRIMARY KEY (id)
+);
+CREATE INDEX IF NOT EXISTS idx_contacts_participant ON public.participant_contacts (participant_id);
+CREATE INDEX IF NOT EXISTS idx_contacts_active ON public.participant_contacts (is_active);
+CREATE INDEX IF NOT EXISTS idx_participant_contacts_contact_type_id ON public.participant_contacts (contact_type_id);
+
+CREATE TABLE IF NOT EXISTS public.house_resources (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  house_id uuid NULL REFERENCES houses (id) ON DELETE CASCADE,
+  created_by uuid NULL REFERENCES staff (id),
+  title text NOT NULL,
+  category text NOT NULL,
+  type text NOT NULL,
+  description text NULL,
+  priority text NULL DEFAULT 'Medium'::text,
+  phone text NULL,
+  address text NULL,
+  file_url text NULL,
+  file_name text NULL,
+  file_size integer NULL,
+  notes text NULL,
+  created_at timestamp with time zone NULL DEFAULT now(),
+  updated_at timestamp with time zone NULL DEFAULT now(),
+  CONSTRAINT house_resources_pkey PRIMARY KEY (id)
+);
+CREATE INDEX IF NOT EXISTS idx_house_resources_house_id ON public.house_resources (house_id);
+CREATE INDEX IF NOT EXISTS idx_house_resources_category ON public.house_resources (category);
+CREATE INDEX IF NOT EXISTS idx_house_resources_type ON public.house_resources (type);
+CREATE INDEX IF NOT EXISTS idx_house_resources_priority ON public.house_resources (priority);
+
+CREATE TABLE IF NOT EXISTS public.staff_compliance (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  staff_id uuid NOT NULL REFERENCES staff (id) ON DELETE CASCADE,
+  compliance_name text NOT NULL,
+  completion_date date NULL,
+  expiry_date date NULL,
+  status text NULL DEFAULT 'Complete'::text CHECK (status IN ('Complete', 'Expiring Soon', 'Expired', 'Incomplete', 'Not Required')),
+  created_at timestamp with time zone NULL DEFAULT now(),
+  updated_at timestamp with time zone NULL DEFAULT now(),
+  CONSTRAINT staff_compliance_pkey PRIMARY KEY (id)
+);
+CREATE INDEX IF NOT EXISTS idx_staff_compliance_staff_id ON public.staff_compliance (staff_id);
+CREATE INDEX IF NOT EXISTS idx_staff_compliance_status ON public.staff_compliance (status);
+CREATE INDEX IF NOT EXISTS idx_staff_compliance_expiry_date ON public.staff_compliance (expiry_date);
+
+CREATE TABLE IF NOT EXISTS public.staff_training (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  staff_id uuid NULL REFERENCES staff (id) ON DELETE CASCADE,
+  created_by uuid NULL REFERENCES staff (id),
+  title text NOT NULL,
+  category text NOT NULL,
+  description text NULL,
+  provider text NULL,
+  date_completed date NULL,
+  expiry_date date NULL,
+  file_path text NULL,
+  file_name text NULL,
+  file_size integer NULL,
+  created_at timestamp with time zone NULL DEFAULT now(),
+  updated_at timestamp with time zone NULL DEFAULT now(),
+  CONSTRAINT staff_training_pkey PRIMARY KEY (id)
+);
+CREATE INDEX IF NOT EXISTS idx_staff_training_staff_id ON public.staff_training (staff_id);
+CREATE INDEX IF NOT EXISTS idx_staff_training_expiry_date ON public.staff_training (expiry_date);
+
+CREATE TABLE IF NOT EXISTS public.staff_documents (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  staff_id uuid NOT NULL REFERENCES staff (id) ON DELETE CASCADE,
+  file_name text NOT NULL,
+  file_path text NOT NULL,
+  file_size integer NULL,
+  mime_type text NULL,
+  uploaded_by text NULL,
+  is_restricted boolean NULL DEFAULT false,
+  created_at timestamp with time zone NULL DEFAULT now(),
+  updated_at timestamp with time zone NULL DEFAULT now(),
+  CONSTRAINT staff_documents_pkey PRIMARY KEY (id)
+);
+CREATE INDEX IF NOT EXISTS idx_staff_documents_staff_id ON public.staff_documents (staff_id);
+
+CREATE TABLE IF NOT EXISTS public.house_files (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  house_id uuid NULL REFERENCES houses (id) ON DELETE CASCADE,
+  file_name text NOT NULL,
+  file_path text NOT NULL,
+  file_size bigint NULL,
+  file_type text NULL,
+  category text NULL,
+  version text NULL,
+  status text NULL DEFAULT 'current'::text,
+  uploaded_by text NULL,
+  notes text NULL,
+  created_at timestamp with time zone NULL DEFAULT now(),
+  updated_at timestamp with time zone NULL DEFAULT now(),
+  CONSTRAINT house_files_pkey PRIMARY KEY (id)
+);
+CREATE INDEX IF NOT EXISTS idx_house_files_house_id ON public.house_files (house_id);
+CREATE INDEX IF NOT EXISTS idx_house_files_status ON public.house_files (status);
+CREATE INDEX IF NOT EXISTS idx_house_files_category ON public.house_files (category);
+
+CREATE TABLE IF NOT EXISTS public.house_forms (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  house_id uuid NULL REFERENCES houses (id) ON DELETE CASCADE,
+  created_by uuid NULL REFERENCES staff (id),
+  name text NOT NULL,
+  type text NOT NULL,
+  description text NULL,
+  frequency text NOT NULL,
+  is_global boolean NULL DEFAULT false,
+  status text NULL DEFAULT 'active'::text,
+  created_at timestamp with time zone NULL DEFAULT now(),
+  updated_at timestamp with time zone NULL DEFAULT now(),
+  CONSTRAINT house_forms_pkey PRIMARY KEY (id)
+);
+CREATE INDEX IF NOT EXISTS idx_house_forms_house_id ON public.house_forms (house_id);
+
+CREATE TABLE IF NOT EXISTS public.house_form_assignments (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  form_id uuid NULL REFERENCES house_forms (id) ON DELETE CASCADE,
+  participant_id uuid NULL REFERENCES participants (id) ON DELETE CASCADE,
+  staff_id uuid NULL REFERENCES staff (id) ON DELETE CASCADE,
+  assigned_by uuid NULL REFERENCES staff (id),
+  completed_by uuid NULL REFERENCES staff (id),
+  due_date date NULL,
+  status text NULL DEFAULT 'pending'::text,
+  completed_at timestamp with time zone NULL,
+  notes text NULL,
+  created_at timestamp with time zone NULL DEFAULT now(),
+  updated_at timestamp with time zone NULL DEFAULT now(),
+  CONSTRAINT house_form_assignments_pkey PRIMARY KEY (id),
+  CONSTRAINT assignment_target_check CHECK (
+    (participant_id IS NOT NULL AND staff_id IS NULL) OR (participant_id IS NULL AND staff_id IS NOT NULL)
+  )
+);
+CREATE INDEX IF NOT EXISTS idx_house_form_assignments_form_id ON public.house_form_assignments (form_id);
+CREATE INDEX IF NOT EXISTS idx_house_form_assignments_participant_id ON public.house_form_assignments (participant_id);
+CREATE INDEX IF NOT EXISTS idx_house_form_assignments_staff_id ON public.house_form_assignments (staff_id);
+CREATE INDEX IF NOT EXISTS idx_house_form_assignments_status ON public.house_form_assignments (status);
+
+CREATE TABLE IF NOT EXISTS public.house_form_submissions (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  form_id uuid NULL REFERENCES house_forms (id) ON DELETE CASCADE,
+  assignment_id uuid NULL REFERENCES house_form_assignments (id) ON DELETE SET NULL,
+  submitted_by uuid NULL REFERENCES staff (id),
+  participant_id uuid NULL REFERENCES participants (id),
+  submission_data jsonb NULL,
+  status text NULL DEFAULT 'complete'::text,
+  submitted_at timestamp with time zone NULL DEFAULT now(),
+  created_at timestamp with time zone NULL DEFAULT now(),
+  updated_at timestamp with time zone NULL DEFAULT now(),
+  CONSTRAINT house_form_submissions_pkey PRIMARY KEY (id)
+);
+CREATE INDEX IF NOT EXISTS idx_house_form_submissions_form_id ON public.house_form_submissions (form_id);
+CREATE INDEX IF NOT EXISTS idx_house_form_submissions_submitted_by ON public.house_form_submissions (submitted_by);
+
+-- ============================================================
+-- 5. OPERATIONAL TABLES
 -- ============================================================
 
 CREATE TABLE IF NOT EXISTS public.staff_shifts (
@@ -294,6 +659,9 @@ CREATE TABLE IF NOT EXISTS public.staff_shifts (
   updated_at timestamp with time zone NULL DEFAULT now(),
   CONSTRAINT staff_shifts_pkey PRIMARY KEY (id)
 );
+CREATE INDEX IF NOT EXISTS idx_staff_shifts_staff_id ON public.staff_shifts (staff_id);
+CREATE INDEX IF NOT EXISTS idx_staff_shifts_date ON public.staff_shifts (shift_date);
+CREATE INDEX IF NOT EXISTS idx_staff_shifts_house_id ON public.staff_shifts (house_id);
 
 CREATE TABLE IF NOT EXISTS public.timesheets (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -323,6 +691,9 @@ CREATE TABLE IF NOT EXISTS public.timesheets (
   CONSTRAINT timesheets_pkey PRIMARY KEY (id),
   CONSTRAINT timesheets_shift_staff_unique UNIQUE (shift_id, staff_id)
 );
+CREATE INDEX IF NOT EXISTS idx_timesheets_staff_id ON public.timesheets (staff_id);
+CREATE INDEX IF NOT EXISTS idx_timesheets_status ON public.timesheets (status);
+CREATE INDEX IF NOT EXISTS idx_timesheets_submitted_at ON public.timesheets (submitted_at);
 
 CREATE TABLE IF NOT EXISTS public.shift_notes (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -339,6 +710,10 @@ CREATE TABLE IF NOT EXISTS public.shift_notes (
   CONSTRAINT shift_notes_pkey PRIMARY KEY (id),
   CONSTRAINT shift_notes_shift_staff_unique UNIQUE (shift_id, staff_id)
 );
+CREATE INDEX IF NOT EXISTS idx_shift_notes_participant ON public.shift_notes (participant_id);
+CREATE INDEX IF NOT EXISTS idx_shift_notes_staff_id ON public.shift_notes (staff_id);
+CREATE INDEX IF NOT EXISTS idx_shift_notes_date ON public.shift_notes (shift_date);
+CREATE INDEX IF NOT EXISTS idx_shift_notes_house_id ON public.shift_notes (house_id);
 
 CREATE TABLE IF NOT EXISTS public.leave_requests (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -391,13 +766,20 @@ CREATE TABLE IF NOT EXISTS public.activity_log (
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   CONSTRAINT activity_log_pkey PRIMARY KEY (id)
 );
+CREATE INDEX IF NOT EXISTS idx_activity_log_entity_id ON public.activity_log (entity_id);
+CREATE INDEX IF NOT EXISTS idx_activity_log_entity_type ON public.activity_log (entity_type);
+CREATE INDEX IF NOT EXISTS idx_activity_log_created_at ON public.activity_log (created_at DESC);
+
+-- ============================================================
+-- 6. CHECKLIST SYSTEM
+-- ============================================================
 
 CREATE TABLE IF NOT EXISTS public.house_checklists (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   house_id uuid NULL REFERENCES houses (id) ON DELETE CASCADE,
   master_id uuid NULL REFERENCES checklist_master(id) ON DELETE SET NULL,
   name text NOT NULL,
-  frequency text NULL,
+  frequency text NOT NULL,
   days_of_week text[] DEFAULT NULL,
   description text NULL,
   is_global boolean NULL DEFAULT false,
@@ -405,6 +787,7 @@ CREATE TABLE IF NOT EXISTS public.house_checklists (
   updated_at timestamp with time zone NULL DEFAULT now(),
   CONSTRAINT house_checklists_pkey PRIMARY KEY (id)
 );
+CREATE INDEX IF NOT EXISTS idx_house_checklists_house_id ON public.house_checklists (house_id);
 
 CREATE TABLE IF NOT EXISTS public.checklist_schedules (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -442,6 +825,8 @@ CREATE TABLE IF NOT EXISTS public.house_calendar_events (
   updated_at timestamp with time zone NULL DEFAULT now(),
   CONSTRAINT house_calendar_events_pkey PRIMARY KEY (id)
 );
+CREATE INDEX IF NOT EXISTS idx_house_calendar_events_house_id ON public.house_calendar_events (house_id);
+CREATE INDEX IF NOT EXISTS idx_house_calendar_events_date ON public.house_calendar_events (event_date);
 
 CREATE TABLE IF NOT EXISTS public.house_checklist_submissions (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -472,6 +857,7 @@ CREATE TABLE IF NOT EXISTS public.house_checklist_items (
   updated_at timestamp with time zone NULL DEFAULT now(),
   CONSTRAINT house_checklist_items_pkey PRIMARY KEY (id)
 );
+CREATE INDEX IF NOT EXISTS idx_house_checklist_items_checklist_id ON public.house_checklist_items (checklist_id);
 
 CREATE TABLE IF NOT EXISTS public.house_checklist_submission_items (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -501,7 +887,7 @@ CREATE TABLE IF NOT EXISTS public.house_checklist_item_attachments (
 );
 
 -- ============================================================
--- 5. RLS POLICIES
+-- 7. RLS POLICIES
 -- ============================================================
 
 ALTER TABLE public.staff ENABLE ROW LEVEL SECURITY;
@@ -514,6 +900,17 @@ ALTER TABLE public.activity_log ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.error_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.checklist_schedules ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.house_checklists ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.houses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.participants ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.house_staff_assignments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.participant_medications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.participant_notes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.participant_documents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.participant_goals ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.participant_funding ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.staff_compliance ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.staff_training ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.staff_documents ENABLE ROW LEVEL SECURITY;
 
 -- Staff
 CREATE POLICY "Admins have full access to staff" ON staff FOR ALL TO authenticated USING ((auth.jwt() -> 'user_metadata' ->> 'is_admin')::boolean = true);
@@ -544,7 +941,7 @@ CREATE POLICY "Admins full access to checklist_schedules" ON checklist_schedules
 CREATE POLICY "Staff read assigned checklist_schedules" ON checklist_schedules FOR SELECT TO authenticated USING (house_id IN (SELECT hsa.house_id FROM house_staff_assignments hsa JOIN staff s ON s.id = hsa.staff_id WHERE s.auth_user_id = auth.uid()));
 
 -- ============================================================
--- 6. STORAGE BUCKETS
+-- 8. STORAGE BUCKETS
 -- ============================================================
 
 INSERT INTO storage.buckets (id, name, public)

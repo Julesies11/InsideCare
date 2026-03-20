@@ -3,10 +3,16 @@
 This document provides an overview of the core database tables and their relationships in the InsideCare application.
 
 ## Database Baseline
-As of **March 20, 2026**, all previous database migrations have been consolidated into a single baseline schema file:
-- **File:** `migrations/2026032000_baseline_schema.sql`
-- **Purpose:** This file represents the "canonical" state of the database, including all tables, indexes, constraints, triggers, RLS policies, and storage buckets. 
-- **Archiving:** All historical migration files have been moved to `migrations/old_consolidated/`. New changes to the schema should be added as new timestamped migration files in the `migrations/` directory.
+As of **March 20, 2026**, the database schema and security have been overhauled:
+- **Baseline:** `migrations/2026032000_baseline_schema.sql` (Canonical schema).
+- **Security Hardening:** `migrations/2026032001_harden_rls_policies.sql` (Global RLS activation).
+- **Recursion Fix:** `migrations/2026032004_fix_rls_recursion.sql` (Resolved infinite loops in house assignments).
+- **Archiving:** All historical files are in `migrations/old_consolidated/`.
+
+## Enum Compatibility & Querying
+The project uses Postgres Enums for critical columns (e.g., `public.status_enum`).
+- **Restriction:** You **cannot** use `.ilike()` or pattern matching operators (`~~*`) on enum columns.
+- **Rule:** Always use `.eq()` for exact matching or `.in()` for multiple values when filtering by `status` or other enum types in Supabase queries.
 
 ## Core Entities
 
