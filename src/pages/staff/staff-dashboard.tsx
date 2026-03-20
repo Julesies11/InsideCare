@@ -104,17 +104,24 @@ export function StaffDashboard() {
           </Card>
 
           {/* Leave Requests */}
-          {pendingLeave.length > 0 && (
-            <Card className="border-0 sm:border">
-              <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Umbrella className="size-4" /> Leave Requests
-                </CardTitle>
-                <Button variant="ghost" size="sm" onClick={() => navigate('/staff/leave')}>
-                  View all <ChevronRight className="size-4 ms-1" />
-                </Button>
-              </CardHeader>
-              <CardContent>
+          <Card className="border-0 sm:border">
+            <CardHeader className="pb-2 flex flex-row items-center justify-between">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Umbrella className="size-4" /> Leave Requests
+              </CardTitle>
+              <Button variant="ghost" size="sm" onClick={() => navigate('/staff/leave')}>
+                View all <ChevronRight className="size-4 ms-1" />
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="space-y-3 py-2">
+                  <div className="h-10 w-full bg-gray-100 animate-pulse rounded" />
+                  <div className="h-10 w-full bg-gray-100 animate-pulse rounded" />
+                </div>
+              ) : pendingLeave.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-4 text-center">No active leave requests.</p>
+              ) : (
                 <div className="divide-y">
                   {pendingLeave.map((req: any) => (
                     <div key={req.id} className="flex items-center justify-between py-2.5">
@@ -130,9 +137,9 @@ export function StaffDashboard() {
                     </div>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              )}
+            </CardContent>
+          </Card>
 
           {/* Timesheets */}
           <Card className="lg:col-span-2 border-0 sm:border">

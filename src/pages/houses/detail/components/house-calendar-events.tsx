@@ -7,16 +7,18 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar, Clock, MapPin, Users, Edit, Trash2, Plus, CalendarDays, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
-import { format, addMonths, addWeeks, addDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameDay } from 'date-fns';
+import { Calendar, Clock, MapPin, Users, Edit, Trash2, Plus, CalendarDays, ChevronLeft, ChevronRight, Loader2, CheckSquare } from 'lucide-react';
+import { format, addMonths, addWeeks, addDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameDay, isBefore, startOfDay, eachDayOfInterval, eachWeekOfInterval, isSameMonth } from 'date-fns';
 import { useHouseCalendarEvents } from '@/hooks/useHouseCalendarEvents';
 import { useParticipants } from '@/hooks/use-participants';
 import { useStaff } from '@/hooks/use-staff';
 import { useAuth } from '@/auth/context/auth-context';
+import { useChecklistSchedules } from '@/hooks/useChecklistSchedules';
 import { HousePendingChanges } from '@/models/house-pending-changes';
 import { HouseCalendarEventTypeCombobox } from './house-calendar-event-type-components/HouseCalendarEventTypeCombobox';
 import { HouseCalendarEventTypeMasterDialog } from './house-calendar-event-type-components/HouseCalendarEventTypeMasterDialog';
 import { HouseCalendarEventAttachments, QueuedAttachment } from './HouseCalendarEventAttachments';
+import { HouseChecklistExecution } from './house-checklist-execution';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
@@ -40,6 +42,11 @@ export function HouseCalendarEvents({
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showEventDialog, setShowEventDialog] = useState(false);
   const [showEventTypeDialog, setShowEventTypeDialog] = useState(false);
+  const [showChecklistDialog, setShowChecklistDialog] = useState(false);
+  const [showDeleteChoice, setShowDeleteChoice] = useState(false);
+  const [eventToDeleteInstance, setEventToDeleteInstance] = useState<any>(null);
+  const [executingChecklist, setExecutingChecklist] = useState<any>(null);
+  const [activeSubmission, setActiveSubmission] = useState<any>(null);
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const [formData, setFormData] = useState({
     title: '',
@@ -60,7 +67,8 @@ export function HouseCalendarEvents({
     toDeleteAttachments: [] as string[],
   });
 
-  const { houseCalendarEvents, loading } = useHouseCalendarEvents(houseId);
+  const { houseCalendarEvents, loading, refresh } = useHouseCalendarEvents(houseId);
+  const { deleteSchedule, deleteEvent, loading: deleting } = useChecklistSchedules(houseId);
   const { participants } = useParticipants();
   const { staff } = useStaff();
   const { user } = useAuth();
@@ -88,9 +96,12 @@ export function HouseCalendarEvents({
       endDate = currentDate;
     }
 
+    const startStr = format(startDate, 'yyyy-MM-dd');
+    const endStr = format(endDate, 'yyyy-MM-dd');
+
     return visibleEvents.filter(event => {
-      const eventDate = new Date(event.event_date);
-      return eventDate >= startDate && eventDate <= endDate;
+      const eventDate = event.event_date; // This is already yyyy-MM-dd
+      return eventDate >= startStr && eventDate <= endStr;
     });
   }, [visibleEvents, currentDate, viewMode]);
 
@@ -140,7 +151,54 @@ export function HouseCalendarEvents({
     setShowEventDialog(true);
   };
 
-  const handleEditEvent = (event: any) => {
+  const handleEditEvent = async (event: any) => {
+    if (event.is_checklist_event) {
+      try {
+        // 1. Fetch the House Checklist and its items
+        const { data: checklist, error: clError } = await supabase
+          .from('house_checklists')
+          .select('*, items:house_checklist_items(*)')
+          .eq('id', event.house_checklist_id)
+          .single();
+
+        if (clError) throw clError;
+
+        // 2. Check if a submission already exists for this calendar event
+        const existingSubmission = event.submissions?.[0];
+        
+        if (existingSubmission) {
+          // Fetch existing submission items to resume
+          const { data: subItems } = await supabase
+            .from('house_checklist_submission_items')
+            .select('*')
+            .eq('submission_id', existingSubmission.id);
+
+          const completedItems: Record<string, boolean> = {};
+          const itemNotes: Record<string, string> = {};
+          subItems?.forEach(si => {
+            completedItems[si.item_id] = si.is_completed;
+            itemNotes[si.item_id] = si.note || '';
+          });
+
+          setActiveSubmission({
+            id: existingSubmission.id,
+            completedItems,
+            itemNotes
+          });
+        } else {
+          setActiveSubmission(null);
+        }
+
+        setExecutingChecklist(checklist);
+        setSelectedEvent(event);
+        setShowChecklistDialog(true);
+      } catch (err) {
+        console.error('Error loading checklist:', err);
+        toast.error('Failed to load checklist details.');
+      }
+      return;
+    }
+
     setSelectedEvent(event);
     setFormData({
       title: event.title,
@@ -161,6 +219,115 @@ export function HouseCalendarEvents({
       toDeleteAttachments: [],
     });
     setShowEventDialog(true);
+  };
+
+  const persistChecklistExecution = async (results: any, status: 'in_progress' | 'completed') => {
+    if (!selectedEvent || !houseId) return;
+
+    const staffId = staff.find(s => s.auth_user_id === user?.id)?.id;
+    let submissionId = activeSubmission?.id;
+
+    if (!submissionId) {
+      // Create new submission linked to calendar event
+      const { data, error } = await supabase
+        .from('house_checklist_submissions')
+        .insert({
+          checklist_id: executingChecklist.id,
+          house_id: houseId,
+          calendar_event_id: selectedEvent.id,
+          scheduled_date: selectedEvent.event_date,
+          status: status,
+          submitted_by: staffId || null,
+          started_at: new Date().toISOString(),
+          completed_at: status === 'completed' ? new Date().toISOString() : null
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      submissionId = data.id;
+    } else {
+      // Update existing submission
+      const { error } = await supabase
+        .from('house_checklist_submissions')
+        .update({
+          status: status,
+          submitted_by: staffId || null,
+          completed_at: status === 'completed' ? new Date().toISOString() : null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', submissionId);
+
+      if (error) throw error;
+    }
+
+    // Upsert items
+    const submissionItems = results.items.map((item: any) => ({
+      submission_id: submissionId,
+      item_id: item.item_id,
+      is_completed: item.is_completed,
+      note: item.note,
+      completed_at: item.is_completed ? new Date().toISOString() : null
+    }));
+
+    const { error: itemsError } = await supabase
+      .from('house_checklist_submission_items')
+      .upsert(submissionItems, { onConflict: 'submission_id,item_id' });
+
+    if (itemsError) throw itemsError;
+
+    // Handle attachments (simplified for now, following house-checklists pattern)
+    if (results.queuedAttachments) {
+      for (const itemId in results.queuedAttachments) {
+        for (const queued of results.queuedAttachments[itemId]) {
+          const file = queued.file;
+          const filePath = `${submissionId}/${itemId}/${Date.now()}-${file.name}`;
+          await supabase.storage.from('checklist-attachments').upload(filePath, file);
+          await supabase.from('house_checklist_item_attachments').insert({
+            submission_id: submissionId,
+            item_id: itemId,
+            file_name: file.name,
+            file_path: filePath,
+            file_size: file.size,
+            mime_type: file.type,
+            uploaded_by: staffId || null
+          });
+        }
+      }
+    }
+
+    return submissionId;
+  };
+
+  const handleSaveChecklistProgress = async (results: any) => {
+    try {
+      const id = await persistChecklistExecution(results, 'in_progress');
+      const completedItems: Record<string, boolean> = {};
+      const itemNotes: Record<string, string> = {};
+      results.items.forEach((item: any) => {
+        completedItems[item.item_id] = item.is_completed;
+        itemNotes[item.item_id] = item.note || '';
+      });
+      setActiveSubmission({ id, completedItems, itemNotes });
+      refresh();
+    } catch (error) {
+      console.error('Error saving progress:', error);
+      toast.error('Failed to save progress.');
+    }
+  };
+
+  const handleCompleteChecklist = async (results: any) => {
+    try {
+      await persistChecklistExecution(results, 'completed');
+      setShowChecklistDialog(false);
+      setExecutingChecklist(null);
+      setActiveSubmission(null);
+      refresh();
+      toast.success('Checklist completed successfully!');
+    } catch (error) {
+      console.error('Error completing checklist:', error);
+      toast.error('Failed to complete checklist.');
+    }
   };
 
   const handleMarkAttachmentForDeletion = (attachmentId: string) => {
@@ -323,15 +490,19 @@ export function HouseCalendarEvents({
   };
 
   const handleDeleteEvent = (event: any) => {
-    if (!pendingChanges || !onPendingChangesChange) return;
-
-    // If it's a pending add, just remove it from the pending adds list
     if (event.tempId) {
       handleCancelPendingAdd(event.tempId);
       return;
     }
 
-    // Otherwise, mark existing event for deletion
+    if (event.is_checklist_event && event.checklist_schedule_id) {
+      setEventToDeleteInstance(event);
+      setShowDeleteChoice(true);
+      return;
+    }
+
+    if (!pendingChanges || !onPendingChangesChange) return;
+
     if (confirm('Mark this event for deletion? It will be removed when you click Save Changes.')) {
       const newPending = {
         ...pendingChanges,
@@ -342,6 +513,22 @@ export function HouseCalendarEvents({
       };
       onPendingChangesChange(newPending);
     }
+  };
+
+  const handleConfirmDeleteSingle = async () => {
+    if (!eventToDeleteInstance) return;
+    await deleteEvent(eventToDeleteInstance.id);
+    setShowDeleteChoice(false);
+    setEventToDeleteInstance(null);
+    refresh();
+  };
+
+  const handleConfirmDeleteSeries = async () => {
+    if (!eventToDeleteInstance?.checklist_schedule_id) return;
+    await deleteSchedule(eventToDeleteInstance.checklist_schedule_id);
+    setShowDeleteChoice(false);
+    setEventToDeleteInstance(null);
+    refresh();
   };
 
   const handleCancelPendingAdd = (tempId: string) => {
@@ -413,6 +600,17 @@ export function HouseCalendarEvents({
   };
 
   const getStatusText = (event: any) => {
+    if (event.is_checklist_event) {
+      const submission = event.submissions?.[0];
+      if (submission?.status === 'completed') return 'Completed';
+      if (submission?.status === 'in_progress') return 'In Progress';
+      
+      const eventDate = startOfDay(new Date(event.event_date));
+      const today = startOfDay(new Date());
+      if (isBefore(eventDate, today)) return 'Overdue';
+      return 'Scheduled';
+    }
+
     const now = new Date();
     const eventDate = new Date(`${event.event_date}T${event.start_time || '00:00'}`);
     
@@ -421,6 +619,18 @@ export function HouseCalendarEvents({
 
   // Get type color
   const getTypeColor = (event: any) => {
+    // 0. Handle Checklist Status Colors
+    if (event.is_checklist_event) {
+      const submission = event.submissions?.[0];
+      if (submission?.status === 'completed') return 'green';
+      if (submission?.status === 'in_progress') return 'yellow';
+      
+      const eventDate = startOfDay(new Date(event.event_date));
+      const today = startOfDay(new Date());
+      if (isBefore(eventDate, today)) return 'red'; // Overdue
+      return 'blue'; // Scheduled
+    }
+
     // 1. Check if we have a direct color from the lookup
     if (event.event_type_info?.color) {
       return event.event_type_info.color;
@@ -525,20 +735,20 @@ export function HouseCalendarEvents({
                               </div>
                             ) : (
                               dayEvents.map(event => (
-                                <div 
+                                <div
                                   key={event.id || event.tempId}
                                   onClick={() => handleEditEvent(event)}
                                   className={`p-2 rounded-lg border text-left cursor-pointer transition-all hover:shadow-sm hover:scale-[1.02] active:scale-[0.98] ${
-                                    event.tempId ? 'bg-primary/5 border-primary/20' : 
+                                    event.tempId ? 'bg-primary/5 border-primary/20' :
                                     pendingChanges?.calendarEvents.toDelete.includes(event.id) ? 'opacity-40 bg-destructive/5' :
                                     'bg-white border-gray-100'
                                   }`}
                                 >
                                   <div className="flex items-center gap-1.5 mb-1">
                                     <div className={`size-1.5 rounded-full bg-${getTypeColor(event)}-500`} />
+                                    {event.is_checklist_event && <CheckSquare className={`size-2.5 text-${getTypeColor(event)}-600`} />}
                                     <span className="text-[10px] font-bold text-gray-900 truncate leading-none">{event.title}</span>
-                                  </div>
-                                  <div className="flex flex-col gap-0.5">
+                                  </div>                                  <div className="flex flex-col gap-0.5">
                                     <div className="text-[9px] text-gray-600 font-bold uppercase tracking-tighter">
                                       {event.event_type_info?.name || event.type}
                                     </div>
@@ -579,8 +789,8 @@ export function HouseCalendarEvents({
                             <div className={`w-1 self-stretch rounded-full bg-${getTypeColor(event)}-500`} />
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1">
-                                <h4 className="font-bold text-gray-900">{event.title}</h4>
-                                <Badge variant="outline" className={`text-[10px] border-${getTypeColor(event)}-200 text-${getTypeColor(event)}-700 bg-${getTypeColor(event)}-50 uppercase font-bold`}>
+                                {event.is_checklist_event && <CheckSquare className={`size-4 text-${getTypeColor(event)}-600`} />}
+                                <h4 className="font-bold text-gray-900">{event.title}</h4>                                <Badge variant="outline" className={`text-[10px] border-${getTypeColor(event)}-200 text-${getTypeColor(event)}-700 bg-${getTypeColor(event)}-50 uppercase font-bold`}>
                                   {event.event_type_info?.name || event.type}
                                 </Badge>
                               </div>
@@ -599,21 +809,98 @@ export function HouseCalendarEvents({
                                 )}
                               </div>
                               {event.description && <p className="mt-2 text-xs text-gray-600 line-clamp-2">{event.description}</p>}
+                              </div>
+                              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              {canDelete && (
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="size-8 text-destructive hover:bg-destructive/10"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteEvent(event);
+                                  }}
+                                >
+                                  <Trash2 className="size-4" />
+                                </Button>
+                              )}
+                              <Button variant="ghost" size="icon" className="size-8">
+                                <Edit className="size-4" />
+                              </Button>
+                              </div>
+                              </div>
+                              ))
+                              )}                    </div>
+                  </div>
+                ) : viewMode === 'month' ? (
+                  <div className="p-0 border-t">
+                    {/* Day Headers */}
+                    <div className="grid grid-cols-7 border-b bg-gray-50/50">
+                      {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                        <div key={day} className="p-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">
+                          {day}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Calendar Grid */}
+                    <div className="grid grid-cols-7 border-l border-t border-gray-100">
+                      {eachDayOfInterval({
+                        start: startOfWeek(startOfMonth(currentDate)),
+                        end: endOfWeek(endOfMonth(currentDate))
+                      }).map((day, idx) => {
+                        const dayStr = format(day, 'yyyy-MM-dd');
+                        const dayEvents = visibleEvents.filter(e => e.event_date === dayStr);
+                        const isToday = isSameDay(day, new Date());
+                        const isInMonth = isSameMonth(day, currentDate);
+
+                        return (
+                          <div 
+                            key={idx} 
+                            className={`min-h-[120px] p-2 border-r border-b border-gray-100 flex flex-col gap-1 transition-colors hover:bg-gray-50/50 ${
+                              !isInMonth ? 'bg-gray-50/30' : ''
+                            }`}
+                            onClick={() => handleAddEvent(day)}
+                          >
+                            <div className="flex justify-between items-center mb-1">
+                              <span className={`text-xs font-bold ${
+                                isToday ? 'bg-primary text-white size-6 rounded-full flex items-center justify-center' : 
+                                !isInMonth ? 'text-gray-300' : 'text-gray-700'
+                              }`}>
+                                {format(day, 'd')}
+                              </span>
                             </div>
-                            <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                              <Edit className="size-4" />
-                            </Button>
+
+                            <div className="flex flex-col gap-1 overflow-y-auto max-h-[85px] custom-scrollbar">
+                              {dayEvents.map(event => (
+                                <div
+                                  key={event.id || event.tempId}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEditEvent(event);
+                                  }}
+                                  className={`px-1.5 py-0.5 rounded text-[10px] font-medium truncate flex items-center gap-1 border ${
+                                    event.is_checklist_event 
+                                      ? `bg-${getTypeColor(event)}-50 text-${getTypeColor(event)}-700 border-${getTypeColor(event)}-200`
+                                      : `bg-white text-gray-700 border-gray-200`
+                                  }`}
+                                  title={event.title}
+                                >
+                                  {event.is_checklist_event && <CheckSquare className="size-2.5 shrink-0" />}
+                                  {!event.is_checklist_event && <div className={`size-1.5 rounded-full bg-${getTypeColor(event)}-500 shrink-0`} />}
+                                  <span className="truncate">{event.title}</span>
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                        ))
-                      )}
+                        );
+                      })}
                     </div>
                   </div>
                 ) : (
-                  // Month View - Placeholder for now, but better than before
+                  // Placeholder for any other view modes
                   <div className="p-8 text-center text-muted-foreground">
-                    <CalendarDays className="size-12 mx-auto mb-2 opacity-20" />
-                    <p className="font-medium">Monthly Grid View</p>
-                    <p className="text-sm">Currently showing {getEventsForPeriod.length} events in the list below</p>
+                    <p>Unsupported View Mode</p>
                   </div>
                 )}
               </div>
@@ -801,6 +1088,100 @@ export function HouseCalendarEvents({
         onClose={() => setShowEventTypeDialog(false)}
         onUpdate={() => {}}
       />
+
+      {/* Checklist Execution Dialog */}
+      <Dialog open={showChecklistDialog} onOpenChange={setShowChecklistDialog}>
+        <DialogContent className="max-w-2xl min-h-[500px] flex flex-col">
+          <DialogHeader>
+            <div className="flex items-center justify-between w-full pr-6">
+              <div className="flex flex-col gap-1">
+                <DialogTitle className="flex items-center gap-2">
+                  <CheckSquare className="size-5 text-primary" />
+                  {executingChecklist?.name}
+                </DialogTitle>
+                <DialogDescription>
+                  Date: {selectedEvent && format(new Date(selectedEvent.event_date), 'EEEE, MMMM d, yyyy')}
+                </DialogDescription>
+              </div>
+              
+              {canDelete && (
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="text-destructive hover:bg-destructive/10 -mt-2"
+                  title="Delete this event/series"
+                  onClick={() => {
+                    setShowChecklistDialog(false);
+                    handleDeleteEvent(selectedEvent);
+                  }}
+                >
+                  <Trash2 className="size-5" />
+                </Button>
+              )}
+            </div>
+          </DialogHeader>
+          <div className="flex-1 py-4 overflow-hidden">
+            {executingChecklist && (
+              <HouseChecklistExecution 
+                checklist={executingChecklist}
+                onComplete={handleCompleteChecklist}
+                onSave={handleSaveChecklistProgress}
+                onCancel={() => {
+                  setShowChecklistDialog(false);
+                  setExecutingChecklist(null);
+                  setActiveSubmission(null);
+                }}
+                initialData={activeSubmission ? {
+                  completedItems: activeSubmission.completedItems,
+                  itemNotes: activeSubmission.itemNotes,
+                  attachments: activeSubmission.attachments
+                } : undefined}
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Recurring Delete Choice Dialog */}
+      <Dialog open={showDeleteChoice} onOpenChange={setShowDeleteChoice}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete recurring event?</DialogTitle>
+            <DialogDescription>
+              This is a recurring checklist event. Do you want to delete only this instance or the entire series?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 py-4">
+            <Button 
+              variant="outline" 
+              className="justify-start h-auto py-3 px-4" 
+              onClick={handleConfirmDeleteSingle}
+              disabled={deleting}
+            >
+              <div className="flex flex-col items-start gap-1">
+                <span className="font-bold">This event</span>
+                <span className="text-xs text-muted-foreground font-normal text-left">Only removes the checklist for this specific day.</span>
+              </div>
+            </Button>
+            <Button 
+              variant="outline" 
+              className="justify-start h-auto py-3 px-4 border-destructive/20 hover:bg-destructive/5 hover:border-destructive/30 group" 
+              onClick={handleConfirmDeleteSeries}
+              disabled={deleting}
+            >
+              <div className="flex flex-col items-start gap-1">
+                <span className="font-bold group-hover:text-destructive transition-colors">All events</span>
+                <span className="text-xs text-muted-foreground font-normal text-left">Removes the entire schedule and all future/past instances.</span>
+              </div>
+            </Button>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setShowDeleteChoice(false)} disabled={deleting}>
+              Cancel
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

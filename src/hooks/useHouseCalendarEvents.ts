@@ -40,6 +40,15 @@ export interface HouseCalendarEvent {
   created_by?: string;
   created_at: string;
   updated_at: string;
+  // Checklist-specific fields
+  is_checklist_event?: boolean;
+  house_checklist_id?: string;
+  checklist_schedule_id?: string;
+  submissions?: Array<{
+    id: string;
+    status: string;
+    completed_at: string | null;
+  }>;
   participant?: {
     id: string;
     name: string;
@@ -62,43 +71,44 @@ export function useHouseCalendarEvents(houseId?: string) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchHouseCalendarEvents = async () => {
     if (!houseId) {
       setHouseCalendarEvents([]);
       setLoading(false);
       return;
     }
 
-    const fetchHouseCalendarEvents = async () => {
-      try {
-        setLoading(true);
-        
-        const { data, error } = await supabase
-          .from('house_calendar_events')
-          .select(`
-            *,
-            event_type_info:house_calendar_event_types_master(*),
-            attachments:house_calendar_event_attachments(*),
-            participant:participants(id, name, email),
-            assigned_staff:staff!assigned_staff_id(id, name, email),
-            creator:staff!created_by(id, name, email)
-          `)
-          .eq('house_id', houseId)
-          .order('event_date', { ascending: true });
+    try {
+      setLoading(true);
+      
+      const { data, error } = await supabase
+        .from('house_calendar_events')
+        .select(`
+          *,
+          event_type_info:house_calendar_event_types_master(*),
+          attachments:house_calendar_event_attachments(*),
+          participant:participants(id, name, email),
+          assigned_staff:staff!assigned_staff_id(id, name, email),
+          creator:staff!created_by(id, name, email),
+          submissions:house_checklist_submissions(id, status, completed_at)
+        `)
+        .eq('house_id', houseId)
+        .order('event_date', { ascending: true });
 
-        if (error) throw error;
+      if (error) throw error;
 
-        setHouseCalendarEvents(data || []);
-        setError(null);
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to fetch house calendar events';
-        console.error('Error fetching house calendar events:', err);
-        setError(errorMessage);
-      } finally {
-        setLoading(false);
-      }
-    };
+      setHouseCalendarEvents(data || []);
+      setError(null);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch house calendar events';
+      console.error('Error fetching house calendar events:', err);
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchHouseCalendarEvents();
   }, [houseId]);
 
@@ -106,5 +116,6 @@ export function useHouseCalendarEvents(houseId?: string) {
     houseCalendarEvents,
     loading,
     error,
+    refresh: fetchHouseCalendarEvents
   };
 }

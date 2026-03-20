@@ -41,13 +41,13 @@ describe('useChecklistHistory', () => {
       })
     );
 
-    const { result } = renderHook(() => useChecklistHistory('house-1'), { wrapper });
+    const { result } = renderHook(() => useChecklistHistory(0, 10, [], { houseIds: ['house-1'] }), { wrapper });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(result.current.data).toHaveLength(1);
-    expect(result.current.data?.[0].checklist_name).toBe('Morning Routine');
-    expect(result.current.data?.[0].item_count).toBe(2);
-    expect(result.current.data?.[0].completed_item_count).toBe(1);
+    expect(result.current.data?.data).toHaveLength(1);
+    expect(result.current.data?.data?.[0].checklist_name).toBe('Morning Routine');
+    expect(result.current.data?.data?.[0].item_count).toBe(2);
+    expect(result.current.data?.data?.[0].completed_item_count).toBe(1);
   });
 });

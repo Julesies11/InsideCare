@@ -1,15 +1,10 @@
 import { Fragment, useState } from 'react';
-import { PageNavbar } from '@/pages/account';
-import { AccountGetStartedContent } from '@/pages/account/home/get-started';
 import {
   Toolbar,
-  ToolbarDescription,
   ToolbarHeading,
   ToolbarPageTitle,
 } from '@/partials/common/toolbar';
 import { AccountDeactivatedDialog } from '@/partials/dialogs/account-deactivated-dialog';
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 import { Container } from '@/components/common/container';
 
 export function AuthAccountDeactivatedPage() {
@@ -20,33 +15,20 @@ export function AuthAccountDeactivatedPage() {
 
   return (
     <Fragment>
-      <PageNavbar />
       <Container>
         <Toolbar>
           <ToolbarHeading>
             <ToolbarPageTitle />
-            <ToolbarDescription>
-              <div className="flex items-center gap-2 text-sm font-medium">
-                <span className="text-foreground font-medium">
-                  Jayson Tatum
-                </span>
-                <Link
-                  to="mailto:jaytatum@ktstudio.com"
-                  className="text-secondary-foreground hover:text-primary"
-                >
-                  jaytatum@ktstudio.com
-                </Link>
-                <span className="size-0.75 bg-mono/50 rounded-full"></span>
-                <Button mode="link" asChild>
-                  <Link to="/account/members/team-info">Personal Info</Link>
-                </Button>
-              </div>
-            </ToolbarDescription>
           </ToolbarHeading>
         </Toolbar>
       </Container>
       <Container>
-        <AccountGetStartedContent />
+        <div className="flex flex-col items-center justify-center min-h-[400px] text-center bg-destructive/5 rounded-xl border border-destructive/20 border-dashed">
+          <h1 className="text-2xl font-bold text-destructive mb-2">Account Deactivated</h1>
+          <p className="text-gray-600 max-w-md">
+            Your access to InsideCare has been suspended. Please contact your administrator if you believe this is an error.
+          </p>
+        </div>
         <AccountDeactivatedDialog
           open={profileModalOpen}
           onOpenChange={handleClose}

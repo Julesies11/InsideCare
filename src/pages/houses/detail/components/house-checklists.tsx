@@ -8,11 +8,12 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Trash2, CheckSquare, Clock, PlayCircle, GripVertical, Loader2, ChevronDown, Copy } from 'lucide-react';
+import { Plus, Edit, Trash2, CheckSquare, Clock, PlayCircle, GripVertical, Loader2, ChevronDown, Copy, CalendarDays } from 'lucide-react';
 import { useHouseChecklists } from '@/hooks/use-house-checklists';
 import { useChecklistMaster } from '@/hooks/use-checklist-master';
 import { HousePendingChanges } from '@/models/house-pending-changes';
 import { HouseChecklistExecution } from './house-checklist-execution';
+import { HouseChecklistScheduleModal } from './HouseChecklistScheduleModal';
 import { Sortable, SortableItem, SortableItemHandle } from '@/components/ui/sortable';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/auth/context/auth-context';
@@ -40,6 +41,8 @@ export function HouseChecklists({
   const [showTemplateDialog, setShowTemplateDialog] = useState(false);
   const [showItemDialog, setShowItemDialog] = useState(false);
   const [showExecutionDialog, setShowExecutionDialog] = useState(false);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [selectedForSchedule, setSelectedForSchedule] = useState<{ id: string; name: string } | null>(null);
   const [selectedChecklist, setSelectedChecklist] = useState<{ id?: string; tempId?: string; name: string; frequency: string; description?: string; master_id?: string; items?: any[] } | null>(null);
   const [executingChecklist, setExecutingChecklist] = useState<{ id: string; name: string; items: any[] } | null>(null);
   const [activeSubmission, setActiveSubmission] = useState<{ id: string; completedItems: Record<string, boolean>; itemNotes: Record<string, string>; attachments?: any } | null>(null);
@@ -679,6 +682,22 @@ export function HouseChecklists({
                       )}
                     </div>
                     <div className="flex gap-0.5 shrink-0 ml-2">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="size-8 text-primary" 
+                        title="Schedule on Calendar"
+                        onClick={() => {
+                          if (checklist.id) {
+                            setSelectedForSchedule({ id: checklist.id, name: checklist.name });
+                            setShowScheduleModal(true);
+                          } else {
+                            toast.error('Please save changes before scheduling.');
+                          }
+                        }}
+                      >
+                        <CalendarDays className="size-3.5" />
+                      </Button>
                       <Button variant="ghost" size="icon" className="size-8" onClick={() => handleEditChecklist(checklist)}>
                         <Edit className="size-3.5" />
                       </Button>
@@ -1066,6 +1085,18 @@ export function HouseChecklists({
           </div>
         </DialogContent>
       </Dialog>
+
+      {houseId && (
+        <HouseChecklistScheduleModal
+          open={showScheduleModal}
+          onClose={() => {
+            setShowScheduleModal(false);
+            setSelectedForSchedule(null);
+          }}
+          houseId={houseId}
+          checklist={selectedForSchedule}
+        />
+      )}
     </>
   );
 }

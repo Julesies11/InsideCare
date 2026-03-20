@@ -22,6 +22,7 @@ interface ChecklistCardProps {
   isPendingUpdate?: boolean;
   isPendingDelete?: boolean;
   onDelete?: (checklist: ChecklistCardProps['checklist']) => void;
+  renderActions?: (checklist: ChecklistCardProps['checklist']) => ReactNode;
   footer?: ReactNode;
   showTasksPreview?: boolean;
 }
@@ -35,6 +36,7 @@ export function ChecklistCard({
   isPendingUpdate, 
   isPendingDelete,
   onDelete,
+  renderActions,
   footer,
   showTasksPreview = true
 }: ChecklistCardProps) {
@@ -72,15 +74,14 @@ export function ChecklistCard({
           {checklist.description && <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{checklist.description}</p>}
         </div>
         
-        {(onDelete) && !isPendingDelete && (
-          <div className="flex gap-0.5 shrink-0 ml-2">
-            {onDelete && (
-              <Button variant="ghost" size="icon" className="size-8 text-destructive" onClick={() => onDelete(checklist)}>
-                <Trash2 className="size-3.5" />
-              </Button>
-            )}
-          </div>
-        )}
+        <div className="flex gap-0.5 shrink-0 ml-2">
+          {renderActions && renderActions(checklist)}
+          {onDelete && !isPendingDelete && (
+            <Button variant="ghost" size="icon" className="size-8 text-destructive" onClick={() => onDelete(checklist)}>
+              <Trash2 className="size-3.5" />
+            </Button>
+          )}
+        </div>
       </CardHeader>
 
       <CardContent className="flex-1 pb-4">

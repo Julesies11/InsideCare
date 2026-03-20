@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit, Trash2, CheckSquare, GripVertical, Loader2, ChevronDown, Copy } from 'lucide-react';
+import { Plus, Edit, Trash2, CheckSquare, GripVertical, Loader2, ChevronDown, Copy, CalendarDays } from 'lucide-react';
 import { useHouseChecklists } from '@/hooks/use-house-checklists';
 import { useChecklistMaster } from '@/hooks/use-checklist-master';
 import { HousePendingChanges } from '@/models/house-pending-changes';
@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { ChecklistCard } from '@/components/checklists/checklist-card';
+import { HouseChecklistScheduleModal } from './HouseChecklistScheduleModal';
 
 interface HouseChecklistSetupProps {
   houseId?: string;
@@ -37,6 +38,8 @@ export function HouseChecklistSetup({
   const [showChecklistDialog, setShowChecklistDialog] = useState(false);
   const [showTemplateDialog, setShowTemplateDialog] = useState(false);
   const [showItemDialog, setShowItemDialog] = useState(false);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [selectedForSchedule, setSelectedForSchedule] = useState<any>(null);
   const [selectedChecklist, setSelectedChecklist] = useState<any>(null);
   const [selectedItem, setSelectedItem] = useState<any>(null);
   
@@ -318,19 +321,39 @@ export function HouseChecklistSetup({
                   isPendingAdd={isPendingAdd}
                   isPendingUpdate={isPendingUpdate}
                   isPendingDelete={isPendingDelete}
-                  onEdit={handleEditChecklist}
                   onDelete={handleDeleteChecklist}
-                  footer={
-                    <Button 
-                      variant="secondary" 
-                      size="sm" 
-                      className="h-8 text-xs shadow-sm w-full mt-3"
-                      onClick={() => handleEditChecklist(checklist)}
-                    >
-                      <Edit className="size-3.5 me-1.5" />
-                      Edit Checklist
-                    </Button>
-                  }
+                  renderActions={(cl) => (
+                    <>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="size-8 text-primary" 
+                        title="Schedule on Calendar"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (cl.id) {
+                            setSelectedForSchedule({ id: cl.id, name: cl.name });
+                            setShowScheduleModal(true);
+                          } else {
+                            toast.error('Please save changes before scheduling.');
+                          }
+                        }}
+                      >
+                        <CalendarDays className="size-3.5" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="size-8" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditChecklist(cl);
+                        }}
+                      >
+                        <Edit className="size-3.5" />
+                      </Button>
+                    </>
+                  )}
                 />
               );
             })}
@@ -346,50 +369,14 @@ export function HouseChecklistSetup({
             <DialogDescription>Define the tasks for this house-specific checklist.</DialogDescription>
           </DialogHeader>
           <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="setup-name">Name *</Label>
                 <Input id="setup-name" value={checklistFormData.name} onChange={(e) => setChecklistFormData({ ...checklistFormData, name: e.target.value })} />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="setup-freq">Frequency *</Label>
-                <Select value={checklistFormData.frequency} onValueChange={(v) => setChecklistFormData({ ...checklistFormData, frequency: v, days_of_week: v === 'daily' ? [] : checklistFormData.days_of_week })}>
-                  <SelectTrigger id="setup-freq"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="daily">Daily</SelectItem>
-                    <SelectItem value="weekly">Weekly (Select Days)</SelectItem>
-                    <SelectItem value="monthly">Monthly</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              </div>
+            </div>
 
-              {checklistFormData.frequency === 'weekly' && (
-              <div className="space-y-3 p-4 bg-muted/30 rounded-lg border border-dashed animate-in fade-in zoom-in-95 duration-200">
-                <Label className="text-xs font-bold text-muted-foreground uppercase">Active Days</Label>
-                <div className="flex flex-wrap gap-2">
-                  {DAYS.map(day => {
-                    const isActive = checklistFormData.days_of_week.includes(day);
-                    return (
-                      <button
-                        key={day}
-                        type="button"
-                        onClick={() => handleDayToggle(day)}
-                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${
-                          isActive 
-                            ? 'bg-primary border-primary text-white' 
-                            : 'bg-background border-gray-200 text-gray-500 hover:border-primary/50'
-                        }`}
-                      >
-                        {day.slice(0, 3)}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-              )}
-
-              <div className="space-y-2">
+            <div className="space-y-2">
               <Label htmlFor="setup-desc">Description</Label>
               <Textarea id="setup-desc" value={checklistFormData.description} onChange={(e) => setChecklistFormData({ ...checklistFormData, description: e.target.value })} rows={2} />
             </div>
@@ -463,6 +450,18 @@ export function HouseChecklistSetup({
           <DialogFooter><Button variant="outline" onClick={() => setShowItemDialog(false)}>Cancel</Button><Button variant="primary" onClick={handleSaveItem}>Confirm</Button></DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {houseId && (
+        <HouseChecklistScheduleModal
+          open={showScheduleModal}
+          onClose={() => {
+            setShowScheduleModal(false);
+            setSelectedForSchedule(null);
+          }}
+          houseId={houseId}
+          checklist={selectedForSchedule}
+        />
+      )}
     </>
   );
 }
