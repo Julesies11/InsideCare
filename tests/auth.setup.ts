@@ -1,6 +1,10 @@
 import { test as setup, expect } from '@playwright/test';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
+
+// Load env vars
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -8,42 +12,39 @@ const __dirname = path.dirname(__filename);
 const ADMIN_STORAGE_STATE = path.join(__dirname, '../playwright/.auth/admin.json');
 const STAFF_STORAGE_STATE = path.join(__dirname, '../playwright/.auth/staff.json');
 
-setup('authenticate as admin', async ({ page }) => {
-  // We'll bypass the actual login UI by injecting into localStorage
-  // This matches the AUTH_LOCAL_STORAGE_KEY logic in src/auth/lib/helpers.ts
-  await page.goto('/');
-  
-  await page.evaluate(() => {
-    const AUTH_KEY = 'InsideCare-auth-v1.0'; // Matches expected key in dev
-    const authData = {
-      access_token: 'fake-admin-token',
-      refresh_token: 'fake-admin-refresh-token'
-    };
-    localStorage.setItem(AUTH_KEY, JSON.stringify(authData));
-  });
+const ADMIN_EMAIL = process.env.PLAYWRIGHT_ADMIN_EMAIL || 'admin@demo.com';
+const ADMIN_PASSWORD = process.env.PLAYWRIGHT_ADMIN_PASSWORD || 'demo';
 
-  // Wait for the app to recognize the state and redirect to dashboard
-  await page.goto('/');
-  // Basic check that we're not on the signin page anymore
+const STAFF_EMAIL = process.env.PLAYWRIGHT_STAFF_EMAIL || 'staff@demo.com';
+const STAFF_PASSWORD = process.env.PLAYWRIGHT_STAFF_PASSWORD || 'demo';
+
+setup('authenticate as admin', async ({ page }) => {
+  await page.goto('/auth/signin');
+  
+  await page.getByLabel(/Email/i).fill(ADMIN_EMAIL);
+  await page.getByLabel(/Password/i).fill(ADMIN_PASSWORD);
+  await page.getByRole('button', { name: /Sign In/i }).click();
+
+  // Wait for the app to recognize the state and redirect
   await expect(page).not.toHaveURL(/.*\/auth\/signin.*/);
+  
+  // Basic check that we landed on a protected page (admin usually goes to root / dashboard)
+  await expect(page.locator('.layout-container, .sidebar, .header').first()).toBeVisible({ timeout: 15000 });
   
   await page.context().storageState({ path: ADMIN_STORAGE_STATE });
 });
 
 setup('authenticate as staff', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/auth/signin');
   
-  await page.evaluate(() => {
-    const AUTH_KEY = 'InsideCare-auth-v1.0';
-    const authData = {
-      access_token: 'fake-staff-token',
-      refresh_token: 'fake-staff-refresh-token'
-    };
-    localStorage.setItem(AUTH_KEY, JSON.stringify(authData));
-  });
+  await page.getByLabel(/Email/i).fill(STAFF_EMAIL);
+  await page.getByLabel(/Password/i).fill(STAFF_PASSWORD);
+  await page.getByRole('button', { name: /Sign In/i }).click();
 
-  await page.goto('/staff/dashboard');
   await expect(page).not.toHaveURL(/.*\/auth\/signin.*/);
+  
+  // Staff usually redirects to /staff/dashboard
+  await expect(page.locator('.layout-container, .sidebar, .header').first()).toBeVisible({ timeout: 15000 });
   
   await page.context().storageState({ path: STAFF_STORAGE_STATE });
 });
