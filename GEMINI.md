@@ -79,7 +79,9 @@ This ensures:
 - Place all API requests in `/modules/{feature}/api/*`.
 
 ## Supabase Conventions
-- Use the JS client only.
+- Use `@supabase/ssr` for robust session management.
+- Use `createBrowserClient` for client-side operations.
+- **Security:** Always use `supabase.auth.getUser()` for sensitive authorization checks, as it verifies the JWT with the server. Avoid relying solely on `getSession()` for security-critical logic.
 - Type responses with Supabase-generated types.
 - All filtering, joins, mapping, and data shaping must occur in the app.
 - No custom SQL unless related to authentication.

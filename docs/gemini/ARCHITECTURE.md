@@ -5,10 +5,11 @@ This document describes the architectural patterns and state management strategi
 ## 1. Backend + Supabase Logic Rules
 **All business logic must live inside the React app for maximum testability.**
 
-1.  **Direct Supabase Usage**: Use basic Supabase features only (`select`, `insert`, `update`, `delete`, `auth`).
-2.  **No Server-Side Logic**: Do NOT create Supabase SQL functions, triggers, stored procedures, RPC endpoints, or views.
-3.  **Client-Side Transforms**: All data transformations, joins, groupings, and aggregations must be done in the app.
-4.  **Enum Querying**: Enum columns (like `status`) do NOT support `.ilike()`. Always use `.eq()` or `.in()` for these fields.
+1.  **Supabase Client**: Use `@supabase/ssr` (via `createBrowserClient`) for robust session management and cookie-based persistence.
+2.  **Auth Security**: Always use `supabase.auth.getUser()` for authorization checks to ensure the JWT is verified by the Supabase server.
+3.  **No Server-Side Logic**: Do NOT create Supabase SQL functions, triggers, stored procedures, RPC endpoints, or views.
+4.  **Client-Side Transforms**: All data transformations, joins, groupings, and aggregations must be done in the app.
+5.  **Enum Querying**: Enum columns (like `status`) do NOT support `.ilike()`. Always use `.eq()` or `.in()` for these fields.
 
 ## 2. Security & Row Level Security (RLS)
 The application enforces strict role-based access control (RBAC) via Supabase RLS.
