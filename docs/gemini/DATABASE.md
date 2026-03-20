@@ -2,6 +2,12 @@
 
 This document provides an overview of the core database tables and their relationships in the InsideCare application.
 
+## Database Baseline
+As of **March 20, 2026**, all previous database migrations have been consolidated into a single baseline schema file:
+- **File:** `migrations/2026032000_baseline_schema.sql`
+- **Purpose:** This file represents the "canonical" state of the database, including all tables, indexes, constraints, triggers, RLS policies, and storage buckets. 
+- **Archiving:** All historical migration files have been moved to `migrations/old_consolidated/`. New changes to the schema should be added as new timestamped migration files in the `migrations/` directory.
+
 ## Core Entities
 
 ### 1. Participants (`public.participants`)

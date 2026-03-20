@@ -23,8 +23,15 @@ This project uses Supabase for authentication. Follow these steps to set up and 
 - React 19.x
 - A Supabase account and project
 
-### Installation
+### Database & Migrations
+The database schema is managed via timestamped SQL migrations in the `migrations/` folder.
 
+- **Current Baseline:** `2026032000_baseline_schema.sql`
+- **Archived Migrations:** Historical files are stored in `migrations/old_consolidated/`.
+
+New changes to the database must be added as a new migration file following the `YYYYMMDDHH_description.sql` format.
+
+### Installation
 To set up the project dependencies, including those required for React 19, use the `--force` flag to resolve any dependency conflicts:
 
 ```bash

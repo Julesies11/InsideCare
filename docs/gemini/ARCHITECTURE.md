@@ -51,6 +51,8 @@ A centralized activity logging system tracks all major changes in the applicatio
 - `src/lib/`: Core utilities (Supabase client, activity logger, helpers).
 - `src/models/`: TypeScript types and interfaces.
 - `migrations/`: SQL migration files for the database schema.
+  - `2026032000_baseline_schema.sql`: The consolidated schema baseline (March 20, 2026).
+  - `old_consolidated/`: Historical migration files (archived).
 
 ## 8. Testing Strategy
 The project follows a rigorous testing strategy to ensure reliability of the core business logic.
