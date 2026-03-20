@@ -1,18 +1,15 @@
-import { PropsWithChildren, useCallback, useEffect, useRef, useState } from 'react';
+import { PropsWithChildren, useCallback, useEffect, useState } from 'react';
 import { SupabaseAdapter } from '@/auth/adapters/supabase-adapter';
 import { AuthContext } from '@/auth/context/auth-context';
-import * as authHelper from '@/auth/lib/helpers';
 import { AuthModel, UserModel } from '@/auth/lib/models';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
 // Fetch user profile with a hard timeout so we never hang forever
 async function fetchUserWithTimeout(timeoutMs = 60000): Promise<UserModel | null> {
-  console.log(`AuthProvider: Starting profile fetch with ${timeoutMs}ms timeout...`);
   let timeoutId: any;
   const timeoutPromise = new Promise<null>((_, reject) => {
     timeoutId = setTimeout(() => {
-      console.warn('AuthProvider: Profile fetch timed out!');
       reject(new Error('Auth profile fetch timed out'));
     }, timeoutMs);
   });
@@ -20,7 +17,6 @@ async function fetchUserWithTimeout(timeoutMs = 60000): Promise<UserModel | null
   try {
     const userPromise = SupabaseAdapter.getCurrentUser().then(user => {
       clearTimeout(timeoutId);
-      console.log('AuthProvider: Profile fetch completed successfully');
       return user;
     });
     return await Promise.race([userPromise, timeoutPromise]);
@@ -32,190 +28,65 @@ async function fetchUserWithTimeout(timeoutMs = 60000): Promise<UserModel | null
 
 // Define the Supabase Auth Provider
 export function AuthProvider({ children }: PropsWithChildren) {
-  // Single loading flag — true until the initial session check completes
   const [loading, setLoading] = useState(true);
-  const [auth, setAuth] = useState<AuthModel | undefined>(undefined);
   const [currentUser, setCurrentUser] = useState<UserModel | undefined>();
-  // Prevent the onAuthStateChange initial event from double-running bootstrap
-  const bootstrapped = useRef(false);
+  const [auth, setAuth] = useState<AuthModel | undefined>(undefined);
 
-  // Derive role flags directly from currentUser — always in sync, no stale state
+  // Derive role flags directly from currentUser
   const isAdmin = currentUser?.is_admin === true;
   const isStaff = !currentUser?.is_admin && !!currentUser?.staff_id;
 
-  const saveAuth = useCallback((authModel: AuthModel | undefined) => {
-    setAuth(authModel);
-    if (authModel) {
-      authHelper.setAuth(authModel);
-    } else {
-      authHelper.removeAuth();
-    }
-  }, []);
+  const handleAuthStateChange = useCallback(async (event: string, session: any) => {
+    if (session) {
+      setAuth({
+        access_token: session.access_token,
+        refresh_token: session.refresh_token,
+      });
 
-  // Bootstrap: run once on mount — get session, then subscribe to changes
-  useEffect(() => {
-    let mounted = true;
-
-    const bootstrap = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (!mounted) return;
-
-        if (error) {
-          console.error('Auth bootstrap error:', error.message);
-          
-          // If it's a refresh token error, we need to be aggressive about clearing state
-          if (error.message.includes('refresh_token') || error.message.includes('Invalid Refresh Token')) {
-            console.warn('Refresh token is invalid, signing out...');
-            await supabase.auth.signOut();
-            saveAuth(undefined);
-            setCurrentUser(undefined);
-          } else {
-            toast.error('Failed to restore your session. Please sign in again.');
-            saveAuth(undefined);
-            setCurrentUser(undefined);
+      if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'USER_UPDATED') {
+        try {
+          const user = await fetchUserWithTimeout();
+          setCurrentUser(user || undefined);
+        } catch (err) {
+          console.error('Failed to load user profile:', err);
+          if (event === 'SIGNED_IN') {
+            toast.error('Signed in but could not load your profile. Please refresh.');
           }
-          return;
-        }
-
-        if (session) {
-          const authModel: AuthModel = {
-            access_token: session.access_token,
-            refresh_token: session.refresh_token,
-          };
-          saveAuth(authModel);
-          try {
-            const user = await fetchUserWithTimeout();
-            if (mounted) setCurrentUser(user || undefined);
-          } catch (err) {
-            const error = err as Error;
-            console.error('Failed to load user profile:', error.message);
-            if (mounted) {
-              toast.error('Could not load your profile. Please refresh the page.', {
-                action: { label: 'Refresh', onClick: () => window.location.reload() },
-              });
-              setCurrentUser(undefined);
-            }
-          }
-        } else {
-          saveAuth(undefined);
-          setCurrentUser(undefined);
-        }
-      } finally {
-        if (mounted) {
-          setLoading(false);
-          bootstrapped.current = true;
         }
       }
+    } else {
+      setAuth(undefined);
+      setCurrentUser(undefined);
+    }
+    
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    // Initial session check
+    const bootstrap = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      await handleAuthStateChange('INITIAL_SESSION', session);
     };
 
     bootstrap();
 
-    // Subscribe to future auth state changes
+    // Subscribe to auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        // Skip the initial INITIAL_SESSION event — bootstrap handles it
-        if (!bootstrapped.current) return;
-
-        if (event === 'SIGNED_IN') {
-          if (!session) return;
-          const authModel: AuthModel = {
-            access_token: session.access_token,
-            refresh_token: session.refresh_token,
-          };
-          saveAuth(authModel);
-          // Only fetch profile if we don't have one yet.
-          // Supabase fires SIGNED_IN on token recovery too — we don't want
-          // to re-fetch (and potentially time out) when the user is already loaded.
-          setCurrentUser(prev => {
-            if (prev) return prev; // already have a user — keep it
-            // Kick off async fetch without blocking the state update
-            fetchUserWithTimeout(30000)
-              .then(u => setCurrentUser(u || undefined))
-              .catch((err) => {
-                const error = err as Error;
-                console.error('Failed to load user profile on sign-in:', error.message);
-                toast.error('Signed in but could not load your profile. Please refresh.', {
-                  action: { label: 'Refresh', onClick: () => window.location.reload() },
-                });
-              });
-            return prev; // return unchanged for now; the .then above will update it
-          });
-        } else if (event === 'TOKEN_REFRESHED') {
-          // Just update tokens — do NOT re-fetch profile (avoid wiping user on slow network)
-          if (session) {
-            saveAuth({
-              access_token: session.access_token,
-              refresh_token: session.refresh_token,
-            });
-          }
-        } else if (event === 'SIGNED_OUT') {
-          saveAuth(undefined);
-          setCurrentUser(undefined);
-        } else if (event === 'USER_UPDATED') {
-          // Refresh profile silently when user metadata changes
-          if (session) {
-            try {
-              const user = await fetchUserWithTimeout();
-              setCurrentUser(user || undefined);
-            } catch {
-              // Non-critical — keep existing user state
-            }
-          }
-        }
-        // All other events (PASSWORD_RECOVERY etc.) are intentionally ignored
+      (event, session) => {
+        handleAuthStateChange(event, session);
       }
     );
 
     return () => {
-      mounted = false;
       subscription.unsubscribe();
     };
-  }, [saveAuth]);
-
-  // verify() is kept for backward compatibility but now just re-reads the session
-  // Guards should NOT call this — they should read loading/auth from context
-  const verify = useCallback(async () => {
-    try {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
-      if (error) {
-        console.error('verify() error:', error.message);
-        if (error.message.includes('refresh_token') || error.message.includes('Invalid Refresh Token')) {
-          await supabase.auth.signOut();
-        }
-        saveAuth(undefined);
-        setCurrentUser(undefined);
-        return;
-      }
-
-      if (session) {
-        saveAuth({
-          access_token: session.access_token,
-          refresh_token: session.refresh_token,
-        });
-      } else {
-        saveAuth(undefined);
-        setCurrentUser(undefined);
-      }
-    } catch (err) {
-      const error = err as Error;
-      console.error('verify() unexpected error:', error.message);
-      saveAuth(undefined);
-      setCurrentUser(undefined);
-    }
-  }, [saveAuth]);
+  }, [handleAuthStateChange]);
 
   const login = async (email: string, password: string) => {
-    try {
-      const authModel = await SupabaseAdapter.login(email, password);
-      saveAuth(authModel);
-      const user = await SupabaseAdapter.getCurrentUser();
-      setCurrentUser(user || undefined);
-    } catch (error) {
-      saveAuth(undefined);
-      throw error;
-    }
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    // onAuthStateChange will handle the state updates
   };
 
   const register = async (
@@ -225,31 +96,38 @@ export function AuthProvider({ children }: PropsWithChildren) {
     firstName?: string,
     lastName?: string,
   ) => {
-    try {
-      const auth = await SupabaseAdapter.register(
-        email,
-        password,
-        password_confirmation,
-        firstName,
-        lastName,
-      );
-      saveAuth(auth);
-      const user = await getUser();
-      setCurrentUser(user || undefined);
-    } catch (error) {
-      saveAuth(undefined);
-      throw error;
-    }
+    if (password !== password_confirmation) throw new Error('Passwords do not match');
+    
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          first_name: firstName || '',
+          last_name: lastName || '',
+          fullname: firstName && lastName ? `${firstName} ${lastName}`.trim() : '',
+        },
+      },
+    });
+    
+    if (error) throw error;
   };
+
+  const logout = async () => {
+    await supabase.auth.signOut();
+    // onAuthStateChange will handle the state updates
+  };
+
+  const verify = useCallback(async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    await handleAuthStateChange('VERIFY', session);
+  }, [handleAuthStateChange]);
 
   const requestPasswordReset = async (email: string) => {
     await SupabaseAdapter.requestPasswordReset(email);
   };
 
-  const resetPassword = async (
-    password: string,
-    password_confirmation: string,
-  ) => {
+  const resetPassword = async (password: string, password_confirmation: string) => {
     await SupabaseAdapter.resetPassword(password, password_confirmation);
   };
 
@@ -265,11 +143,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
     return await SupabaseAdapter.updateUserProfile(userData);
   };
 
-  const logout = () => {
-    SupabaseAdapter.logout();
-    saveAuth(undefined);
-    setCurrentUser(undefined);
-  };
+  const saveAuth = useCallback((authModel: AuthModel | undefined) => {
+    setAuth(authModel);
+    // We no longer need to manually save to localStorage as @supabase/ssr handles it via cookies
+  }, []);
 
   return (
     <AuthContext.Provider

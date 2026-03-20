@@ -1,49 +1,11 @@
-import { AuthModel, UserModel } from '@/auth/lib/models';
+import { UserModel } from '@/auth/lib/models';
 import { supabase } from '@/lib/supabase';
 
 /**
- * Supabase adapter that maintains the same interface as the existing auth flow
- * but uses Supabase under the hood.
+ * Supabase adapter that provides profile management and OAuth integration.
+ * Optimized for use with @supabase/ssr.
  */
 export const SupabaseAdapter = {
-  /**
-   * Login with email and password
-   */
-  async login(email: string, password: string): Promise<AuthModel> {
-    console.log('SupabaseAdapter: Attempting login with email:', email);
-
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        console.error('SupabaseAdapter: Login error from Supabase:', error);
-        throw new Error(error.message);
-      }
-
-      console.log(
-        'SupabaseAdapter: Login successful, session:',
-        data.session
-          ? {
-              access_token_length: data.session.access_token?.length,
-              refresh_token_length: data.session.refresh_token?.length,
-            }
-          : 'No session data',
-      );
-
-      // Transform Supabase session to AuthModel
-      return {
-        access_token: data.session.access_token,
-        refresh_token: data.session.refresh_token,
-      };
-    } catch (error) {
-      console.error('SupabaseAdapter: Unexpected login error:', error);
-      throw error;
-    }
-  },
-
   /**
    * Login with OAuth provider (Google, GitHub, etc.)
    */
@@ -57,109 +19,30 @@ export const SupabaseAdapter = {
       | 'slack',
     options?: { redirectTo?: string },
   ): Promise<void> {
-    console.log(
-      'SupabaseAdapter: Initiating OAuth flow with provider:',
+    const redirectTo =
+      options?.redirectTo || `${window.location.origin}/auth/callback`;
+
+    const { error } = await supabase.auth.signInWithOAuth({
       provider,
-    );
-
-    try {
-      const redirectTo =
-        options?.redirectTo || `${window.location.origin}/auth/callback`;
-
-      console.log('SupabaseAdapter: Using redirect URL:', redirectTo);
-
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo,
-        },
-      });
-
-      if (error) {
-        console.error('SupabaseAdapter: OAuth error:', error);
-        throw new Error(error.message);
-      }
-
-      console.log('SupabaseAdapter: OAuth flow initiated successfully');
-
-      // No need to return anything - the browser will be redirected
-    } catch (error) {
-      console.error('SupabaseAdapter: Unexpected OAuth error:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Register a new user
-   */
-  async register(
-    email: string,
-    password: string,
-    password_confirmation: string,
-    firstName?: string,
-    lastName?: string,
-  ): Promise<AuthModel> {
-    if (password !== password_confirmation) {
-      throw new Error('Passwords do not match');
-    }
-
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
       options: {
-        data: {
-          username: email.split('@')[0], // Default username from email
-          first_name: firstName || '',
-          last_name: lastName || '',
-          fullname:
-            firstName && lastName ? `${firstName} ${lastName}`.trim() : '',
-          created_at: new Date().toISOString(),
-        },
+        redirectTo,
       },
     });
 
     if (error) throw new Error(error.message);
-
-    // Return empty tokens if email confirmation is required
-    if (!data.session) {
-      return {
-        access_token: '',
-        refresh_token: '',
-      };
-    }
-
-    // Transform Supabase session to AuthModel
-    return {
-      access_token: data.session.access_token,
-      refresh_token: data.session.refresh_token,
-    };
   },
 
   /**
    * Request password reset
    */
   async requestPasswordReset(email: string): Promise<void> {
-    console.log('Requesting password reset for:', email);
+    const redirectUrl = `${window.location.origin}/auth/reset-password`;
 
-    try {
-      // Ensure the redirect URL is properly formatted with a hash for token
-      const redirectUrl = `${window.location.origin}/auth/reset-password`;
-      console.log('Using redirect URL:', redirectUrl);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: redirectUrl,
+    });
 
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: redirectUrl,
-      });
-
-      if (error) {
-        console.error('Password reset request error:', error);
-        throw new Error(error.message);
-      }
-
-      console.log('Password reset email sent successfully');
-    } catch (err) {
-      console.error('Unexpected error in password reset:', err);
-      throw err;
-    }
+    if (error) throw new Error(error.message);
   },
 
   /**
@@ -199,8 +82,8 @@ export const SupabaseAdapter = {
    * Get current user from the session
    */
   async getCurrentUser(): Promise<UserModel | null> {
-    const { data } = await supabase.auth.getUser();
-    if (!data.user) return null;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
 
     return this.getUserProfile();
   },
@@ -209,41 +92,30 @@ export const SupabaseAdapter = {
    * Get user profile from user metadata
    */
   async getUserProfile(): Promise<UserModel> {
-    console.log('SupabaseAdapter: Fetching user from auth.getUser()...');
     const {
       data: { user },
       error,
     } = await supabase.auth.getUser();
 
     if (error || !user) {
-      console.error('SupabaseAdapter: auth.getUser() failed:', error);
       throw new Error(error?.message || 'User not found');
     }
-
-    console.log('SupabaseAdapter: auth.getUser() success for', user.email);
 
     // Get user metadata and transform to UserModel format
     const metadata = user.user_metadata || {};
 
-    // Look up linked staff record for ALL users (admins may also have a staff record)
-    console.log('SupabaseAdapter: Querying staff table for auth_user_id:', user.id);
-    const { data: staffRow, error: staffError } = await supabase
+    // Look up linked staff record
+    const { data: staffRow } = await supabase
       .from('staff')
       .select('id, name, photo_url, role:roles(name)')
       .eq('auth_user_id', user.id)
       .maybeSingle();
       
-    if (staffError) {
-      console.warn('SupabaseAdapter: Staff table query error (non-fatal):', staffError);
-    }
-    
     const staff_id = staffRow?.id ?? undefined;
     const staff_name = staffRow?.name ?? undefined;
     const photo_url = staffRow?.photo_url ?? null;
     const role_name = (staffRow as any)?.role?.name ?? undefined;
     
-    console.log('SupabaseAdapter: Profile construction complete', { staff_id, staff_name, role_name, has_photo: !!photo_url });
-
     // Format data to maintain compatibility with existing UI
     return {
       email: user.email || '',
@@ -304,7 +176,7 @@ export const SupabaseAdapter = {
 
     if (error) throw new Error(error.message);
 
-    return this.getCurrentUser() as Promise<UserModel>;
+    return this.getUserProfile();
   },
 
   /**
