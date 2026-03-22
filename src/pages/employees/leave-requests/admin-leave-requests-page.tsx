@@ -62,6 +62,8 @@ const statusLabel: Record<string, string> = {
   rejected: 'Rejected',
 };
 
+import { NotificationService } from '@/lib/notification-service';
+
 export function AdminLeaveRequestsPage() {
   const { user } = useAuth();
   const [requests, setRequests] = useState<LeaveRequest[]>([]);
@@ -162,13 +164,24 @@ export function AdminLeaveRequestsPage() {
     toast.success(`Leave request ${newStatus}`);
 
     if (selected.staff?.auth_user_id) {
-      await supabase.from('notifications').insert({
-        user_id: selected.staff.auth_user_id,
-        type: `leave_${newStatus}`,
-        title: `Leave Request ${newStatus.charAt(0).toUpperCase() + newStatus.slice(1)}`,
-        body: adminNotes || `Your ${selected.leave_type?.name ?? 'leave'} request (${format(new Date(selected.start_date), 'dd MMM')} – ${format(new Date(selected.end_date), 'dd MMM yyyy')}) has been ${newStatus}.`,
-        link: '/staff/leave',
-      });
+      const dateRangeStr = `${format(new Date(selected.start_date), 'dd MMM')} – ${format(new Date(selected.end_date), 'dd MMM yyyy')}`;
+      const leaveTypeName = selected.leave_type?.name ?? 'leave';
+      
+      if (newStatus === 'approved') {
+        await NotificationService.notifyLeaveApproved(
+          selected.staff.auth_user_id,
+          dateRangeStr,
+          leaveTypeName,
+          adminNotes
+        );
+      } else {
+        await NotificationService.notifyLeaveRejected(
+          selected.staff.auth_user_id,
+          dateRangeStr,
+          leaveTypeName,
+          adminNotes
+        );
+      }
     }
 
     setSelected(null);

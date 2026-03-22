@@ -3,6 +3,7 @@ import { useAuth } from '@/auth/context/auth-context';
 import {
   Moon,
   UserCircle,
+  Bell,
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Link } from 'react-router';
@@ -78,8 +79,18 @@ export function UserDropdownMenu({ trigger }: { trigger: ReactNode }) {
             to="/staff/profile"
             className="flex items-center gap-2"
           >
-            <UserCircle />
+            <UserCircle className="size-4" />
             My Profile
+          </Link>
+        </DropdownMenuItem>
+
+        <DropdownMenuItem asChild>
+          <Link
+            to="/account/notifications"
+            className="flex items-center gap-2"
+          >
+            <Bell className="size-4" />
+            Notifications
           </Link>
         </DropdownMenuItem>
 

@@ -37,12 +37,14 @@ import {
   AdminLeaveRequestsPage,
 } from '@/pages/employees';
 import { ChecklistMasterPage } from '@/pages/admin/checklists/checklist-master-page';
+import { NotificationCenter } from '@/pages/account/notifications/notification-center';
 
 export function AppRoutingSetup() {
   return (
     <Routes>
       <Route element={<RequireAuth />}>
         <Route element={<Demo1Layout />}>
+          <Route path="/account/notifications" element={<NotificationCenter />} />
           <Route path="/staff/dashboard" element={<StaffDashboard />} />
           <Route path="/staff/checklists" element={<StaffChecklists />} />
           <Route path="/staff/roster" element={<StaffRoster />} />

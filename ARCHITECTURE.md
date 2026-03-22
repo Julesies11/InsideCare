@@ -135,6 +135,32 @@ npm install
 3. **React Query** - Replace component remounting with cache invalidation
 4. **Optimistic Updates** - Update UI before server response
 
+## Real-Time Notifications System
+
+### Overview
+InsideCare includes a centralized, real-time notification system that broadcasts alerts (timesheet approvals, shift assignments, clinical updates) to specific users across different roles.
+
+### Key Components
+
+#### 1. **Notification Service** (`lib/notification-service.ts`)
+A centralized TypeScript service that manages the creation of all notifications. It keeps the business logic out of the UI components and avoids the need for complex database triggers.
+- Provides strict typing for notification types (`timesheet_approved`, `shift_assigned`, etc.).
+- Exposes domain-specific helpers (e.g., `notifyShiftAssigned(staffId, date, house)`).
+- Wraps `supabase.from('notifications').insert()` with fail-safes so that non-critical notification errors do not break core app flows (like form saves).
+
+#### 2. **Real-Time Subscription Hook** (`hooks/useNotifications.ts`)
+- Manages the local notification state and read/unread status.
+- Uses `supabase.channel('public:notifications')` to subscribe to database inserts.
+- Filters events strictly to the current user (`filter: user_id=eq.${user.id}`).
+- Triggers global toast alerts (`sonner`) when a new payload is received, ensuring the UI updates instantly without manual polling.
+
+#### 3. **Database Architecture & RLS**
+- **Schema:** The `notifications` table includes standard routing data (`type`, `title`, `body`, `link`) and tracks `is_read`.
+- **Publication:** The table is added to the Postgres `supabase_realtime` publication to allow the client to listen for changes.
+- **Granular RLS:** 
+  - Users can only `SELECT`, `UPDATE`, and `DELETE` their **own** notifications (`user_id = auth.uid()`).
+  - However, the `INSERT` policy is completely open to authenticated users (`WITH CHECK (true)`). This is critical, as it allows a Staff member to trigger a notification for an Admin, or a Manager to trigger an alert for a Staff member, without the database rejecting the mismatched `user_id`.
+
 ### Files Modified
 
 - `src/hooks/useDirtyTracker.ts` - New centralized dirty tracking hook

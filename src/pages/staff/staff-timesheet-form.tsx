@@ -30,6 +30,8 @@ interface Shift {
 }
 
 
+import { NotificationService } from '@/lib/notification-service';
+
 export function StaffTimesheetForm() {
   const { shiftId } = useParams<{ shiftId: string }>();
   const { user }    = useAuth();
@@ -255,16 +257,16 @@ export function StaffTimesheetForm() {
         .not('auth_user_id', 'is', null);
 
       if (admins && admins.length > 0) {
-        const notifRows = admins
-          .filter((a) => a.auth_user_id)
-          .map((a) => ({
-            user_id: a.auth_user_id as string,
-            type:    'timesheet_submitted',
-            title:   'New Timesheet Submitted',
-            body:    `${userName} submitted a timesheet for ${format(parseISO(shift.shift_date), 'dd MMM yyyy')}.`,
-            link:    '/employees/timesheets',
-          }));
-        await supabase.from('notifications').insert(notifRows);
+        const adminIds = admins.map(a => a.auth_user_id).filter(Boolean) as string[];
+        await Promise.all(
+          adminIds.map(adminId => 
+            NotificationService.notifyTimesheetSubmitted(
+              adminId, 
+              userName, 
+              format(parseISO(shift.shift_date), 'dd MMM yyyy')
+            )
+          )
+        );
       }
 
       toast.success('Timesheet submitted successfully');

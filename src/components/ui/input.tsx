@@ -120,9 +120,10 @@ function Input({
   className,
   type,
   variant,
+  id, // Added id prop
   ...props
-}: React.ComponentProps<'input'> & VariantProps<typeof inputVariants>) {
-  return <input data-slot="input" type={type} className={cn(inputVariants({ variant }), className)} {...props} />;
+}: React.ComponentProps<'input'> & VariantProps<typeof inputVariants> & { id?: string }) { // Added id to type
+  return <input data-slot="input" id={id} type={type} className={cn(inputVariants({ variant }), className)} {...props} />;
 }
 
 function InputAddon({

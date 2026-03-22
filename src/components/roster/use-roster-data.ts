@@ -21,6 +21,7 @@ export interface Staff {
   name: string;
   photo_url?: string | null;
   status?: string;
+  auth_user_id?: string | null;
 }
 
 export interface StaffShift {
@@ -97,7 +98,7 @@ export function useRosterData() {
       console.log('Fetching active staff members...');
       const { data, error } = await supabase
         .from('staff')
-        .select('id, name, photo_url, status')
+        .select('id, name, photo_url, status, auth_user_id')
         .eq('status', 'active')
         .not('name', 'is', null)
         .order('name');

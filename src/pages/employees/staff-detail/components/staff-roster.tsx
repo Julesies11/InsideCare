@@ -7,6 +7,7 @@ import { ShiftDialog, ShiftFormData } from '@/components/roster/shift-dialog';
 import { RosterCalendarHeader } from '@/components/roster/roster-calendar-header';
 import { useRosterData, StaffShift } from '@/components/roster/use-roster-data';
 import { getDateRange, calculateDuration, ViewMode } from '@/components/roster/roster-utils';
+import { NotificationService } from '@/lib/notification-service';
 
 interface StaffRosterProps {
   staffId: string;
@@ -144,6 +145,15 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
         ));
 
         toast.success('Shift updated successfully');
+        
+        const staffMember = staff.find(s => s.id === staffId);
+        if (staffMember?.auth_user_id && formData.house_id) {
+          const shiftHouse = houses.find(h => h.id === formData.house_id);
+          if (shiftHouse) {
+            await NotificationService.notifyShiftModified(staffMember.auth_user_id, formData.shift_date, shiftHouse.name);
+          }
+        }
+
       } else {
         // CREATE NEW SHIFT
         const shiftData = {
@@ -185,6 +195,11 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
         setShifts(prevShifts => [...prevShifts, newShift]);
 
         toast.success('Shift created successfully');
+        
+        const staffMember = staff.find(s => s.id === staffId);
+        if (staffMember?.auth_user_id && house) {
+          await NotificationService.notifyShiftAssigned(staffMember.auth_user_id, formData.shift_date, house.name);
+        }
       }
     } catch (error) {
       toast.error(selectedShift ? 'Failed to update shift' : 'Failed to create shift');

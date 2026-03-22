@@ -4,24 +4,36 @@ import { useChecklistSchedules } from './useChecklistSchedules';
 import { supabase } from '@/lib/supabase';
 
 // Mock Supabase
+const mockInsert = vi.fn().mockImplementation(() => ({
+  select: vi.fn().mockReturnThis(),
+  single: vi.fn().mockResolvedValue({ data: { id: 'schedule-1', name: 'Test Checklist' }, error: null }),
+}));
+
+const mockSelect = vi.fn().mockImplementation(() => ({
+  eq: vi.fn().mockReturnThis(),
+  single: vi.fn().mockResolvedValue({ data: { id: 'cl-1', name: 'Test Checklist' }, error: null }),
+}));
+
+const mockDelete = vi.fn().mockImplementation(() => ({
+  eq: vi.fn().mockResolvedValue({ error: null }),
+}));
+
+const mockFrom = vi.fn((table) => {
+  if (table === 'checklist_schedules') {
+    return { insert: mockInsert, delete: mockDelete };
+  }
+  if (table === 'house_checklists') {
+    return { select: mockSelect };
+  }
+  if (table === 'house_calendar_events') {
+    return { insert: vi.fn().mockResolvedValue({ error: null }), delete: mockDelete };
+  }
+  return { select: mockSelect, insert: mockInsert, delete: mockDelete };
+});
+
 vi.mock('@/lib/supabase', () => ({
   supabase: {
-    from: vi.fn(() => ({
-      insert: vi.fn(() => ({
-        select: vi.fn(() => ({
-          single: vi.fn(() => Promise.resolve({ data: { id: 'schedule-1' }, error: null })),
-        })),
-        select2: vi.fn(() => Promise.resolve({ data: { id: 'schedule-1' }, error: null })),
-      })),
-      select: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          single: vi.fn(() => Promise.resolve({ data: { id: 'cl-1', name: 'Test Checklist' }, error: null })),
-        })),
-      })),
-      delete: vi.fn(() => ({
-        eq: vi.fn(() => Promise.resolve({ error: null })),
-      })),
-    })),
+    from: (table: string) => mockFrom(table),
   },
 }));
 
@@ -33,8 +45,8 @@ describe('useChecklistSchedules', () => {
       house_id: 'house-1',
       house_checklist_id: 'cl-1',
       rrule: 'FREQ=DAILY',
-      start_date: '2026-03-17',
-      end_date: '2026-03-20',
+      start_date: '2026-04-01',
+      end_date: '2026-04-10',
       is_active: true
     };
 
@@ -46,11 +58,11 @@ describe('useChecklistSchedules', () => {
     expect(newSchedule).toBeDefined();
     expect(newSchedule.id).toBe('schedule-1');
     
-    // Check if supabase.from was called for 'checklist_schedules'
-    expect(supabase.from).toHaveBeenCalledWith('checklist_schedules');
+    // Check if mockFrom was called for 'checklist_schedules'
+    expect(mockFrom).toHaveBeenCalledWith('checklist_schedules');
     
-    // Check if supabase.from was called for 'house_calendar_events' (materialization)
-    expect(supabase.from).toHaveBeenCalledWith('house_calendar_events');
+    // Check if mockFrom was called for 'house_calendar_events' (materialization)
+    expect(mockFrom).toHaveBeenCalledWith('house_calendar_events');
   });
 
   it('should delete a schedule', async () => {
@@ -60,6 +72,6 @@ describe('useChecklistSchedules', () => {
       await result.current.deleteSchedule('schedule-1');
     });
     
-    expect(supabase.from).toHaveBeenCalledWith('checklist_schedules');
+    expect(mockFrom).toHaveBeenCalledWith('checklist_schedules');
   });
 });

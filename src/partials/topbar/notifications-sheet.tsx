@@ -75,6 +75,7 @@ function NotificationItem({ notification, onRead }: { notification: AppNotificat
 
 export function NotificationsSheet({ trigger }: { trigger: ReactNode }) {
   const { notifications, loading, unreadCount, markAllRead, markRead } = useNotifications();
+  const navigate = useNavigate();
 
   return (
     <Sheet>
@@ -112,7 +113,7 @@ export function NotificationsSheet({ trigger }: { trigger: ReactNode }) {
             )}
           </ScrollArea>
         </SheetBody>
-        <SheetFooter className="border-t border-border p-4">
+        <SheetFooter className="border-t border-border p-4 flex flex-col gap-2">
           <Button
             variant="outline"
             className="w-full"
@@ -120,6 +121,13 @@ export function NotificationsSheet({ trigger }: { trigger: ReactNode }) {
             disabled={unreadCount === 0}
           >
             Mark all as read
+          </Button>
+          <Button
+            variant="ghost"
+            className="w-full"
+            onClick={() => navigate('/account/notifications')}
+          >
+            View all notifications
           </Button>
         </SheetFooter>
       </SheetContent>

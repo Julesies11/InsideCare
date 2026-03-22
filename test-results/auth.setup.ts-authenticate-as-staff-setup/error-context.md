@@ -28,9 +28,9 @@
       - generic [ref=e34]: or sign in manually
       - generic [ref=e35]:
         - generic [ref=e36]: Email
-        - textbox "Email" [ref=e37]:
+        - textbox "Email" [active] [ref=e37]:
           - /placeholder: Your email
-          - text: demo@kt.com
+          - text: staff@demo.com
       - generic [ref=e38]:
         - generic [ref=e40]: Password
         - generic [ref=e41]:

@@ -101,6 +101,8 @@ function ExceptionIcons({ ts }: { ts: Timesheet }) {
     </div>
   );
 }
+import { NotificationService } from '@/lib/notification-service';
+
 export function AdminTimesheetsPage() {
   const { user } = useAuth();
   const [timesheets, setTimesheets]           = useState<Timesheet[]>([]);
@@ -192,15 +194,18 @@ export function AdminTimesheetsPage() {
     });
 
     if (selected.staff?.auth_user_id) {
-      await supabase.from('notifications').insert({
-        user_id: selected.staff.auth_user_id,
-        type:    `timesheet_${newStatus}`,
-        title:   `Timesheet ${newStatus === 'approved' ? 'Approved' : 'Rejected'}`,
-        body:    action === 'reject' && rejectionReason
-          ? `Your timesheet for ${shiftDate} was rejected: ${rejectionReason}`
-          : `Your timesheet for ${shiftDate} has been ${newStatus}.`,
-        link: '/staff/timesheets',
-      });
+      if (newStatus === 'approved') {
+        await NotificationService.notifyTimesheetApproved(
+          selected.staff.auth_user_id,
+          shiftDate
+        );
+      } else if (newStatus === 'rejected') {
+        await NotificationService.notifyTimesheetRejected(
+          selected.staff.auth_user_id,
+          shiftDate,
+          rejectionReason ? `Your timesheet for ${shiftDate} was rejected: ${rejectionReason}` : undefined
+        );
+      }
     }
 
     toast.success(`Timesheet ${newStatus}`);
@@ -248,13 +253,10 @@ export function AdminTimesheetsPage() {
         customDescription: `Bulk approved timesheet for ${ts.staff?.name ?? 'staff'} on ${shiftDate}`,
       });
       if (ts.staff?.auth_user_id) {
-        await supabase.from('notifications').insert({
-          user_id: ts.staff.auth_user_id,
-          type: 'timesheet_approved',
-          title: 'Timesheet Approved',
-          body: `Your timesheet for ${shiftDate} has been approved.`,
-          link: '/staff/timesheets',
-        });
+        await NotificationService.notifyTimesheetApproved(
+          ts.staff.auth_user_id,
+          shiftDate
+        );
       }
     }
 

@@ -8,6 +8,7 @@ import { getDateRange, calculateDuration, ViewMode } from '@/components/roster/r
 import { EditShiftNoteDialog } from '@/pages/participants/shift-notes/components/edit-shift-note-dialog';
 import { useShiftNotes } from '@/hooks/use-shift-notes';
 import { supabase } from '@/lib/supabase';
+import { NotificationService } from '@/lib/notification-service';
 
 export interface LeaveBlock {
   id: string;
@@ -234,6 +235,14 @@ export function StaffRosterCalendar({
         ));
 
         toast.success('Shift updated successfully');
+        
+        if (staffMember?.auth_user_id && formData.house_id) {
+          const shiftHouse = houses.find(h => h.id === formData.house_id);
+          if (shiftHouse) {
+            await NotificationService.notifyShiftModified(staffMember.auth_user_id, formData.shift_date, shiftHouse.name);
+          }
+        }
+
       } else {
         // CREATE NEW SHIFT
         const shiftData = {
@@ -276,6 +285,11 @@ export function StaffRosterCalendar({
         setShifts(prevShifts => [...prevShifts, newShift]);
 
         toast.success('Shift created successfully');
+        
+        if (staffMember?.auth_user_id && house) {
+          await NotificationService.notifyShiftAssigned(staffMember.auth_user_id, formData.shift_date, house.name);
+        }
+
         return { id: data.id };
       }
     } catch (error) {

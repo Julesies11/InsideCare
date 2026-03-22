@@ -24,6 +24,7 @@ import { Participant } from '@/models/participant';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { logActivity, detectChanges } from '@/lib/activity-logger';
+import { NotificationService } from '@/lib/notification-service';
 import { parseSupabaseError } from '@/lib/error-parser';
 import { useFormValidation } from '@/hooks/use-form-validation';
 import { validators } from '@/lib/validation-rules';
@@ -114,6 +115,7 @@ export function ParticipantDetailContent({
     personal_mobile: '',
     address: '',
     date_of_birth: '',
+    move_in_date: '',
     ndis_number: '',
     house_id: '',
     photo_url: '',
@@ -255,7 +257,6 @@ export function ParticipantDetailContent({
       
       setOriginalPhotoUrl(participantData.photo_url ?? null);
       if (participantData.photo_url) setPhotoPreview(participantData.photo_url);
-      
       setHasInitialized(true);
       (window as any).entityName = participantData.name;
     }
@@ -387,6 +388,9 @@ export function ParticipantDetailContent({
             userName,
             customDescription: 'Added new medication',
           });
+          if (participant?.house_id) {
+            await NotificationService.notifyAssignedStaff(participant.house_id, participant.name || 'Participant', 'medication');
+          }
         }
       }
 
@@ -410,6 +414,9 @@ export function ParticipantDetailContent({
             userName,
             customDescription: 'Updated medication details',
           });
+          if (participant?.house_id) {
+            await NotificationService.notifyAssignedStaff(participant.house_id, participant.name || 'Participant', 'medication');
+          }
         }
       }
 
@@ -643,6 +650,14 @@ export function ParticipantDetailContent({
           return;
         }
         await updateParticipantFn({ id, updates: changedFields });
+
+        if (participant?.house_id) {
+          const routineFields = ['routine', 'medical_routine_general_process', 'behaviour_of_concern', 'restrictive_practices'];
+          const hasRoutineChange = routineFields.some(field => Object.keys(changedFields).includes(field));
+          if (hasRoutineChange) {
+            await NotificationService.notifyAssignedStaff(participant.house_id, participant.name || 'Participant', 'routine');
+          }
+        }
       }
 
       // Detect changes for activity log
@@ -679,6 +694,9 @@ export function ParticipantDetailContent({
             userName,
             customDescription: 'Added shift note',
           });
+          if (participant?.house_id) {
+            await NotificationService.notifyAssignedStaff(participant.house_id, participant.name || 'Participant', 'note');
+          }
         }
       }
 
@@ -703,6 +721,9 @@ export function ParticipantDetailContent({
             userName,
             customDescription: 'Updated shift note',
           });
+          if (participant?.house_id) {
+            await NotificationService.notifyAssignedStaff(participant.house_id, participant.name || 'Participant', 'note');
+          }
         }
       }
 

@@ -1,13 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/auth/context/auth-context';
-import { ChatSheet } from '@/partials/topbar/chat-sheet';
 import { NotificationsSheet } from '@/partials/topbar/notifications-sheet';
 import { UserDropdownMenu } from '@/partials/topbar/user-dropdown-menu';
 import { useNotifications } from '@/hooks/useNotifications';
 import {
   Bell,
   Menu,
-  MessageCircleMore,
 } from 'lucide-react';
 import { useLocation } from 'react-router';
 import { Link } from 'react-router-dom';
@@ -115,18 +113,6 @@ export function Header() {
                     {unreadCount > 0 && (
                       <span className="absolute top-1 end-1 size-2 rounded-full bg-red-500" />
                     )}
-                  </Button>
-                }
-              />
-              <ChatSheet
-                trigger={
-                  <Button
-                    variant="ghost"
-                    mode="icon"
-                    shape="circle"
-                    className="size-9 hover:bg-primary/10 hover:[&_svg]:text-primary"
-                  >
-                    <MessageCircleMore className="size-4.5!" />
                   </Button>
                 }
               />
