@@ -37,3 +37,10 @@ System-wide tools for ensuring regulatory and operational standards.
 ## 6. Dashboards
 - **Management Dashboard**: High-level overview of occupancy, staffing levels, and compliance status.
 - **Staff Dashboard**: Personalized view of upcoming shifts, tasks, and notifications.
+
+## 7. Notification Center
+Comprehensive alert system for critical updates and workflows.
+- **Deep Linking**: Notifications navigate directly to relevant pages and auto-scroll to specific sections (e.g., Clinical Updates scroll to the Medications section).
+- **Role-Based Alerts**: Automated triggers for leave requests, timesheet approvals, roster changes, and compliance expiries.
+- **Real-time Sync**: Uses Supabase Realtime for instant in-app alerts and topbar toasts.
+- **Activity Correlation**: Integrated with the Activity Log to provide context for clinical updates.

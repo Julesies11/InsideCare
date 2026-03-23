@@ -1,7 +1,16 @@
 import { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
-import { Bell, CheckCircle, XCircle, ClipboardList, Umbrella } from 'lucide-react';
+import { 
+  Bell, 
+  CheckCircle, 
+  XCircle, 
+  ClipboardList, 
+  Umbrella, 
+  AlertTriangle, 
+  Stethoscope, 
+  CalendarDays 
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
@@ -23,6 +32,14 @@ const TYPE_ICON: Record<string, React.ElementType> = {
   leave_approved: CheckCircle,
   leave_rejected: XCircle,
   leave_submitted: Umbrella,
+  system_alert: AlertTriangle,
+  compliance_alert: AlertTriangle,
+  clinical_update: Stethoscope,
+  medication_update: Stethoscope,
+  routine_update: Stethoscope,
+  shift_assigned: CalendarDays,
+  shift_modified: CalendarDays,
+  shift_cancelled: XCircle,
 };
 
 const TYPE_COLOR: Record<string, string> = {
@@ -32,6 +49,14 @@ const TYPE_COLOR: Record<string, string> = {
   leave_approved: 'text-green-500',
   leave_rejected: 'text-destructive',
   leave_submitted: 'text-primary',
+  system_alert: 'text-amber-500',
+  compliance_alert: 'text-amber-500',
+  clinical_update: 'text-purple-500',
+  medication_update: 'text-purple-500',
+  routine_update: 'text-purple-500',
+  shift_assigned: 'text-blue-500',
+  shift_modified: 'text-blue-500',
+  shift_cancelled: 'text-destructive',
 };
 
 function NotificationItem({ notification, onRead }: { notification: AppNotification; onRead: (id: string) => void }) {
@@ -41,7 +66,18 @@ function NotificationItem({ notification, onRead }: { notification: AppNotificat
 
   const handleClick = () => {
     if (!notification.is_read) onRead(notification.id);
-    if (notification.link) navigate(notification.link);
+    
+    if (notification.link) {
+      let targetPath = notification.link;
+      
+      // If metadata contains tab, append it to URL for deep linking
+      if (notification.metadata?.tab) {
+        const separator = targetPath.includes('?') ? '&' : '?';
+        targetPath += `${separator}tab=${notification.metadata.tab}`;
+      }
+      
+      navigate(targetPath, { state: { notificationMetadata: notification.metadata } });
+    }
   };
 
   return (

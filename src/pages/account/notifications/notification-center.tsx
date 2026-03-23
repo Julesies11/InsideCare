@@ -92,8 +92,19 @@ export function NotificationCenter() {
     if (!notification.is_read) {
       markRead(notification.id);
     }
+    
     if (notification.link) {
-      navigate(notification.link);
+      // For deep linking, we can pass metadata to the destination page via navigation state
+      // or append it as query parameters if the link doesn't already have them.
+      let targetPath = notification.link;
+      
+      if (notification.metadata?.tab) {
+        // If the link already has a query string, append with &, else with ?
+        const separator = targetPath.includes('?') ? '&' : '?';
+        targetPath += `${separator}tab=${notification.metadata.tab}`;
+      }
+      
+      navigate(targetPath, { state: { notificationMetadata: notification.metadata } });
     }
   };
 

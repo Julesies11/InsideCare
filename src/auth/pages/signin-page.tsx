@@ -209,11 +209,13 @@ export function SignInPage() {
                 <FormLabel>Password</FormLabel>
               </div>
               <div className="relative">
-                <Input
-                  placeholder="Your password"
-                  type={passwordVisible ? 'text' : 'password'} // Toggle input type
-                  {...field}
-                />
+                <FormControl>
+                  <Input
+                    placeholder="Your password"
+                    type={passwordVisible ? 'text' : 'password'} // Toggle input type
+                    {...field}
+                  />
+                </FormControl>
                 <Button
                   type="button"
                   variant="ghost"

@@ -9,6 +9,7 @@ export interface AppNotification {
   title: string;
   body: string | null;
   link: string | null;
+  metadata: Record<string, any> | null;
   is_read: boolean;
   created_at: string;
 }
@@ -20,12 +21,15 @@ export function useNotifications() {
   const [totalCount, setTotalCount] = useState(0);
 
   const fetchNotifications = useCallback(async (limit = 50, offset = 0, filterRead?: boolean) => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      setLoading(false);
+      return;
+    }
 
     setLoading(true);
     let query = supabase
       .from('notifications')
-      .select('id, type, title, body, link, is_read, created_at', { count: 'exact' })
+      .select('id, type, title, body, link, metadata, is_read, created_at', { count: 'exact' })
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
@@ -49,7 +53,12 @@ export function useNotifications() {
   }, [user?.id]);
 
   useEffect(() => {
-    if (!auth?.access_token || !user?.id) return;
+    if (!user?.id) {
+      setLoading(false);
+      return;
+    }
+
+    if (!auth?.access_token) return;
     
     // Initial fetch for the topbar (latest 50)
     fetchNotifications(50, 0);

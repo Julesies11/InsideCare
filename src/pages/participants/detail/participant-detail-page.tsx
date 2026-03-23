@@ -1,5 +1,5 @@
 import { Fragment, useState, useRef, useCallback, useEffect } from 'react';
-import { useParams } from 'react-router';
+import { useParams, useLocation } from 'react-router';
 import { Container } from '@/components/common/container';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
@@ -17,6 +17,10 @@ import { useUpdateParticipant, useParticipant } from '@/hooks/use-participants';
 
 export function ParticipantDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const tab = searchParams.get('tab');
+  
   const { data: participant } = useParticipant(id);
   const { mutateAsync: updateParticipant } = useUpdateParticipant();
   const [formData, setFormData] = useState<Record<string, any> | null>(null);
@@ -25,6 +29,25 @@ export function ParticipantDetailPage() {
   const [saving, setSaving] = useState(false);
   const [photoDirty, setPhotoDirty] = useState(false);
   const saveHandlerRef = useRef<(() => Promise<void>) | null>(null);
+
+  // Handle deep linking via scroll
+  useEffect(() => {
+    if (tab) {
+      // Small delay to ensure Content is rendered and scrollspy is ready
+      const timer = setTimeout(() => {
+        const element = document.getElementById(tab);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          // Optional: Add a brief highlight effect
+          element.classList.add('animate-pulse', 'ring-2', 'ring-primary', 'ring-offset-2');
+          setTimeout(() => {
+            element.classList.remove('animate-pulse', 'ring-2', 'ring-primary', 'ring-offset-2');
+          }, 3000);
+        }
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [tab, id]);
 
   // Use centralized dirty tracking with json-diff-ts
   const { isDirty: formIsDirty } = useDirtyTracker({

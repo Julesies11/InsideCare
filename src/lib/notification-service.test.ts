@@ -29,6 +29,7 @@ describe('NotificationService', () => {
         title: 'Test Alert',
         body: 'Test Body',
         link: '/test',
+        metadata: { key: 'value' }
       });
 
       expect(supabase.from).toHaveBeenCalledWith('notifications');
@@ -38,6 +39,7 @@ describe('NotificationService', () => {
         title: 'Test Alert',
         body: 'Test Body',
         link: '/test',
+        metadata: { key: 'value' }
       });
     });
 
@@ -57,6 +59,7 @@ describe('NotificationService', () => {
         title: 'Test Alert',
         body: null,
         link: null,
+        metadata: null,
       });
     });
   });
@@ -76,13 +79,17 @@ describe('NotificationService', () => {
 
     it('notifyClinicalUpdate', async () => {
       const spy = vi.spyOn(NotificationService, 'send').mockResolvedValue();
-      await NotificationService.notifyClinicalUpdate('user-1', 'John Doe', 'medication');
+      await NotificationService.notifyClinicalUpdate('user-1', 'part-1', 'John Doe', 'medication');
       expect(spy).toHaveBeenCalledWith({
         userId: 'user-1',
         type: 'medication_update',
         title: 'Medication Update',
         body: 'A clinical update has been recorded for John Doe. Please review before your next shift.',
-        link: '/participants/profiles',
+        link: '/participants/detail/part-1',
+        metadata: {
+          participantId: 'part-1',
+          tab: 'medications'
+        }
       });
     });
   });
@@ -101,15 +108,15 @@ describe('NotificationService', () => {
 
       const spy = vi.spyOn(NotificationService, 'notifyClinicalUpdate').mockResolvedValue();
 
-      await NotificationService.notifyAssignedStaff('house-1', 'John Doe', 'note');
+      await NotificationService.notifyAssignedStaff('house-1', 'part-1', 'John Doe', 'note');
 
       expect(supabase.from).toHaveBeenCalledWith('house_staff_assignments');
       expect(mockSelect).toHaveBeenCalledWith('staff:staff_id(auth_user_id)');
       expect(mockEq).toHaveBeenCalledWith('house_id', 'house-1');
 
       expect(spy).toHaveBeenCalledTimes(2);
-      expect(spy).toHaveBeenCalledWith('user-1', 'John Doe', 'note');
-      expect(spy).toHaveBeenCalledWith('user-2', 'John Doe', 'note');
+      expect(spy).toHaveBeenCalledWith('user-1', 'part-1', 'John Doe', 'note');
+      expect(spy).toHaveBeenCalledWith('user-2', 'part-1', 'John Doe', 'note');
     });
   });
 });

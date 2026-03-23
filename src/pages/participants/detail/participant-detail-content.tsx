@@ -389,7 +389,7 @@ export function ParticipantDetailContent({
             customDescription: 'Added new medication',
           });
           if (participant?.house_id) {
-            await NotificationService.notifyAssignedStaff(participant.house_id, participant.name || 'Participant', 'medication');
+            await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.name || 'Participant', 'medication');
           }
         }
       }
@@ -415,7 +415,7 @@ export function ParticipantDetailContent({
             customDescription: 'Updated medication details',
           });
           if (participant?.house_id) {
-            await NotificationService.notifyAssignedStaff(participant.house_id, participant.name || 'Participant', 'medication');
+            await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.name || 'Participant', 'medication');
           }
         }
       }
@@ -655,7 +655,7 @@ export function ParticipantDetailContent({
           const routineFields = ['routine', 'medical_routine_general_process', 'behaviour_of_concern', 'restrictive_practices'];
           const hasRoutineChange = routineFields.some(field => Object.keys(changedFields).includes(field));
           if (hasRoutineChange) {
-            await NotificationService.notifyAssignedStaff(participant.house_id, participant.name || 'Participant', 'routine');
+            await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.name || 'Participant', 'routine');
           }
         }
       }
@@ -695,7 +695,7 @@ export function ParticipantDetailContent({
             customDescription: 'Added shift note',
           });
           if (participant?.house_id) {
-            await NotificationService.notifyAssignedStaff(participant.house_id, participant.name || 'Participant', 'note');
+            await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.name || 'Participant', 'note');
           }
         }
       }
@@ -722,7 +722,7 @@ export function ParticipantDetailContent({
             customDescription: 'Updated shift note',
           });
           if (participant?.house_id) {
-            await NotificationService.notifyAssignedStaff(participant.house_id, participant.name || 'Participant', 'note');
+            await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.name || 'Participant', 'note');
           }
         }
       }

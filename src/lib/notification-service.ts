@@ -23,6 +23,7 @@ interface SendNotificationParams {
   title: string;
   body?: string;
   link?: string;
+  metadata?: Record<string, any>;
 }
 
 /**
@@ -34,13 +35,14 @@ export const NotificationService = {
   /**
    * Base method to insert a notification into the database.
    */
-  async send({ userId, type, title, body, link }: SendNotificationParams): Promise<void> {
+  async send({ userId, type, title, body, link, metadata }: SendNotificationParams): Promise<void> {
     const { error } = await supabase.from('notifications').insert({
       user_id: userId,
       type,
       title,
       body: body || null,
       link: link || null,
+      metadata: metadata || null,
     });
 
     if (error) {
@@ -151,7 +153,7 @@ export const NotificationService = {
   // Clinical Alerts
   // ---------------------------------------------------------------------------
 
-  async notifyClinicalUpdate(staffUserId: string, participantName: string, updateType: 'medication' | 'routine' | 'note') {
+  async notifyClinicalUpdate(staffUserId: string, participantId: string, participantName: string, updateType: 'medication' | 'routine' | 'note') {
     const titles = {
       medication: 'Medication Update',
       routine: 'Routine Update',
@@ -159,20 +161,31 @@ export const NotificationService = {
     };
 
     const type: NotificationType = updateType === 'medication' ? 'medication_update' : 'routine_update';
+    
+    // Map internal update types to section IDs in the detail page for auto-scrolling
+    const sectionMap = {
+      medication: 'medications',
+      routine: 'medical-routine',
+      note: 'shift_notes'
+    };
 
     await this.send({
       userId: staffUserId,
       type,
       title: titles[updateType],
       body: `A clinical update has been recorded for ${participantName}. Please review before your next shift.`,
-      link: '/participants/profiles',
+      link: `/participants/detail/${participantId}`,
+      metadata: {
+        participantId,
+        tab: sectionMap[updateType]
+      }
     });
   },
 
   /**
    * Helper to notify all staff assigned to a specific house about a participant update.
    */
-  async notifyAssignedStaff(houseId: string, participantName: string, updateType: 'medication' | 'routine' | 'note') {
+  async notifyAssignedStaff(houseId: string, participantId: string, participantName: string, updateType: 'medication' | 'routine' | 'note') {
     // Fetch staff assigned to this house
     const { data: assignments } = await supabase
       .from('house_staff_assignments')
@@ -185,7 +198,7 @@ export const NotificationService = {
         .filter(Boolean) as string[];
 
       await Promise.all(
-        userIds.map(uid => this.notifyClinicalUpdate(uid, participantName, updateType))
+        userIds.map(uid => this.notifyClinicalUpdate(uid, participantId, participantName, updateType))
       );
     }
   },

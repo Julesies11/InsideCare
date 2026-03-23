@@ -63,6 +63,16 @@ A centralized activity logging system tracks all major changes in the applicatio
   - Priority hiding: Show only the most critical 2-3 columns on mobile.
   - Interactive rows: Make entire table rows clickable on mobile.
 
+## 5. Notification & Deep Linking System
+The application features a robust, role-based notification system powered by `supabase_realtime`.
+
+- **NotificationService**: A centralized service (`src/lib/notification-service.ts`) for triggering alerts across the app.
+- **Deep Linking Metadata**: Notifications include a `metadata` JSONB column for storing contextual data such as `participantId` and `tab` (section ID).
+- **Intelligent Navigation**: The click handlers in `NotificationCenter` and topbar sheets parse metadata to:
+    - Append query parameters (e.g., `?tab=medications`).
+    - Pass state via React Router.
+- **Section Auto-Scrolling**: Complex pages (like Participant Detail) use the `tab` query parameter to automatically scroll the user to the relevant section and provide a visual highlight.
+
 ## 6. Directory Structure
 - `src/pages/`: Feature-specific pages and local components.
 - `src/hooks/`: Data fetching and business logic hooks.
