@@ -83,7 +83,6 @@ export const MENU_SIDEBAR: MenuConfig = [
     roles: ['admin'],
     children: [
       { title: 'House Profiles', path: '/houses/profiles' },
-      { title: 'Checklist Templates', path: '/admin/checklist-templates' },
     ],
   },
   {

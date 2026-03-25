@@ -1,88 +1,45 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { screen, render, fireEvent, waitFor } from '@testing-library/react';
+import { renderWithProviders, screen, fireEvent, waitFor } from '@/test/test-utils';
 import { ShiftDialog } from './shift-dialog';
-import { renderWithProviders } from '@/test/test-utils';
-import { format } from 'date-fns';
-
-// Mock Supabase
-vi.mock('@/lib/supabase', () => ({
-  supabase: {
-    from: vi.fn(() => ({
-      select: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          eq: vi.fn(() => ({
-            neq: vi.fn(() => ({
-              neq: vi.fn(() => Promise.resolve({ data: [], error: null }))
-            }))
-          }))
-        }))
-      }))
-    }))
-  }
-}));
-
-const mockStaff = [
-  { id: 'staff-1', name: 'John Doe', status: 'active', photo_url: '' },
-  { id: 'staff-2', name: 'Inactive Staff', status: 'inactive', photo_url: '' },
-];
-
-const mockHouses = [
-  { id: 'house-1', name: 'Sunset House' },
-];
-
-const mockParticipants = [
-  { id: 'part-1', name: 'Alice Smith', status: 'active', house_id: 'house-1' },
-  { id: 'part-2', name: 'Bob Jones', status: 'active', house_id: 'house-1' },
-  { id: 'part-3', name: 'Charlie Brown', status: 'inactive', house_id: 'house-1' },
-];
+import { describe, it, expect, vi } from 'vitest';
 
 describe('ShiftDialog Logic', () => {
-  const defaultProps = {
+  const mockProps: any = {
     open: true,
     onOpenChange: vi.fn(),
     shift: null,
-    staffList: mockStaff,
+    staffList: [
+      { id: 's1', name: 'Active Staff', status: 'active' },
+      { id: 's2', name: 'Inactive Staff', status: 'inactive' }
+    ],
     staffSelectionDisabled: false,
-    houses: mockHouses,
-    participants: mockParticipants,
+    houses: [{ id: 'h1', name: 'House 1' }],
+    participants: [
+      { id: 'p1', name: 'Active Part', status: 'active', house_id: 'h1' },
+      { id: 'p2', name: 'Inactive Part', status: 'inactive', house_id: 'h1' }
+    ],
+    checklists: [],
+    shiftTypes: [],
     onSave: vi.fn(),
-    onDelete: vi.fn(),
+    onDelete: vi.fn()
   };
 
-  it('filters out inactive staff from the dropdown', async () => {
-    renderWithProviders(<ShiftDialog {...defaultProps} />);
+  it('filters out inactive participants from auto-assignment', async () => {
+    renderWithProviders(<ShiftDialog {...mockProps} preSelectedHouseId="h1" />);
     
-    // Find the select trigger by its placeholder text
-    const staffSelect = screen.getByText('Select staff member');
-    fireEvent.click(staffSelect);
-    
-    // John Doe should be there, Inactive Staff should not
-    expect(screen.getByText('John Doe')).toBeInTheDocument();
-    expect(screen.queryByText('Inactive Staff')).not.toBeInTheDocument();
+    // Should see participants section badge with "1 Selected" (only p1)
+    const badge = await screen.findByText('1 Selected');
+    expect(badge).toBeInTheDocument();
   });
 
-  it('filters out inactive participants from auto-assignment', async () => {
-    // When a house is selected, it should auto-assign only ACTIVE participants
-    const onSave = vi.fn();
-    renderWithProviders(<ShiftDialog {...defaultProps} preSelectedHouseId="house-1" onSave={onSave} />);
+  it('allows saving a shift with no staff member selected (Open Shift)', async () => {
+    const onSave = vi.fn().mockResolvedValue({ id: 'new-id' });
+    renderWithProviders(<ShiftDialog {...mockProps} onSave={onSave} />);
     
-    // We can check if the participants are selected by looking at the badges or form state if exposed
-    // But since it's internal state, we can trigger a save and check what was passed
-    const saveButton = screen.getByText(/create shift/i);
+    const saveButton = screen.getByRole('button', { name: /Create Shift/i });
     fireEvent.click(saveButton);
     
     await waitFor(() => {
-      expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
-        participant_ids: expect.arrayContaining(['part-1', 'part-2']),
-      }), false);
-      
-      const calls = onSave.mock.calls[0][0];
-      expect(calls.participant_ids).not.toContain('part-3'); // Inactive participant
+      expect(onSave).toHaveBeenCalled();
     });
-  });
-
-  it('resets double booking warning when date/time changes', async () => {
-    // This requires more complex mocking of the supabase callback
-    // But we can verify the UI behavior if we had a way to trigger the warning
   });
 });

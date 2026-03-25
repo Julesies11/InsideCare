@@ -5,25 +5,36 @@ import { AuthModel, UserModel } from '@/auth/lib/models';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
-// Fetch user profile with a hard timeout so we never hang forever
-async function fetchUserWithTimeout(timeoutMs = 60000): Promise<UserModel | null> {
-  let timeoutId: any;
-  const timeoutPromise = new Promise<null>((_, reject) => {
-    timeoutId = setTimeout(() => {
-      reject(new Error('Auth profile fetch timed out'));
-    }, timeoutMs);
-  });
+// Singleton promise to prevent concurrent profile fetches and auth lock contention
+let activeUserPromise: Promise<UserModel | null> | null = null;
 
-  try {
-    const userPromise = SupabaseAdapter.getCurrentUser().then(user => {
-      clearTimeout(timeoutId);
-      return user;
+// Fetch user profile with a hard timeout and singleton pattern
+async function fetchUserWithTimeout(timeoutMs = 60000): Promise<UserModel | null> {
+  if (activeUserPromise) return activeUserPromise;
+
+  activeUserPromise = (async () => {
+    let timeoutId: any;
+    const timeoutPromise = new Promise<null>((_, reject) => {
+      timeoutId = setTimeout(() => {
+        reject(new Error('Auth profile fetch timed out'));
+      }, timeoutMs);
     });
-    return await Promise.race([userPromise, timeoutPromise]);
-  } catch (err) {
-    clearTimeout(timeoutId);
-    throw err;
-  }
+
+    try {
+      const userPromise = SupabaseAdapter.getCurrentUser().then(user => {
+        clearTimeout(timeoutId);
+        return user;
+      });
+      return await Promise.race([userPromise, timeoutPromise]);
+    } catch (err) {
+      clearTimeout(timeoutId);
+      throw err;
+    } finally {
+      activeUserPromise = null;
+    }
+  })();
+
+  return activeUserPromise;
 }
 
 // Define the Supabase Auth Provider

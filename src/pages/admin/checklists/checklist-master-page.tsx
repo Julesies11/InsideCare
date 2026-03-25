@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import { handleSupabaseError } from '@/errors/error-handler';
 import { ChecklistCard } from '@/components/checklists/checklist-card';
 import { Container } from '@/components/common/container';
+import { cn, getPeriodTheme } from '@/lib/utils';
 
 export function ChecklistMasterPage() {
   const { masterChecklists, loading, refresh } = useChecklistMaster();
@@ -30,7 +31,7 @@ export function ChecklistMasterPage() {
     frequency: string;
     days_of_week: string[];
     description: string;
-    items: Array<{ id?: string; tempId?: string; title: string; instructions?: string; priority?: string; is_required?: boolean; sort_order?: number }>;
+    items: Array<{ id?: string; tempId?: string; title: string; instructions?: string; group_title?: string; priority?: string; is_required?: boolean; sort_order?: number }>;
   }>({
     name: '',
     frequency: 'daily',
@@ -50,6 +51,7 @@ export function ChecklistMasterPage() {
   const [itemFormData, setItemFormData] = useState({
     title: '',
     instructions: '',
+    group_title: 'Morning',
     priority: 'medium',
     is_required: true,
     sort_order: 0,
@@ -66,7 +68,7 @@ export function ChecklistMasterPage() {
 
   const handleAddTemplate = () => {
     setSelectedTemplate(null);
-    const initialData = {
+    const initialData: typeof formData = {
       name: '',
       frequency: 'daily',
       days_of_week: [],
@@ -80,7 +82,7 @@ export function ChecklistMasterPage() {
 
   const handleEditTemplate = (template: ChecklistMaster) => {
     setSelectedTemplate(template);
-    const initialData = {
+    const initialData: typeof formData = {
       name: template.name,
       frequency: template.frequency,
       days_of_week: template.days_of_week || [],
@@ -167,6 +169,7 @@ export function ChecklistMasterPage() {
             master_id: masterId as string,
             title: item.title,
             instructions: item.instructions || '',
+            group_title: item.group_title || 'Morning',
             priority: item.priority || 'medium',
             is_required: !!item.is_required,
             sort_order: item.sort_order || 0,
@@ -178,6 +181,7 @@ export function ChecklistMasterPage() {
             master_id: masterId as string,
             title: item.title,
             instructions: item.instructions || '',
+            group_title: item.group_title || 'Morning',
             priority: item.priority || 'medium',
             is_required: !!item.is_required,
             sort_order: item.sort_order || 0,
@@ -325,56 +329,15 @@ export function ChecklistMasterPage() {
           </DialogHeader>
 
           <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="tpl-name">Name *</Label>
-                <Input
-                  id="tpl-name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="e.g., Weekly Safety Audit"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="tpl-freq">Default Frequency *</Label>
-                <Select value={formData.frequency} onValueChange={(v) => setFormData({ ...formData, frequency: v, days_of_week: v === 'daily' ? [] : formData.days_of_week })}>
-                  <SelectTrigger id="tpl-freq">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="daily">Daily</SelectItem>
-                    <SelectItem value="weekly">Weekly (Select Days)</SelectItem>
-                    <SelectItem value="monthly">Monthly</SelectItem>
-                    <SelectItem value="quarterly">Quarterly</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="tpl-name">Name *</Label>
+              <Input
+                id="tpl-name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="e.g., Weekly Safety Audit"
+              />
             </div>
-
-            {formData.frequency === 'weekly' && (
-              <div className="space-y-3 p-4 bg-muted/30 rounded-lg border border-dashed animate-in fade-in zoom-in-95 duration-200">
-                <Label className="text-xs font-bold text-muted-foreground uppercase">Active Days</Label>
-                <div className="flex flex-wrap gap-2">
-                  {DAYS.map(day => {
-                    const isActive = formData.days_of_week.includes(day);
-                    return (
-                      <button
-                        key={day}
-                        type="button"
-                        onClick={() => handleDayToggle(day)}
-                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${
-                          isActive 
-                            ? 'bg-primary border-primary text-white' 
-                            : 'bg-background border-gray-200 text-gray-500 hover:border-primary/50'
-                        }`}
-                      >
-                        {day.slice(0, 3)}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
 
             <div className="space-y-2">
               <Label htmlFor="tpl-desc">Description</Label>
@@ -418,6 +381,24 @@ export function ChecklistMasterPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-0.5">
                         <span className="text-sm font-medium truncate block">{item.title}</span>
+                        {item.group_title && (
+                          <Badge 
+                            variant="outline" 
+                            className={cn(
+                              "text-[8px] h-3.5 px-1 uppercase shrink-0 gap-1 font-bold",
+                              getPeriodTheme(item.group_title).bg,
+                              getPeriodTheme(item.group_title).text,
+                              getPeriodTheme(item.group_title).border
+                            )}
+                          >
+                            {(() => {
+                              const theme = getPeriodTheme(item.group_title);
+                              const ThemeIcon = theme.icon;
+                              return <ThemeIcon className="size-2" />;
+                            })()}
+                            {item.group_title}
+                          </Badge>
+                        )}
                         {item.is_required && (
                           <Badge variant="outline" className="text-[9px] h-4 border-red-200 text-red-600 bg-red-50 px-1 uppercase shrink-0">
                             Required
@@ -458,8 +439,36 @@ export function ChecklistMasterPage() {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>{selectedItem ? 'Edit Master Task' : 'Add Master Task'}</DialogTitle>
+            <DialogDescription>Define the details and grouping for this specific task.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Group Title *</Label>
+              <Select 
+                value={itemFormData.group_title} 
+                onValueChange={(v) => setItemFormData({ ...itemFormData, group_title: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select group..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {['Morning', 'Day', 'Night'].map(period => {
+                    const theme = getPeriodTheme(period);
+                    const Icon = theme.icon;
+                    return (
+                      <SelectItem key={period} value={period}>
+                        <div className="flex items-center gap-2">
+                          <div className={cn("size-2 rounded-full", theme.dot)} />
+                          <Icon className="size-3.5 text-muted-foreground" />
+                          <span>{period}</span>
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+              <p className="text-[10px] text-muted-foreground italic">Visually groups items together for staff</p>
+            </div>
             <div className="space-y-2">
               <Label>Task Title *</Label>
               <Input

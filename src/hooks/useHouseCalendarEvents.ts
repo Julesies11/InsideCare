@@ -44,6 +44,7 @@ export interface HouseCalendarEvent {
   is_checklist_event?: boolean;
   house_checklist_id?: string;
   checklist_schedule_id?: string;
+  target_shift?: string;
   submissions?: Array<{
     id: string;
     status: string;
@@ -66,7 +67,7 @@ export interface HouseCalendarEvent {
   };
 }
 
-export function useHouseCalendarEvents(houseId?: string) {
+export function useHouseCalendarEvents(houseId?: string, staffId?: string) {
   const [houseCalendarEvents, setHouseCalendarEvents] = useState<HouseCalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -81,7 +82,8 @@ export function useHouseCalendarEvents(houseId?: string) {
     try {
       setLoading(true);
       
-      const { data, error } = await supabase
+      // 1. Fetch regular calendar events
+      const { data: events, error: eventError } = await supabase
         .from('house_calendar_events')
         .select(`
           *,
@@ -95,9 +97,84 @@ export function useHouseCalendarEvents(houseId?: string) {
         .eq('house_id', houseId)
         .order('event_date', { ascending: true });
 
-      if (error) throw error;
+      if (eventError) throw eventError;
 
-      setHouseCalendarEvents(data || []);
+      const combinedEvents = [...(events || [])];
+
+      // 2. Fetch shifts at this house (+/- 60 days)
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - 30);
+      const endDate = new Date();
+      endDate.setDate(endDate.getDate() + 90);
+
+      let shiftQuery = supabase
+        .from('staff_shifts')
+        .select(`
+          id, 
+          shift_date,
+          start_time,
+          end_time,
+          staff_id,
+          staff:staff(id, name),
+          assigned_checklists:shift_assigned_checklists(
+            id, 
+            checklist_id, 
+            assignment_title,
+            submissions:house_checklist_submissions(id, status, completed_at)
+          )
+        `)
+        .eq('house_id', houseId)
+        .gte('shift_date', startDate.toISOString().split('T')[0])
+        .lte('shift_date', endDate.toISOString().split('T')[0]);
+
+      if (staffId) {
+        shiftQuery = shiftQuery.eq('staff_id', staffId);
+      }
+
+      const { data: shifts } = await shiftQuery;
+
+      if (shifts) {
+        for (const shift of shifts) {
+          // A. Add the shift itself as a calendar entry
+          combinedEvents.push({
+            id: `shift-${shift.id}`,
+            house_id: houseId,
+            title: shift.staff?.name || 'Unassigned',
+            type: 'shift',
+            event_date: shift.shift_date,
+            start_time: shift.start_time,
+            end_time: shift.end_time,
+            assigned_staff_id: shift.staff_id,
+            assigned_staff: shift.staff,
+            status: 'scheduled'
+          } as any);
+
+          // B. Add shift-assigned checklists
+          for (const ac of (shift.assigned_checklists as any[] || [])) {
+            // Unique key per checklist per shift instance
+            const syntheticId = `shift-cl-${ac.checklist_id}-${shift.id}`;
+            
+            // Avoid duplicates if already present as a house-wide event
+            if (!combinedEvents.some(e => e.house_checklist_id === ac.checklist_id && e.event_date === shift.shift_date)) {
+              combinedEvents.push({
+                id: syntheticId,
+                house_id: houseId,
+                title: ac.assignment_title,
+                type: 'checklist',
+                event_date: shift.shift_date,
+                is_checklist_event: true,
+                house_checklist_id: ac.checklist_id,
+                assigned_staff_id: shift.staff_id,
+                assigned_staff: shift.staff,
+                status: 'scheduled',
+                submissions: ac.submissions || []
+              } as HouseCalendarEvent);
+            }
+          }
+        }
+      }
+
+      setHouseCalendarEvents(combinedEvents);
       setError(null);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch house calendar events';
@@ -110,7 +187,7 @@ export function useHouseCalendarEvents(houseId?: string) {
 
   useEffect(() => {
     fetchHouseCalendarEvents();
-  }, [houseId]);
+  }, [houseId, staffId]);
 
   return {
     houseCalendarEvents,

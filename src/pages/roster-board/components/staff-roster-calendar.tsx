@@ -1,14 +1,16 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, forwardRef, useImperativeHandle } from 'react';
+import { format, startOfWeek, endOfWeek, addDays, parseISO } from 'date-fns';
 import { toast } from 'sonner';
 import { ShiftCalendar } from '@/components/roster/shift-calendar';
 import { ShiftDialog, ShiftFormData } from '@/components/roster/shift-dialog';
-import { ShiftCardData } from '@/components/roster/shift-card';
-import { useRosterData, StaffShift } from '@/components/roster/use-roster-data';
-import { getDateRange, calculateDuration, ViewMode } from '@/components/roster/roster-utils';
+import { StaffShift, useRosterData } from '@/components/roster/use-roster-data';
+import { getDateRange, ViewMode } from '@/components/roster/roster-utils';
 import { EditShiftNoteDialog } from '@/pages/participants/shift-notes/components/edit-shift-note-dialog';
 import { useShiftNotes } from '@/hooks/use-shift-notes';
 import { supabase } from '@/lib/supabase';
-import { NotificationService } from '@/lib/notification-service';
+import { ApplyShiftTemplateModal } from './ApplyShiftTemplateModal';
+import { useShiftTemplates } from '@/hooks/use-shift-templates';
+import { useHouseShiftTypes } from '@/hooks/use-house-shift-types';
 
 export interface LeaveBlock {
   id: string;
@@ -30,9 +32,19 @@ interface StaffRosterCalendarProps {
   canEdit: boolean;
   showLeave?: boolean;
   groupByHouse?: boolean;
+  checklists: any[];
 }
 
-export function StaffRosterCalendar({
+export interface StaffRosterCalendarHandle {
+  copyPreviousWeek: (withAssignments?: boolean) => Promise<void>;
+  rolloutRoster: (weeks: number, withAssignments?: boolean) => Promise<void>;
+  applyTemplate: () => void;
+  refresh: () => void;
+  onAddShift: (date: Date, houseId?: string, shiftTypeId?: string) => void;
+  isCopying: boolean;
+}
+
+export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRosterCalendarProps>(({
   staffId,
   viewMode,
   currentDate,
@@ -43,13 +55,18 @@ export function StaffRosterCalendar({
   canEdit,
   showLeave = true,
   groupByHouse = false,
-}: StaffRosterCalendarProps) {
+  checklists,
+}, ref) => {
   const [shifts, setShifts] = useState<StaffShift[]>([]);
   const [leaveBlocks, setLeaveBlocks] = useState<LeaveBlock[]>([]);
   const [showShiftDialog, setShowShiftDialog] = useState(false);
+  const [showApplyTemplateModal, setShowApplyTemplateModal] = useState(false);
+  const [isCopying, setIsCopying] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [selectedShift, setSelectedShift] = useState<StaffShift | null>(null);
   const [preSelectedDate, setPreSelectedDate] = useState<Date | undefined>(undefined);
   const [preSelectedHouseId, setPreSelectedHouseId] = useState<string | undefined>(undefined);
+  const [preSelectedShiftTypeId, setPreSelectedShiftTypeId] = useState<string | undefined>(undefined);
 
   // Write Note state
   const [showNoteDialog, setShowNoteDialog] = useState(false);
@@ -66,6 +83,9 @@ export function StaffRosterCalendar({
 
   const { createShiftNote, refetch: refetchNotes, fetchShiftNotesByShiftId } = useShiftNotes();
 
+  const { shiftTypes } = useHouseShiftTypes(houseFilter !== 'all' ? houseFilter : undefined);
+  const { groups: templates } = useShiftTemplates(houseFilter !== 'all' ? houseFilter : undefined);
+
   // notes count map: shiftId -> count
   const [notesCounts, setNotesCounts] = useState<Record<string, number>>({});
   const [scrollToNotes, setScrollToNotes] = useState(false);
@@ -75,6 +95,9 @@ export function StaffRosterCalendar({
     participants,
     staff,
     loading,
+    loadHouses,
+    loadParticipants,
+    loadStaff,
     loadAllData,
     loadShifts,
     createShift,
@@ -82,20 +105,23 @@ export function StaffRosterCalendar({
     deleteShift,
     addShiftParticipant,
     removeShiftParticipant,
+    syncShiftChecklists,
+    materializeTemplate,
   } = useRosterData();
+
+  const refreshShifts = useCallback(async () => {
+    const { startDate, endDate } = getDateRange(currentDate, viewMode);
+    const data = await loadShifts(staffId, startDate, endDate);
+    setShifts(data);
+  }, [staffId, currentDate, viewMode, loadShifts]);
 
   useEffect(() => {
     loadAllData();
   }, [loadAllData]);
 
   useEffect(() => {
-    const fetchShifts = async () => {
-      const { startDate, endDate } = getDateRange(currentDate, viewMode);
-      const data = await loadShifts(staffId, startDate, endDate);
-      setShifts(data);
-    };
-    fetchShifts();
-  }, [staffId, currentDate, viewMode, loadShifts]);
+    refreshShifts();
+  }, [refreshShifts]);
 
   useEffect(() => {
     if (!showLeave || !staffId || staffId === 'all') return;
@@ -139,195 +165,304 @@ export function StaffRosterCalendar({
   }, [fetchShiftNotesByShiftId]);
 
   useEffect(() => {
-    if (shifts.length > 0 && canEdit) {
+    if (shifts.length > 0) {
       fetchNotesCounts(shifts.map(s => s.id));
     }
-  }, [shifts, fetchNotesCounts, canEdit]);
+  }, [shifts, fetchNotesCounts]);
 
   const filteredShifts = useMemo(() => {
     return shifts.filter(shift => {
-
       const matchesHouse = houseFilter === 'all' || shift.house_id === houseFilter;
       const matchesType = shiftTypeFilter === 'all' || shift.shift_type === shiftTypeFilter;
       const matchesStatus = statusFilter === 'all' || shift.status === statusFilter;
-      const matchesParticipant = participantFilter === 'all' || 
-        shift.participants?.some(p => p.id === participantFilter);
+      const matchesParticipant = participantFilter === 'all' || (shift.participants && shift.participants.some((p: any) => p.id === participantFilter));
+      
       return matchesHouse && matchesType && matchesStatus && matchesParticipant;
     }).map(shift => ({ ...shift, notesCount: notesCounts[shift.id] ?? 0 }))
       .sort((a, b) => a.start_time.localeCompare(b.start_time));
   }, [shifts, houseFilter, participantFilter, shiftTypeFilter, statusFilter, notesCounts]);
 
-  const handleAddShift = (date?: Date, houseId?: string) => {
+  const handleAddShift = (date: Date, houseId?: string, shiftTypeId?: string) => {
     setSelectedShift(null);
     setPreSelectedDate(date);
     setPreSelectedHouseId(houseId);
+    setPreSelectedShiftTypeId(shiftTypeId);
     setShowShiftDialog(true);
+  };
+
+  const handleApplyTemplateToDate = async (templateId: string, date: Date, houseId: string) => {
+    setIsCopying(true);
+    try {
+      const dateStr = format(date, 'yyyy-MM-dd');
+      const result = await materializeTemplate({
+        templateId,
+        houseId,
+        startDate: dateStr,
+        endDate: dateStr
+      });
+      
+      toast.success(`Applied template to ${dateStr}. Created ${result.created} shifts.`);
+      refreshShifts();
+    } catch (err) {
+      console.error('Error applying template:', err);
+      toast.error('Failed to apply template.');
+    } finally {
+      setIsCopying(false);
+    }
   };
 
   const handleEditShift = (shift: StaffShift) => {
     setSelectedShift(shift);
     setPreSelectedDate(undefined);
     setPreSelectedHouseId(undefined);
+    setPreSelectedShiftTypeId(undefined);
     setScrollToNotes(false);
     setShowShiftDialog(true);
   };
 
-  const handleNotesClick = (shift: ShiftCardData) => {
-    const fullShift = shifts.find(s => s.id === shift.id) || null;
-    setSelectedShift(fullShift);
-    setScrollToNotes(true);
-    setShowShiftDialog(true);
-  };
-
-  const handleSaveShift = async (formData: ShiftFormData, isCreateOverride: boolean = false): Promise<{ id: string } | void> => {
-    if (!formData.staff_id || !formData.shift_date || !formData.start_time || !formData.end_time) {
-      toast.error('Please fill in all required fields including staff member');
-      return;
-    }
-
-    try {
-      if (selectedShift && !isCreateOverride) {
-        // UPDATE EXISTING SHIFT
-        const updates = {
-          staff_id: formData.staff_id,
-          shift_date: formData.shift_date,
-          start_time: formData.start_time,
-          end_time: formData.end_time,
-          house_id: formData.house_id || null,
-          shift_type: formData.shift_type,
-          status: formData.status,
-          notes: formData.notes || null,
-        };
-
-        await updateShift(selectedShift.id, updates);
-
-        const existingParticipantIds = selectedShift.participants?.map(p => p.id) || [];
-        const toAdd = formData.participant_ids.filter(id => !existingParticipantIds.includes(id));
-        const toRemove = existingParticipantIds.filter(id => !formData.participant_ids.includes(id));
-
-        for (const participantId of toAdd) {
-          await addShiftParticipant(selectedShift.id, participantId);
-        }
-
-        for (const participantId of toRemove) {
-          await removeShiftParticipant(selectedShift.id, participantId);
-        }
-
-        // Get updated data for local state
-        const house = formData.house_id ? houses.find(h => h.id === formData.house_id) : null;
-        const shiftParticipants = formData.participant_ids
-          .map(id => participants.find(p => p.id === id))
-          .filter(p => p !== undefined) as typeof participants;
-        const staffMember = staff.find(s => s.id === formData.staff_id);
-
-        // Update local state
-        setShifts(prevShifts => prevShifts.map(shift => 
-          shift.id === selectedShift.id 
-            ? {
-                ...shift,
-                ...updates,
-                house: house ? { id: house.id, name: house.name } : undefined,
-                participants: shiftParticipants,
-                staff_name: staffMember?.name || 'Unassigned',
-                duration_hours: calculateDuration(updates.start_time, updates.end_time),
-              }
-            : shift
-        ));
-
-        toast.success('Shift updated successfully');
-        
-        if (staffMember?.auth_user_id && formData.house_id) {
-          const shiftHouse = houses.find(h => h.id === formData.house_id);
-          if (shiftHouse) {
-            await NotificationService.notifyShiftModified(staffMember.auth_user_id, formData.shift_date, shiftHouse.name);
-          }
-        }
-
-      } else {
-        // CREATE NEW SHIFT
-        const shiftData = {
-          staff_id: formData.staff_id,
-          shift_date: formData.shift_date,
-          start_time: formData.start_time,
-          end_time: formData.end_time,
-          house_id: formData.house_id || null,
-          shift_type: formData.shift_type,
-          status: formData.status,
-          notes: formData.notes || null,
-        };
-
-        const data = await createShift(shiftData);
-
-        if (!data) return;
-
-        if (formData.participant_ids.length > 0) {
-          for (const participantId of formData.participant_ids) {
-            await addShiftParticipant(data.id, participantId);
-          }
-        }
-
-        // Get data for local state
-        const house = formData.house_id ? houses.find(h => h.id === formData.house_id) : null;
-        const shiftParticipants = formData.participant_ids
-          .map(id => participants.find(p => p.id === id))
-          .filter(p => p !== undefined) as typeof participants;
-        const staffMember = staff.find(s => s.id === formData.staff_id);
-
-        // Add to local state
-        const newShift: StaffShift = {
-          ...data,
-          house: house ? { id: house.id, name: house.name } : undefined,
-          participants: shiftParticipants,
-          staff_name: staffMember?.name || 'Unassigned',
-          duration_hours: calculateDuration(data.start_time, data.end_time),
-        };
-
-        setShifts(prevShifts => [...prevShifts, newShift]);
-
-        toast.success('Shift created successfully');
-        
-        if (staffMember?.auth_user_id && house) {
-          await NotificationService.notifyShiftAssigned(staffMember.auth_user_id, formData.shift_date, house.name);
-        }
-
-        return { id: data.id };
-      }
-    } catch (error) {
-      toast.error(selectedShift ? 'Failed to update shift' : 'Failed to create shift');
-      console.error(error);
-      throw error;
-    }
-  };
-
-  const handleDeleteShift = async (shiftId: string) => {
-    try {
-      await deleteShift(shiftId);
-      setShifts(prevShifts => prevShifts.filter(shift => shift.id !== shiftId));
-      toast.success('Shift deleted successfully');
-    } catch (error) {
-      toast.error('Failed to delete shift');
-      console.error(error);
-      throw error;
-    }
-  };
-
-  const handleWriteNote = (shift: ShiftCardData) => {
+  const handleWriteNote = (shift: any) => {
     setNotePreFillShiftId(shift.id);
-    setNotePreFillLinkedShift({
-      id: shift.id,
-      start_time: shift.start_time,
-      end_time: shift.end_time,
-      shift_type: shift.shift_type,
-      status: shift.status,
-    });
+    setNotePreFillLinkedShift(shift);
     setNotePreFillData({
-      staff_id: shift.staff_id || null,
+      staff_id: shift.staff_id,
       shift_date: shift.shift_date,
-      house_id: shift.house?.id || null,
+      house_id: shift.house_id,
       shift_time: shift.start_time,
     });
     setShowNoteDialog(true);
   };
+
+  const handleNotesClick = (shift: StaffShift) => {
+    setSelectedShift(shift);
+    setPreSelectedDate(undefined);
+    setPreSelectedHouseId(undefined);
+    setPreSelectedShiftTypeId(undefined);
+    setScrollToNotes(true);
+    setShowShiftDialog(true);
+  };
+
+  const handleSaveShift = async (formData: ShiftFormData) => {
+    setSaving(true);
+    try {
+      if (selectedShift) {
+        await updateShift(selectedShift.id, formData);
+        toast.success('Shift updated successfully');
+      } else {
+        await createShift(formData);
+        toast.success('Shift created successfully');
+      }
+      setShowShiftDialog(false);
+      refreshShifts();
+    } catch (error) {
+      console.error('Error saving shift:', error);
+      toast.error('Failed to save shift');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteShift = async (shiftId: string) => {
+    if (!confirm('Are you sure you want to delete this shift?')) return;
+    setSaving(true);
+    try {
+      await deleteShift(shiftId);
+      toast.success('Shift deleted successfully');
+      setShowShiftDialog(false);
+      refreshShifts();
+    } catch (error) {
+      console.error('Error deleting shift:', error);
+      toast.error('Failed to delete shift');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCopyPreviousWeek = async (withAssignments: boolean = false) => {
+    if (!houseFilter || houseFilter === 'all') {
+      toast.error('Please select a specific house to copy a roster.');
+      return;
+    }
+
+    const confirmMsg = `Push this week's structure to the next week? ${withAssignments ? '(Including staff assignments)' : '(Skeleton only)'}`;
+    if (!confirm(confirmMsg)) return;
+
+    setIsCopying(true);
+    try {
+      const sourceShifts = shifts.filter(s => s.house_id === houseFilter);
+      if (sourceShifts.length === 0) {
+        toast.info('No shifts found in the current week to copy.');
+        return;
+      }
+
+      let copiedCount = 0;
+      for (const shift of sourceShifts) {
+        const sourceDate = parseISO(shift.shift_date);
+        const targetDate = format(addDays(sourceDate, 7), 'yyyy-MM-dd');
+        
+        const newShiftData = {
+          staff_id: withAssignments ? shift.staff_id : null,
+          house_id: houseFilter,
+          shift_date: targetDate,
+          start_time: shift.start_time,
+          end_time: shift.end_time,
+          shift_type: shift.shift_type,
+          status: 'Scheduled',
+        };
+
+        const created = await createShift(newShiftData);
+        if (created) {
+          if (shift.participants) {
+            for (const p of shift.participants) {
+              await addShiftParticipant(created.id, p.id);
+            }
+          }
+          copiedCount++;
+        }
+      }
+
+      toast.success(`Successfully copied ${copiedCount} shifts to next week.`);
+      refreshShifts();
+    } catch (error) {
+      console.error('Error copying week:', error);
+      toast.error('Failed to copy week.');
+    } finally {
+      setIsCopying(false);
+    }
+  };
+
+  const handleRolloutRoster = async (weeks: number, withAssignments: boolean = false) => {
+    if (!houseFilter || houseFilter === 'all') {
+      toast.error('Please select a specific house to rollout a roster.');
+      return;
+    }
+
+    setIsCopying(true);
+    try {
+      const sourceShifts = shifts.filter(s => s.house_id === houseFilter);
+      if (sourceShifts.length === 0) {
+        toast.info('No shifts found in the current week to rollout.');
+        setIsCopying(false);
+        return;
+      }
+
+      let totalCreated = 0;
+      let skippedCount = 0;
+      let leaveConflictCount = 0;
+
+      const rolloutEndDate = format(addDays(parseISO(sourceShifts[0].shift_date), (weeks * 7) + 7), 'yyyy-MM-dd');
+      const { data: allLeave } = await supabase
+        .from('leave_requests')
+        .select('staff_id, start_date, end_date')
+        .eq('status', 'approved')
+        .gte('end_date', sourceShifts[0].shift_date)
+        .lte('start_date', rolloutEndDate);
+
+      for (let i = 1; i <= weeks; i++) {
+        const daysOffset = i * 7;
+        for (const shift of sourceShifts) {
+          const sourceDate = parseISO(shift.shift_date);
+          const targetDateStr = format(addDays(sourceDate, daysOffset), 'yyyy-MM-dd');
+          const targetEndDateStr = shift.end_date ? format(addDays(parseISO(shift.end_date), daysOffset), 'yyyy-MM-dd') : targetDateStr;
+
+          const { data: existing } = await supabase
+            .from('staff_shifts')
+            .select('id')
+            .eq('house_id', houseFilter)
+            .eq('shift_date', targetDateStr)
+            .eq('start_time', shift.start_time)
+            .maybeSingle();
+
+          if (existing) {
+            skippedCount++;
+            continue;
+          }
+
+          let targetStaffId = withAssignments ? shift.staff_id : null;
+          if (targetStaffId && allLeave) {
+            const onLeave = allLeave.some(l => 
+              l.staff_id === targetStaffId && 
+              targetDateStr >= l.start_date && 
+              targetDateStr <= l.end_date
+            );
+            
+            if (onLeave) {
+              targetStaffId = null; 
+              leaveConflictCount++;
+            }
+          }
+
+          const newShiftData = {
+            staff_id: targetStaffId,
+            house_id: houseFilter,
+            shift_date: targetDateStr,
+            end_date: targetEndDateStr,
+            start_time: shift.start_time,
+            end_time: shift.end_time,
+            shift_type: shift.shift_type,
+            status: 'Scheduled',
+            notes: null,
+          };
+
+          const created = await createShift(newShiftData);
+          if (created) {
+            if (shift.participants) {
+              for (const p of shift.participants) {
+                await addShiftParticipant(created.id, p.id);
+              }
+            }
+            if (shift.assigned_checklists) {
+              await syncShiftChecklists(created.id, shift.assigned_checklists);
+            }
+            totalCreated++;
+          }
+        }
+      }
+
+      toast.success(`Rollout complete! Created ${totalCreated} shifts across ${weeks} weeks. ${skippedCount > 0 ? `(Skipped ${skippedCount} duplicates)` : ''} ${leaveConflictCount > 0 ? `Detected ${leaveConflictCount} leave conflicts (reverted to Open Shifts).` : ''}`);
+      refreshShifts();
+    } catch (error) {
+      console.error('Error rolling out roster:', error);
+      toast.error('Failed to rollout roster.');
+    } finally {
+      setIsCopying(false);
+    }
+  };
+
+  const handleApplyShiftTemplate = async (templateId: string, startDate: string, endDate: string) => {
+    if (!houseFilter || houseFilter === 'all') {
+      toast.error('Please select a specific house to apply a template.');
+      return;
+    }
+
+    setIsCopying(true);
+    try {
+      const result = await materializeTemplate({
+        templateId,
+        houseId: houseFilter,
+        startDate,
+        endDate
+      });
+
+      toast.success(`Template applied! Created ${result.created} shifts. ${result.skipped > 0 ? `(Skipped ${result.skipped} duplicates)` : ''}`);
+      refreshShifts();
+    } catch (err) {
+      console.error('Error applying template:', err);
+      toast.error('Failed to apply shift template.');
+    } finally {
+      setIsCopying(false);
+    }
+  };
+
+  const triggerApplyTemplate = () => setShowApplyTemplateModal(true);
+
+  useImperativeHandle(ref, () => ({
+    copyPreviousWeek: handleCopyPreviousWeek,
+    rolloutRoster: handleRolloutRoster,
+    applyTemplate: triggerApplyTemplate,
+    refresh: refreshShifts,
+    onAddShift: handleAddShift,
+    isCopying: isCopying
+  }));
 
   return (
     <>
@@ -339,12 +474,23 @@ export function StaffRosterCalendar({
         loading={loading}
         canEdit={canEdit}
         leaveBlocks={showLeave ? leaveBlocks : []}
+        shiftTypes={shiftTypes}
+        templates={templates}
         onAddShift={handleAddShift}
         onEditShift={handleEditShift}
         onWriteNote={handleWriteNote}
         onNotesClick={handleNotesClick}
+        onApplyTemplate={handleApplyTemplateToDate}
         groupByHouse={groupByHouse}
         houses={houses}
+      />
+
+      <ApplyShiftTemplateModal
+        open={showApplyTemplateModal}
+        onClose={() => setShowApplyTemplateModal(false)}
+        houseId={houseFilter}
+        onApply={handleApplyShiftTemplate}
+        initialDate={currentDate}
       />
 
       <ShiftDialog
@@ -352,7 +498,6 @@ export function StaffRosterCalendar({
         onOpenChange={(open) => {
           setShowShiftDialog(open);
           if (!open) {
-            // Refresh notes counts when dialog closes (notes may have been added)
             if (selectedShift) fetchNotesCounts([selectedShift.id]);
             setScrollToNotes(false);
           }
@@ -361,10 +506,12 @@ export function StaffRosterCalendar({
         staffId={staffId !== 'all' ? staffId : undefined}
         preSelectedDate={preSelectedDate}
         preSelectedHouseId={preSelectedHouseId}
+        preSelectedShiftTypeId={preSelectedShiftTypeId}
         staffList={staff}
         staffSelectionDisabled={false}
         houses={houses}
         participants={participants}
+        checklists={checklists}
         onSave={handleSaveShift}
         onDelete={selectedShift ? handleDeleteShift : undefined}
         scrollToNotes={scrollToNotes}
@@ -384,4 +531,4 @@ export function StaffRosterCalendar({
       />
     </>
   );
-}
+});

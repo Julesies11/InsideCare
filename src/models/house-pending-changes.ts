@@ -126,6 +126,69 @@ export interface HousePendingChanges {
       toDelete: string[];
     };
   };
+  shiftTypes: {
+    toAdd: Array<{
+      tempId: string;
+      name: string;
+      short_name?: string;
+      color_theme?: string;
+      default_start_time?: string;
+      default_end_time?: string;
+      sort_order: number;
+      is_active: boolean;
+      default_checklists: string[]; // checklist IDs
+    }>;
+    toUpdate: Array<{
+      id: string;
+      name?: string;
+      short_name?: string;
+      color_theme?: string;
+      default_start_time?: string;
+      default_end_time?: string;
+      sort_order?: number;
+      is_active?: boolean;
+      default_checklists?: string[];
+    }>;
+    toDelete: string[];
+  };
+  shiftTemplateGroups: {
+    toAdd: Array<{
+      tempId: string;
+      name: string;
+      description?: string;
+      items: Array<{
+        tempId: string;
+        shift_type_id: string; // can be id or tempId
+        start_time: string;
+        end_time: string;
+        checklist_ids: string[];
+      }>;
+    }>;
+    toUpdate: Array<{
+      id: string;
+      name?: string;
+      description?: string;
+    }>;
+    toDelete: string[];
+    items: {
+      toAdd: Array<{
+        tempId: string;
+        template_group_id: string;
+        shift_type_id: string;
+        start_time: string;
+        end_time: string;
+        checklist_ids: string[];
+      }>;
+      toUpdate: Array<{
+        id: string;
+        shift_type_id?: string;
+        start_time?: string;
+        end_time?: string;
+        checklist_ids?: string[];
+      }>;
+      toDelete: string[];
+    };
+  };
   forms: {
     toAdd: Array<{
       tempId: string;
@@ -241,6 +304,21 @@ export const emptyHousePendingChanges: HousePendingChanges = {
       toDelete: [],
     },
   },
+  shiftTypes: {
+    toAdd: [],
+    toUpdate: [],
+    toDelete: [],
+  },
+  shiftTemplateGroups: {
+    toAdd: [],
+    toUpdate: [],
+    toDelete: [],
+    items: {
+      toAdd: [],
+      toUpdate: [],
+      toDelete: [],
+    },
+  },
   forms: {
     toAdd: [],
     toUpdate: [],
@@ -282,6 +360,15 @@ export function hasHousePendingChanges(pending: HousePendingChanges): boolean {
     pending.checklists.checklistItems.toAdd.length > 0 ||
     pending.checklists.checklistItems.toUpdate.length > 0 ||
     pending.checklists.checklistItems.toDelete.length > 0 ||
+    pending.shiftTypes.toAdd.length > 0 ||
+    pending.shiftTypes.toUpdate.length > 0 ||
+    pending.shiftTypes.toDelete.length > 0 ||
+    pending.shiftTemplateGroups.toAdd.length > 0 ||
+    pending.shiftTemplateGroups.toUpdate.length > 0 ||
+    pending.shiftTemplateGroups.toDelete.length > 0 ||
+    pending.shiftTemplateGroups.items.toAdd.length > 0 ||
+    pending.shiftTemplateGroups.items.toUpdate.length > 0 ||
+    pending.shiftTemplateGroups.items.toDelete.length > 0 ||
     pending.forms.toAdd.length > 0 ||
     pending.forms.toUpdate.length > 0 ||
     pending.forms.toDelete.length > 0 ||
@@ -316,6 +403,15 @@ export function countHousePendingChanges(pending: HousePendingChanges): number {
     pending.checklists.checklistItems.toAdd.length +
     pending.checklists.checklistItems.toUpdate.length +
     pending.checklists.checklistItems.toDelete.length +
+    pending.shiftTypes.toAdd.length +
+    pending.shiftTypes.toUpdate.length +
+    pending.shiftTypes.toDelete.length +
+    pending.shiftTemplateGroups.toAdd.length +
+    pending.shiftTemplateGroups.toUpdate.length +
+    pending.shiftTemplateGroups.toDelete.length +
+    pending.shiftTemplateGroups.items.toAdd.length +
+    pending.shiftTemplateGroups.items.toUpdate.length +
+    pending.shiftTemplateGroups.items.toDelete.length +
     pending.forms.toAdd.length +
     pending.forms.toUpdate.length +
     pending.forms.toDelete.length +
@@ -329,4 +425,3 @@ export function countHousePendingChanges(pending: HousePendingChanges): number {
     pending.comms.toDelete.length
   );
 }
-

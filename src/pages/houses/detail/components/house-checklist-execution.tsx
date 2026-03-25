@@ -1,15 +1,25 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, Fragment } from 'react';
+import { useAuth } from '@/auth/context/auth-context';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Save, AlertCircle, Paperclip, X, Download, FileText, Loader2, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { cn, getPeriodTheme } from '@/lib/utils';
 
 interface ChecklistItem {
   id: string;
   title: string;
   instructions?: string;
+  group_id?: string;
+  group?: {
+    id: string;
+    name: string;
+    short_name?: string;
+    color_theme?: string;
+  };
+  group_title?: string;
   priority: string;
   is_required: boolean;
   sort_order: number;
@@ -42,6 +52,7 @@ interface HouseChecklistExecutionProps {
       item_id: string;
       is_completed: boolean;
       note: string;
+      completed_by: string | null;
     }>;
     queuedAttachments: Record<string, QueuedAttachment[]>;
     toDeleteAttachments: string[];
@@ -53,6 +64,7 @@ interface HouseChecklistExecutionProps {
       item_id: string;
       is_completed: boolean;
       note: string;
+      completed_by: string | null;
     }>;
     queuedAttachments: Record<string, QueuedAttachment[]>;
     toDeleteAttachments: string[];
@@ -62,6 +74,7 @@ interface HouseChecklistExecutionProps {
   initialData?: {
     completedItems: Record<string, boolean>;
     itemNotes: Record<string, string>;
+    completedBy?: Record<string, { id: string; name: string }>;
     attachments?: Record<string, Attachment[]>;
   };
 }
@@ -74,8 +87,10 @@ export function HouseChecklistExecution({
   isReadOnly = false,
   initialData 
 }: HouseChecklistExecutionProps) {
+  const { user } = useAuth();
   const [completedItems, setCompletedItems] = useState<Record<string, boolean>>(initialData?.completedItems || {});
   const [itemNotes, setItemNotes] = useState<Record<string, string>>(initialData?.itemNotes || {});
+  const [completedBy, setCompletedBy] = useState<Record<string, { id: string; name: string }>>(initialData?.completedBy || {});
   const [queuedAttachments, setQueuedAttachments] = useState<Record<string, QueuedAttachment[]>>({});
   const [toDeleteAttachments, setToDeleteAttachments] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -90,11 +105,12 @@ export function HouseChecklistExecution({
     const draft = {
       completedItems,
       itemNotes,
+      completedBy,
       timestamp: Date.now()
     };
     
     localStorage.setItem(offlineKey, JSON.stringify(draft));
-  }, [completedItems, itemNotes, checklist.id, isReadOnly]);
+  }, [completedItems, itemNotes, completedBy, checklist.id, isReadOnly]);
 
   // Load from offline draft if it's newer than initialData
   useEffect(() => {
@@ -112,6 +128,7 @@ export function HouseChecklistExecution({
         if (!hasServerData && Date.now() - draft.timestamp < 1000 * 60 * 60 * 12) {
           setCompletedItems(draft.completedItems);
           setItemNotes(draft.itemNotes);
+          setCompletedBy(draft.completedBy || {});
         }
       } catch (e) {
         console.error('Failed to parse offline draft', e);
@@ -140,6 +157,26 @@ export function HouseChecklistExecution({
 
   const handleToggleItem = (itemId: string, checked: boolean) => {
     setCompletedItems(prev => ({ ...prev, [itemId]: checked }));
+    
+    if (checked) {
+      // Record who completed it
+      const staffId = (user as any)?.staff_id;
+      const staffName = (user as any)?.user_metadata?.full_name || user?.email || 'Unknown';
+      
+      if (staffId) {
+        setCompletedBy(prev => ({
+          ...prev,
+          [itemId]: { id: staffId, name: staffName }
+        }));
+      }
+    } else {
+      // Remove completion record
+      setCompletedBy(prev => {
+        const next = { ...prev };
+        delete next[itemId];
+        return next;
+      });
+    }
   };
 
   const handleNoteChange = (itemId: string, note: string) => {
@@ -189,7 +226,8 @@ export function HouseChecklistExecution({
       items: items.map(item => ({
         item_id: item.id,
         is_completed: !!completedItems[item.id],
-        note: itemNotes[item.id] || ''
+        note: itemNotes[item.id] || '',
+        completed_by: completedBy[item.id]?.id || null
       })),
       queuedAttachments,
       toDeleteAttachments
@@ -276,13 +314,37 @@ export function HouseChecklistExecution({
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {items.map((item) => (
-              <tr 
-                key={item.id} 
-                className={`transition-colors hover:bg-gray-50/50 ${
-                  completedItems[item.id] ? 'bg-green-50/10' : ''
-                }`}
-              >
+            {items.map((item, index) => {
+              const periodName = item.group?.name || item.group_title;
+              const theme = getPeriodTheme(periodName, item.group?.color_theme);
+              const PeriodIcon = theme.icon;
+              
+              const currentGroupId = item.group_id || item.group_title;
+              const prevGroupId = index > 0 ? (items[index - 1].group_id || items[index - 1].group_title) : null;
+              const showHeader = periodName && (index === 0 || currentGroupId !== prevGroupId);
+              
+              const completer = completedBy[item.id];
+              
+              return (
+                <Fragment key={item.id}>
+                  {showHeader && (
+                    <tr className={cn("border-y border-gray-200/60 transition-colors", theme.bg)}>
+                      <td colSpan={3} className="px-4 py-2">
+                        <div className="flex items-center gap-2">
+                          <div className={cn("h-4 w-1 rounded-full", theme.dot)} />
+                          <PeriodIcon className={cn("size-3.5", theme.text)} />
+                          <span className={cn("text-[11px] font-black uppercase tracking-widest", theme.text)}>
+                            {periodName}
+                          </span>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                  <tr 
+                    className={`transition-colors hover:bg-gray-50/50 ${
+                      completedItems[item.id] ? 'bg-green-50/10' : ''
+                    }`}
+                  >
                 <td className="px-4 py-3 align-top">
                   <div className="flex gap-3">
                     <div className="pt-0.5">
@@ -312,9 +374,17 @@ export function HouseChecklistExecution({
                         {getPriorityBadge(item.priority)}
                       </div>
                       {item.instructions && (
-                        <p className="text-[10px] text-muted-foreground leading-normal whitespace-normal">
+                        <p className="text-[10px] text-muted-foreground leading-normal whitespace-normal mb-1">
                           {item.instructions}
                         </p>
+                      )}
+                      {completer && (
+                        <div className="flex items-center gap-1.5 mt-1 animate-in fade-in duration-300">
+                          <span className="text-[9px] font-bold text-green-600 uppercase tracking-wider">Signed by</span>
+                          <span className="text-[10px] font-bold text-gray-700 bg-green-100/50 px-1.5 py-0.5 rounded border border-green-200/50 truncate max-w-[150px]">
+                            {completer.name}
+                          </span>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -379,8 +449,10 @@ export function HouseChecklistExecution({
                   </div>
                 </td>
               </tr>
-            ))}
-            {items.length === 0 && (
+            </Fragment>
+          );
+        })}
+        {items.length === 0 && (
               <tr>
                 <td colSpan={3} className="px-4 py-12 text-center">
                   <div className="flex flex-col items-center justify-center">

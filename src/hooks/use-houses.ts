@@ -27,7 +27,7 @@ export function useHouses(
     queryFn: async () => {
       let query = supabase
         .from('houses')
-        .select(HOUSE_COLUMNS, { count: 'exact' });
+        .select(`${HOUSE_COLUMNS}, checklists:house_checklists(count)`, { count: 'exact' });
 
       if (branchId) {
         query = query.eq('branch_id', branchId);

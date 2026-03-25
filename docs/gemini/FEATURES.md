@@ -15,17 +15,20 @@ Management of care providers and support staff.
 - **Training Records**: Tracking of staff training sessions and certifications.
 - **Document Management**: Management of employee documents (ID, insurance, etc.).
 
-## 3. Roster & Scheduling
+## 3. Roster & Operations
 The core operational engine of the care system.
+- **Shift Templates**: Define recurring 7-day house structures with pre-linked checklist routines (e.g., "Tuesday Afternoon + Med Round + Handover").
+- **Roster Auto-Fill**: Rapidly generate weeks of coverage by deploying templates into the calendar with one click.
 - **Roster Board**: Visual representation of staff shifts and house assignments.
-- **Shifts**: Scheduling and tracking of individual shifts.
+- **Shift Routines**: Automated, shift-locked task lists that staff must complete and sign off on during their active shift.
 - **Timesheets**: Integration with actual worked hours and manager approval workflow.
 
 ## 4. House & Facility Management
 Management of the physical locations where care is provided.
 - **House Profiles**: Information about capacity, occupancy, and facility details.
+- **Setup Wizard**: Interactive guide for configuring shift models, templates, and facility routines.
 - **Checklists**: Recurring operational tasks for house maintenance and compliance.
-- **Calendar**: House-specific events, appointments, and schedules.
+- **Calendar**: House-specific events, appointments, and shared collaborative tasks.
 - **Forms**: Data collection forms for various house-related activities.
 
 ## 5. Compliance & Audit

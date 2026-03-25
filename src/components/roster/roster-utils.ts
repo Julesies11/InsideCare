@@ -2,17 +2,34 @@ import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays } fro
 
 export type ViewMode = 'today' | 'week' | 'month';
 
-export const getShiftTypeColor = (type: string): string => {
-  switch (type) {
-    case 'SIL':
-      return 'bg-blue-500/10 text-blue-700 border-blue-200';
-    case 'Community':
-      return 'bg-green-500/10 text-green-700 border-green-200';
-    case 'Admin':
-      return 'bg-purple-500/10 text-purple-700 border-purple-200';
-    default:
-      return 'bg-gray-500/10 text-gray-700 border-gray-200';
+/**
+ * Returns Tailwind classes for shift cards based on the dynamic color_theme from DB
+ */
+export function getShiftTheme(colorTheme?: string, shiftTypeName?: string) {
+  const theme = (colorTheme || shiftTypeName || 'other').toLowerCase();
+
+  if (theme.includes('morning') || theme === 'amber') {
+    return 'bg-amber-500/10 text-amber-700 border-amber-200';
   }
+  if (theme.includes('day') || theme === 'sky' || theme === 'blue') {
+    return 'bg-sky-500/10 text-sky-700 border-sky-200';
+  }
+  if (theme.includes('night') || theme === 'indigo' || theme === 'purple') {
+    return 'bg-indigo-500/10 text-indigo-700 border-indigo-200';
+  }
+  if (theme.includes('afternoon') || theme === 'orange') {
+    return 'bg-orange-500/10 text-orange-700 border-orange-200';
+  }
+  if (theme === 'green' || theme === 'community') {
+    return 'bg-emerald-500/10 text-emerald-700 border-emerald-200';
+  }
+
+  return 'bg-gray-500/10 text-gray-700 border-gray-200';
+}
+
+/** @deprecated Use getShiftTheme instead */
+export const getShiftTypeColor = (type: string): string => {
+  return getShiftTheme(undefined, type);
 };
 
 export const getStatusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {

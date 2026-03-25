@@ -45,14 +45,24 @@ The care facilities/locations.
 ## Operational Tables
 
 ### Roster & Shifts
-- **`staff_shifts`**: Scheduled shifts for staff at specific houses.
-- **`timesheets`**: Actual hours worked, linked to a shift. Includes clock-in/out and manager approval.
-- **`shift_notes`**: Notes recorded during a specific shift about a participant.
+- **`house_shift_types`**: Defines house-specific shift periods (Morning, Day, etc.) with custom icons and colors.
+- **`shift_type_default_checklists`**: Junction table mapping default checklists to shift types.
+- **`shift_template_groups`**: Named collections of shifts (e.g., "Standard Weekday", "Christmas Day").
+- **`shift_template_items`**: Individual shift definitions within a template group, linking to `house_shift_types`.
+- **`shift_template_item_checklists`**: Custom checklist overrides for specific template shifts.
+- **`staff_shifts`**: Scheduled shifts for staff. Linked to `house_shift_types` for dynamic styling.
+- **`shift_assigned_checklists`**: Instances of checklists assigned to a *specific* `staff_shift`.
+- **`shift_template_schedules`**: Recurring RRule patterns for deploying template groups.
 
-### Checklists & Forms
+### Checklists & Submissions
 - **`checklist_master` & `checklist_item_master`**: Templates for recurring tasks.
 - **`house_checklists` & `house_checklist_items`**: Checklists assigned to specific houses.
-- **`house_forms` & `house_form_submissions`**: Custom forms for data collection.
+- **`house_checklist_submissions`**: Tracks the overall status of a checklist execution (e.g., 'in_progress', 'completed').
+    - **Linking**: Submissions now explicitly store `shift_id` and `shift_type_id` for compliance tracking.
+- **`house_checklist_submission_items`**: Tracks completion of specific tasks.
+    - **Attribution**: The `completed_by` column stores the `staff_id` of the individual who signed off on the task.
+    - **Status**: The `status` column ('Completed' or 'Pending') indicates task state.
+- **`house_checklist_item_attachments`**: Files uploaded for specific tasks during execution.
 
 ### Compliance & Training
 - **`staff_compliance`**: Tracks mandatory checks (NDIS Worker Screening, etc.).

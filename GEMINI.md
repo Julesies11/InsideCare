@@ -45,7 +45,8 @@ Gemini must obey these rules:
 2. **Do NOT add database-side joins or transformations.**
 3. **Do NOT rely on Supabase server logic for app behaviour.**
 4. **Keep ALL non-auth logic inside TypeScript where it can be unit tested.**
-5. **Only use basic Supabase features:**
+5. **SQL Migrations**: All SQL that modifies the database schema must be added as a migration file in the `migrations/` directory to ensure the database state is traceable and reproducible.
+6. **Only use basic Supabase features:**
    - `supabase.from().select()`
    - `insert`, `update`, `delete`
    - `auth` (sign up, sign in, session, etc.)

@@ -1,29 +1,40 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { ClipboardList, Pencil, Plus, Trash2, X, AlertTriangle, Copy } from 'lucide-react';
-import { format, parseISO, areIntervalsOverlapping } from 'date-fns';
-import { useShiftNotes, ShiftNote } from '@/hooks/use-shift-notes';
-import { toast } from 'sonner';
+import { AlertCircle, Plus, Trash2, Clock, Calendar, User, Users, Home, AlertTriangle, CheckSquare, Copy, Loader2, ChevronDown, ChevronUp, Zap } from 'lucide-react';
+import { format, parseISO, addDays, startOfWeek } from 'date-fns';
 import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+import { HouseChecklistExecution } from '@/pages/houses/detail/components/house-checklist-execution';
+import { useShiftNotes } from '@/hooks/use-shift-notes';
+
+export interface AssignedChecklist {
+  id?: string;
+  checklist_id: string;
+  assignment_title: string;
+  status?: string;
+}
 
 export interface ShiftFormData {
-  staff_id: string;
+  staff_id: string | null;
   shift_date: string;
   end_date: string;
   start_time: string;
   end_time: string;
-  house_id: string;
+  house_id: string | null;
   shift_type: string;
+  shift_type_id?: string | null;
   status: string;
   notes: string;
   participant_ids: string[];
+  assigned_checklists: AssignedChecklist[];
 }
 
 interface ShiftDialogProps {
@@ -33,34 +44,30 @@ interface ShiftDialogProps {
     id: string;
     staff_id: string;
     shift_date: string;
-    end_date?: string;
+    end_date: string;
     start_time: string;
     end_time: string;
-    house_id?: string;
+    house_id: string | null;
     shift_type: string;
     status: string;
-    notes?: string;
-    participants?: Array<{ id: string; name: string }>;
+    notes: string | null;
+    participant_ids?: string[];
+    assigned_checklists?: AssignedChecklist[];
   } | null;
   staffId?: string;
   preSelectedDate?: Date;
   preSelectedHouseId?: string;
+  preSelectedShiftTypeId?: string;
   staffList: Array<{ id: string; name: string; photo_url?: string | null; status?: string }>;
   staffSelectionDisabled: boolean;
   houses: Array<{ id: string; name: string }>;
   participants: Array<{ id: string; name: string; status?: string; house_id?: string | null }>;
-  onSave: (formData: ShiftFormData, isCreateOverride?: boolean) => Promise<{ id: string } | void>;
+  checklists: any[];
+  shiftTypes: any[];
+  onSave: (formData: ShiftFormData, isDuplicating?: boolean) => Promise<any>;
   onDelete?: (shiftId: string) => Promise<void>;
   scrollToNotes?: boolean;
   readOnly?: boolean;
-}
-
-/** A draft note not yet saved to the DB (used in create mode or when adding new notes) */
-interface DraftNote {
-  id: string; // temporary local id
-  notes: string;
-  full_note: string;
-  participant_id: string | null;
 }
 
 export function ShiftDialog({
@@ -70,829 +77,459 @@ export function ShiftDialog({
   staffId,
   preSelectedDate,
   preSelectedHouseId,
+  preSelectedShiftTypeId,
   staffList,
   staffSelectionDisabled,
   houses,
   participants,
+  checklists,
+  shiftTypes,
   onSave,
   onDelete,
-  scrollToNotes = false,
   readOnly = false,
 }: ShiftDialogProps) {
-  const notesSectionRef = useRef<HTMLDivElement>(null);
-  const [isDuplicating, setIsDuplicating] = useState(false);
+  const isEdit = !!shift;
   const [formData, setFormData] = useState<ShiftFormData>({
-    staff_id: staffId || '',
+    staff_id: null,
     shift_date: format(new Date(), 'yyyy-MM-dd'),
     end_date: format(new Date(), 'yyyy-MM-dd'),
     start_time: '09:00',
     end_time: '17:00',
-    house_id: '',
+    house_id: null,
     shift_type: 'SIL',
     status: 'Scheduled',
     notes: '',
     participant_ids: [],
+    assigned_checklists: [],
   });
 
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [doubleBookingWarning, setDoubleBookingWarning] = useState<{
-    hasWarning: boolean;
-    conflictingShifts: any[];
-  }>({ hasWarning: false, conflictingShifts: [] });
+  const [isDuplicating, setIsDuplicating] = useState(false);
+  const [showParticipants, setShowParticipants] = useState(false);
+  const [showChecklists, setShowChecklists] = useState(true);
 
-  // Shift Notes state
-  const [existingNotes, setExistingNotes] = useState<ShiftNote[]>([]);
-  const [draftNotes, setDraftNotes] = useState<DraftNote[]>([]);
-  const [notesLoading, setNotesLoading] = useState(false);
-  const [savingNoteId, setSavingNoteId] = useState<string | null>(null);
-
-  const { fetchShiftNotesByShiftId, createShiftNote, updateShiftNote, deleteShiftNote } = useShiftNotes();
-
-  // Track which existing note is being edited
-  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
-  // Local edit buffer for the note being edited
-  const [editBuffer, setEditBuffer] = useState<{ notes: string; full_note: string }>({ notes: '', full_note: '' });
-  const [deletingNoteId, setDeletingNoteId] = useState<string | null>(null);
-
-  const isEdit = shift !== null && !isDuplicating;
-
-  // Check for double bookings
-  const checkDoubleBooking = useCallback(async (staffId: string, shiftDate: string, startTime: string, endTime: string, excludeShiftId?: string) => {
-    if (!staffId || !shiftDate || !startTime || !endTime) {
-      setDoubleBookingWarning({ hasWarning: false, conflictingShifts: [] });
-      return;
-    }
-
-    // Reset warning while checking to avoid stale alerts
-    setDoubleBookingWarning({ hasWarning: false, conflictingShifts: [] });
-
-    try {
-      let query = supabase
-        .from('staff_shifts')
-        .select(`
-          *,
-          house:houses(id, name)
-        `)
-        .eq('staff_id', staffId)
-        .eq('shift_date', shiftDate)
-        .neq('status', 'Cancelled');
-
-      if (excludeShiftId) {
-        query = query.neq('id', excludeShiftId);
-      }
-
-      const { data: existingShifts, error } = await query;
-
-      if (error) {
-        console.error('Error checking double bookings:', error);
-        return;
-      }
-
-      // Check for overlapping time intervals
-      const currentStart = new Date(`${shiftDate}T${startTime}`).getTime();
-      const currentEnd = new Date(`${shiftDate}T${endTime}`).getTime();
-
-      const conflictingShifts = (existingShifts || []).filter(existingShift => {
-        const existingStart = new Date(`${existingShift.shift_date}T${existingShift.start_time}`).getTime();
-        const existingEnd = new Date(`${existingShift.shift_date}T${existingShift.end_time}`).getTime();
+  // Sync logic
+  useEffect(() => {
+    if (open) {
+      if (shift) {
+        setFormData({
+          staff_id: shift.staff_id,
+          shift_date: shift.shift_date,
+          end_date: shift.end_date || shift.shift_date,
+          start_time: shift.start_time.substring(0, 5),
+          end_time: shift.end_time.substring(0, 5),
+          house_id: shift.house_id,
+          shift_type: shift.shift_type,
+          status: shift.status,
+          notes: shift.notes || '',
+          participant_ids: shift.participant_ids || [],
+          assigned_checklists: shift.assigned_checklists || [],
+        });
+      } else {
+        const initialDate = preSelectedDate ? format(preSelectedDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
+        const initialHouseId = preSelectedHouseId || null;
         
-        // Strict overlap check (allows back-to-back shifts)
-        // (StartA < EndB) AND (EndA > StartB)
-        return currentStart < existingEnd && currentEnd > existingStart;
-      });
+        const baseData: ShiftFormData = {
+          staff_id: staffId || null,
+          shift_date: initialDate,
+          end_date: initialDate,
+          start_time: '09:00',
+          end_time: '17:00',
+          house_id: initialHouseId,
+          shift_type: 'SIL',
+          status: 'Scheduled',
+          notes: '',
+          participant_ids: initialHouseId ? participants.filter(p => p.house_id === initialHouseId && p.status === 'active').map(p => p.id) : [],
+          assigned_checklists: [],
+        };
 
-      setDoubleBookingWarning({
-        hasWarning: conflictingShifts.length > 0,
-        conflictingShifts
-      });
-    } catch (error) {
-      console.error('Error checking double bookings:', error);
-    }
-  }, []);
-
-  // Check for double bookings when relevant form fields change
-  useEffect(() => {
-    if (formData.staff_id && formData.shift_date && formData.start_time && formData.end_time) {
-      // Only exclude the shift ID if we are actually editing it.
-      // If duplicating, we are creating a NEW record, so we shouldn't exclude the source shift.
-      checkDoubleBooking(
-        formData.staff_id,
-        formData.shift_date,
-        formData.start_time,
-        formData.end_time,
-        isEdit ? shift?.id : undefined
-      );
-    }
-  }, [formData.staff_id, formData.shift_date, formData.start_time, formData.end_time, isEdit, shift?.id, checkDoubleBooking]);
-
-  useEffect(() => {
-    if (!open) {
-      setIsDuplicating(false);
-    }
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
-
-    if (shift && !isDuplicating) {
-      setFormData({
-        staff_id: shift.staff_id || staffId || '',
-        shift_date: shift.shift_date,
-        end_date: shift.end_date || shift.shift_date,
-        start_time: shift.start_time,
-        end_time: shift.end_time,
-        house_id: shift.house_id || '',
-        shift_type: shift.shift_type,
-        status: shift.status,
-        notes: shift.notes || '',
-        participant_ids: shift.participants?.map((p: any) => p.id) || [],
-      });
-      // Load existing shift notes for edit mode
-      setNotesLoading(true);
-      fetchShiftNotesByShiftId(shift.id).then(notes => {
-        setExistingNotes(notes);
-        setNotesLoading(false);
-      });
-    } else if (isDuplicating && shift) {
-      // Keep most form data but it's now a new shift
-      // We don't reset formData here because it's already set from the shift
-      setExistingNotes([]);
-      setDraftNotes([]);
-    } else {
-      const initialDate = preSelectedDate ? format(preSelectedDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
-      const initialHouseId = preSelectedHouseId || '';
-      
-      // Auto-assign participants if house is pre-selected
-      let initialParticipantIds: string[] = [];
-      if (initialHouseId) {
-        initialParticipantIds = participants
-          .filter(p => p.house_id === initialHouseId && p.status === 'active')
-          .map(p => p.id);
+        if (preSelectedShiftTypeId) {
+          const type = shiftTypes.find(t => t.id === preSelectedShiftTypeId);
+          if (type) {
+            baseData.shift_type = type.name;
+            baseData.shift_type_id = type.id;
+            baseData.start_time = type.default_start_time?.substring(0, 5) || '09:00';
+            baseData.end_time = type.default_end_time?.substring(0, 5) || '17:00';
+          }
+        }
+        setFormData(baseData);
       }
-
-      setFormData({
-        staff_id: staffId || '',
-        shift_date: initialDate,
-        end_date: initialDate,
-        start_time: '09:00',
-        end_time: '17:00',
-        house_id: initialHouseId,
-        shift_type: 'SIL',
-        status: 'Scheduled',
-        notes: '',
-        participant_ids: initialParticipantIds,
-      });
-      setExistingNotes([]);
-      setIsDuplicating(false);
     }
-    setDraftNotes([]);
-  }, [shift, staffId, open, fetchShiftNotesByShiftId, preSelectedDate, preSelectedHouseId, isDuplicating, participants]);
-
-  useEffect(() => {
-    if (open && scrollToNotes && notesSectionRef.current) {
-      setTimeout(() => {
-        notesSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 150);
-    }
-  }, [open, scrollToNotes]);
-
-  // Handle auto-assignment when house changes
-  const handleHouseChange = (newHouseId: string) => {
-    const houseId = newHouseId === 'none' ? '' : newHouseId;
-    
-    // Auto-assign participants if it's SIL, ILO, or SDA
-    if (houseId && ['SIL', 'ILO', 'SDA'].includes(formData.shift_type)) {
-      const houseParticipants = participants
-        .filter(p => p.house_id === houseId && p.status === 'active')
-        .map(p => p.id);
-      
-      setFormData({
-        ...formData,
-        house_id: houseId,
-        participant_ids: houseParticipants,
-      });
-    } else {
-      setFormData({
-        ...formData,
-        house_id: houseId,
-      });
-    }
-  };
-
-  const handleShiftTypeChange = (newType: string) => {
-    // If switching TO SIL, ILO, or SDA and a house is selected, auto-assign
-    if (['SIL', 'ILO', 'SDA'].includes(newType) && formData.house_id) {
-      const houseParticipants = participants
-        .filter(p => p.house_id === formData.house_id && p.status === 'active')
-        .map(p => p.id);
-      
-      setFormData({
-        ...formData,
-        shift_type: newType,
-        participant_ids: houseParticipants,
-      });
-    } else {
-      setFormData({
-        ...formData,
-        shift_type: newType,
-      });
-    }
-  };
-
-  const handleDuplicate = () => {
-    setIsDuplicating(true);
-    toast.info('Shift duplicated. You are now creating a new shift based on the previous one.');
-  };
+  }, [open, shift, preSelectedDate, preSelectedHouseId, preSelectedShiftTypeId, participants, staffId, shiftTypes]);
 
   const handleSave = async () => {
+    if (!formData.shift_date || !formData.start_time || !formData.end_time) {
+      toast.error('Please fill in required date and time fields');
+      return;
+    }
     setSaving(true);
     try {
-      const result = await onSave(formData, isDuplicating);
-      // In create mode, save any draft notes now that we have the shift id
-      if (!isEdit && draftNotes.length > 0 && result?.id) {
-        const newShiftId = result.id;
-        await Promise.all(
-          draftNotes
-            .filter(d => d.notes.trim() || d.full_note.trim())
-            .map(draft =>
-              createShiftNote({
-                shift_id: newShiftId,
-                staff_id: formData.staff_id || null,
-                shift_date: formData.shift_date,
-                house_id: formData.house_id || null,
-                shift_time: formData.start_time,
-                participant_id: draft.participant_id,
-                notes: draft.notes || null,
-                full_note: draft.full_note || null,
-              })
-            )
-        );
-      }
+      await onSave(formData, isDuplicating);
       onOpenChange(false);
+    } catch (err: any) {
+      toast.error(`Failed to save: ${err.message}`);
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDelete = async () => {
-    if (!shift || !onDelete) return;
-    setDeleting(true);
-    try {
-      await onDelete(shift.id);
-      onOpenChange(false);
-    } finally {
-      setDeleting(false);
-    }
+  const handleHouseChange = (val: string) => {
+    const houseId = val === 'none' ? null : val;
+    const houseParticipants = houseId ? participants.filter(p => p.house_id === houseId && p.status === 'active').map(p => p.id) : [];
+    setFormData({ ...formData, house_id: houseId, participant_ids: houseParticipants });
   };
 
-  const toggleParticipant = (participantId: string) => {
-    const currentIds = formData.participant_ids;
-    if (currentIds.includes(participantId)) {
-      setFormData({
-        ...formData,
-        participant_ids: currentIds.filter(id => id !== participantId),
-      });
-    } else {
-      setFormData({
-        ...formData,
-        participant_ids: [...currentIds, participantId],
-      });
-    }
+  const toggleParticipant = (id: string) => {
+    setFormData(prev => ({
+      ...prev,
+      participant_ids: prev.participant_ids.includes(id) 
+        ? prev.participant_ids.filter(p => p !== id) 
+        : [...prev.participant_ids, id]
+    }));
   };
 
-  // --- Shift Notes handlers ---
-
-  const handleAddDraftNote = () => {
-    const newDraft: DraftNote = {
-      id: `draft-${Date.now()}`,
-      notes: '',
-      full_note: '',
-      participant_id: null,
+  const handleShiftTypeChange = (val: string) => {
+    const dynamicType = shiftTypes?.find(st => st.id === val || st.name === val);
+    const updatedData = {
+      ...formData,
+      shift_type_id: dynamicType?.id || null,
+      shift_type: dynamicType?.name || val
     };
-    setDraftNotes(prev => [...prev, newDraft]);
-  };
 
-  const handleUpdateDraftNote = (id: string, field: keyof DraftNote, value: string | null) => {
-    setDraftNotes(prev => prev.map(n => n.id === id ? { ...n, [field]: value } : n));
-  };
-
-  const handleRemoveDraftNote = (id: string) => {
-    setDraftNotes(prev => prev.filter(n => n.id !== id));
-  };
-
-  /** Save a draft note immediately (edit mode — shift already exists) */
-  const handleSaveDraftNote = async (draft: DraftNote) => {
-    if (!shift) return;
-    setSavingNoteId(draft.id);
-    try {
-      const { data, error } = await createShiftNote({
-        shift_id: shift.id,
-        staff_id: shift.staff_id || null,
-        shift_date: shift.shift_date,
-        house_id: shift.house_id || null,
-        shift_time: shift.start_time,
-        participant_id: draft.participant_id,
-        notes: draft.notes || null,
-        full_note: draft.full_note || null,
-      });
-      if (error) {
-        toast.error('Failed to save note');
-      } else {
-        toast.success('Note saved');
-        setExistingNotes(prev => [...prev, data]);
-        setDraftNotes(prev => prev.filter(n => n.id !== draft.id));
-      }
-    } finally {
-      setSavingNoteId(null);
+    if (dynamicType?.default_start_time) {
+      updatedData.start_time = dynamicType.default_start_time.substring(0, 5);
     }
-  };
-
-  const handleStartEditNote = (note: ShiftNote) => {
-    setEditingNoteId(note.id);
-    setEditBuffer({ notes: note.notes || '', full_note: note.full_note || '' });
-  };
-
-  const handleCancelEditNote = () => {
-    setEditingNoteId(null);
-    setEditBuffer({ notes: '', full_note: '' });
-  };
-
-  const handleSaveEditNote = async (noteId: string) => {
-    setSavingNoteId(noteId);
-    try {
-      const { error } = await updateShiftNote(noteId, {
-        notes: editBuffer.notes || null,
-        full_note: editBuffer.full_note || null,
-      });
-      if (error) {
-        toast.error('Failed to update note');
-      } else {
-        setExistingNotes(prev => prev.map(n =>
-          n.id === noteId ? { ...n, notes: editBuffer.notes || null, full_note: editBuffer.full_note || null } : n
-        ));
-        setEditingNoteId(null);
-        toast.success('Note updated');
-      }
-    } finally {
-      setSavingNoteId(null);
+    if (dynamicType?.default_end_time) {
+      updatedData.end_time = dynamicType.default_end_time.substring(0, 5);
     }
-  };
 
-  const handleDeleteNote = async (noteId: string) => {
-    setDeletingNoteId(noteId);
-    try {
-      const { error } = await deleteShiftNote(noteId);
-      if (error) {
-        toast.error('Failed to delete note');
-      } else {
-        setExistingNotes(prev => prev.filter(n => n.id !== noteId));
-        toast.success('Note deleted');
-      }
-    } finally {
-      setDeletingNoteId(null);
-    }
+    setFormData(updatedData);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{isEdit ? 'Edit Shift' : 'Add New Shift'}</DialogTitle>
-          <DialogDescription>
-            {isEdit ? 'Update shift details and assignments.' : 'Create a new shift and assign participants.'}
-          </DialogDescription>
-        </DialogHeader>
-        
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+      <DialogContent className="max-w-3xl max-h-[95vh] flex flex-col p-0 overflow-hidden shadow-2xl border-primary/10">
+        <DialogHeader className="p-6 pb-2 bg-gray-50/50 border-b">
+          <div className="flex items-center gap-3">
+            <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+              <Calendar className="size-6" />
+            </div>
             <div>
-              <Label htmlFor="staff_id">Staff Member *</Label>
+              <DialogTitle className="text-xl font-black uppercase tracking-tight">
+                {isEdit ? 'Update Shift' : 'Create New Shift'}
+              </DialogTitle>
+              <DialogDescription>
+                {isEdit ? `Editing shift for ${formData.shift_date}` : 'Define the schedule and assignments'}
+              </DialogDescription>
+            </div>
+          </div>
+        </DialogHeader>
+
+        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-8 custom-scrollbar bg-white">
+          {/* Quick Fill Section */}
+          {!isEdit && (shiftTypes?.length || 0) > 0 && formData.house_id && (
+            <div className="space-y-3 p-4 bg-primary/[0.03] border border-primary/10 rounded-xl">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                <Zap className="size-3 fill-primary" /> Quick Fill from Model
+              </Label>
+              <div className="flex flex-wrap gap-2">
+                {shiftTypes.map(type => {
+                  const theme = getPeriodTheme(type.name, type.color_theme, type.icon_name);
+                  const Icon = theme.icon;
+                  const isActive = formData.shift_type_id === type.id;
+
+                  return (
+                    <Button
+                      key={type.id}
+                      variant="outline"
+                      size="sm"
+                      className={cn(
+                        "h-9 rounded-full px-4 gap-2 transition-all font-bold border-2",
+                        isActive 
+                          ? cn("border-primary bg-primary text-white hover:bg-primary/90 shadow-md scale-105") 
+                          : cn("bg-white hover:border-primary/40 hover:bg-primary/[0.02]")
+                      )}
+                      onClick={async () => {
+                        // Fetch default checklists for this type
+                        const { data: defaults } = await supabase
+                          .from('shift_type_default_checklists')
+                          .select('checklist:house_checklists(id, name)')
+                          .eq('shift_type_id', type.id);
+
+                        const checklistsToAssign = (defaults || []).map((d: any) => ({
+                          checklist_id: d.checklist.id,
+                          assignment_title: d.checklist.name
+                        }));
+
+                        setFormData(prev => ({
+                          ...prev,
+                          shift_type: type.name,
+                          shift_type_id: type.id,
+                          start_time: type.default_start_time?.substring(0, 5) || prev.start_time,
+                          end_time: type.default_end_time?.substring(0, 5) || prev.end_time,
+                          assigned_checklists: checklistsToAssign
+                        }));
+                        toast.success(`Pre-filled as ${type.name}`);
+                      }}
+                    >
+                      <Icon className={cn("size-3.5", isActive ? "text-white" : theme.text)} />
+                      <span className="text-xs">{type.name}</span>
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Primary Row: Staff & House */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1 flex items-center gap-1.5">
+                <User className="size-3" /> Assign Staff
+              </Label>
               <Select 
-                value={formData.staff_id} 
-                onValueChange={(value) => setFormData({ ...formData, staff_id: value })}
-                disabled={staffSelectionDisabled}
+                value={formData.staff_id || 'none'} 
+                onValueChange={val => setFormData({...formData, staff_id: val === 'none' ? null : val})}
+                disabled={readOnly}
               >
-                <SelectTrigger>
+                <SelectTrigger className="h-12 text-base font-medium">
                   <SelectValue placeholder="Select staff member" />
                 </SelectTrigger>
                 <SelectContent>
-                  {staffList
-                    .filter(member => member.status?.toLowerCase() === 'active' || member.id === formData.staff_id)
-                    .map(member => (
-                    <SelectItem key={member.id} value={member.id}>
+                  <SelectItem value="none" className="font-bold text-amber-600 italic">Open Shift (Unassigned)</SelectItem>
+                  {staffList.map(s => (
+                    <SelectItem key={s.id} value={s.id}>
                       <div className="flex items-center gap-2">
-                        <Avatar className="size-5">
-                          <AvatarImage src={(member as any).photo_url} />
-                          <AvatarFallback className="text-[8px]">{member.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                        <Avatar className="size-6">
+                          <AvatarImage src={s.photo_url || undefined} />
+                          <AvatarFallback>{s.name.substring(0, 2).toUpperCase()}</AvatarFallback>
                         </Avatar>
-                        <span>{member.name || 'Unnamed Staff'}</span>
+                        <span>{s.name}</span>
                       </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-            <div />
-          </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="shift_date">Start Date *</Label>
-              <Input
-                id="shift_date"
-                type="date"
-                value={formData.shift_date}
-                onChange={(e) => {
-                  const newStart = e.target.value;
-                  setFormData(prev => ({
-                    ...prev,
-                    shift_date: newStart,
-                    end_date: prev.end_date < newStart ? newStart : prev.end_date,
-                  }));
-                }}
-              />
-            </div>
-            <div>
-              <Label htmlFor="start_time">Start Time *</Label>
-              <Input
-                id="start_time"
-                type="time"
-                value={formData.start_time}
-                onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="end_date">End Date *</Label>
-              <Input
-                id="end_date"
-                type="date"
-                value={formData.end_date}
-                min={formData.shift_date}
-                onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
-              />
-            </div>
-            <div>
-              <Label htmlFor="end_time">End Time *</Label>
-              <Input
-                id="end_time"
-                type="time"
-                value={formData.end_time}
-                onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
-              />
-            </div>
-          </div>
-
-          {/* Double Booking Warning */}
-          {doubleBookingWarning.hasWarning && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-              <div className="flex items-start gap-2">
-                <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
-                <div className="space-y-2">
-                  <h4 className="font-medium text-red-800">Double Booking Detected!</h4>
-                  <p className="text-sm text-red-700">
-                    This staff member already has conflicting shifts:
-                  </p>
-                  <div className="space-y-1">
-                    {doubleBookingWarning.conflictingShifts.map((conflict) => (
-                      <div key={conflict.id} className="text-sm text-red-600 bg-white rounded p-2 border border-red-100">
-                        <div className="font-medium">
-                          {format(parseISO(conflict.shift_date), 'MMM d, yyyy')} • {conflict.start_time} - {conflict.end_time}
-                        </div>
-                        <div className="text-xs">
-                          House: {conflict.house?.name || 'Unassigned'} | 
-                          Type: {conflict.shift_type} | 
-                          Status: {conflict.status}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <p className="text-xs text-red-600">
-                    Staff can work at different houses on the same day, but the time periods cannot overlap.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="house_id">House</Label>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1 flex items-center gap-1.5">
+                <Home className="size-3" /> Service Location
+              </Label>
               <Select 
                 value={formData.house_id || 'none'} 
                 onValueChange={handleHouseChange}
+                disabled={readOnly}
               >
-                <SelectTrigger>
+                <SelectTrigger className="h-12 text-base font-medium">
                   <SelectValue placeholder="Select house" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
-                  {houses.map(house => (
-                    <SelectItem key={house.id} value={house.id}>{house.name}</SelectItem>
+                  <SelectItem value="none">Standalone / No House</SelectItem>
+                  {houses.map(h => (
+                    <SelectItem key={h.id} value={h.id}>{h.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-            <div />
           </div>
 
-          <div>
-            <Label htmlFor="shift_type">Shift Type *</Label>
-            <Select value={formData.shift_type} onValueChange={handleShiftTypeChange}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="SIL">SIL</SelectItem>
-                <SelectItem value="ILO">ILO</SelectItem>
-                <SelectItem value="SDA">SDA</SelectItem>
-                <SelectItem value="Community">Community</SelectItem>
-                <SelectItem value="Admin">Admin</SelectItem>
-              </SelectContent>
-            </Select>
+          {/* Secondary Row: Dates & Times */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-gray-100">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">Shift Start</Label>
+                <div className="flex gap-2">
+                  <Input type="date" value={formData.shift_date} onChange={e => setFormData({...formData, shift_date: e.target.value, end_date: e.target.value})} className="h-11 font-bold" disabled={readOnly} />
+                  <Input type="time" value={formData.start_time} onChange={e => setFormData({...formData, start_time: e.target.value})} className="h-11 w-32 font-black" disabled={readOnly} />
+                </div>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">Shift End</Label>
+                <div className="flex gap-2">
+                  <Input type="date" value={formData.end_date} onChange={e => setFormData({...formData, end_date: e.target.value})} className="h-11 font-bold" disabled={readOnly} />
+                  <Input type="time" value={formData.end_time} onChange={e => setFormData({...formData, end_time: e.target.value})} className="h-11 w-32 font-black" disabled={readOnly} />
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div>
-            <Label htmlFor="participant_ids">Linked Participants</Label>
-            <Select
-              value={formData.participant_ids[0] || ''}
-              onValueChange={toggleParticipant}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-gray-100">
+            <div className="space-y-2">
+              <Label htmlFor="shift_type" className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">Shift Type *</Label>
+              <Select value={formData.shift_type_id || formData.shift_type} onValueChange={handleShiftTypeChange} disabled={readOnly}>
+                <SelectTrigger className="h-11">
+                  <SelectValue placeholder="Select type..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {(shiftTypes?.length || 0) > 0 ? (
+                    shiftTypes.map(st => (
+                      <SelectItem key={st.id} value={st.id}>{st.name}</SelectItem>
+                    ))
+                  ) : (
+                    <>
+                      <SelectItem value="SIL">SIL</SelectItem>
+                      <SelectItem value="ILO">ILO</SelectItem>
+                      <SelectItem value="SDA">SDA</SelectItem>
+                      <SelectItem value="Community">Community</SelectItem>
+                      <SelectItem value="Admin">Admin</SelectItem>
+                    </>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-col justify-center space-y-2">
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">Status</Label>
+              <Select 
+                value={formData.status} 
+                onValueChange={v => setFormData({...formData, status: v})}
+                disabled={readOnly}
+              >
+                <SelectTrigger className="h-11">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Scheduled">Scheduled</SelectItem>
+                  <SelectItem value="Completed">Completed</SelectItem>
+                  <SelectItem value="Cancelled">Cancelled</SelectItem>
+                  <SelectItem value="No Show">No Show</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Collapsible: Participants */}
+          <div className="border rounded-xl bg-gray-50/30 overflow-hidden">
+            <button 
+              type="button"
+              onClick={() => setShowParticipants(!showParticipants)}
+              className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Select participants" />
-              </SelectTrigger>
-              <SelectContent>
-                {participants
-                  .filter(p => p.status?.toLowerCase() === 'active' || formData.participant_ids.includes(p.id))
-                  .map(participant => (
-                  <SelectItem key={participant.id} value={participant.id}>
-                    {participant.name}
-                  </SelectItem>
+              <div className="flex items-center gap-2">
+                <Users className="size-4 text-primary" />
+                <span className="text-sm font-bold uppercase tracking-tight">Assigned Participants</span>
+                <Badge variant="secondary" className="text-[10px] h-5">{formData.participant_ids.length} Selected</Badge>
+              </div>
+              {showParticipants ? <ChevronUp className="size-4 text-gray-400" /> : <ChevronDown className="size-4 text-gray-400" />}
+            </button>
+            {showParticipants && (
+              <div className="p-4 pt-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                {participants.filter(p => !formData.house_id || p.house_id === formData.house_id).map(p => (
+                  <div 
+                    key={p.id} 
+                    className={cn(
+                      "flex items-center gap-2 p-2 rounded-lg border transition-all cursor-pointer",
+                      formData.participant_ids.includes(p.id) ? "bg-primary/5 border-primary/30" : "bg-white border-gray-100 hover:border-gray-300"
+                    )}
+                    onClick={() => !readOnly && toggleParticipant(p.id)}
+                  >
+                    <Checkbox checked={formData.participant_ids.includes(p.id)} disabled={readOnly} />
+                    <span className="text-xs font-medium truncate">{p.name}</span>
+                  </div>
                 ))}
-              </SelectContent>
-            </Select>
-            {formData.participant_ids.length > 0 && (
-              <div className="flex flex-wrap gap-1 mt-2">
-                {formData.participant_ids.map(id => {
-                  const participant = participants.find(p => p.id === id);
-                  return participant ? (
-                    <Badge key={id} variant="secondary" className="gap-1">
-                      {participant.name}
-                      <X
-                        className="h-3 w-3 cursor-pointer"
-                        onClick={() => toggleParticipant(id)}
-                      />
-                    </Badge>
-                  ) : null;
-                })}
               </div>
             )}
           </div>
 
-          <div>
-            <Label htmlFor="notes">Shift Notes (internal)</Label>
-            <Textarea
-              id="notes"
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              placeholder="Add any internal shift notes..."
-              rows={2}
-            />
-          </div>
-
-          {/* ── Shift Notes Section ── */}
-          <div ref={notesSectionRef} className="border-t pt-4 space-y-3">
+          {/* Section: Checklist Requirements */}
+          <div className="space-y-4 pt-6 border-t border-gray-100">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <ClipboardList className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">
-                  Shift Notes
-                  {existingNotes.length > 0 && (
-                    <Badge variant="secondary" size="sm" className="ml-2">{existingNotes.length}</Badge>
-                  )}
-                </span>
+                <CheckSquare className="size-4 text-primary" />
+                <span className="text-sm font-bold uppercase tracking-tight">Shift Requirements (Checklists)</span>
               </div>
               {!readOnly && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleAddDraftNote}
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="h-7 text-[10px] font-bold border-dashed border-primary/30 text-primary"
+                  onClick={() => setFormData({...formData, assigned_checklists: [...formData.assigned_checklists, { checklist_id: '', assignment_title: 'New Task' }]})}
                 >
-                  <Plus className="h-3.5 w-3.5 mr-1" />
-                  Add Note
+                  <Plus className="size-3 mr-1" /> Add Requirement
                 </Button>
               )}
             </div>
 
-            {/* Existing saved notes (edit mode) */}
-            {notesLoading && (
-              <p className="text-xs text-muted-foreground">Loading notes...</p>
-            )}
-            {existingNotes.map((note) => {
-              const isEditing = editingNoteId === note.id;
-              const isDeleting = deletingNoteId === note.id;
-              const isSaving = savingNoteId === note.id;
-              return (
-                <div key={note.id} className="rounded-md border bg-muted/30 p-3 space-y-2">
-                  {/* Header row: participant + date + action buttons */}
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs text-muted-foreground">
-                      {note.participant?.name
-                        ? <span className="font-medium text-foreground">{note.participant.name}</span>
-                        : <span className="text-muted-foreground">General</span>}
-                      {note.created_at && (
-                        <span className="ml-2">{format(new Date(note.created_at), 'dd MMM yyyy, HH:mm')}</span>
-                      )}
-                    </span>
-                    {!isEditing && (
-                      <div className="flex items-center gap-1">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
-                          onClick={() => handleStartEditNote(note)}
-                          title="Edit note"
-                        >
-                          <Pencil className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
-                          onClick={() => handleDeleteNote(note.id)}
-                          disabled={isDeleting}
-                          title="Delete note"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
+            <div className="space-y-2">
+              {formData.assigned_checklists.length === 0 ? (
+                <div className="py-8 text-center border-2 border-dashed rounded-xl bg-gray-50/50">
+                  <p className="text-xs text-muted-foreground italic">No requirements assigned to this shift.</p>
+                </div>
+              ) : (
+                formData.assigned_checklists.map((ac, idx) => (
+                  <div key={idx} className="flex items-end gap-3 p-3 bg-white border rounded-xl shadow-sm group">
+                    <div className="flex-1 space-y-1.5">
+                      <Label className="text-[9px] font-bold text-gray-400 uppercase">Title</Label>
+                      <Input 
+                        value={ac.assignment_title} 
+                        onChange={e => {
+                          const updated = [...formData.assigned_checklists];
+                          updated[idx].assignment_title = e.target.value;
+                          setFormData({...formData, assigned_checklists: updated});
+                        }}
+                        className="h-9 text-xs font-bold" 
+                        disabled={readOnly}
+                      />
+                    </div>
+                    <div className="flex-[1.5] space-y-1.5">
+                      <Label className="text-[9px] font-bold text-gray-400 uppercase">Checklist Template</Label>
+                      <Select 
+                        value={ac.checklist_id || 'none'} 
+                        onValueChange={v => {
+                          const updated = [...formData.assigned_checklists];
+                          updated[idx].checklist_id = v === 'none' ? '' : v;
+                          setFormData({...formData, assigned_checklists: updated});
+                        }}
+                        disabled={readOnly}
+                      >
+                        <SelectTrigger className="h-9 text-xs">
+                          <SelectValue placeholder="Select template..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">No template</SelectItem>
+                          {checklists.map(c => (
+                            <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {!readOnly && (
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="size-9 text-destructive hover:bg-destructive/5 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => {
+                          const updated = [...formData.assigned_checklists];
+                          updated.splice(idx, 1);
+                          setFormData({...formData, assigned_checklists: updated});
+                        }}
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
                     )}
                   </div>
-
-                  {/* View mode */}
-                  {!isEditing && (
-                    <>
-                      {note.notes && <p className="text-sm">{note.notes}</p>}
-                      {note.full_note && (
-                        <p className="text-xs text-muted-foreground whitespace-pre-wrap line-clamp-3">{note.full_note}</p>
-                      )}
-                      {!note.notes && !note.full_note && (
-                        <p className="text-xs text-muted-foreground italic">No content</p>
-                      )}
-                    </>
-                  )}
-
-                  {/* Edit mode */}
-                  {isEditing && (
-                    <div className="space-y-2">
-                      <Textarea
-                        value={editBuffer.notes}
-                        onChange={(e) => setEditBuffer(prev => ({ ...prev, notes: e.target.value }))}
-                        placeholder="Note summary..."
-                        rows={2}
-                        className="text-sm"
-                        autoFocus
-                      />
-                      <Textarea
-                        value={editBuffer.full_note}
-                        onChange={(e) => setEditBuffer(prev => ({ ...prev, full_note: e.target.value }))}
-                        placeholder="Full note details (optional)..."
-                        rows={3}
-                        className="text-sm"
-                      />
-                      <div className="flex gap-2">
-                        <Button
-                          type="button"
-                          size="sm"
-                          onClick={() => handleSaveEditNote(note.id)}
-                          disabled={isSaving}
-                        >
-                          {isSaving ? 'Saving...' : 'Save'}
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={handleCancelEditNote}
-                          disabled={isSaving}
-                        >
-                          Cancel
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-
-            {/* Draft notes (unsaved — shown in both create and edit mode) */}
-            {draftNotes.map((draft) => (
-              <div key={draft.id} className="rounded-md border border-dashed border-emerald-300 bg-emerald-50/50 dark:bg-emerald-950/20 p-3 space-y-2">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400">New note</span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
-                    onClick={() => handleRemoveDraftNote(draft.id)}
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-
-                {/* Participant selector for this note */}
-                {participants.length > 0 && (
-                  <Select
-                    value={draft.participant_id || 'none'}
-                    onValueChange={(v) => handleUpdateDraftNote(draft.id, 'participant_id', v === 'none' ? null : v)}
-                  >
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue placeholder="Participant (optional)" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">General / All participants</SelectItem>
-                      {participants.map(p => (
-                        <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-
-                <Textarea
-                  value={draft.notes}
-                  onChange={(e) => handleUpdateDraftNote(draft.id, 'notes', e.target.value)}
-                  placeholder="Note summary..."
-                  rows={2}
-                  className="text-sm"
-                />
-                <Textarea
-                  value={draft.full_note}
-                  onChange={(e) => handleUpdateDraftNote(draft.id, 'full_note', e.target.value)}
-                  placeholder="Full note details (optional)..."
-                  rows={3}
-                  className="text-sm"
-                />
-
-                {/* Only show Save button in edit mode — in create mode notes save with the shift */}
-                {isEdit && (
-                  <Button
-                    type="button"
-                    size="sm"
-                    onClick={() => handleSaveDraftNote(draft)}
-                    disabled={savingNoteId === draft.id || !draft.notes.trim()}
-                  >
-                    {savingNoteId === draft.id ? 'Saving...' : 'Save Note'}
-                  </Button>
-                )}
-              </div>
-            ))}
-
-            {existingNotes.length === 0 && draftNotes.length === 0 && !notesLoading && (
-              <p className="text-xs text-muted-foreground text-center py-2">
-                No shift notes yet. Click "Add Note" to create one.
-              </p>
-            )}
+                ))
+              )}
+            </div>
           </div>
         </div>
 
-        <DialogFooter className="flex justify-between">
-          <div className="flex gap-2">
-            {!readOnly && isEdit && onDelete && (
-              <Button
-                variant="destructive"
-                onClick={handleDelete}
-                disabled={deleting || saving}
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                {deleting ? 'Deleting...' : 'Delete'}
-              </Button>
-            )}
-            {!readOnly && shift && !isDuplicating && (
-              <Button
-                variant="secondary"
-                onClick={handleDuplicate}
-                disabled={deleting || saving}
-                className="border border-gray-300"
-              >
-                <Copy className="h-4 w-4 mr-2" />
-                Duplicate
+        <DialogFooter className="p-6 bg-gray-50 border-t flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {isEdit && !readOnly && (
+              <Button variant="ghost" size="sm" className="text-destructive font-bold gap-2" onClick={() => onDelete && onDelete(shift!.id)} disabled={saving || deleting}>
+                <Trash2 className="size-4" /> Delete
               </Button>
             )}
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving || deleting}>
-              {readOnly ? 'Close' : 'Cancel'}
-            </Button>
+          <div className="flex items-center gap-3">
+            <Button variant="outline" onClick={() => onOpenChange(false)} className="font-bold">Cancel</Button>
             {!readOnly && (
-              <Button onClick={handleSave} disabled={saving || deleting}>
-                {saving ? 'Saving...' : isEdit ? 'Update Shift' : 'Create Shift'}
+              <Button onClick={handleSave} disabled={saving} className="px-8 font-black uppercase tracking-wide">
+                {saving ? <Loader2 className="size-4 animate-spin mr-2" /> : isEdit ? 'Update Shift' : 'Create Shift'}
               </Button>
             )}
           </div>

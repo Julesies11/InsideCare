@@ -221,7 +221,11 @@ export function NotificationCenter() {
                             <button 
                               onClick={(e) => {
                                 e.stopPropagation();
-                                notification.is_read ? markUnread(notification.id) : markRead(notification.id);
+                                if (notification.is_read) {
+                                  markUnread(notification.id);
+                                } else {
+                                  markRead(notification.id);
+                                }
                               }}
                               className="hover:text-primary flex items-center gap-1"
                             >

@@ -6,6 +6,7 @@ export interface ChecklistMasterItem {
   master_id: string;
   title: string;
   instructions?: string;
+  group_title?: string;
   priority: string;
   is_required: boolean;
   sort_order: number;
@@ -22,7 +23,7 @@ export interface ChecklistMaster {
 
 const CHECKLIST_MASTER_COLUMNS = `
   id, name, frequency, days_of_week, description,
-  items:checklist_item_master (id, master_id, title, instructions, priority, is_required, sort_order)
+  items:checklist_item_master (id, master_id, title, instructions, group_title, priority, is_required, sort_order)
 `;
 
 export function useChecklistMaster() {

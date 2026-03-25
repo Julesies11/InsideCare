@@ -62,12 +62,9 @@ export function ChecklistCard({
       <CardHeader className="pb-3 flex flex-row items-start justify-between space-y-0">
         <div className="flex flex-col gap-1 min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <h3 className={`text-base font-bold text-gray-900 truncate ${isPendingDelete ? 'line-through' : ''}`}>
+            <h3 className={`text-base font-bold text-gray-900 break-words whitespace-normal ${isPendingDelete ? 'line-through' : ''}`}>
               {checklist.name}
             </h3>
-            <Badge variant="outline" className={`text-[10px] h-4 border-${getFrequencyColor(checklist.frequency)}-200 text-${getFrequencyColor(checklist.frequency)}-600 bg-${getFrequencyColor(checklist.frequency)}-50 px-1 uppercase`}>
-              {checklist.frequency}
-            </Badge>
             {isPendingAdd && <Badge variant="outline" className="text-[9px] h-4 border-primary-200 text-primary bg-primary/10 px-1">PENDING ADD</Badge>}
             {isPendingUpdate && <Badge variant="outline" className="text-[9px] h-4 border-warning-200 text-warning bg-warning/10 px-1">PENDING UPDATE</Badge>}
           </div>
@@ -98,7 +95,7 @@ export function ChecklistCard({
                     {index + 1}
                   </div>
                   <div className="flex flex-col min-w-0">
-                    <span className="text-xs font-medium text-gray-700 truncate">{item.title}</span>
+                    <span className="text-xs font-medium text-gray-700 break-words whitespace-normal">{item.title}</span>
                     {item.is_required && <span className="text-[9px] text-red-500">Required</span>}
                   </div>
                 </div>

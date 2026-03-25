@@ -1,7 +1,8 @@
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ClipboardList, Clock, MapPin, User, Users } from 'lucide-react';
-import { getShiftTypeColor, getStatusVariant, formatTime } from './roster-utils';
+import { ClipboardList, Clock, MapPin, User, Users, UserCheck } from 'lucide-react';
+import { getShiftTheme, getStatusVariant, formatTime } from './roster-utils';
+import { SHIFT_ICONS } from '@/lib/utils';
 
 export interface ShiftCardData {
   id: string;
@@ -10,6 +11,8 @@ export interface ShiftCardData {
   start_time: string;
   end_time: string;
   shift_type: string;
+  color_theme?: string;
+  icon_name?: string;
   status: string;
   house?: { id: string; name: string };
   staff_name?: string;
@@ -29,12 +32,17 @@ interface ShiftCardProps {
 
 export function ShiftCard({ shift, compact, showStaffName, onClick, onWriteNote, onNotesClick }: ShiftCardProps) {
   const participantCount = shift.participants?.length || 0;
+  const isUnassigned = !shift.staff_id;
+  const shiftThemeClasses = getShiftTheme(shift.color_theme, shift.shift_type);
+  const IconComponent = SHIFT_ICONS[shift.icon_name || ''] || Clock;
 
   if (compact) {
     return (
       <div
         onClick={onClick}
-        className="p-1.5 mb-1 bg-card border rounded cursor-pointer hover:bg-accent/50 transition-colors group"
+        className={`p-1.5 mb-1 bg-card border rounded cursor-pointer hover:bg-accent/50 transition-colors group ${
+          isUnassigned ? 'border-dashed border-amber-400 bg-amber-50/30' : ''
+        }`}
       >
         <div className="flex items-center justify-between gap-1 mb-0.5">
           <span className="text-[10px] font-medium truncate">
@@ -43,14 +51,16 @@ export function ShiftCard({ shift, compact, showStaffName, onClick, onWriteNote,
               <span className="ml-1 text-orange-500" title="Overnight shift">+1</span>
             )}
           </span>
-          <Badge className={`${getShiftTypeColor(shift.shift_type)} text-[10px] px-1 py-0`}>
+          <Badge className={`${shiftThemeClasses} text-[10px] px-1 py-0 border-0`}>
             {shift.shift_type}
           </Badge>
         </div>
-        {showStaffName && shift.staff_name && (
+        {showStaffName && (
           <div className="flex items-center gap-1 mb-0.5">
             <User className="h-2.5 w-2.5 text-muted-foreground" />
-            <span className="text-[10px] text-muted-foreground truncate">{shift.staff_name}</span>
+            <span className={`text-[10px] truncate ${isUnassigned ? 'text-amber-600 font-bold' : 'text-muted-foreground'}`}>
+              {isUnassigned ? 'OPEN SHIFT' : shift.staff_name}
+            </span>
           </div>
         )}
         {shift.house && (
@@ -101,32 +111,51 @@ export function ShiftCard({ shift, compact, showStaffName, onClick, onWriteNote,
   return (
     <Card
       onClick={onClick}
-      className="p-2.5 cursor-pointer hover:bg-accent/50 transition-colors overflow-hidden group"
+      className={`p-2.5 cursor-pointer hover:bg-accent/50 transition-colors overflow-hidden group ${
+        isUnassigned ? 'border-dashed border-amber-400 bg-amber-50/20 shadow-inner' : ''
+      }`}
     >
       <div className="space-y-1.5">
-        <div className="flex items-center gap-1.5">
-          <Clock className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-          <span className="text-xs font-medium truncate flex-1">
-            {formatTime(shift.start_time)} – {formatTime(shift.end_time)}
-            {shift.end_date && shift.end_date !== shift.shift_date && (
-              <span className="ml-1 text-orange-500 text-[10px]" title="Overnight shift">+1 day</span>
-            )}
-          </span>
+        <div className="flex items-center justify-between gap-1.5">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <IconComponent className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+            <span className="text-xs font-medium truncate flex-1">
+              {formatTime(shift.start_time)} – {formatTime(shift.end_time)}
+              {shift.end_date && shift.end_date !== shift.shift_date && (
+                <span className="ml-1 text-orange-500 text-[10px]" title="Overnight shift">+1 day</span>
+              )}
+            </span>
+          </div>
+          {isUnassigned && (
+            <Badge className="bg-amber-100 text-amber-700 border-amber-200 text-[8px] font-black px-1 py-0 animate-pulse uppercase">Open</Badge>
+          )}
         </div>
         
-        <div className="flex items-center gap-1 flex-wrap">
-          <Badge className={`${getShiftTypeColor(shift.shift_type)} text-[10px] px-1.5 py-0`}>
-            {shift.shift_type}
-          </Badge>
-          <Badge variant={getStatusVariant(shift.status)} className="text-[10px] px-1.5 py-0">
-            {shift.status}
-          </Badge>
+        <div className="flex items-center justify-between gap-1 flex-wrap">
+          <div className="flex items-center gap-1 flex-wrap">
+            <Badge className={`${shiftThemeClasses} text-[10px] px-1.5 py-0 border-0`}>
+              {shift.shift_type}
+            </Badge>
+            <Badge variant={getStatusVariant(shift.status)} className="text-[10px] px-1.5 py-0">
+              {shift.status}
+            </Badge>
+          </div>
+          {isUnassigned && (
+            <button 
+              onClick={(e) => { e.stopPropagation(); onClick(); }} 
+              className="text-[9px] font-bold text-primary hover:underline flex items-center gap-0.5"
+            >
+              <UserCheck className="size-2.5" /> Assign
+            </button>
+          )}
         </div>
         
-        {showStaffName && shift.staff_name && (
+        {showStaffName && (
           <div className="flex items-center gap-1.5">
-            <User className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-            <span className="text-xs truncate">{shift.staff_name}</span>
+            <User className={`h-3 w-3 flex-shrink-0 ${isUnassigned ? 'text-amber-500' : 'text-muted-foreground'}`} />
+            <span className={`text-xs truncate ${isUnassigned ? 'text-amber-700 font-black' : ''}`}>
+              {isUnassigned ? 'UNASSIGNED' : shift.staff_name}
+            </span>
           </div>
         )}
 

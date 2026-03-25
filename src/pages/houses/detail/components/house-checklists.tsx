@@ -213,7 +213,15 @@ export function HouseChecklists({
         .from('house_checklist_submissions')
         .select(`
           *,
-          house_checklist_submission_items (id, submission_id, item_id, is_completed, note, completed_at)
+          house_checklist_submission_items (
+            id, 
+            submission_id, 
+            item_id, 
+            status, 
+            notes, 
+            completed_at,
+            completed_by_staff:staff(id, name)
+          )
         `)
         .eq('checklist_id', checklist.id)
         .eq('house_id', houseId)
@@ -226,10 +234,18 @@ export function HouseChecklists({
         // Map submission items to the format expected by the component
         const completedItems: Record<string, boolean> = {};
         const itemNotes: Record<string, string> = {};
+        const completedBy: Record<string, { id: string; name: string }> = {};
         
         data.house_checklist_submission_items.forEach((item: any) => {
-          completedItems[item.item_id] = item.is_completed;
-          itemNotes[item.item_id] = item.note || '';
+          const isDone = item.status === 'Completed';
+          completedItems[item.item_id] = isDone;
+          itemNotes[item.item_id] = item.notes || '';
+          if (isDone && item.completed_by_staff) {
+            completedBy[item.item_id] = {
+              id: item.completed_by_staff.id,
+              name: item.completed_by_staff.name
+            };
+          }
         });
 
         // Fetch existing attachments for this submission
@@ -259,6 +275,7 @@ export function HouseChecklists({
           id: data.id,
           completedItems,
           itemNotes,
+          completedBy,
           attachments
         });
       } else {
@@ -339,8 +356,9 @@ export function HouseChecklists({
     const submissionItems = results.items.map((item: any) => ({
       submission_id: submissionId,
       item_id: item.item_id,
-      is_completed: item.is_completed,
-      note: item.note,
+      status: item.is_completed ? 'Completed' : 'Pending',
+      notes: item.note,
+      completed_by: item.completed_by,
       completed_at: item.is_completed ? new Date().toISOString() : null
     }));
 
@@ -441,7 +459,12 @@ export function HouseChecklists({
         completedItems[item.item_id] = item.is_completed;
         itemNotes[item.item_id] = item.note || '';
       });
-      setActiveSubmission({ id, completedItems, itemNotes });
+      setActiveSubmission(prev => ({ 
+        ...prev, 
+        id, 
+        completedItems, 
+        itemNotes 
+      }));
       refresh();
     } catch (error) {
       console.error('Error saving progress:', error);
@@ -575,16 +598,6 @@ export function HouseChecklists({
     }
   };
 
-  const getFrequencyColor = (frequency: string) => {
-    switch (frequency) {
-      case 'daily': return 'blue';
-      case 'weekly': return 'purple';
-      case 'monthly': return 'orange';
-      case 'quarterly': return 'pink';
-      default: return 'gray';
-    }
-  };
-
   return (
     <>
       <div className="flex flex-col gap-5 lg:gap-7.5" id="checklists">
@@ -649,12 +662,9 @@ export function HouseChecklists({
                   <CardHeader className="pb-3 flex flex-row items-start justify-between space-y-0">
                     <div className="flex flex-col gap-1 min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className={`text-base font-bold text-gray-900 truncate ${isPendingDelete ? 'line-through' : ''}`}>
+                        <h3 className={`text-base font-bold text-gray-900 break-words whitespace-normal ${isPendingDelete ? 'line-through' : ''}`}>
                           {checklist.name}
                         </h3>
-                        <Badge variant="outline" className={`text-[10px] h-4 border-${getFrequencyColor(checklist.frequency)}-200 text-${getFrequencyColor(checklist.frequency)}-600 bg-${getFrequencyColor(checklist.frequency)}-50 px-1 uppercase`}>
-                          {checklist.frequency}
-                        </Badge>
                         {isPendingAdd && (
                           <Badge variant="outline" className="text-[10px] h-4 border-primary-200 text-primary bg-primary/10 px-1 flex items-center gap-1">
                             <Clock className="size-2.5" />
@@ -727,10 +737,9 @@ export function HouseChecklists({
                               {index + 1}
                             </div>
                             <div className="flex flex-col min-w-0">
-                              <span className="text-xs font-medium text-gray-700 truncate">{item.title}</span>
+                              <span className="text-xs font-medium text-gray-700 break-words whitespace-normal">{item.title}</span>
                               {item.is_required && <span className="text-[9px] text-red-500">Required</span>}
-                            </div>
-                          </div>
+                            </div>                          </div>
                         ))
                       )}
                       {remainingCount > 0 && (

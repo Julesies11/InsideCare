@@ -159,7 +159,7 @@ export function Houses() {
 
   const getInitialStatuses = (): string[] => {
     const param = searchParams.get('statuses');
-    if (!param) return ['active', 'inactive']; // default visible
+    if (!param) return ['active']; // default visible: Active only
     return param.split(',').filter((s) => HOUSE_STATUS_OPTIONS.some(opt => opt.value === s));
   };
 

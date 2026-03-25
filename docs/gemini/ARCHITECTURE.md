@@ -20,25 +20,31 @@ The application enforces strict role-based access control (RBAC) via Supabase RL
 
 ### Staff Access
 - **Clinical Awareness**: Staff have `SELECT` access to all Participants and their clinical child entities (medications, routines, notes) to ensure they can provide informed care anywhere.
-- **House-Scoped Access**: Access to operational data (Checklists, Calendars, Resources) is strictly scoped to the houses the staff member is assigned to in `house_staff_assignments`.
-- **Self-Service**: Staff can manage their own profiles, timesheets, and leave requests (while status is `pending`).
+### House Checklist System: Calendar & Shift Integration
+The system supports two distinct operational workflows:
+1.  **House Calendar Tasks**:
+    - **Purpose**: General facility tasks (e.g., "Mop floor", "Fridge Temps").
+    - **Visibility**: Visible to all staff assigned to the House on the Staff Dashboard/Calendar.
+    - **Collaboration**: Multiple staff members can contribute to the same checklist. Each item is signed off individually, recording the specific staff member's ID and name (`completed_by`).
+    - **Attribution**: The UI displays "Signed by [Name]" for each completed task, providing clear accountability within the house.
+2.  **Shift Routines**:
+    - **Purpose**: Role-specific responsibilities (e.g., "Morning Protocol", "Night Routine").
+    - **Shift Templates**: Admins define recurring 7-day coverage requirements (**Shift Templates**). Each template can be pre-linked to one or more Checklists.
+    - **Roster Auto-Fill**: A specialized tool on the Roster Board allows admins to deploy these templates into the calendar. This process creates the shifts and automatically generates the shift-specific checklist assignments (`shift_assigned_checklists`).
+    - **Shift Locking**: To ensure compliance, "Shift Routines" are locked to the specific assigned shift. Staff can only "Start/Resume" a routine if it matches their currently active `shift_id`.
 
-### Non-Recursive Assignment Pattern
-To prevent "Infinite Recursion" errors in RLS:
-- **Rule**: `house_staff_assignments` is configured with a simple `FOR SELECT USING (true)` policy for authenticated users.
-- **Purpose**: This allows the table to act as a stable "lookup" for other tables (like `house_checklists`) to verify assignments without the table querying itself.
-
-## 2. State Management & Data Fetching
-- **TanStack Query**: Used for all data fetching and caching.
-- **Custom Hooks**: Every entity or feature has a dedicated custom hook (e.g., `useParticipants.ts`, `useStaff.ts`) that wraps TanStack Query.
-- **Stable Query Keys**: Ensure consistent and stable query keys across the application.
-
-## 3. Optimized Saving System
+### Optimized Saving System
 The system uses `json-diff-ts` and a custom `useDirtyTracker` hook to optimize database updates.
 
 - **Dirty Tracking**: `useDirtyTracker` compares `formData` with `originalData`.
 - **Differential Updates**: Instead of sending the whole object, only changed fields are sent to Supabase.
 - **Activity Logging Integration**: Changes are automatically logged with detailed before/after metadata.
+
+#### Checklist Item Submission
+For checklists, the saving logic is granular:
+- **Status Mapping**: Item completion is tracked via `status` ('Completed' or 'Pending').
+- **Attribution**: Every item completion event includes the current user's `staff_id` in the `completed_by` column.
+- **Notes & Signs**: Individual task-level notes and staff signatures are persisted to ensure a complete audit trail of facility operations.
 
 ### Pending Changes Management
 For complex entities with child records (like Participants, Staff, or Houses), a "pending changes" pattern is used.

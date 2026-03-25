@@ -29,6 +29,20 @@ export function HouseDetailSidebar() {
       target: 'calendar_events',
     },
     {
+      title: 'Shift Configuration',
+      target: 'shift_configuration',
+      children: [
+        {
+          title: 'Shift Model',
+          target: 'shift_configuration',
+        },
+        {
+          title: 'Shift Templates',
+          target: 'shift_templates',
+        },
+      ]
+    },
+    {
       title: 'Checklist/Comms',
       target: 'checklist_comms_section',
       children: [
@@ -45,10 +59,6 @@ export function HouseDetailSidebar() {
           target: 'checklist_history',
         },
       ]
-    },
-    {
-      title: 'Docs',
-      target: 'documents',
     },
     {
       title: 'Resources',

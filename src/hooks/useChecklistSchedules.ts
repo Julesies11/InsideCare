@@ -11,6 +11,7 @@ export interface ChecklistSchedule {
   rrule: string;
   start_date: string;
   end_date: string | null;
+  target_shift: string;
   is_active: boolean;
 }
 
@@ -60,7 +61,8 @@ export function useChecklistSchedules(houseId?: string) {
           checklist_schedule_id: newSchedule.id,
           house_checklist_id: schedule.house_checklist_id,
           is_checklist_event: true,
-          status: 'scheduled'
+          status: 'scheduled',
+          target_shift: schedule.target_shift
         }));
 
         const { error: eventError } = await supabase

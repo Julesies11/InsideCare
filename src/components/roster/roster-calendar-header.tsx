@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { ChevronLeft, ChevronRight, Copy, Loader2, Settings2, CalendarDays } from 'lucide-react';
 import { ViewMode } from './roster-utils';
 
 interface RosterCalendarHeaderProps {
@@ -34,6 +35,10 @@ interface RosterCalendarHeaderProps {
   
   statusFilter: string;
   onStatusFilterChange: (value: string) => void;
+
+  // Template actions
+  onApplyTemplate?: (weeks: number) => void;
+  isCopying?: boolean;
 }
 
 export function RosterCalendarHeader({
@@ -56,12 +61,15 @@ export function RosterCalendarHeader({
   onShiftTypeFilterChange,
   statusFilter,
   onStatusFilterChange,
+  onApplyTemplate,
+  isCopying = false,
 }: RosterCalendarHeaderProps) {
+  const selectedHouse = houseList.find(h => h.id === houseFilter);
+
   return (
     <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center">
       {/* View Mode and Navigation */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full lg:w-auto">
-        {/* View Mode Toggle Buttons */}
         <div className="flex items-center gap-2">
           <Button 
             variant="outline" 
@@ -89,7 +97,6 @@ export function RosterCalendarHeader({
           </Button>
         </div>
 
-        {/* Date Navigation */}
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => onNavigate('prev')}>
             <ChevronLeft className="h-4 w-4" />
@@ -103,8 +110,8 @@ export function RosterCalendarHeader({
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-2 w-full lg:w-auto">
+      {/* Filters & Bulk Actions */}
+      <div className="flex flex-wrap gap-2 w-full lg:w-auto items-center">
         {showStaffFilter && onStaffFilterChange && (
           <Select value={staffFilter} onValueChange={onStaffFilterChange}>
             <SelectTrigger className="w-full sm:w-[180px]">
@@ -121,19 +128,58 @@ export function RosterCalendarHeader({
           </Select>
         )}
 
-        <Select value={houseFilter} onValueChange={onHouseFilterChange}>
-          <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder="All Houses" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Houses</SelectItem>
-            {houseList.map(house => (
-              <SelectItem key={house.id} value={house.id}>
-                {house.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-1 w-full sm:w-auto">
+          <Select value={houseFilter} onValueChange={onHouseFilterChange}>
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder="All Houses" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Houses</SelectItem>
+              {houseList.map(house => (
+                <SelectItem key={house.id} value={house.id}>
+                  {house.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* Bulk Action for Selected House */}
+          {houseFilter !== 'all' && onApplyTemplate && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  className="size-10 border-primary/20 text-primary hover:bg-primary/5 shrink-0" 
+                  disabled={isCopying}
+                  title={`Templates for ${selectedHouse?.name}`}
+                >
+                  {isCopying ? <Loader2 className="size-4 animate-spin" /> : <Settings2 className="size-4" />}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-64">
+                <div className="px-2 py-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                  Bulk Actions: {selectedHouse?.name}
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => onApplyTemplate(4)} className="cursor-pointer gap-2 py-2">
+                  <CalendarDays className="size-4 text-primary/60" />
+                  <div className="flex flex-col">
+                    <span className="font-bold text-xs">Fill from Templates</span>
+                    <span className="text-[10px] text-muted-foreground">Apply 7-day model for 4 weeks</span>
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onApplyTemplate(12)} className="cursor-pointer gap-2 py-2">
+                  <CalendarDays className="size-4 text-primary/60" />
+                  <div className="flex flex-col">
+                    <span className="font-bold text-xs">Fill for 3 Months</span>
+                    <span className="text-[10px] text-muted-foreground">Apply 7-day model for 12 weeks</span>
+                  </div>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
 
         {showParticipantFilter && onParticipantFilterChange && (
           <Select value={participantFilter} onValueChange={onParticipantFilterChange}>

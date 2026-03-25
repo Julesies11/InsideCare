@@ -1,95 +1,61 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useAuth } from '@/auth/context/auth-context';
 import { Container } from '@/components/common/container';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { HouseChecklistHistory, HouseChecklistHistoryRef } from '../houses/detail/components/house-checklist-history';
 import { useStaffAssignedHouses, AssignedHouse } from '@/hooks/use-staff-assigned-houses';
 import { useHouseChecklists } from '@/hooks/use-house-checklists';
+import { useHouseChecklistEvents, HouseChecklistEvent } from '@/hooks/use-house-checklist-events';
 import { useCurrentStaffShift } from '@/hooks/use-current-staff-shift';
 import { useHandoverIssues } from '@/hooks/use-handover-issues';
-import { House, ClipboardCheck, Loader2, CheckSquare, PlayCircle, Clock, AlertTriangle, CalendarDays, CheckCircle2, ArrowRight } from 'lucide-react';
+import { House, ClipboardCheck, Loader2, CheckSquare, AlertTriangle, CalendarDays, CheckCircle2, ArrowRight } from 'lucide-react';
 import { Toolbar, ToolbarDescription, ToolbarHeading, ToolbarPageTitle } from '@/partials/common/toolbar';
-import { format, subDays } from 'date-fns';
-import { supabase } from '@/lib/supabase';
+import { format } from 'date-fns';
+import { HouseCalendarEvents } from '../houses/detail/components/house-calendar-events';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { cn, getPeriodTheme } from '@/lib/utils';
+import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface HouseChecklistGroupProps {
   house: AssignedHouse['house'];
   todayStr: string;
-  todayDayName: string;
-  showAllTemplates: boolean;
-  onStartChecklist: (checklist: any) => void;
-  onResumeChecklist: (submission: any) => void;
+  onStartChecklist: (checklist: any, event: any) => void;
+  onResumeChecklist: (submission: any, checklist: any, event: any) => void;
   isCurrentShift?: boolean;
+  shiftId?: string;
 }
 
 function HouseChecklistGroup({ 
   house, 
   todayStr, 
-  todayDayName, 
-  showAllTemplates, 
   onStartChecklist, 
   onResumeChecklist,
-  isCurrentShift 
+  isCurrentShift,
+  shiftId
 }: HouseChecklistGroupProps) {
-  const { houseChecklists = [], isLoading } = useHouseChecklists(house.id, todayStr);
+  const { events = [], loading: loadingEvents } = useHouseChecklistEvents(house.id, todayStr, shiftId);
 
-  const todaysAgenda = useMemo(() => {
-    return houseChecklists.filter(cl => {
-      if (cl.frequency === 'daily') return true;
-      if (cl.frequency === 'weekly' && cl.days_of_week?.includes(todayDayName)) return true;
-      return false;
-    });
-  }, [houseChecklists, todayDayName]);
+  const shiftChecklists = events.filter(e => e.id.startsWith('shift-cl-'));
+  const scheduledHouseTasks = events.filter(e => !e.id.startsWith('shift-cl-'));
 
-  const displayedChecklists = showAllTemplates ? houseChecklists : todaysAgenda;
+  if (!loadingEvents && events.length === 0) return null;
 
-  const getFrequencyColor = (frequency: string) => {
-    switch (frequency) {
-      case 'daily': return 'blue';
-      case 'weekly': return 'purple';
-      case 'monthly': return 'orange';
-      case 'quarterly': return 'pink';
-      default: return 'gray';
-    }
-  };
-
-  if (!isLoading && displayedChecklists.length === 0 && !showAllTemplates) return null;
-
-  return (
-    <div className="flex flex-col gap-4 animate-in fade-in duration-500">
-      <div className="flex items-center justify-between border-b pb-2">
-        <div className="flex items-center gap-2">
-          <div className={`p-1.5 rounded-lg ${isCurrentShift ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-            <House className="size-4" />
-          </div>
-          <h3 className="text-lg font-bold text-gray-900">{house.name}</h3>
-          {isCurrentShift && (
-            <Badge className="bg-green-50 text-green-700 border-green-100 font-bold text-[9px] uppercase h-4 px-1.5">
-              Current Shift
-            </Badge>
-          )}
+  const renderTaskGrid = (tasks: HouseChecklistEvent[], title: string, icon: any) => {
+    if (tasks.length === 0) return null;
+    return (
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center gap-2 px-1">
+          {icon}
+          <h4 className="text-xs font-bold text-gray-500 uppercase tracking-widest">{title}</h4>
         </div>
-        <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
-          {displayedChecklists.length} Tasks
-        </span>
-      </div>
-
-      {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-          {[1, 2].map(i => (
-            <Card key={i} className="h-[180px] animate-pulse bg-gray-50/50 border-gray-100" />
-          ))}
-        </div>
-      ) : displayedChecklists.length === 0 ? (
-        <div className="py-6 text-center text-muted-foreground italic text-sm bg-gray-50/30 rounded-xl border border-dashed">
-          No checklists for this house today.
-        </div>
-      ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 lg:gap-7.5">
-          {displayedChecklists.map((checklist) => {
-            const submission = checklist.latest_submission;
+          {tasks.map((item) => {
+            const checklist = item.checklist;
+            if (!checklist) return null;
+
+            const submission = item.latest_submission;
             const isCompleted = submission?.status === 'completed';
             const isInProgress = submission?.status === 'in_progress';
             
@@ -98,16 +64,13 @@ function HouseChecklistGroup({
             const remainingCount = Math.max(0, checklistItems.length - 2);
 
             return (
-              <Card key={checklist.id} className={`flex flex-col h-full transition-all border-l-4 border-0 sm:border ${isCompleted ? 'border-l-green-500 bg-green-50/10' : isInProgress ? 'border-l-primary bg-primary/[0.02]' : 'border-l-gray-300'}`}>
+              <Card key={item.id} className={`flex flex-col h-full transition-all border-l-4 border-0 sm:border ${isCompleted ? 'border-l-green-500 bg-green-50/10' : isInProgress ? 'border-l-primary bg-primary/[0.02]' : 'border-l-gray-300'}`}>
                 <CardHeader className="pb-3 flex flex-row items-start justify-between space-y-0">
                   <div className="flex flex-col gap-1 min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h4 className="text-sm font-bold text-gray-900 truncate">
-                        {checklist.name}
+                      <h4 className="text-sm font-bold text-gray-900 break-words whitespace-normal">
+                        {item.title || checklist.name}
                       </h4>
-                      <Badge variant="outline" className={`text-[8px] h-3.5 border-${getFrequencyColor(checklist.frequency)}-200 text-${getFrequencyColor(checklist.frequency)}-600 bg-${getFrequencyColor(checklist.frequency)}-50 px-1 uppercase font-bold`}>
-                        {checklist.frequency}
-                      </Badge>
                     </div>
                   </div>
                 </CardHeader>
@@ -119,12 +82,28 @@ function HouseChecklistGroup({
                         No items
                       </div>
                     ) : (
-                      previewItems.map((item: any, index: number) => (
-                        <div key={item.id} className="flex items-start gap-2.5 relative z-10">
+                      previewItems.map((cli: any, index: number) => (
+                        <div key={cli.id} className="flex items-start gap-2.5 relative z-10">
                           <div className={`shrink-0 size-4.5 rounded-full flex items-center justify-center text-[9px] font-bold ${isCompleted ? 'bg-green-500 text-white' : 'bg-background border border-muted-foreground/30 text-muted-foreground'}`}>
                             {isCompleted ? <CheckCircle2 className="size-2.5" /> : index + 1}
                           </div>
-                          <span className={`text-[11px] font-medium truncate ${isCompleted ? 'text-gray-400 line-through' : 'text-gray-700'}`}>{item.title}</span>
+                          <div className="flex flex-col min-w-0">
+                            <span className={`text-[11px] font-medium break-words whitespace-normal ${isCompleted ? 'text-gray-400 line-through' : 'text-gray-700'}`}>{cli.title}</span>
+                            {(() => {
+                              const periodName = cli.group?.name || cli.group_title;
+                              if (!periodName) return null;
+                              const theme = getPeriodTheme(periodName, cli.group?.color_theme);
+                              const Icon = theme.icon;
+                              return (
+                                <div className="flex items-center gap-1 mt-0.5">
+                                  <Icon className={cn("size-2", theme.text)} />
+                                  <span className={cn("text-[8px] font-bold uppercase tracking-tighter leading-none", theme.text)}>
+                                    {periodName}
+                                  </span>
+                                </div>
+                              );
+                            })()}
+                          </div>
                         </div>
                       ))
                     )}
@@ -169,12 +148,13 @@ function HouseChecklistGroup({
                     className={`h-8 text-[10px] shadow-sm w-full mt-1 font-bold ${!isCompleted && !isInProgress ? 'border border-gray-300' : ''}`}
                     onClick={() => {
                       if (isInProgress || isCompleted) {
-                        onResumeChecklist(submission);
+                        onResumeChecklist(submission, checklist, item);
                       } else {
-                        onStartChecklist(checklist);
+                        onStartChecklist(checklist, item);
                       }
                     }}
-                    disabled={checklistItems.length === 0}
+                    disabled={checklistItems.length === 0 || (item.is_shift_routine && item.shift_id !== shiftId)}
+                    title={(item.is_shift_routine && item.shift_id !== shiftId) ? "You can only execute routines assigned to your current active shift." : undefined}
                   >
                     {isCompleted ? 'Review Completed' : (isInProgress ? 'Resume Checklist' : 'Start Checklist')}
                     <ArrowRight className="size-3 ms-1.5" />
@@ -183,6 +163,44 @@ function HouseChecklistGroup({
               </Card>
             );
           })}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="flex flex-col gap-6 animate-in fade-in duration-500">
+      <div className="flex items-center justify-between border-b pb-2">
+        <div className="flex items-center gap-2">
+          <div className={`p-1.5 rounded-lg ${isCurrentShift ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+            <House className="size-4" />
+          </div>
+          <h3 className="text-lg font-bold text-gray-900">{house.name}</h3>
+          {isCurrentShift && (
+            <Badge className="bg-green-50 text-green-700 border-green-100 font-bold text-[9px] uppercase h-4 px-1.5">
+              Current Shift
+            </Badge>
+          )}
+        </div>
+        <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
+          {events.length} Tasks
+        </span>
+      </div>
+
+      {loadingEvents ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+          {[1, 2].map(i => (
+            <Card key={i} className="h-[180px] animate-pulse bg-gray-50/50 border-gray-100" />
+          ))}
+        </div>
+      ) : events.length === 0 ? (
+        <div className="py-6 text-center text-muted-foreground italic text-sm bg-gray-50/30 rounded-xl border border-dashed">
+          No tasks for this house today.
+        </div>
+      ) : (
+        <div className="flex flex-col gap-8">
+          {renderTaskGrid(shiftChecklists, "Shift Checklists", <CheckSquare className="size-3 text-primary" />)}
+          {renderTaskGrid(scheduledHouseTasks, "Scheduled House Tasks", <CalendarDays className="size-3 text-gray-400" />)}
         </div>
       )}
     </div>
@@ -194,17 +212,27 @@ export function StaffChecklists() {
   const { data: assignedHouses = [], isLoading: loadingHouses } = useStaffAssignedHouses(user?.staff_id);
   const { data: currentShift, isLoading: loadingShift } = useCurrentStaffShift(user?.staff_id);
   
-  const [showAllTemplates, setShowAllTemplates] = useState(false);
+  const [selectedCalendarHouseId, setSelectedCalendarHouseId] = useState<string | null>(null);
   
   const houseIds = useMemo(() => assignedHouses.map(h => h.house_id), [assignedHouses]);
   const { data: handoverIssues = [], isLoading: loadingHandover } = useHandoverIssues(houseIds);
   
-  const historyRef = useRef<HouseChecklistHistoryRef>(null);
+  const calendarRef = useRef<any>(null);
 
   const todayStr = format(new Date(), 'yyyy-MM-dd');
-  const todayDayName = format(new Date(), 'EEEE');
 
   const isLoading = authLoading || loadingHouses || loadingShift;
+
+  // Set default calendar house to current shift house or first assigned house
+  useEffect(() => {
+    if (!selectedCalendarHouseId && assignedHouses.length > 0) {
+      if (currentShift?.house_id) {
+        setSelectedCalendarHouseId(currentShift.house_id);
+      } else {
+        setSelectedCalendarHouseId(assignedHouses[0].house_id);
+      }
+    }
+  }, [assignedHouses, currentShift, selectedCalendarHouseId]);
 
   // Sort houses so current shift house is first
   const sortedHouses = useMemo(() => {
@@ -214,6 +242,15 @@ export function StaffChecklists() {
       return a.house.name.localeCompare(b.house.name);
     });
   }, [assignedHouses, currentShift]);
+
+  // Hook to get a refresh function for all today's tasks across all houses
+  const queryClient = useQueryClient();
+  const refreshAllTodayTasks = () => {
+    queryClient.invalidateQueries({ queryKey: ['house-checklist-events'] });
+    if (calendarRef.current?.refresh) {
+      calendarRef.current.refresh();
+    }
+  };
 
   return (
     <>
@@ -256,7 +293,7 @@ export function StaffChecklists() {
                     size="sm" 
                     className="border-amber-300 text-amber-700 hover:bg-amber-100 h-9 font-bold text-xs"
                     onClick={() => {
-                      document.getElementById('checklist_history')?.scrollIntoView({ behavior: 'smooth' });
+                      document.getElementById('house_calendar')?.scrollIntoView({ behavior: 'smooth' });
                     }}
                   >
                     REVIEW HANDOVER
@@ -264,23 +301,15 @@ export function StaffChecklists() {
                 </div>
               )}
 
-              {/* Today's Agenda Section */}
+              {/* Today's Tasks Section */}
               <div className="flex flex-col gap-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <CalendarDays className="size-5 text-primary" />
                     <h2 className="text-xl font-bold text-gray-900">
-                      Today's Agenda
+                      Today's Tasks
                     </h2>
                   </div>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="text-primary font-bold text-xs h-8"
-                    onClick={() => setShowAllTemplates(!showAllTemplates)}
-                  >
-                    {showAllTemplates ? "Show Today Only" : "Show All Templates"}
-                  </Button>
                 </div>
 
                 {assignedHouses.length === 0 ? (
@@ -300,26 +329,81 @@ export function StaffChecklists() {
                         key={item.house_id}
                         house={item.house}
                         todayStr={todayStr}
-                        todayDayName={todayDayName}
-                        showAllTemplates={showAllTemplates}
                         isCurrentShift={item.house_id === currentShift?.house_id}
-                        onStartChecklist={(cl) => historyRef.current?.handleStartNew(cl, currentShift?.id)}
-                        onResumeChecklist={(sub) => historyRef.current?.handleResume(sub)}
+                        shiftId={item.house_id === currentShift?.house_id ? currentShift?.id : undefined}
+                        onStartChecklist={(cl, event) => {
+                          if (calendarRef.current) {
+                            if (event) {
+                              calendarRef.current.handleEditEvent({
+                                ...event,
+                                is_checklist_event: true,
+                                house_checklist_id: cl.id,
+                                event_date: todayStr
+                              });
+                            } else {
+                              toast.info('Please select a scheduled checklist from the calendar.');
+                            }
+                          }
+                        }}
+                        onResumeChecklist={(sub, cl, event) => {
+                          if (calendarRef.current) {
+                            calendarRef.current.handleEditEvent({
+                              ...event,
+                              is_checklist_event: true,
+                              house_checklist_id: cl.id,
+                              event_date: todayStr,
+                              submissions: [sub]
+                            });
+                          }
+                        }}
                       />
                     ))}
                   </div>
                 )}
               </div>
 
-              {/* Aggregated History Section */}
+              {/* House Calendar Section */}
               {assignedHouses.length > 0 && (
-                <div className="pt-10 border-t border-gray-100">
-                  <HouseChecklistHistory 
-                    ref={historyRef}
-                    houseId={null} // All assigned houses
-                    assignedHouseIds={assignedHouses.map(h => h.house_id)}
-                    onlyHistory={true} 
-                  />
+                <div className="pt-10 border-t border-gray-100 flex flex-col gap-6" id="house_calendar">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-2">
+                      <ClipboardCheck className="size-5 text-gray-500" />
+                      <h2 className="text-xl font-bold text-gray-900">House Calendar</h2>
+                    </div>
+                    
+                    {assignedHouses.length > 1 && (
+                      <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <span className="text-xs font-bold text-muted-foreground uppercase">Viewing House:</span>
+                        <Select 
+                          value={selectedCalendarHouseId || ''} 
+                          onValueChange={setSelectedCalendarHouseId}
+                        >
+                          <SelectTrigger className="w-[200px] h-9 text-xs font-semibold">
+                            <SelectValue placeholder="Select House" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {assignedHouses.map((h) => (
+                              <SelectItem key={h.house_id} value={h.house_id}>
+                                {h.house.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                  </div>
+
+                  {selectedCalendarHouseId && (
+                    <div className="rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
+                      <HouseCalendarEvents 
+                        ref={calendarRef}
+                        houseId={selectedCalendarHouseId}
+                        staffId={user?.staff_id}
+                        canDelete={false} // Staff cannot delete/manage schedule
+                        onRefreshNeeded={refreshAllTodayTasks}
+                      />
+                    </div>
+                  )}
                 </div>
               )}
             </>

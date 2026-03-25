@@ -6,6 +6,14 @@ export interface HouseChecklistItem {
   checklist_id: string;
   title: string;
   instructions?: string;
+  group_id?: string;
+  group?: {
+    id: string;
+    name: string;
+    short_name?: string;
+    color_theme?: string;
+  };
+  group_title?: string;
   priority: string;
   is_required: boolean;
   sort_order: number;
@@ -34,7 +42,7 @@ export interface HouseChecklist {
 
 const HOUSE_CHECKLIST_COLUMNS = `
   id, house_id, name, frequency, description, master_id, created_at, updated_at,
-  house_checklist_items (id, checklist_id, title, instructions, priority, is_required, sort_order, created_at, updated_at)
+  house_checklist_items (id, checklist_id, title, instructions, group_title, priority, is_required, sort_order, created_at, updated_at)
 `;
 
 export function useHouseChecklists(houseId?: string, scheduledDate?: string) {
@@ -47,11 +55,14 @@ export function useHouseChecklists(houseId?: string, scheduledDate?: string) {
       const { data: checklists, error: clError } = await supabase
         .from('house_checklists')
         .select(`
-          id, house_id, name, frequency, days_of_week, description, master_id, created_at, updated_at,
-          house_checklist_items (id, checklist_id, title, instructions, priority, is_required, sort_order, created_at, updated_at)
+          id, house_id, name, frequency, days_of_week, description, master_id, sort_order, created_at, updated_at,
+          house_checklist_items (
+            id, checklist_id, title, instructions, group_id, group_title, priority, is_required, sort_order, created_at, updated_at,
+            group:house_shift_types(id, name, short_name, color_theme)
+          )
         `)
         .eq('house_id', houseId)
-        .order('created_at', { ascending: false });
+        .order('sort_order', { ascending: true });
 
       if (clError) throw clError;
 

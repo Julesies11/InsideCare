@@ -124,8 +124,8 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
           const { data: clData, error: clError } = await supabase
             .from('house_checklists')
             .select(`
-              id, house_id, name, frequency, description, master_id, created_at, updated_at,
-              house_checklist_items (id, checklist_id, title, instructions, priority, is_required, sort_order, created_at, updated_at)
+              id, house_id, name, type, target_shift, frequency, description, master_id, created_at, updated_at,
+              house_checklist_items (id, checklist_id, title, instructions, group_title, priority, is_required, sort_order, created_at, updated_at)
             `)
             .eq('id', submission.checklist_id)
             .single();

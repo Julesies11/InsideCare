@@ -24,6 +24,21 @@ vi.mock('@/hooks/use-mobile', () => ({
   useIsMobile: () => false,
 }));
 
+// Mock the hooks used in child components to avoid ReferenceErrors in tests
+vi.mock('@/hooks/use-house-shift-types', () => ({
+  useHouseShiftTypes: () => ({
+    shiftTypes: [],
+    isLoading: false
+  })
+}));
+
+vi.mock('@/hooks/use-shift-templates', () => ({
+  useShiftTemplates: () => ({
+    groups: [],
+    isLoading: false
+  })
+}));
+
 describe('RosterBoard', () => {
   beforeEach(() => {
     server.use(
@@ -43,6 +58,15 @@ describe('RosterBoard', () => {
         return HttpResponse.json([]);
       }),
       http.get(`${SUPABASE_URL}/rest/v1/shift_notes`, () => {
+        return HttpResponse.json([]);
+      }),
+      http.get(`${SUPABASE_URL}/rest/v1/house_checklists`, () => {
+        return HttpResponse.json([]);
+      }),
+      http.get(`${SUPABASE_URL}/rest/v1/shift_type_default_checklists`, () => {
+        return HttpResponse.json([]);
+      }),
+      http.get(`${SUPABASE_URL}/rest/v1/shift_template_groups`, () => {
         return HttpResponse.json([]);
       })
     );
@@ -66,10 +90,10 @@ describe('RosterBoard', () => {
   it('allows toggling Group By House', async () => {
     const { user } = renderWithProviders(<RosterBoard />);
     
-    const toggle = await screen.findByLabelText(/group by house/i);
-    expect(toggle).toBeChecked();
+    const toggle = await screen.findByRole('switch', { name: /group by house/i });
+    expect(toggle).toHaveAttribute('aria-checked', 'true');
     
     await user.click(toggle);
-    expect(toggle).not.toBeChecked();
+    await waitFor(() => expect(toggle).toHaveAttribute('aria-checked', 'false'));
   });
 });

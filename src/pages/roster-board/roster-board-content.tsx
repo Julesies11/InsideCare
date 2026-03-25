@@ -1,14 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar, Download } from 'lucide-react';
-import { StaffRosterCalendar } from './components/staff-roster-calendar';
+import { Download, Calendar } from 'lucide-react';
+import { StaffRosterCalendar, StaffRosterCalendarHandle } from './components/staff-roster-calendar';
 import { RosterCalendarHeader } from '@/components/roster/roster-calendar-header';
 import { ViewMode } from '@/components/roster/roster-utils';
 import { supabase } from '@/lib/supabase';
 import { format, addWeeks, addMonths, addDays } from 'date-fns';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { useHouseChecklists } from '@/hooks/use-house-checklists';
 
 interface Staff {
   id: string;
@@ -28,8 +29,8 @@ interface Participant {
   status?: string;
 }
 
-
 export function RosterBoardContent() {
+  const calendarRef = useRef<StaffRosterCalendarHandle>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('week');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedStaffId, setSelectedStaffId] = useState<string>('all');
@@ -44,6 +45,8 @@ export function RosterBoardContent() {
   const [shiftTypeFilter, setShiftTypeFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
+  const { houseChecklists } = useHouseChecklists();
+
   useEffect(() => {
     loadData();
   }, []);
@@ -51,7 +54,7 @@ export function RosterBoardContent() {
   const loadData = async () => {
     setLoading(true);
     
-    // Load staff (only active/non-draft staff with names)
+    // Load staff
     const { data: staffData, error: staffError } = await supabase
       .from('staff')
       .select('id, name, photo_url, status')
@@ -59,15 +62,11 @@ export function RosterBoardContent() {
       .not('name', 'is', null)
       .order('name');
 
-    if (staffError) {
-      console.error('Error loading staff:', staffError);
-    }
-    
     if (!staffError && staffData) {
       setStaff(staffData as Staff[]);
     }
 
-    // Load houses (only active)
+    // Load houses
     const { data: housesData, error: housesError } = await supabase
       .from('houses')
       .select('id, name')
@@ -78,7 +77,7 @@ export function RosterBoardContent() {
       setHouses(housesData);
     }
 
-    // Load participants (only active)
+    // Load participants
     const { data: participantsData, error: participantsError } = await supabase
       .from('participants')
       .select('id, name, status')
@@ -108,11 +107,9 @@ export function RosterBoardContent() {
       return format(currentDate, 'EEEE, MMMM d, yyyy');
     } else if (viewMode === 'week') {
       const weekStart = new Date(currentDate);
-      // Adjust to make Monday the start of the week (0 = Sunday, 1 = Monday, etc.)
       const dayOfWeek = currentDate.getDay();
-      const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // If Sunday, go back 6 days; otherwise go back to Monday
+      const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
       weekStart.setDate(currentDate.getDate() - daysToMonday);
-      
       const weekEnd = new Date(weekStart);
       weekEnd.setDate(weekStart.getDate() + 6);
       return `Week of ${format(weekStart, 'MMM d')} - ${format(weekEnd, 'MMM d, yyyy')}`;
@@ -127,10 +124,10 @@ export function RosterBoardContent() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold">Roster Board</h1>
-          <p className="text-muted-foreground">Manage shift schedules and staff assignments</p>
+          <p className="text-muted-foreground text-sm">Manage shift schedules and staff assignments</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
+          <Button variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
             Export
           </Button>
@@ -138,17 +135,16 @@ export function RosterBoardContent() {
       </div>
 
       {/* Motivational Banner */}
-      <Card className="bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200 dark:from-indigo-950 dark:to-purple-950 dark:border-indigo-800">
+      <Card className="bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200">
         <CardContent className="p-6">
           <div className="flex items-center gap-4">
-            <div className="h-12 w-12 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center">
-              <Calendar className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+            <div className="h-12 w-12 bg-indigo-100 rounded-full flex items-center justify-center">
+              <Calendar className="h-6 w-6 text-indigo-600" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-indigo-900 dark:text-indigo-100">Orchestrating Quality Care</h3>
-              <p className="text-indigo-700 dark:text-indigo-300">
-                Strategic roster management ensures consistent, reliable support for every participant. 
-                Your planning creates stability and continuity in their daily lives.
+              <h3 className="text-lg font-semibold text-indigo-900">Orchestrating Quality Care</h3>
+              <p className="text-indigo-700 text-sm">
+                Strategic roster management ensures consistent, reliable support for every participant.
               </p>
             </div>
           </div>
@@ -157,47 +153,46 @@ export function RosterBoardContent() {
 
       {/* Controls */}
       <Card>
-        <CardContent className="p-6">
-          <div className="space-y-4">
-            {/* Group By House Toggle */}
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="group-by-house"
-                checked={groupByHouse}
-                onCheckedChange={setGroupByHouse}
-              />
-              <Label htmlFor="group-by-house">Group By House</Label>
-            </div>
-            
-            <RosterCalendarHeader
-              viewMode={viewMode}
-              onViewModeChange={setViewMode}
-              currentDate={currentDate}
-              onNavigate={navigatePeriod}
-              getPeriodLabel={getPeriodLabel}
-              showStaffFilter={true}
-              showParticipantFilter={true}
-              staffFilter={selectedStaffId}
-              onStaffFilterChange={setSelectedStaffId}
-              staffList={staff}
-              participantFilter={participantFilter}
-              onParticipantFilterChange={setParticipantFilter}
-              participantList={participants}
-              houseFilter={houseFilter}
-              onHouseFilterChange={setHouseFilter}
-              houseList={houses}
-              shiftTypeFilter={shiftTypeFilter}
-              onShiftTypeFilterChange={setShiftTypeFilter}
-              statusFilter={statusFilter}
-              onStatusFilterChange={setStatusFilter}
+        <CardContent className="p-6 space-y-4">
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="group-by-house"
+              checked={groupByHouse}
+              onCheckedChange={setGroupByHouse}
             />
+            <Label htmlFor="group-by-house">Group By House</Label>
           </div>
+          
+          <RosterCalendarHeader
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            onNavigate={navigatePeriod}
+            getPeriodLabel={getPeriodLabel}
+            showStaffFilter={true}
+            showParticipantFilter={true}
+            staffFilter={selectedStaffId}
+            onStaffFilterChange={setSelectedStaffId}
+            staffList={staff}
+            participantFilter={participantFilter}
+            onParticipantFilterChange={setParticipantFilter}
+            participantList={participants}
+            houseFilter={houseFilter}
+            onHouseFilterChange={setHouseFilter}
+            houseList={houses}
+            shiftTypeFilter={shiftTypeFilter}
+            onShiftTypeFilterChange={setShiftTypeFilter}
+            statusFilter={statusFilter}
+            onStatusFilterChange={setStatusFilter}
+            onApplyTemplate={(weeks) => calendarRef.current?.applyTemplate(weeks)}
+            isCopying={calendarRef.current?.isCopying}
+          />
         </CardContent>
       </Card>
 
       {/* Calendar */}
       {!loading && (
         <StaffRosterCalendar
+          ref={calendarRef}
           staffId={selectedStaffId}
           viewMode={viewMode}
           currentDate={currentDate}
@@ -207,6 +202,7 @@ export function RosterBoardContent() {
           statusFilter={statusFilter}
           canEdit={true}
           groupByHouse={groupByHouse}
+          checklists={houseChecklists}
         />
       )}
     </div>

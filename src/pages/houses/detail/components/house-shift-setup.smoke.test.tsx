@@ -1,0 +1,76 @@
+import { renderWithProviders, screen } from '@/test/test-utils';
+import { HouseShiftSetup } from './house-shift-setup';
+import { describe, it, expect, vi } from 'vitest';
+import { emptyHousePendingChanges } from '@/models/house-pending-changes';
+
+// Mock the hooks used in the component
+vi.mock('@/hooks/use-house-shift-types', () => ({
+  useHouseShiftTypes: () => ({
+    shiftTypes: [
+      { id: '1', name: 'Morning Shift', default_start_time: '07:00:00', default_end_time: '15:00:00', color_theme: 'morning', icon_name: 'Sun' },
+      { id: '2', name: 'Day Shift', default_start_time: '15:00:00', default_end_time: '23:00:00', color_theme: 'day', icon_name: 'CloudSun' }
+    ],
+    isLoading: false
+  })
+}));
+
+vi.mock('@/hooks/use-shift-templates', () => ({
+  useShiftTemplates: () => ({
+    defaults: [],
+    groups: [
+      { 
+        id: 'g1', 
+        name: 'Standard Weekday', 
+        items: [
+          { id: 'i1', shift_type_id: '1', shift_type: { name: 'Morning' }, start_time: '07:00', end_time: '15:00', checklists: [] }
+        ] 
+      }
+    ],
+    isLoading: false
+  })
+}));
+
+vi.mock('@/hooks/use-house-checklists', () => ({
+  useHouseChecklists: () => ({
+    houseChecklists: [],
+    isLoading: false
+  })
+}));
+
+vi.mock('@/hooks/use-houses', () => ({
+  useHouses: () => ({
+    houses: [],
+    isLoading: false
+  })
+}));
+
+describe('HouseShiftSetup Smoke Test', () => {
+  it('renders shift model section', () => {
+    renderWithProviders(
+      <HouseShiftSetup 
+        houseId="test-house-id" 
+        mode="model"
+        pendingChanges={emptyHousePendingChanges}
+        onPendingChangesChange={vi.fn()}
+      />
+    );
+    
+    expect(screen.getByRole('heading', { name: /shift model/i })).toBeInTheDocument();
+    expect(screen.getByText('Morning Shift')).toBeInTheDocument();
+    expect(screen.getByText('Day Shift')).toBeInTheDocument();
+  });
+
+  it('renders shift templates section', () => {
+    renderWithProviders(
+      <HouseShiftSetup 
+        houseId="test-house-id" 
+        mode="templates"
+        pendingChanges={emptyHousePendingChanges}
+        onPendingChangesChange={vi.fn()}
+      />
+    );
+    
+    expect(screen.getByRole('heading', { name: /shift templates/i })).toBeInTheDocument();
+    expect(screen.getByText('Standard Weekday')).toBeInTheDocument();
+  });
+});

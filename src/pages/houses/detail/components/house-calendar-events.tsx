@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, forwardRef, useImperativeHandle } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,17 +7,19 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar, Clock, MapPin, Users, Edit, Trash2, Plus, CalendarDays, ChevronLeft, ChevronRight, Loader2, CheckSquare } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, User, Edit, Trash2, Plus, CalendarDays, ChevronLeft, ChevronRight, Loader2, CheckSquare } from 'lucide-react';
 import { format, addMonths, addWeeks, addDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameDay, isBefore, startOfDay, eachDayOfInterval, eachWeekOfInterval, isSameMonth } from 'date-fns';
 import { useHouseCalendarEvents } from '@/hooks/useHouseCalendarEvents';
 import { useParticipants } from '@/hooks/use-participants';
 import { useStaff } from '@/hooks/use-staff';
 import { useAuth } from '@/auth/context/auth-context';
+import { useHouseChecklists } from '@/hooks/use-house-checklists';
 import { useChecklistSchedules } from '@/hooks/useChecklistSchedules';
 import { HousePendingChanges } from '@/models/house-pending-changes';
 import { HouseCalendarEventTypeCombobox } from './house-calendar-event-type-components/HouseCalendarEventTypeCombobox';
 import { HouseCalendarEventTypeMasterDialog } from './house-calendar-event-type-components/HouseCalendarEventTypeMasterDialog';
 import { HouseCalendarEventAttachments, QueuedAttachment } from './HouseCalendarEventAttachments';
+import { cn, getPeriodTheme } from '@/lib/utils';
 import { HouseChecklistExecution } from './house-checklist-execution';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { supabase } from '@/lib/supabase';
@@ -25,24 +27,31 @@ import { toast } from 'sonner';
 
 interface HouseCalendarEventsProps {
   houseId?: string;
+  staffId?: string;
   canDelete: boolean;
   pendingChanges?: HousePendingChanges;
   onPendingChangesChange?: (changes: HousePendingChanges) => void;
+  onRefreshNeeded?: () => void;
 }
 
 type ViewMode = 'month' | 'week' | 'day';
 
-export function HouseCalendarEvents({ 
+export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({ 
   houseId, 
+  staffId,
   canDelete,
   pendingChanges,
-  onPendingChangesChange 
-}: HouseCalendarEventsProps) {
-  const [viewMode, setViewMode] = useState<ViewMode>('week');
+  onPendingChangesChange,
+  onRefreshNeeded 
+}, ref) => {
+  const [viewMode, setViewMode] = useState<ViewMode>('month');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showEventDialog, setShowEventDialog] = useState(false);
   const [showEventTypeDialog, setShowEventTypeDialog] = useState(false);
   const [showChecklistDialog, setShowChecklistDialog] = useState(false);
+  
+  // Filtering state
+  const [filterTypes, setFilterTypes] = useState<string[]>(['shift', 'checklist', 'meeting', 'appointment', 'clinical', 'other']);
   const [showDeleteChoice, setShowDeleteChoice] = useState(false);
   const [eventToDeleteInstance, setEventToDeleteInstance] = useState<any>(null);
   const [executingChecklist, setExecutingChecklist] = useState<any>(null);
@@ -62,23 +71,41 @@ export function HouseCalendarEvents({
     status: 'scheduled',
     location: '',
     notes: '',
+    house_checklist_id: '',
+    target_shift: 'all',
     existingAttachments: [] as any[],
     queuedAttachments: [] as QueuedAttachment[],
     toDeleteAttachments: [] as string[],
   });
 
-  const { houseCalendarEvents, loading, refresh } = useHouseCalendarEvents(houseId);
+  const { houseCalendarEvents, loading, refresh } = useHouseCalendarEvents(houseId, staffId);
+  const { houseChecklists } = useHouseChecklists(houseId);
   const { deleteSchedule, deleteEvent, loading: deleting } = useChecklistSchedules(houseId);
   const { participants } = useParticipants();
   const { staff } = useStaff();
   const { user } = useAuth();
 
+  // Apply filtering
+  const filteredEvents = useMemo(() => {
+    return houseCalendarEvents.filter(event => {
+      const type = (event.type || 'other').toLowerCase();
+      if (event.is_checklist_event) return filterTypes.includes('checklist');
+      return filterTypes.includes(type);
+    });
+  }, [houseCalendarEvents, filterTypes]);
+
+  const toggleFilter = (type: string) => {
+    setFilterTypes(prev => 
+      prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
+    );
+  };
+
   // Combine existing events with pending adds, filter out pending deletes
   const visibleEvents = useMemo(() => {
-    const existingEvents = houseCalendarEvents.filter(event => !pendingChanges?.calendarEvents.toDelete.includes(event.id));
+    const existingEvents = filteredEvents.filter(event => !pendingChanges?.calendarEvents.toDelete.includes(event.id));
     const pendingAdds = pendingChanges?.calendarEvents.toAdd || [];
     return [...existingEvents, ...pendingAdds];
-  }, [houseCalendarEvents, pendingChanges]);
+  }, [filteredEvents, pendingChanges]);
 
   // Get events for the current view period
   const getEventsForPeriod = useMemo(() => {
@@ -144,6 +171,8 @@ export function HouseCalendarEvents({
       status: 'scheduled',
       location: '',
       notes: '',
+      house_checklist_id: '',
+      target_shift: 'all',
       existingAttachments: [],
       queuedAttachments: [],
       toDeleteAttachments: [],
@@ -167,23 +196,36 @@ export function HouseCalendarEvents({
         const existingSubmission = event.submissions?.[0];
         
         if (existingSubmission) {
-          // Fetch existing submission items to resume
+          // Fetch existing submission items to resume, including staff names
           const { data: subItems } = await supabase
             .from('house_checklist_submission_items')
-            .select('*')
+            .select(`
+              *,
+              completed_by_staff:staff(id, name)
+            `)
             .eq('submission_id', existingSubmission.id);
 
           const completedItems: Record<string, boolean> = {};
           const itemNotes: Record<string, string> = {};
+          const completedBy: Record<string, { id: string; name: string }> = {};
+
           subItems?.forEach(si => {
-            completedItems[si.item_id] = si.is_completed;
-            itemNotes[si.item_id] = si.note || '';
+            const isDone = si.status === 'Completed';
+            completedItems[si.item_id] = isDone;
+            itemNotes[si.item_id] = si.notes || '';
+            if (isDone && si.completed_by_staff) {
+              completedBy[si.item_id] = {
+                id: si.completed_by_staff.id,
+                name: si.completed_by_staff.name
+              };
+            }
           });
 
           setActiveSubmission({
             id: existingSubmission.id,
             completedItems,
-            itemNotes
+            itemNotes,
+            completedBy
           });
         } else {
           setActiveSubmission(null);
@@ -214,6 +256,8 @@ export function HouseCalendarEvents({
       status: event.status || 'scheduled',
       location: event.location || '',
       notes: event.notes || '',
+      house_checklist_id: event.house_checklist_id || '',
+      target_shift: event.target_shift || 'all',
       existingAttachments: event.attachments || [],
       queuedAttachments: [],
       toDeleteAttachments: [],
@@ -224,17 +268,21 @@ export function HouseCalendarEvents({
   const persistChecklistExecution = async (results: any, status: 'in_progress' | 'completed') => {
     if (!selectedEvent || !houseId) return;
 
-    const staffId = staff.find(s => s.auth_user_id === user?.id)?.id;
+    const staffId = (user as any)?.staff_id;
     let submissionId = activeSubmission?.id;
 
     if (!submissionId) {
-      // Create new submission linked to calendar event
+      // Create new submission linked to calendar event OR shift
+      const isShiftRoutine = selectedEvent.is_shift_routine;
+      
       const { data, error } = await supabase
         .from('house_checklist_submissions')
         .insert({
           checklist_id: executingChecklist.id,
           house_id: houseId,
-          calendar_event_id: selectedEvent.id,
+          calendar_event_id: isShiftRoutine ? null : selectedEvent.id,
+          shift_id: isShiftRoutine ? selectedEvent.shift_id : null,
+          shift_type_id: isShiftRoutine ? selectedEvent.shift_type_id : null,
           scheduled_date: selectedEvent.event_date,
           status: status,
           submitted_by: staffId || null,
@@ -265,8 +313,9 @@ export function HouseCalendarEvents({
     const submissionItems = results.items.map((item: any) => ({
       submission_id: submissionId,
       item_id: item.item_id,
-      is_completed: item.is_completed,
-      note: item.note,
+      status: item.is_completed ? 'Completed' : 'Pending',
+      notes: item.note,
+      completed_by: item.completed_by,
       completed_at: item.is_completed ? new Date().toISOString() : null
     }));
 
@@ -308,8 +357,14 @@ export function HouseCalendarEvents({
         completedItems[item.item_id] = item.is_completed;
         itemNotes[item.item_id] = item.note || '';
       });
-      setActiveSubmission({ id, completedItems, itemNotes });
+      setActiveSubmission(prev => ({ 
+        ...prev, 
+        id, 
+        completedItems, 
+        itemNotes 
+      }));
       refresh();
+      if (onRefreshNeeded) onRefreshNeeded();
     } catch (error) {
       console.error('Error saving progress:', error);
       toast.error('Failed to save progress.');
@@ -323,6 +378,7 @@ export function HouseCalendarEvents({
       setExecutingChecklist(null);
       setActiveSubmission(null);
       refresh();
+      if (onRefreshNeeded) onRefreshNeeded();
       toast.success('Checklist completed successfully!');
     } catch (error) {
       console.error('Error completing checklist:', error);
@@ -374,6 +430,9 @@ export function HouseCalendarEvents({
         location: formData.location || null,
         notes: formData.notes || null,
         created_by: user?.id,
+        is_checklist_event: formData.type === 'checklist',
+        house_checklist_id: formData.type === 'checklist' ? formData.house_checklist_id : null,
+        target_shift: formData.target_shift,
       };
 
       let finalEventId: string | null = null;
@@ -600,6 +659,7 @@ export function HouseCalendarEvents({
   };
 
   const getStatusText = (event: any) => {
+    if (event.type === 'shift') return 'Rostered';
     if (event.is_checklist_event) {
       const submission = event.submissions?.[0];
       if (submission?.status === 'completed') return 'Completed';
@@ -619,19 +679,15 @@ export function HouseCalendarEvents({
 
   // Get type color
   const getTypeColor = (event: any) => {
-    // 0. Handle Checklist Status Colors
-    if (event.is_checklist_event) {
-      const submission = event.submissions?.[0];
-      if (submission?.status === 'completed') return 'green';
-      if (submission?.status === 'in_progress') return 'yellow';
-      
-      const eventDate = startOfDay(new Date(event.event_date));
-      const today = startOfDay(new Date());
-      if (isBefore(eventDate, today)) return 'red'; // Overdue
-      return 'blue'; // Scheduled
+    // 0. Handle Shift Colors
+    if (event.type === 'shift') return 'blue';
+
+    // 1. Handle Checklist Colors (Prioritize Period Theme)
+    if (event.is_checklist_event || event.type === 'checklist') {
+      return getPeriodTheme(event.target_shift).color;
     }
 
-    // 1. Check if we have a direct color from the lookup
+    // 2. Check if we have a direct color from the lookup
     if (event.event_type_info?.color) {
       return event.event_type_info.color;
     }
@@ -647,26 +703,55 @@ export function HouseCalendarEvents({
     return 'gray';
   };
 
+  useImperativeHandle(ref, () => ({
+    handleEditEvent,
+    refresh
+  }));
+
   return (
     <>
       <Card className="pb-2.5" id="calendar_events">
         <CardHeader>
-          <div className="flex items-center flex-wrap gap-5">
+          <div className="flex items-center justify-between flex-wrap gap-5">
             <CardTitle className="flex items-center gap-2">
-              <CalendarDays className="size-5" />
-              Calendar Events
+              <CalendarDays className="size-5 text-primary" />
+              House Calendar
             </CardTitle>
-            <div className="flex items-center gap-2">
-              <Select value={viewMode} onValueChange={(value: ViewMode) => setViewMode(value)}>
-                <SelectTrigger className="w-32 h-9">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="day">Day</SelectItem>
-                  <SelectItem value="week">Week</SelectItem>
-                  <SelectItem value="month">Month</SelectItem>
-                </SelectContent>
-              </Select>
+            
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center bg-gray-100 rounded-lg p-1 mr-4">
+                {[
+                  { id: 'shift', label: 'Shifts', color: 'blue' },
+                  { id: 'checklist', label: 'Checklists', color: 'amber' },
+                  { id: 'meeting', label: 'Meetings', color: 'purple' },
+                  { id: 'appointment', label: 'Appts', color: 'orange' },
+                ].map(filter => (
+                  <button
+                    key={filter.id}
+                    onClick={() => toggleFilter(filter.id)}
+                    className={cn(
+                      "px-2.5 py-1 text-[10px] font-bold rounded-md transition-all",
+                      filterTypes.includes(filter.id) 
+                        ? `bg-${filter.color}-500 text-white shadow-sm` 
+                        : "text-gray-500 hover:text-gray-700"
+                    )}
+                  >
+                    {filter.label}
+                  </button>
+                ))}
+              </div>
+              <div className="flex items-center gap-2">
+                <Select value={viewMode} onValueChange={(value: ViewMode) => setViewMode(value)}>
+                  <SelectTrigger className="w-32 h-9">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="day">Day</SelectItem>
+                    <SelectItem value="week">Week</SelectItem>
+                    <SelectItem value="month">Month</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
           <div className="flex items-center justify-between bg-muted/30 p-2 rounded-lg mt-2">
@@ -750,7 +835,7 @@ export function HouseCalendarEvents({
                                     <span className="text-[10px] font-bold text-gray-900 truncate leading-none">{event.title}</span>
                                   </div>                                  <div className="flex flex-col gap-0.5">
                                     <div className="text-[9px] text-gray-600 font-bold uppercase tracking-tighter">
-                                      {event.event_type_info?.name || event.type}
+                                      {event.type === 'shift' ? 'Shift' : (event.event_type_info?.name || event.type)}
                                     </div>
                                     {(event.start_time || event.end_time) && (
                                       <div className="text-[9px] text-muted-foreground font-medium flex items-center gap-1">
@@ -791,7 +876,7 @@ export function HouseCalendarEvents({
                               <div className="flex items-center gap-2 mb-1">
                                 {event.is_checklist_event && <CheckSquare className={`size-4 text-${getTypeColor(event)}-600`} />}
                                 <h4 className="font-bold text-gray-900">{event.title}</h4>                                <Badge variant="outline" className={`text-[10px] border-${getTypeColor(event)}-200 text-${getTypeColor(event)}-700 bg-${getTypeColor(event)}-50 uppercase font-bold`}>
-                                  {event.event_type_info?.name || event.type}
+                                  {event.type === 'shift' ? 'Shift' : (event.event_type_info?.name || event.type)}
                                 </Badge>
                               </div>
                               <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
@@ -879,16 +964,50 @@ export function HouseCalendarEvents({
                                     e.stopPropagation();
                                     handleEditEvent(event);
                                   }}
-                                  className={`px-1.5 py-0.5 rounded text-[10px] font-medium truncate flex items-center gap-1 border ${
+                                  className={`px-1.5 py-1 rounded text-[9px] font-medium flex flex-col gap-0.5 border transition-all hover:scale-[1.02] ${
                                     event.is_checklist_event 
                                       ? `bg-${getTypeColor(event)}-50 text-${getTypeColor(event)}-700 border-${getTypeColor(event)}-200`
                                       : `bg-white text-gray-700 border-gray-200`
                                   }`}
-                                  title={event.title}
+                                  title={`${event.title} (${getStatusText(event)})`}
                                 >
-                                  {event.is_checklist_event && <CheckSquare className="size-2.5 shrink-0" />}
-                                  {!event.is_checklist_event && <div className={`size-1.5 rounded-full bg-${getTypeColor(event)}-500 shrink-0`} />}
-                                  <span className="truncate">{event.title}</span>
+                                  <div className="flex items-center justify-between gap-1">
+                                    <span className="uppercase font-bold text-[8px] opacity-70 truncate flex items-center gap-1">
+                                      {(() => {
+                                        if (event.type === 'shift') {
+                                          return <User className="size-2 shrink-0" />;
+                                        }
+                                        if (event.is_checklist_event) {
+                                          const theme = getPeriodTheme(event.target_shift);
+                                          const Icon = theme.icon;
+                                          return <Icon className="size-2 shrink-0" />;
+                                        }
+                                        return null;
+                                      })()}
+                                      {event.event_type_info?.name || event.type}
+                                    </span>
+                                    <span className={cn(
+                                      "size-1.5 rounded-full shrink-0",
+                                      event.type === 'shift' ? 'bg-blue-500' :
+                                      event.is_checklist_event ? getPeriodTheme(event.target_shift).dot : 
+                                      `bg-${getTypeColor(event)}-500`
+                                    )} />
+                                  </div>
+                                  <div className="font-bold truncate text-gray-900 leading-tight">
+                                    {event.title}
+                                  </div>
+                                  <div className={cn(
+                                    "text-[8px] font-bold uppercase tracking-tighter flex items-center gap-1",
+                                    event.type === 'shift' ? 'text-blue-600' : `text-${getTypeColor(event)}-600`
+                                  )}>
+                                    {event.type === 'shift' && (
+                                      <>
+                                        <Clock className="size-2" />
+                                        {event.start_time} - {event.end_time}
+                                      </>
+                                    )}
+                                    {event.type !== 'shift' && getStatusText(event)}
+                                  </div>
                                 </div>
                               ))}
                             </div>
@@ -932,11 +1051,71 @@ export function HouseCalendarEvents({
               </div>
               <div className="space-y-2">
                 <Label htmlFor="type">Type</Label>
+                <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
+                  <SelectTrigger id="type">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="meeting">Meeting</SelectItem>
+                    <SelectItem value="appointment">Appointment</SelectItem>
+                    <SelectItem value="clinical">Clinical</SelectItem>
+                    <SelectItem value="checklist">Checklist</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {formData.type === 'checklist' && (
+              <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                <Label htmlFor="house_checklist_id">Select Checklist Template *</Label>
+                <Select 
+                  value={formData.house_checklist_id} 
+                  onValueChange={(value) => {
+                    const cl = houseChecklists.find(c => c.id === value);
+                    setFormData({ 
+                      ...formData, 
+                      house_checklist_id: value,
+                      title: cl ? cl.name : formData.title 
+                    });
+                  }}
+                >
+                  <SelectTrigger id="house_checklist_id">
+                    <SelectValue placeholder="Select a checklist template..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {houseChecklists.map((cl) => (
+                      <SelectItem key={cl.id} value={cl.id}>
+                        {cl.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="event_type">Category / Style</Label>
                 <HouseCalendarEventTypeCombobox
                   value={formData.event_type_id || ''}
                   onChange={(value) => setFormData({ ...formData, event_type_id: value })}
                   onManageList={() => setShowEventTypeDialog(true)}
                 />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="target_shift">Period / Shift</Label>
+                <Select value={formData.target_shift} onValueChange={(v) => setFormData({ ...formData, target_shift: v })}>
+                  <SelectTrigger id="target_shift">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Full Day</SelectItem>
+                    <SelectItem value="morning">Morning</SelectItem>
+                    <SelectItem value="day">Day</SelectItem>
+                    <SelectItem value="night">Night</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -1184,4 +1363,4 @@ export function HouseCalendarEvents({
       </Dialog>
     </>
   );
-}
+});

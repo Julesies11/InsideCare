@@ -14,8 +14,11 @@ import { HouseComms } from './components/house-comms';
 import { HouseDocuments } from './components/house-documents';
 import { HouseChecklistHistory } from './components/house-checklist-history';
 import { HouseChecklistSetup } from './components/house-checklist-setup';
+import { HouseShiftSetup } from './components/house-shift-setup';
 import { HouseResources } from './components/house-resources';
+import { HouseRosterWizard } from './components/HouseRosterWizard';
 import { HouseManagement } from './components/house-management';
+import { LayoutDashboard } from 'lucide-react';
 import { HouseTypeCombobox } from './components/house-type-components/HouseTypeCombobox';
 import { HouseTypeMasterDialog } from './components/house-type-components/HouseTypeMasterDialog';
 import { House } from '@/models/house';
@@ -24,6 +27,7 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { logActivity, detectChanges } from '@/lib/activity-logger';
 import { handleSupabaseError } from '@/errors/error-handler';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -116,6 +120,7 @@ export function HouseDetailContent({
   });
 
   const [showHouseTypeDialog, setShowHouseTypeDialog] = useState(false);
+  const [showSetupWizard, setShowSetupWizard] = useState(false);
 
   // Handle scroll position and sidebar stickiness
   useEffect(() => {
@@ -183,6 +188,7 @@ export function HouseDetailContent({
     resources: 0,
     participants: 0,
     comms: 0,
+    shiftConfiguration: 0,
   });
 
   const handleFieldChange = (field: string, value: any) => {
@@ -193,9 +199,18 @@ export function HouseDetailContent({
   };
 
   const handleSave = useCallback(async () => {
-    const currentPending = latestPendingChanges.current;
+    // CRITICAL: Access pendingChanges directly from props scope within the callback 
+    // to ensure we have the absolute latest state during the save operation.
+    const currentPending = pendingChanges || emptyHousePendingChanges;
     const currentFormData = latestFormData.current;
-    if (!house || !id) return;
+    
+    console.log('[DEBUG] handleSave triggered');
+    console.log('[DEBUG] Current Pending Changes:', JSON.stringify(currentPending, null, 2));
+    
+    if (!house || !id) {
+      console.error('[DEBUG] Save aborted: Missing house or ID', { house, id });
+      return;
+    }
 
     try {
       if (onSavingChange) onSavingChange(true);
@@ -492,9 +507,10 @@ export function HouseDetailContent({
               checklist_id: checklistData.id,
               title: item.title,
               instructions: item.instructions || null,
-              priority: item.priority,
-              is_required: item.is_required,
-              sort_order: item.sort_order,
+              group_title: item.group_title || 'Morning',
+              priority: item.priority || 'medium',
+              is_required: !!item.is_required,
+              sort_order: item.sort_order || 0,
               master_item_id: item.master_item_id || null,
             }));
 
@@ -551,9 +567,10 @@ export function HouseDetailContent({
               checklist_id: item.checklist_id,
               title: item.title,
               instructions: item.instructions || null,
-              priority: item.priority,
-              is_required: item.is_required,
-              sort_order: item.sort_order,
+              group_title: item.group_title || 'Morning',
+              priority: item.priority || 'medium',
+              is_required: !!item.is_required,
+              sort_order: item.sort_order || 0,
               master_item_id: item.master_item_id || null,
             });
 
@@ -570,9 +587,10 @@ export function HouseDetailContent({
             .update({
               title: item.title,
               instructions: item.instructions || null,
-              priority: item.priority,
-              is_required: item.is_required,
-              sort_order: item.sort_order,
+              group_title: item.group_title || 'Morning',
+              priority: item.priority || 'medium',
+              is_required: !!item.is_required,
+              sort_order: item.sort_order || 0,
               master_item_id: item.master_item_id || null,
             })
             .eq('id', item.id);
@@ -785,6 +803,256 @@ export function HouseDetailContent({
         }
       }
 
+      // Step 11: Process pending Shift Types (Models)
+      const shiftTypeTempIdMap: Record<string, string> = {};
+
+      if (currentPending.shiftTypes.toAdd.length || currentPending.shiftTypes.toUpdate.length || currentPending.shiftTypes.toDelete.length) {
+        // Fetch current types from cache to perform optimistic merge
+        const currentTypes = queryClient.getQueryData<any[]>(['house-shift-types', id]) || [];
+        let updatedTypes = [...currentTypes];
+
+        if (currentPending.shiftTypes.toAdd.length) {
+          for (const st of currentPending.shiftTypes.toAdd) {
+            const { data: newType, error: typeError } = await supabase
+              .from('house_shift_types')
+              .insert({
+                house_id: id,
+                name: st.name,
+                short_name: st.short_name || null,
+                icon_name: st.icon_name || null,
+                color_theme: st.color_theme || null,
+                default_start_time: st.default_start_time || null,
+                default_end_time: st.default_end_time || null,
+                sort_order: st.sort_order || 0,
+                is_active: st.is_active ?? true,
+              })
+              .select()
+              .single();
+
+            if (typeError) throw new Error(`Failed to add shift model: ${typeError.message}`);
+            
+            shiftTypeTempIdMap[st.tempId] = newType.id;
+            updatedTypes.push(newType);
+
+            if (st.default_checklists && st.default_checklists.length > 0) {
+              const toInsert = st.default_checklists.map(clId => ({
+                shift_type_id: newType.id,
+                checklist_id: clId
+              }));
+              await supabase.from('shift_type_default_checklists').insert(toInsert);
+            }
+          }
+        }
+
+        if (currentPending.shiftTypes.toUpdate.length) {
+          for (const st of currentPending.shiftTypes.toUpdate) {
+            const { data: updatedType, error: typeError } = await supabase
+              .from('house_shift_types')
+              .update({
+                name: st.name,
+                short_name: st.short_name,
+                icon_name: st.icon_name,
+                color_theme: st.color_theme,
+                default_start_time: st.default_start_time,
+                default_end_time: st.default_end_time,
+                sort_order: st.sort_order,
+                is_active: st.is_active,
+              })
+              .eq('id', st.id)
+              .select()
+              .maybeSingle();
+
+            if (typeError) throw new Error(`Failed to update shift model: ${typeError.message}`);
+            
+            if (updatedType) {
+              updatedTypes = updatedTypes.map(t => t.id === st.id ? updatedType : t);
+            }
+
+            if (st.default_checklists !== undefined) {
+              await supabase.from('shift_type_default_checklists').delete().eq('shift_type_id', st.id);
+              if (st.default_checklists.length > 0) {
+                const toInsert = st.default_checklists.map(clId => ({
+                  shift_type_id: st.id,
+                  checklist_id: clId
+                }));
+                await supabase.from('shift_type_default_checklists').insert(toInsert);
+              }
+            }
+          }
+        }
+
+        if (currentPending.shiftTypes.toDelete.length) {
+          for (const stId of currentPending.shiftTypes.toDelete) {
+            const { error } = await supabase.from('house_shift_types').delete().eq('id', stId);
+            if (error) throw new Error(`Failed to delete shift model: ${error.message}`);
+            updatedTypes = updatedTypes.filter(t => t.id !== stId);
+          }
+        }
+
+        // SEED CACHE: Update the shift-types query immediately
+        queryClient.setQueryData(['house-shift-types', id], updatedTypes.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)));
+      }
+
+      // Step 12: Process pending Shift Template Groups
+      const groupTempIdMap: Record<string, string> = {};
+
+      if (currentPending.shiftTemplateGroups.toAdd.length || currentPending.shiftTemplateGroups.toUpdate.length || currentPending.shiftTemplateGroups.toDelete.length) {
+        const currentGroups = queryClient.getQueryData<any[]>(['shift-template-groups', id]) || [];
+        let updatedGroups = [...currentGroups];
+
+        if (currentPending.shiftTemplateGroups.toAdd.length) {
+          for (const group of currentPending.shiftTemplateGroups.toAdd) {
+            const { data: newGroup, error: groupError } = await supabase
+              .from('shift_template_groups')
+              .insert({
+                house_id: id,
+                name: group.name,
+                description: group.description || null,
+              })
+              .select()
+              .single();
+
+            if (groupError) throw new Error(`Failed to add shift template: ${groupError.message}`);
+            
+            groupTempIdMap[group.tempId] = newGroup.id;
+            const finalItems = [];
+
+            if (group.items && group.items.length > 0) {
+              for (const item of group.items) {
+                const shiftTypeId = shiftTypeTempIdMap[item.shift_type_id] || item.shift_type_id;
+                const { data: newItem, error: itemError } = await supabase
+                  .from('shift_template_items')
+                  .insert({
+                    template_group_id: newGroup.id,
+                    shift_type_id: shiftTypeId,
+                    start_time: item.start_time,
+                    end_time: item.end_time,
+                  })
+                  .select()
+                  .single();
+
+                if (itemError) throw new Error(`Failed to add shift to template: ${itemError.message}`);
+
+                if (item.checklist_ids && item.checklist_ids.length > 0) {
+                  const toInsert = item.checklist_ids.map(clId => ({
+                    shift_template_item_id: newItem.id,
+                    checklist_id: clId
+                  }));
+                  await supabase.from('shift_template_item_checklists').insert(toInsert);
+                }
+                finalItems.push(newItem);
+              }
+            }
+            updatedGroups.push({ ...newGroup, items: finalItems });
+          }
+        }
+
+        if (currentPending.shiftTemplateGroups.toUpdate.length) {
+          for (const group of currentPending.shiftTemplateGroups.toUpdate) {
+            const { data: updatedGroup, error } = await supabase
+              .from('shift_template_groups')
+              .update({
+                name: group.name,
+                description: group.description || null,
+              })
+              .eq('id', group.id)
+              .select()
+              .maybeSingle();
+
+            if (error) throw new Error(`Failed to update shift template: ${error.message}`);
+            if (updatedGroup) {
+              updatedGroups = updatedGroups.map(g => g.id === group.id ? { ...g, ...updatedGroup } : g);
+            }
+          }
+        }
+
+        if (currentPending.shiftTemplateGroups.toDelete.length) {
+          for (const groupId of currentPending.shiftTemplateGroups.toDelete) {
+            const { error } = await supabase.from('shift_template_groups').delete().eq('id', groupId);
+            if (error) throw new Error(`Failed to delete shift template: ${error.message}`);
+            updatedGroups = updatedGroups.filter(g => g.id !== groupId);
+          }
+        }
+
+        // SEED CACHE: Update shift-template-groups query immediately
+        queryClient.setQueryData(['shift-template-groups', id], updatedGroups.sort((a, b) => a.name.localeCompare(b.name)));
+      }
+
+      // Step 13: Process pending Shift Template Items (Standalone changes)
+      if (currentPending.shiftTemplateGroups.items.toAdd.length) {
+        for (const item of currentPending.shiftTemplateGroups.items.toAdd) {
+          const groupId = groupTempIdMap[item.template_group_id] || item.template_group_id;
+          const shiftTypeId = shiftTypeTempIdMap[item.shift_type_id] || item.shift_type_id;
+
+          const { data: newItem, error: itemError } = await supabase
+            .from('shift_template_items')
+            .insert({
+              template_group_id: groupId,
+              shift_type_id: shiftTypeId,
+              start_time: item.start_time,
+              end_time: item.end_time,
+            })
+            .select()
+            .single();
+
+          if (itemError) {
+            throw new Error(`Failed to add item to template: ${itemError.message}`);
+          }
+
+          if (item.checklist_ids && item.checklist_ids.length > 0) {
+            const toInsert = item.checklist_ids.map(clId => ({
+              shift_template_item_id: newItem.id,
+              checklist_id: clId
+            }));
+            await supabase.from('shift_template_item_checklists').insert(toInsert);
+          }
+        }
+      }
+
+      if (currentPending.shiftTemplateGroups.items.toUpdate.length) {
+        for (const item of currentPending.shiftTemplateGroups.items.toUpdate) {
+          const { error: itemError } = await supabase
+            .from('shift_template_items')
+            .update({
+              shift_type_id: item.shift_type_id,
+              start_time: item.start_time,
+              end_time: item.end_time,
+            })
+            .eq('id', item.id);
+
+          if (itemError) {
+            throw new Error(`Failed to update template shift: ${itemError.message}`);
+          }
+
+          if (item.checklist_ids !== undefined) {
+            // FULL SYNC: Delete existing and re-insert new set
+            await supabase.from('shift_template_item_checklists').delete().eq('shift_template_item_id', item.id);
+            
+            if (item.checklist_ids.length > 0) {
+              const toInsert = item.checklist_ids.map(clId => ({
+                shift_template_item_id: item.id,
+                checklist_id: clId
+              }));
+              const { error: clError } = await supabase.from('shift_template_item_checklists').insert(toInsert);
+              if (clError) throw clError;
+            }
+          }
+        }
+      }
+
+      if (currentPending.shiftTemplateGroups.items.toDelete.length) {
+        for (const itemId of currentPending.shiftTemplateGroups.items.toDelete) {
+          const { error } = await supabase
+            .from('shift_template_items')
+            .delete()
+            .eq('id', itemId);
+
+          if (error) {
+            throw new Error(`Failed to delete template shift: ${error.message}`);
+          }
+        }
+      }
+
       // Final Step: Log Activity & Refresh
       const updatedHouseData = { ...currentFormData };
       setHouse(houseData);
@@ -801,6 +1069,12 @@ export function HouseDetailContent({
       queryClient.invalidateQueries({ queryKey: ['house-forms', id] });
       queryClient.invalidateQueries({ queryKey: ['house-resources', id] });
       queryClient.invalidateQueries({ queryKey: ['house_comms', { houseId: id }] });
+      
+      // Shift Configuration invalidations
+      queryClient.invalidateQueries({ queryKey: ['house-shift-types', id] });
+      queryClient.invalidateQueries({ queryKey: ['shift-type-defaults', id] });
+      queryClient.invalidateQueries({ queryKey: ['shift-template-groups', id] });
+      queryClient.invalidateQueries({ queryKey: ['shift-template-schedules', id] });
 
       toast.success('All changes saved successfully');
 
@@ -815,6 +1089,7 @@ export function HouseDetailContent({
         resources: (currentPending.resources.toAdd.length || 0) > 0 || (currentPending.resources.toUpdate.length || 0) > 0 || (currentPending.resources.toDelete.length || 0) > 0 ? prev.resources + 1 : prev.resources,
         participants: (currentPending.participants.toAdd.length || 0) > 0 || (currentPending.participants.toUpdate.length || 0) > 0 || (currentPending.participants.toDelete.length || 0) > 0 ? prev.participants + 1 : prev.participants,
         comms: (currentPending.comms.toAdd.length || 0) > 0 ? prev.comms + 1 : prev.comms,
+        shiftConfiguration: (currentPending.shiftTypes.toAdd.length || 0) > 0 || (currentPending.shiftTypes.toUpdate.length || 0) > 0 || (currentPending.shiftTypes.toDelete.length || 0) > 0 || (currentPending.shiftTemplateGroups.toAdd.length || 0) > 0 || (currentPending.shiftTemplateGroups.toUpdate.length || 0) > 0 || (currentPending.shiftTemplateGroups.toDelete.length || 0) > 0 || (currentPending.shiftTemplateGroups.items.toAdd.length || 0) > 0 || (currentPending.shiftTemplateGroups.items.toUpdate.length || 0) > 0 || (currentPending.shiftTemplateGroups.items.toDelete.length || 0) > 0 ? (prev as any).shiftConfiguration + 1 : (prev as any).shiftConfiguration,
       }));
 
       // Clear pending changes after successful save
@@ -829,7 +1104,7 @@ export function HouseDetailContent({
     } finally {
       if (onSavingChange) onSavingChange(false);
     }
-  }, [id, house, user, queryClient, onOriginalDataChange, onFormDataChange, onSavingChange, onPendingChangesChange, isAdmin]);
+  }, [id, house, user, queryClient, onOriginalDataChange, onFormDataChange, onSavingChange, onPendingChangesChange, isAdmin, pendingChanges]);
 
   useEffect(() => {
     if (saveHandlerRef) {
@@ -882,8 +1157,22 @@ export function HouseDetailContent({
       {/* Main Content */}
       <div className="flex flex-col items-stretch grow gap-5 lg:gap-7.5" id="scrollable_content">
           <Card id="house_details">
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>House Details</CardTitle>
+              {isAdmin && (
+                <Button 
+                  variant={house?.is_configured ? "primary" : "warning"} 
+                  size="sm" 
+                  className="gap-2 font-bold shadow-sm"
+                  onClick={() => setShowSetupWizard(true)}
+                >
+                  <LayoutDashboard className="size-4" />
+                  {house?.is_configured 
+                    ? "Setup Wizard" 
+                    : `Resume Setup (${Math.round(((house?.setup_step || 1) / 5) * 100)}%)`
+                  }
+                </Button>
+              )}
             </CardHeader>
             <CardContent>
               <div className="grid gap-5">
@@ -1033,7 +1322,28 @@ export function HouseDetailContent({
               canDelete={canDelete}
               pendingChanges={pendingChanges}
               onPendingChangesChange={onPendingChangesChange}
+              onRefresh={() => setRefreshKeys(prev => ({ ...prev, calendarEvents: prev.calendarEvents + 1 }))}
             />
+
+            <div id="shift_configuration" className="scroll-mt-[var(--header-height)]">
+              <HouseShiftSetup
+                key={`shift-model-${refreshKeys.shiftConfiguration}`}
+                houseId={id!}
+                mode="model"
+                pendingChanges={pendingChanges}
+                onPendingChangesChange={onPendingChangesChange}
+              />
+            </div>
+
+            <div id="shift_templates" className="scroll-mt-[var(--header-height)]">
+              <HouseShiftSetup
+                key={`shift-templates-${refreshKeys.shiftConfiguration}`}
+                houseId={id!}
+                mode="templates"
+                pendingChanges={pendingChanges}
+                onPendingChangesChange={onPendingChangesChange}
+              />
+            </div>
 
             <HouseChecklistHistory
               houseId={id}
@@ -1074,6 +1384,18 @@ export function HouseDetailContent({
         onClose={() => setShowHouseTypeDialog(false)}
         onUpdate={() => {}}
       />
+
+      {id && house && (
+        <HouseRosterWizard
+          open={showSetupWizard}
+          onOpenChange={setShowSetupWizard}
+          houseId={id}
+          houseName={house.name}
+          pendingChanges={pendingChanges}
+          onPendingChangesChange={onPendingChangesChange}
+          initialStep={house.setup_step}
+        />
+      )}
     </div>
   );
 }

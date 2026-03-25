@@ -4,8 +4,9 @@ import { format, isSameDay, isSameMonth, parseISO, isWithinInterval } from 'date
 import { ShiftCard, ShiftCardData } from './shift-card';
 import { generateMonthDays, generateWeekDays, ViewMode } from './roster-utils';
 import { LeaveBlock } from '@/pages/roster-board/components/staff-roster-calendar';
+import { cn } from '@/lib/utils';
 
-interface ShiftCalendarProps {
+export interface ShiftCalendarProps {
   staffId: string;
   viewMode: ViewMode;
   currentDate: Date;
@@ -54,7 +55,7 @@ export function ShiftCalendar({
 }: ShiftCalendarProps) {
   const getShiftsForDate = (date: Date) => {
     return shifts.filter(shift =>
-      isSameDay(parseISO(shift.shift_date), date)
+      shift.shift_date && isSameDay(parseISO(shift.shift_date), date)
     );
   };
 
@@ -71,16 +72,16 @@ export function ShiftCalendar({
 
   const getShiftsForHouseAndDate = (houseId: string, date: Date) => {
     return shifts.filter(shift =>
-      shift.house?.id === houseId && isSameDay(parseISO(shift.shift_date), date)
+      shift.house?.id === houseId && shift.shift_date && isSameDay(parseISO(shift.shift_date), date)
     );
   };
 
   const checkForDoubleBookings = (staffId: string, date: Date, excludeShiftId?: string) => {
     const staffShifts = shifts.filter(shift => 
       shift.staff_id === staffId && 
-      isSameDay(parseISO(shift.shift_date), date) &&
+      shift.shift_date && isSameDay(parseISO(shift.shift_date), date) &&
       shift.id !== excludeShiftId &&
-      shift.status !== 'Cancelled' // Ignore cancelled shifts
+      shift.status !== 'Cancelled'
     );
     return staffShifts.length > 0;
   };
@@ -117,10 +118,6 @@ export function ShiftCalendar({
     const days = generateMonthDays(currentDate);
     const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-    if (groupByHouse && houses.length > 0) {
-      return renderHouseGroupedMonthView(days, weekDays);
-    }
-
     return (
       <div className="space-y-4">
         <div className="grid grid-cols-7 gap-2">
@@ -151,7 +148,7 @@ export function ShiftCalendar({
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-5 w-5 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-1 right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                       onClick={(e) => {
                         e.stopPropagation();
                         onAddShift(day);
@@ -165,103 +162,12 @@ export function ShiftCalendar({
                   {getLeaveForDate(day).map(leave => (
                     <LeaveBlockBadge key={leave.id} leave={leave} />
                   ))}
-                  {dayShifts.map(shift => renderShiftCardWithWarning(shift, day, true))}
+                  {dayShifts.map(shift => renderShiftCardWithWarning(shift, day))}
                 </div>
               </div>
             );
           })}
         </div>
-      </div>
-    );
-  };
-
-  const renderHouseGroupedMonthView = (days: Date[], weekDays: string[]) => {
-    // Group days by weeks
-    const weeks = [];
-    for (let i = 0; i < days.length; i += 7) {
-      weeks.push(days.slice(i, i + 7));
-    }
-
-    // Add 'Unassigned' house to the list if there are any unassigned shifts
-    const allHouses = [...houses];
-    const hasUnassignedShifts = shifts.some(shift => !shift.house);
-    if (hasUnassignedShifts) {
-      allHouses.push({ id: 'unassigned', name: 'Unassigned' });
-    }
-
-    return (
-      <div className="space-y-2">
-        {/* Week headers */}
-        {weeks.map((week, weekIndex) => (
-          <div key={weekIndex} className="space-y-1">
-            {/* Week day headers */}
-            <div className="grid grid-cols-8 gap-1 border-b pb-2">
-              <div className="font-medium text-sm p-2">House</div>
-              {weekDays.map(day => (
-                <div key={day} className="text-center font-medium text-sm p-2">
-                  {day}
-                </div>
-              ))}
-            </div>
-            
-            {/* House rows for this week */}
-            {allHouses.map((house) => (
-              <div key={house.id} className="grid grid-cols-8 gap-1 border-b">
-                {/* House name column */}
-                <div className="font-medium text-sm p-2 bg-muted/50 rounded">
-                  {house.name}
-                </div>
-                
-                {/* Day columns for this house */}
-                {week.map((day, dayIndex) => {
-                  const houseShifts = house.id === 'unassigned' 
-                    ? shifts.filter(shift => !shift.house && isSameDay(parseISO(shift.shift_date), day))
-                    : getShiftsForHouseAndDate(house.id, day);
-                  const isCurrentMonth = isSameMonth(day, currentDate);
-                  const isToday = isSameDay(day, new Date());
-                  
-                  return (
-                    <div
-                      key={dayIndex}
-                      className={`min-h-[80px] p-1 border rounded-lg group relative ${
-                        !isCurrentMonth ? 'bg-muted/30' : 'bg-card'
-                      } ${isToday ? 'ring-2 ring-primary' : ''}`}
-                    >
-                      <div className="flex items-center justify-between mb-1">
-                        <div className={`text-xs font-medium ${!isCurrentMonth ? 'text-muted-foreground' : ''}`}>
-                          {format(day, 'd')}
-                        </div>
-                        {canEdit && isCurrentMonth && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-3 w-3 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onAddShift(day, house.id === 'unassigned' ? undefined : house.id);
-                            }}
-                          >
-                            <Plus className="h-2 w-2" />
-                          </Button>
-                        )}
-                      </div>
-                      
-                      <div className="space-y-1">
-                        {houseShifts.map(shift => renderShiftCardWithWarning(shift, day, true))}
-                        
-                        {houseShifts.length === 0 && (
-                          <div className="text-center py-0 text-muted-foreground text-xs">
-                            No shifts
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ))}
-          </div>
-        ))}
       </div>
     );
   };
@@ -323,69 +229,62 @@ export function ShiftCalendar({
 
   const renderHouseGroupedWeekView = (days: Date[]) => {
     const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    
-    // Add 'Unassigned' house to the list if there are any unassigned shifts
     const allHouses = [...houses];
-    const hasUnassignedShifts = shifts.some(shift => !shift.house);
-    if (hasUnassignedShifts) {
+    if (shifts.some(shift => !shift.house)) {
       allHouses.push({ id: 'unassigned', name: 'Unassigned' });
     }
     
     return (
       <div className="space-y-2">
-        {/* Header row */}
         <div className="grid grid-cols-8 gap-1 border-b pb-2">
-          <div className="font-medium text-sm p-2">House</div>
+          <div className="font-medium text-sm p-2 uppercase tracking-widest text-muted-foreground">House</div>
           {days.map((day, index) => (
             <div key={index} className="text-center font-medium text-sm p-2">
-              <div>{weekDays[day.getDay() === 0 ? 6 : day.getDay() - 1]}</div>
-              <div className="text-lg">{format(day, 'd')}</div>
+              <div className="text-[10px] uppercase font-bold text-muted-foreground">{weekDays[day.getDay() === 0 ? 6 : day.getDay() - 1]}</div>
+              <div className="text-lg font-black">{format(day, 'd')}</div>
             </div>
           ))}
         </div>
         
-        {/* House rows */}
         {allHouses.map((house) => (
-          <div key={house.id} className="grid grid-cols-8 gap-1 border-b">
-            {/* House name column */}
-            <div className="font-medium text-sm p-2 bg-muted/50 rounded">
+          <div key={house.id} className="grid grid-cols-8 gap-1 border-b hover:bg-gray-50/50 transition-colors">
+            <div className="font-bold text-xs p-3 bg-muted/30 flex items-center rounded-l">
               {house.name}
             </div>
             
-            {/* Day columns for this house */}
             {days.map((day, dayIndex) => {
               const houseShifts = house.id === 'unassigned' 
-                ? shifts.filter(shift => !shift.house && isSameDay(parseISO(shift.shift_date), day))
+                ? shifts.filter(shift => shift.shift_date && !shift.house && isSameDay(parseISO(shift.shift_date), day))
                 : getShiftsForHouseAndDate(house.id, day);
               const isToday = isSameDay(day, new Date());
               
               return (
                 <div
                   key={dayIndex}
-                  className={`min-h-[80px] p-1 border rounded-lg group relative ${
-                    isToday ? 'ring-2 ring-primary' : 'bg-card'
-                  }`}
+                  className={cn(
+                    "min-h-[80px] p-1 border border-transparent rounded group relative",
+                    isToday ? "bg-primary/5 ring-1 ring-primary/20" : "bg-white"
+                  )}
                 >
+                  {canEdit && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-4 w-4 p-0 opacity-0 group-hover:opacity-100 transition-opacity absolute top-1 right-1"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onAddShift(day, house.id === 'unassigned' ? undefined : house.id);
+                      }}
+                    >
+                      <Plus className="h-3 w-3" />
+                    </Button>
+                  )}
+                  
                   <div className="space-y-1">
-                    {canEdit && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-4 w-4 p-0 opacity-0 group-hover:opacity-100 transition-opacity absolute top-1 right-1"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onAddShift(day, house.id === 'unassigned' ? undefined : house.id);
-                        }}
-                      >
-                        <Plus className="h-3 w-3" />
-                      </Button>
-                    )}
-                    
                     {houseShifts.map(shift => renderShiftCardWithWarning(shift, day, true))}
-                    
                     {houseShifts.length === 0 && (
-                      <div className="text-center py-1 text-muted-foreground text-xs">
-                        No shifts
+                      <div className="text-center py-4 opacity-0 group-hover:opacity-50">
+                        <span className="text-[9px] text-muted-foreground italic">Empty</span>
                       </div>
                     )}
                   </div>
@@ -398,75 +297,25 @@ export function ShiftCalendar({
     );
   };
 
-  const renderTodayView = () => {
-    const todayShifts = getShiftsForDate(currentDate);
-
-    return (
-      <div className="space-y-4">
-        <div className="text-center p-4 bg-muted rounded-lg group relative">
-          <h3 className="text-lg font-semibold">{format(currentDate, 'EEEE, MMMM d, yyyy')}</h3>
-          {canEdit && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="absolute top-2 right-2 h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-              onClick={(e) => {
-                e.stopPropagation();
-                onAddShift(currentDate);
-              }}
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
-        
-        {getLeaveForDate(currentDate).length > 0 && (
-          <div className="space-y-2">
-            {getLeaveForDate(currentDate).map(leave => (
-              <LeaveBlockBadge key={leave.id} leave={leave} />
-            ))}
-          </div>
-        )}
-        {todayShifts.length > 0 ? (
-          <div className="grid gap-4">
-            {todayShifts.map(shift => renderShiftCardWithWarning(shift, currentDate, false))}
-          </div>
-        ) : (
-          <div className="text-center py-8 text-muted-foreground">
-            No shifts scheduled for today
-            {canEdit && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="mt-4"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onAddShift(currentDate);
-                }}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Shift
-              </Button>
-            )}
-          </div>
-        )}
-      </div>
-    );
-  };
-
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-muted-foreground">Loading shifts...</div>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
 
-  if (viewMode === 'month') {
-    return renderMonthView();
-  } else if (viewMode === 'week') {
-    return renderWeekView();
-  } else {
-    return renderTodayView();
-  }
+  return (
+    <div className="space-y-4">
+      {viewMode === 'today' ? (
+        <div className="grid grid-cols-1 gap-4">
+          {getShiftsForDate(currentDate).map(shift => renderShiftCardWithWarning(shift, currentDate, false))}
+        </div>
+      ) : viewMode === 'week' ? (
+        renderWeekView()
+      ) : (
+        renderMonthView()
+      )}
+    </div>
+  );
 }
