@@ -35,6 +35,7 @@ export interface StaffShift {
   house_id: string | null;
   shift_type: string;
   shift_type_id?: string | null;
+  org_shift_template_id?: string | null;
   status: string;
   notes: string | null;
   created_at?: string;
@@ -150,9 +151,11 @@ export function useRosterData() {
         .select(`
           *,
           shift_type_id,
+          org_shift_template_id,
           house:houses(id, name),
           staff:staff(id, name),
           type_details:house_shift_types(color_theme, icon_name),
+          org_template_details:org_shift_templates(color_theme, icon_name),
           participants:shift_participants(
             participant:participants(id, name)
           ),
@@ -179,18 +182,24 @@ export function useRosterData() {
       }
 
       // Shared mapping logic
-      return (data || []).map(shift => ({
-        ...shift,
-        participants: (shift.participants as any[])?.map((sp) => ({
-          id: sp.participant.id,
-          name: sp.participant.name,
-        })) || [],
-        assigned_checklists: shift.assigned_checklists || [],
-        staff_name: shift.staff?.name || 'Unassigned',
-        duration_hours: calculateDuration(shift.start_time, shift.end_time, shift.shift_date, shift.end_date ?? shift.shift_date),
-        color_theme: (shift as any).type_details?.color_theme,
-        icon_name: (shift as any).type_details?.icon_name,
-      }));
+      return (data || []).map(shift => {
+        // Prioritize Org Templates for styling
+        const colorTheme = (shift as any).org_template_details?.color_theme || (shift as any).type_details?.color_theme;
+        const iconName = (shift as any).org_template_details?.icon_name || (shift as any).type_details?.icon_name;
+
+        return {
+          ...shift,
+          participants: (shift.participants as any[])?.map((sp) => ({
+            id: sp.participant.id,
+            name: sp.participant.name,
+          })) || [],
+          assigned_checklists: shift.assigned_checklists || [],
+          staff_name: shift.staff?.name || 'Unassigned',
+          duration_hours: calculateDuration(shift.start_time, shift.end_time, shift.shift_date, shift.end_date ?? shift.shift_date),
+          color_theme: colorTheme,
+          icon_name: iconName,
+        };
+      });
     } finally {
       setLoading(false);
     }

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -7,13 +7,27 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { AlertCircle, Plus, Trash2, Clock, Calendar, User, Users, Home, AlertTriangle, CheckSquare, Copy, Loader2, ChevronDown, ChevronUp, Zap } from 'lucide-react';
-import { format, parseISO, addDays, startOfWeek } from 'date-fns';
+import { 
+  AlertCircle, 
+  Plus, 
+  Trash2, 
+  Zap, 
+  Calendar, 
+  User, 
+  Users, 
+  Home, 
+  Clock, 
+  AlertTriangle, 
+  CheckSquare, 
+  Loader2, 
+  ChevronDown, 
+  ChevronUp 
+} from 'lucide-react';
+import { format } from 'date-fns';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
-import { HouseChecklistExecution } from '@/pages/houses/detail/components/house-checklist-execution';
-import { useShiftNotes } from '@/hooks/use-shift-notes';
+import { cn, getPeriodTheme } from '@/lib/utils';
+import { useOrgShiftTemplates } from '@/hooks/use-org-shift-templates';
 
 export interface AssignedChecklist {
   id?: string;
@@ -31,6 +45,7 @@ export interface ShiftFormData {
   house_id: string | null;
   shift_type: string;
   shift_type_id?: string | null;
+  org_shift_template_id?: string | null;
   status: string;
   notes: string;
   participant_ids: string[];
@@ -49,6 +64,7 @@ interface ShiftDialogProps {
     end_time: string;
     house_id: string | null;
     shift_type: string;
+    org_shift_template_id?: string | null;
     status: string;
     notes: string | null;
     participant_ids?: string[];
@@ -59,7 +75,7 @@ interface ShiftDialogProps {
   preSelectedHouseId?: string;
   preSelectedShiftTypeId?: string;
   staffList: Array<{ id: string; name: string; photo_url?: string | null; status?: string }>;
-  staffSelectionDisabled: boolean;
+  staffSelectionDisabled?: boolean;
   houses: Array<{ id: string; name: string }>;
   participants: Array<{ id: string; name: string; status?: string; house_id?: string | null }>;
   checklists: any[];
@@ -79,15 +95,16 @@ export function ShiftDialog({
   preSelectedHouseId,
   preSelectedShiftTypeId,
   staffList,
-  staffSelectionDisabled,
-  houses,
-  participants,
-  checklists,
-  shiftTypes,
+  staffSelectionDisabled = false,
+  houses = [],
+  participants = [],
+  checklists = [],
+  shiftTypes = [],
   onSave,
   onDelete,
   readOnly = false,
 }: ShiftDialogProps) {
+  const { templates: orgTemplates } = useOrgShiftTemplates();
   const isEdit = !!shift;
   const [formData, setFormData] = useState<ShiftFormData>({
     staff_id: null,
@@ -97,6 +114,7 @@ export function ShiftDialog({
     end_time: '17:00',
     house_id: null,
     shift_type: 'SIL',
+    org_shift_template_id: null,
     status: 'Scheduled',
     notes: '',
     participant_ids: [],
@@ -107,7 +125,6 @@ export function ShiftDialog({
   const [deleting, setDeleting] = useState(false);
   const [isDuplicating, setIsDuplicating] = useState(false);
   const [showParticipants, setShowParticipants] = useState(false);
-  const [showChecklists, setShowChecklists] = useState(true);
 
   // Sync logic
   useEffect(() => {
@@ -121,6 +138,7 @@ export function ShiftDialog({
           end_time: shift.end_time.substring(0, 5),
           house_id: shift.house_id,
           shift_type: shift.shift_type,
+          org_shift_template_id: shift.org_shift_template_id || null,
           status: shift.status,
           notes: shift.notes || '',
           participant_ids: shift.participant_ids || [],
@@ -138,6 +156,7 @@ export function ShiftDialog({
           end_time: '17:00',
           house_id: initialHouseId,
           shift_type: 'SIL',
+          org_shift_template_id: null,
           status: 'Scheduled',
           notes: '',
           participant_ids: initialHouseId ? participants.filter(p => p.house_id === initialHouseId && p.status === 'active').map(p => p.id) : [],
@@ -145,18 +164,27 @@ export function ShiftDialog({
         };
 
         if (preSelectedShiftTypeId) {
-          const type = shiftTypes.find(t => t.id === preSelectedShiftTypeId);
-          if (type) {
-            baseData.shift_type = type.name;
-            baseData.shift_type_id = type.id;
-            baseData.start_time = type.default_start_time?.substring(0, 5) || '09:00';
-            baseData.end_time = type.default_end_time?.substring(0, 5) || '17:00';
+          const orgTemplate = orgTemplates.find(t => t.id === preSelectedShiftTypeId);
+          if (orgTemplate) {
+            baseData.shift_type = orgTemplate.name;
+            baseData.org_shift_template_id = orgTemplate.id;
+            if (orgTemplate.start_time_default) baseData.start_time = orgTemplate.start_time_default.substring(0, 5);
+            if (orgTemplate.end_time_default) baseData.end_time = orgTemplate.end_time_default.substring(0, 5);
+          } else {
+            const type = shiftTypes.find(t => t.id === preSelectedShiftTypeId);
+            if (type) {
+              baseData.shift_type = type.name;
+              baseData.shift_type_id = type.id;
+              baseData.start_time = type.default_start_time?.substring(0, 5) || '09:00';
+              baseData.end_time = type.default_end_time?.substring(0, 5) || '17:00';
+            }
           }
         }
         setFormData(baseData);
       }
     }
-  }, [open, shift, preSelectedDate, preSelectedHouseId, preSelectedShiftTypeId, participants, staffId, shiftTypes]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, shift, preSelectedDate, preSelectedHouseId, preSelectedShiftTypeId, staffId]);
 
   const handleSave = async () => {
     if (!formData.shift_date || !formData.start_time || !formData.end_time) {
@@ -189,12 +217,52 @@ export function ShiftDialog({
     }));
   };
 
-  const handleShiftTypeChange = (val: string) => {
+  const handleShiftTypeChange = async (val: string) => {
+    const orgTemplate = orgTemplates.find(t => t.id === val);
+    if (orgTemplate) {
+      let checklistsToAssign: AssignedChecklist[] = [];
+      
+      if (orgTemplate.default_checklists && orgTemplate.default_checklists.length > 0 && formData.house_id) {
+        const { data: masterCls } = await supabase
+          .from('checklist_master')
+          .select('id, name')
+          .in('id', orgTemplate.default_checklists);
+        
+        if (masterCls && masterCls.length > 0) {
+          const names = masterCls.map(m => m.name);
+          const { data: houseCls } = await supabase
+            .from('house_checklists')
+            .select('id, name')
+            .eq('house_id', formData.house_id)
+            .in('name', names);
+          
+          if (houseCls) {
+            checklistsToAssign = houseCls.map(hc => ({
+              checklist_id: hc.id,
+              assignment_title: hc.name
+            }));
+          }
+        }
+      }
+
+      setFormData(prev => ({
+        ...prev,
+        org_shift_template_id: orgTemplate.id,
+        shift_type: orgTemplate.name,
+        shift_type_id: null,
+        start_time: orgTemplate.start_time_default ? orgTemplate.start_time_default.substring(0, 5) : prev.start_time,
+        end_time: orgTemplate.end_time_default ? orgTemplate.end_time_default.substring(0, 5) : prev.end_time,
+        assigned_checklists: checklistsToAssign.length > 0 ? checklistsToAssign : prev.assigned_checklists
+      }));
+      return;
+    }
+
     const dynamicType = shiftTypes?.find(st => st.id === val || st.name === val);
     const updatedData = {
       ...formData,
       shift_type_id: dynamicType?.id || null,
-      shift_type: dynamicType?.name || val
+      shift_type: dynamicType?.name || val,
+      org_shift_template_id: null
     };
 
     if (dynamicType?.default_start_time) {
@@ -205,6 +273,20 @@ export function ShiftDialog({
     }
 
     setFormData(updatedData);
+  };
+
+  const handleDelete = async () => {
+    if (!onDelete || !shift) return;
+    if (!confirm('Are you sure you want to delete this shift?')) return;
+    setDeleting(true);
+    try {
+      await onDelete(shift.id);
+      onOpenChange(false);
+    } catch (err: any) {
+      toast.error(`Failed to delete: ${err.message}`);
+    } finally {
+      setDeleting(false);
+    }
   };
 
   return (
@@ -227,54 +309,32 @@ export function ShiftDialog({
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto px-6 py-6 space-y-8 custom-scrollbar bg-white">
-          {/* Quick Fill Section */}
-          {!isEdit && (shiftTypes?.length || 0) > 0 && formData.house_id && (
+          {!isEdit && (orgTemplates?.length > 0 || (shiftTypes?.length || 0) > 0) && formData.house_id && (
             <div className="space-y-3 p-4 bg-primary/[0.03] border border-primary/10 rounded-xl">
               <Label className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
-                <Zap className="size-3 fill-primary" /> Quick Fill from Model
+                <Zap className="size-3 fill-primary" /> Quick Fill Org Shift Templates
               </Label>
               <div className="flex flex-wrap gap-2">
-                {shiftTypes.map(type => {
-                  const theme = getPeriodTheme(type.name, type.color_theme, type.icon_name);
+                {orgTemplates.map(template => {
+                  const theme = getPeriodTheme(template.name, template.color_theme, template.icon_name);
                   const Icon = theme.icon;
-                  const isActive = formData.shift_type_id === type.id;
+                  const isActive = formData.org_shift_template_id === template.id;
 
                   return (
                     <Button
-                      key={type.id}
+                      key={template.id}
                       variant="outline"
                       size="sm"
+                      onClick={() => handleShiftTypeChange(template.id)}
                       className={cn(
-                        "h-9 rounded-full px-4 gap-2 transition-all font-bold border-2",
+                        "h-10 px-4 rounded-xl font-bold uppercase tracking-tight text-[10px] border-2 transition-all flex items-center gap-2",
                         isActive 
-                          ? cn("border-primary bg-primary text-white hover:bg-primary/90 shadow-md scale-105") 
-                          : cn("bg-white hover:border-primary/40 hover:bg-primary/[0.02]")
+                          ? `bg-${theme.color}-50 border-${theme.color}-500 text-${theme.color}-700 shadow-md ring-2 ring-${theme.color}-500/20`
+                          : "bg-white border-gray-100 text-gray-400 hover:border-gray-200 hover:bg-gray-50"
                       )}
-                      onClick={async () => {
-                        // Fetch default checklists for this type
-                        const { data: defaults } = await supabase
-                          .from('shift_type_default_checklists')
-                          .select('checklist:house_checklists(id, name)')
-                          .eq('shift_type_id', type.id);
-
-                        const checklistsToAssign = (defaults || []).map((d: any) => ({
-                          checklist_id: d.checklist.id,
-                          assignment_title: d.checklist.name
-                        }));
-
-                        setFormData(prev => ({
-                          ...prev,
-                          shift_type: type.name,
-                          shift_type_id: type.id,
-                          start_time: type.default_start_time?.substring(0, 5) || prev.start_time,
-                          end_time: type.default_end_time?.substring(0, 5) || prev.end_time,
-                          assigned_checklists: checklistsToAssign
-                        }));
-                        toast.success(`Pre-filled as ${type.name}`);
-                      }}
                     >
-                      <Icon className={cn("size-3.5", isActive ? "text-white" : theme.text)} />
-                      <span className="text-xs">{type.name}</span>
+                      <Icon className={cn("size-3.5", isActive ? `text-${theme.color}-600` : "text-gray-300")} />
+                      {template.name}
                     </Button>
                   );
                 })}
@@ -282,7 +342,6 @@ export function ShiftDialog({
             </div>
           )}
 
-          {/* Primary Row: Staff & House */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1 flex items-center gap-1.5">
@@ -291,7 +350,7 @@ export function ShiftDialog({
               <Select 
                 value={formData.staff_id || 'none'} 
                 onValueChange={val => setFormData({...formData, staff_id: val === 'none' ? null : val})}
-                disabled={readOnly}
+                disabled={readOnly || staffSelectionDisabled}
               >
                 <SelectTrigger className="h-12 text-base font-medium">
                   <SelectValue placeholder="Select staff member" />
@@ -335,24 +394,19 @@ export function ShiftDialog({
             </div>
           </div>
 
-          {/* Secondary Row: Dates & Times */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-gray-100">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">Shift Start</Label>
-                <div className="flex gap-2">
-                  <Input type="date" value={formData.shift_date} onChange={e => setFormData({...formData, shift_date: e.target.value, end_date: e.target.value})} className="h-11 font-bold" disabled={readOnly} />
-                  <Input type="time" value={formData.start_time} onChange={e => setFormData({...formData, start_time: e.target.value})} className="h-11 w-32 font-black" disabled={readOnly} />
-                </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">Shift Start</Label>
+              <div className="flex gap-2">
+                <Input type="date" value={formData.shift_date} onChange={e => setFormData({...formData, shift_date: e.target.value, end_date: e.target.value})} className="h-11 font-bold" disabled={readOnly} />
+                <Input type="time" value={formData.start_time} onChange={e => setFormData({...formData, start_time: e.target.value})} className="h-11 w-32 font-black" disabled={readOnly} />
               </div>
             </div>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">Shift End</Label>
-                <div className="flex gap-2">
-                  <Input type="date" value={formData.end_date} onChange={e => setFormData({...formData, end_date: e.target.value})} className="h-11 font-bold" disabled={readOnly} />
-                  <Input type="time" value={formData.end_time} onChange={e => setFormData({...formData, end_time: e.target.value})} className="h-11 w-32 font-black" disabled={readOnly} />
-                </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">Shift End</Label>
+              <div className="flex gap-2">
+                <Input type="date" value={formData.end_date} onChange={e => setFormData({...formData, end_date: e.target.value})} className="h-11 font-bold" disabled={readOnly} />
+                <Input type="time" value={formData.end_time} onChange={e => setFormData({...formData, end_time: e.target.value})} className="h-11 w-32 font-black" disabled={readOnly} />
               </div>
             </div>
           </div>
@@ -360,28 +414,32 @@ export function ShiftDialog({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-gray-100">
             <div className="space-y-2">
               <Label htmlFor="shift_type" className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">Shift Type *</Label>
-              <Select value={formData.shift_type_id || formData.shift_type} onValueChange={handleShiftTypeChange} disabled={readOnly}>
+              <Select value={formData.org_shift_template_id || formData.shift_type_id || formData.shift_type} onValueChange={handleShiftTypeChange} disabled={readOnly}>
                 <SelectTrigger className="h-11">
                   <SelectValue placeholder="Select type..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {(shiftTypes?.length || 0) > 0 ? (
-                    shiftTypes.map(st => (
-                      <SelectItem key={st.id} value={st.id}>{st.name}</SelectItem>
-                    ))
-                  ) : (
+                  {orgTemplates.length > 0 && (
                     <>
-                      <SelectItem value="SIL">SIL</SelectItem>
-                      <SelectItem value="ILO">ILO</SelectItem>
-                      <SelectItem value="SDA">SDA</SelectItem>
-                      <SelectItem value="Community">Community</SelectItem>
-                      <SelectItem value="Admin">Admin</SelectItem>
+                      <div className="px-2 py-1.5 text-[10px] font-black uppercase tracking-widest text-primary/50">Organization Templates</div>
+                      {orgTemplates.map(t => (
+                        <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                      ))}
+                      <div className="h-px bg-gray-100 my-1" />
+                    </>
+                  )}
+                  {shiftTypes.length > 0 && (
+                    <>
+                      <div className="px-2 py-1.5 text-[10px] font-black uppercase tracking-widest text-gray-400">House Specific</div>
+                      {shiftTypes.map(st => (
+                        <SelectItem key={st.id} value={st.id}>{st.name}</SelectItem>
+                      ))}
                     </>
                   )}
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex flex-col justify-center space-y-2">
+            <div className="space-y-2">
               <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">Status</Label>
               <Select 
                 value={formData.status} 
@@ -401,7 +459,6 @@ export function ShiftDialog({
             </div>
           </div>
 
-          {/* Collapsible: Participants */}
           <div className="border rounded-xl bg-gray-50/30 overflow-hidden">
             <button 
               type="button"
@@ -434,7 +491,6 @@ export function ShiftDialog({
             )}
           </div>
 
-          {/* Section: Checklist Requirements */}
           <div className="space-y-4 pt-6 border-t border-gray-100">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -520,7 +576,7 @@ export function ShiftDialog({
         <DialogFooter className="p-6 bg-gray-50 border-t flex items-center justify-between">
           <div className="flex items-center gap-2">
             {isEdit && !readOnly && (
-              <Button variant="ghost" size="sm" className="text-destructive font-bold gap-2" onClick={() => onDelete && onDelete(shift!.id)} disabled={saving || deleting}>
+              <Button variant="ghost" size="sm" className="text-destructive font-bold gap-2" onClick={handleDelete} disabled={saving || deleting}>
                 <Trash2 className="size-4" /> Delete
               </Button>
             )}

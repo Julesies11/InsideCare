@@ -26,7 +26,7 @@ export const MENU_SIDEBAR: MenuConfig = [
     title: 'House Checklists',
     icon: ClipboardList,
     path: '/staff/checklists',
-    roles: ['staff'],
+    roles: ['admin', 'staff'],
   },
   {
     title: 'My Roster',
