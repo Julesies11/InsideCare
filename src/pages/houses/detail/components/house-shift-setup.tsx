@@ -509,17 +509,48 @@ export function HouseShiftSetup({ houseId, mode = 'both', pendingChanges, onPend
               </div>
 
               <div className="mt-4 pt-4 border-t border-dashed">
-                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3 flex items-center gap-1.5">
                   <CheckSquare className="size-3" /> Default Checklists
                 </p>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="grid grid-cols-1 gap-2.5">
                   {typeDefaults.length > 0 ? (
                     typeDefaults.map(clId => {
-                      const cl = houseChecklists.find(c => c.id === clId);
+                      // First check if it's in our fetched defaults (which has the item data)
+                      const defaultInfo = defaults?.find(d => d.checklist_id === clId);
+                      // Fallback to houseChecklists if not found (though items might be missing depending on how houseChecklists is fetched)
+                      const cl = defaultInfo?.checklist || houseChecklists.find(c => c.id === clId);
+                      
+                      const topItems = cl?.items?.slice(0, 3) || [];
+                      const moreCount = (cl?.items?.length || 0) - 3;
+
                       return (
-                        <Badge key={clId} variant="secondary" className="text-[9px] h-5 font-medium px-2 bg-gray-50 text-gray-600 border-gray-100">
-                          {cl?.name || 'Unknown Checklist'}
-                        </Badge>
+                        <div key={clId} className="bg-gray-50/50 border border-gray-100 rounded-lg p-3 group/cl relative">
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex-1 min-w-0">
+                              <h5 className="font-bold text-[11px] text-gray-900 truncate">{cl?.name || 'Unknown Checklist'}</h5>
+                            </div>
+                          </div>
+
+                          <div className="space-y-1.5">
+                            {topItems.length > 0 ? (
+                              <>
+                                {topItems.map((item: any) => (
+                                  <div key={item.id} className="flex items-start gap-2">
+                                    <div className="size-1 rounded-full bg-gray-300 mt-1.5 shrink-0" />
+                                    <span className="text-[10px] text-gray-600 line-clamp-1 leading-tight">{item.title}</span>
+                                  </div>
+                                ))}
+                                {moreCount > 0 && (
+                                  <p className="text-[9px] text-primary/60 font-medium pl-3 mt-1">
+                                    + {moreCount} more tasks...
+                                  </p>
+                                )}
+                              </>
+                            ) : (
+                              <p className="text-[9px] text-muted-foreground italic pl-1">No tasks defined</p>
+                            )}
+                          </div>
+                        </div>
                       );
                     })
                   ) : (
@@ -802,7 +833,6 @@ export function HouseShiftSetup({ houseId, mode = 'both', pendingChanges, onPend
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1 min-w-0">
                           <h5 className="font-bold text-sm text-gray-900 truncate pr-6">{cl.name}</h5>
-                          <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">{cl.frequency}</p>
                         </div>
                         <div className={cn(
                           "size-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors",

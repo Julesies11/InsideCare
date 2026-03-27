@@ -28,13 +28,11 @@ export function ChecklistMasterPage() {
   
   const [formData, setFormData] = useState<{
     name: string;
-    frequency: string;
     days_of_week: string[];
     description: string;
     items: Array<{ id?: string; tempId?: string; title: string; instructions?: string; group_title?: string; priority?: string; is_required?: boolean; sort_order?: number }>;
   }>({
     name: '',
-    frequency: 'daily',
     days_of_week: [],
     description: '',
     items: [],
@@ -70,7 +68,6 @@ export function ChecklistMasterPage() {
     setSelectedTemplate(null);
     const initialData: typeof formData = {
       name: '',
-      frequency: 'daily',
       days_of_week: [],
       description: '',
       items: [],
@@ -84,7 +81,6 @@ export function ChecklistMasterPage() {
     setSelectedTemplate(template);
     const initialData: typeof formData = {
       name: template.name,
-      frequency: template.frequency,
       days_of_week: template.days_of_week || [],
       description: template.description || '',
       items: template.items || [],
@@ -122,7 +118,6 @@ export function ChecklistMasterPage() {
           .from('checklist_master')
           .update({
             name: formData.name,
-            frequency: formData.frequency,
             days_of_week: formData.days_of_week || null,
             description: formData.description,
           })
@@ -133,7 +128,6 @@ export function ChecklistMasterPage() {
           .from('checklist_master')
           .insert({
             name: formData.name,
-            frequency: formData.frequency,
             days_of_week: formData.days_of_week || null,
             description: formData.description,
           })

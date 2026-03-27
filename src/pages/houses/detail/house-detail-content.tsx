@@ -50,6 +50,7 @@ const stickySidebarClasses: Record<string, string> = {
 interface HouseDetailContentProps {
   onFormDataChange?: (data: Record<string, any>) => void;
   onOriginalDataChange?: (data: Record<string, any>) => void;
+  onHouseChange?: (house: House) => void;
   onSavingChange?: (saving: boolean) => void;
   saveHandlerRef?: React.MutableRefObject<(() => Promise<void>) | null>;
   pendingChanges?: HousePendingChanges;
@@ -59,6 +60,7 @@ interface HouseDetailContentProps {
 export function HouseDetailContent({
   onFormDataChange,
   onOriginalDataChange,
+  onHouseChange,
   onSavingChange,
   saveHandlerRef,
   pendingChanges,
@@ -120,7 +122,6 @@ export function HouseDetailContent({
   });
 
   const [showHouseTypeDialog, setShowHouseTypeDialog] = useState(false);
-  const [showSetupWizard, setShowSetupWizard] = useState(false);
 
   // Handle scroll position and sidebar stickiness
   useEffect(() => {
@@ -135,13 +136,14 @@ export function HouseDetailContent({
         setLoading(true);
         const { data, error } = await supabase
           .from('houses')
-          .select('id, name, branch_id, address, phone, house_type_id, capacity, current_occupancy, house_manager, status, notes, individuals_breakdown, participant_dynamics, observations, general_house_details, created_at, updated_at')
+          .select('id, name, branch_id, address, phone, house_type_id, capacity, current_occupancy, house_manager, status, notes, individuals_breakdown, participant_dynamics, observations, general_house_details, is_configured, setup_step, created_at, updated_at')
           .eq('id', id)
           .single();
 
         if (error) throw error;
 
         setHouse(data);
+        if (onHouseChange) onHouseChange(data);
         const houseData = {
           name: data.name || '',
           address: data.address || '',
@@ -177,7 +179,7 @@ export function HouseDetailContent({
     };
 
     fetchHouse();
-  }, [id, queryClient, onFormDataChange, onOriginalDataChange]);
+  }, [id, queryClient, onFormDataChange, onOriginalDataChange, onHouseChange]);
 
   const [refreshKeys, setRefreshKeys] = useState({
     staff: 0,
@@ -489,7 +491,6 @@ export function HouseDetailContent({
             .insert({
               house_id: id,
               name: checklist.name,
-              frequency: checklist.frequency,
               days_of_week: checklist.days_of_week || null,
               description: checklist.description || null,
               master_id: checklist.master_id || null,
@@ -532,7 +533,6 @@ export function HouseDetailContent({
             .from('house_checklists')
             .update({
               name: checklist.name,
-              frequency: checklist.frequency,
               days_of_week: checklist.days_of_week || null,
               description: checklist.description || null,
             })
@@ -1159,20 +1159,6 @@ export function HouseDetailContent({
           <Card id="house_details">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>House Details</CardTitle>
-              {isAdmin && (
-                <Button 
-                  variant={house?.is_configured ? "primary" : "warning"} 
-                  size="sm" 
-                  className="gap-2 font-bold shadow-sm"
-                  onClick={() => setShowSetupWizard(true)}
-                >
-                  <LayoutDashboard className="size-4" />
-                  {house?.is_configured 
-                    ? "Setup Wizard" 
-                    : `Resume Setup (${Math.round(((house?.setup_step || 1) / 5) * 100)}%)`
-                  }
-                </Button>
-              )}
             </CardHeader>
             <CardContent>
               <div className="grid gap-5">
@@ -1335,7 +1321,7 @@ export function HouseDetailContent({
               />
             </div>
 
-            <div id="shift_templates" className="scroll-mt-[var(--header-height)]">
+            {/* <div id="shift_templates" className="scroll-mt-[var(--header-height)]">
               <HouseShiftSetup
                 key={`shift-templates-${refreshKeys.shiftConfiguration}`}
                 houseId={id!}
@@ -1343,7 +1329,7 @@ export function HouseDetailContent({
                 pendingChanges={pendingChanges}
                 onPendingChangesChange={onPendingChangesChange}
               />
-            </div>
+            </div> */}
 
             <HouseChecklistHistory
               houseId={id}
@@ -1384,18 +1370,6 @@ export function HouseDetailContent({
         onClose={() => setShowHouseTypeDialog(false)}
         onUpdate={() => {}}
       />
-
-      {id && house && (
-        <HouseRosterWizard
-          open={showSetupWizard}
-          onOpenChange={setShowSetupWizard}
-          houseId={id}
-          houseName={house.name}
-          pendingChanges={pendingChanges}
-          onPendingChangesChange={onPendingChangesChange}
-          initialStep={house.setup_step}
-        />
-      )}
     </div>
   );
 }

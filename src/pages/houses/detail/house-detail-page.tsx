@@ -1,7 +1,8 @@
 import { Fragment, useState, useRef, useCallback, useEffect } from 'react';
+import { useParams } from 'react-router';
 import { Container } from '@/components/common/container';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, LayoutDashboard } from 'lucide-react';
 import { HouseDetailContent } from './house-detail-content';
 import {
   Toolbar,
@@ -13,11 +14,18 @@ import {
 import { useDirtyTracker } from '@/hooks/useDirtyTracker';
 import { useUpdateHouse } from '@/hooks/use-houses';
 import { HousePendingChanges, emptyHousePendingChanges } from '@/models/house-pending-changes';
+import { House } from '@/models/house';
+import { useAuth } from '@/auth/context/auth-context';
+import { HouseRosterWizard } from './components/HouseRosterWizard';
 
 export function HouseDetailPage() {
+  const { id } = useParams<{ id: string }>();
   const { mutateAsync: updateHouse } = useUpdateHouse();
+  const { isAdmin } = useAuth();
   const [formData, setFormData] = useState<Record<string, any> | null>(null);
   const [originalData, setOriginalData] = useState<Record<string, any> | null>(null);
+  const [house, setHouse] = useState<House | null>(null);
+  const [showSetupWizard, setShowSetupWizard] = useState(false);
   const [pendingChanges, setPendingChanges] = useState<HousePendingChanges>(emptyHousePendingChanges);
   const [saving, setSaving] = useState(false);
   const saveHandlerRef = useRef<(() => Promise<void>) | null>(null);
@@ -77,10 +85,25 @@ export function HouseDetailPage() {
               </div>
             </ToolbarHeading>
             <ToolbarActions>
+              {isAdmin && (
+                <Button 
+                  variant={house?.is_configured ? "outline" : "warning"} 
+                  size="sm" 
+                  className="gap-2 font-bold shadow-sm"
+                  onClick={() => setShowSetupWizard(true)}
+                >
+                  <LayoutDashboard className="size-4" />
+                  {house?.is_configured 
+                    ? "Setup Wizard" 
+                    : `Resume Setup (${Math.round(((house?.setup_step || 1) / 3) * 100)}%)`
+                  }
+                </Button>
+              )}
               <Button 
                 onClick={handleSave} 
                 disabled={!isDirty || saving}
                 variant={isDirty ? 'primary' : 'secondary'}
+                size="sm"
               >
                 {saving ? 'Saving...' : 'Save Changes'}
               </Button>
@@ -92,12 +115,26 @@ export function HouseDetailPage() {
         <HouseDetailContent 
           onFormDataChange={setFormData}
           onOriginalDataChange={setOriginalData}
+          onHouseChange={setHouse}
           onSavingChange={setSaving}
           saveHandlerRef={saveHandlerRef}
           pendingChanges={pendingChanges}
           onPendingChangesChange={setPendingChanges}
         />
       </Container>
+
+      {id && house && (
+        <HouseRosterWizard
+          open={showSetupWizard}
+          onOpenChange={setShowSetupWizard}
+          houseId={id}
+          houseName={house.name}
+          pendingChanges={pendingChanges}
+          onPendingChangesChange={setPendingChanges}
+          initialStep={house.setup_step}
+        />
+      )}
     </Fragment>
   );
 }
+

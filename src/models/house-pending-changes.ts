@@ -83,7 +83,6 @@ export interface HousePendingChanges {
     toAdd: Array<{
       tempId: string;
       name: string;
-      frequency: string;
       days_of_week?: string[];
       description?: string;
       master_id?: string;
@@ -99,7 +98,6 @@ export interface HousePendingChanges {
     toUpdate: Array<{
       id: string;
       name?: string;
-      frequency?: string;
       days_of_week?: string[];
       description?: string;
       master_id?: string;

@@ -2,23 +2,14 @@ import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { CheckCircle2, ChevronRight, ChevronLeft, LayoutDashboard, Clock, CalendarDays, Send, Plus, Trash2, Edit, X, Download, Loader2 } from 'lucide-react';
-import { cn, getPeriodTheme } from '@/lib/utils';
-import { useHouseShiftTypes, HouseShiftType } from '@/hooks/use-house-shift-types';
-import { useHouseChecklists } from '@/hooks/use-house-checklists';
-import { useShiftTemplates } from '@/hooks/use-shift-templates';
-import { useHouses } from '@/hooks/use-houses';
+import { CheckCircle2, ChevronRight, ChevronLeft, Clock, CalendarDays, Send, Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useHouseShiftTypes } from '@/hooks/use-house-shift-types';
 import { HousePendingChanges } from '@/models/house-pending-changes';
 import { HouseChecklistSetup } from './house-checklist-setup';
 import { HouseShiftSetup } from './house-shift-setup';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
-import { Checkbox } from '@/components/ui/checkbox';
 
 interface HouseRosterWizardProps {
   open: boolean;
@@ -33,8 +24,7 @@ interface HouseRosterWizardProps {
 const STEPS = [
   { id: 1, title: 'Shift Model', description: 'Define work periods', icon: Clock },
   { id: 2, title: 'Calendar Tasks', description: 'Facility routines', icon: CalendarDays },
-  { id: 3, title: 'Shift Templates', description: 'Titled shift groups', icon: LayoutDashboard },
-  { id: 4, title: 'Review', description: 'Finalize setup', icon: Send },
+  { id: 3, title: 'Review', description: 'Finalize setup', icon: Send },
 ];
 
 export function HouseRosterWizard({ open, onOpenChange, houseId, houseName, pendingChanges, onPendingChangesChange, initialStep = 1 }: HouseRosterWizardProps) {
@@ -42,12 +32,7 @@ export function HouseRosterWizard({ open, onOpenChange, houseId, houseName, pend
   const [currentStep, setCurrentStep] = useState(initialStep);
   const [isSaving, setIsSaving] = useState(false);
   
-  const { shiftTypes, isLoading: loadingShifts } = useHouseShiftTypes(houseId);
-  const { houseChecklists, isLoading: loadingChecklists } = useHouseChecklists(houseId);
-  const { groups: templates, isLoading: loadingTemplates } = useShiftTemplates(houseId);
-  const { houses: allHouses } = useHouses(0, 100);
-
-  const [showImportTemplate, setShowImportTemplate] = useState(false);
+  const { shiftTypes } = useHouseShiftTypes(houseId);
   
   // Sync step if initialStep changes
   useEffect(() => {
@@ -82,7 +67,7 @@ export function HouseRosterWizard({ open, onOpenChange, houseId, houseName, pend
       const { error } = await supabase
         .from('houses')
         .update({ 
-          setup_step: 4,
+          setup_step: 3,
           is_configured: true,
           status: 'active'
         })
@@ -114,7 +99,7 @@ export function HouseRosterWizard({ open, onOpenChange, houseId, houseName, pend
                 Assign <strong>Default Checklists</strong> to each shift type to automate your operational setup.
               </p>
             </div>
-            <HouseShiftSetup houseId={houseId} />
+            <HouseShiftSetup houseId={houseId} mode="model" />
           </div>
         );
       case 2:
@@ -140,18 +125,6 @@ export function HouseRosterWizard({ open, onOpenChange, houseId, houseName, pend
         );
       case 3:
         return (
-          <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-            <div className="bg-primary/5 border border-primary/10 rounded-xl p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Step 3: Shift Templates</h3>
-              <p className="text-sm text-muted-foreground">
-                Create titled shift groups (e.g., "Standard Weekday", "Christmas Day") to allow for flexible, bulk roster deployment.
-              </p>
-            </div>
-            <HouseShiftSetup houseId={houseId} />
-          </div>
-        );
-      case 4:
-        return (
           <div className="space-y-6 text-center py-12 animate-in zoom-in-95 duration-500">
             <div className="size-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
               <CheckCircle2 className="size-10 text-green-600" />
@@ -171,10 +144,6 @@ export function HouseRosterWizard({ open, onOpenChange, houseId, houseName, pend
                 <li className="flex items-center gap-2 text-sm font-medium">
                   <div className="size-1.5 rounded-full bg-green-500" />
                   Calendar tasks defined
-                </li>
-                <li className="flex items-center gap-2 text-sm font-medium">
-                  <div className="size-1.5 rounded-full bg-green-500" />
-                  {templates.length} Shift Templates defined
                 </li>
               </ul>
             </div>

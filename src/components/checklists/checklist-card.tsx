@@ -9,7 +9,6 @@ interface ChecklistCardProps {
     id?: string;
     tempId?: string;
     name: string;
-    frequency: string;
     description?: string;
     items?: Array<{
       id?: string;
@@ -41,15 +40,6 @@ export function ChecklistCard({
   showTasksPreview = true
 }: ChecklistCardProps) {
   const checklistItems = checklist.items || [];
-  
-  const getFrequencyColor = (frequency: string) => {
-    const freq = frequency?.toLowerCase() || '';
-    if (freq === 'daily') return 'blue';
-    if (freq.startsWith('weekly')) return 'purple';
-    if (freq === 'monthly') return 'orange';
-    if (freq === 'quarterly') return 'pink';
-    return 'gray';
-  };
 
   return (
     <Card 

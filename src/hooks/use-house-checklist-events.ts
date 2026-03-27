@@ -16,7 +16,6 @@ export interface HouseChecklistEvent {
   checklist?: {
     id: string;
     name: string;
-    frequency: string;
     description: string;
     items: HouseChecklistItem[];
   };
@@ -114,15 +113,14 @@ export function useHouseChecklistEvents(houseId?: string, date?: string, shiftId
 
       // 4. Fetch the actual checklist details for all identified checklists
       const checklistIds = [...new Set(combinedEvents.map(e => e.house_checklist_id))];
-      
       const { data: checklists, error: clError } = await supabase
         .from('house_checklists')
         .select(`
           id, 
           name, 
-          frequency, 
           description,
           items:house_checklist_items(
+      ...
             id, 
             checklist_id, 
             title, 

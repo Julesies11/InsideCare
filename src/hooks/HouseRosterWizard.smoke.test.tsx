@@ -50,22 +50,12 @@ describe('HouseRosterWizard Smoke Test', () => {
     expect(screen.getByText('Morning')).toBeInTheDocument();
   });
 
-  it('renders without crashing at Step 3 (Shift Templates)', () => {
+  it('renders without crashing at Step 3 (Review)', () => {
     renderWithProviders(<HouseRosterWizard {...defaultProps} />);
     const continueBtn = screen.getByText(/Continue/i);
     fireEvent.click(continueBtn); // to Step 2
     fireEvent.click(continueBtn); // to Step 3
-    expect(screen.getByText(/Step 3: Shift Templates/i)).toBeInTheDocument();
-  });
-
-  it('renders without crashing at Step 4 (Review)', () => {
-    renderWithProviders(<HouseRosterWizard {...defaultProps} />);
-    const continueBtn = screen.getByText(/Continue/i);
-    fireEvent.click(continueBtn); // to Step 2
-    fireEvent.click(continueBtn); // to Step 3
-    fireEvent.click(continueBtn); // to Step 4
     
     expect(screen.getByText(/Ready to Go!/i)).toBeInTheDocument();
-    expect(screen.getByText(/Shift Templates defined/i)).toBeInTheDocument();
   });
 });

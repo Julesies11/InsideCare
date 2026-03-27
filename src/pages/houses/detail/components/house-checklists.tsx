@@ -49,13 +49,11 @@ export function HouseChecklists({
   const [selectedItem, setSelectedItem] = useState<{ id?: string; tempId?: string; title: string; instructions?: string; priority?: string; is_required?: boolean; sort_order?: number } | null>(null);
   const [checklistFormData, setChecklistFormData] = useState<{
     name: string;
-    frequency: string;
     description: string;
     master_id?: string;
     items: Array<{ id?: string; tempId?: string; title: string; instructions?: string; priority?: string; is_required?: boolean; sort_order?: number }>;
   }>({
     name: '',
-    frequency: 'daily',
     description: '',
     master_id: undefined,
     items: [],
@@ -74,7 +72,6 @@ export function HouseChecklists({
     setSelectedChecklist(null);
     setChecklistFormData({
       name: '',
-      frequency: 'daily',
       description: '',
       master_id: undefined,
       items: [],
@@ -82,11 +79,10 @@ export function HouseChecklists({
     setShowChecklistDialog(true);
   };
 
-  const handleEditChecklist = (checklist: { id?: string; tempId?: string; name: string; frequency: string; description?: string; master_id?: string; items?: any[] }) => {
+  const handleEditChecklist = (checklist: { id?: string; tempId?: string; name: string; description?: string; master_id?: string; items?: any[] }) => {
     setSelectedChecklist(checklist);
     setChecklistFormData({
       name: checklist.name,
-      frequency: checklist.frequency,
       description: checklist.description || '',
       master_id: checklist.master_id,
       items: checklist.items || [],
@@ -504,7 +500,6 @@ export function HouseChecklists({
       house_id: houseId,
       master_id: template.id,
       name: template.name,
-      frequency: template.frequency,
       description: template.description,
       items: (template.items || []).map((item: any) => ({
         tempId: `temp-item-${Date.now()}-${Math.random()}`,
@@ -792,7 +787,7 @@ export function HouseChecklists({
           </DialogHeader>
 
           <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Checklist Name *</Label>
                 <Input
@@ -801,21 +796,6 @@ export function HouseChecklists({
                   onChange={(e) => setChecklistFormData({ ...checklistFormData, name: e.target.value })}
                   placeholder="Enter checklist name"
                 />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="frequency">Frequency *</Label>
-                <Select value={checklistFormData.frequency} onValueChange={(value) => setChecklistFormData({ ...checklistFormData, frequency: value })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="daily">Daily</SelectItem>
-                    <SelectItem value="weekly">Weekly</SelectItem>
-                    <SelectItem value="monthly">Monthly</SelectItem>
-                    <SelectItem value="quarterly">Quarterly</SelectItem>
-                    <SelectItem value="yearly">Yearly</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
             </div>
 
@@ -1037,9 +1017,6 @@ export function HouseChecklists({
                       <span className="font-bold text-gray-900 group-hover:text-primary transition-colors">
                         {template.name}
                       </span>
-                      <Badge variant="outline" className="text-[10px] uppercase">
-                        {template.frequency}
-                      </Badge>
                     </div>
                     {template.description && (
                       <p className="text-xs text-muted-foreground line-clamp-2 mb-3">

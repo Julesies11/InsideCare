@@ -36,10 +36,6 @@ export function HouseDetailSidebar() {
           title: 'Shift Model',
           target: 'shift_configuration',
         },
-        {
-          title: 'Shift Templates',
-          target: 'shift_templates',
-        },
       ]
     },
     {

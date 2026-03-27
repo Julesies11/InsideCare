@@ -9,6 +9,11 @@ export interface ShiftTypeDefaultChecklist {
   checklist?: {
     id: string;
     name: string;
+    items?: Array<{
+      id: string;
+      title: string;
+      sort_order: number;
+    }>;
   };
 }
 
@@ -70,12 +75,30 @@ export function useShiftTemplates(houseId?: string) {
         .from('shift_type_default_checklists')
         .select(`
           *,
-          checklist:house_checklists(id, name)
+          checklist:house_checklists(
+            id, 
+            name,
+            items:house_checklist_items(
+              id,
+              title,
+              sort_order
+            )
+          )
         `)
         .in('shift_type_id', (await supabase.from('house_shift_types').select('id').eq('house_id', houseId)).data?.map(s => s.id) || []);
       
       if (error) throw error;
-      return data as ShiftTypeDefaultChecklist[];
+      
+      // Sort items by sort_order
+      const processedData = (data as any[]).map(d => ({
+        ...d,
+        checklist: d.checklist ? {
+          ...d.checklist,
+          items: d.checklist.items?.sort((a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0))
+        } : null
+      }));
+
+      return processedData as ShiftTypeDefaultChecklist[];
     },
     enabled: !!houseId && houseId !== 'all',
   });

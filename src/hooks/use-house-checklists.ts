@@ -25,7 +25,6 @@ export interface HouseChecklist {
   id: string;
   house_id: string;
   name: string;
-  frequency: string;
   days_of_week?: string[];
   description?: string;
   master_id?: string;
@@ -41,7 +40,7 @@ export interface HouseChecklist {
 }
 
 const HOUSE_CHECKLIST_COLUMNS = `
-  id, house_id, name, frequency, description, master_id, created_at, updated_at,
+  id, house_id, name, description, master_id, created_at, updated_at,
   house_checklist_items (id, checklist_id, title, instructions, group_title, priority, is_required, sort_order, created_at, updated_at)
 `;
 
@@ -55,7 +54,7 @@ export function useHouseChecklists(houseId?: string, scheduledDate?: string) {
       const { data: checklists, error: clError } = await supabase
         .from('house_checklists')
         .select(`
-          id, house_id, name, frequency, days_of_week, description, master_id, sort_order, created_at, updated_at,
+          id, house_id, name, days_of_week, description, master_id, sort_order, created_at, updated_at,
           house_checklist_items (
             id, checklist_id, title, instructions, group_id, group_title, priority, is_required, sort_order, created_at, updated_at,
             group:house_shift_types(id, name, short_name, color_theme)
