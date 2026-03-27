@@ -11,6 +11,39 @@ Metronic now leverages [ReUI](https://reui.io), our open-source React component 
 
 Star the [ReUI on GitHub](https://github.com/keenthemes/reui) to help us grow the project and stay updated on new features!
 
+## Project Overview & Architecture
+
+InsideCare is a comprehensive care‑management platform built on the Metronic 9 template. It provides full‑stack management of participants, staff, houses, rostering, checklists, and real‑time notifications.
+
+### Tech Stack
+- **Frontend:** React 19 (Vite), TypeScript, Tailwind CSS 4, Shadcn/ui
+- **State Management:** TanStack Query (React Query) for server‑state caching
+- **Backend:** Supabase (PostgreSQL + Auth + Realtime)
+- **Testing:** Vitest, React Testing Library, Playwright smoke tests
+- **Tooling:** Prettier, ESLint, Vite, Tailwind CSS via `@tailwindcss/vite`
+
+### Key Modules
+- **Participant Management** – profiles, medications, funding, documents, goals, contacts
+- **Staff Management** – profiles, compliance, training, contracts, timesheets, leave
+- **House Management** – house types, staff assignments, resources, calendars
+- **Roster & Shifts** – roster board, shift templates, timesheets, leave requests
+- **Checklists** – master templates, house‑specific checklists, shift‑assigned execution
+- **Notifications** – real‑time alerts for timesheet approvals, shift assignments, etc.
+- **Activity Logging** – detailed audit trail using `json‑diff‑ts` for optimized saves
+
+### Architecture Highlights
+- **Business Logic in TypeScript** – All data transformations, joins, and business rules are implemented in custom hooks and utility functions; no database‑side SQL functions or triggers are used.
+- **Optimized Save System** – The participant detail page uses `json‑diff‑ts` to send only changed fields, reducing network payloads by up to 90%.
+- **Row‑Level Security (RLS)** – Granular Supabase RLS policies enforce secure access per user role.
+- **Real‑Time Notifications** – A centralized notification service broadcasts alerts via Supabase Realtime.
+- **Mobile‑First Design** – Responsive layouts with mobile‑specific optimizations (priority hiding, compact tables, touch‑friendly interactions).
+
+### Suggested Improvements
+- **Consolidate Legacy Migrations** – The `migrations/old_consolidated/` folder could be archived or removed after verifying baseline schema.
+- **Strengthen TypeScript Generics** – Some hooks could benefit from stricter generic typing to improve type safety.
+- **Optimistic UI Updates** – Consider adding optimistic updates for mutations (e.g., shift assignments, checklist completions) for smoother user experience.
+- **Enhanced Error Boundaries** – Expand error‑boundary coverage to gracefully handle failures in data‑heavy components.
+
 ## Login with Supabase Auth
 
 This project uses Supabase for authentication. Follow these steps to set up and test the login functionality:
