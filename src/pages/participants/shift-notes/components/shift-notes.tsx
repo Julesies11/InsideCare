@@ -140,14 +140,14 @@ const ShiftNotes = () => {
     () => [
       {
         id: 'date',
-        accessorFn: (row) => row.shift_date,
+        accessorFn: (row) => row.start_date,
         header: ({ column }) => (
           <DataGridColumnHeader title="Date" column={column} />
         ),
         cell: ({ row }) => (
           <div className="flex flex-col gap-0.5">
             <span className="font-medium text-sm text-gray-900 dark:text-gray-100">
-              {format(new Date(row.original.shift_date), 'dd MMM yyyy')}
+              {format(new Date(row.original.start_date), 'dd MMM yyyy')}
             </span>
             {row.original.shift_time && (
               <span className="text-xs text-gray-500">

@@ -38,7 +38,7 @@ export function UpcomingShifts() {
     // Filter for shifts that haven't ended yet
     const now = new Date();
     const upcoming = data.filter(shift => {
-      const shiftEnd = new Date(`${shift.end_date ?? shift.shift_date}T${shift.end_time}`);
+      const shiftEnd = new Date(`${shift.end_date ?? shift.start_date}T${shift.end_time}`);
       return shiftEnd > now;
     }).slice(0, 5); // Just show top 5
     
@@ -61,7 +61,7 @@ export function UpcomingShifts() {
         // Update basic shift info
         await updateShift(selectedShift.id, {
           staff_id: formData.staff_id,
-          shift_date: formData.shift_date,
+          start_date: formData.start_date,
           end_date: formData.end_date,
           start_time: formData.start_time,
           end_time: formData.end_time,
@@ -93,7 +93,7 @@ export function UpcomingShifts() {
           entityId: selectedShift.id,
           entityName: `Shift for ${staffMember?.name || 'Unknown'}`,
           userName: user?.email || 'Unknown',
-          customDescription: `Updated shift on ${formData.shift_date}`,
+          customDescription: `Updated shift on ${formData.start_date}`,
         });
 
         toast.success('Shift updated successfully');

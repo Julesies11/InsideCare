@@ -99,7 +99,13 @@ export function HouseRosterWizard({ open, onOpenChange, houseId, houseName, pend
                 Assign <strong>Default Checklists</strong> to each shift type to automate your operational setup.
               </p>
             </div>
-            <HouseShiftSetup houseId={houseId} mode="model" />
+            <HouseShiftSetup 
+              houseId={houseId} 
+              mode="model" 
+              pendingChanges={pendingChanges}
+              onPendingChangesChange={onPendingChangesChange}
+              directSave={true}
+            />
           </div>
         );
       case 2:

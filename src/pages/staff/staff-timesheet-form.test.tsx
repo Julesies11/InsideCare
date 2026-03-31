@@ -9,7 +9,7 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
 const mockShift = {
   id: 'shift-1',
-  shift_date: '2026-03-05',
+  start_date: '2026-03-05',
   end_date: '2026-03-05',
   start_time: '08:00:00',
   end_time: '16:00:00',

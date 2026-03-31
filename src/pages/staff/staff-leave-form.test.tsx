@@ -15,7 +15,7 @@ const mockLeaveTypes = [
 const mockConflictingShifts = [
   {
     id: 'shift-1',
-    shift_date: '2026-03-10',
+    start_date: '2026-03-10',
     start_time: '08:00:00',
     end_time: '16:00:00',
     house: { name: 'Test House' },
@@ -66,7 +66,7 @@ describe('StaffLeaveForm', () => {
     server.use(
       http.get(`${SUPABASE_URL}/rest/v1/staff_shifts`, ({ request }) => {
         const url = new URL(request.url);
-        if (url.searchParams.get('shift_date') === 'gte.2026-03-10') {
+        if (url.searchParams.get('start_date') === 'gte.2026-03-10') {
            return HttpResponse.json(mockConflictingShifts);
         }
         return HttpResponse.json([]);

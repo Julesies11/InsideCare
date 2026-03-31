@@ -130,7 +130,7 @@ export const handlers = [
         id: 'note-1',
         participant_id: 'participant-1',
         staff_id: 'staff-1',
-        shift_date: new Date().toISOString().split('T')[0],
+        start_date: new Date().toISOString().split('T')[0],
         notes: 'Everything went well.',
         participant: { id: 'participant-1', name: 'John Doe' },
         staff: { id: 'staff-1', name: 'Admin User' },

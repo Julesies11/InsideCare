@@ -34,7 +34,7 @@ interface LeaveType {
 
 interface ConflictingShift {
   id: string;
-  shift_date: string;
+  start_date: string;
   start_time: string;
   end_time: string;
   house?: { name: string } | null;
@@ -106,10 +106,10 @@ export function StaffLeaveForm() {
       setCheckingConflicts(true);
       const { data } = await supabase
         .from('staff_shifts')
-        .select('id, shift_date, start_time, end_time, house:houses(name)')
+        .select('id, start_date, start_time, end_time, house:houses(name)')
         .eq('staff_id', user.staff_id)
-        .gte('shift_date', startDate)
-        .lte('shift_date', endDate)
+        .gte('start_date', startDate)
+        .lte('start_date', endDate)
         .not('status', 'eq', 'Cancelled');
       setConflictingShifts((data as ConflictingShift[]) || []);
       setCheckingConflicts(false);
@@ -223,7 +223,7 @@ export function StaffLeaveForm() {
                 <div className="flex flex-wrap gap-1.5 mt-1">
                   {conflictingShifts.map(s => (
                     <Badge key={s.id} variant="warning" appearance="light" className="text-xs">
-                      {format(parseISO(s.shift_date), 'EEE dd MMM')}
+                      {format(parseISO(s.start_date), 'EEE dd MMM')}
                       {' '}{s.start_time?.slice(0,5)}–{s.end_time?.slice(0,5)}
                       {s.house?.name ? ` · ${s.house.name}` : ''}
                     </Badge>

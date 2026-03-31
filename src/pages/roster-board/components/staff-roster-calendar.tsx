@@ -32,6 +32,8 @@ interface StaffRosterCalendarProps {
   canEdit: boolean;
   showLeave?: boolean;
   groupByHouse?: boolean;
+  onBulkAction?: (houseId: string) => void;
+  onPopulateRoster?: (houseId: string) => void;
   checklists: any[];
 }
 
@@ -55,6 +57,8 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
   canEdit,
   showLeave = true,
   groupByHouse = false,
+  onBulkAction,
+  onPopulateRoster,
   checklists,
 }, ref) => {
   const [shifts, setShifts] = useState<StaffShift[]>([]);
@@ -76,7 +80,7 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
   } | null>(null);
   const [notePreFillData, setNotePreFillData] = useState<{
     staff_id?: string | null;
-    shift_date?: string;
+    start_date?: string;
     house_id?: string | null;
     shift_time?: string | null;
   }>({});
@@ -111,9 +115,9 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
 
   const refreshShifts = useCallback(async () => {
     const { startDate, endDate } = getDateRange(currentDate, viewMode);
-    const data = await loadShifts(staffId, startDate, endDate);
+    const data = await loadShifts(staffId, startDate, endDate, houseFilter);
     setShifts(data);
-  }, [staffId, currentDate, viewMode, loadShifts]);
+  }, [staffId, currentDate, viewMode, loadShifts, houseFilter]);
 
   useEffect(() => {
     loadAllData();
@@ -225,7 +229,7 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
     setNotePreFillLinkedShift(shift);
     setNotePreFillData({
       staff_id: shift.staff_id,
-      shift_date: shift.shift_date,
+      start_date: shift.start_date,
       house_id: shift.house_id,
       shift_time: shift.start_time,
     });
@@ -296,13 +300,13 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
 
       let copiedCount = 0;
       for (const shift of sourceShifts) {
-        const sourceDate = parseISO(shift.shift_date);
+        const sourceDate = parseISO(shift.start_date);
         const targetDate = format(addDays(sourceDate, 7), 'yyyy-MM-dd');
         
         const newShiftData = {
           staff_id: withAssignments ? shift.staff_id : null,
           house_id: houseFilter,
-          shift_date: targetDate,
+          start_date: targetDate,
           start_time: shift.start_time,
           end_time: shift.end_time,
           shift_type: shift.shift_type,
@@ -349,18 +353,18 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
       let skippedCount = 0;
       let leaveConflictCount = 0;
 
-      const rolloutEndDate = format(addDays(parseISO(sourceShifts[0].shift_date), (weeks * 7) + 7), 'yyyy-MM-dd');
+      const rolloutEndDate = format(addDays(parseISO(sourceShifts[0].start_date), (weeks * 7) + 7), 'yyyy-MM-dd');
       const { data: allLeave } = await supabase
         .from('leave_requests')
         .select('staff_id, start_date, end_date')
         .eq('status', 'approved')
-        .gte('end_date', sourceShifts[0].shift_date)
+        .gte('end_date', sourceShifts[0].start_date)
         .lte('start_date', rolloutEndDate);
 
       for (let i = 1; i <= weeks; i++) {
         const daysOffset = i * 7;
         for (const shift of sourceShifts) {
-          const sourceDate = parseISO(shift.shift_date);
+          const sourceDate = parseISO(shift.start_date);
           const targetDateStr = format(addDays(sourceDate, daysOffset), 'yyyy-MM-dd');
           const targetEndDateStr = shift.end_date ? format(addDays(parseISO(shift.end_date), daysOffset), 'yyyy-MM-dd') : targetDateStr;
 
@@ -368,7 +372,7 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
             .from('staff_shifts')
             .select('id')
             .eq('house_id', houseFilter)
-            .eq('shift_date', targetDateStr)
+            .eq('start_date', targetDateStr)
             .eq('start_time', shift.start_time)
             .maybeSingle();
 
@@ -394,7 +398,7 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
           const newShiftData = {
             staff_id: targetStaffId,
             house_id: houseFilter,
-            shift_date: targetDateStr,
+            start_date: targetDateStr,
             end_date: targetEndDateStr,
             start_time: shift.start_time,
             end_time: shift.end_time,
@@ -481,6 +485,8 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
         onWriteNote={handleWriteNote}
         onNotesClick={handleNotesClick}
         onApplyTemplate={handleApplyTemplateToDate}
+        onBulkAction={onBulkAction}
+        onPopulateRoster={onPopulateRoster}
         groupByHouse={groupByHouse}
         houses={houses}
       />

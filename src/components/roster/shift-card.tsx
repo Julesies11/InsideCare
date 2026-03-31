@@ -6,7 +6,7 @@ import { SHIFT_ICONS } from '@/lib/utils';
 
 export interface ShiftCardData {
   id: string;
-  shift_date: string;
+  start_date: string;
   end_date?: string;
   start_time: string;
   end_time: string;
@@ -18,6 +18,7 @@ export interface ShiftCardData {
   staff_name?: string;
   staff_id?: string;
   participants?: Array<{ id: string; name: string }>;
+  assigned_checklists?: Array<{ id: string; checklist_id: string; assignment_title: string }>;
   notesCount?: number;
 }
 
@@ -32,6 +33,7 @@ interface ShiftCardProps {
 
 export function ShiftCard({ shift, compact, showStaffName, onClick, onWriteNote, onNotesClick }: ShiftCardProps) {
   const participantCount = shift.participants?.length || 0;
+  const checklistCount = shift.assigned_checklists?.length || 0;
   const isUnassigned = !shift.staff_id;
   const shiftThemeClasses = getShiftTheme(shift.color_theme, shift.shift_type);
   const IconComponent = SHIFT_ICONS[shift.icon_name || ''] || Clock;
@@ -47,7 +49,7 @@ export function ShiftCard({ shift, compact, showStaffName, onClick, onWriteNote,
         <div className="flex items-center justify-between gap-1 mb-0.5">
           <span className="text-[10px] font-medium truncate">
             {formatTime(shift.start_time)} – {formatTime(shift.end_time)}
-            {shift.end_date && shift.end_date !== shift.shift_date && (
+            {shift.end_date && shift.end_date !== shift.start_date && (
               <span className="ml-1 text-orange-500" title="Overnight shift">+1</span>
             )}
           </span>
@@ -81,7 +83,30 @@ export function ShiftCard({ shift, compact, showStaffName, onClick, onWriteNote,
             </span>
           </div>
         )}
-        <div className="flex items-center justify-between mt-0.5">
+        {checklistCount > 0 && (
+          <div className="flex flex-col gap-0.5 mt-1 pt-1 border-t border-dashed">
+            <div className="flex items-center gap-1">
+              <ClipboardList className="h-2.5 w-2.5 text-primary" />
+              <span className="text-[9px] font-bold text-primary uppercase tracking-tight">
+                {checklistCount} Checklist{checklistCount > 1 ? 's' : ''}
+              </span>
+            </div>
+            {shift.assigned_checklists?.slice(0, 2).map((cl) => (
+              <div key={cl.id} className="flex items-center gap-1 pl-3.5">
+                <div className="size-1 rounded-full bg-primary/40 shrink-0" />
+                <span className="text-[8px] text-muted-foreground truncate leading-tight">
+                  {cl.assignment_title}
+                </span>
+              </div>
+            ))}
+            {checklistCount > 2 && (
+              <span className="text-[8px] text-muted-foreground/60 pl-3.5 italic">
+                + {checklistCount - 2} more...
+              </span>
+            )}
+          </div>
+        )}
+        <div className="flex items-center justify-between mt-1 pt-1 border-t">
           <Badge variant={getStatusVariant(shift.status)} className="text-[10px] px-1 py-0">
             {shift.status}
           </Badge>
@@ -121,7 +146,7 @@ export function ShiftCard({ shift, compact, showStaffName, onClick, onWriteNote,
             <IconComponent className="h-3 w-3 text-muted-foreground flex-shrink-0" />
             <span className="text-xs font-medium truncate flex-1">
               {formatTime(shift.start_time)} – {formatTime(shift.end_time)}
-              {shift.end_date && shift.end_date !== shift.shift_date && (
+              {shift.end_date && shift.end_date !== shift.start_date && (
                 <span className="ml-1 text-orange-500 text-[10px]" title="Overnight shift">+1 day</span>
               )}
             </span>
@@ -176,6 +201,34 @@ export function ShiftCard({ shift, compact, showStaffName, onClick, onWriteNote,
             <span className="text-xs truncate">
               {shift.participants.length} participant{shift.participants.length > 1 ? 's' : ''}
             </span>
+          </div>
+        )}
+
+        {checklistCount > 0 && (
+          <div className="flex flex-col gap-1 mt-1 pt-2 border-t border-dashed">
+            <div className="flex items-center gap-1.5">
+              <ClipboardList className="h-3 w-3 text-primary" />
+              <span className="text-[10px] font-black text-primary uppercase tracking-widest">
+                {checklistCount} Assigned Checklist{checklistCount > 1 ? 's' : ''}
+              </span>
+            </div>
+            <div className="space-y-1 mt-1">
+              {shift.assigned_checklists?.slice(0, 3).map((cl) => (
+                <div key={cl.id} className="flex items-center gap-2 pl-4">
+                  <div className="size-1 rounded-full bg-primary/30 shrink-0" />
+                  <span className="text-[10px] text-muted-foreground truncate leading-none py-0.5">
+                    {cl.assignment_title}
+                  </span>
+                </div>
+              ))}
+              {checklistCount > 3 && (
+                <div className="pl-4 pt-0.5">
+                  <span className="text-[9px] text-muted-foreground/60 italic font-medium">
+                    + {checklistCount - 3} more checklists
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
         )}
 

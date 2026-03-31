@@ -1,8 +1,14 @@
 import { describe, it, expect, vi } from 'vitest';
-import { screen, render, fireEvent } from '@testing-library/react';
-import { HouseRosterWizard } from '@/pages/houses/detail/components/HouseRosterWizard';
+import { screen, fireEvent } from '@testing-library/react';
+import { HouseRosterWizard } from './HouseRosterWizard';
 import { renderWithProviders } from '@/test/test-utils';
 import { emptyHousePendingChanges } from '@/models/house-pending-changes';
+
+const mockMutation = {
+  mutate: vi.fn(),
+  mutateAsync: vi.fn().mockResolvedValue({}),
+  isPending: false,
+};
 
 // Mock the hooks to return stable data and prevent network requests
 vi.mock('@/hooks/use-house-shift-types', () => ({
@@ -10,10 +16,25 @@ vi.mock('@/hooks/use-house-shift-types', () => ({
     shiftTypes: [
       { id: 'st-1', name: 'Morning', color_theme: 'morning', default_start_time: '07:00', default_end_time: '15:00' }
     ],
-    createShiftType: { mutateAsync: vi.fn() },
-    updateShiftType: { mutateAsync: vi.fn() },
-    deleteShiftType: { mutate: vi.fn() },
-    isLoading: false
+    isLoading: false,
+    refresh: vi.fn()
+  })
+}));
+
+vi.mock('@/hooks/use-shift-templates', () => ({
+  useShiftTemplates: () => ({
+    defaults: [],
+    groups: [],
+    schedules: [],
+    isLoading: false,
+    refresh: vi.fn(),
+    createGroup: mockMutation,
+    deleteGroup: mockMutation,
+    upsertItem: mockMutation,
+    deleteItem: mockMutation,
+    updateDefaults: mockMutation,
+    createSchedule: mockMutation,
+    deleteSchedule: mockMutation,
   })
 }));
 
@@ -26,10 +47,9 @@ vi.mock('@/hooks/use-house-checklists', () => ({
   })
 }));
 
-vi.mock('@/hooks/use-shift-assigned-checklists', () => ({
-  useShiftAssignedChecklists: () => ({
-    assignments: [],
-    syncAssignments: { mutate: vi.fn(), isPending: false },
+vi.mock('@/hooks/use-houses', () => ({
+  useHouses: () => ({
+    houses: [],
     isLoading: false
   })
 }));
@@ -44,13 +64,21 @@ describe('HouseRosterWizard Smoke Test', () => {
     onPendingChangesChange: vi.fn(),
   };
 
-  it('renders without crashing at Step 1', () => {
+  it('renders without crashing at Step 1 (Shift Model)', () => {
     renderWithProviders(<HouseRosterWizard {...defaultProps} />);
     expect(screen.getByText(/Step 1: Define Your Shift Model/i)).toBeInTheDocument();
     expect(screen.getByText('Morning')).toBeInTheDocument();
   });
 
-  it('renders without crashing at Step 3 (Review)', () => {
+  it('navigates to Step 2 (Calendar Tasks)', () => {
+    renderWithProviders(<HouseRosterWizard {...defaultProps} />);
+    const continueBtn = screen.getByText(/Continue/i);
+    fireEvent.click(continueBtn);
+    
+    expect(screen.getByText(/Step 2: Calendar Tasks/i)).toBeInTheDocument();
+  });
+
+  it('navigates to Step 3 (Review)', () => {
     renderWithProviders(<HouseRosterWizard {...defaultProps} />);
     const continueBtn = screen.getByText(/Continue/i);
     fireEvent.click(continueBtn); // to Step 2

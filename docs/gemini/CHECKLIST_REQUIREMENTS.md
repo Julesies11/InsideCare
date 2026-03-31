@@ -131,22 +131,32 @@ To provide a polished Metronic v9 experience, the process of setting up a House'
 *   **Modal vs. Page**: The wizard will be implemented as a dedicated setup page for new houses, or a full-screen modal for existing house updates.
 *   **"Save & Exit"**: Support for partial completion, allowing admins to pause and resume the setup process.
 
-## 11. Bulk Roster Rollout
-To support long-term operational planning (months in advance), the system provides bulk duplication tools that eliminate manual week-by-week entry.
+## 11. Bulk Roster Management
+To support long-term operational planning and rapid corrections, the system provides integrated bulk management tools directly on the Roster Board.
 
-### 11.1. "Push to Future" Workflow
-Instead of navigating to future weeks to "pull" data, admins can stay on a perfected "Master Week" and push its structure forward.
-*   **The Action**: "Rollout Roster" button on the Roster Board.
-*   **Target Selection**: Admin selects how many weeks to rollout (e.g., 4 weeks, 12 weeks, or a specific date range).
-*   **Scope**:
-    *   *Skeleton Push*: Replicates only the "Open Shifts" (the requirement).
-    *   *Full Push*: Replicates shifts with staff assignments (the standard schedule).
+### 11.1. Bulk Shift Manager
+Integrated directly into the Roster Board (visible when grouped by House or accessible via the header), this tool allows for large-scale modifications.
+*   **Accessibility**: A "BULK" button is located under each House name in the grouped view for context-aware management.
+*   **Capabilities**:
+    *   **Bulk Delete**: Remove all shifts matching specific criteria (Date Range, House, Staff, Shift Type, Status).
+    *   **Bulk Update Status**: Batch update the status of shifts (e.g., transition all 'Scheduled' shifts to 'Published' for a whole month).
+*   **Safety**: Includes confirmation prompts and clear visual warnings for destructive actions.
 
-### 11.2. Conflict & Exception Handling
-During a bulk rollout, the system applies the following intelligence:
-*   **Leave Detection**: (CRITICAL) If a staff member is assigned to a recurring shift but has **Approved Leave** on a specific future date, the system MUST automatically create that occurrence as an **Open Shift** (staff_id = null) and tag it for admin review.
-*   **Duplication Protection**: The rollout engine skips dates where shifts already exist to prevent "Double Layering" the roster.
-*   **Audit Trail**: Logs the rollout event in the activity log, allowing for bulk reversal if a mistake is made.
+### 11.2. Quick Populate Roster
+A one-click tool to rapidly generate coverage based on the House's Shift Model.
+*   **Action**: "POPULATE" button located next to the BULK button under House names.
+*   **Logic**: Uses the `materializePattern` engine to fill a selected date range with the house's standard shift structure, automatically skipping duplicates.
+
+## 12. Checklist UI Optimizations
+The House Detail interface has been streamlined to prioritize operational relationships.
+
+### 12.1. Integrated History
+*   **Consolidation**: The "Checklist History" section has been moved inside the "Checklist Setup" section. This keeps the configuration and the audit trail of execution in a single logical location.
+*   **Context**: Allows managers to see how a checklist is being performed while simultaneously managing its tasks or schedule.
+
+### 12.2. Space-Saving Previews
+*   **Compact Cards**: Checklist template cards now only show the first **2 items** as a preview to save vertical space.
+*   **Simplified Metadata**: The "Required" label has been removed from the preview view to reduce visual noise, as requirement status is intrinsic to the checklist's operational role.
 
 ## 12. Flexible Shift Templates
 The Shift Template system has been refactored from a rigid 7-day week to a flexible, titled group model.

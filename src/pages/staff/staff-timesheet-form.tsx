@@ -21,7 +21,7 @@ import {
 
 interface Shift {
   id: string;
-  shift_date: string;
+  start_date: string;
   end_date: string;
   start_time: string;
   end_time: string;
@@ -57,8 +57,8 @@ export function StaffTimesheetForm() {
 
   const scheduledMins = shift
     ? (() => {
-        const start = new Date(`${shift.shift_date}T${shift.start_time.slice(0, 5)}`);
-        const end   = new Date(`${(shift.end_date || shift.shift_date)}T${shift.end_time.slice(0, 5)}`);
+        const start = new Date(`${shift.start_date}T${shift.start_time.slice(0, 5)}`);
+        const end   = new Date(`${(shift.end_date || shift.start_date)}T${shift.end_time.slice(0, 5)}`);
         return (end.getTime() - start.getTime()) / 60000;
       })()
     : 0;
@@ -77,7 +77,7 @@ export function StaffTimesheetForm() {
       const [shiftRes, tsRes] = await Promise.all([
         supabase
           .from('staff_shifts')
-          .select('id, shift_date, end_date, start_time, end_time, shift_type, house:houses(name)')
+          .select('id, start_date, end_date, start_time, end_time, shift_type, house:houses(name)')
           .eq('id', shiftId)
           .maybeSingle(),
         user?.staff_id
@@ -93,8 +93,8 @@ export function StaffTimesheetForm() {
       if (shiftRes.data) {
         const s = shiftRes.data as Shift;
         setShift(s);
-        setActualStart(`${s.shift_date}T${s.start_time.slice(0, 5)}`);
-        setActualEnd(`${(s.end_date || s.shift_date)}T${s.end_time.slice(0, 5)}`);
+        setActualStart(`${s.start_date}T${s.start_time.slice(0, 5)}`);
+        setActualEnd(`${(s.end_date || s.start_date)}T${s.end_time.slice(0, 5)}`);
       }
 
       if (tsRes.data) {
@@ -128,8 +128,8 @@ export function StaffTimesheetForm() {
     const payload = {
       staff_id:             user.staff_id,
       shift_id:             shiftId,
-      clock_in:             formatToFullISO(actualStart) || `${shift.shift_date}T${shift.start_time.slice(0, 5)}:00Z`,
-      clock_out:            formatToFullISO(actualEnd)   || `${(shift.end_date || shift.shift_date)}T${shift.end_time.slice(0, 5)}:00Z`,
+      clock_in:             formatToFullISO(actualStart) || `${shift.start_date}T${shift.start_time.slice(0, 5)}:00Z`,
+      clock_out:            formatToFullISO(actualEnd)   || `${(shift.end_date || shift.start_date)}T${shift.end_time.slice(0, 5)}:00Z`,
       actual_start:         formatToFullISO(actualStart),
       actual_end:           formatToFullISO(actualEnd),
       break_minutes:        parseInt(breakMins) || 0,
@@ -234,7 +234,7 @@ export function StaffTimesheetForm() {
       await supabase.from('shift_notes').upsert({
         staff_id:   user.staff_id,
         shift_id:   shiftId,
-        shift_date: shift.shift_date,
+        start_date: shift.start_date,
         full_note:  shiftNotes.trim(),
         notes:      shiftNotes.trim().slice(0, 100),
       }, { onConflict: 'shift_id,staff_id' });
@@ -245,9 +245,9 @@ export function StaffTimesheetForm() {
         activityType:      'submit',
         entityType:        'timesheet',
         entityId:          tsId ?? shiftId,
-        entityName:        `Timesheet – ${format(parseISO(shift.shift_date), 'dd MMM yyyy')}`,
+        entityName:        `Timesheet – ${format(parseISO(shift.start_date), 'dd MMM yyyy')}`,
         userName,
-        customDescription: `Submitted timesheet for ${format(parseISO(shift.shift_date), 'dd MMM yyyy')}`,
+        customDescription: `Submitted timesheet for ${format(parseISO(shift.start_date), 'dd MMM yyyy')}`,
       });
 
       console.log('Timesheet: Notifying admins...');
@@ -263,7 +263,7 @@ export function StaffTimesheetForm() {
             NotificationService.notifyTimesheetSubmitted(
               adminId, 
               userName, 
-              format(parseISO(shift.shift_date), 'dd MMM yyyy')
+              format(parseISO(shift.start_date), 'dd MMM yyyy')
             )
           )
         );
@@ -309,7 +309,7 @@ export function StaffTimesheetForm() {
               <div>
                 <ToolbarPageTitle text="Submit Timesheet" />
                 <ToolbarDescription>
-                  {format(parseISO(shift.shift_date), 'EEEE, dd MMM yyyy')}
+                  {format(parseISO(shift.start_date), 'EEEE, dd MMM yyyy')}
                   {shift.house ? ` · ${shift.house.name}` : ''}
                 </ToolbarDescription>
               </div>

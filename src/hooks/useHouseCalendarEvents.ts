@@ -45,6 +45,13 @@ export interface HouseCalendarEvent {
   house_checklist_id?: string;
   checklist_schedule_id?: string;
   target_shift?: string;
+  shift_type?: string;
+  shift_type_id?: string;
+  type_details?: {
+    color_theme?: string;
+    icon_name?: string;
+  };
+  assigned_checklists?: any[];
   submissions?: Array<{
     id: string;
     status: string;
@@ -111,10 +118,13 @@ export function useHouseCalendarEvents(houseId?: string, staffId?: string) {
         .from('staff_shifts')
         .select(`
           id, 
-          shift_date,
+          start_date,
           start_time,
           end_time,
           staff_id,
+          shift_type,
+          shift_type_id,
+          type_details:house_shift_types(color_theme, icon_name),
           staff:staff(id, name),
           assigned_checklists:shift_assigned_checklists(
             id, 
@@ -124,8 +134,8 @@ export function useHouseCalendarEvents(houseId?: string, staffId?: string) {
           )
         `)
         .eq('house_id', houseId)
-        .gte('shift_date', startDate.toISOString().split('T')[0])
-        .lte('shift_date', endDate.toISOString().split('T')[0]);
+        .gte('start_date', startDate.toISOString().split('T')[0])
+        .lte('start_date', endDate.toISOString().split('T')[0]);
 
       if (staffId) {
         shiftQuery = shiftQuery.eq('staff_id', staffId);
@@ -139,13 +149,17 @@ export function useHouseCalendarEvents(houseId?: string, staffId?: string) {
           combinedEvents.push({
             id: `shift-${shift.id}`,
             house_id: houseId,
-            title: shift.staff?.name || 'Unassigned',
+            title: `${shift.shift_type || 'Shift'} - ${shift.staff?.name || 'Unassigned'}`,
             type: 'shift',
-            event_date: shift.shift_date,
+            shift_type: shift.shift_type,
+            shift_type_id: shift.shift_type_id,
+            type_details: shift.type_details,
+            event_date: shift.start_date,
             start_time: shift.start_time,
             end_time: shift.end_time,
             assigned_staff_id: shift.staff_id,
             assigned_staff: shift.staff,
+            assigned_checklists: shift.assigned_checklists,
             status: 'scheduled'
           } as any);
 
@@ -155,13 +169,13 @@ export function useHouseCalendarEvents(houseId?: string, staffId?: string) {
             const syntheticId = `shift-cl-${ac.checklist_id}-${shift.id}`;
             
             // Avoid duplicates if already present as a house-wide event
-            if (!combinedEvents.some(e => e.house_checklist_id === ac.checklist_id && e.event_date === shift.shift_date)) {
+            if (!combinedEvents.some(e => e.house_checklist_id === ac.checklist_id && e.event_date === shift.start_date)) {
               combinedEvents.push({
                 id: syntheticId,
                 house_id: houseId,
                 title: ac.assignment_title,
                 type: 'checklist',
-                event_date: shift.shift_date,
+                event_date: shift.start_date,
                 is_checklist_event: true,
                 house_checklist_id: ac.checklist_id,
                 assigned_staff_id: shift.staff_id,

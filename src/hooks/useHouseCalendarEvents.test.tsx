@@ -45,9 +45,10 @@ describe('useHouseCalendarEvents Integration', () => {
             id: 'shift-1', 
             staff_id: 'staff-1',
             house_id: 'house-1',
-            shift_date: '2026-03-23', 
+            start_date: '2026-03-23', 
             start_time: '09:00',
             end_time: '17:00',
+            shift_type: 'Morning',
             staff: { id: 'staff-1', name: 'John Doe' },
             assigned_checklists: [
               {
@@ -73,7 +74,7 @@ describe('useHouseCalendarEvents Integration', () => {
     const checklist = result.current.houseCalendarEvents.find(e => e.type === 'checklist');
 
     expect(meeting?.title).toBe('House Meeting');
-    expect(shift?.title).toBe('John Doe');
+    expect(shift?.title).toBe('Morning - John Doe');
     expect(checklist?.title).toBe('Morning Handover');
   });
 });

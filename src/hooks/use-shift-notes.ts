@@ -6,7 +6,7 @@ export interface ShiftNote {
   id: string;
   participant_id?: string | null;
   staff_id?: string | null;
-  shift_date: string;
+  start_date: string;
   shift_time?: string | null;
   house_id?: string | null;
   shift_id?: string | null;
@@ -43,7 +43,7 @@ export interface ShiftNote {
 export interface ShiftNoteUpdateData {
   participant_id?: string | null;
   staff_id?: string | null;
-  shift_date?: string;
+  start_date?: string;
   shift_time?: string | null;
   house_id?: string | null;
   shift_id?: string | null;
@@ -55,7 +55,7 @@ const SHIFT_NOTE_COLUMNS = `
   id, 
   participant_id, 
   staff_id, 
-  shift_date, 
+  start_date, 
   shift_time, 
   house_id, 
   shift_id, 
@@ -76,7 +76,7 @@ export function useShiftNotes() {
       const { data, error } = await supabase
         .from('shift_notes')
         .select(SHIFT_NOTE_COLUMNS)
-        .order('shift_date', { ascending: false });
+        .order('start_date', { ascending: false });
 
       if (error) throw error;
 
@@ -146,7 +146,7 @@ export function useShiftNotesByParticipantId(participantId?: string) {
         .from('shift_notes')
         .select(SHIFT_NOTE_COLUMNS)
         .eq('participant_id', participantId)
-        .order('shift_date', { ascending: false })
+        .order('start_date', { ascending: false })
         .order('created_at', { ascending: false });
 
       if (error) throw error;

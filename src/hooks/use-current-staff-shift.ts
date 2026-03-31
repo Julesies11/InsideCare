@@ -6,7 +6,7 @@ export interface StaffShift {
   id: string;
   staff_id: string;
   house_id: string;
-  shift_date: string;
+  start_date: string;
   start_time: string;
   end_time: string;
   house?: {
@@ -27,9 +27,9 @@ export function useCurrentStaffShift(staffId?: string) {
       // Find shift for today where current time is between start and end
       const { data, error } = await supabase
         .from('staff_shifts')
-        .select('id, staff_id, house_id, shift_date, start_time, end_time, house:houses(id, name)')
+        .select('id, staff_id, house_id, start_date, start_time, end_time, house:houses(id, name)')
         .eq('staff_id', staffId)
-        .eq('shift_date', today)
+        .eq('start_date', today)
         .lte('start_time', nowTime)
         .gte('end_time', nowTime)
         .maybeSingle();

@@ -681,7 +681,7 @@ export function ParticipantDetailContent({
             .insert({
               participant_id: id,
               staff_id: note.staff_id,
-              shift_date: note.shift_date,
+              start_date: note.start_date,
               shift_time: note.shift_time || null,
               full_note: note.full_note,
             });
@@ -706,7 +706,7 @@ export function ParticipantDetailContent({
             .from('shift_notes')
             .update({
               staff_id: note.staff_id,
-              shift_date: note.shift_date,
+              start_date: note.start_date,
               shift_time: note.shift_time || null,
               full_note: note.full_note,
               updated_at: new Date().toISOString(),

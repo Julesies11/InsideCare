@@ -37,10 +37,10 @@ export function ShiftNotes({
   onPendingChangesChange,
 }: ShiftNotesProps) {
   const [showSheet, setShowSheet] = useState(false);
-  const [editingNote, setEditingNote] = useState<{ id?: string; tempId?: string; shift_date: string; shift_time?: string; staff_id: string; full_note: string } | null>(null);
+  const [editingNote, setEditingNote] = useState<{ id?: string; tempId?: string; start_date: string; shift_time?: string; staff_id: string; full_note: string } | null>(null);
   
   const [formData, setFormData] = useState({
-    shift_date: new Date().toISOString().split('T')[0],
+    start_date: new Date().toISOString().split('T')[0],
     shift_time: '',
     staff_id: '',
     full_note: '',
@@ -53,7 +53,7 @@ export function ShiftNotes({
   const handleAdd = () => {
     setEditingNote(null);
     setFormData({
-      shift_date: new Date().toISOString().split('T')[0],
+      start_date: new Date().toISOString().split('T')[0],
       shift_time: '',
       staff_id: '',
       full_note: '',
@@ -64,7 +64,7 @@ export function ShiftNotes({
   const handleEdit = (note: any) => {
     setEditingNote(note);
     setFormData({
-      shift_date: note.shift_date,
+      start_date: note.start_date,
       shift_time: note.shift_time || '',
       staff_id: note.staff_id || '',
       full_note: note.full_note || '',
@@ -163,7 +163,7 @@ export function ShiftNotes({
   const allNotes = [
     ...visibleNotes,
     ...(pendingChanges?.toAdd.map(n => ({ ...n, isPendingAdd: true })) || []),
-  ].sort((a, b) => new Date(b.shift_date).getTime() - new Date(a.shift_date).getTime());
+  ].sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime());
 
   const getStaffName = (id: string) => {
     return staff.find(s => s.id === id)?.name || 'Unknown Staff';
@@ -206,7 +206,7 @@ export function ShiftNotes({
                     <div className="flex flex-wrap items-center gap-3">
                       <div className="flex items-center gap-1.5 text-sm font-medium text-gray-900">
                         <Calendar className="size-3.5 text-muted-foreground" />
-                        {note.shift_date ? format(parseISO(note.shift_date), 'dd MMM yyyy') : '-'}
+                        {note.start_date ? format(parseISO(note.start_date), 'dd MMM yyyy') : '-'}
                       </div>
                       {note.shift_time && (
                         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -279,8 +279,8 @@ export function ShiftNotes({
                 <Input
                   id="date"
                   type="date"
-                  value={formData.shift_date || ''}
-                  onChange={(e) => setFormData({ ...formData, shift_date: e.target.value })}
+                  value={formData.start_date || ''}
+                  onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
@@ -322,7 +322,7 @@ export function ShiftNotes({
           </SheetBody>
           <SheetFooter>
             <Button variant="outline" onClick={() => setShowSheet(false)}>Cancel</Button>
-            <Button onClick={handleSave} disabled={!formData.full_note || !formData.staff_id || !formData.shift_date}>
+            <Button onClick={handleSave} disabled={!formData.full_note || !formData.staff_id || !formData.start_date}>
               {editingNote ? 'Update Queue' : 'Add to Queue'}
             </Button>
           </SheetFooter>

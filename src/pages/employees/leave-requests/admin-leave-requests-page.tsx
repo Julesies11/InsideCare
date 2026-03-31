@@ -43,7 +43,7 @@ interface LeaveRequest {
 
 interface AffectedShift {
   id: string;
-  shift_date: string;
+  start_date: string;
   start_time: string;
   end_time: string;
   status: string;
@@ -100,8 +100,8 @@ export function AdminLeaveRequestsPage() {
           .from('staff_shifts')
           .select('id', { count: 'exact', head: true })
           .eq('staff_id', req.staff_id)
-          .gte('shift_date', req.start_date)
-          .lte('shift_date', req.end_date)
+          .gte('start_date', req.start_date)
+          .lte('start_date', req.end_date)
           .not('status', 'eq', 'Cancelled');
         counts[req.id] = count ?? 0;
       }));
@@ -120,12 +120,12 @@ export function AdminLeaveRequestsPage() {
     setLoadingShifts(true);
     const { data } = await supabase
       .from('staff_shifts')
-      .select('id, shift_date, start_time, end_time, status, house:houses(name)')
+      .select('id, start_date, start_time, end_time, status, house:houses(name)')
       .eq('staff_id', req.staff_id)
-      .gte('shift_date', req.start_date)
-      .lte('shift_date', req.end_date)
+      .gte('start_date', req.start_date)
+      .lte('start_date', req.end_date)
       .not('status', 'eq', 'Cancelled')
-      .order('shift_date');
+      .order('start_date');
     setAffectedShifts((data as AffectedShift[]) || []);
     setLoadingShifts(false);
   };
@@ -394,7 +394,7 @@ export function AdminLeaveRequestsPage() {
                     <div className="rounded-md border divide-y max-h-40 overflow-y-auto">
                       {affectedShifts.map(s => (
                         <div key={s.id} className="px-3 py-2 text-sm flex items-center justify-between">
-                          <span>{format(parseISO(s.shift_date), 'EEE dd MMM')}</span>
+                          <span>{format(parseISO(s.start_date), 'EEE dd MMM')}</span>
                           <span className="text-muted-foreground">
                             {s.start_time?.slice(0,5)}–{s.end_time?.slice(0,5)}
                             {s.house?.name ? ` · ${s.house.name}` : ''}

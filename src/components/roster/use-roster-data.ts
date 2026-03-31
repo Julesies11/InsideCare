@@ -28,7 +28,7 @@ export interface Staff {
 export interface StaffShift {
   id: string;
   staff_id: string;
-  shift_date: string;
+  start_date: string;
   end_date: string;
   start_time: string;
   end_time: string;
@@ -142,7 +142,7 @@ export function useRosterData() {
     }
   }, [loadHouses, loadParticipants, loadStaff]);
 
-  const loadShifts = useCallback(async (staffId: string, startDate: string, endDate: string): Promise<StaffShift[]> => {
+  const loadShifts = useCallback(async (staffId: string, startDate: string, endDate: string, houseId?: string): Promise<StaffShift[]> => {
     setLoading(true);
     try {
       // Build the base query with all joins
@@ -163,14 +163,19 @@ export function useRosterData() {
             id, checklist_id, assignment_title
           )
         `)
-        .gte('shift_date', startDate)
-        .lte('shift_date', endDate)
-        .order('shift_date', { ascending: true })
+        .gte('start_date', startDate)
+        .lte('start_date', endDate)
+        .order('start_date', { ascending: true })
         .order('start_time', { ascending: true });
 
       // Apply staff filter if not 'all'
-      if (staffId !== 'all') {
+      if (staffId && staffId !== 'all') {
         query = query.eq('staff_id', staffId);
+      }
+
+      // Apply house filter if provided and not 'all'
+      if (houseId && houseId !== 'all') {
+        query = query.eq('house_id', houseId);
       }
 
       const { data, error } = await query;
@@ -195,7 +200,7 @@ export function useRosterData() {
           })) || [],
           assigned_checklists: shift.assigned_checklists || [],
           staff_name: shift.staff?.name || 'Unassigned',
-          duration_hours: calculateDuration(shift.start_time, shift.end_time, shift.shift_date, shift.end_date ?? shift.shift_date),
+          duration_hours: calculateDuration(shift.start_time, shift.end_time, shift.start_date, shift.end_date ?? shift.start_date),
           color_theme: colorTheme,
           icon_name: iconName,
         };
@@ -244,6 +249,86 @@ export function useRosterData() {
     }
   }, []);
 
+  const bulkDeleteShifts = useCallback(async (params: {
+    houseId?: string;
+    startDate: string;
+    endDate: string;
+    staffId?: string;
+    shiftTypeId?: string;
+    status?: string;
+  }) => {
+    setLoading(true);
+    try {
+      let query = supabase
+        .from('staff_shifts')
+        .delete()
+        .gte('start_date', params.startDate)
+        .lte('start_date', params.endDate);
+
+      if (params.houseId && params.houseId !== 'all') {
+        query = query.eq('house_id', params.houseId);
+      }
+      if (params.staffId && params.staffId !== 'all') {
+        query = query.eq('staff_id', params.staffId);
+      }
+      if (params.shiftTypeId && params.shiftTypeId !== 'all') {
+        query = query.eq('shift_type_id', params.shiftTypeId);
+      }
+      if (params.status && params.status !== 'all') {
+        query = query.eq('status', params.status);
+      }
+
+      const { error } = await query;
+      if (error) throw error;
+      return true;
+    } catch (err) {
+      console.error('Bulk delete failed:', err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const bulkUpdateShifts = useCallback(async (params: {
+    houseId?: string;
+    startDate: string;
+    endDate: string;
+    staffId?: string;
+    shiftTypeId?: string;
+    status?: string;
+  }, updates: Partial<StaffShift>) => {
+    setLoading(true);
+    try {
+      let query = supabase
+        .from('staff_shifts')
+        .update(updates)
+        .gte('start_date', params.startDate)
+        .lte('start_date', params.endDate);
+
+      if (params.houseId && params.houseId !== 'all') {
+        query = query.eq('house_id', params.houseId);
+      }
+      if (params.staffId && params.staffId !== 'all') {
+        query = query.eq('staff_id', params.staffId);
+      }
+      if (params.shiftTypeId && params.shiftTypeId !== 'all') {
+        query = query.eq('shift_type_id', params.shiftTypeId);
+      }
+      if (params.status && params.status !== 'all') {
+        query = query.eq('status', params.status);
+      }
+
+      const { error } = await query;
+      if (error) throw error;
+      return true;
+    } catch (err) {
+      console.error('Bulk update failed:', err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const addShiftParticipant = useCallback(async (shiftId: string, participantId: string) => {
     const { error } = await supabase
       .from('shift_participants')
@@ -287,7 +372,8 @@ export function useRosterData() {
           items:shift_template_items(
             *,
             shift_type:house_shift_types(id, name),
-            checklists:shift_template_item_checklists(checklist_id, checklist:house_checklists(name))
+            checklists:shift_template_item_checklists(checklist_id, checklist:house_checklists(name)),
+            participants:shift_template_item_participants(participant_id)
           )
         `)
         .eq('id', params.templateId)
@@ -324,7 +410,7 @@ export function useRosterData() {
             .from('staff_shifts')
             .select('id')
             .eq('house_id', params.houseId)
-            .eq('shift_date', date)
+            .eq('start_date', date)
             .eq('start_time', item.start_time)
             .eq('shift_type', item.shift_type.name)
             .maybeSingle();
@@ -339,7 +425,7 @@ export function useRosterData() {
             .from('staff_shifts')
             .insert({
               house_id: params.houseId,
-              shift_date: date,
+              start_date: date,
               start_time: item.start_time,
               end_time: item.end_time,
               shift_type: item.shift_type.name,
@@ -377,6 +463,15 @@ export function useRosterData() {
             }));
             await supabase.from('shift_assigned_checklists').insert(toInsert);
           }
+
+          // Attach Participants (from template item overrides)
+          if (item.participants && item.participants.length > 0) {
+            const participantsToInsert = item.participants.map((p: any) => ({
+              shift_id: newShift.id,
+              participant_id: p.participant_id
+            }));
+            await supabase.from('shift_participants').insert(participantsToInsert);
+          }
         }
       }
 
@@ -385,6 +480,36 @@ export function useRosterData() {
       setLoading(false);
     }
   }, []);
+
+  const bulkMaterializeTemplate = useCallback(async (params: {
+    templateId: string,
+    houseIds: string[],
+    startDate: string,
+    endDate: string,
+    withAssignments?: boolean,
+    sourceShiftIds?: string[]
+  }) => {
+    setLoading(true);
+    try {
+      let totalCreated = 0;
+      let totalSkipped = 0;
+      for (const houseId of params.houseIds) {
+        const result = await materializeTemplate({
+          templateId: params.templateId,
+          houseId,
+          startDate: params.startDate,
+          endDate: params.endDate,
+          withAssignments: params.withAssignments,
+          sourceShiftIds: params.sourceShiftIds
+        });
+        totalCreated += result.created;
+        totalSkipped += result.skipped;
+      }
+      return { created: totalCreated, skipped: totalSkipped };
+    } finally {
+      setLoading(false);
+    }
+  }, [materializeTemplate]);
 
   const syncShiftChecklists = useCallback(async (shiftId: string, checklists: any[]) => {
     // Simple approach: delete existing and insert new
@@ -417,6 +542,119 @@ export function useRosterData() {
     }
   }, []);
 
+  const materializePattern = useCallback(async (params: {
+    houseId: string,
+    houseName: string,
+    startDate: string,
+    endDate: string,
+    pattern: Record<number, string[]>[], // Array of weeks, each week is dayIndex -> shiftTypeIds
+    shiftTypes: any[],
+    defaults: any[],
+    participants: any[]
+  }) => {
+    setLoading(true);
+    let createdCount = 0;
+    let skippedCount = 0;
+    let checklistCount = 0;
+    
+    try {
+      const { eachDayOfInterval, format, getDay, differenceInCalendarDays, startOfDay } = await import('date-fns');
+      const interval = eachDayOfInterval({
+        start: new Date(params.startDate),
+        end: new Date(params.endDate)
+      });
+      
+      const startDay = startOfDay(new Date(params.startDate));
+      const rotationWeeks = params.pattern.length || 1;
+
+      // Fetch existing shifts for the given date range to avoid duplicates
+      const { data: existingShifts, error: existingError } = await supabase
+        .from('staff_shifts')
+        .select('id, start_date, shift_type_id, start_time, end_time')
+        .eq('house_id', params.houseId)
+        .gte('start_date', params.startDate)
+        .lte('start_date', params.endDate);
+
+      if (existingError) throw existingError;
+
+      for (const date of interval) {
+        const dayIndex = getDay(date);
+        const daysDiff = differenceInCalendarDays(startOfDay(date), startDay);
+        const weekIndex = Math.floor(daysDiff / 7) % rotationWeeks;
+        
+        const selectedTypes = params.pattern[weekIndex]?.[dayIndex] || [];
+        const dateStr = format(date, 'yyyy-MM-dd');
+
+        for (const typeId of selectedTypes) {
+          const type = params.shiftTypes.find(t => t.id === typeId);
+          if (!type) continue;
+
+          // Duplicate check
+          const isDuplicate = existingShifts?.some(s => 
+            s.start_date === dateStr &&
+            s.shift_type_id === type.id &&
+            s.start_time === type.default_start_time &&
+            s.end_time === type.default_end_time
+          );
+
+          if (isDuplicate) {
+            skippedCount++;
+            continue;
+          }
+
+          // 1. Create the Shift (Confirmed & Open)
+          const { data: newShift, error: shiftError } = await supabase
+            .from('staff_shifts')
+            .insert({
+              house_id: params.houseId,
+              start_date: dateStr,
+              start_time: type.default_start_time,
+              end_time: type.default_end_time,
+              shift_type: type.name,
+              shift_type_id: type.id,
+              status: 'Confirmed', 
+              staff_id: null,      
+              notes: `Auto-generated from Shift Model for ${params.houseName}`
+            })
+            .select()
+            .single();
+
+          if (shiftError) throw shiftError;
+          createdCount++;
+
+          // 2. Assign Default Checklists
+          const typeDefaults = params.defaults?.filter(d => d.shift_type_id === type.id) || [];
+          if (typeDefaults.length > 0) {
+            const checklistPayload = typeDefaults.map((d, index) => ({
+              shift_id: newShift.id,
+              checklist_id: d.checklist_id,
+              assignment_title: d.checklist?.name || type.name,
+              sort_order: index
+            }));
+            const { error: clErr } = await supabase.from('shift_assigned_checklists').insert(checklistPayload);
+            if (!clErr) checklistCount += checklistPayload.length;
+          }
+
+          // 3. Assign Active Participants
+          const activeParticipants = params.participants.filter(p => p.status === 'active');
+          if (activeParticipants.length > 0) {
+            const participantPayload = activeParticipants.map(p => ({
+              shift_id: newShift.id,
+              participant_id: p.id
+            }));
+            await supabase.from('shift_participants').insert(participantPayload);
+          }
+        }
+      }
+      return { created: createdCount, skipped: skippedCount, checklists: checklistCount };
+    } catch (err) {
+      console.error('materializePattern error:', err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   return {
     houses,
     participants,
@@ -432,6 +670,9 @@ export function useRosterData() {
     deleteShift,
     addShiftParticipant,
     removeShiftParticipant,
+    materializeTemplate,
+    bulkMaterializeTemplate,
+    materializePattern,
     syncShiftChecklists,
   };
 }

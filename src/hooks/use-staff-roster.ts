@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase';
 
 export interface RosterShift {
   id: string;
-  shift_date: string;
+  start_date: string;
   start_time: string;
   end_time: string;
   shift_type: string;
@@ -20,9 +20,9 @@ export function useStaffRoster(staffId?: string) {
 
       const { data: shiftsData, error } = await supabase
         .from('staff_shifts')
-        .select('id, shift_date, start_time, end_time, shift_type, status, house:houses(name)')
+        .select('id, start_date, start_time, end_time, shift_type, status, house:houses(name)')
         .eq('staff_id', staffId)
-        .order('shift_date', { ascending: false });
+        .order('start_date', { ascending: false });
 
       if (error) throw error;
       if (!shiftsData) return [];

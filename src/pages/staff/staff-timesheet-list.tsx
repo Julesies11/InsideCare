@@ -42,7 +42,7 @@ interface Timesheet {
   travel_km: number;
   created_at: string;
   shift: {
-    shift_date: string;
+    start_date: string;
     start_time: string;
     end_time: string;
     shift_type: string;
@@ -96,7 +96,7 @@ export function StaffTimesheetList() {
         break_minutes, shift_notes_text, status, admin_notes,
         rejection_reason, submitted_at, incident_tag, sick_shift,
         overtime_hours, travel_km, created_at,
-        shift:staff_shifts(shift_date, start_time, end_time, shift_type, house:houses(name))
+        shift:staff_shifts(start_date, start_time, end_time, shift_type, house:houses(name))
       `)
       .eq('staff_id', user.staff_id)
       .order('created_at', { ascending: false });
@@ -227,8 +227,8 @@ export function StaffTimesheetList() {
                   </thead>
                   <tbody className="divide-y">
                     {visible.map((ts) => {
-                      const dateStr = ts.shift?.shift_date
-                        ? format(parseISO(ts.shift.shift_date), 'EEE dd MMM yyyy')
+                      const dateStr = ts.shift?.start_date
+                        ? format(parseISO(ts.shift.start_date), 'EEE dd MMM yyyy')
                         : format(new Date(ts.clock_in), 'EEE dd MMM yyyy');
                       const hrs = calcHours(ts).toFixed(1);
                       return (

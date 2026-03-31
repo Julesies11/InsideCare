@@ -24,7 +24,7 @@ export function StaffDashboard() {
   const todayStr = format(now, 'yyyy-MM-dd');
   
   const currentShift = upcomingShifts.find((s: any) => 
-    s.shift_date === todayStr && 
+    s.start_date === todayStr && 
     nowTime >= s.start_time && 
     nowTime <= s.end_time
   );
@@ -90,7 +90,7 @@ export function StaffDashboard() {
                   {upcomingShifts.map((shift: any) => (
                     <div key={shift.id} className="flex items-center justify-between py-2.5">
                       <div>
-                        <p className="text-sm font-medium">{format(new Date(shift.shift_date), 'EEE dd MMM')}</p>
+                        <p className="text-sm font-medium">{format(new Date(shift.start_date), 'EEE dd MMM')}</p>
                         <p className="text-xs text-muted-foreground">
                           {shift.start_time?.slice(0, 5)} – {shift.end_time?.slice(0, 5)}
                           {shift.house ? ` · ${shift.house.name}` : ''}
@@ -172,8 +172,8 @@ export function StaffDashboard() {
                     <div key={ts.id} className="flex items-center justify-between py-2.5">
                       <div>
                         <p className="text-sm font-medium">
-                          {ts.shift?.shift_date
-                            ? format(new Date(ts.shift.shift_date), 'EEE dd MMM yyyy')
+                          {ts.shift?.start_date
+                            ? format(new Date(ts.shift.start_date), 'EEE dd MMM yyyy')
                             : format(new Date(ts.clock_in), 'EEE dd MMM yyyy')}
                         </p>
                         <p className="text-xs text-muted-foreground capitalize">{ts.status}</p>

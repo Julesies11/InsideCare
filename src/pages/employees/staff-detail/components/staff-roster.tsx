@@ -92,7 +92,7 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
   };
 
   const handleSaveShift = async (formData: ShiftFormData) => {
-    if (!formData.shift_date || !formData.end_date || !formData.start_time || !formData.end_time) {
+    if (!formData.start_date || !formData.end_date || !formData.start_time || !formData.end_time) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -101,7 +101,7 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
       if (selectedShift) {
         // UPDATE EXISTING SHIFT
         const updates = {
-          shift_date: formData.shift_date,
+          start_date: formData.start_date,
           end_date: formData.end_date,
           start_time: formData.start_time,
           end_time: formData.end_time,
@@ -139,7 +139,7 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
                 ...updates,
                 house: house ? { id: house.id, name: house.name } : undefined,
                 participants: shiftParticipants,
-                duration_hours: calculateDuration(updates.start_time, updates.end_time, updates.shift_date, updates.end_date),
+                duration_hours: calculateDuration(updates.start_time, updates.end_time, updates.start_date, updates.end_date),
               }
             : shift
         ));
@@ -150,7 +150,7 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
         if (staffMember?.auth_user_id && formData.house_id) {
           const shiftHouse = houses.find(h => h.id === formData.house_id);
           if (shiftHouse) {
-            await NotificationService.notifyShiftModified(staffMember.auth_user_id, formData.shift_date, shiftHouse.name);
+            await NotificationService.notifyShiftModified(staffMember.auth_user_id, formData.start_date, shiftHouse.name);
           }
         }
 
@@ -158,7 +158,7 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
         // CREATE NEW SHIFT
         const shiftData = {
           staff_id: staffId,
-          shift_date: formData.shift_date,
+          start_date: formData.start_date,
           end_date: formData.end_date,
           start_time: formData.start_time,
           end_time: formData.end_time,
@@ -189,7 +189,7 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
           ...data,
           house: house ? { id: house.id, name: house.name } : undefined,
           participants: shiftParticipants,
-          duration_hours: calculateDuration(data.start_time, data.end_time, data.shift_date, data.end_date ?? data.shift_date),
+          duration_hours: calculateDuration(data.start_time, data.end_time, data.start_date, data.end_date ?? data.start_date),
         };
 
         setShifts(prevShifts => [...prevShifts, newShift]);
@@ -198,7 +198,7 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
         
         const staffMember = staff.find(s => s.id === staffId);
         if (staffMember?.auth_user_id && house) {
-          await NotificationService.notifyShiftAssigned(staffMember.auth_user_id, formData.shift_date, house.name);
+          await NotificationService.notifyShiftAssigned(staffMember.auth_user_id, formData.start_date, house.name);
         }
       }
     } catch (error) {

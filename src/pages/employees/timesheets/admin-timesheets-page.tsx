@@ -48,7 +48,7 @@ interface Timesheet {
   created_at: string;
   staff: { id: string; name: string; auth_user_id: string | null } | null;
   shift: {
-    shift_date: string;
+    start_date: string;
     end_date: string | null;
     start_time: string;
     end_time: string;
@@ -126,7 +126,7 @@ export function AdminTimesheetsPage() {
         submitted_at, incident_tag, sick_shift, overtime_hours, travel_km,
         overtime_explanation, created_at,
         staff:staff_id(id, name, auth_user_id),
-        shift:shift_id(shift_date, end_date, start_time, end_time, shift_type, house:house_id(name))
+        shift:shift_id(start_date, end_date, start_time, end_time, shift_type, house:house_id(name))
       `)
       .order('submitted_at', { ascending: false, nullsFirst: false });
 
@@ -150,7 +150,7 @@ export function AdminTimesheetsPage() {
     return (
       ts.staff?.name?.toLowerCase().includes(q) ||
       ts.shift?.house?.name?.toLowerCase().includes(q) ||
-      ts.shift?.shift_date?.includes(q)
+      ts.shift?.start_date?.includes(q)
     );
   });
 
@@ -180,8 +180,8 @@ export function AdminTimesheetsPage() {
     if (error) { toast.error('Failed to update timesheet'); setSaving(false); return; }
 
     const userName = user.fullname || user.email || 'Admin';
-    const shiftDate = selected.shift?.shift_date
-      ? format(parseISO(selected.shift.shift_date), 'dd MMM yyyy')
+    const shiftDate = selected.shift?.start_date
+      ? format(parseISO(selected.shift.start_date), 'dd MMM yyyy')
       : format(new Date(selected.clock_in), 'dd MMM yyyy');
 
     await logActivity({
@@ -241,8 +241,8 @@ export function AdminTimesheetsPage() {
     for (const id of ids) {
       const ts = timesheets.find(t => t.id === id);
       if (!ts) continue;
-      const shiftDate = ts.shift?.shift_date
-        ? format(parseISO(ts.shift.shift_date), 'dd MMM yyyy')
+      const shiftDate = ts.shift?.start_date
+        ? format(parseISO(ts.shift.start_date), 'dd MMM yyyy')
         : format(new Date(ts.clock_in), 'dd MMM yyyy');
       await logActivity({
         activityType:      'approve',
@@ -397,9 +397,9 @@ export function AdminTimesheetsPage() {
                   </thead>
                   <tbody className="divide-y">
                     {filtered.map((ts) => {
-                      const shiftDate = ts.shift?.shift_date
-                        ? format(parseISO(ts.shift.shift_date), 'dd MMM yyyy') +
-                          (ts.shift.end_date && ts.shift.end_date !== ts.shift.shift_date
+                      const shiftDate = ts.shift?.start_date
+                        ? format(parseISO(ts.shift.start_date), 'dd MMM yyyy') +
+                          (ts.shift.end_date && ts.shift.end_date !== ts.shift.start_date
                             ? ` – ${format(parseISO(ts.shift.end_date), 'dd MMM yyyy')}`
                             : '')
                         : format(new Date(ts.clock_in), 'dd MMM yyyy');
@@ -483,9 +483,9 @@ export function AdminTimesheetsPage() {
                   <div>
                     <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Date</p>
                     <p className="font-medium">
-                      {selected.shift?.shift_date
-                        ? format(parseISO(selected.shift.shift_date), 'EEE dd MMM yyyy') +
-                          (selected.shift.end_date && selected.shift.end_date !== selected.shift.shift_date
+                      {selected.shift?.start_date
+                        ? format(parseISO(selected.shift.start_date), 'EEE dd MMM yyyy') +
+                          (selected.shift.end_date && selected.shift.end_date !== selected.shift.start_date
                             ? ` – ${format(parseISO(selected.shift.end_date), 'dd MMM yyyy')}`
                             : '')
                         : format(new Date(selected.clock_in), 'EEE dd MMM yyyy')}

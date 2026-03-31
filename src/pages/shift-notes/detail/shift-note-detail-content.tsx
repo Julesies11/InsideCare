@@ -37,7 +37,7 @@ export function ShiftNoteDetailContent({
   const [shiftNote, setShiftNote] = useState<any>(null);
   const [tagInput, setTagInput] = useState('');
   const [formData, setFormData] = useState({
-    shift_date: new Date().toISOString().split('T')[0],
+    start_date: new Date().toISOString().split('T')[0],
     shift_time: '',
     participant_id: '',
     staff_id: '',
@@ -56,7 +56,7 @@ export function ShiftNoteDetailContent({
       setLoading(true);
       const { data, error } = await supabase
         .from('shift_notes')
-        .select('id, participant_id, staff_id, shift_date, shift_time, house_id, shift_id, notes, full_note, tags, created_at, updated_at, participant:participants(id, name), staff:staff(id, name), house:houses(id, name), shift:staff_shifts(id, start_time, end_time, shift_type, status)')
+        .select('id, participant_id, staff_id, start_date, shift_time, house_id, shift_id, notes, full_note, tags, created_at, updated_at, participant:participants(id, name), staff:staff(id, name), house:houses(id, name), shift:staff_shifts(id, start_time, end_time, shift_type, status)')
         .eq('id', id)
         .single();
 
@@ -65,7 +65,7 @@ export function ShiftNoteDetailContent({
       setShiftNote(data);
       
       const normalizedData = {
-        shift_date: data.shift_date || new Date().toISOString().split('T')[0],
+        start_date: data.start_date || new Date().toISOString().split('T')[0],
         shift_time: data.shift_time || '',
         participant_id: data.participant_id || '',
         staff_id: data.staff_id || '',
@@ -123,7 +123,7 @@ export function ShiftNoteDetailContent({
       if (onSavingChange) onSavingChange(true);
 
       const dataToSave = {
-        shift_date: formData.shift_date,
+        start_date: formData.start_date,
         shift_time: formData.shift_time || null,
         participant_id: formData.participant_id || null,
         staff_id: formData.staff_id || null,
@@ -191,12 +191,12 @@ export function ShiftNoteDetailContent({
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="shift_date">Shift Date *</Label>
+              <Label htmlFor="start_date">Shift Date *</Label>
               <Input
-                id="shift_date"
+                id="start_date"
                 type="date"
-                value={formData.shift_date}
-                onChange={(e) => handleFormChange('shift_date', e.target.value)}
+                value={formData.start_date}
+                onChange={(e) => handleFormChange('start_date', e.target.value)}
                 required
               />
             </div>

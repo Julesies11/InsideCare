@@ -62,7 +62,7 @@ export function StaffRoster() {
   };
 
   const isPast = (shift: Shift) =>
-    shift.shift_date <= new Date().toISOString().split('T')[0];
+    shift.start_date <= new Date().toISOString().split('T')[0];
 
   return (
     <>
@@ -191,7 +191,7 @@ export function StaffRoster() {
                       {shifts.map((shift) => (
                         <tr key={shift.id} className="hover:bg-muted/30 transition-colors">
                           <td className="px-5 py-3.5 font-medium">
-                            {format(parseISO(shift.shift_date), 'EEE dd MMM yyyy')}
+                            {format(parseISO(shift.start_date), 'EEE dd MMM yyyy')}
                           </td>
                           <td className="px-5 py-3.5 text-muted-foreground hidden sm:table-cell">
                             {shift.start_time?.slice(0, 5)} – {shift.end_time?.slice(0, 5)}

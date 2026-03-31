@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 export interface StaffShift {
   id: string;
   staff_id: string;
-  shift_date: string;
+  start_date: string;
   start_time: string;
   end_time: string;
   house_id: string | null;
@@ -34,7 +34,7 @@ export interface ShiftParticipant {
 const SHIFT_COLUMNS = `
   id,
   staff_id,
-  shift_date,
+  start_date,
   start_time,
   end_time,
   house_id,
@@ -76,11 +76,11 @@ export function useStaffShifts(staffId?: string, startDate?: string, endDate?: s
         .from('staff_shifts')
         .select(SHIFT_COLUMNS)
         .eq('staff_id', staffId)
-        .order('shift_date', { ascending: true })
+        .order('start_date', { ascending: true })
         .order('start_time', { ascending: true });
 
-      if (startDate) query = query.gte('shift_date', startDate);
-      if (endDate) query = query.lte('shift_date', endDate);
+      if (startDate) query = query.gte('start_date', startDate);
+      if (endDate) query = query.lte('start_date', endDate);
 
       const { data: shifts, error: shiftsError } = await query;
       if (shiftsError) throw shiftsError;

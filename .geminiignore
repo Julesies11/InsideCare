@@ -1,0 +1,33 @@
+# Python virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Python cache and metadata
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+.mypy_cache/
+
+# Git and IDE metadata
+.git/
+.svn/
+.vscode/
+.idea/
+
+# Large data and logs
+*.log
+*.sqlite
+*.db
+dist/
+build/
+node_modules/
+
+# Sensitive info
+.env
+*.pem
+*.key

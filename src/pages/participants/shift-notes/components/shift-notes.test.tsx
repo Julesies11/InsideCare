@@ -10,7 +10,7 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const mockShiftNotes = [
   {
     id: 'note-1',
-    shift_date: '2026-03-05',
+    start_date: '2026-03-05',
     shift_time: '08:00 - 16:00',
     notes: 'Test note 1',
     participant: { id: 'p-1', name: 'John Doe' },

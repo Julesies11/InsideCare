@@ -86,7 +86,7 @@ export function EditShiftNoteDialog({
   const [formData, setFormData] = useState<ShiftNoteUpdateData>({
     participant_id: null,
     staff_id: null,
-    shift_date: '',
+    start_date: '',
     shift_time: null,
     house_id: null,
     shift_id: null,
@@ -99,7 +99,7 @@ export function EditShiftNoteDialog({
   const [matchedShiftOptions, setMatchedShiftOptions] = useState<MatchedShiftOption[]>([]);
   const [isMatchingShift, setIsMatchingShift] = useState(false);
 
-  // Auto-match shift by staff_id + shift_date (Option 2)
+  // Auto-match shift by staff_id + start_date (Option 2)
   const autoMatchShift = useCallback(async (staffId: string | null, shiftDate: string | null) => {
     if (!staffId || !shiftDate || formData.shift_id) return;
 
@@ -109,7 +109,7 @@ export function EditShiftNoteDialog({
         .from('staff_shifts')
         .select('id, start_time, end_time, shift_type, status')
         .eq('staff_id', staffId)
-        .eq('shift_date', shiftDate)
+        .eq('start_date', shiftDate)
         .order('start_time');
 
       if (error || !data || data.length === 0) {
@@ -141,7 +141,7 @@ export function EditShiftNoteDialog({
         setFormData({
           participant_id: null,
           staff_id: null,
-          shift_date: format(new Date(), 'yyyy-MM-dd'),
+          start_date: format(new Date(), 'yyyy-MM-dd'),
           shift_time: null,
           house_id: null,
           shift_id: initialShiftId,
@@ -155,7 +155,7 @@ export function EditShiftNoteDialog({
         setFormData({
           participant_id: shiftNote.participant_id || null,
           staff_id: shiftNote.staff_id || null,
-          shift_date: shiftNote.shift_date,
+          start_date: shiftNote.start_date,
           shift_time: shiftNote.shift_time || null,
           house_id: shiftNote.house_id || null,
           shift_id: shiftNote.shift_id || null,
@@ -173,7 +173,7 @@ export function EditShiftNoteDialog({
       const newDate = format(date, 'yyyy-MM-dd');
       setFormData((prev) => ({
         ...prev,
-        shift_date: newDate,
+        start_date: newDate,
         // Clear existing auto-match when date changes
         shift_id: initialShiftId || prev.shift_id,
       }));
@@ -197,8 +197,8 @@ export function EditShiftNoteDialog({
       setLinkedShift(null);
       setMatchedShiftOptions([]);
       // Trigger auto-match with new staff
-      if (newStaffId && formData.shift_date) {
-        autoMatchShift(newStaffId, formData.shift_date);
+      if (newStaffId && formData.start_date) {
+        autoMatchShift(newStaffId, formData.start_date);
       }
     }
   };
@@ -219,7 +219,7 @@ export function EditShiftNoteDialog({
   };
 
   const handleSubmit = async () => {
-    if (!formData.shift_date) {
+    if (!formData.start_date) {
       toast.error('Please select a date');
       return;
     }
@@ -279,19 +279,19 @@ export function EditShiftNoteDialog({
           {/* Date and Time Row */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="shift_date">Date *</Label>
+              <Label htmlFor="start_date">Date *</Label>
               <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
                     className={cn(
                       'w-full justify-start text-left font-normal',
-                      !formData.shift_date && 'text-muted-foreground'
+                      !formData.start_date && 'text-muted-foreground'
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.shift_date
-                      ? format(new Date(formData.shift_date), 'dd MMM yyyy')
+                    {formData.start_date
+                      ? format(new Date(formData.start_date), 'dd MMM yyyy')
                       : 'Select date'}
                   </Button>
                 </PopoverTrigger>
@@ -299,8 +299,8 @@ export function EditShiftNoteDialog({
                   <Calendar
                     mode="single"
                     selected={
-                      formData.shift_date
-                        ? new Date(formData.shift_date)
+                      formData.start_date
+                        ? new Date(formData.start_date)
                         : undefined
                     }
                     onSelect={handleDateSelect}

@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { ChevronLeft, ChevronRight, Copy, Loader2, Settings2, CalendarDays } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Copy, Loader2, Settings2, CalendarDays, Zap } from 'lucide-react';
 import { ViewMode } from './roster-utils';
 
 interface RosterCalendarHeaderProps {
@@ -32,12 +32,15 @@ interface RosterCalendarHeaderProps {
   
   shiftTypeFilter: string;
   onShiftTypeFilterChange: (value: string) => void;
+  shiftTypeList?: Array<{ id: string; name: string }>;
   
   statusFilter: string;
   onStatusFilterChange: (value: string) => void;
 
   // Template actions
   onApplyTemplate?: (weeks: number) => void;
+  onPopulateRoster?: () => void;
+  onBulkAction?: () => void;
   isCopying?: boolean;
 }
 
@@ -59,9 +62,12 @@ export function RosterCalendarHeader({
   houseList,
   shiftTypeFilter,
   onShiftTypeFilterChange,
+  shiftTypeList = [],
   statusFilter,
   onStatusFilterChange,
   onApplyTemplate,
+  onPopulateRoster,
+  onBulkAction,
   isCopying = false,
 }: RosterCalendarHeaderProps) {
   const selectedHouse = houseList.find(h => h.id === houseFilter);
@@ -144,7 +150,7 @@ export function RosterCalendarHeader({
           </Select>
 
           {/* Bulk Action for Selected House */}
-          {houseFilter !== 'all' && onApplyTemplate && (
+          {houseFilter !== 'all' && (onApplyTemplate || onPopulateRoster) && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button 
@@ -152,7 +158,7 @@ export function RosterCalendarHeader({
                   size="icon" 
                   className="size-10 border-primary/20 text-primary hover:bg-primary/5 shrink-0" 
                   disabled={isCopying}
-                  title={`Templates for ${selectedHouse?.name}`}
+                  title={`Actions for ${selectedHouse?.name}`}
                 >
                   {isCopying ? <Loader2 className="size-4 animate-spin" /> : <Settings2 className="size-4" />}
                 </Button>
@@ -162,20 +168,46 @@ export function RosterCalendarHeader({
                   Bulk Actions: {selectedHouse?.name}
                 </div>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => onApplyTemplate(4)} className="cursor-pointer gap-2 py-2">
-                  <CalendarDays className="size-4 text-primary/60" />
-                  <div className="flex flex-col">
-                    <span className="font-bold text-xs">Fill from Templates</span>
-                    <span className="text-[10px] text-muted-foreground">Apply 7-day model for 4 weeks</span>
-                  </div>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onApplyTemplate(12)} className="cursor-pointer gap-2 py-2">
-                  <CalendarDays className="size-4 text-primary/60" />
-                  <div className="flex flex-col">
-                    <span className="font-bold text-xs">Fill for 3 Months</span>
-                    <span className="text-[10px] text-muted-foreground">Apply 7-day model for 12 weeks</span>
-                  </div>
-                </DropdownMenuItem>
+                
+                {onPopulateRoster && (
+                  <DropdownMenuItem onClick={onPopulateRoster} className="cursor-pointer gap-2 py-2">
+                    <Zap className="size-4 text-primary fill-primary/20" />
+                    <div className="flex flex-col">
+                      <span className="font-bold text-xs text-primary">Quick Populate Roster</span>
+                      <span className="text-[10px] text-muted-foreground">Fill range using Shift Model pattern</span>
+                    </div>
+                  </DropdownMenuItem>
+                )}
+
+                {onBulkAction && (
+                  <DropdownMenuItem onClick={onBulkAction} className="cursor-pointer gap-2 py-2">
+                    <Settings2 className="size-4 text-orange-500" />
+                    <div className="flex flex-col">
+                      <span className="font-bold text-xs text-orange-600">Bulk Shift Manager</span>
+                      <span className="text-[10px] text-muted-foreground">Update or Delete multiple shifts</span>
+                    </div>
+                  </DropdownMenuItem>
+                )}
+
+                {onApplyTemplate && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => onApplyTemplate(4)} className="cursor-pointer gap-2 py-2">
+                      <CalendarDays className="size-4 text-primary/60" />
+                      <div className="flex flex-col">
+                        <span className="font-bold text-xs">Materialize Templates</span>
+                        <span className="text-[10px] text-muted-foreground">Apply 7-day model for 4 weeks</span>
+                      </div>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onApplyTemplate(12)} className="cursor-pointer gap-2 py-2">
+                      <CalendarDays className="size-4 text-primary/60" />
+                      <div className="flex flex-col">
+                        <span className="font-bold text-xs">Fill for 3 Months</span>
+                        <span className="text-[10px] text-muted-foreground">Apply 7-day model for 12 weeks</span>
+                      </div>
+                    </DropdownMenuItem>
+                  </>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           )}
@@ -203,9 +235,11 @@ export function RosterCalendarHeader({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value="SIL">SIL</SelectItem>
-            <SelectItem value="Community">Community</SelectItem>
-            <SelectItem value="Admin">Admin</SelectItem>
+            {shiftTypeList.map(type => (
+              <SelectItem key={type.id} value={type.id}>
+                {type.name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
 
@@ -216,6 +250,7 @@ export function RosterCalendarHeader({
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
             <SelectItem value="Scheduled">Scheduled</SelectItem>
+            <SelectItem value="Confirmed">Confirmed</SelectItem>
             <SelectItem value="Completed">Completed</SelectItem>
             <SelectItem value="Cancelled">Cancelled</SelectItem>
             <SelectItem value="No Show">No Show</SelectItem>

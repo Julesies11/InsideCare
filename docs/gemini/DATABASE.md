@@ -3,11 +3,13 @@
 This document provides an overview of the core database tables and their relationships in the InsideCare application.
 
 ## Database Baseline
-As of **March 20, 2026**, the database schema and security have been overhauled:
+As of **March 30, 2026**, the database schema has been refined for go-live:
 - **Baseline:** `migrations/2026032000_baseline_schema.sql` (Canonical schema).
 - **Security Hardening:** `migrations/2026032001_harden_rls_policies.sql` (Global RLS activation).
-- **Recursion Fix:** `migrations/2026032004_fix_rls_recursion.sql` (Resolved infinite loops in house assignments).
-- **Archiving:** All historical files are in `migrations/old_consolidated/`.
+- **Dynamic Shift Model:** `migrations/2026032401_dynamic_shift_model.sql` (House-specific shift types).
+- **Shift Template Refactor:** `migrations/2026032500_refactor_shift_templates.sql` (Flexible template groups).
+- **Column Standardization:** `migrations/2026032901_rename_shift_date_to_start_date.sql` (Standardized date naming).
+- **Archiving:** Historical files are in `migrations/old_consolidated/`.
 
 ## Enum Compatibility & Querying
 The project uses Postgres Enums for critical columns (e.g., `public.status_enum`).
@@ -50,15 +52,18 @@ The care facilities/locations.
 - **`shift_template_groups`**: Named collections of shifts (e.g., "Standard Weekday", "Christmas Day").
 - **`shift_template_items`**: Individual shift definitions within a template group, linking to `house_shift_types`.
 - **`shift_template_item_checklists`**: Custom checklist overrides for specific template shifts.
-- **`staff_shifts`**: Scheduled shifts for staff. Linked to `house_shift_types` for dynamic styling.
+- **`shift_template_participants`**: Junction table for linking specific participants to shifts within a template.
+- **`staff_shifts`**: Scheduled shifts for staff.
+    - **Key Fields**: `id`, `staff_id`, `house_id`, `start_date` (formerly `shift_date`), `start_time`, `end_time`, `status`.
 - **`shift_assigned_checklists`**: Instances of checklists assigned to a *specific* `staff_shift`.
 - **`shift_template_schedules`**: Recurring RRule patterns for deploying template groups.
 
 ### Checklists & Submissions
 - **`checklist_master` & `checklist_item_master`**: Templates for recurring tasks.
 - **`house_checklists` & `house_checklist_items`**: Checklists assigned to specific houses.
+    - **Optimization**: Frequency logic has been removed from the house checklist level to support pure template-based assignment.
 - **`house_checklist_submissions`**: Tracks the overall status of a checklist execution (e.g., 'in_progress', 'completed').
-    - **Linking**: Submissions now explicitly store `shift_id` and `shift_type_id` for compliance tracking.
+    - **Linking**: Submissions explicitly store `shift_id` and `shift_type_id` for compliance tracking.
 - **`house_checklist_submission_items`**: Tracks completion of specific tasks.
     - **Attribution**: The `completed_by` column stores the `staff_id` of the individual who signed off on the task.
     - **Status**: The `status` column ('Completed' or 'Pending') indicates task state.

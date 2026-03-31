@@ -45,7 +45,7 @@ export interface PendingContact {
 export interface PendingShiftNote {
   tempId?: string;
   id?: string;
-  shift_date: string;
+  start_date: string;
   shift_time?: string | null;
   staff_id?: string | null;
   full_note: string;

@@ -12,20 +12,16 @@ import { HouseStaff } from './components/house-staff';
 import { HouseCalendarEvents } from './components/house-calendar-events';
 import { HouseComms } from './components/house-comms';
 import { HouseDocuments } from './components/house-documents';
-import { HouseChecklistHistory } from './components/house-checklist-history';
 import { HouseChecklistSetup } from './components/house-checklist-setup';
 import { HouseShiftSetup } from './components/house-shift-setup';
 import { HouseResources } from './components/house-resources';
-import { HouseRosterWizard } from './components/HouseRosterWizard';
 import { HouseManagement } from './components/house-management';
-import { LayoutDashboard } from 'lucide-react';
 import { HouseTypeCombobox } from './components/house-type-components/HouseTypeCombobox';
 import { HouseTypeMasterDialog } from './components/house-type-components/HouseTypeMasterDialog';
 import { House } from '@/models/house';
 import { HousePendingChanges, emptyHousePendingChanges } from '@/models/house-pending-changes';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { logActivity, detectChanges } from '@/lib/activity-logger';
 import { handleSupabaseError } from '@/errors/error-handler';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -69,8 +65,9 @@ export function HouseDetailContent({
   const { id } = useParams<{ id: string }>();
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
-  const { user, isAdmin } = useAuth();
+  const { user } = useAuth();
   const isSupervisor = user?.role_name?.toLowerCase().includes('supervisor');
+  const isAdmin = user?.role_name?.toLowerCase().includes('admin');
   const canEditManagement = isAdmin || isSupervisor;
   const { settings } = useSettings();
   const [sidebarSticky, setSidebarSticky] = useState(false);
@@ -82,16 +79,7 @@ export function HouseDetailContent({
   const canDelete = true;
 
   // Use refs to avoid stale closures in handleSave
-  const latestPendingChanges = useRef<HousePendingChanges>(pendingChanges || emptyHousePendingChanges);
   const latestFormData = useRef<Record<string, any>>({});
-  const latestOriginalData = useRef<Record<string, any>>({});
-
-  // Sync refs when state/props change
-  useEffect(() => {
-    if (pendingChanges) {
-      latestPendingChanges.current = pendingChanges;
-    }
-  }, [pendingChanges]);
 
   // Initialize ref for parentEl
   const parentRef = useRef<HTMLElement | Document>(document);
@@ -162,7 +150,6 @@ export function HouseDetailContent({
         
         setFormData(houseData);
         latestFormData.current = houseData;
-        latestOriginalData.current = houseData;
         
         // Wrap in requestAnimationFrame to avoid "Cannot update a component while rendering a different component"
         requestAnimationFrame(() => {
@@ -206,11 +193,7 @@ export function HouseDetailContent({
     const currentPending = pendingChanges || emptyHousePendingChanges;
     const currentFormData = latestFormData.current;
     
-    console.log('[DEBUG] handleSave triggered');
-    console.log('[DEBUG] Current Pending Changes:', JSON.stringify(currentPending, null, 2));
-    
     if (!house || !id) {
-      console.error('[DEBUG] Save aborted: Missing house or ID', { house, id });
       return;
     }
 
@@ -1021,7 +1004,7 @@ export function HouseDetailContent({
             .eq('id', item.id);
 
           if (itemError) {
-            throw new Error(`Failed to update template shift: ${itemError.message}`);
+            throw new Error(`Failed to update template shift: ${error.message}`);
           }
 
           if (item.checklist_ids !== undefined) {
@@ -1056,7 +1039,6 @@ export function HouseDetailContent({
       // Final Step: Log Activity & Refresh
       const updatedHouseData = { ...currentFormData };
       setHouse(houseData);
-      latestOriginalData.current = updatedHouseData;
       if (onOriginalDataChange) onOriginalDataChange(updatedHouseData);
       if (onFormDataChange) onFormDataChange(updatedHouseData);
 
@@ -1104,7 +1086,7 @@ export function HouseDetailContent({
     } finally {
       if (onSavingChange) onSavingChange(false);
     }
-  }, [id, house, user, queryClient, onOriginalDataChange, onFormDataChange, onSavingChange, onPendingChangesChange, isAdmin, pendingChanges]);
+  }, [id, house, user, queryClient, onOriginalDataChange, onFormDataChange, onSavingChange, onPendingChangesChange, pendingChanges]);
 
   useEffect(() => {
     if (saveHandlerRef) {
@@ -1320,20 +1302,6 @@ export function HouseDetailContent({
                 onPendingChangesChange={onPendingChangesChange}
               />
             </div>
-
-            {/* <div id="shift_templates" className="scroll-mt-[var(--header-height)]">
-              <HouseShiftSetup
-                key={`shift-templates-${refreshKeys.shiftConfiguration}`}
-                houseId={id!}
-                mode="templates"
-                pendingChanges={pendingChanges}
-                onPendingChangesChange={onPendingChangesChange}
-              />
-            </div> */}
-
-            <HouseChecklistHistory
-              houseId={id}
-            />
           </div>
 
           <HouseDocuments

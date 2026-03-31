@@ -144,14 +144,14 @@ const ShiftNotes = () => {
   const columns = useMemo<ColumnDef<ShiftNote>[]>(
     () => [
       {
-        id: 'shift_date',
-        accessorFn: (row) => row.shift_date,
+        id: 'start_date',
+        accessorFn: (row) => row.start_date,
         header: ({ column }) => (
           <DataGridColumnHeader title="Date" column={column} />
         ),
         cell: ({ row }) => (
           <span className="text-foreground font-normal">
-            {format(new Date(row.original.shift_date), 'MMM dd, yyyy')}
+            {format(new Date(row.original.start_date), 'MMM dd, yyyy')}
           </span>
         ),
         enableSorting: true,

@@ -24,6 +24,10 @@ import { HouseChecklistExecution } from './house-checklist-execution';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+// Shift Dialog imports
+import { ShiftDialog, ShiftFormData } from '@/components/roster/shift-dialog';
+import { useRosterData } from '@/components/roster/use-roster-data';
+import { useHouseShiftTypes } from '@/hooks/use-house-shift-types';
 
 interface HouseCalendarEventsProps {
   houseId?: string;
@@ -84,6 +88,16 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
   const { participants } = useParticipants();
   const { staff } = useStaff();
   const { user } = useAuth();
+  
+  // Shift Dialog hooks
+  const { createShift, updateShift, deleteShift } = useRosterData();
+  const { shiftTypes } = useHouseShiftTypes(houseId);
+  
+  // Shift Dialog state
+  const [showShiftDialog, setShowShiftDialog] = useState(false);
+  const [selectedShift, setSelectedShift] = useState<any>(null);
+  const [shiftPreSelectedDate, setShiftPreSelectedDate] = useState<Date>();
+  const [savingShift, setSavingShift] = useState(false);
 
   // Apply filtering
   const filteredEvents = useMemo(() => {
@@ -181,6 +195,42 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
   };
 
   const handleEditEvent = async (event: any) => {
+    // Handle shift events
+    if (event.type === 'shift') {
+      try {
+        // Extract shift ID from synthetic ID format (shift-{id})
+        const shiftId = event.id.replace('shift-', '');
+        
+        // Fetch full shift data with participants and checklists
+        const { data: shift, error: shiftError } = await supabase
+          .from('staff_shifts')
+          .select(`
+            *,
+            participants:shift_participants(participant:participants(id, name)),
+            assigned_checklists:shift_assigned_checklists(id, checklist_id, assignment_title)
+          `)
+          .eq('id', shiftId)
+          .single();
+        
+        if (shiftError) throw shiftError;
+        
+        // Convert participants array to participant_ids
+        const participant_ids = shift.participants?.map((p: any) => p.participant.id) || [];
+        
+        // Set shift data for editing
+        setSelectedShift({
+          ...shift,
+          participant_ids,
+          assigned_checklists: shift.assigned_checklists || []
+        });
+        setShowShiftDialog(true);
+      } catch (err) {
+        console.error('Error loading shift:', err);
+        toast.error('Failed to load shift details.');
+      }
+      return;
+    }
+    
     if (event.is_checklist_event) {
       try {
         // 1. Fetch the House Checklist and its items
@@ -554,6 +604,13 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
       return;
     }
 
+    // Handle shift deletion
+    if (event.type === 'shift') {
+      const shiftId = event.id.replace('shift-', '');
+      handleDeleteShift(shiftId);
+      return;
+    }
+
     if (event.is_checklist_event && event.checklist_schedule_id) {
       setEventToDeleteInstance(event);
       setShowDeleteChoice(true);
@@ -629,6 +686,46 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
     onPendingChangesChange(newPending);
   };
 
+  // Shift Dialog handlers
+  const handleSaveShift = async (formData: ShiftFormData) => {
+    setSavingShift(true);
+    try {
+      if (selectedShift) {
+        // Update existing shift
+        await updateShift(selectedShift.id, formData);
+        toast.success('Shift updated successfully');
+      } else {
+        // Create new shift - ensure house_id is set
+        const shiftData = {
+          ...formData,
+          house_id: houseId,
+        };
+        await createShift(shiftData);
+        toast.success('Shift created successfully');
+      }
+      setShowShiftDialog(false);
+      refresh(); // Refresh calendar events to show new shift
+    } catch (error: any) {
+      console.error('Error saving shift:', error);
+      toast.error('Failed to save shift: ' + error.message);
+    } finally {
+      setSavingShift(false);
+    }
+  };
+
+  const handleDeleteShift = async (shiftId: string) => {
+    if (!confirm('Are you sure you want to delete this shift?')) return;
+    try {
+      await deleteShift(shiftId);
+      toast.success('Shift deleted successfully');
+      setShowShiftDialog(false);
+      refresh();
+    } catch (error: any) {
+      console.error('Error deleting shift:', error);
+      toast.error('Failed to delete shift: ' + error.message);
+    }
+  };
+
   // Helper function to get participant name
   const getParticipantName = (event: any) => {
     if (event.participant?.name) return event.participant.name;
@@ -679,21 +776,18 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
 
   // Get type color
   const getTypeColor = (event: any) => {
-    // 0. Handle Shift Colors
-    if (event.type === 'shift') return 'blue';
-
-    // 1. Handle Checklist Colors (Prioritize Period Theme)
-    if (event.is_checklist_event || event.type === 'checklist') {
-      return getPeriodTheme(event.target_shift).color;
+    // Priority 1: Shift-specific color
+    if (event.type === 'shift') {
+      return getPeriodTheme(event.shift_type, event.type_details?.color_theme).color || 'blue';
     }
 
-    // 2. Check if we have a direct color from the lookup
-    if (event.event_type_info?.color) {
-      return event.event_type_info.color;
-    }
+    // Priority 2: Checklist (Dynamic Period Theme)
+    if (event.is_checklist_event) return getPeriodTheme(event.target_shift).color;
+    // Priority 3: Explicit Event Type Color from DB
+    if (event.event_type_info?.color) return event.event_type_info.color;
 
-    // 2. Fallback to name-based logic
-    const type = event.event_type_info?.name || event.type || '';
+    // Priority 4: Fallback string matching
+    const type = event.type || '';
     const lowerType = type.toLowerCase();
     if (lowerType.includes('meeting') || lowerType.includes('visit')) return 'purple';
     if (lowerType.includes('appointment')) return 'orange';
@@ -741,6 +835,19 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
                 ))}
               </div>
               <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => {
+                    setSelectedShift(null);
+                    setShiftPreSelectedDate(currentDate);
+                    setShowShiftDialog(true);
+                  }}
+                  className="gap-2"
+                >
+                  <Users className="size-4" />
+                  Add Shift
+                </Button>
                 <Select value={viewMode} onValueChange={(value: ViewMode) => setViewMode(value)}>
                   <SelectTrigger className="w-32 h-9">
                     <SelectValue />
@@ -856,10 +963,20 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
                   <div className="p-4 flex flex-col gap-4 min-h-[300px]">
                     <div className="flex items-center justify-between border-b pb-2">
                       <h3 className="font-bold text-lg">{format(currentDate, 'EEEE, MMMM d')}</h3>
-                      <Button variant="outline" size="sm" onClick={() => handleAddEvent(currentDate)}>
-                        <Plus className="size-4 me-1.5" />
-                        Add Event
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" onClick={() => {
+                          setSelectedShift(null);
+                          setShiftPreSelectedDate(currentDate);
+                          setShowShiftDialog(true);
+                        }}>
+                          <Users className="size-4 me-1.5" />
+                          Add Shift
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => handleAddEvent(currentDate)}>
+                          <Plus className="size-4 me-1.5" />
+                          Add Event
+                        </Button>
+                      </div>
                     </div>
                     <div className="space-y-3">
                       {getEventsForPeriod.length === 0 ? (
@@ -957,59 +1074,82 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
                             </div>
 
                             <div className="flex flex-col gap-1 overflow-y-auto max-h-[85px] custom-scrollbar">
-                              {dayEvents.map(event => (
-                                <div
-                                  key={event.id || event.tempId}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleEditEvent(event);
-                                  }}
-                                  className={`px-1.5 py-1 rounded text-[9px] font-medium flex flex-col gap-0.5 border transition-all hover:scale-[1.02] ${
-                                    event.is_checklist_event 
-                                      ? `bg-${getTypeColor(event)}-50 text-${getTypeColor(event)}-700 border-${getTypeColor(event)}-200`
-                                      : `bg-white text-gray-700 border-gray-200`
-                                  }`}
-                                  title={`${event.title} (${getStatusText(event)})`}
-                                >
-                                  <div className="flex items-center justify-between gap-1">
-                                    <span className="uppercase font-bold text-[8px] opacity-70 truncate flex items-center gap-1">
-                                      {(() => {
-                                        if (event.type === 'shift') {
-                                          return <User className="size-2 shrink-0" />;
-                                        }
-                                        if (event.is_checklist_event) {
-                                          const theme = getPeriodTheme(event.target_shift);
-                                          const Icon = theme.icon;
-                                          return <Icon className="size-2 shrink-0" />;
-                                        }
-                                        return null;
-                                      })()}
-                                      {event.event_type_info?.name || event.type}
-                                    </span>
-                                    <span className={cn(
-                                      "size-1.5 rounded-full shrink-0",
-                                      event.type === 'shift' ? 'bg-blue-500' :
-                                      event.is_checklist_event ? getPeriodTheme(event.target_shift).dot : 
-                                      `bg-${getTypeColor(event)}-500`
-                                    )} />
-                                  </div>
-                                  <div className="font-bold truncate text-gray-900 leading-tight">
-                                    {event.title}
-                                  </div>
-                                  <div className={cn(
-                                    "text-[8px] font-bold uppercase tracking-tighter flex items-center gap-1",
-                                    event.type === 'shift' ? 'text-blue-600' : `text-${getTypeColor(event)}-600`
-                                  )}>
-                                    {event.type === 'shift' && (
-                                      <>
-                                        <Clock className="size-2" />
-                                        {event.start_time} - {event.end_time}
-                                      </>
+                              {dayEvents.map(event => {
+                                const isShift = event.type === 'shift';
+                                const theme = isShift 
+                                  ? getPeriodTheme(event.shift_type, event.type_details?.color_theme, event.type_details?.icon_name)
+                                  : event.is_checklist_event
+                                    ? getPeriodTheme(event.target_shift)
+                                    : null;
+                                
+                                const Icon = isShift ? theme?.icon || User : event.is_checklist_event ? theme?.icon || CheckSquare : null;
+
+                                return (
+                                  <div
+                                    key={event.id || event.tempId}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleEditEvent(event);
+                                    }}
+                                    className={cn(
+                                      "px-1.5 py-1 rounded text-[9px] font-medium flex flex-col gap-0.5 border transition-all hover:scale-[1.02]",
+                                      isShift && theme ? `${theme.bg} ${theme.text} ${theme.border}` :
+                                      event.is_checklist_event 
+                                        ? `bg-${getTypeColor(event)}-50 text-${getTypeColor(event)}-700 border-${getTypeColor(event)}-200`
+                                        : `bg-white text-gray-700 border-gray-200`
                                     )}
-                                    {event.type !== 'shift' && getStatusText(event)}
+                                    title={`${event.title} (${getStatusText(event)})`}
+                                  >
+                                    <div className="flex items-center justify-between gap-1">
+                                      <span className="uppercase font-bold text-[8px] opacity-70 truncate flex items-center gap-1">
+                                        {Icon && <Icon className="size-2 shrink-0" />}
+                                        {isShift ? event.shift_type : (event.event_type_info?.name || event.type)}
+                                      </span>
+                                      <span className={cn(
+                                        "size-1.5 rounded-full shrink-0",
+                                        isShift && theme ? theme.dot :
+                                        event.is_checklist_event ? getPeriodTheme(event.target_shift).dot : 
+                                        `bg-${getTypeColor(event)}-500`
+                                      )} />
+                                    </div>
+                                    <div className="font-bold truncate text-gray-900 leading-tight">
+                                      {isShift ? (event.assigned_staff?.name || 'Unassigned') : event.title}
+                                    </div>
+                                    
+                                    {isShift && (
+                                      <div className="flex flex-col gap-0.5 mt-0.5 border-t border-black/5 pt-0.5">
+                                        <div className="text-[8px] font-bold uppercase tracking-tighter flex items-center gap-1 opacity-80">
+                                          <Clock className="size-2" />
+                                          {event.start_time?.substring(0, 5)} - {event.end_time?.substring(0, 5)}
+                                        </div>
+                                        
+                                        {/* Nested Checklists */}
+                                        {event.assigned_checklists && event.assigned_checklists.length > 0 && (
+                                          <div className="flex flex-wrap gap-1 mt-0.5">
+                                            {event.assigned_checklists.map((ac: any) => {
+                                              const isDone = ac.submissions?.some((s: any) => s.status === 'completed');
+                                              return (
+                                                <div key={ac.id} className="flex items-center gap-0.5 bg-white/40 px-1 rounded-[2px] border border-black/5">
+                                                  <div className={cn("size-1 rounded-full", isDone ? "bg-green-500" : "bg-gray-300")} />
+                                                  <span className="text-[7px] truncate max-w-[40px]">{ac.assignment_title}</span>
+                                                </div>
+                                              );
+                                            })}
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
+                                    {!isShift && (
+                                      <div className={cn(
+                                        "text-[8px] font-bold uppercase tracking-tighter flex items-center gap-1",
+                                        `text-${getTypeColor(event)}-600`
+                                      )}>
+                                        {getStatusText(event)}
+                                      </div>
+                                    )}
                                   </div>
-                                </div>
-                              ))}
+                                );
+                              })}
                             </div>
                           </div>
                         );
@@ -1361,6 +1501,27 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Shift Dialog */}
+      {houseId && (
+        <ShiftDialog
+          open={showShiftDialog}
+          onOpenChange={setShowShiftDialog}
+          shift={selectedShift}
+          staffId={staffId}
+          preSelectedDate={shiftPreSelectedDate}
+          preSelectedHouseId={houseId}
+          staffList={staff}
+          houses={[{ id: houseId, name: 'Current House' }]}
+          participants={participants.filter(p => p.house_id === houseId)}
+          checklists={houseChecklists}
+          shiftTypes={shiftTypes}
+          onSave={handleSaveShift}
+          onDelete={selectedShift ? handleDeleteShift : undefined}
+          staffSelectionDisabled={false}
+          readOnly={!canDelete}
+        />
+      )}
     </>
   );
 });

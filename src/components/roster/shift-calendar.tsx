@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, Zap, Settings2 } from 'lucide-react';
 import { format, isSameDay, isSameMonth, parseISO, isWithinInterval } from 'date-fns';
 import { ShiftCard, ShiftCardData } from './shift-card';
 import { generateMonthDays, generateWeekDays, ViewMode } from './roster-utils';
@@ -18,6 +18,8 @@ export interface ShiftCalendarProps {
   onEditShift: (shift: ShiftCardData) => void;
   onWriteNote?: (shift: ShiftCardData) => void;
   onNotesClick?: (shift: ShiftCardData) => void;
+  onBulkAction?: (houseId: string) => void;
+  onPopulateRoster?: (houseId: string) => void;
   groupByHouse?: boolean;
   houses?: Array<{ id: string; name: string }>;
 }
@@ -50,12 +52,14 @@ export function ShiftCalendar({
   onEditShift,
   onWriteNote,
   onNotesClick,
+  onBulkAction,
+  onPopulateRoster,
   groupByHouse = false,
   houses = [],
 }: ShiftCalendarProps) {
   const getShiftsForDate = (date: Date) => {
     return shifts.filter(shift =>
-      shift.shift_date && isSameDay(parseISO(shift.shift_date), date)
+      shift.start_date && isSameDay(parseISO(shift.start_date), date)
     );
   };
 
@@ -72,14 +76,14 @@ export function ShiftCalendar({
 
   const getShiftsForHouseAndDate = (houseId: string, date: Date) => {
     return shifts.filter(shift =>
-      shift.house?.id === houseId && shift.shift_date && isSameDay(parseISO(shift.shift_date), date)
+      shift.house?.id === houseId && shift.start_date && isSameDay(parseISO(shift.start_date), date)
     );
   };
 
   const checkForDoubleBookings = (staffId: string, date: Date, excludeShiftId?: string) => {
     const staffShifts = shifts.filter(shift => 
       shift.staff_id === staffId && 
-      shift.shift_date && isSameDay(parseISO(shift.shift_date), date) &&
+      shift.start_date && isSameDay(parseISO(shift.start_date), date) &&
       shift.id !== excludeShiftId &&
       shift.status !== 'Cancelled'
     );
@@ -248,13 +252,43 @@ export function ShiftCalendar({
         
         {allHouses.map((house) => (
           <div key={house.id} className="grid grid-cols-8 gap-1 border-b hover:bg-gray-50/50 transition-colors">
-            <div className="font-bold text-xs p-3 bg-muted/30 flex items-center rounded-l">
-              {house.name}
+            <div className="font-bold text-xs p-3 bg-muted/30 flex flex-col gap-2 justify-center rounded-l min-w-[120px]">
+              <span className="truncate">{house.name}</span>
+              <div className="flex flex-col gap-1.5 mt-1">
+                {canEdit && house.id !== 'unassigned' && onPopulateRoster && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-6 text-[9px] font-bold px-2 gap-1 border-primary/20 text-primary hover:bg-primary/5 bg-white shadow-sm w-full justify-start"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onPopulateRoster(house.id);
+                    }}
+                  >
+                    <Zap className="size-2.5 fill-primary/20" />
+                    POPULATE
+                  </Button>
+                )}
+                {canEdit && house.id !== 'unassigned' && onBulkAction && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-6 text-[9px] font-bold px-2 gap-1 border-orange-200 text-orange-600 hover:bg-orange-50 hover:text-orange-700 bg-white shadow-sm w-full justify-start"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onBulkAction(house.id);
+                    }}
+                  >
+                    <Settings2 className="size-2.5" />
+                    BULK
+                  </Button>
+                )}
+              </div>
             </div>
             
             {days.map((day, dayIndex) => {
               const houseShifts = house.id === 'unassigned' 
-                ? shifts.filter(shift => shift.shift_date && !shift.house && isSameDay(parseISO(shift.shift_date), day))
+                ? shifts.filter(shift => shift.start_date && !shift.house && isSameDay(parseISO(shift.start_date), day))
                 : getShiftsForHouseAndDate(house.id, day);
               const isToday = isSameDay(day, new Date());
               

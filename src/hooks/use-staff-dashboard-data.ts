@@ -15,10 +15,10 @@ export function useStaffDashboardData(staffId?: string) {
       const [shiftsRes, leaveRes, timesheetsRes] = await Promise.all([
         supabase
           .from('staff_shifts')
-          .select('id, shift_date, start_time, end_time, house:houses(id, name)')
+          .select('id, start_date, start_time, end_time, house:houses(id, name)')
           .eq('staff_id', staffId)
-          .gte('shift_date', today)
-          .order('shift_date', { ascending: true })
+          .gte('start_date', today)
+          .order('start_date', { ascending: true })
           .limit(3),
         supabase
           .from('leave_requests')
@@ -29,7 +29,7 @@ export function useStaffDashboardData(staffId?: string) {
           .limit(3),
         supabase
           .from('timesheets')
-          .select('id, status, clock_in, shift:staff_shifts(shift_date)')
+          .select('id, status, clock_in, shift:staff_shifts(start_date)')
           .eq('staff_id', staffId)
           .in('status', ['draft', 'pending'])
           .order('clock_in', { ascending: false })

@@ -17,6 +17,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Badge } from '@/components/ui/badge';
 import { ChecklistCard } from '@/components/checklists/checklist-card';
 import { HouseChecklistScheduleModal } from './HouseChecklistScheduleModal';
+import { HouseChecklistHistory } from './house-checklist-history';
 import { cn, getPeriodTheme } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
 
@@ -887,16 +888,21 @@ export function HouseChecklistSetup({
       </Dialog>
 
       {houseId && (
-        <HouseChecklistScheduleModal
-          open={showScheduleModal}
-          onClose={() => {
-            setShowScheduleModal(false);
-            setSelectedForSchedule(null);
-            if (onRefresh) onRefresh();
-          }}
-          houseId={houseId}
-          checklist={selectedForSchedule}
-        />
+        <>
+          <HouseChecklistScheduleModal
+            open={showScheduleModal}
+            onClose={() => {
+              setShowScheduleModal(false);
+              setSelectedForSchedule(null);
+              if (onRefresh) onRefresh();
+            }}
+            houseId={houseId}
+            checklist={selectedForSchedule}
+          />
+          <HouseChecklistHistory
+            houseId={houseId}
+          />
+        </>
       )}
     </>
   );

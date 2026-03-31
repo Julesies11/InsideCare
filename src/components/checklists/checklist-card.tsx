@@ -24,6 +24,7 @@ interface ChecklistCardProps {
   renderActions?: (checklist: ChecklistCardProps['checklist']) => ReactNode;
   footer?: ReactNode;
   showTasksPreview?: boolean;
+  maxTasksPreview?: number;
 }
 
 /**
@@ -37,7 +38,8 @@ export function ChecklistCard({
   onDelete,
   renderActions,
   footer,
-  showTasksPreview = true
+  showTasksPreview = true,
+  maxTasksPreview = 2
 }: ChecklistCardProps) {
   const checklistItems = checklist.items || [];
 
@@ -79,21 +81,20 @@ export function ChecklistCard({
                 No tasks defined yet
               </div>
             ) : (
-              checklistItems.slice(0, 3).map((item, index: number) => (
+              checklistItems.slice(0, maxTasksPreview).map((item, index: number) => (
                 <div key={item.id || item.tempId} className="flex items-start gap-3 relative z-10">
                   <div className="shrink-0 size-5 rounded-full bg-background border border-muted-foreground/30 flex items-center justify-center text-[10px] font-bold text-muted-foreground">
                     {index + 1}
                   </div>
                   <div className="flex flex-col min-w-0">
                     <span className="text-xs font-medium text-gray-700 break-words whitespace-normal">{item.title}</span>
-                    {item.is_required && <span className="text-[9px] text-red-500">Required</span>}
                   </div>
                 </div>
               ))
             )}
-            {checklistItems.length > 3 && (
+            {checklistItems.length > maxTasksPreview && (
               <div className="ml-6 text-[10px] text-muted-foreground font-medium">
-                + {checklistItems.length - 3} more tasks...
+                + {checklistItems.length - maxTasksPreview} more tasks...
               </div>
             )}
           </div>

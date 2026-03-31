@@ -30,7 +30,7 @@ describe('useStaffShifts', () => {
           {
             id: 'shift-1',
             staff_id: 'staff-1',
-            shift_date: '2026-03-04',
+            start_date: '2026-03-04',
             start_time: '09:00',
             end_time: '17:00',
             house_id: 'house-1',

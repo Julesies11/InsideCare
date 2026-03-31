@@ -30,7 +30,7 @@ const mockTimesheet = {
   created_at: '2024-01-01T17:05:00Z',
   staff: { id: 'staff-1', name: 'John Doe', auth_user_id: 'user-1' },
   shift: {
-    shift_date: '2024-01-01',
+    start_date: '2024-01-01',
     end_date: null,
     start_time: '09:00:00',
     end_time: '17:00:00',

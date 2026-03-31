@@ -10,7 +10,7 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const mockShifts = [
   {
     id: 'shift-1',
-    shift_date: new Date(Date.now() + 86400000).toISOString().split('T')[0], // Tomorrow
+    start_date: new Date(Date.now() + 86400000).toISOString().split('T')[0], // Tomorrow
     start_time: '08:00:00',
     end_time: '16:00:00',
     house: { name: 'Test House' },
@@ -32,7 +32,7 @@ const mockTimesheets = [
     id: 'ts-1',
     status: 'draft',
     clock_in: '2026-03-04T08:00:00Z',
-    shift: { shift_date: '2026-03-04' },
+    shift: { start_date: '2026-03-04' },
   },
 ];
 
