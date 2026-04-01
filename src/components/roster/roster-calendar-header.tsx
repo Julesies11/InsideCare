@@ -134,84 +134,19 @@ export function RosterCalendarHeader({
           </Select>
         )}
 
-        <div className="flex items-center gap-1 w-full sm:w-auto">
-          <Select value={houseFilter} onValueChange={onHouseFilterChange}>
-            <SelectTrigger className="w-full sm:w-[180px]">
-              <SelectValue placeholder="All Houses" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Houses</SelectItem>
-              {houseList.map(house => (
-                <SelectItem key={house.id} value={house.id}>
-                  {house.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {/* Bulk Action for Selected House */}
-          {houseFilter !== 'all' && (onApplyTemplate || onPopulateRoster) && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  size="icon" 
-                  className="size-10 border-primary/20 text-primary hover:bg-primary/5 shrink-0" 
-                  disabled={isCopying}
-                  title={`Actions for ${selectedHouse?.name}`}
-                >
-                  {isCopying ? <Loader2 className="size-4 animate-spin" /> : <Settings2 className="size-4" />}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-64">
-                <div className="px-2 py-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                  Quick Actions: {selectedHouse?.name}
-                </div>
-                <DropdownMenuSeparator />
-                
-                {onPopulateRoster && (
-                  <DropdownMenuItem onClick={onPopulateRoster} className="cursor-pointer gap-2 py-2">
-                    <Zap className="size-4 text-primary fill-primary/20" />
-                    <div className="flex flex-col">
-                      <span className="font-bold text-xs text-primary">Quick Populate Roster</span>
-                      <span className="text-[10px] text-muted-foreground">Fill range using Shift Model pattern</span>
-                    </div>
-                  </DropdownMenuItem>
-                )}
-
-                {onBulkAction && (
-                  <DropdownMenuItem onClick={onBulkAction} className="cursor-pointer gap-2 py-2">
-                    <Trash2 className="size-4 text-orange-500" />
-                    <div className="flex flex-col">
-                      <span className="font-bold text-xs text-orange-600">Delete Shifts</span>
-                      <span className="text-[10px] text-muted-foreground">Remove multiple shifts at once</span>
-                    </div>
-                  </DropdownMenuItem>
-                )}
-
-                {onApplyTemplate && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => onApplyTemplate(4)} className="cursor-pointer gap-2 py-2">
-                      <CalendarDays className="size-4 text-primary/60" />
-                      <div className="flex flex-col">
-                        <span className="font-bold text-xs">Materialize Templates</span>
-                        <span className="text-[10px] text-muted-foreground">Apply 7-day model for 4 weeks</span>
-                      </div>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onApplyTemplate(12)} className="cursor-pointer gap-2 py-2">
-                      <CalendarDays className="size-4 text-primary/60" />
-                      <div className="flex flex-col">
-                        <span className="font-bold text-xs">Fill for 3 Months</span>
-                        <span className="text-[10px] text-muted-foreground">Apply 7-day model for 12 weeks</span>
-                      </div>
-                    </DropdownMenuItem>
-                  </>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-        </div>
+        <Select value={houseFilter} onValueChange={onHouseFilterChange}>
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue placeholder="All Houses" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Houses</SelectItem>
+            {houseList.map(house => (
+              <SelectItem key={house.id} value={house.id}>
+                {house.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
         {showParticipantFilter && onParticipantFilterChange && (
           <Select value={participantFilter} onValueChange={onParticipantFilterChange}>

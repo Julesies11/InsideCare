@@ -57,10 +57,23 @@ export function ShiftCalendar({
   groupByHouse = false,
   houses = [],
 }: ShiftCalendarProps) {
+  const sortShifts = (shiftsToSort: ShiftCardData[]) => {
+    return [...shiftsToSort].sort((a, b) => {
+      const startA = a.start_time || '00:00';
+      const startB = b.start_time || '00:00';
+      if (startA !== startB) return startA.localeCompare(startB);
+      
+      const endA = a.end_time || '00:00';
+      const endB = b.end_time || '00:00';
+      return endA.localeCompare(endB);
+    });
+  };
+
   const getShiftsForDate = (date: Date) => {
-    return shifts.filter(shift =>
+    const filtered = shifts.filter(shift =>
       shift.start_date && isSameDay(parseISO(shift.start_date), date)
     );
+    return sortShifts(filtered);
   };
 
   const getLeaveForDate = (date: Date) => {
@@ -75,9 +88,10 @@ export function ShiftCalendar({
   };
 
   const getShiftsForHouseAndDate = (houseId: string, date: Date) => {
-    return shifts.filter(shift =>
+    const filtered = shifts.filter(shift =>
       shift.house?.id === houseId && shift.start_date && isSameDay(parseISO(shift.start_date), date)
     );
+    return sortShifts(filtered);
   };
 
   const checkForDoubleBookings = (staffId: string, date: Date, excludeShiftId?: string) => {
@@ -307,7 +321,7 @@ export function ShiftCalendar({
                 
                 {days.map((day, dayIndex) => {
                   const houseShifts = house.id === 'unassigned' 
-                    ? shifts.filter(shift => shift.start_date && !shift.house && isSameDay(parseISO(shift.start_date), day))
+                    ? sortShifts(shifts.filter(shift => shift.start_date && !shift.house && isSameDay(parseISO(shift.start_date), day)))
                     : getShiftsForHouseAndDate(house.id, day);
                   const isToday = isSameDay(day, new Date());
                   

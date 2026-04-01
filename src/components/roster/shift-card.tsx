@@ -1,8 +1,8 @@
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ClipboardList, Clock, MapPin, User, Users, UserCheck } from 'lucide-react';
+import { ClipboardList, Clock, MapPin, User, Users, UserCheck, CheckCircle2 } from 'lucide-react';
 import { getShiftTheme, formatTime } from './roster-utils';
-import { SHIFT_ICONS } from '@/lib/utils';
+import { SHIFT_ICONS, cn } from '@/lib/utils';
 
 export interface ShiftCardData {
   id: string;
@@ -17,7 +17,7 @@ export interface ShiftCardData {
   staff_name?: string;
   staff_id?: string;
   participants?: Array<{ id: string; name: string }>;
-  assigned_checklists?: Array<{ id: string; checklist_id: string; assignment_title: string }>;
+  assigned_checklists?: Array<{ id: string; checklist_id: string; assignment_title: string; is_completed?: boolean }>;
   notesCount?: number;
 }
 
@@ -37,6 +37,7 @@ export function ShiftCard({ shift, compact, showStaffName, showHouseName = true,
   const isUnassigned = !shift.staff_id;
   const shiftThemeClasses = getShiftTheme(shift.color_theme, shift.shift_type);
   const IconComponent = SHIFT_ICONS[shift.icon_name || ''] || Clock;
+  const textColor = shiftThemeClasses.split(' ').find(c => c.startsWith('text-'));
 
   if (compact) {
     return (
@@ -46,25 +47,27 @@ export function ShiftCard({ shift, compact, showStaffName, showHouseName = true,
           isUnassigned ? 'border-dashed border-amber-400 bg-amber-50/30' : ''
         }`}
       >
-        <div className="flex items-center justify-between gap-1 mb-1">
+        <div className="flex items-center justify-between gap-1 mb-1.5">
           <div className="flex flex-col min-w-0">
-            <span className="text-[11px] font-black leading-tight text-gray-900">
+            <div className="flex items-center gap-1 mb-0.5">
+              <IconComponent className={cn("h-2.5 w-2.5 shrink-0", textColor)} />
+              <span className={cn("text-[9px] font-bold uppercase tracking-tight truncate", textColor)}>
+                {shift.shift_type}
+              </span>
+            </div>
+            <span className="text-[10px] leading-tight text-gray-700 font-normal">
               {formatTime(shift.start_time)} – {formatTime(shift.end_time)}
               {shift.end_date && shift.end_date !== shift.start_date && (
-                <span className="ml-0.5 text-orange-500 font-bold" title="Overnight shift">+1</span>
+                <span className="ml-0.5 text-orange-500" title="Overnight shift">+1</span>
               )}
             </span>
-            <div className="flex items-center gap-1 mt-0.5">
-              <IconComponent className="h-2.5 w-2.5 text-muted-foreground shrink-0" />
-              <span className="text-[9px] font-bold uppercase tracking-tight text-muted-foreground truncate">{shift.shift_type}</span>
-            </div>
           </div>
         </div>
 
         {showStaffName && (
           <div className="flex items-center gap-1 mb-0.5 mt-1 border-t border-gray-100 pt-1">
             <User className="h-2.5 w-2.5 text-muted-foreground shrink-0" />
-            <span className={`text-[10px] font-black truncate ${isUnassigned ? 'text-amber-600' : 'text-gray-700'}`}>
+            <span className={`text-[10px] truncate font-normal ${isUnassigned ? 'text-amber-600' : 'text-gray-700'}`}>
               {isUnassigned ? 'OPEN SHIFT' : shift.staff_name}
             </span>
           </div>
@@ -73,25 +76,37 @@ export function ShiftCard({ shift, compact, showStaffName, showHouseName = true,
         {showHouseName && shift.house && (
           <div className="flex items-center gap-1 mb-0.5">
             <MapPin className="h-2.5 w-2.5 text-muted-foreground shrink-0" />
-            <span className="text-[10px] text-muted-foreground truncate font-medium">{shift.house.name}</span>
+            <span className="text-[10px] text-muted-foreground truncate font-normal">{shift.house.name}</span>
           </div>
         )}
 
         {participantCount > 0 && (
           <div className="flex items-center gap-1 mb-0.5">
             <Users className="h-2.5 w-2.5 text-muted-foreground shrink-0" />
-            <span className="text-[10px] text-muted-foreground font-medium">
+            <span className="text-[10px] text-muted-foreground font-normal">
               {participantCount} Participant{participantCount > 1 ? 's' : ''}
             </span>
           </div>
         )}
 
-        {checklistCount > 0 && (
-          <div className="flex items-center gap-1 mt-1 pt-1 border-t border-dashed">
-            <ClipboardList className="h-2.5 w-2.5 text-primary shrink-0" />
-            <span className="text-[9px] font-black text-primary uppercase tracking-tight">
-              {checklistCount} Checklist{checklistCount > 1 ? 's' : ''}
-            </span>
+        {shift.assigned_checklists && shift.assigned_checklists.length > 0 && (
+          <div className="mt-1 pt-1 border-t border-dashed space-y-0.5">
+            <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest block mb-0.5">Checklists</span>
+            {shift.assigned_checklists.map((cl) => (
+              <div key={cl.id} className="flex items-center gap-1">
+                {cl.is_completed ? (
+                  <CheckCircle2 className="h-2.5 w-2.5 text-emerald-500 shrink-0" />
+                ) : (
+                  <ClipboardList className="h-2.5 w-2.5 text-primary shrink-0" />
+                )}
+                <span className={cn(
+                  "text-[9px] truncate",
+                  cl.is_completed ? "text-emerald-600 font-bold" : "text-muted-foreground font-normal"
+                )}>
+                  {cl.assignment_title}
+                </span>
+              </div>
+            ))}
           </div>
         )}
 
@@ -109,7 +124,7 @@ export function ShiftCard({ shift, compact, showStaffName, showHouseName = true,
             }`}
           >
             <ClipboardList className="h-2.5 w-2.5" />
-            <span className="text-[9px] font-black">
+            <span className="text-[9px] font-normal">
               {shift.notesCount ?? 0}
             </span>
           </button>
@@ -128,19 +143,21 @@ export function ShiftCard({ shift, compact, showStaffName, showHouseName = true,
       <div className="space-y-2.5">
         <div className="flex items-start justify-between gap-1.5">
           <div className="flex flex-col min-w-0">
-            <span className="text-sm font-black text-gray-900 leading-none mb-1.5">
+            <div className="flex items-center gap-1.5 mb-1.5">
+              <IconComponent className={cn("size-3.5 shrink-0", textColor)} />
+              <span className={cn("text-[11px] font-bold uppercase tracking-widest truncate", textColor)}>
+                {shift.shift_type}
+              </span>
+            </div>
+            <span className="text-sm text-gray-700 leading-none font-normal">
               {formatTime(shift.start_time)} – {formatTime(shift.end_time)}
               {shift.end_date && shift.end_date !== shift.start_date && (
                 <span className="ml-1 text-orange-500 text-[10px]" title="Overnight shift">+1 day</span>
               )}
             </span>
-            <div className="flex items-center gap-1.5">
-              <div className={cn("size-2 rounded-full shrink-0", shiftThemeClasses.split(' ')[0].replace('bg-', 'bg-').replace('/10', ''))} />
-              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{shift.shift_type}</span>
-            </div>
           </div>
           {isUnassigned && (
-            <Badge className="bg-amber-100 text-amber-700 border-amber-200 text-[8px] font-black px-1 py-0 uppercase">Open</Badge>
+            <Badge className="bg-amber-100 text-amber-700 border-amber-200 text-[8px] font-normal px-1 py-0 uppercase">Open</Badge>
           )}
         </div>
         
@@ -148,7 +165,7 @@ export function ShiftCard({ shift, compact, showStaffName, showHouseName = true,
           {showStaffName && (
             <div className="flex items-center gap-2">
               <User className={`h-3.5 w-3.5 flex-shrink-0 ${isUnassigned ? 'text-amber-500' : 'text-gray-400'}`} />
-              <span className={`text-xs truncate font-black ${isUnassigned ? 'text-amber-700 uppercase tracking-tight' : 'text-gray-700'}`}>
+              <span className={`text-xs truncate font-normal ${isUnassigned ? 'text-amber-700 uppercase tracking-tight' : 'text-gray-700'}`}>
                 {isUnassigned ? 'Unassigned' : shift.staff_name}
               </span>
             </div>
@@ -157,27 +174,39 @@ export function ShiftCard({ shift, compact, showStaffName, showHouseName = true,
           {showHouseName && shift.house && (
             <div className="flex items-center gap-2">
               <MapPin className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
-              <span className="text-xs truncate font-bold text-gray-600">{shift.house.name}</span>
+              <span className="text-xs truncate font-normal text-gray-600">{shift.house.name}</span>
             </div>
           )}
 
           {shift.participants && shift.participants.length > 0 && (
             <div className="flex items-center gap-2">
               <Users className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
-              <span className="text-xs truncate font-bold text-gray-600">
+              <span className="text-xs truncate font-normal text-gray-600">
                 {shift.participants.length} Participant{shift.participants.length > 1 ? 's' : ''}
               </span>
             </div>
           )}
         </div>
 
-        {checklistCount > 0 && (
+        {shift.assigned_checklists && shift.assigned_checklists.length > 0 && (
           <div className="flex flex-col gap-1 mt-1 pt-2 border-t border-dashed">
-            <div className="flex items-center gap-1.5">
-              <ClipboardList className="h-4 w-4 text-primary" />
-              <span className="text-[10px] font-black text-primary uppercase tracking-widest">
-                {checklistCount} Checklist{checklistCount > 1 ? 's' : ''}
-              </span>
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1">Checklists</span>
+            <div className="space-y-1">
+              {shift.assigned_checklists.map((cl) => (
+                <div key={cl.id} className="flex items-center gap-1.5">
+                  {cl.is_completed ? (
+                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                  ) : (
+                    <ClipboardList className="h-3.5 w-3.5 text-primary shrink-0" />
+                  )}
+                  <span className={cn(
+                    "text-[10px] truncate",
+                    cl.is_completed ? "text-emerald-600 font-bold" : "text-muted-foreground font-normal"
+                  )}>
+                    {cl.assignment_title}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         )}
@@ -188,7 +217,7 @@ export function ShiftCard({ shift, compact, showStaffName, showHouseName = true,
             e.stopPropagation(); 
             if (onNotesClick) { onNotesClick(shift); } else { onWriteNote?.(shift); } 
           }}
-          className={`w-full flex items-center justify-center gap-2 h-8 text-[10px] font-bold rounded-lg px-2 mt-1 transition-colors border ${
+          className={`w-full flex items-center justify-center gap-2 h-8 text-[10px] font-normal rounded-lg px-2 mt-1 transition-colors border ${
             (shift.notesCount ?? 0) > 0
               ? 'text-emerald-600 border-emerald-100 bg-emerald-50/30 hover:bg-emerald-50'
               : 'text-red-400 border-red-50 bg-red-50/20 hover:bg-red-50'

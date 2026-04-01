@@ -159,7 +159,8 @@ export function useRosterData() {
             participant:participants(id, name)
           ),
           assigned_checklists:shift_assigned_checklists(
-            id, checklist_id, assignment_title
+            id, checklist_id, assignment_title,
+            submissions:house_checklist_submissions(status)
           )
         `)
         .gte('start_date', startDate)
@@ -197,7 +198,10 @@ export function useRosterData() {
             id: sp.participant.id,
             name: sp.participant.name,
           })) || [],
-          assigned_checklists: shift.assigned_checklists || [],
+          assigned_checklists: (shift.assigned_checklists as any[])?.map(ac => ({
+            ...ac,
+            is_completed: ac.submissions?.some((s: any) => s.status === 'Completed')
+          })) || [],
           staff_name: shift.staff?.name || 'Unassigned',
           duration_hours: calculateDuration(shift.start_time, shift.end_time, shift.start_date, shift.end_date ?? shift.start_date),
           color_theme: colorTheme,
@@ -412,11 +416,20 @@ export function useRosterData() {
           }
 
           // Create the Shift
+          const isOvernight = item.end_time < item.start_time;
+          let shiftEndDate = date;
+          if (isOvernight) {
+             const d = new Date(date);
+             d.setDate(d.getDate() + 1);
+             shiftEndDate = d.toISOString().split('T')[0];
+          }
+
           const { data: newShift, error: shiftError } = await supabase
             .from('staff_shifts')
             .insert({
               house_id: params.houseId,
               start_date: date,
+              end_date: shiftEndDate,
               start_time: item.start_time,
               end_time: item.end_time,
               shift_type: item.shift_type.name,
@@ -593,11 +606,20 @@ export function useRosterData() {
           }
 
           // 1. Create the Shift (Confirmed & Open)
+          const isOvernight = type.default_end_time < type.default_start_time;
+          let shiftEndDate = dateStr;
+          if (isOvernight) {
+             const d = new Date(date);
+             d.setDate(d.getDate() + 1);
+             shiftEndDate = format(d, 'yyyy-MM-dd');
+          }
+
           const { data: newShift, error: shiftError } = await supabase
             .from('staff_shifts')
             .insert({
               house_id: params.houseId,
               start_date: dateStr,
+              end_date: shiftEndDate,
               start_time: type.default_start_time,
               end_time: type.default_end_time,
               shift_type: type.name,
