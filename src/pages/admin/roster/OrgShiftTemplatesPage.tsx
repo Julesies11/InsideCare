@@ -117,6 +117,16 @@ export default function OrgShiftTemplatesPage() {
     }));
   };
 
+  const sortedChecklists = useMemo(() => {
+    return [...(masterChecklists || [])].sort((a, b) => {
+      const aSelected = formData.default_checklists?.includes(a.id);
+      const bSelected = formData.default_checklists?.includes(b.id);
+      if (aSelected && !bSelected) return -1;
+      if (!aSelected && bSelected) return 1;
+      return (a.sort_order || 0) - (b.sort_order || 0);
+    });
+  }, [masterChecklists, formData.default_checklists]);
+
   return (
     <Fragment>
       <Container>
@@ -362,7 +372,7 @@ export default function OrgShiftTemplatesPage() {
                 ) : masterChecklists.length === 0 ? (
                   <div className="col-span-full py-4 text-center text-xs text-muted-foreground italic">No master checklists defined yet.</div>
                 ) : (
-                  masterChecklists.map(cl => {
+                  sortedChecklists.map(cl => {
                     const isSelected = formData.default_checklists?.includes(cl.id);
                     return (
                       <div 

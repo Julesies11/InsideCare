@@ -36,7 +36,6 @@ export interface StaffShift {
   shift_type: string;
   shift_type_id?: string | null;
   org_shift_template_id?: string | null;
-  status: string;
   notes: string | null;
   created_at?: string;
   updated_at?: string;
@@ -255,7 +254,6 @@ export function useRosterData() {
     endDate: string;
     staffId?: string;
     shiftTypeId?: string;
-    status?: string;
   }) => {
     setLoading(true);
     try {
@@ -273,9 +271,6 @@ export function useRosterData() {
       }
       if (params.shiftTypeId && params.shiftTypeId !== 'all') {
         query = query.eq('shift_type_id', params.shiftTypeId);
-      }
-      if (params.status && params.status !== 'all') {
-        query = query.eq('status', params.status);
       }
 
       const { error } = await query;
@@ -295,7 +290,6 @@ export function useRosterData() {
     endDate: string;
     staffId?: string;
     shiftTypeId?: string;
-    status?: string;
   }, updates: Partial<StaffShift>) => {
     setLoading(true);
     try {
@@ -313,9 +307,6 @@ export function useRosterData() {
       }
       if (params.shiftTypeId && params.shiftTypeId !== 'all') {
         query = query.eq('shift_type_id', params.shiftTypeId);
-      }
-      if (params.status && params.status !== 'all') {
-        query = query.eq('status', params.status);
       }
 
       const { error } = await query;
@@ -429,7 +420,6 @@ export function useRosterData() {
               start_time: item.start_time,
               end_time: item.end_time,
               shift_type: item.shift_type.name,
-              status: 'scheduled',
               template_item_id: item.id
             })
             .select()
@@ -612,7 +602,6 @@ export function useRosterData() {
               end_time: type.default_end_time,
               shift_type: type.name,
               shift_type_id: type.id,
-              status: 'Confirmed', 
               staff_id: null,      
               notes: `Auto-generated from Shift Model for ${params.houseName}`
             })
@@ -668,6 +657,8 @@ export function useRosterData() {
     createShift,
     updateShift,
     deleteShift,
+    bulkUpdateShifts,
+    bulkDeleteShifts,
     addShiftParticipant,
     removeShiftParticipant,
     materializeTemplate,

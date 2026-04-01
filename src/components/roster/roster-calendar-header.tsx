@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { ChevronLeft, ChevronRight, Copy, Loader2, Settings2, CalendarDays, Zap } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, Settings2, CalendarDays, Zap, Trash2 } from 'lucide-react';
 import { ViewMode } from './roster-utils';
 
 interface RosterCalendarHeaderProps {
@@ -165,7 +165,7 @@ export function RosterCalendarHeader({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-64">
                 <div className="px-2 py-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                  Bulk Actions: {selectedHouse?.name}
+                  Quick Actions: {selectedHouse?.name}
                 </div>
                 <DropdownMenuSeparator />
                 
@@ -181,10 +181,10 @@ export function RosterCalendarHeader({
 
                 {onBulkAction && (
                   <DropdownMenuItem onClick={onBulkAction} className="cursor-pointer gap-2 py-2">
-                    <Settings2 className="size-4 text-orange-500" />
+                    <Trash2 className="size-4 text-orange-500" />
                     <div className="flex flex-col">
-                      <span className="font-bold text-xs text-orange-600">Bulk Shift Manager</span>
-                      <span className="text-[10px] text-muted-foreground">Update or Delete multiple shifts</span>
+                      <span className="font-bold text-xs text-orange-600">Delete Shifts</span>
+                      <span className="text-[10px] text-muted-foreground">Remove multiple shifts at once</span>
                     </div>
                   </DropdownMenuItem>
                 )}

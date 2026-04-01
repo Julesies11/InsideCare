@@ -1,6 +1,7 @@
 import { ChecklistCard } from '@/components/checklists/checklist-card';
 import { cn } from '@/lib/utils';
 import { CheckSquare } from 'lucide-react';
+import { useMemo } from 'react';
 
 interface ShiftChecklistPickerProps {
   checklists: any[];
@@ -19,6 +20,20 @@ export function ShiftChecklistPicker({
   onToggle, 
   readOnly = false 
 }: ShiftChecklistPickerProps) {
+  // Sort checklists so selected ones appear at the top
+  const sortedChecklists = useMemo(() => {
+    return [...checklists].sort((a, b) => {
+      const aSelected = selectedIds.includes(a.id);
+      const bSelected = selectedIds.includes(b.id);
+      
+      if (aSelected && !bSelected) return -1;
+      if (!aSelected && bSelected) return 1;
+      
+      // Secondary sort by sort_order
+      return (a.sort_order || 0) - (b.sort_order || 0);
+    });
+  }, [checklists, selectedIds]);
+
   if (checklists.length === 0) {
     return (
       <div className="text-center py-8 bg-gray-50 rounded-xl border border-dashed border-gray-200">
@@ -29,7 +44,7 @@ export function ShiftChecklistPicker({
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      {checklists.map((cl) => {
+      {sortedChecklists.map((cl) => {
         const isSelected = selectedIds.includes(cl.id);
         
         return (

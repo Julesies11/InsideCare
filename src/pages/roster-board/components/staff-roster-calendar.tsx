@@ -28,7 +28,6 @@ interface StaffRosterCalendarProps {
   houseFilter: string;
   participantFilter: string;
   shiftTypeFilter: string;
-  statusFilter: string;
   canEdit: boolean;
   showLeave?: boolean;
   groupByHouse?: boolean;

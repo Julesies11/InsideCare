@@ -164,7 +164,6 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
           end_time: formData.end_time,
           house_id: formData.house_id || null,
           shift_type: formData.shift_type,
-          status: formData.status,
           notes: formData.notes || null,
         };
 

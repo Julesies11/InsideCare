@@ -56,7 +56,7 @@ export function ShiftNoteDetailContent({
       setLoading(true);
       const { data, error } = await supabase
         .from('shift_notes')
-        .select('id, participant_id, staff_id, start_date, shift_time, house_id, shift_id, notes, full_note, tags, created_at, updated_at, participant:participants(id, name), staff:staff(id, name), house:houses(id, name), shift:staff_shifts(id, start_time, end_time, shift_type, status)')
+        .select('id, participant_id, staff_id, start_date, shift_time, house_id, shift_id, notes, full_note, tags, created_at, updated_at, participant:participants(id, name), staff:staff(id, name), house:houses(id, name), shift:staff_shifts(id, start_time, end_time, shift_type)')
         .eq('id', id)
         .single();
 

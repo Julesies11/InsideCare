@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CalendarDays, Clock, CheckSquare, Loader2, Play, AlertCircle, Copy, CheckCircle2, UserPlus } from 'lucide-react';
-import { format, addDays, startOfTomorrow, endOfWeek, startOfWeek, eachDayOfInterval, getDay, differenceInCalendarDays, startOfDay } from 'date-fns';
+import { format, addDays, startOfTomorrow, endOfWeek, startOfWeek, eachDayOfInterval, getDay, differenceInCalendarDays, startOfDay, isBefore } from 'date-fns';
 import { useHouseShiftTypes } from '@/hooks/use-house-shift-types';
 import { useHouseChecklists } from '@/hooks/use-house-checklists';
 import { useHouseParticipants } from '@/hooks/useHouseParticipants';
@@ -38,12 +38,14 @@ const DAYS_OF_WEEK = [
 
 export function PopulateRosterModal({ open, onOpenChange, houseId, houseName, onSuccess }: PopulateRosterModalProps) {
   const [startDate, setStartDate] = useState(format(startOfWeek(addDays(new Date(), 7), { weekStartsOn: 1 }), 'yyyy-MM-dd'));
-  const [endDate, setEndDate] = useState(format(endOfWeek(addDays(new Date(), 7), { weekStartsOn: 1 }), 'yyyy-MM-dd'));
+  const [weeksToGenerate, setWeeksToGenerate] = useState(4);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [rotationWeeks, setRotationWeeks] = useState(1);
   
   // Pattern: Array of weeks, each is Record<dayIndex, shiftTypeId[]>
   const [pattern, setPattern] = useState<Record<number, string[]>[]>([
+    { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 0: [] },
+    { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 0: [] },
+    { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 0: [] },
     { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 0: [] }
   ]);
 
@@ -52,28 +54,28 @@ export function PopulateRosterModal({ open, onOpenChange, houseId, houseName, on
   const { defaults = [] } = useShiftTemplates(houseId);
   const { materializePattern } = useRosterData();
 
-  // Handle changing rotation length
+  // Handle changing weeks to generate
   useEffect(() => {
     setPattern(prev => {
-      if (prev.length === rotationWeeks) return prev;
+      if (prev.length === weeksToGenerate) return prev;
       const newPattern = [...prev];
-      while (newPattern.length < rotationWeeks) {
+      while (newPattern.length < weeksToGenerate) {
         // Clone the previous week's pattern as a starting point if available
         const lastWeek = newPattern[newPattern.length - 1] || { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 0: [] };
         newPattern.push(JSON.parse(JSON.stringify(lastWeek)));
       }
-      return newPattern.slice(0, rotationWeeks);
+      return newPattern.slice(0, weeksToGenerate);
     });
-  }, [rotationWeeks]);
+  }, [weeksToGenerate]);
 
-  // Auto-select all shift types for weekdays by default if they are active (only on first load)
+  // Auto-select all shift types for all days by default if they are active (only on first load)
   useEffect(() => {
     if (shiftTypes && shiftTypes.length > 0 && pattern.length > 0 && Object.values(pattern[0]).every(v => v.length === 0)) {
       const activeIds = shiftTypes.filter(t => t.is_active).map(t => t.id);
       setPattern(prev => {
         const newPattern = [...prev];
         const newWeek0 = { ...newPattern[0] };
-        [1, 2, 3, 4, 5].forEach(day => {
+        [1, 2, 3, 4, 5, 6, 0].forEach(day => {
           newWeek0[day] = [...activeIds];
         });
         newPattern[0] = newWeek0;
@@ -95,20 +97,6 @@ export function PopulateRosterModal({ open, onOpenChange, houseId, houseName, on
     });
   };
 
-  const copyMondayToWeekdays = (weekIndex: number) => {
-    setPattern(prev => {
-      const newPattern = [...prev];
-      const week = { ...newPattern[weekIndex] };
-      const mondayPattern = week[1] || [];
-      [2, 3, 4, 5].forEach(day => {
-        week[day] = [...mondayPattern];
-      });
-      newPattern[weekIndex] = week;
-      return newPattern;
-    });
-    toast.success(`Monday pattern copied to weekdays for Week ${weekIndex + 1}`);
-  };
-
   const copyWeekOneToAll = () => {
     setPattern(prev => {
       if (prev.length <= 1) return prev;
@@ -119,20 +107,12 @@ export function PopulateRosterModal({ open, onOpenChange, houseId, houseName, on
   };
 
   const handlePopulate = async () => {
-    if (!startDate || !endDate) {
-      toast.error('Please select a valid date range');
+    if (!startDate) {
+      toast.error('Please select a valid start date');
       return;
     }
 
-    const intervalDays = eachDayOfInterval({
-      start: new Date(startDate),
-      end: new Date(endDate)
-    }).length;
-
-    if (intervalDays > 90) { // Increased to 90 for longer rotations
-      toast.error('Maximum range is 90 days to ensure performance');
-      return;
-    }
+    const calculatedEndDate = format(addDays(new Date(startDate), weeksToGenerate * 7 - 1), 'yyyy-MM-dd');
 
     setIsGenerating(true);
     try {
@@ -140,7 +120,7 @@ export function PopulateRosterModal({ open, onOpenChange, houseId, houseName, on
         houseId,
         houseName,
         startDate,
-        endDate,
+        endDate: calculatedEndDate,
         pattern,
         shiftTypes,
         defaults,
@@ -161,23 +141,10 @@ export function PopulateRosterModal({ open, onOpenChange, houseId, houseName, on
   };
 
   const totalShiftsToCreate = useMemo(() => {
-    try {
-      const interval = eachDayOfInterval({
-        start: new Date(startDate),
-        end: new Date(endDate)
-      });
-      const startDay = startOfDay(new Date(startDate));
-      
-      return interval.reduce((acc, date) => {
-        const dayIndex = getDay(date);
-        const daysDiff = differenceInCalendarDays(startOfDay(date), startDay);
-        const weekIndex = Math.floor(daysDiff / 7) % rotationWeeks;
-        return acc + (pattern[weekIndex]?.[dayIndex]?.length || 0);
-      }, 0);
-    } catch (e) {
-      return 0; // fallback if dates are invalid
-    }
-  }, [startDate, endDate, pattern, rotationWeeks]);
+    return pattern.reduce((acc, week) => {
+      return acc + Object.values(week).reduce((weekAcc, dayShifts) => weekAcc + dayShifts.length, 0);
+    }, 0);
+  }, [pattern]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -212,14 +179,15 @@ export function PopulateRosterModal({ open, onOpenChange, houseId, houseName, on
             </div>
             <div className="space-y-2">
               <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1 flex items-center gap-2">
-                <CalendarDays className="size-3" /> End Date
+                <CalendarDays className="size-3" /> Weeks to Generate
               </Label>
-              <Input 
-                type="date" 
-                value={endDate} 
-                onChange={e => setEndDate(e.target.value)} 
-                min={startDate}
-                className="h-12 text-base font-bold bg-gray-50/50 border-gray-200 focus:bg-white transition-all" 
+              <Input
+                type="number"
+                min={1}
+                max={52}
+                value={weeksToGenerate}
+                onChange={e => setWeeksToGenerate(Math.max(1, Math.min(52, Number(e.target.value))))}
+                className="h-12 text-base font-bold bg-gray-50/50 border-gray-200 focus:bg-white transition-all"
               />
             </div>
           </div>
@@ -229,25 +197,11 @@ export function PopulateRosterModal({ open, onOpenChange, houseId, houseName, on
             <div className="flex items-center justify-between px-1">
               <div>
                 <h4 className="text-sm font-black uppercase tracking-tight text-gray-900">Shift Pattern</h4>
-                <p className="text-xs text-muted-foreground">Select which shift modes to include for each day.</p>
+                <p className="text-xs text-muted-foreground">Select which shift modes to include for each specific date.</p>
               </div>
               
               <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Rotation Length</Label>
-                  <select 
-                    value={rotationWeeks} 
-                    onChange={e => setRotationWeeks(Number(e.target.value))}
-                    className="h-8 text-xs font-bold border-gray-200 rounded-lg px-2 bg-white"
-                  >
-                    <option value={1}>1 Week</option>
-                    <option value={2}>2 Weeks</option>
-                    <option value={3}>3 Weeks</option>
-                    <option value={4}>4 Weeks</option>
-                  </select>
-                </div>
-                
-                {rotationWeeks > 1 && (
+                {weeksToGenerate > 1 && (
                   <Button 
                     variant="outline" 
                     size="sm" 
@@ -261,74 +215,92 @@ export function PopulateRosterModal({ open, onOpenChange, houseId, houseName, on
             </div>
 
             <div className="space-y-6">
-              {pattern.map((weekPattern, weekIndex) => (
-                <div key={weekIndex} className="space-y-2 relative">
-                  {rotationWeeks > 1 && (
-                    <div className="flex items-center gap-2 mb-2">
-                      <h5 className="text-xs font-black uppercase tracking-widest text-gray-700 bg-gray-100 px-2 py-1 rounded">
-                        Week {weekIndex + 1}
-                      </h5>
+              {pattern.map((weekPattern, weekIndex) => {
+                const anchorMonday = startOfWeek(new Date(startDate), { weekStartsOn: 1 });
+                const weekStartDate = addDays(anchorMonday, weekIndex * 7);
+                const weekEndDate = addDays(weekStartDate, 6);
+                
+                return (
+                  <div key={weekIndex} className="space-y-2 relative">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <h5 className="text-xs font-black uppercase tracking-widest text-gray-700 bg-gray-100 px-2 py-1 rounded">
+                          Week {weekIndex + 1}
+                        </h5>
+                        <span className="text-[10px] font-bold text-muted-foreground">
+                          {format(weekStartDate, 'MMM d')} - {format(weekEndDate, 'MMM d, yyyy')}
+                        </span>
+                      </div>
                     </div>
-                  )}
-                  
-                  <div className="flex items-center justify-end mb-2">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => copyMondayToWeekdays(weekIndex)}
-                      className="h-6 text-[9px] font-bold uppercase tracking-widest gap-1.5 text-gray-500 hover:text-primary"
-                    >
-                      <Copy className="size-2.5" /> Copy Mon to Weekdays
-                    </Button>
-                  </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-                    {DAYS_OF_WEEK.map(day => (
-                      <div key={day.id} className="bg-white border border-gray-100 rounded-xl overflow-hidden flex flex-col shadow-sm">
-                        <div className="bg-gray-50/80 px-3 py-2 border-b text-center">
-                          <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">{day.label}</span>
-                        </div>
-                        <div className="p-2 space-y-1.5 flex-1">
-                          {shiftTypes.length > 0 ? (
-                            shiftTypes.map(type => {
-                              const isSelected = weekPattern[day.id]?.includes(type.id);
-                              const theme = getPeriodTheme(type.name, type.color_theme, type.icon_name);
-                              
-                              return (
-                                <div 
-                                  key={type.id}
-                                  onClick={() => toggleShiftInPattern(weekIndex, day.id, type.id)}
-                                  className={cn(
-                                    "flex items-center gap-2 p-2 rounded-lg border transition-all cursor-pointer group",
-                                    isSelected 
-                                      ? "bg-primary/[0.03] border-primary/20 shadow-[inset_0_0_0_1px_rgba(var(--primary),0.1)]" 
-                                      : "bg-white border-transparent hover:bg-gray-50 grayscale opacity-60 hover:grayscale-0 hover:opacity-100"
-                                  )}
-                                >
-                                  <div className={cn(
-                                    "size-5 rounded flex items-center justify-center shrink-0",
-                                    isSelected ? theme.bg : "bg-gray-100"
-                                  )}>
-                                    <theme.icon className={cn("size-3", isSelected ? theme.text : "text-gray-400")} />
-                                  </div>
-                                  <span className={cn(
-                                    "text-[10px] font-bold truncate leading-none",
-                                    isSelected ? "text-gray-900" : "text-gray-400"
-                                  )}>
-                                    {type.short_name || type.name}
+                    <div className="grid grid-cols-1 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+                      {DAYS_OF_WEEK.map(day => {
+                        // Calculate the exact date for this cell
+                        // day.id is 1 (Mon) to 0 (Sun). We need to map it to 0-6 offset from Monday
+                        const dayOffset = day.id === 0 ? 6 : day.id - 1;
+                        const cellDate = addDays(weekStartDate, dayOffset);
+                        const isBeforeStart = isBefore(cellDate, startOfDay(new Date(startDate)));
+                        
+                        return (
+                          <div key={day.id} className={cn(
+                            "bg-white border border-gray-100 rounded-xl overflow-hidden flex flex-col shadow-sm transition-opacity",
+                            isBeforeStart && "opacity-40 pointer-events-none grayscale bg-gray-50/50"
+                          )}>
+                            <div className="bg-gray-50/80 px-3 py-2 border-b text-center flex flex-col gap-0.5">
+                              <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">{day.label}</span>
+                              <span className="text-[9px] font-bold text-primary/60">{format(cellDate, 'MMM d')}</span>
+                            </div>
+                            <div className="p-2 space-y-1.5 flex-1 relative">
+                              {isBeforeStart && (
+                                <div className="absolute inset-0 flex items-center justify-center z-10">
+                                  <span className="text-[8px] font-black uppercase tracking-widest text-gray-400 rotate-[-15deg] border border-gray-300 px-1 rounded bg-white/80">
+                                    Before Start
                                   </span>
                                 </div>
-                              );
-                            })
-                          ) : (
-                            <p className="text-[9px] text-muted-foreground text-center py-4 italic">No models</p>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+                              )}
+                              {shiftTypes.length > 0 ? (
+                                shiftTypes.map(type => {
+                                  const isSelected = !isBeforeStart && weekPattern[day.id]?.includes(type.id);
+                                  const theme = getPeriodTheme(type.name, type.color_theme, type.icon_name);
+                                  
+                                  return (
+                                    <div 
+                                      key={type.id}
+                                      onClick={() => !isBeforeStart && toggleShiftInPattern(weekIndex, day.id, type.id)}
+                                      className={cn(
+                                        "flex items-center gap-2 p-2 rounded-lg border transition-all group",
+                                        !isBeforeStart && "cursor-pointer",
+                                        isSelected 
+                                          ? "bg-primary/[0.03] border-primary/20 shadow-[inset_0_0_0_1px_rgba(var(--primary),0.1)]" 
+                                          : "bg-white border-transparent hover:bg-gray-50 grayscale opacity-60 hover:grayscale-0 hover:opacity-100"
+                                      )}
+                                    >
+                                      <div className={cn(
+                                        "size-5 rounded flex items-center justify-center shrink-0",
+                                        isSelected ? theme.bg : "bg-gray-100"
+                                      )}>
+                                        <theme.icon className={cn("size-3", isSelected ? theme.text : "text-gray-400")} />
+                                      </div>
+                                      <span className={cn(
+                                        "text-[10px] font-bold truncate leading-none",
+                                        isSelected ? "text-gray-900" : "text-gray-400"
+                                      )}>
+                                        {type.short_name || type.name}
+                                      </span>
+                                    </div>
+                                  );
+                                })
+                              ) : (
+                                <p className="text-[9px] text-muted-foreground text-center py-4 italic">No models</p>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 

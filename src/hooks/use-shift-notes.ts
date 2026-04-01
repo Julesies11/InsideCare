@@ -66,7 +66,7 @@ const SHIFT_NOTE_COLUMNS = `
   participant:participants(id, name),
   staff:staff(id, name),
   house:houses(id, name),
-  shift:staff_shifts(id, start_time, end_time, shift_type, status)
+  shift:staff_shifts(id, start_time, end_time, shift_type)
 `;
 
 export function useShiftNotes() {

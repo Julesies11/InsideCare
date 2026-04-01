@@ -125,7 +125,7 @@ export function RosterBoardContent() {
       let query = supabase
         .from('staff_shifts')
         .select(`
-          start_date, start_time, end_time, shift_type, status, notes,
+          start_date, start_time, end_time, shift_type, notes,
           house:houses(name),
           staff:staff(name),
           participants:shift_participants(participant:participants(name)),
@@ -138,7 +138,6 @@ export function RosterBoardContent() {
 
       if (houseFilter !== 'all') query = query.eq('house_id', houseFilter);
       if (selectedStaffId !== 'all') query = query.eq('staff_id', selectedStaffId);
-      if (statusFilter !== 'all') query = query.eq('status', statusFilter);
 
       const { data, error } = await query;
       if (error) throw error;
@@ -343,7 +342,6 @@ export function RosterBoardContent() {
           houseFilter={houseFilter}
           participantFilter={participantFilter}
           shiftTypeFilter={shiftTypeFilter}
-          statusFilter={statusFilter}
           canEdit={true}
           groupByHouse={groupByHouse}
           onBulkAction={handleOpenBulkModal}

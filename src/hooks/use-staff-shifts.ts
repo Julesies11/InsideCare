@@ -39,7 +39,6 @@ const SHIFT_COLUMNS = `
   end_time,
   house_id,
   shift_type,
-  status,
   notes,
   created_at,
   updated_at,

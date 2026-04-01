@@ -32,19 +32,6 @@ export const getShiftTypeColor = (type: string): string => {
   return getShiftTheme(undefined, type);
 };
 
-export const getStatusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
-  switch (status) {
-    case 'Completed':
-      return 'default';
-    case 'Cancelled':
-      return 'destructive';
-    case 'No Show':
-      return 'secondary';
-    default:
-      return 'outline';
-  }
-};
-
 export const formatTime = (time: string): string => {
   return time.substring(0, 5);
 };

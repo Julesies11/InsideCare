@@ -131,6 +131,30 @@ export function HouseShiftSetup({ houseId, mode = 'both', pendingChanges, onPend
     return dbDefaults;
   };
 
+  // --- Sorting Logic for Checklists ---
+
+  // Sort checklists for Shift Model (Type) dialog
+  const sortedModelChecklists = useMemo(() => {
+    return [...(houseChecklists || [])].sort((a, b) => {
+      const aSelected = typeFormData.default_checklists?.includes(a.id);
+      const bSelected = typeFormData.default_checklists?.includes(b.id);
+      if (aSelected && !bSelected) return -1;
+      if (!aSelected && bSelected) return 1;
+      return (a.sort_order || 0) - (b.sort_order || 0);
+    });
+  }, [houseChecklists, typeFormData.default_checklists]);
+
+  // Sort checklists for Template Item (Shift) dialog
+  const sortedItemChecklists = useMemo(() => {
+    return [...(houseChecklists || [])].sort((a, b) => {
+      const aSelected = itemFormData.checklist_ids?.includes(a.id);
+      const bSelected = itemFormData.checklist_ids?.includes(b.id);
+      if (aSelected && !bSelected) return -1;
+      if (!aSelected && bSelected) return 1;
+      return (a.sort_order || 0) - (b.sort_order || 0);
+    });
+  }, [houseChecklists, itemFormData.checklist_ids]);
+
   // --- Handlers (Updating pendingChanges or Direct Save) ---
 
   const handleOpenTypeDialog = (type?: any) => {
@@ -815,8 +839,8 @@ export function HouseShiftSetup({ houseId, mode = 'both', pendingChanges, onPend
                       // Fallback to houseChecklists if not found (though items might be missing depending on how houseChecklists is fetched)
                       const cl = defaultInfo?.checklist || houseChecklists.find(c => c.id === clId);
                       
-                      const topItems = cl?.items?.slice(0, 3) || [];
-                      const moreCount = (cl?.items?.length || 0) - 3;
+                      const topItems = cl?.items?.slice(0, 2) || [];
+                      const moreCount = (cl?.items?.length || 0) - 2;
 
                       return (
                         <div key={clId} className="bg-gray-50/50 border border-gray-100 rounded-lg p-3 group/cl relative">
@@ -1235,7 +1259,7 @@ export function HouseShiftSetup({ houseId, mode = 'both', pendingChanges, onPend
               </div>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {(houseChecklists || []).map(cl => {
+                {(sortedModelChecklists || []).map(cl => {
                   const isSelected = typeFormData.default_checklists?.includes(cl.id);
                   const topItems = cl.items?.slice(0, 2) || [];
                   
@@ -1453,7 +1477,7 @@ export function HouseShiftSetup({ houseId, mode = 'both', pendingChanges, onPend
               </div>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-2">
-                {(houseChecklists || []).map(cl => {
+                {(sortedItemChecklists || []).map(cl => {
                   const isSelected = itemFormData.checklist_ids?.includes(cl.id);
                   const topItems = cl.items?.slice(0, 2) || [];
 

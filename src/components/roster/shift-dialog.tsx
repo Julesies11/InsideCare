@@ -31,7 +31,6 @@ export interface ShiftFormData {
   house_id: string | null;
   shift_type: string;
   shift_type_id?: string | null;
-  status: string;
   notes: string;
   participant_ids: string[];
   assigned_checklists: AssignedChecklist[];
@@ -82,7 +81,6 @@ export function ShiftDialog({
     house_id: null,
     shift_type: 'SIL',
     shift_type_id: null,
-    status: 'Scheduled',
     notes: '',
     participant_ids: [],
     assigned_checklists: [],
@@ -103,7 +101,6 @@ export function ShiftDialog({
           house_id: shift.house_id,
           shift_type: shift.shift_type,
           shift_type_id: shift.shift_type_id || null,
-          status: shift.status || 'Scheduled',
           notes: shift.notes || '',
           participant_ids: shift.shift_participants?.map((p: any) => p.participant_id) || [],
           assigned_checklists: shift.assigned_checklists || [],
@@ -122,7 +119,6 @@ export function ShiftDialog({
           house_id: initialHouseId,
           shift_type: 'SIL',
           shift_type_id: null,
-          status: 'Scheduled',
           notes: '',
           participant_ids: initialHouseId ? participants.filter(p => p.house_id === initialHouseId && p.status === 'active').map(p => p.id) : [],
           assigned_checklists: [],
@@ -335,24 +331,6 @@ export function ShiftDialog({
                   ) : (
                     <SelectItem value="SIL">SIL</SelectItem>
                   )}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">Status</Label>
-              <Select 
-                value={formData.status} 
-                onValueChange={v => setFormData({...formData, status: v})}
-                disabled={readOnly}
-              >
-                <SelectTrigger className="h-11">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Scheduled">Scheduled</SelectItem>
-                  <SelectItem value="Confirmed">Confirmed</SelectItem>
-                  <SelectItem value="Completed">Completed</SelectItem>
-                  <SelectItem value="Cancelled">Cancelled</SelectItem>
                 </SelectContent>
               </Select>
             </div>

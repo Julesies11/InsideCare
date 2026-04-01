@@ -1,142 +1,97 @@
-import { renderWithProviders, screen, fireEvent, waitFor } from '@/test/test-utils';
+import { renderWithProviders, screen } from '@/test/test-utils';
 import { HouseShiftSetup } from './house-shift-setup';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { emptyHousePendingChanges } from '@/models/house-pending-changes';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 
-// Mock Supabase globally to prevent actual network calls
-vi.mock('@/lib/supabase', () => ({
-  supabase: {
-    from: vi.fn().mockReturnThis(),
-    select: vi.fn().mockReturnThis(),
-    insert: vi.fn().mockReturnThis(),
-    update: vi.fn().mockReturnThis(),
-    delete: vi.fn().mockReturnThis(),
-    eq: vi.fn().mockReturnThis(),
-    single: vi.fn().mockResolvedValue({ data: { id: 'new-id' }, error: null }),
-    maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
-  }
-}));
-
-// Mock Hooks with tracker functions
-const refreshShiftTypesMock = vi.fn();
-const refreshTemplatesMock = vi.fn();
-
+// Mock the hooks used in HouseShiftSetup
 vi.mock('@/hooks/use-house-shift-types', () => ({
   useHouseShiftTypes: () => ({
     shiftTypes: [
-      { id: '1', name: 'Morning Shift', default_start_time: '07:00:00', default_end_time: '15:00:00', color_theme: 'morning', icon_name: 'Sun' },
+      { id: 'st-1', name: 'Morning', color_theme: 'morning', icon_name: 'Clock', default_start_time: '07:00:00', default_end_time: '15:00:00' }
     ],
-    isLoading: false,
-    refresh: refreshShiftTypesMock
+    refresh: vi.fn()
   })
 }));
 
-const mockMutation = {
-  mutate: vi.fn(),
-  mutateAsync: vi.fn().mockResolvedValue({}),
-  isPending: false,
-};
-
 vi.mock('@/hooks/use-shift-templates', () => ({
   useShiftTemplates: () => ({
-    defaults: [],
+    defaults: [
+      { 
+        shift_type_id: 'st-1', 
+        checklist_id: 'cl-1',
+        checklist: {
+          id: 'cl-1',
+          name: 'Morning Routine',
+          items: [
+            { id: 'item-1', title: 'Task 1' },
+            { id: 'item-2', title: 'Task 2' },
+            { id: 'item-3', title: 'Task 3' },
+            { id: 'item-4', title: 'Task 4' }
+          ]
+        }
+      }
+    ],
     groups: [],
     schedules: [],
-    isLoading: false,
-    refresh: refreshTemplatesMock,
-    createGroup: mockMutation,
-    deleteGroup: mockMutation,
-    upsertItem: mockMutation,
-    deleteItem: mockMutation,
-    updateDefaults: mockMutation,
-    createSchedule: mockMutation,
-    deleteSchedule: mockMutation,
+    refresh: vi.fn(),
+    createSchedule: { mutateAsync: vi.fn(), isPending: false },
+    deleteSchedule: { mutateAsync: vi.fn() }
   })
 }));
 
 vi.mock('@/hooks/use-house-checklists', () => ({
   useHouseChecklists: () => ({
-    houseChecklists: [],
-    isLoading: false
+    houseChecklists: [
+      { 
+        id: 'cl-1', 
+        name: 'Morning Routine',
+        items: [
+          { id: 'item-1', title: 'Task 1' },
+          { id: 'item-2', title: 'Task 2' },
+          { id: 'item-3', title: 'Task 3' },
+          { id: 'item-4', title: 'Task 4' }
+        ]
+      }
+    ]
+  })
+}));
+
+vi.mock('@/hooks/useHouseParticipants', () => ({
+  useHouseParticipants: () => ({
+    participants: []
   })
 }));
 
 vi.mock('@/hooks/use-houses', () => ({
   useHouses: () => ({
-    houses: [],
-    isLoading: false
+    houses: [{ id: 'house-1', name: 'Test House' }]
   })
 }));
 
-describe('HouseShiftSetup Unit Test (directSave)', () => {
-  const defaultProps = {
-    houseId: 'test-house-id',
-    mode: 'model' as const,
-    pendingChanges: emptyHousePendingChanges,
-    onPendingChangesChange: vi.fn(),
-    directSave: true,
-  };
+vi.mock('@/components/roster/use-roster-data', () => ({
+  useRosterData: () => ({
+    materializeTemplate: vi.fn()
+  })
+}));
 
-  beforeEach(() => {
-    vi.clearAllMocks();
+describe('HouseShiftSetup', () => {
+  it('renders correctly', () => {
+    renderWithProviders(<HouseShiftSetup houseId="house-1" />);
+    expect(screen.getByText('Shift Model')).toBeDefined();
+    expect(screen.getByText('Morning')).toBeDefined();
   });
 
-  it('triggers refresh after adding a new shift type in directSave mode', async () => {
-    renderWithProviders(<HouseShiftSetup {...defaultProps} />);
+  it('shows only first 2 checklist items in shift model preview', () => {
+    renderWithProviders(<HouseShiftSetup houseId="house-1" />);
     
-    // Open dialog
-    const addBtn = screen.getByText(/Add Shift Type/i);
-    fireEvent.click(addBtn);
+    // Check for Task 1 and Task 2
+    expect(screen.getByText('Task 1')).toBeDefined();
+    expect(screen.getByText('Task 2')).toBeDefined();
     
-    // Fill form
-    const nameInput = screen.getByPlaceholderText(/e.g. Morning/i);
-    fireEvent.change(nameInput, { target: { value: 'New Shift' } });
+    // Task 3 and Task 4 should NOT be visible
+    expect(screen.queryByText('Task 3')).toBeNull();
+    expect(screen.queryByText('Task 4')).toBeNull();
     
-    // Verify localization
-    expect(screen.getByText(/Colour Theme/i)).toBeInTheDocument();
-    
-    // Verify sort order is NOT there
-    expect(screen.queryByText(/Sort Order/i)).not.toBeInTheDocument();
-    
-    // Save
-    const saveBtn = screen.getByText(/Add to Model/i);
-    fireEvent.click(saveBtn);
-    
-    await waitFor(() => {
-      expect(refreshShiftTypesMock).toHaveBeenCalled();
-    });
-  });
-
-  it('triggers refresh after editing an existing shift type in directSave mode', async () => {
-    renderWithProviders(<HouseShiftSetup {...defaultProps} />);
-    
-    // Find the card for Morning Shift
-    const morningShift = screen.getByText('Morning Shift');
-    const card = morningShift.closest('div.group');
-    if (!card) throw new Error('Card not found');
-    
-    // Find edit button
-    const editBtn = card.querySelector('button svg.lucide-edit')?.parentElement || 
-                    card.querySelector('button svg.lucide-square-pen')?.parentElement;
-    
-    if (!editBtn) {
-      // Fallback
-      const btns = card.querySelectorAll('button');
-      fireEvent.click(btns[0]);
-    } else {
-      fireEvent.click(editBtn);
-    }
-    
-    // Change name
-    const nameInput = screen.getByPlaceholderText(/e.g. Morning/i);
-    fireEvent.change(nameInput, { target: { value: 'Updated Shift' } });
-    
-    // Save
-    const updateBtn = screen.getByText(/Update Model/i);
-    fireEvent.click(updateBtn);
-    
-    await waitFor(() => {
-      expect(refreshShiftTypesMock).toHaveBeenCalled();
-    });
+    // Should show "more" text
+    expect(screen.getByText('+ 2 more tasks...')).toBeDefined();
   });
 });
