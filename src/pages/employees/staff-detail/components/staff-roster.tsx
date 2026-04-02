@@ -1,11 +1,11 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { format, addMonths, addWeeks, addDays } from 'date-fns';
 import { ShiftCalendar } from '@/components/roster/shift-calendar';
 import { ShiftDialog, ShiftFormData } from '@/components/roster/shift-dialog';
 import { RosterCalendarHeader } from '@/components/roster/roster-calendar-header';
-import { useRosterData, StaffShift } from '@/components/roster/use-roster-data';
+import { useRosterData, StaffShift, useShiftsQuery } from '@/components/roster/use-roster-data';
 import { getDateRange, calculateDuration, ViewMode } from '@/components/roster/roster-utils';
 import { NotificationService } from '@/lib/notification-service';
 
@@ -17,7 +17,6 @@ interface StaffRosterProps {
 export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('week');
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [shifts, setShifts] = useState<StaffShift[]>([]);
   const [showShiftDialog, setShowShiftDialog] = useState(false);
   const [selectedShift, setSelectedShift] = useState<StaffShift | null>(null);
   
@@ -29,9 +28,7 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
     houses,
     participants,
     staff,
-    loading,
-    loadAllData,
-    loadShifts,
+    loading: metaLoading,
     createShift,
     updateShift,
     deleteShift,
@@ -39,27 +36,23 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
     removeShiftParticipant,
   } = useRosterData();
 
-  useEffect(() => {
-    loadAllData();
-  }, [loadAllData]);
-
-  useEffect(() => {
-    const fetchShifts = async () => {
-      const { startDate, endDate } = getDateRange(currentDate, viewMode);
-      const data = await loadShifts(staffId, startDate, endDate);
-      setShifts(data);
+  const { startDate, endDate } = useMemo(() => {
+    const range = getDateRange(currentDate, viewMode);
+    return {
+      startDate: format(range.startDate, 'yyyy-MM-dd'),
+      endDate: format(range.endDate, 'yyyy-MM-dd')
     };
-    fetchShifts();
-  }, [staffId, currentDate, viewMode, loadShifts]);
+  }, [currentDate, viewMode]);
+
+  const { shifts = [], isLoading: shiftsLoading } = useShiftsQuery(staffId, startDate, endDate);
 
   const filteredShifts = useMemo(() => {
     return shifts.filter(shift => {
       const matchesHouse = houseFilter === 'all' || shift.house_id === houseFilter;
       const matchesType = shiftTypeFilter === 'all' || shift.shift_type === shiftTypeFilter;
-      const matchesStatus = statusFilter === 'all' || shift.status === statusFilter;
-      return matchesHouse && matchesType && matchesStatus;
+      return matchesHouse && matchesType;
     });
-  }, [shifts, houseFilter, shiftTypeFilter, statusFilter]);
+  }, [shifts, houseFilter, shiftTypeFilter]);
 
   const navigatePeriod = (direction: 'prev' | 'next') => {
     if (viewMode === 'today') {
@@ -131,18 +124,8 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
           .map(id => participants.find(p => p.id === id))
           .filter(p => p !== undefined) as typeof participants;
 
-        // Update local state
-        setShifts(prevShifts => prevShifts.map(shift => 
-          shift.id === selectedShift.id 
-            ? {
-                ...shift,
-                ...updates,
-                house: house ? { id: house.id, name: house.name } : undefined,
-                participants: shiftParticipants,
-                duration_hours: calculateDuration(updates.start_time, updates.end_time, updates.start_date, updates.end_date),
-              }
-            : shift
-        ));
+        // Update local state - NO LONGER NEEDED with TanStack Query
+        // We just need to wait for the updateShift to complete, which invalidates the query
 
         toast.success('Shift updated successfully');
         
@@ -177,45 +160,29 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
           }
         }
 
-        // Get data for local state
-        const house = formData.house_id ? houses.find(h => h.id === formData.house_id) : null;
-        const shiftParticipants = formData.participant_ids
-          .map(id => participants.find(p => p.id === id))
-          .filter(p => p !== undefined) as typeof participants;
-
-        // Add to local state
-        const newShift: StaffShift = {
-          ...data,
-          house: house ? { id: house.id, name: house.name } : undefined,
-          participants: shiftParticipants,
-          duration_hours: calculateDuration(data.start_time, data.end_time, data.start_date, data.end_date ?? data.start_date),
-        };
-
-        setShifts(prevShifts => [...prevShifts, newShift]);
-
         toast.success('Shift created successfully');
         
         const staffMember = staff.find(s => s.id === staffId);
+        const house = formData.house_id ? houses.find(h => h.id === formData.house_id) : null;
         if (staffMember?.auth_user_id && house) {
           await NotificationService.notifyShiftAssigned(staffMember.auth_user_id, formData.start_date, house.name);
         }
       }
+      setShowShiftDialog(false);
     } catch (error) {
       toast.error(selectedShift ? 'Failed to update shift' : 'Failed to create shift');
       console.error(error);
-      throw error;
     }
   };
 
   const handleDeleteShift = async (shiftId: string) => {
     try {
       await deleteShift(shiftId);
-      setShifts(prevShifts => prevShifts.filter(shift => shift.id !== shiftId));
       toast.success('Shift deleted successfully');
+      setShowShiftDialog(false);
     } catch (error) {
       toast.error('Failed to delete shift');
       console.error(error);
-      throw error;
     }
   };
 
@@ -246,7 +213,7 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
           viewMode={viewMode}
           currentDate={currentDate}
           shifts={filteredShifts}
-          loading={loading}
+          loading={shiftsLoading || metaLoading}
           canEdit={canEdit}
           onAddShift={handleAddShift}
           onEditShift={handleEditShift}

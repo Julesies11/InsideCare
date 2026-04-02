@@ -52,6 +52,15 @@ For complex entities with child records (like Participants, Staff, or Houses), a
 - **State**: These changes are tracked in local component state and committed to the database during the `onSave` process.
 - **Benefits**: Allows users to make multiple changes to child entities and save them all at once, providing a better user experience and reducing database round-trips.
 
+### Advanced Data Fetching (Roster Module)
+The Roster module implements a highly optimized data fetching strategy to handle large volumes of shifts (e.g., 500+ on a single board) with minimal latency.
+
+- **TanStack Query Caching**: All roster data (shifts, leave, shift types) is managed via TanStack Query. Queries are keyed by date range and filters, allowing for instantaneous navigation between weeks as data is cached in memory.
+- **Frontend Joining**: To reduce SQL execution time and JSON payload size, the system avoids heavy database joins for static metadata.
+    - **Pattern**: Instead of joining `houses` and `staff` in every shift query, the application fetches and caches the full lists of active Houses and Staff once.
+    - **Mapping**: Shift records are returned with IDs only; the UI layer maps these IDs to the cached metadata arrays in the frontend.
+- **Automatic Cache Invalidation**: Mutations (Creating/Updating/Deleting shifts) use the `queryClient` to invalidate relevant query keys, ensuring that all roster widgets (Calendar, Upcoming Shifts, Staff Detail) stay synchronized without manual state management.
+
 ## 4. Activity Logging
 A centralized activity logging system tracks all major changes in the application.
 

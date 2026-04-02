@@ -1,6 +1,6 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import { toast } from 'sonner';
 import { calculateDuration } from './roster-utils';
 
 export interface House {
@@ -23,6 +23,7 @@ export interface Staff {
   status: string;
   auth_user_id?: string;
   isQualified?: boolean;
+  house_assignments?: Array<{ house_id: string; end_date: string | null }>;
 }
 
 export interface StaffShift {
@@ -41,118 +42,71 @@ export interface StaffShift {
   updated_at?: string;
   house?: { id: string; name: string };
   participants?: Array<{ id: string; name: string; house_id?: string | null }>;
-  assigned_checklists?: Array<{ id: string; checklist_id: string; assignment_title: string }>;
+  assigned_checklists?: Array<{ id: string; checklist_id: string; assignment_title: string; is_completed?: boolean }>;
   staff_name?: string;
   duration_hours?: number;
   color_theme?: string;
   icon_name?: string;
+  notesCount?: number;
 }
 
-export function useRosterData() {
-  const [houses, setHouses] = useState<House[]>([]);
-  const [participants, setParticipants] = useState<Participant[]>([]);
-  const [staff, setStaff] = useState<Staff[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  const loadHouses = useCallback(async () => {
-    try {
-      // Use ilike for case-insensitive matching
+export function useGlobalShiftTypesQuery() {
+  return useQuery({
+    queryKey: ['global-shift-types'],
+    queryFn: async () => {
       const { data, error } = await supabase
-        .from('houses')
-        .select('id, name, status')
-        .eq('status', 'active')
+        .from('house_shift_types')
+        .select('name')
+        .eq('is_active', true)
         .order('name');
       
-      if (error) {
-        console.error('Error loading houses for roster:', error);
-        return;
-      }
-      
-      if (data) {
-        setHouses(data);
-      }
-    } catch (err) {
-      console.error('Exception loading houses:', err);
-    }
-  }, []);
+      if (error) throw error;
+      const uniqueNames = Array.from(new Set(data.map(t => t.name)));
+      return uniqueNames.map(name => ({ id: name, name }));
+    },
+    staleTime: 1000 * 60 * 30, // 30 minutes
+  });
+}
 
-  const loadParticipants = useCallback(async () => {
-    try {
-      const { data, error } = await supabase
-        .from('participants')
-        .select('id, name, house_id, status')
-        .eq('status', 'active')
-        .not('name', 'is', null)
-        .order('name');
+export function useLeaveRequestsQuery(staffId: string, startDate: string, endDate: string) {
+  return useQuery({
+    queryKey: ['leave-requests', staffId, startDate, endDate],
+    queryFn: async () => {
+      let query = supabase
+        .from('leave_requests')
+        .select('id, start_date, end_date, status, leave_type:leave_types(name), staff_id')
+        .neq('status', 'rejected')
+        .lte('start_date', endDate)
+        .gte('end_date', startDate);
+        
+      if (staffId !== 'all') query = query.eq('staff_id', staffId);
       
-      if (error) {
-        console.error('Error loading participants for roster:', error);
-        return;
-      }
+      const { data, error } = await query;
+      if (error) throw error;
       
-      if (data) {
-        setParticipants(data);
-      }
-    } catch (err) {
-      console.error('Exception loading participants:', err);
-    }
-  }, []);
-
-  const loadStaff = useCallback(async () => {
-    try {
-      console.log('Fetching active staff members with compliance...');
-      const { data, error } = await supabase
-        .from('staff')
-        .select(`
-          id, name, photo_url, status, auth_user_id,
-          compliance:staff_compliance(status)
-        `)
-        .eq('status', 'active')
-        .not('name', 'is', null)
-        .order('name');
-      
-      if (error) {
-        console.error('Error loading staff for roster:', error);
-        return;
-      }
-      
-      const enrichedStaff = (data || []).map((s: any) => ({
-        ...s,
-        isQualified: !s.compliance?.some((c: any) => c.status === 'Expired' || c.status === 'Incomplete')
+      return (data || []).map((r: any) => ({
+        id: r.id,
+        start_date: r.start_date,
+        end_date: r.end_date,
+        status: r.status,
+        leave_type_name: r.leave_type?.name ?? 'Leave',
+        staff_id: r.staff_id,
       }));
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+}
 
-      console.log(`Loaded ${enrichedStaff.length} enriched staff members`);
-      setStaff(enrichedStaff as Staff[]);
-    } catch (err) {
-      console.error('Exception loading staff:', err);
-    }
-  }, []);
+export function useShiftsQuery(staffId: string, startDate: string, endDate: string, houseId?: string) {
+  const { houses, staff } = useRosterData();
 
-  const loadAllData = useCallback(async () => {
-    setLoading(true);
-    try {
-      await Promise.all([
-        loadHouses(), 
-        loadParticipants(), 
-        loadStaff()
-      ]);
-    } finally {
-      setLoading(false);
-    }
-  }, [loadHouses, loadParticipants, loadStaff]);
-
-  const loadShifts = useCallback(async (staffId: string, startDate: string, endDate: string, houseId?: string): Promise<StaffShift[]> => {
-    setLoading(true);
-    try {
-      // Build the base query with all joins
+  const query = useQuery({
+    queryKey: ['roster-shifts', staffId, startDate, endDate, houseId],
+    queryFn: async () => {
       let query = supabase
         .from('staff_shifts')
         .select(`
-          *,
-          shift_type_id,
-          org_shift_template_id,
-          house:houses(id, name),
-          staff:staff(id, name),
+          id, staff_id, start_date, end_date, start_time, end_time, house_id, shift_type, shift_type_id, org_shift_template_id, notes,
           type_details:house_shift_types(color_theme, icon_name),
           org_template_details:org_shift_templates(color_theme, icon_name),
           participants:shift_participants(
@@ -161,62 +115,182 @@ export function useRosterData() {
           assigned_checklists:shift_assigned_checklists(
             id, checklist_id, assignment_title,
             submissions:house_checklist_submissions(status)
-          )
+          ),
+          notes_count:shift_notes(count)
         `)
         .gte('start_date', startDate)
         .lte('start_date', endDate)
         .order('start_date', { ascending: true })
         .order('start_time', { ascending: true });
 
-      // Apply staff filter if not 'all'
-      if (staffId && staffId !== 'all') {
-        query = query.eq('staff_id', staffId);
-      }
-
-      // Apply house filter if provided and not 'all'
-      if (houseId && houseId !== 'all') {
-        query = query.eq('house_id', houseId);
-      }
+      if (staffId && staffId !== 'all') query = query.eq('staff_id', staffId);
+      if (houseId && houseId !== 'all') query = query.eq('house_id', houseId);
 
       const { data, error } = await query;
+      if (error) throw error;
+      return data;
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes cache
+  });
 
-      if (error) {
-        console.error('Error loading shifts:', error);
-        toast.error('Failed to load shifts');
-        return [];
-      }
+  const shifts = useMemo(() => {
+    if (!query.data) return [];
+    
+    // Frontend Joining
+    const houseMap = new Map(houses.map(h => [h.id, { id: h.id, name: h.name }]));
+    const staffMap = new Map(staff.map(s => [s.id, s.name]));
+return query.data.map((shift: any): StaffShift => {
+  const colorTheme = shift.org_template_details?.color_theme || shift.type_details?.color_theme;
+  const iconName = shift.org_template_details?.icon_name || shift.type_details?.icon_name;
 
-      // Shared mapping logic
-      return (data || []).map(shift => {
-        // Prioritize Org Templates for styling
-        const colorTheme = (shift as any).org_template_details?.color_theme || (shift as any).type_details?.color_theme;
-        const iconName = (shift as any).org_template_details?.icon_name || (shift as any).type_details?.icon_name;
+  return {
+    ...shift,
+    house: shift.house_id ? houseMap.get(shift.house_id) : undefined,
 
-        return {
-          ...shift,
-          participants: (shift.participants as any[])?.map((sp) => ({
-            id: sp.participant.id,
-            name: sp.participant.name,
-          })) || [],
-          assigned_checklists: (shift.assigned_checklists as any[])?.map(ac => ({
-            ...ac,
-            is_completed: ac.submissions?.some((s: any) => s.status === 'Completed')
-          })) || [],
-          staff_name: shift.staff?.name || 'Unassigned',
-          duration_hours: calculateDuration(shift.start_time, shift.end_time, shift.start_date, shift.end_date ?? shift.start_date),
-          color_theme: colorTheme,
-          icon_name: iconName,
-        };
-      });
-    } finally {
-      setLoading(false);
+        staff_name: shift.staff_id ? staffMap.get(shift.staff_id) || 'Unassigned' : 'Unassigned',
+        participants: shift.participants?.map((sp: any) => ({
+          id: sp.participant.id,
+          name: sp.participant.name,
+        })) || [],
+        assigned_checklists: shift.assigned_checklists?.map((ac: any) => ({
+          ...ac,
+          is_completed: ac.submissions?.some((s: any) => s.status === 'Completed')
+        })) || [],
+        duration_hours: calculateDuration(shift.start_time, shift.end_time, shift.start_date, shift.end_date ?? shift.start_date),
+        color_theme: colorTheme,
+        icon_name: iconName,
+        notesCount: shift.notes_count?.[0]?.count || 0,
+      };
+    });
+  }, [query.data, houses, staff]);
+
+  return {
+    ...query,
+    shifts,
+  };
+}
+
+export function useRosterData() {
+  const queryClient = useQueryClient();
+  const [loading, setLoading] = useState(false);
+
+  const housesQuery = useQuery({
+    queryKey: ['roster-houses'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('houses')
+        .select('id, name, status')
+        .eq('status', 'active')
+        .order('name');
+      
+      if (error) throw error;
+      return data as House[];
+    },
+    staleTime: 1000 * 60 * 10, // 10 minutes
+  });
+
+  const participantsQuery = useQuery({
+    queryKey: ['roster-participants'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('participants')
+        .select('id, name, house_id, status')
+        .eq('status', 'active')
+        .not('name', 'is', null)
+        .order('name');
+      
+      if (error) throw error;
+      return data as Participant[];
+    },
+    staleTime: 1000 * 60 * 10,
+  });
+
+  const staffQuery = useQuery({
+    queryKey: ['roster-staff'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('staff')
+        .select(`
+          id, name, photo_url, status, auth_user_id,
+          compliance:staff_compliance(status),
+          house_assignments:house_staff_assignments(house_id, end_date)
+        `)
+        .eq('status', 'active')
+        .not('name', 'is', null)
+        .order('name');
+      
+      if (error) throw error;
+      
+      return (data || []).map((s: any) => ({
+        ...s,
+        isQualified: !s.compliance?.some((c: any) => c.status === 'Expired' || c.status === 'Incomplete')
+      })) as Staff[];
+    },
+    staleTime: 1000 * 60 * 10,
+  });
+
+  const syncShiftParticipants = useCallback(async (shiftId: string, participantIds: string[]) => {
+    // 1. Get existing participants
+    const { data: existing, error: fetchError } = await supabase
+      .from('shift_participants')
+      .select('participant_id')
+      .eq('shift_id', shiftId);
+
+    if (fetchError) {
+      console.error('Error fetching existing participants:', fetchError);
+      throw fetchError;
     }
-  }, []);
+
+    const existingIds = (existing || []).map(p => p.participant_id);
+    
+    // 2. Determine which to add and remove
+    const toAdd = participantIds.filter(id => !existingIds.includes(id));
+    const toRemove = existingIds.filter(id => !participantIds.includes(id));
+
+    // 3. Perform deletions
+    if (toRemove.length > 0) {
+      const { error: deleteError } = await supabase
+        .from('shift_participants')
+        .delete()
+        .eq('shift_id', shiftId)
+        .in('participant_id', toRemove);
+      
+      if (deleteError) throw deleteError;
+    }
+
+    // 4. Perform insertions
+    if (toAdd.length > 0) {
+      const { error: insertError } = await supabase
+        .from('shift_participants')
+        .insert(toAdd.map(id => ({ shift_id: shiftId, participant_id: id })));
+      
+      if (insertError) throw insertError;
+    }
+    
+    queryClient.invalidateQueries({ queryKey: ['roster-shifts'] });
+  }, [queryClient]);
 
   const createShift = useCallback(async (shiftData: Partial<StaffShift>) => {
+    // Filter out non-column fields
+    const { 
+      participants: _participants, 
+      participant_ids: _participant_ids, 
+      assigned_checklists: _assigned_checklists, 
+      house: _house, 
+      staff: _staff, 
+      staff_name: _staff_name, 
+      duration_hours: _duration_hours, 
+      color_theme: _color_theme, 
+      icon_name: _icon_name, 
+      status: _status, 
+      type_details: _type_details, 
+      org_template_details: _org_template_details, 
+      ...dbData 
+    } = shiftData as any;
+
     const { data, error } = await supabase
       .from('staff_shifts')
-      .insert([shiftData])
+      .insert([dbData])
       .select()
       .single();
 
@@ -224,21 +298,41 @@ export function useRosterData() {
       console.error('Error creating shift:', error);
       throw error;
     }
-
+    
+    queryClient.invalidateQueries({ queryKey: ['roster-shifts'] });
     return data;
-  }, []);
+  }, [queryClient]);
 
   const updateShift = useCallback(async (shiftId: string, updates: Partial<StaffShift>) => {
+    // Filter out non-column fields
+    const { 
+      participants: _participants, 
+      participant_ids: _participant_ids, 
+      assigned_checklists: _assigned_checklists, 
+      house: _house, 
+      staff: _staff, 
+      staff_name: _staff_name, 
+      duration_hours: _duration_hours, 
+      color_theme: _color_theme, 
+      icon_name: _icon_name, 
+      status: _status, 
+      type_details: _type_details, 
+      org_template_details: _org_template_details, 
+      ...dbData 
+    } = updates as any;
+
     const { error } = await supabase
       .from('staff_shifts')
-      .update(updates)
+      .update(dbData)
       .eq('id', shiftId);
 
     if (error) {
       console.error('Error updating shift:', error);
       throw error;
     }
-  }, []);
+    
+    queryClient.invalidateQueries({ queryKey: ['roster-shifts'] });
+  }, [queryClient]);
 
   const deleteShift = useCallback(async (shiftId: string) => {
     const { error } = await supabase
@@ -250,7 +344,9 @@ export function useRosterData() {
       console.error('Error deleting shift:', error);
       throw error;
     }
-  }, []);
+    
+    queryClient.invalidateQueries({ queryKey: ['roster-shifts'] });
+  }, [queryClient]);
 
   const bulkDeleteShifts = useCallback(async (params: {
     houseId?: string;
@@ -279,6 +375,8 @@ export function useRosterData() {
 
       const { error } = await query;
       if (error) throw error;
+      
+      queryClient.invalidateQueries({ queryKey: ['roster-shifts'] });
       return true;
     } catch (err) {
       console.error('Bulk delete failed:', err);
@@ -286,7 +384,7 @@ export function useRosterData() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [queryClient]);
 
   const bulkUpdateShifts = useCallback(async (params: {
     houseId?: string;
@@ -315,6 +413,8 @@ export function useRosterData() {
 
       const { error } = await query;
       if (error) throw error;
+      
+      queryClient.invalidateQueries({ queryKey: ['roster-shifts'] });
       return true;
     } catch (err) {
       console.error('Bulk update failed:', err);
@@ -322,7 +422,7 @@ export function useRosterData() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [queryClient]);
 
   const addShiftParticipant = useCallback(async (shiftId: string, participantId: string) => {
     const { error } = await supabase
@@ -333,7 +433,8 @@ export function useRosterData() {
       console.error('Error adding participant:', error);
       throw error;
     }
-  }, []);
+    queryClient.invalidateQueries({ queryKey: ['roster-shifts'] });
+  }, [queryClient]);
 
   const removeShiftParticipant = useCallback(async (shiftId: string, participantId: string) => {
     const { error } = await supabase
@@ -346,7 +447,8 @@ export function useRosterData() {
       console.error('Error removing participant:', error);
       throw error;
     }
-  }, []);
+    queryClient.invalidateQueries({ queryKey: ['roster-shifts'] });
+  }, [queryClient]);
 
   const materializeTemplate = useCallback(async (params: { 
     templateId: string, 
@@ -477,12 +579,15 @@ export function useRosterData() {
           }
         }
       }
-
+      
+      if (createdCount > 0) {
+        queryClient.invalidateQueries({ queryKey: ['roster-shifts'] });
+      }
       return { created: createdCount, skipped: skippedCount };
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [queryClient]);
 
   const bulkMaterializeTemplate = useCallback(async (params: {
     templateId: string,
@@ -543,7 +648,8 @@ export function useRosterData() {
         throw insertError;
       }
     }
-  }, []);
+    queryClient.invalidateQueries({ queryKey: ['roster-shifts'] });
+  }, [queryClient]);
 
   const materializePattern = useCallback(async (params: {
     houseId: string,
@@ -657,6 +763,9 @@ export function useRosterData() {
           }
         }
       }
+      if (createdCount > 0) {
+        queryClient.invalidateQueries({ queryKey: ['roster-shifts'] });
+      }
       return { created: createdCount, skipped: skippedCount, checklists: checklistCount };
     } catch (err) {
       console.error('materializePattern error:', err);
@@ -664,28 +773,27 @@ export function useRosterData() {
     } finally {
       setLoading(false);
     }
-  }, []);
-
-  return {
-    houses,
-    participants,
-    staff,
-    loading,
-    loadHouses,
-    loadParticipants,
-    loadStaff,
-    loadAllData,
-    loadShifts,
-    createShift,
-    updateShift,
-    deleteShift,
-    bulkUpdateShifts,
-    bulkDeleteShifts,
-    addShiftParticipant,
-    removeShiftParticipant,
-    materializeTemplate,
-    bulkMaterializeTemplate,
-    materializePattern,
-    syncShiftChecklists,
-  };
+  }, [queryClient]);
+return {
+  houses: housesQuery.data || [],
+  participants: participantsQuery.data || [],
+  staff: staffQuery.data || [],
+  loading: loading || housesQuery.isLoading || participantsQuery.isLoading || staffQuery.isLoading,
+  loadHouses: housesQuery.refetch,
+  loadParticipants: participantsQuery.refetch,
+  loadStaff: staffQuery.refetch,
+  createShift,
+  updateShift,
+  deleteShift,
+  bulkUpdateShifts,
+  bulkDeleteShifts,
+  addShiftParticipant,
+  removeShiftParticipant,
+  syncShiftParticipants,
+  materializeTemplate,
+  bulkMaterializeTemplate,
+  materializePattern,
+  syncShiftChecklists,
+};
 }
+

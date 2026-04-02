@@ -184,21 +184,21 @@ const StaffTable = () => {
       size: 230,
     },
     {
-      id: 'department',
-      accessorKey: 'department',
+      id: 'role',
+      accessorKey: 'role',
       header: ({ column }) => (
-        <DataGridColumnHeader title="Department" column={column} />
+        <DataGridColumnHeader title="Role" column={column} />
       ),
       cell: ({ row }) => (
         <span className="text-sm text-gray-700 dark:text-gray-300">
-          {row.original.department_info?.name || '-'}
+          {row.original.role?.name || '-'}
         </span>
       ),
       meta: {
         skeleton: <Skeleton className="h-3 w-20" />,
       },
       enableSorting: true,
-      size: 120,
+      size: 150,
     },
     {
       id: 'employment_type',

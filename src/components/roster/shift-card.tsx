@@ -1,6 +1,7 @@
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ClipboardList, Clock, MapPin, User, Users, UserCheck, CheckCircle2 } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { ClipboardList, Clock, MapPin, User, Users, UserCheck, CheckCircle2, ChevronDown } from 'lucide-react';
 import { getShiftTheme, formatTime } from './roster-utils';
 import { SHIFT_ICONS, cn } from '@/lib/utils';
 
@@ -29,9 +30,11 @@ interface ShiftCardProps {
   onClick: () => void;
   onWriteNote?: (shift: ShiftCardData) => void;
   onNotesClick?: (shift: ShiftCardData) => void;
+  staffList?: Array<{ id: string; name: string }>;
+  onQuickAssign?: (shiftId: string, staffId: string) => void;
 }
 
-export function ShiftCard({ shift, compact, showStaffName, showHouseName = true, onClick, onWriteNote, onNotesClick }: ShiftCardProps) {
+export function ShiftCard({ shift, compact, showStaffName, showHouseName = true, onClick, onWriteNote, onNotesClick, staffList, onQuickAssign }: ShiftCardProps) {
   const participantCount = shift.participants?.length || 0;
   const checklistCount = shift.assigned_checklists?.length || 0;
   const isUnassigned = !shift.staff_id;
@@ -43,9 +46,12 @@ export function ShiftCard({ shift, compact, showStaffName, showHouseName = true,
     return (
       <div
         onClick={onClick}
-        className={`p-1.5 mb-1 bg-card border rounded cursor-pointer hover:bg-accent/50 transition-colors group ${
-          isUnassigned ? 'border-dashed border-amber-400 bg-amber-50/30' : ''
-        }`}
+        className={cn(
+          "p-1.5 mb-1 bg-card border rounded cursor-pointer hover:bg-accent/50 transition-colors group",
+          isUnassigned 
+            ? "border-dashed border-gray-300 bg-gray-50/10" 
+            : "border-solid border-emerald-500/50 bg-emerald-50/5 shadow-sm"
+        )}
       >
         <div className="flex items-center justify-between gap-1 mb-1.5">
           <div className="flex flex-col min-w-0">
@@ -67,9 +73,44 @@ export function ShiftCard({ shift, compact, showStaffName, showHouseName = true,
         {showStaffName && (
           <div className="flex items-center gap-1 mb-0.5 mt-1 border-t border-gray-100 pt-1">
             <User className="h-2.5 w-2.5 text-muted-foreground shrink-0" />
-            <span className={`text-[10px] truncate font-normal ${isUnassigned ? 'text-amber-600' : 'text-gray-700'}`}>
-              {isUnassigned ? 'OPEN SHIFT' : shift.staff_name}
-            </span>
+            {isUnassigned && onQuickAssign && staffList ? (
+              <DropdownMenu onOpenChange={(open) => {
+                if (open) {
+                  console.log(`[QuickAssign Debug] Control: Compact Shift Card | Shift ID: ${shift.id} | House: ${shift.house?.name || 'Unassigned'} | Available Staff Count: ${staffList.length}`, {
+                    staffList: staffList.map(s => ({ id: s.id, name: s.name, assignments: (s as any).house_assignments }))
+                  });
+                }
+              }}>
+                <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                  <button className="text-[10px] flex items-center justify-between gap-1 font-black text-amber-700 hover:text-amber-800 bg-amber-100 hover:bg-amber-200 px-1.5 py-0.5 rounded-md transition-all border border-amber-200 flex-1 cursor-pointer shadow-sm">
+                    <span className="truncate uppercase">Assign Staff</span>
+                    <ChevronDown className="size-2.5 shrink-0 opacity-70" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-48 max-h-[300px] overflow-y-auto">
+                  {staffList.length > 0 ? (
+                    staffList.map(s => (
+                      <DropdownMenuItem 
+                        key={s.id} 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onQuickAssign(shift.id, s.id);
+                        }}
+                        className="text-xs cursor-pointer"
+                      >
+                        {s.name}
+                      </DropdownMenuItem>
+                    ))
+                  ) : (
+                    <div className="px-2 py-2 text-[10px] text-muted-foreground italic">No staff assigned to this house</div>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <span className={`text-[10px] truncate font-normal ${isUnassigned ? 'text-amber-600' : 'text-gray-700'}`}>
+                {isUnassigned ? 'OPEN SHIFT' : shift.staff_name}
+              </span>
+            )}
           </div>
         )}
 
@@ -80,14 +121,15 @@ export function ShiftCard({ shift, compact, showStaffName, showHouseName = true,
           </div>
         )}
 
-        {participantCount > 0 && (
-          <div className="flex items-center gap-1 mb-0.5">
-            <Users className="h-2.5 w-2.5 text-muted-foreground shrink-0" />
-            <span className="text-[10px] text-muted-foreground font-normal">
-              {participantCount} Participant{participantCount > 1 ? 's' : ''}
-            </span>
-          </div>
-        )}
+        <div className="flex items-center gap-1 mb-0.5">
+          <Users className={cn("h-2.5 w-2.5 shrink-0", participantCount === 0 ? "text-red-500" : "text-muted-foreground")} />
+          <span className={cn(
+            "text-[10px] font-normal",
+            participantCount === 0 ? "text-red-600 font-bold" : "text-muted-foreground"
+          )}>
+            {participantCount} Participant{participantCount !== 1 ? 's' : ''}
+          </span>
+        </div>
 
         {shift.assigned_checklists && shift.assigned_checklists.length > 0 && (
           <div className="mt-1 pt-1 border-t border-dashed space-y-0.5">
@@ -136,9 +178,12 @@ export function ShiftCard({ shift, compact, showStaffName, showHouseName = true,
   return (
     <Card
       onClick={onClick}
-      className={`p-3 cursor-pointer hover:bg-accent/50 transition-colors overflow-hidden group ${
-        isUnassigned ? 'border-dashed border-amber-400 bg-amber-50/20 shadow-inner' : ''
-      }`}
+      className={cn(
+        "p-3 cursor-pointer hover:bg-accent/50 transition-colors overflow-hidden group",
+        isUnassigned 
+          ? "border-dashed border-gray-300 bg-gray-50/5 shadow-inner" 
+          : "border-solid border-emerald-500/50 bg-emerald-50/10 shadow-sm"
+      )}
     >
       <div className="space-y-2.5">
         <div className="flex items-start justify-between gap-1.5">
@@ -165,9 +210,44 @@ export function ShiftCard({ shift, compact, showStaffName, showHouseName = true,
           {showStaffName && (
             <div className="flex items-center gap-2">
               <User className={`h-3.5 w-3.5 flex-shrink-0 ${isUnassigned ? 'text-amber-500' : 'text-gray-400'}`} />
-              <span className={`text-xs truncate font-normal ${isUnassigned ? 'text-amber-700 uppercase tracking-tight' : 'text-gray-700'}`}>
-                {isUnassigned ? 'Unassigned' : shift.staff_name}
-              </span>
+              {isUnassigned && onQuickAssign && staffList ? (
+                <DropdownMenu onOpenChange={(open) => {
+                  if (open) {
+                    console.log(`[QuickAssign Debug] Control: Expanded Shift Card | Shift ID: ${shift.id} | House: ${shift.house?.name || 'Unassigned'} | Available Staff Count: ${staffList.length}`, {
+                      staffList: staffList.map(s => ({ id: s.id, name: s.name, assignments: (s as any).house_assignments }))
+                    });
+                  }
+                }}>
+                  <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                    <button className="text-xs flex items-center justify-between gap-2 font-black text-amber-700 hover:text-amber-800 bg-amber-100/80 hover:bg-amber-200/80 px-2 py-1 rounded-md transition-all border border-amber-200/50 flex-1 cursor-pointer shadow-sm">
+                      <span className="truncate">ASSIGN STAFF</span>
+                      <ChevronDown className="size-3 shrink-0 opacity-70" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-56 max-h-[300px] overflow-y-auto">
+                    {staffList.length > 0 ? (
+                      staffList.map(s => (
+                        <DropdownMenuItem 
+                          key={s.id} 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onQuickAssign(shift.id, s.id);
+                          }}
+                          className="text-sm cursor-pointer"
+                        >
+                          {s.name}
+                        </DropdownMenuItem>
+                      ))
+                    ) : (
+                      <div className="px-2 py-3 text-xs text-muted-foreground italic text-center">No staff assigned to this house</div>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <span className={`text-xs truncate font-normal ${isUnassigned ? 'text-amber-700 uppercase tracking-tight' : 'text-gray-700'}`}>
+                  {isUnassigned ? 'Unassigned' : shift.staff_name}
+                </span>
+              )}
             </div>
           )}
 
@@ -178,14 +258,15 @@ export function ShiftCard({ shift, compact, showStaffName, showHouseName = true,
             </div>
           )}
 
-          {shift.participants && shift.participants.length > 0 && (
-            <div className="flex items-center gap-2">
-              <Users className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
-              <span className="text-xs truncate font-normal text-gray-600">
-                {shift.participants.length} Participant{shift.participants.length > 1 ? 's' : ''}
-              </span>
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            <Users className={cn("h-3.5 w-3.5 flex-shrink-0", participantCount === 0 ? "text-red-500" : "text-gray-400")} />
+            <span className={cn(
+              "text-xs truncate font-normal",
+              participantCount === 0 ? "text-red-600 font-bold" : "text-gray-600"
+            )}>
+              {participantCount} Participant{participantCount !== 1 ? 's' : ''}
+            </span>
+          </div>
         </div>
 
         {shift.assigned_checklists && shift.assigned_checklists.length > 0 && (

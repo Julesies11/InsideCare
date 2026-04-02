@@ -22,6 +22,8 @@ export interface ShiftCalendarProps {
   onPopulateRoster?: (houseId: string) => void;
   groupByHouse?: boolean;
   houses?: Array<{ id: string; name: string }>;
+  staffList?: Array<{ id: string; name: string }>;
+  onQuickAssign?: (shiftId: string, staffId: string) => void;
 }
 
 function LeaveBlockBadge({ leave }: { leave: LeaveBlock }) {
@@ -56,6 +58,8 @@ export function ShiftCalendar({
   onPopulateRoster,
   groupByHouse = false,
   houses = [],
+  staffList,
+  onQuickAssign,
 }: ShiftCalendarProps) {
   const sortShifts = (shiftsToSort: ShiftCardData[]) => {
     return [...shiftsToSort].sort((a, b) => {
@@ -98,13 +102,18 @@ export function ShiftCalendar({
     const staffShifts = shifts.filter(shift => 
       shift.staff_id === staffId && 
       shift.start_date && isSameDay(parseISO(shift.start_date), date) &&
-      shift.id !== excludeShiftId &&
-      shift.status !== 'Cancelled'
+      shift.id !== excludeShiftId
     );
     return staffShifts.length > 0;
   };
 
-  const renderShiftCardWithWarning = (shift: ShiftCardData, date: Date, compact: boolean = true, showHouseName: boolean = true) => {
+  const renderShiftCardWithWarning = (
+    shift: ShiftCardData, 
+    date: Date, 
+    compact: boolean = true, 
+    showHouseName: boolean = true,
+    customStaffList?: Array<{ id: string; name: string }>
+  ) => {
     const hasDoubleBooking = shift.staff_id ? 
       checkForDoubleBookings(shift.staff_id, date, shift.id) : false;
     
@@ -128,6 +137,8 @@ export function ShiftCalendar({
           onClick={() => onEditShift(shift)}
           onWriteNote={onWriteNote}
           onNotesClick={onNotesClick}
+          staffList={customStaffList !== undefined ? customStaffList : staffList}
+          onQuickAssign={onQuickAssign}
         />
       </div>
     );
@@ -283,83 +294,92 @@ export function ShiftCalendar({
           </div>
           
           <div className="space-y-2">
-            {allHouses.map((house) => (
-              <div key={house.id} className="grid grid-cols-[140px_repeat(7,1fr)] gap-2 border-b border-gray-50 hover:bg-gray-50/30 transition-all rounded-xl p-1 group/row">
-                <div className="font-black text-xs p-4 bg-muted/20 flex flex-col gap-3 justify-center rounded-xl border border-transparent group-hover/row:border-gray-100 transition-all">
-                  <span className="truncate text-gray-900 uppercase tracking-tight">{house.name}</span>
-                  <div className="flex flex-col gap-1.5">
-                    {canEdit && house.id !== 'unassigned' && onPopulateRoster && (
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="h-7 text-[9px] font-black px-2 gap-1.5 border-primary/20 text-primary hover:bg-primary hover:text-white bg-white shadow-sm w-full justify-start transition-all"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onPopulateRoster(house.id);
-                        }}
-                      >
-                        <Zap className="size-3 fill-primary/20 group-hover:fill-white/20" />
-                        POPULATE
-                      </Button>
-                    )}
-                    {canEdit && house.id !== 'unassigned' && onBulkAction && (
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="h-7 text-[9px] font-black px-2 gap-1.5 border-orange-200 text-orange-600 hover:bg-orange-500 hover:text-white bg-white shadow-sm w-full justify-start transition-all"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onBulkAction(house.id);
-                        }}
-                      >
-                        <Trash2 className="size-3" />
-                        DELETE
-                      </Button>
-                    )}
-                  </div>
-                </div>
-                
-                {days.map((day, dayIndex) => {
-                  const houseShifts = house.id === 'unassigned' 
-                    ? sortShifts(shifts.filter(shift => shift.start_date && !shift.house && isSameDay(parseISO(shift.start_date), day)))
-                    : getShiftsForHouseAndDate(house.id, day);
-                  const isToday = isSameDay(day, new Date());
-                  
-                  return (
-                    <div
-                      key={dayIndex}
-                      className={cn(
-                        "min-h-[100px] p-2 border border-transparent rounded-xl group/cell relative transition-all",
-                        isToday ? "bg-primary/[0.02] ring-1 ring-primary/10" : "hover:bg-white hover:shadow-sm hover:border-gray-100"
-                      )}
-                    >
-                      {canEdit && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-5 w-5 p-0 opacity-0 group-hover/cell:opacity-100 transition-opacity absolute top-1.5 right-1.5 bg-primary/5 text-primary hover:bg-primary/10"
+            {allHouses.map((house) => {
+              // Filter staff assigned to this house (active assignment = no end_date)
+              const houseStaffList = house.id.toLowerCase() === 'unassigned' 
+                ? staffList 
+                : staffList?.filter(s => (s as any).house_assignments?.some((a: any) => 
+                    a.house_id.toLowerCase() === house.id.toLowerCase() && !a.end_date
+                  )) || [];
+
+              return (
+                <div key={house.id} className="grid grid-cols-[140px_repeat(7,1fr)] gap-2 border-b border-gray-50 hover:bg-gray-50/30 transition-all rounded-xl p-1 group/row">
+                  <div className="font-black text-xs p-4 bg-muted/20 flex flex-col gap-3 justify-center rounded-xl border border-transparent group-hover/row:border-gray-100 transition-all">
+                    <span className="truncate text-gray-900 uppercase tracking-tight">{house.name}</span>
+                    <div className="flex flex-col gap-1.5">
+                      {canEdit && house.id !== 'unassigned' && onPopulateRoster && (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="h-7 text-[9px] font-black px-2 gap-1.5 border-primary/20 text-primary hover:bg-primary hover:text-white bg-white shadow-sm w-full justify-start transition-all"
                           onClick={(e) => {
                             e.stopPropagation();
-                            onAddShift(day, house.id === 'unassigned' ? undefined : house.id);
+                            onPopulateRoster(house.id);
                           }}
                         >
-                          <Plus className="h-3.5 w-3.5" />
+                          <Zap className="size-3 fill-primary/20 group-hover:fill-white/20" />
+                          POPULATE
                         </Button>
                       )}
-                      
-                      <div className="space-y-1.5">
-                        {houseShifts.map(shift => renderShiftCardWithWarning(shift, day, true, false))}
-                        {houseShifts.length === 0 && (
-                          <div className="text-center py-6 opacity-0 group-hover/cell:opacity-20 transition-opacity">
-                            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Empty</span>
-                          </div>
-                        )}
-                      </div>
+                      {canEdit && house.id !== 'unassigned' && onBulkAction && (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="h-7 text-[9px] font-black px-2 gap-1.5 border-orange-200 text-orange-600 hover:bg-orange-500 hover:text-white bg-white shadow-sm w-full justify-start transition-all"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onBulkAction(house.id);
+                          }}
+                        >
+                          <Trash2 className="size-3" />
+                          DELETE
+                        </Button>
+                      )}
                     </div>
-                  );
-                })}
-              </div>
-            ))}
+                  </div>
+                  
+                  {days.map((day, dayIndex) => {
+                    const houseShifts = house.id === 'unassigned' 
+                      ? sortShifts(shifts.filter(shift => shift.start_date && !shift.house && isSameDay(parseISO(shift.start_date), day)))
+                      : getShiftsForHouseAndDate(house.id, day);
+                    const isToday = isSameDay(day, new Date());
+                    
+                    return (
+                      <div
+                        key={dayIndex}
+                        className={cn(
+                          "min-h-[100px] p-2 border border-transparent rounded-xl group/cell relative transition-all",
+                          isToday ? "bg-primary/[0.02] ring-1 ring-primary/10" : "hover:bg-white hover:shadow-sm hover:border-gray-100"
+                        )}
+                      >
+                        {canEdit && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-5 w-5 p-0 opacity-0 group-hover/cell:opacity-100 transition-opacity absolute top-1.5 right-1.5 bg-primary/5 text-primary hover:bg-primary/10"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onAddShift(day, house.id === 'unassigned' ? undefined : house.id);
+                            }}
+                          >
+                            <Plus className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                        
+                        <div className="space-y-1.5">
+                          {houseShifts.map(shift => renderShiftCardWithWarning(shift, day, true, false, houseStaffList))}
+                          {houseShifts.length === 0 && (
+                            <div className="text-center py-6 opacity-0 group-hover/cell:opacity-20 transition-opacity">
+                              <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Empty</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

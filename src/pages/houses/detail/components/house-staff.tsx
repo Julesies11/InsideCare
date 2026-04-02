@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Plus, Edit, Trash2, Users, Clock, Star } from 'lucide-react';
 import { useHouseStaffAssignments } from '@/hooks/use-house-staff-assignments';
 import { useStaff } from '@/hooks/use-staff';
@@ -30,6 +31,7 @@ export function HouseStaff({
   onPendingChangesChange 
 }: StaffProps) {
   const [showDialog, setShowDialog] = useState(false);
+  const [showOnlyActive, setShowOnlyActive] = useState(true);
   const [editingStaff, setEditingStaff] = useState<{ id?: string; tempId?: string; staff_id: string; is_primary?: boolean; start_date?: string; end_date?: string; notes?: string } | null>(null);
   const [formData, setFormData] = useState({
     staff_id: '',
@@ -40,7 +42,7 @@ export function HouseStaff({
   });
 
   const { data: houseStaffAssignments = [], isLoading: loading } = useHouseStaffAssignments(houseId);
-  const { staff } = useStaff();
+  const { staff } = useStaff(0, 100, [], { statuses: ['active'] });
 
   const handleAdd = () => {
     setEditingStaff(null);
@@ -181,16 +183,22 @@ export function HouseStaff({
 
   // Helper function to get staff name
   const getStaffName = (staffAssignment: any) => {
-    // If staff assignment has staff object (from database join), use it
-    if (staffAssignment.staff?.name) {
-      return staffAssignment.staff.name;
-    }
-    // Otherwise, look up by staff_id (for pending assignments)
+    if (staffAssignment.staff?.name) return staffAssignment.staff.name;
     if (staffAssignment.staff_id) {
-      const staffMember = staff.find(s => s.id === staffAssignment.staff_id);
-      return staffMember?.name || 'Unknown Staff';
+      const member = staff.find(s => s.id === staffAssignment.staff_id);
+      return member?.name || 'Unknown Staff';
     }
     return 'Unknown Staff';
+  };
+
+  // Helper function to get staff photo
+  const getStaffPhoto = (staffAssignment: any) => {
+    if (staffAssignment.staff?.photo_url) return staffAssignment.staff.photo_url;
+    if (staffAssignment.staff_id) {
+      const member = staff.find(s => s.id === staffAssignment.staff_id);
+      return member?.photo_url || null;
+    }
+    return null;
   };
 
   // Helper function to get staff email
@@ -233,7 +241,18 @@ export function HouseStaff({
 
   // Combine existing staff assignments with pending adds, filter out pending deletes
   const visibleStaffAssignments = [
-    ...houseStaffAssignments.filter(staff => !pendingChanges?.staff.toDelete.includes(staff.id)),
+    ...houseStaffAssignments.filter(staff => {
+      const isDeleted = pendingChanges?.staff.toDelete.includes(staff.id);
+      if (isDeleted) return false;
+      
+      if (showOnlyActive) {
+        const isAssignmentActive = !staff.end_date || new Date(staff.end_date) > new Date();
+        const isStaffActive = staff.staff?.status === 'active';
+        return isAssignmentActive && isStaffActive;
+      }
+      
+      return true;
+    }),
     ...(pendingChanges?.staff.toAdd || []),
   ];
 
@@ -241,11 +260,24 @@ export function HouseStaff({
     <>
       <Card className="pb-2.5" id="staff">
         <CardHeader>
-          <CardTitle>Staff</CardTitle>
-          <Button variant="secondary" size="sm" className="border border-gray-300" onClick={handleAdd} disabled={!houseId || !canAdd}>
-            <Plus className="size-4 me-1.5" />
-            Add Staff
-          </Button>
+          <div className="flex flex-col gap-1">
+            <CardTitle>Staff</CardTitle>
+            <p className="text-xs text-muted-foreground">Manage personnel assigned to this house</p>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
+              <Switch
+                id="show-only-active"
+                checked={showOnlyActive}
+                onCheckedChange={setShowOnlyActive}
+              />
+              <Label htmlFor="show-only-active" className="text-xs font-bold cursor-pointer">Active Only</Label>
+            </div>
+            <Button variant="secondary" size="sm" className="border border-gray-300" onClick={handleAdd} disabled={!houseId || !canAdd}>
+              <Plus className="size-4 me-1.5" />
+              Add Staff
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -270,7 +302,9 @@ export function HouseStaff({
                   const isPendingAdd = 'tempId' in staffAssignment;
                   const isPendingUpdate = pendingChanges?.staff.toUpdate.some(s => s.id === staffAssignment.id);
                   const isPendingDelete = pendingChanges?.staff.toDelete.includes(staffAssignment.id);
-                  const isActive = !staffAssignment.end_date || new Date(staffAssignment.end_date) > new Date();
+                  
+                  const isAssignmentActive = !staffAssignment.end_date || new Date(staffAssignment.end_date) > new Date();
+                  const isStaffActive = staffAssignment.staff?.status === 'active';
                   
                   return (
                     <TableRow 
@@ -282,35 +316,44 @@ export function HouseStaff({
                       }
                     >
                       <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Users className="size-4 text-muted-foreground" />
+                        <div className="flex items-center gap-3">
+                          <Avatar className="size-9">
+                            {getStaffPhoto(staffAssignment) && (
+                              <AvatarImage src={getStaffPhoto(staffAssignment)} alt={getStaffName(staffAssignment)} />
+                            )}
+                            <AvatarFallback>
+                              {getStaffName(staffAssignment).split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2)}
+                            </AvatarFallback>
+                          </Avatar>
                           <div className={`flex flex-col ${isPendingDelete ? 'line-through' : ''}`}>
-                            <span className="font-medium">{getStaffName(staffAssignment)}</span>
+                            <span className="font-bold text-gray-900">{getStaffName(staffAssignment)}</span>
                             {staffAssignment.is_primary && (
-                              <div className="flex items-center gap-1 text-xs text-blue-600">
-                                <Star className="size-3" />
-                                Primary
+                              <div className="flex items-center gap-1 text-[10px] text-blue-600 font-bold uppercase tracking-tight">
+                                <Star className="size-3 fill-blue-600" />
+                                House Lead
                               </div>
                             )}
                           </div>
-                          {isPendingAdd && (
-                            <span className="text-xs text-primary flex items-center gap-1">
-                              <Clock className="size-3" />
-                              Pending add
-                            </span>
-                          )}
-                          {isPendingUpdate && (
-                            <span className="text-xs text-warning flex items-center gap-1">
-                              <Clock className="size-3" />
-                              Pending update
-                            </span>
-                          )}
-                          {isPendingDelete && (
-                            <span className="text-xs text-destructive flex items-center gap-1">
-                              <Clock className="size-3" />
-                              Pending deletion
-                            </span>
-                          )}
+                          <div className="flex flex-col gap-1 ml-auto">
+                            {isPendingAdd && (
+                              <span className="text-[10px] text-primary font-bold uppercase tracking-widest flex items-center gap-1">
+                                <Clock className="size-3" />
+                                New
+                              </span>
+                            )}
+                            {isPendingUpdate && (
+                              <span className="text-[10px] text-warning font-bold uppercase tracking-widest flex items-center gap-1">
+                                <Clock className="size-3" />
+                                Updated
+                              </span>
+                            )}
+                            {isPendingDelete && (
+                              <span className="text-[10px] text-destructive font-bold uppercase tracking-widest flex items-center gap-1">
+                                <Clock className="size-3" />
+                                Removing
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -335,9 +378,23 @@ export function HouseStaff({
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={isActive ? 'success' : 'secondary'}>
-                          {isActive ? 'Active' : 'Ended'}
-                        </Badge>
+                        <div className="flex flex-col gap-1 items-start">
+                          {isAssignmentActive && isStaffActive && (
+                            <Badge variant="success">Active</Badge>
+                          )}
+                          {isAssignmentActive && !isStaffActive && !isPendingAdd && (
+                            <div className="flex flex-col gap-1">
+                              <Badge variant="destructive" className="bg-orange-500 hover:bg-orange-600 border-none uppercase tracking-widest text-[9px] font-black">Inactive</Badge>
+                              <span className="text-[10px] text-orange-600 font-bold italic uppercase">Employment: {staffAssignment.staff?.status || 'Unknown'}</span>
+                            </div>
+                          )}
+                          {!isAssignmentActive && (
+                            <Badge variant="secondary">Assignment Ended</Badge>
+                          )}
+                          {isPendingAdd && (
+                            <Badge variant="outline" className="border-primary text-primary">New Assignment</Badge>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex justify-end gap-1">
@@ -397,67 +454,109 @@ export function HouseStaff({
       </Card>
 
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{editingStaff ? 'Edit Staff Assignment' : 'Add Staff Assignment'}</DialogTitle>
-            <DialogDescription>
-              {editingStaff
-                ? 'Update staff assignment details'
-                : 'Assign a staff member to this house'}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="staff_id">Staff Member *</Label>
-              <StaffCombobox
-                value={formData.staff_id}
-                onChange={(value) => setFormData({ ...formData, staff_id: value })}
-              />
+        <DialogContent className="max-w-2xl max-h-[95vh] overflow-y-auto p-0 border-none shadow-2xl">
+          <DialogHeader className="px-5 py-2 border-b bg-white sticky top-0 z-10">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex flex-col">
+                <DialogTitle className="text-base font-black uppercase tracking-tight">
+                  {editingStaff ? 'Edit Assignment' : 'Add Assignment'}
+                </DialogTitle>
+                <DialogDescription className="text-[9px] font-medium mt-0 leading-none">
+                  {editingStaff ? 'Update house linking' : 'Link staff to house'}
+                </DialogDescription>
+              </div>
+
+              {/* Compact Read-only Header Info */}
+              {formData.staff_id && (
+                <div className="flex items-center gap-3 bg-gray-50 px-2 py-1 rounded-lg border border-gray-100">
+                  <div className="flex flex-col items-end">
+                    <span className="text-[7px] font-black uppercase tracking-widest text-muted-foreground leading-none mb-0.5">Status</span>
+                    <Badge 
+                      variant={staff.find(s => s.id === formData.staff_id)?.status === 'active' ? 'success' : 'secondary'}
+                      className="uppercase text-[7px] font-black tracking-widest px-1 h-3"
+                    >
+                      {staff.find(s => s.id === formData.staff_id)?.status || 'Unknown'}
+                    </Badge>
+                  </div>
+                  <div className="w-px h-5 bg-gray-200" />
+                  <div className="flex flex-col items-start">
+                    <span className="text-[7px] font-black uppercase tracking-widest text-muted-foreground leading-none mb-0.5">Role</span>
+                    <span className="text-[9px] font-bold text-gray-700 leading-none">
+                      {staff.find(s => s.id === formData.staff_id)?.role?.name || 'None'}
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="start_date">Start Date</Label>
+          </DialogHeader>
+
+          <div className="px-5 py-3 space-y-2.5 bg-gray-50/30">
+            <div className="space-y-1">
+              {editingStaff ? (
+                <div className="bg-white px-3 py-2 rounded-lg border border-gray-100 shadow-sm flex flex-col">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground leading-none mb-1">Assigned Staff</span>
+                  <span className="text-sm font-black text-gray-900">
+                    {staff.find(s => s.id === formData.staff_id)?.name || 'Unknown Staff'}
+                  </span>
+                </div>
+              ) : (
+                <StaffCombobox
+                  value={formData.staff_id}
+                  onChange={(value) => setFormData({ ...formData, staff_id: value })}
+                />
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label htmlFor="start_date" className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">Start Date</Label>
                 <Input
                   id="start_date"
                   type="date"
                   value={formData.start_date}
                   onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                  className="bg-white h-9 text-sm"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="end_date">End Date</Label>
+              <div className="space-y-1">
+                <Label htmlFor="end_date" className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">End Date</Label>
                 <Input
                   id="end_date"
                   type="date"
                   value={formData.end_date}
                   onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                  className="bg-white h-9 text-sm"
                 />
               </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="notes">Notes</Label>
+
+            <div className="space-y-1">
+              <Label htmlFor="notes" className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">Notes</Label>
               <Textarea
                 id="notes"
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                rows={3}
-                placeholder="Additional notes about this staff assignment"
+                rows={2}
+                placeholder="Additional notes..."
+                className="bg-white resize-none text-sm"
               />
             </div>
-            <div className="flex items-center gap-2">
+
+            <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-gray-100 shadow-sm">
               <Switch
                 id="is_primary"
                 checked={formData.is_primary}
                 onCheckedChange={(checked) => setFormData({ ...formData, is_primary: checked })}
               />
-              <Label htmlFor="is_primary">Primary Staff Member</Label>
+              <Label htmlFor="is_primary" className="text-xs font-bold text-gray-700 cursor-pointer">Primary Staff Member</Label>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDialog(false)}>
+
+          <DialogFooter className="p-4 border-t bg-white sticky bottom-0 z-10 flex gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setShowDialog(false)} className="flex-1 sm:flex-none">
               Cancel
             </Button>
-            <Button variant="primary" onClick={handleSave}>Save</Button>
+            <Button variant="primary" onClick={handleSave} className="flex-1 sm:flex-none">Save Changes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

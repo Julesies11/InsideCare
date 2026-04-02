@@ -6,9 +6,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DepartmentCombobox } from './employment-components/department-combobox';
 import { EmploymentTypeCombobox } from './employment-components/employment-type-combobox';
+import { RoleCombobox } from './employment-components/role-combobox';
 import { DepartmentMasterDialog } from './employment-components/department-master-dialog';
 import { EmploymentTypeMasterDialog } from './employment-components/employment-type-master-dialog';
+import { RoleMasterDialog } from './employment-components/role-master-dialog';
 import { useStaff } from '@/hooks/use-staff';
+import { useRoles } from '@/hooks/use-roles';
 
 interface EmploymentDetailsProps {
   formData: Record<string, any>;
@@ -25,7 +28,9 @@ export function EmploymentDetails({
 }: EmploymentDetailsProps) {
   const [showDepartmentDialog, setShowDepartmentDialog] = useState(false);
   const [showEmploymentTypeDialog, setShowEmploymentTypeDialog] = useState(false);
+  const [showRoleDialog, setShowRoleDialog] = useState(false);
   const { staff } = useStaff();
+  const { refresh: refreshRoles } = useRoles();
 
   // Filter active staff for manager dropdown, excluding current staff member
   const activeStaff = staff.filter(s => 
@@ -47,6 +52,18 @@ export function EmploymentDetails({
         <CardTitle>Employment Details</CardTitle>
       </CardHeader>
       <CardContent className="grid gap-2.5">
+        <div className="w-full">
+          <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+            <Label className="flex w-full max-w-56">Role</Label>
+            <RoleCombobox
+              value={formData.role_id || ''}
+              onChange={(value) => onFormChange('role_id', value)}
+              canEdit={canEdit}
+              onManageList={() => setShowRoleDialog(true)}
+            />
+          </div>
+        </div>
+
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
             <Label className="flex w-full max-w-56">Department</Label>
@@ -179,6 +196,12 @@ export function EmploymentDetails({
       open={showEmploymentTypeDialog}
       onClose={() => setShowEmploymentTypeDialog(false)}
       onUpdate={() => {}}
+    />
+
+    <RoleMasterDialog
+      open={showRoleDialog}
+      onClose={() => setShowRoleDialog(false)}
+      onUpdate={() => refreshRoles()}
     />
     </>
   );

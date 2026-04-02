@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Clock, MapPin, Users } from 'lucide-react';
-import { useRosterData, StaffShift } from '@/components/roster/use-roster-data';
-import { format } from 'date-fns';
+import { useRosterData, StaffShift, useShiftsQuery } from '@/components/roster/use-roster-data';
+import { format, addDays } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ShiftDialog, ShiftFormData } from '@/components/roster/shift-dialog';
 import { toast } from 'sonner';
@@ -11,44 +11,33 @@ import { logActivity } from '@/hooks/use-activity-log';
 import { useAuth } from '@/auth/context/auth-context';
 
 export function UpcomingShifts() {
-  const [shifts, setShifts] = useState<StaffShift[]>([]);
   const [showShiftDialog, setShowShiftDialog] = useState(false);
   const [selectedShift, setSelectedShift] = useState<StaffShift | null>(null);
   const { user } = useAuth();
   
   const { 
-    loadShifts, 
-    loading, 
     houses, 
     participants, 
     staff, 
-    loadAllData, 
     updateShift, 
     deleteShift,
     addShiftParticipant,
-    removeShiftParticipant
+    removeShiftParticipant,
+    loading: metaLoading
   } = useRosterData();
 
-  const fetchTodayShifts = useCallback(async () => {
-    const today = format(new Date(), 'yyyy-MM-dd');
-    // Fetch shifts for today and tomorrow to ensure we have "upcoming"
-    const tomorrow = format(new Date(Date.now() + 86400000), 'yyyy-MM-dd');
-    const data = await loadShifts('all', today, tomorrow);
-    
-    // Filter for shifts that haven't ended yet
+  const today = useMemo(() => format(new Date(), 'yyyy-MM-dd'), []);
+  const tomorrow = useMemo(() => format(addDays(new Date(), 1), 'yyyy-MM-dd'), []);
+
+  const { shifts: allShifts = [], isLoading: shiftsLoading } = useShiftsQuery('all', today, tomorrow);
+
+  const upcomingShifts = useMemo(() => {
     const now = new Date();
-    const upcoming = data.filter(shift => {
+    return allShifts.filter(shift => {
       const shiftEnd = new Date(`${shift.end_date ?? shift.start_date}T${shift.end_time}`);
       return shiftEnd > now;
-    }).slice(0, 5); // Just show top 5
-    
-    setShifts(upcoming);
-  }, [loadShifts]);
-
-  useEffect(() => {
-    loadAllData();
-    fetchTodayShifts();
-  }, [loadAllData, fetchTodayShifts]);
+    }).slice(0, 5);
+  }, [allShifts]);
 
   const handleEditShift = (shift: StaffShift) => {
     setSelectedShift(shift);
@@ -97,8 +86,8 @@ export function UpcomingShifts() {
         });
 
         toast.success('Shift updated successfully');
-        fetchTodayShifts();
       }
+      setShowShiftDialog(false);
     } catch (error) {
       toast.error('Failed to update shift');
       console.error(error);
@@ -119,7 +108,7 @@ export function UpcomingShifts() {
       });
 
       toast.success('Shift deleted successfully');
-      fetchTodayShifts();
+      setShowShiftDialog(false);
     } catch (error) {
       toast.error('Failed to delete shift');
       console.error(error);
@@ -135,6 +124,8 @@ export function UpcomingShifts() {
     }
   };
 
+  const loading = shiftsLoading || metaLoading;
+
   return (
     <>
       <Card className="border-0 shadow-sm">
@@ -145,7 +136,7 @@ export function UpcomingShifts() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {loading && shifts.length === 0 ? (
+          {loading && upcomingShifts.length === 0 ? (
             <div className="space-y-4">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="flex gap-3">
@@ -153,9 +144,9 @@ export function UpcomingShifts() {
                 </div>
               ))}
             </div>
-          ) : shifts.length > 0 ? (
+          ) : upcomingShifts.length > 0 ? (
             <div className="space-y-3">
-              {shifts.map((shift, index) => (
+              {upcomingShifts.map((shift, index) => (
                 <div 
                   key={shift.id} 
                   className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors border border-transparent hover:border-gray-100 dark:hover:border-gray-800 cursor-pointer"

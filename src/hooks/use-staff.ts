@@ -172,7 +172,14 @@ export function useStaff(
       const { data, error, count } = await query;
       if (error) throw error;
 
-      return { data: (data || []) as Staff[], count: count || 0 };
+      const formatted = (data || []).map((item: any) => ({
+        ...item,
+        department_info: Array.isArray(item.department_info) ? item.department_info[0] : item.department_info,
+        employment_type_info: Array.isArray(item.employment_type_info) ? item.employment_type_info[0] : item.employment_type_info,
+        role: Array.isArray(item.role) ? item.role[0] : item.role,
+      }));
+
+      return { data: formatted as Staff[], count: count || 0 };
     },
     staleTime: 1000 * 60 * 5,
   });
@@ -252,6 +259,7 @@ export function useStaffMember(id?: string) {
         department_info: Array.isArray(data.department_info) ? data.department_info[0] : data.department_info,
         employment_type_info: Array.isArray(data.employment_type_info) ? data.employment_type_info[0] : data.employment_type_info,
         manager_info: Array.isArray(data.manager_info) ? data.manager_info[0] : data.manager_info,
+        role: Array.isArray(data.role) ? data.role[0] : data.role,
       };
 
       return formattedData as Staff;

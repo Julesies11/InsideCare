@@ -54,7 +54,7 @@ The care facilities/locations.
 - **`shift_template_item_checklists`**: Custom checklist overrides for specific template shifts.
 - **`shift_template_participants`**: Junction table for linking specific participants to shifts within a template.
 - **`staff_shifts`**: Scheduled shifts for staff.
-    - **Key Fields**: `id`, `staff_id`, `house_id`, `start_date` (formerly `shift_date`), `start_time`, `end_time`, `status`.
+    - **Key Fields**: `id`, `staff_id`, `house_id`, `start_date` (formerly `shift_date`), `start_time`, `end_time`.
 - **`shift_assigned_checklists`**: Instances of checklists assigned to a *specific* `staff_shift`.
 - **`shift_template_schedules`**: Recurring RRule patterns for deploying template groups.
 

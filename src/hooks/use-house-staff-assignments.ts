@@ -18,6 +18,7 @@ export interface HouseStaffAssignment {
     phone?: string;
     status?: string;
     role_id?: string;
+    photo_url?: string;
     role?: {
       id: string;
       name: string;
@@ -28,7 +29,7 @@ export interface HouseStaffAssignment {
 
 const HOUSE_STAFF_ASSIGNMENT_COLUMNS = `
   id, house_id, staff_id, is_primary, start_date, end_date, notes, created_at, updated_at,
-  staff:staff(id, name, email, phone, status, role_id, role:roles!staff_role_id_fkey(id, name, description))
+  staff:staff(id, name, email, phone, status, role_id, photo_url, role:roles!staff_role_id_fkey(id, name, description))
 `;
 
 export function useHouseStaffAssignments(houseId?: string) {
@@ -46,7 +47,22 @@ export function useHouseStaffAssignments(houseId?: string) {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as HouseStaffAssignment[];
+
+      // Format joined data to ensure objects instead of arrays where expected
+      const formatted = (data || []).map((assignment: any) => {
+        if (assignment.staff) {
+          return {
+            ...assignment,
+            staff: {
+              ...assignment.staff,
+              role: Array.isArray(assignment.staff.role) ? assignment.staff.role[0] : assignment.staff.role
+            }
+          };
+        }
+        return assignment;
+      });
+
+      return formatted as HouseStaffAssignment[];
     },
     staleTime: 1000 * 60 * 5,
   });

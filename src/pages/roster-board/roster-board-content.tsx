@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Download, Calendar, Users } from 'lucide-react';
@@ -7,44 +7,19 @@ import { RosterCalendarHeader } from '@/components/roster/roster-calendar-header
 import { ViewMode, getDateRange } from '@/components/roster/roster-utils';
 import { supabase } from '@/lib/supabase';
 import { format, addWeeks, addMonths, addDays } from 'date-fns';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { useHouseChecklists } from '@/hooks/use-house-checklists';
-import { useRosterData } from '@/components/roster/use-roster-data';
+import { useRosterData, useGlobalShiftTypesQuery } from '@/components/roster/use-roster-data';
 import { PublishRosterModal } from './components/PublishRosterModal';
 import { BulkActionModal } from './components/BulkActionModal';
 import { PopulateRosterModal } from '@/pages/houses/detail/components/PopulateRosterModal';
 import { toast } from 'sonner';
-
-interface Staff {
-  id: string;
-  name: string;
-  photo_url?: string | null;
-  status?: string;
-}
-
-interface House {
-  id: string;
-  name: string;
-}
-
-interface Participant {
-  id: string;
-  name: string;
-  status?: string;
-}
 
 export function RosterBoardContent() {
   const calendarRef = useRef<StaffRosterCalendarHandle>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('week');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedStaffId, setSelectedStaffId] = useState<string>('all');
-  const [staff, setStaff] = useState<Staff[]>([]);
-  const [houses, setHouses] = useState<House[]>([]);
-  const [participants, setParticipants] = useState<Participant[]>([]);
-  const [shiftTypes, setShiftTypes] = useState<Array<{ id: string; name: string }>>([]);
-  const [loading, setLoading] = useState(true);
-  const [groupByHouse, setGroupByHouse] = useState(true);
+  const groupByHouse = true;
   
   const [houseFilter, setHouseFilter] = useState<string>('all');
   const [participantFilter, setParticipantFilter] = useState<string>('all');
@@ -52,71 +27,23 @@ export function RosterBoardContent() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
   const { houseChecklists } = useHouseChecklists();
-  const { bulkMaterializeTemplate, bulkUpdateShifts, bulkDeleteShifts } = useRosterData();
+  const { 
+    houses, 
+    participants, 
+    staff, 
+    loading: rosterLoading,
+    bulkMaterializeTemplate, 
+    bulkUpdateShifts, 
+    bulkDeleteShifts 
+  } = useRosterData();
+  const { data: shiftTypes = [] } = useGlobalShiftTypesQuery();
+
   const [publishModalOpen, setPublishModalOpen] = useState(false);
   const [bulkModalOpen, setBulkModalOpen] = useState(false);
   const [bulkInitialHouseId, setBulkInitialHouseId] = useState<string>('all');
   const [populateModalOpen, setPopulateModalOpen] = useState(false);
   const [populateInitialHouseId, setPopulateInitialHouseId] = useState<string>('all');
-  const [isCopying, setIsCopying] = useState(false);
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
-    setLoading(true);
-    
-    // Load staff
-    const { data: staffData, error: staffError } = await supabase
-      .from('staff')
-      .select('id, name, photo_url, status')
-      .eq('status', 'active')
-      .not('name', 'is', null)
-      .order('name');
-
-    if (!staffError && staffData) {
-      setStaff(staffData as Staff[]);
-    }
-
-    // Load houses
-    const { data: housesData, error: housesError } = await supabase
-      .from('houses')
-      .select('id, name')
-      .eq('status', 'active')
-      .order('name');
-
-    if (!housesError && housesData) {
-      setHouses(housesData);
-    }
-
-    // Load participants
-    const { data: participantsData, error: participantsError } = await supabase
-      .from('participants')
-      .select('id, name, status')
-      .eq('status', 'active')
-      .not('name', 'is', null)
-      .order('name');
-
-    if (!participantsError && participantsData) {
-      setParticipants(participantsData as Participant[]);
-    }
-
-    // Load shift types (distinct names across all houses for the global filter)
-    const { data: typesData } = await supabase
-      .from('house_shift_types')
-      .select('name')
-      .eq('is_active', true)
-      .order('name');
-    
-    if (typesData) {
-      // Unique names
-      const uniqueNames = Array.from(new Set(typesData.map(t => t.name)));
-      setShiftTypes(uniqueNames.map(name => ({ id: name, name })));
-    }
-
-    setLoading(false);
-  };
+  const isCopying = false;
 
   const handleExport = async () => {
     try {
@@ -149,7 +76,6 @@ export function RosterBoardContent() {
         'Shift Type': s.shift_type || '',
         Start: s.start_time?.substring(0, 5) || '',
         End: s.end_time?.substring(0, 5) || '',
-        Status: s.status || '',
         Participants: (s.participants || []).map((p: any) => p.participant?.name).filter(Boolean).join('; '),
         Checklists: (s.assigned_checklists || []).map((c: any) => c.assignment_title).join('; '),
         Notes: s.notes || '',
@@ -294,15 +220,6 @@ export function RosterBoardContent() {
       {/* Controls */}
       <Card>
         <CardContent className="p-6 space-y-4">
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="group-by-house"
-              checked={groupByHouse}
-              onCheckedChange={setGroupByHouse}
-            />
-            <Label htmlFor="group-by-house">Group By House</Label>
-          </div>
-          
           <RosterCalendarHeader
             viewMode={viewMode}
             onViewModeChange={setViewMode}
@@ -333,7 +250,7 @@ export function RosterBoardContent() {
       </Card>
 
       {/* Calendar */}
-      {!loading && (
+      {!rosterLoading && (
         <StaffRosterCalendar
           ref={calendarRef}
           staffId={selectedStaffId}

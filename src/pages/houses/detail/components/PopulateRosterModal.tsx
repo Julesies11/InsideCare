@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { CalendarDays, Clock, CheckSquare, Loader2, Play, AlertCircle, Copy, CheckCircle2, UserPlus } from 'lucide-react';
+import { CalendarDays, Clock, CheckSquare, Loader2, Zap, AlertCircle, Copy, CheckCircle2, UserPlus } from 'lucide-react';
 import { format, addDays, startOfTomorrow, endOfWeek, startOfWeek, eachDayOfInterval, getDay, differenceInCalendarDays, startOfDay, isBefore } from 'date-fns';
 import { useHouseShiftTypes } from '@/hooks/use-house-shift-types';
 import { useHouseChecklists } from '@/hooks/use-house-checklists';
@@ -50,9 +50,25 @@ export function PopulateRosterModal({ open, onOpenChange, houseId, houseName, on
   ]);
 
   const { shiftTypes = [] } = useHouseShiftTypes(houseId);
-  const { participants = [] } = useHouseParticipants(houseId);
+  const { houseParticipants = [] } = useHouseParticipants(houseId);
   const { defaults = [] } = useShiftTemplates(houseId);
   const { materializePattern } = useRosterData();
+
+  const [selectedParticipantIds, setSelectedParticipantIds] = useState<string[]>([]);
+  const [hasInitializedParticipants, setHasInitializedParticipants] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      setHasInitializedParticipants(false);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (open && !hasInitializedParticipants && houseParticipants.length > 0) {
+      setSelectedParticipantIds(houseParticipants.map(p => p.id));
+      setHasInitializedParticipants(true);
+    }
+  }, [open, hasInitializedParticipants, houseParticipants]);
 
   // Handle changing weeks to generate
   useEffect(() => {
@@ -124,7 +140,7 @@ export function PopulateRosterModal({ open, onOpenChange, houseId, houseName, on
         pattern,
         shiftTypes,
         defaults,
-        participants
+        participants: houseParticipants.filter(p => selectedParticipantIds.includes(p.id))
       });
 
       toast.success('Roster populated successfully!', {
@@ -149,23 +165,23 @@ export function PopulateRosterModal({ open, onOpenChange, houseId, houseName, on
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[95vh] flex flex-col p-0 overflow-hidden shadow-2xl border-none">
-        <DialogHeader className="p-6 pb-4 border-b bg-white sticky top-0 z-10">
+        <DialogHeader className="p-4 sm:p-5 border-b bg-white sticky top-0 z-10">
           <div className="flex items-center gap-3">
-            <div className="size-12 rounded-2xl bg-primary/10 flex items-center justify-center">
-              <Play className="size-6 text-primary fill-primary" />
+            <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <Zap className="size-5 text-primary fill-primary" />
             </div>
             <div>
-              <DialogTitle className="text-2xl font-black uppercase tracking-tight">Populate Roster</DialogTitle>
-              <DialogDescription className="font-medium">
-                Generate <span className="text-primary font-bold">Open Confirmed Shifts</span> for {houseName} based on your Shift Model.
+              <DialogTitle className="text-xl sm:text-2xl font-black uppercase tracking-tight leading-none mb-1">Populate Roster</DialogTitle>
+              <DialogDescription className="text-xs sm:text-sm font-medium">
+                Generate open confirmed shifts for <span className="text-gray-900 font-bold">{houseName}</span> based on your shift model.
               </DialogDescription>
             </div>
           </div>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto p-6 space-y-8 bg-gray-50/30 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto px-6 pt-2 pb-6 space-y-5 bg-gray-50/30 custom-scrollbar">
           {/* Date Range Section */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
             <div className="space-y-2">
               <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1 flex items-center gap-2">
                 <CalendarDays className="size-3" /> Start Date
@@ -304,6 +320,41 @@ export function PopulateRosterModal({ open, onOpenChange, houseId, houseName, on
             </div>
           </div>
 
+          {/* Participant Assignment Section */}
+          <div className="space-y-4">
+            <div>
+              <h4 className="text-sm font-black uppercase tracking-tight text-gray-900">Participant Assignment</h4>
+              <p className="text-xs text-muted-foreground">Select which participants should be assigned to these shifts.</p>
+            </div>
+            {houseParticipants.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                {houseParticipants.map(p => (
+                  <div key={p.id} className="flex items-center space-x-3 bg-white border border-gray-200 p-3 rounded-xl hover:border-primary/30 transition-colors">
+                    <Checkbox 
+                      id={`participant-${p.id}`} 
+                      checked={selectedParticipantIds.includes(p.id)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedParticipantIds(prev => [...prev, p.id]);
+                        } else {
+                          setSelectedParticipantIds(prev => prev.filter(id => id !== p.id));
+                        }
+                      }}
+                      className="data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+                    />
+                    <label htmlFor={`participant-${p.id}`} className="text-sm font-bold text-gray-700 leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex-1">
+                      {p.name}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="p-4 bg-gray-50 rounded-xl text-center border border-dashed border-gray-200">
+                <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">No Active Participants</span>
+              </div>
+            )}
+          </div>
+
           {/* Automatic Assignments Info */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-indigo-50/50 border border-indigo-100 rounded-2xl p-5 flex gap-4">
@@ -313,7 +364,11 @@ export function PopulateRosterModal({ open, onOpenChange, houseId, houseName, on
               <div>
                 <h5 className="text-xs font-black uppercase tracking-tight text-indigo-900">Routine Checklists</h5>
                 <p className="text-[10px] text-indigo-700 leading-relaxed mt-1">
-                  Every generated shift will automatically include the <strong>Default Checklists</strong> defined in your Shift Model.
+                  Generated shifts will include: {defaults.length > 0 ? (
+                    <span className="font-bold">{[...new Set(defaults.map(d => d.checklist?.name))].filter(Boolean).join(', ')}</span>
+                  ) : (
+                    "No default checklists defined."
+                  )}
                 </p>
               </div>
             </div>
@@ -325,19 +380,10 @@ export function PopulateRosterModal({ open, onOpenChange, houseId, houseName, on
               <div>
                 <h5 className="text-xs font-black uppercase tracking-tight text-emerald-900">Participant Link</h5>
                 <p className="text-[10px] text-emerald-700 leading-relaxed mt-1">
-                  All <strong>{participants.filter(p => p.status === 'active').length} active participants</strong> will be linked to these shifts for documentation compliance.
+                  <strong>{selectedParticipantIds.length} selected participant{selectedParticipantIds.length === 1 ? '' : 's'}</strong> will be linked to these shifts for documentation compliance.
                 </p>
               </div>
             </div>
-          </div>
-
-          {/* Warning/Info */}
-          <div className="bg-amber-50 border border-amber-100 rounded-2xl p-5 flex gap-4">
-            <AlertCircle className="size-5 text-amber-600 shrink-0 mt-0.5" />
-            <p className="text-[11px] text-amber-800 leading-relaxed">
-              <strong>Wait!</strong> This will create <strong>{totalShiftsToCreate} Confirmed Shifts</strong>. Confirmed shifts are immediately visible to staff. Shifts will be created without an assigned staff member (Open). 
-              Duplicate checks are <strong>not</strong> performed; generating the same range twice will create double-up shifts.
-            </p>
           </div>
         </div>
 
@@ -364,7 +410,7 @@ export function PopulateRosterModal({ open, onOpenChange, houseId, houseName, on
                 </>
               ) : (
                 <>
-                  <Play className="size-4 fill-white" />
+                  <Zap className="size-4 fill-white" />
                   Confirm & Populate
                 </>
               )}

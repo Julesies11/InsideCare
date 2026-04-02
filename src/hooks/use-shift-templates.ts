@@ -71,6 +71,7 @@ export function useShiftTemplates(houseId?: string) {
     queryKey: ['shift-type-defaults', houseId],
     queryFn: async () => {
       if (!houseId) return [];
+      
       const { data, error } = await supabase
         .from('shift_type_default_checklists')
         .select(`
@@ -83,9 +84,10 @@ export function useShiftTemplates(houseId?: string) {
               title,
               sort_order
             )
-          )
+          ),
+          shift_type:house_shift_types!inner(house_id)
         `)
-        .in('shift_type_id', (await supabase.from('house_shift_types').select('id').eq('house_id', houseId)).data?.map(s => s.id) || []);
+        .eq('shift_type.house_id', houseId);
       
       if (error) throw error;
       
