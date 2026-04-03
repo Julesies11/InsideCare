@@ -1,103 +1,68 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { useParams } from 'react-router';
-import { useQueryClient } from '@tanstack/react-query';
-import { cn } from '@/lib/utils';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { useScrollPosition } from '@/hooks/use-scroll-position';
-import { useSettings } from '@/providers/settings-provider';
-import { useAuth } from '@/auth/context/auth-context';
-import { Scrollspy } from '@/components/ui/scrollspy';
-import { HouseDetailSidebar } from './house-detail-sidebar';
-import { HouseStaff } from './components/house-staff';
-import { HouseCalendarEvents } from './components/house-calendar-events';
-import { HouseComms } from './components/house-comms';
-import { HouseDocuments } from './components/house-documents';
-import { HouseChecklistSetup } from './components/house-checklist-setup';
-import { HouseShiftSetup } from './components/house-shift-setup';
-import { HouseResources } from './components/house-resources';
-import { HouseManagement } from './components/house-management';
-import { HouseTypeCombobox } from './components/house-type-components/HouseTypeCombobox';
-import { HouseTypeMasterDialog } from './components/house-type-components/HouseTypeMasterDialog';
-import { House } from '@/models/house';
-import { HousePendingChanges, emptyHousePendingChanges } from '@/models/house-pending-changes';
-import { supabase } from '@/lib/supabase';
-import { toast } from 'sonner';
-import { handleSupabaseError } from '@/errors/error-handler';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
-const stickySidebarClasses: Record<string, string> = {
-  'demo1-layout': 'top-[calc(var(--header-height)+1rem)]',
-  'demo2-layout': 'top-[calc(var(--header-height)+1rem)]',
-  'demo3-layout': 'top-[calc(var(--header-height)+var(--navbar-height)+1rem)]',
-  'demo4-layout': 'top-[3rem]',
-  'demo5-layout': 'top-[calc(var(--header-height)+1.5rem)]',
-  'demo6-layout': 'top-[3rem]',
-  'demo7-layout': 'top-[calc(var(--header-height)+1rem)]',
-  'demo8-layout': 'top-[3rem]',
-  'demo9-layout': 'top-[calc(var(--header-height)+1rem)]',
-  'demo10-layout': 'top-[1.5rem]',
-};
+import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
+import { Scrollspy } from '@/components/ui/scrollspy';
+import { useSettings } from '@/providers/settings-provider';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useScrollPosition } from '@/hooks/use-scroll-position';
+import { cn } from '@/lib/utils';
+import { HouseDetailSidebar } from './house-detail-sidebar';
+import { HouseStaff } from './components/house-staff';
+import { HouseCalendarEvents } from './components/house-calendar-events';
+import { HouseChecklists } from './components/house-checklists';
+import { HouseResources } from './components/house-resources';
+import { HouseComms } from './components/house-comms';
+import { HouseShiftSetup } from './components/house-shift-setup';
+import { HouseChecklistHistory } from './components/house-checklist-history';
+import { HouseManagement } from './components/house-management';
+import { HousePendingChanges, emptyHousePendingChanges } from '@/models/house-pending-changes';
+import { useAuth } from '@/auth/context/auth-context';
+import { useQueryClient } from '@tanstack/react-query';
+import { handleSupabaseError } from '@/errors/error-handler';
 
 interface HouseDetailContentProps {
-  onFormDataChange?: (data: Record<string, any>) => void;
-  onOriginalDataChange?: (data: Record<string, any>) => void;
-  onHouseChange?: (house: House) => void;
+  onFormDataChange?: (data: any) => void;
+  onOriginalDataChange?: (data: any) => void;
+  onHouseChange?: (house: any) => void;
+  pendingChanges: HousePendingChanges;
+  onPendingChangesChange: (changes: HousePendingChanges) => void;
+  canEdit: boolean;
   onSavingChange?: (saving: boolean) => void;
   saveHandlerRef?: React.MutableRefObject<(() => Promise<void>) | null>;
-  pendingChanges?: HousePendingChanges;
-  onPendingChangesChange?: (changes: HousePendingChanges) => void;
 }
 
 export function HouseDetailContent({
   onFormDataChange,
   onOriginalDataChange,
   onHouseChange,
-  onSavingChange,
-  saveHandlerRef,
   pendingChanges,
   onPendingChangesChange,
+  canEdit,
+  onSavingChange,
+  saveHandlerRef,
 }: HouseDetailContentProps) {
-  const { id } = useParams<{ id: string }>();
-  const queryClient = useQueryClient();
-  const isMobile = useIsMobile();
+  const { id } = useParams();
   const { user } = useAuth();
-  const isSupervisor = user?.role_name?.toLowerCase().includes('supervisor');
-  const isAdmin = user?.role_name?.toLowerCase().includes('admin');
-  const canEditManagement = isAdmin || isSupervisor;
+  const queryClient = useQueryClient();
   const { settings } = useSettings();
-  const [sidebarSticky, setSidebarSticky] = useState(false);
-  const [house, setHouse] = useState<House | undefined>();
+  const isMobile = useIsMobile();
   const [loading, setLoading] = useState(true);
-  
-  const canEdit = true;
-  const canAdd = true;
-  const canDelete = true;
-
-  // Use refs to avoid stale closures in handleSave
-  const latestFormData = useRef<Record<string, any>>({});
-
-  // Initialize ref for parentEl
+  const [house, setHouse] = useState<any>(null);
+  const [sidebarSticky, setSidebarSticky] = useState(false);
   const parentRef = useRef<HTMLElement | Document>(document);
   const scrollPosition = useScrollPosition({ targetRef: parentRef });
 
-  // Effect to update parentRef after the component mounts
-  useEffect(() => {
-    const scrollableElement = document.getElementById('scrollable_content');
-    if (scrollableElement) {
-      parentRef.current = scrollableElement;
-    }
-  }, []);
-
-  const [formData, setFormData] = useState<Record<string, any>>({
+  const [formData, setFormData] = useState<any>({
     name: '',
     address: '',
     phone: '',
-    house_type_id: null,
+    house_type_id: '',
     capacity: 0,
     current_occupancy: 0,
     house_manager: '',
@@ -108,8 +73,30 @@ export function HouseDetailContent({
     observations: '',
     general_house_details: '',
   });
+  const [originalData, setOriginalData] = useState<any>(null);
 
-  const [showHouseTypeDialog, setShowHouseTypeDialog] = useState(false);
+  // Keep track of the latest props/state via refs to avoid closure staleness in handleSave
+  const latestPendingChanges = useRef(pendingChanges);
+  const latestFormData = useRef(formData);
+  const latestOriginalData = useRef(originalData);
+
+  useEffect(() => {
+    latestPendingChanges.current = pendingChanges;
+    latestFormData.current = formData;
+    latestOriginalData.current = originalData;
+  }, [pendingChanges, formData, originalData]);
+
+  const [refreshKeys, setRefreshKeys] = useState({
+    staff: 0,
+    participants: 0,
+    calendarEvents: 0,
+    documents: 0,
+    checklists: 0,
+    forms: 0,
+    resources: 0,
+    comms: 0,
+    shiftConfiguration: 0
+  });
 
   // Handle scroll position and sidebar stickiness
   useEffect(() => {
@@ -117,10 +104,9 @@ export function HouseDetailContent({
   }, [scrollPosition]);
 
   useEffect(() => {
-    if (!id) return;
-
     const fetchHouse = async () => {
       try {
+        console.log('fetchHouse starting for id:', id);
         setLoading(true);
         const { data, error } = await supabase
           .from('houses')
@@ -128,74 +114,37 @@ export function HouseDetailContent({
           .eq('id', id)
           .single();
 
+        console.log('fetchHouse result:', { data, error });
         if (error) throw error;
-
         setHouse(data);
-        if (onHouseChange) onHouseChange(data);
-        const houseData = {
-          name: data.name || '',
-          address: data.address || '',
-          phone: data.phone || '',
-          house_type_id: data.house_type_id || null,
-          capacity: data.capacity || 0,
-          current_occupancy: data.current_occupancy || 0,
-          house_manager: data.house_manager || '',
-          status: data.status || 'active',
-          notes: data.notes || '',
-          individuals_breakdown: data.individuals_breakdown || '',
-          participant_dynamics: data.participant_dynamics || '',
-          observations: data.observations || '',
-          general_house_details: data.general_house_details || '',
-        };
-        
-        setFormData(houseData);
-        latestFormData.current = houseData;
-        
-        // Wrap in requestAnimationFrame to avoid "Cannot update a component while rendering a different component"
-        requestAnimationFrame(() => {
-          if (onOriginalDataChange) onOriginalDataChange(houseData);
-          if (onFormDataChange) onFormDataChange(houseData);
-        });
-      } catch (error) {
-        const err = error as Error;
-        console.error('Error fetching house:', error);
-        toast.error('Failed to load house details', { description: err.message });
+        setOriginalData(data);
+        setFormData(data);
+        onHouseChange?.(data);
+        onOriginalDataChange?.(data);
+        onFormDataChange?.(data);
+        console.log('fetchHouse state updates completed');
+      } catch (err) {
+        console.error('Error fetching house:', err);
+        toast.error('Failed to load house details');
       } finally {
         setLoading(false);
+        console.log('fetchHouse finished, loading set to false');
       }
     };
 
-    fetchHouse();
-  }, [id, queryClient, onFormDataChange, onOriginalDataChange, onHouseChange]);
+    if (id) fetchHouse();
+  }, [id, onHouseChange, onOriginalDataChange, onFormDataChange]);
 
-  const [refreshKeys, setRefreshKeys] = useState({
-    staff: 0,
-    calendarEvents: 0,
-    documents: 0,
-    checklists: 0,
-    forms: 0,
-    resources: 0,
-    participants: 0,
-    comms: 0,
-    shiftConfiguration: 0,
-  });
 
   const handleFieldChange = (field: string, value: any) => {
-    const updatedData = { ...formData, [field]: value };
-    setFormData(updatedData);
-    latestFormData.current = updatedData;
-    if (onFormDataChange) onFormDataChange(updatedData);
+    const newData = { ...formData, [field]: value };
+    setFormData(newData);
+    onFormDataChange?.(newData);
   };
 
   const handleSave = useCallback(async () => {
-    // CRITICAL: Access pendingChanges directly from props scope within the callback 
-    // to ensure we have the absolute latest state during the save operation.
-    const currentPending = pendingChanges || emptyHousePendingChanges;
+    const currentPending = latestPendingChanges.current;
     const currentFormData = latestFormData.current;
-    
-    if (!house || !id) {
-      return;
-    }
 
     try {
       if (onSavingChange) onSavingChange(true);
@@ -242,134 +191,98 @@ export function HouseDetailContent({
       }
 
       // Step 2: Process pending participants
-      if (currentPending.participants.toAdd.length) {
-        for (const p of currentPending.participants.toAdd) {
-          const { error } = await supabase
-            .from('participants')
-            .update({
-              house_id: id,
-              move_in_date: p.move_in_date || null,
-              status: p.is_active ? 'active' : 'inactive',
-            })
-            .eq('id', p.participant_id);
-
-          if (error) {
-            throw new Error(`Failed to link participant: ${error.message}`);
-          }
-        }
+      if (currentPending.participants.toAdd.length > 0) {
+        const ids = currentPending.participants.toAdd.map(p => p.participant_id);
+        const { error } = await supabase
+          .from('participants')
+          .update({ house_id: id, status: 'active' })
+          .in('id', ids);
+        if (error) throw new Error(`Failed to link participants: ${error.message}`);
       }
 
-      if (currentPending.participants.toUpdate.length) {
+      if (currentPending.participants.toUpdate.length > 0) {
         for (const p of currentPending.participants.toUpdate) {
           const updates: any = {};
           if (p.move_in_date !== undefined) updates.move_in_date = p.move_in_date;
           if (p.is_active !== undefined) updates.status = p.is_active ? 'active' : 'inactive';
-          
+
           const { error } = await supabase
             .from('participants')
             .update(updates)
             .eq('id', p.id);
-
-          if (error) {
-            throw new Error(`Failed to update participant: ${error.message}`);
-          }
+          if (error) throw new Error(`Failed to update participant: ${error.message}`);
         }
       }
 
-      if (currentPending.participants.toDelete.length) {
-        for (const pId of currentPending.participants.toDelete) {
-          const { error } = await supabase
-            .from('participants')
-            .update({ house_id: null })
-            .eq('id', pId);
-
-          if (error) {
-            throw new Error(`Failed to unlink participant: ${error.message}`);
-          }
-        }
+      if (currentPending.participants.toDelete.length > 0) {
+        const { error } = await supabase
+          .from('participants')
+          .update({ house_id: null })
+          .in('id', currentPending.participants.toDelete);
+        if (error) throw new Error(`Failed to unlink participants: ${error.message}`);
       }
 
       // Step 3: Process pending staff assignments
-      if (currentPending.staff.toAdd.length) {
-        for (const staffAssignment of currentPending.staff.toAdd) {
-          const { error } = await supabase
-            .from('house_staff_assignments')
-            .insert({
-              house_id: id,
-              staff_id: staffAssignment.staff_id,
-              is_primary: staffAssignment.is_primary,
-              start_date: staffAssignment.start_date || null,
-              end_date: staffAssignment.end_date || null,
-              notes: staffAssignment.notes || null,
-            });
-
-          if (error) {
-            throw new Error(`Failed to add staff assignment: ${error.message}`);
-          }
-        }
+      if (currentPending.staff.toAdd.length > 0) {
+        const toInsert = currentPending.staff.toAdd.map(s => ({
+          house_id: id,
+          staff_id: s.staff_id,
+          is_primary: s.is_primary,
+          start_date: s.start_date || null,
+          end_date: s.end_date || null,
+          notes: s.notes || null,
+        }));
+        const { error } = await supabase.from('house_staff_assignments').insert(toInsert);
+        if (error) throw new Error(`Failed to add staff assignments: ${error.message}`);
       }
 
-      if (currentPending.staff.toUpdate.length) {
-        for (const staffAssignment of currentPending.staff.toUpdate) {
+      if (currentPending.staff.toUpdate.length > 0) {
+        for (const s of currentPending.staff.toUpdate) {
           const { error } = await supabase
             .from('house_staff_assignments')
             .update({
-              staff_id: staffAssignment.staff_id,
-              is_primary: staffAssignment.is_primary,
-              start_date: staffAssignment.start_date || null,
-              end_date: staffAssignment.end_date || null,
-              notes: staffAssignment.notes || null,
+              staff_id: s.staff_id,
+              is_primary: s.is_primary,
+              start_date: s.start_date || null,
+              end_date: s.end_date || null,
+              notes: s.notes || null,
             })
-            .eq('id', staffAssignment.id);
-
-          if (error) {
-            throw new Error(`Failed to update staff assignment: ${error.message}`);
-          }
+            .eq('id', s.id);
+          if (error) throw new Error(`Failed to update staff assignment: ${error.message}`);
         }
       }
 
-      if (currentPending.staff.toDelete.length) {
-        for (const staffAssignmentId of currentPending.staff.toDelete) {
-          const { error } = await supabase
-            .from('house_staff_assignments')
-            .delete()
-            .eq('id', staffAssignmentId);
-
-          if (error) {
-            throw new Error(`Failed to delete staff assignment: ${error.message}`);
-          }
-        }
+      if (currentPending.staff.toDelete.length > 0) {
+        const { error } = await supabase
+          .from('house_staff_assignments')
+          .delete()
+          .in('id', currentPending.staff.toDelete);
+        if (error) throw new Error(`Failed to delete staff assignments: ${error.message}`);
       }
 
-      // Step 3: Process pending calendar events
-      if (currentPending.calendarEvents.toAdd.length) {
-        for (const event of currentPending.calendarEvents.toAdd) {
-          const { error } = await supabase
-            .from('house_calendar_events')
-            .insert({
-              house_id: id,
-              title: event.title,
-              type: event.type,
-              event_type_id: event.event_type_id || null,
-              description: event.description || null,
-              event_date: event.event_date,
-              start_time: event.start_time || null,
-              end_time: event.end_time || null,
-              participant_id: event.participant_id || null,
-              assigned_staff_id: event.assigned_staff_id || null,
-              status: event.status || 'scheduled',
-              location: event.location || null,
-              notes: event.notes || null,
-              created_by: currentStaffId,
-            });
-
-          if (error) {
-            throw new Error(`Failed to add calendar event: ${error.message}`);
-          }
-        }
+      // Step 4: Process pending calendar events
+      if (currentPending.calendarEvents.toAdd.length > 0) {
+        const toInsert = currentPending.calendarEvents.toAdd.map(event => ({
+          house_id: id,
+          title: event.title,
+          type: event.type,
+          event_type_id: event.event_type_id || null,
+          description: event.description || null,
+          event_date: event.event_date,
+          start_time: event.start_time || null,
+          end_time: event.end_time || null,
+          participant_id: event.participant_id || null,
+          assigned_staff_id: event.assigned_staff_id || null,
+          status: event.status || 'scheduled',
+          location: event.location || null,
+          notes: event.notes || null,
+          created_by: currentStaffId,
+        }));
+        const { error } = await supabase.from('house_calendar_events').insert(toInsert);
+        if (error) throw new Error(`Failed to add calendar events: ${error.message}`);
       }
 
-      if (currentPending.calendarEvents.toUpdate.length) {
+      if (currentPending.calendarEvents.toUpdate.length > 0) {
         for (const event of currentPending.calendarEvents.toUpdate) {
           const { error } = await supabase
             .from('house_calendar_events')
@@ -388,30 +301,21 @@ export function HouseDetailContent({
               notes: event.notes || null,
             })
             .eq('id', event.id);
-
-          if (error) {
-            throw new Error(`Failed to update calendar event: ${error.message}`);
-          }
+          if (error) throw new Error(`Failed to update calendar event: ${error.message}`);
         }
       }
 
-      if (currentPending.calendarEvents.toDelete.length) {
-        for (const eventId of currentPending.calendarEvents.toDelete) {
-          const { error } = await supabase
-            .from('house_calendar_events')
-            .delete()
-            .eq('id', eventId);
-
-          if (error) {
-            throw new Error(`Failed to delete calendar event: ${error.message}`);
-          }
-        }
+      if (currentPending.calendarEvents.toDelete.length > 0) {
+        const { error } = await supabase
+          .from('house_calendar_events')
+          .delete()
+          .in('id', currentPending.calendarEvents.toDelete);
+        if (error) throw new Error(`Failed to delete calendar events: ${error.message}`);
       }
 
-      // Step 4: Process pending documents
+      // Step 5: Process pending documents
       if (currentPending.documents.toAdd.length) {
         for (const doc of currentPending.documents.toAdd) {
-          // Upload to storage
           const fileExt = doc.file.name.split('.').pop();
           const fileName = `${id}-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
           const filePath = `house-documents/${fileName}`;
@@ -420,11 +324,10 @@ export function HouseDetailContent({
             .from('house-documents')
             .upload(filePath, doc.file);
 
-          if (uploadError) {
-            throw new Error(`Failed to upload document: ${uploadError.message}`);
-          }
+          if (uploadError) throw new Error(`Failed to upload document: ${uploadError.message}`);
 
-          // Insert record
+          const { data: urlData } = supabase.storage.from('house-documents').getPublicUrl(filePath);
+
           const { error } = await supabase
             .from('house_files')
             .insert({
@@ -436,39 +339,30 @@ export function HouseDetailContent({
               uploaded_by: currentStaffId,
             });
 
-          if (error) {
-            throw new Error(`Failed to save document record: ${error.message}`);
-          }
+          if (error) throw new Error(`Failed to save document record: ${error.message}`);
         }
       }
 
-      if (currentPending.documents.toDelete.length) {
-        for (const doc of currentPending.documents.toDelete) {
-          // Delete from storage
-          const { error: storageError } = await supabase.storage
-            .from('house-documents')
-            .remove([doc.filePath]);
+      if (currentPending.documents.toDelete.length > 0) {
+        const filePaths = currentPending.documents.toDelete.map(doc => doc.filePath);
+        const recordIds = currentPending.documents.toDelete.map(doc => doc.id);
 
-          if (storageError) {
-            console.warn('Failed to delete file from storage:', storageError);
-          }
+        const { error: storageError } = await supabase.storage
+          .from('house-documents')
+          .remove(filePaths);
 
-          // Delete record
-          const { error } = await supabase
-            .from('house_files')
-            .delete()
-            .eq('id', doc.id);
+        if (storageError) console.warn('Failed to delete files from storage:', storageError);
 
-          if (error) {
-            throw new Error(`Failed to delete document: ${error.message}`);
-          }
-        }
+        const { error } = await supabase
+          .from('house_files')
+          .delete()
+          .in('id', recordIds);
+        if (error) throw new Error(`Failed to delete document records: ${error.message}`);
       }
 
-      // Step 5: Process pending checklists
-      if (currentPending.checklists.toAdd.length) {
+      // Step 6: Process pending checklists
+      if (currentPending.checklists.toAdd.length > 0) {
         for (const checklist of currentPending.checklists.toAdd) {
-          // Insert checklist
           const { data: checklistData, error: checklistError } = await supabase
             .from('house_checklists')
             .insert({
@@ -481,13 +375,10 @@ export function HouseDetailContent({
             .select()
             .single();
 
-          if (checklistError) {
-            throw new Error(`Failed to add checklist: ${checklistError.message}`);
-          }
+          if (checklistError) throw new Error(`Failed to add checklist: ${checklistError.message}`);
 
-          // Insert checklist items
           if (checklist.items && checklist.items.length > 0) {
-            const itemsToInsert = checklist.items.map(item => ({
+            const itemsToInsert = checklist.items.map((item: any) => ({
               checklist_id: checklistData.id,
               title: item.title,
               instructions: item.instructions || null,
@@ -498,18 +389,13 @@ export function HouseDetailContent({
               master_item_id: item.master_item_id || null,
             }));
 
-            const { error: itemsError } = await supabase
-              .from('house_checklist_items')
-              .insert(itemsToInsert);
-
-            if (itemsError) {
-              throw new Error(`Failed to add checklist items: ${itemsError.message}`);
-            }
+            const { error: itemsError } = await supabase.from('house_checklist_items').insert(itemsToInsert);
+            if (itemsError) throw new Error(`Failed to add checklist items: ${itemsError.message}`);
           }
         }
       }
 
-      if (currentPending.checklists.toUpdate.length) {
+      if (currentPending.checklists.toUpdate.length > 0) {
         for (const checklist of currentPending.checklists.toUpdate) {
           if (!checklist.id) continue;
           const { error } = await supabase
@@ -520,50 +406,35 @@ export function HouseDetailContent({
               description: checklist.description || null,
             })
             .eq('id', checklist.id);
-
-          if (error) {
-            throw new Error(`Failed to update checklist: ${error.message}`);
-          }
+          if (error) throw new Error(`Failed to update checklist: ${error.message}`);
         }
       }
 
-      if (currentPending.checklists.toDelete.length) {
-        for (const checklistId of currentPending.checklists.toDelete) {
-          if (!checklistId) continue;
-          const { error } = await supabase
-            .from('house_checklists')
-            .delete()
-            .eq('id', checklistId);
-
-          if (error) {
-            throw new Error(`Failed to delete checklist: ${error.message}`);
-          }
-        }
+      if (currentPending.checklists.toDelete.length > 0) {
+        const { error } = await supabase
+          .from('house_checklists')
+          .delete()
+          .in('id', currentPending.checklists.toDelete.filter(Boolean));
+        if (error) throw new Error(`Failed to delete checklists: ${error.message}`);
       }
 
-      // Step 6: Process pending checklist items
-      if (currentPending.checklists.checklistItems.toAdd.length) {
-        for (const item of currentPending.checklists.checklistItems.toAdd) {
-          const { error } = await supabase
-            .from('house_checklist_items')
-            .insert({
-              checklist_id: item.checklist_id,
-              title: item.title,
-              instructions: item.instructions || null,
-              group_title: item.group_title || 'Morning',
-              priority: item.priority || 'medium',
-              is_required: !!item.is_required,
-              sort_order: item.sort_order || 0,
-              master_item_id: item.master_item_id || null,
-            });
-
-          if (error) {
-            throw new Error(`Failed to add checklist item: ${error.message}`);
-          }
-        }
+      // Step 7: Process pending checklist items
+      if (currentPending.checklists.checklistItems.toAdd.length > 0) {
+        const toInsert = currentPending.checklists.checklistItems.toAdd.map(item => ({
+          checklist_id: item.checklist_id,
+          title: item.title,
+          instructions: item.instructions || null,
+          group_title: item.group_title || 'Morning',
+          priority: item.priority || 'medium',
+          is_required: !!item.is_required,
+          sort_order: item.sort_order || 0,
+          master_item_id: item.master_item_id || null,
+        }));
+        const { error } = await supabase.from('house_checklist_items').insert(toInsert);
+        if (error) throw new Error(`Failed to add checklist items: ${error.message}`);
       }
 
-      if (currentPending.checklists.checklistItems.toUpdate.length) {
+      if (currentPending.checklists.checklistItems.toUpdate.length > 0) {
         for (const item of currentPending.checklists.checklistItems.toUpdate) {
           const { error } = await supabase
             .from('house_checklist_items')
@@ -577,48 +448,34 @@ export function HouseDetailContent({
               master_item_id: item.master_item_id || null,
             })
             .eq('id', item.id);
-
-          if (error) {
-            throw new Error(`Failed to update checklist item: ${error.message}`);
-          }
+          if (error) throw new Error(`Failed to update checklist item: ${error.message}`);
         }
       }
 
-      if (currentPending.checklists.checklistItems.toDelete.length) {
-        for (const itemId of currentPending.checklists.checklistItems.toDelete) {
-          const { error } = await supabase
-            .from('house_checklist_items')
-            .delete()
-            .eq('id', itemId);
-
-          if (error) {
-            throw new Error(`Failed to delete checklist item: ${error.message}`);
-          }
-        }
+      if (currentPending.checklists.checklistItems.toDelete.length > 0) {
+        const { error } = await supabase
+          .from('house_checklist_items')
+          .delete()
+          .in('id', currentPending.checklists.checklistItems.toDelete);
+        if (error) throw new Error(`Failed to delete checklist items: ${error.message}`);
       }
 
-      // Step 7: Process pending forms
-      if (currentPending.forms.toAdd.length) {
-        for (const form of currentPending.forms.toAdd) {
-          const { error } = await supabase
-            .from('house_forms')
-            .insert({
-              house_id: id,
-              name: form.name,
-              type: form.type,
-              description: form.description || null,
-              frequency: form.frequency,
-              status: form.status || 'active',
-              created_by: currentStaffId,
-            });
-
-          if (error) {
-            throw new Error(`Failed to add form: ${error.message}`);
-          }
-        }
+      // Step 8: Process pending forms
+      if (currentPending.forms.toAdd.length > 0) {
+        const toInsert = currentPending.forms.toAdd.map(form => ({
+          house_id: id,
+          name: form.name,
+          type: form.type,
+          description: form.description || null,
+          frequency: form.frequency,
+          status: form.status || 'active',
+          created_by: currentStaffId,
+        }));
+        const { error } = await supabase.from('house_forms').insert(toInsert);
+        if (error) throw new Error(`Failed to add forms: ${error.message}`);
       }
 
-      if (currentPending.forms.toUpdate.length) {
+      if (currentPending.forms.toUpdate.length > 0) {
         for (const form of currentPending.forms.toUpdate) {
           const { error } = await supabase
             .from('house_forms')
@@ -630,48 +487,34 @@ export function HouseDetailContent({
               status: form.status || 'active',
             })
             .eq('id', form.id);
-
-          if (error) {
-            throw new Error(`Failed to update form: ${error.message}`);
-          }
+          if (error) throw new Error(`Failed to update form: ${error.message}`);
         }
       }
 
-      if (currentPending.forms.toDelete.length) {
-        for (const formId of currentPending.forms.toDelete) {
-          const { error } = await supabase
-            .from('house_forms')
-            .delete()
-            .eq('id', formId);
-
-          if (error) {
-            throw new Error(`Failed to delete form: ${error.message}`);
-          }
-        }
+      if (currentPending.forms.toDelete.length > 0) {
+        const { error } = await supabase
+          .from('house_forms')
+          .delete()
+          .in('id', currentPending.forms.toDelete);
+        if (error) throw new Error(`Failed to delete forms: ${error.message}`);
       }
 
-      // Step 8: Process pending form assignments
-      if (currentPending.formAssignments.toAdd.length) {
-        for (const assignment of currentPending.formAssignments.toAdd) {
-          const { error } = await supabase
-            .from('house_form_assignments')
-            .insert({
-              form_id: assignment.form_id,
-              participant_id: assignment.participant_id || null,
-              staff_id: assignment.staff_id || null,
-              due_date: assignment.due_date || null,
-              status: assignment.status || 'pending',
-              notes: assignment.notes || null,
-              assigned_by: currentStaffId,
-            });
-
-          if (error) {
-            throw new Error(`Failed to add form assignment: ${error.message}`);
-          }
-        }
+      // Step 9: Process pending form assignments
+      if (currentPending.formAssignments.toAdd.length > 0) {
+        const toInsert = currentPending.formAssignments.toAdd.map(assignment => ({
+          form_id: assignment.form_id,
+          participant_id: assignment.participant_id || null,
+          staff_id: assignment.staff_id || null,
+          due_date: assignment.due_date || null,
+          status: assignment.status || 'pending',
+          notes: assignment.notes || null,
+          assigned_by: currentStaffId,
+        }));
+        const { error } = await supabase.from('house_form_assignments').insert(toInsert);
+        if (error) throw new Error(`Failed to add form assignments: ${error.message}`);
       }
 
-      if (currentPending.formAssignments.toUpdate.length) {
+      if (currentPending.formAssignments.toUpdate.length > 0) {
         for (const assignment of currentPending.formAssignments.toUpdate) {
           const { error } = await supabase
             .from('house_form_assignments')
@@ -683,54 +526,40 @@ export function HouseDetailContent({
               notes: assignment.notes || null,
             })
             .eq('id', assignment.id);
-
-          if (error) {
-            throw new Error(`Failed to update form assignment: ${error.message}`);
-          }
+          if (error) throw new Error(`Failed to update form assignment: ${error.message}`);
         }
       }
 
-      if (currentPending.formAssignments.toDelete.length) {
-        for (const assignmentId of currentPending.formAssignments.toDelete) {
-          const { error } = await supabase
-            .from('house_form_assignments')
-            .delete()
-            .eq('id', assignmentId);
-
-          if (error) {
-            throw new Error(`Failed to delete form assignment: ${error.message}`);
-          }
-        }
+      if (currentPending.formAssignments.toDelete.length > 0) {
+        const { error } = await supabase
+          .from('house_form_assignments')
+          .delete()
+          .in('id', currentPending.formAssignments.toDelete);
+        if (error) throw new Error(`Failed to delete form assignments: ${error.message}`);
       }
 
-      // Step 9: Process pending resources
-      if (currentPending.resources.toAdd.length) {
-        for (const resource of currentPending.resources.toAdd) {
-          const { error } = await supabase
-            .from('house_resources')
-            .insert({
-              house_id: id,
-              title: resource.title,
-              category: resource.category,
-              type: resource.type,
-              description: resource.description || null,
-              priority: resource.priority,
-              phone: resource.phone || null,
-              address: resource.address || null,
-              file_url: resource.file_url || null,
-              file_name: resource.file_name || null,
-              file_size: resource.file_size || null,
-              notes: resource.notes || null,
-              created_by: currentStaffId,
-            });
-
-          if (error) {
-            throw new Error(`Failed to add resource: ${error.message}`);
-          }
-        }
+      // Step 10: Process pending resources
+      if (currentPending.resources.toAdd.length > 0) {
+        const toInsert = currentPending.resources.toAdd.map(resource => ({
+          house_id: id,
+          title: resource.title,
+          category: resource.category,
+          type: resource.type,
+          description: resource.description || null,
+          priority: resource.priority,
+          phone: resource.phone || null,
+          address: resource.address || null,
+          file_url: resource.file_url || null,
+          file_name: resource.file_name || null,
+          file_size: resource.file_size || null,
+          notes: resource.notes || null,
+          created_by: currentStaffId,
+        }));
+        const { error } = await supabase.from('house_resources').insert(toInsert);
+        if (error) throw new Error(`Failed to add resources: ${error.message}`);
       }
 
-      if (currentPending.resources.toUpdate.length) {
+      if (currentPending.resources.toUpdate.length > 0) {
         for (const resource of currentPending.resources.toUpdate) {
           const { error } = await supabase
             .from('house_resources')
@@ -748,53 +577,36 @@ export function HouseDetailContent({
               notes: resource.notes || null,
             })
             .eq('id', resource.id);
-
-          if (error) {
-            throw new Error(`Failed to update resource: ${error.message}`);
-          }
+          if (error) throw new Error(`Failed to update resource: ${error.message}`);
         }
       }
 
-      if (currentPending.resources.toDelete.length) {
-        for (const resourceId of currentPending.resources.toDelete) {
-          const { error } = await supabase
-            .from('house_resources')
-            .delete()
-            .eq('id', resourceId);
-
-          if (error) {
-            throw new Error(`Failed to delete resource: ${error.message}`);
-          }
-        }
+      if (currentPending.resources.toDelete.length > 0) {
+        const { error } = await supabase
+          .from('house_resources')
+          .delete()
+          .in('id', currentPending.resources.toDelete);
+        if (error) throw new Error(`Failed to delete resources: ${error.message}`);
       }
 
-      // Step 10: Process pending comms
-      if (currentPending.comms.toAdd.length) {
-        for (const entry of currentPending.comms.toAdd) {
-          const { error } = await supabase
-            .from('house_comms')
-            .insert({
-              house_id: id,
-              entry_date: entry.entry_date,
-              content: entry.content,
-              created_by: currentStaffId || entry.created_by,
-            });
-
-          if (error) {
-            throw new Error(`Failed to add communication entry: ${error.message}`);
-          }
-        }
+      // Step 11: Process pending comms
+      if (currentPending.comms.toAdd.length > 0) {
+        const toInsert = currentPending.comms.toAdd.map(entry => ({
+          house_id: id,
+          entry_date: entry.entry_date,
+          content: entry.content,
+          created_by: currentStaffId || entry.created_by,
+        }));
+        const { error } = await supabase.from('house_comms').insert(toInsert);
+        if (error) throw new Error(`Failed to add communication entries: ${error.message}`);
       }
 
-      // Step 11: Process pending Shift Types (Models)
-      const shiftTypeTempIdMap: Record<string, string> = {};
-
+      // Step 12: Process pending Shift Types (Models)
       if (currentPending.shiftTypes.toAdd.length || currentPending.shiftTypes.toUpdate.length || currentPending.shiftTypes.toDelete.length) {
-        // Fetch current types from cache to perform optimistic merge
         const currentTypes = queryClient.getQueryData<any[]>(['house-shift-types', id]) || [];
         let updatedTypes = [...currentTypes];
 
-        if (currentPending.shiftTypes.toAdd.length) {
+        if (currentPending.shiftTypes.toAdd.length > 0) {
           for (const st of currentPending.shiftTypes.toAdd) {
             const { data: newType, error: typeError } = await supabase
               .from('house_shift_types')
@@ -813,7 +625,6 @@ export function HouseDetailContent({
               .single();
 
             if (typeError) throw new Error(`Failed to add shift model: ${typeError.message}`);
-            
             shiftTypeTempIdMap[st.tempId] = newType.id;
             updatedTypes.push(newType);
 
@@ -827,7 +638,7 @@ export function HouseDetailContent({
           }
         }
 
-        if (currentPending.shiftTypes.toUpdate.length) {
+        if (currentPending.shiftTypes.toUpdate.length > 0) {
           for (const st of currentPending.shiftTypes.toUpdate) {
             const { data: updatedType, error: typeError } = await supabase
               .from('house_shift_types')
@@ -846,10 +657,7 @@ export function HouseDetailContent({
               .maybeSingle();
 
             if (typeError) throw new Error(`Failed to update shift model: ${typeError.message}`);
-            
-            if (updatedType) {
-              updatedTypes = updatedTypes.map(t => t.id === st.id ? updatedType : t);
-            }
+            if (updatedType) updatedTypes = updatedTypes.map(t => t.id === st.id ? updatedType : t);
 
             if (st.default_checklists !== undefined) {
               await supabase.from('shift_type_default_checklists').delete().eq('shift_type_id', st.id);
@@ -864,183 +672,19 @@ export function HouseDetailContent({
           }
         }
 
-        if (currentPending.shiftTypes.toDelete.length) {
-          for (const stId of currentPending.shiftTypes.toDelete) {
-            const { error } = await supabase.from('house_shift_types').delete().eq('id', stId);
-            if (error) throw new Error(`Failed to delete shift model: ${error.message}`);
-            updatedTypes = updatedTypes.filter(t => t.id !== stId);
-          }
+        if (currentPending.shiftTypes.toDelete.length > 0) {
+          const { error } = await supabase.from('house_shift_types').delete().in('id', currentPending.shiftTypes.toDelete);
+          if (error) throw new Error(`Failed to delete shift models: ${error.message}`);
+          updatedTypes = updatedTypes.filter(t => !currentPending.shiftTypes.toDelete.includes(t.id));
         }
 
-        // SEED CACHE: Update the shift-types query immediately
-        queryClient.setQueryData(['house-shift-types', id], updatedTypes.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)));
+        queryClient.setQueryData(['house-shift-types', id], updatedTypes.sort((a, b) => ((a?.sort_order || 0) - (b?.sort_order || 0))));
       }
 
-      // Step 12: Process pending Shift Template Groups
-      const groupTempIdMap: Record<string, string> = {};
-
-      if (currentPending.shiftTemplateGroups.toAdd.length || currentPending.shiftTemplateGroups.toUpdate.length || currentPending.shiftTemplateGroups.toDelete.length) {
-        const currentGroups = queryClient.getQueryData<any[]>(['shift-template-groups', id]) || [];
-        let updatedGroups = [...currentGroups];
-
-        if (currentPending.shiftTemplateGroups.toAdd.length) {
-          for (const group of currentPending.shiftTemplateGroups.toAdd) {
-            const { data: newGroup, error: groupError } = await supabase
-              .from('shift_template_groups')
-              .insert({
-                house_id: id,
-                name: group.name,
-                description: group.description || null,
-              })
-              .select()
-              .single();
-
-            if (groupError) throw new Error(`Failed to add shift template: ${groupError.message}`);
-            
-            groupTempIdMap[group.tempId] = newGroup.id;
-            const finalItems = [];
-
-            if (group.items && group.items.length > 0) {
-              for (const item of group.items) {
-                const shiftTypeId = shiftTypeTempIdMap[item.shift_type_id] || item.shift_type_id;
-                const { data: newItem, error: itemError } = await supabase
-                  .from('shift_template_items')
-                  .insert({
-                    template_group_id: newGroup.id,
-                    shift_type_id: shiftTypeId,
-                    start_time: item.start_time,
-                    end_time: item.end_time,
-                  })
-                  .select()
-                  .single();
-
-                if (itemError) throw new Error(`Failed to add shift to template: ${itemError.message}`);
-
-                if (item.checklist_ids && item.checklist_ids.length > 0) {
-                  const toInsert = item.checklist_ids.map(clId => ({
-                    shift_template_item_id: newItem.id,
-                    checklist_id: clId
-                  }));
-                  await supabase.from('shift_template_item_checklists').insert(toInsert);
-                }
-                finalItems.push(newItem);
-              }
-            }
-            updatedGroups.push({ ...newGroup, items: finalItems });
-          }
-        }
-
-        if (currentPending.shiftTemplateGroups.toUpdate.length) {
-          for (const group of currentPending.shiftTemplateGroups.toUpdate) {
-            const { data: updatedGroup, error } = await supabase
-              .from('shift_template_groups')
-              .update({
-                name: group.name,
-                description: group.description || null,
-              })
-              .eq('id', group.id)
-              .select()
-              .maybeSingle();
-
-            if (error) throw new Error(`Failed to update shift template: ${error.message}`);
-            if (updatedGroup) {
-              updatedGroups = updatedGroups.map(g => g.id === group.id ? { ...g, ...updatedGroup } : g);
-            }
-          }
-        }
-
-        if (currentPending.shiftTemplateGroups.toDelete.length) {
-          for (const groupId of currentPending.shiftTemplateGroups.toDelete) {
-            const { error } = await supabase.from('shift_template_groups').delete().eq('id', groupId);
-            if (error) throw new Error(`Failed to delete shift template: ${error.message}`);
-            updatedGroups = updatedGroups.filter(g => g.id !== groupId);
-          }
-        }
-
-        // SEED CACHE: Update shift-template-groups query immediately
-        queryClient.setQueryData(['shift-template-groups', id], updatedGroups.sort((a, b) => a.name.localeCompare(b.name)));
-      }
-
-      // Step 13: Process pending Shift Template Items (Standalone changes)
-      if (currentPending.shiftTemplateGroups.items.toAdd.length) {
-        for (const item of currentPending.shiftTemplateGroups.items.toAdd) {
-          const groupId = groupTempIdMap[item.template_group_id] || item.template_group_id;
-          const shiftTypeId = shiftTypeTempIdMap[item.shift_type_id] || item.shift_type_id;
-
-          const { data: newItem, error: itemError } = await supabase
-            .from('shift_template_items')
-            .insert({
-              template_group_id: groupId,
-              shift_type_id: shiftTypeId,
-              start_time: item.start_time,
-              end_time: item.end_time,
-            })
-            .select()
-            .single();
-
-          if (itemError) {
-            throw new Error(`Failed to add item to template: ${itemError.message}`);
-          }
-
-          if (item.checklist_ids && item.checklist_ids.length > 0) {
-            const toInsert = item.checklist_ids.map(clId => ({
-              shift_template_item_id: newItem.id,
-              checklist_id: clId
-            }));
-            await supabase.from('shift_template_item_checklists').insert(toInsert);
-          }
-        }
-      }
-
-      if (currentPending.shiftTemplateGroups.items.toUpdate.length) {
-        for (const item of currentPending.shiftTemplateGroups.items.toUpdate) {
-          const { error: itemError } = await supabase
-            .from('shift_template_items')
-            .update({
-              shift_type_id: item.shift_type_id,
-              start_time: item.start_time,
-              end_time: item.end_time,
-            })
-            .eq('id', item.id);
-
-          if (itemError) {
-            throw new Error(`Failed to update template shift: ${error.message}`);
-          }
-
-          if (item.checklist_ids !== undefined) {
-            // FULL SYNC: Delete existing and re-insert new set
-            await supabase.from('shift_template_item_checklists').delete().eq('shift_template_item_id', item.id);
-            
-            if (item.checklist_ids.length > 0) {
-              const toInsert = item.checklist_ids.map(clId => ({
-                shift_template_item_id: item.id,
-                checklist_id: clId
-              }));
-              const { error: clError } = await supabase.from('shift_template_item_checklists').insert(toInsert);
-              if (clError) throw clError;
-            }
-          }
-        }
-      }
-
-      if (currentPending.shiftTemplateGroups.items.toDelete.length) {
-        for (const itemId of currentPending.shiftTemplateGroups.items.toDelete) {
-          const { error } = await supabase
-            .from('shift_template_items')
-            .delete()
-            .eq('id', itemId);
-
-          if (error) {
-            throw new Error(`Failed to delete template shift: ${error.message}`);
-          }
-        }
-      }
-
-      // Final Step: Log Activity & Refresh
-      const updatedHouseData = { ...currentFormData };
-      setHouse(houseData);
-      if (onOriginalDataChange) onOriginalDataChange(updatedHouseData);
-      if (onFormDataChange) onFormDataChange(updatedHouseData);
+      // Final Step: Refresh local state
+      setHouse(houseData as any);
+      if (onOriginalDataChange) onOriginalDataChange(currentFormData);
+      if (onFormDataChange) onFormDataChange(currentFormData);
 
       // Invalidate queries to ensure child components fetch fresh data
       queryClient.invalidateQueries({ queryKey: ['house-staff-assignments', { houseId: id }] });
@@ -1051,16 +695,11 @@ export function HouseDetailContent({
       queryClient.invalidateQueries({ queryKey: ['house-forms', id] });
       queryClient.invalidateQueries({ queryKey: ['house-resources', id] });
       queryClient.invalidateQueries({ queryKey: ['house_comms', { houseId: id }] });
-      
-      // Shift Configuration invalidations
       queryClient.invalidateQueries({ queryKey: ['house-shift-types', id] });
       queryClient.invalidateQueries({ queryKey: ['shift-type-defaults', id] });
-      queryClient.invalidateQueries({ queryKey: ['shift-template-groups', id] });
-      queryClient.invalidateQueries({ queryKey: ['shift-template-schedules', id] });
 
       toast.success('All changes saved successfully');
 
-      // Update counters based on what was changed
       setRefreshKeys(prev => ({
         ...prev,
         staff: (currentPending.staff.toAdd.length || 0) > 0 || (currentPending.staff.toUpdate.length || 0) > 0 || (currentPending.staff.toDelete.length || 0) > 0 ? prev.staff + 1 : prev.staff,
@@ -1071,10 +710,9 @@ export function HouseDetailContent({
         resources: (currentPending.resources.toAdd.length || 0) > 0 || (currentPending.resources.toUpdate.length || 0) > 0 || (currentPending.resources.toDelete.length || 0) > 0 ? prev.resources + 1 : prev.resources,
         participants: (currentPending.participants.toAdd.length || 0) > 0 || (currentPending.participants.toUpdate.length || 0) > 0 || (currentPending.participants.toDelete.length || 0) > 0 ? prev.participants + 1 : prev.participants,
         comms: (currentPending.comms.toAdd.length || 0) > 0 ? prev.comms + 1 : prev.comms,
-        shiftConfiguration: (currentPending.shiftTypes.toAdd.length || 0) > 0 || (currentPending.shiftTypes.toUpdate.length || 0) > 0 || (currentPending.shiftTypes.toDelete.length || 0) > 0 || (currentPending.shiftTemplateGroups.toAdd.length || 0) > 0 || (currentPending.shiftTemplateGroups.toUpdate.length || 0) > 0 || (currentPending.shiftTemplateGroups.toDelete.length || 0) > 0 || (currentPending.shiftTemplateGroups.items.toAdd.length || 0) > 0 || (currentPending.shiftTemplateGroups.items.toUpdate.length || 0) > 0 || (currentPending.shiftTemplateGroups.items.toDelete.length || 0) > 0 ? (prev as any).shiftConfiguration + 1 : (prev as any).shiftConfiguration,
+        shiftConfiguration: (currentPending.shiftTypes.toAdd.length || 0) > 0 || (currentPending.shiftTypes.toUpdate.length || 0) > 0 || (currentPending.shiftTypes.toDelete.length || 0) > 0 ? (prev as any).shiftConfiguration + 1 : (prev as any).shiftConfiguration,
       }));
 
-      // Clear pending changes after successful save
       if (onPendingChangesChange) {
         onPendingChangesChange(emptyHousePendingChanges);
       }
@@ -1086,7 +724,7 @@ export function HouseDetailContent({
     } finally {
       if (onSavingChange) onSavingChange(false);
     }
-  }, [id, house, user, queryClient, onOriginalDataChange, onFormDataChange, onSavingChange, onPendingChangesChange, pendingChanges]);
+  }, [id, formData, queryClient, user?.id, onOriginalDataChange, onFormDataChange, onSavingChange, onPendingChangesChange, pendingChanges]);
 
   useEffect(() => {
     if (saveHandlerRef) {
@@ -1094,7 +732,6 @@ export function HouseDetailContent({
     }
   }, [saveHandlerRef, handleSave]);
 
-  // Get the sticky class based on the current layout
   const stickyClass = settings?.layout
     ? stickySidebarClasses[`${settings?.layout}-layout`] ||
       'top-[calc(var(--header-height)+1rem)]'
@@ -1136,8 +773,7 @@ export function HouseDetailContent({
         </div>
       )}
 
-      {/* Main Content */}
-      <div className="flex flex-col items-stretch grow gap-5 lg:gap-7.5" id="scrollable_content">
+      <div className="flex flex-col items-stretch grow gap-5 lg:gap-7.5">
           <Card id="house_details">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>House Details</CardTitle>
@@ -1180,81 +816,6 @@ export function HouseDetailContent({
                     />
                   </div>
                 </div>
-
-                <div className="w-full">
-                  <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-                    <Label className="flex w-full max-w-56">House Type</Label>
-                    <HouseTypeCombobox
-                      value={formData.house_type_id}
-                      onChange={(value) => handleFieldChange('house_type_id', value)}
-                      canEdit={canEdit}
-                      onManageList={() => setShowHouseTypeDialog(true)}
-                    />
-                  </div>
-                </div>
-
-                <div className="w-full">
-                  <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-                    <Label className="flex w-full max-w-56">Capacity</Label>
-                    <Input
-                      type="number"
-                      value={formData.capacity}
-                      onChange={(e) => handleFieldChange('capacity', parseInt(e.target.value))}
-                      disabled={!canEdit}
-                    />
-                  </div>
-                </div>
-
-                <div className="w-full">
-                  <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-                    <Label className="flex w-full max-w-56">Current Occupancy</Label>
-                    <Input
-                      type="number"
-                      value={formData.current_occupancy}
-                      onChange={(e) => handleFieldChange('current_occupancy', parseInt(e.target.value))}
-                      disabled={!canEdit}
-                    />
-                  </div>
-                </div>
-
-                <div className="w-full">
-                  <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-                    <Label className="flex w-full max-w-56">House Manager</Label>
-                    <Input
-                      value={formData.house_manager}
-                      onChange={(e) => handleFieldChange('house_manager', e.target.value)}
-                      placeholder="Enter manager name"
-                      disabled={!canEdit}
-                    />
-                  </div>
-                </div>
-
-                <div className="w-full">
-                  <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-                    <Label className="flex w-full max-w-56">Status</Label>
-                    <Select value={formData.status} onValueChange={(value) => handleFieldChange('status', value)} disabled={!canEdit}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="active">Active</SelectItem>
-                        <SelectItem value="inactive">Inactive</SelectItem>
-                        <SelectItem value="maintenance">Maintenance</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="w-full">
-                  <Label className="mb-2.5 block">Internal Notes</Label>
-                  <Textarea
-                    value={formData.notes}
-                    onChange={(e) => handleFieldChange('notes', e.target.value)}
-                    placeholder="Enter any additional notes about this house"
-                    rows={4}
-                    disabled={!canEdit}
-                  />
-                </div>
               </div>
             </CardContent>
           </Card>
@@ -1263,81 +824,79 @@ export function HouseDetailContent({
             houseId={id}
             formData={formData}
             onFieldChange={handleFieldChange}
-            canEdit={canEditManagement}
+            canEdit={canEdit}
           />
 
-          <HouseCalendarEvents
-            key={`calendar-${refreshKeys.calendarEvents}`}
-            houseId={id}
-            canAdd={canAdd}
-            canDelete={canDelete}
+          <HouseCalendarEvents 
+            houseId={id!} 
+            events={formData.calendarEvents || []}
             pendingChanges={pendingChanges}
             onPendingChangesChange={onPendingChangesChange}
+            canEdit={canEdit}
+            refreshKey={refreshKeys.calendarEvents}
+          />
+
+          <HouseShiftSetup
+            houseId={id!}
+            pendingChanges={pendingChanges}
+            onPendingChangesChange={onPendingChangesChange}
+            canEdit={canEdit}
+            refreshKey={refreshKeys.shiftConfiguration}
           />
 
           <div id="checklist_comms_section" className="flex flex-col gap-5 lg:gap-7.5">
-            <HouseComms
-              key={`comms-${refreshKeys.comms}`}
-              houseId={id}
+            <HouseComms 
+              houseId={id!} 
+              comms={formData.comms || []}
               pendingChanges={pendingChanges}
               onPendingChangesChange={onPendingChangesChange}
+              canEdit={canEdit}
+              refreshKey={refreshKeys.comms}
             />
 
-            <HouseChecklistSetup
-              key={`checklists-${refreshKeys.checklists}`}
-              houseId={id}
-              canAdd={canAdd}
-              canDelete={canDelete}
+            <HouseChecklists 
+              houseId={id!} 
+              checklists={formData.checklists || []}
               pendingChanges={pendingChanges}
               onPendingChangesChange={onPendingChangesChange}
-              onRefresh={() => setRefreshKeys(prev => ({ ...prev, calendarEvents: prev.calendarEvents + 1 }))}
+              canEdit={canEdit}
+              refreshKey={refreshKeys.checklists}
             />
 
-            <div id="shift_configuration" className="scroll-mt-[var(--header-height)]">
-              <HouseShiftSetup
-                key={`shift-model-${refreshKeys.shiftConfiguration}`}
-                houseId={id!}
-                mode="model"
-                pendingChanges={pendingChanges}
-                onPendingChangesChange={onPendingChangesChange}
-              />
-            </div>
+            <HouseChecklistHistory houseId={id!} />
           </div>
 
-          <HouseDocuments
-            key={`documents-${refreshKeys.documents}`}
-            houseId={id}
-            houseName={formData?.name}
-            canAdd={canAdd}
-            canDelete={canDelete}
+          <HouseResources 
+            houseId={id!} 
+            resources={formData.resources || []}
             pendingChanges={pendingChanges}
             onPendingChangesChange={onPendingChangesChange}
+            canEdit={canEdit}
+            refreshKey={refreshKeys.resources}
           />
 
-          <HouseResources
-            key={`resources-${refreshKeys.resources}`}
-            houseId={id}
-            canAdd={canAdd}
-            canDelete={canDelete}
-            pendingChanges={pendingChanges}
-            onPendingChangesChange={onPendingChangesChange}
-          />
-
-          <HouseStaff
-            key={`staff-${refreshKeys.staff}`}
-            houseId={id}
-            canAdd={canAdd}
-            canDelete={canDelete}
+          <HouseStaff 
+            houseId={id!} 
+            canAdd={true}
+            canDelete={true}
             pendingChanges={pendingChanges}
             onPendingChangesChange={onPendingChangesChange}
           />
       </div>
 
-      <HouseTypeMasterDialog
-        open={showHouseTypeDialog}
-        onClose={() => setShowHouseTypeDialog(false)}
-        onUpdate={() => {}}
-      />
     </div>
   );
 }
+
+const stickySidebarClasses: Record<string, string> = {
+  'demo1-layout': 'top-[calc(var(--header-height)+1rem)]',
+  'demo2-layout': 'top-[calc(var(--header-height)+1rem)]',
+  'demo3-layout': 'top-[calc(var(--header-height)+var(--navbar-height)+1rem)]',
+  'demo4-layout': 'top-[3rem]',
+  'demo5-layout': 'top-[calc(var(--header-height)+1.5rem)]',
+  'demo6-layout': 'top-[3rem]',
+  'demo7-layout': 'top-[calc(var(--header-height)+1rem)]',
+  'demo8-layout': 'top-[3rem]',
+  'demo9-layout': 'top-[calc(var(--header-height)+1rem)]',
+  'demo10-layout': 'top-[1.5rem]',
+};

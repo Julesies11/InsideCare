@@ -20,7 +20,6 @@ export interface ShiftCalendarProps {
   onNotesClick?: (shift: ShiftCardData) => void;
   onBulkAction?: (houseId: string) => void;
   onPopulateRoster?: (houseId: string) => void;
-  groupByHouse?: boolean;
   houses?: Array<{ id: string; name: string }>;
   staffList?: Array<{ id: string; name: string }>;
   onQuickAssign?: (shiftId: string, staffId: string) => void;
@@ -56,7 +55,6 @@ export function ShiftCalendar({
   onNotesClick,
   onBulkAction,
   onPopulateRoster,
-  groupByHouse = false,
   houses = [],
   staffList,
   onQuickAssign,
@@ -132,7 +130,7 @@ export function ShiftCalendar({
         <ShiftCard
           shift={shift}
           compact={compact}
-          showStaffName={staffId === 'all' || groupByHouse}
+          showStaffName={true}
           showHouseName={showHouseName}
           onClick={() => onEditShift(shift)}
           onWriteNote={onWriteNote}
@@ -192,7 +190,7 @@ export function ShiftCalendar({
                   {getLeaveForDate(day).map(leave => (
                     <LeaveBlockBadge key={leave.id} leave={leave} />
                   ))}
-                  {dayShifts.map(shift => renderShiftCardWithWarning(shift, day, true, !groupByHouse))}
+                  {dayShifts.map(shift => renderShiftCardWithWarning(shift, day, true, false))}
                 </div>
               </div>
             );
@@ -205,7 +203,7 @@ export function ShiftCalendar({
   const renderWeekView = () => {
     const days = generateWeekDays(currentDate);
 
-    if (groupByHouse && houses.length > 0) {
+    if (houses.length > 0) {
       return renderHouseGroupedWeekView(days);
     }
 
@@ -243,7 +241,7 @@ export function ShiftCalendar({
                 {getLeaveForDate(day).map(leave => (
                   <LeaveBlockBadge key={leave.id} leave={leave} />
                 ))}
-                {dayShifts.map(shift => renderShiftCardWithWarning(shift, day, false, !groupByHouse))}
+                {dayShifts.map(shift => renderShiftCardWithWarning(shift, day, false, false))}
                 {dayShifts.length === 0 && getLeaveForDate(day).length === 0 && (
                   <div className="text-center py-8 bg-gray-50/50 rounded-xl border border-dashed border-gray-100">
                     <span className="text-[10px] font-medium text-muted-foreground italic uppercase tracking-widest opacity-40">No shifts</span>

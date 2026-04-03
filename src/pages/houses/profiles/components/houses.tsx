@@ -50,7 +50,8 @@ import { logActivity } from '@/lib/activity-logger';
 import { useAuth } from '@/auth/context/auth-context';
 import { parseSupabaseError } from '@/lib/error-parser';
 
-import { useDebouncedSearchParams } from '@/hooks/use-debounced-search-params';
+import { useSearchParams } from 'react-router';
+import { useDebounce } from '@/hooks/use-debounce';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const HOUSE_STATUS_OPTIONS: StatusOption[] = [
@@ -137,7 +138,7 @@ function ActionsCell({ row, updateHouse }: { row: Row<House>; updateHouse: (para
 }
 
 export function Houses() {
-  const [searchParams, setSearchParams] = useDebouncedSearchParams(300);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // Helper functions to parse URL params into initial state
   const getInitialPagination = (): PaginationState => ({
@@ -169,10 +170,13 @@ export function Houses() {
   const [searchQuery, setSearchQuery] = useState(getInitialSearch());
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>(getInitialStatuses());
 
+  // Use debounced search query for API calls
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+
   const filters = useMemo(() => ({
-    search: searchQuery,
+    search: debouncedSearchQuery,
     statuses: selectedStatuses
-  }), [searchQuery, selectedStatuses]);
+  }), [debouncedSearchQuery, selectedStatuses]);
 
   const { data, isLoading: loading, error } = useHouses(
     pagination.pageIndex,
@@ -191,33 +195,46 @@ export function Houses() {
 
   // Sync state changes to URL query parameters
   useEffect(() => {
-    const params = new URLSearchParams();
+    const params = new URLSearchParams(searchParams);
     
-    // Pagination - only add if not default
+    // Pagination - update URL as soon as page changes
     if (pagination.pageIndex > 0) {
       params.set('page', (pagination.pageIndex + 1).toString()); // Convert to 1-indexed
+    } else {
+      params.delete('page');
     }
+
     if (pagination.pageSize !== 10) {
       params.set('pageSize', pagination.pageSize.toString());
+    } else {
+      params.delete('pageSize');
     }
     
     // Sorting
     if (sorting.length > 0) {
       const sort = sorting[0];
       params.set('sort', `${sort.id}.${sort.desc ? 'desc' : 'asc'}`);
+    } else {
+      params.delete('sort');
     }
     
-    // Search
+    // Search - sync raw query to URL immediately for responsiveness
     if (searchQuery) {
       params.set('search', searchQuery);
+    } else {
+      params.delete('search');
     }
     
     // Always update the URL with the current list
-    params.set('statuses', selectedStatuses.join(','));
+    if (selectedStatuses.length > 0) {
+      params.set('statuses', selectedStatuses.join(','));
+    } else {
+      params.delete('statuses');
+    }
 
-    // Update URL without adding to history
+    // Update URL immediately without adding to history
     setSearchParams(params, { replace: true });
-  }, [pagination, sorting, searchQuery, selectedStatuses, setSearchParams]);
+  }, [pagination, sorting, searchQuery, selectedStatuses, setSearchParams, searchParams]);
 
   // Table columns
   const columns: ColumnDef<House>[] = useMemo(

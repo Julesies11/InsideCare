@@ -135,8 +135,9 @@ To provide a polished Metronic v9 experience, the process of setting up a House'
 To support long-term operational planning and rapid corrections, the system provides integrated bulk management tools directly on the Roster Board.
 
 ### 11.1. Bulk Shift Manager
-Integrated directly into the Roster Board (visible when grouped by House or accessible via the header), this tool allows for large-scale modifications.
+Integrated directly into the Roster Board (permanently grouped by House), this tool allows for large-scale modifications.
 *   **Accessibility**: A "BULK" button is located under each House name in the grouped view for context-aware management.
+*   **Reliability**: Added smoke tests for critical sub-components like `HouseComms` to prevent runtime crashes.
 *   **Capabilities**:
     *   **Bulk Delete**: Remove all shifts matching specific criteria (Date Range, House, Staff, Shift Type, Status).
     *   **Bulk Update Status**: Batch update the status of shifts (e.g., transition all 'Scheduled' shifts to 'Published' for a whole month).

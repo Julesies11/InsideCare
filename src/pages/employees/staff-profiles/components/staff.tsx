@@ -42,7 +42,8 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 import { Staff, useStaff } from '@/hooks/use-staff';
 import { useNavigate } from 'react-router';
-import { useDebouncedSearchParams } from '@/hooks/use-debounced-search-params';
+import { useSearchParams } from 'react-router';
+import { useDebounce } from '@/hooks/use-debounce';
 
 const STAFF_STATUS_OPTIONS: StatusOption[] = [
   { value: 'active', label: 'Active', badge: 'success' },
@@ -73,7 +74,7 @@ function ActionsCell({ row }: { row: Row<Staff> }) {
 }
 
 const StaffTable = () => {
-  const [searchParams, setSearchParams] = useDebouncedSearchParams(300);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // Helper functions to parse URL params into initial state
   const getInitialPagination = (): PaginationState => ({
@@ -105,10 +106,13 @@ const StaffTable = () => {
   const [searchQuery, setSearchQuery] = useState(getInitialSearch());
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>(getInitialStatuses());
 
+  // Use debounced search query for API calls to reduce server load
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+
   const filters = useMemo(() => ({
-    search: searchQuery,
+    search: debouncedSearchQuery,
     statuses: selectedStatuses
-  }), [searchQuery, selectedStatuses]);
+  }), [debouncedSearchQuery, selectedStatuses]);
 
   const { data, isLoading: loading, error } = useStaff(
     pagination.pageIndex,
@@ -243,31 +247,44 @@ const StaffTable = () => {
 
   // Sync state changes to URL query parameters
   useEffect(() => {
-    const params = new URLSearchParams();
+    const params = new URLSearchParams(searchParams);
     
-    // Pagination - only add if not default
+    // Pagination - update URL as soon as page changes
     if (pagination.pageIndex > 0) {
       params.set('page', (pagination.pageIndex + 1).toString()); // Convert to 1-indexed
+    } else {
+      params.delete('page');
     }
+
     if (pagination.pageSize !== 10) {
       params.set('pageSize', pagination.pageSize.toString());
+    } else {
+      params.delete('pageSize');
     }
     
     // Sorting
     if (sorting.length > 0) {
       const sort = sorting[0];
       params.set('sort', `${sort.id}.${sort.desc ? 'desc' : 'asc'}`);
+    } else {
+      params.delete('sort');
     }
     
-    // Search
+    // Search - sync raw query to URL immediately for responsiveness
     if (searchQuery) {
       params.set('search', searchQuery);
+    } else {
+      params.delete('search');
     }
     
-    // Always update the URL with the current list
-    params.set('statuses', selectedStatuses.join(','));
+    // Always update the URL with the current statuses
+    if (selectedStatuses.length > 0) {
+      params.set('statuses', selectedStatuses.join(','));
+    } else {
+      params.delete('statuses');
+    }
 
-    // Update URL without adding to history
+    // Update URL immediately without adding to history to ensure state is preserved if user navigates away
     setSearchParams(params, { replace: true });
   }, [pagination, sorting, searchQuery, selectedStatuses, setSearchParams]);
 

@@ -149,44 +149,6 @@ export interface HousePendingChanges {
     }>;
     toDelete: string[];
   };
-  shiftTemplateGroups: {
-    toAdd: Array<{
-      tempId: string;
-      name: string;
-      description?: string;
-      items: Array<{
-        tempId: string;
-        shift_type_id: string; // can be id or tempId
-        start_time: string;
-        end_time: string;
-        checklist_ids: string[];
-      }>;
-    }>;
-    toUpdate: Array<{
-      id: string;
-      name?: string;
-      description?: string;
-    }>;
-    toDelete: string[];
-    items: {
-      toAdd: Array<{
-        tempId: string;
-        template_group_id: string;
-        shift_type_id: string;
-        start_time: string;
-        end_time: string;
-        checklist_ids: string[];
-      }>;
-      toUpdate: Array<{
-        id: string;
-        shift_type_id?: string;
-        start_time?: string;
-        end_time?: string;
-        checklist_ids?: string[];
-      }>;
-      toDelete: string[];
-    };
-  };
   forms: {
     toAdd: Array<{
       tempId: string;
@@ -307,16 +269,6 @@ export const emptyHousePendingChanges: HousePendingChanges = {
     toUpdate: [],
     toDelete: [],
   },
-  shiftTemplateGroups: {
-    toAdd: [],
-    toUpdate: [],
-    toDelete: [],
-    items: {
-      toAdd: [],
-      toUpdate: [],
-      toDelete: [],
-    },
-  },
   forms: {
     toAdd: [],
     toUpdate: [],
@@ -361,12 +313,6 @@ export function hasHousePendingChanges(pending: HousePendingChanges): boolean {
     pending.shiftTypes.toAdd.length > 0 ||
     pending.shiftTypes.toUpdate.length > 0 ||
     pending.shiftTypes.toDelete.length > 0 ||
-    pending.shiftTemplateGroups.toAdd.length > 0 ||
-    pending.shiftTemplateGroups.toUpdate.length > 0 ||
-    pending.shiftTemplateGroups.toDelete.length > 0 ||
-    pending.shiftTemplateGroups.items.toAdd.length > 0 ||
-    pending.shiftTemplateGroups.items.toUpdate.length > 0 ||
-    pending.shiftTemplateGroups.items.toDelete.length > 0 ||
     pending.forms.toAdd.length > 0 ||
     pending.forms.toUpdate.length > 0 ||
     pending.forms.toDelete.length > 0 ||
@@ -404,12 +350,6 @@ export function countHousePendingChanges(pending: HousePendingChanges): number {
     pending.shiftTypes.toAdd.length +
     pending.shiftTypes.toUpdate.length +
     pending.shiftTypes.toDelete.length +
-    pending.shiftTemplateGroups.toAdd.length +
-    pending.shiftTemplateGroups.toUpdate.length +
-    pending.shiftTemplateGroups.toDelete.length +
-    pending.shiftTemplateGroups.items.toAdd.length +
-    pending.shiftTemplateGroups.items.toUpdate.length +
-    pending.shiftTemplateGroups.items.toDelete.length +
     pending.forms.toAdd.length +
     pending.forms.toUpdate.length +
     pending.forms.toDelete.length +

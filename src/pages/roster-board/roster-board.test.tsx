@@ -28,13 +28,7 @@ vi.mock('@/hooks/use-mobile', () => ({
 vi.mock('@/hooks/use-house-shift-types', () => ({
   useHouseShiftTypes: () => ({
     shiftTypes: [],
-    isLoading: false
-  })
-}));
-
-vi.mock('@/hooks/use-shift-templates', () => ({
-  useShiftTemplates: () => ({
-    groups: [],
+    defaults: [],
     isLoading: false
   })
 }));
@@ -65,9 +59,6 @@ describe('RosterBoard', () => {
       }),
       http.get(`${SUPABASE_URL}/rest/v1/shift_type_default_checklists`, () => {
         return HttpResponse.json([]);
-      }),
-      http.get(`${SUPABASE_URL}/rest/v1/shift_template_groups`, () => {
-        return HttpResponse.json([]);
       })
     );
   });
@@ -87,13 +78,8 @@ describe('RosterBoard', () => {
     expect(screen.getByText('Orchestrating Quality Care')).toBeInTheDocument();
   });
 
-  it('allows toggling Group By House', async () => {
-    const { user } = renderWithProviders(<RosterBoard />);
-    
-    const toggle = await screen.findByRole('switch', { name: /group by house/i });
-    expect(toggle).toHaveAttribute('aria-checked', 'true');
-    
-    await user.click(toggle);
-    await waitFor(() => expect(toggle).toHaveAttribute('aria-checked', 'false'));
+  it('does not show the Group By House toggle (permanently enabled)', () => {
+    renderWithProviders(<RosterBoard />);
+    expect(screen.queryByRole('switch', { name: /group by house/i })).not.toBeInTheDocument();
   });
 });

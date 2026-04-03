@@ -1,5 +1,7 @@
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PersonalDetails } from './personal-details';
 import { EmploymentDetails } from './employment-details';
+import { StaffAvailability } from './staff-availability';
 import { EmergencyContact } from './emergency-contact';
 import { StaffComplianceSection } from './staff-compliance';
 import { StaffRoster } from './staff-roster';
@@ -44,12 +46,15 @@ export function StaffDetailForm({
 
   return (
     <div className="grid gap-2.5 lg:gap-7.5">
+      {/* 1. Personal Details */}
       <PersonalDetails
         formData={formData}
         onFormChange={handleFormChange}
         canEdit={canEdit}
         validationErrors={validationErrors}
       />
+
+      {/* 2. Employment Details */}
       <EmploymentDetails
         formData={formData}
         onFormChange={handleFormChange}
@@ -57,20 +62,29 @@ export function StaffDetailForm({
         validationErrors={validationErrors}
         currentStaffId={staffId}
       />
+
+      {/* 3. Availability */}
+      <StaffAvailability
+        formData={formData}
+        onFormChange={handleFormChange}
+        canEdit={canEdit}
+      />
+
+      {/* 4. Emergency Contact */}
       <EmergencyContact
         formData={formData}
         onFormChange={handleFormChange}
         canEdit={canEdit}
       />
+
+      {/* 5. Compliance */}
       <StaffComplianceSection
         formData={formData}
         onFormChange={handleFormChange}
         canEdit={canEdit}
       />
-      <StaffRoster
-        staffId={staffId}
-        canEdit={canEdit}
-      />
+
+      {/* 6. Training */}
       <StaffTrainingSection
         key={`training-${trainingRefreshKey}`}
         staffId={staffId}
@@ -78,6 +92,8 @@ export function StaffDetailForm({
         onPendingChangesChange={onPendingChangesChange}
         refreshKey={trainingRefreshKey}
       />
+
+      {/* 7. Documents */}
       <Documents
         key={`documents-${documentsRefreshKey}`}
         staffId={staffId}
@@ -87,6 +103,38 @@ export function StaffDetailForm({
         pendingChanges={pendingChanges}
         onPendingChangesChange={onPendingChangesChange}
       />
+
+      {/* 8. Roster */}
+      <StaffRoster
+        staffId={staffId}
+        canEdit={canEdit}
+      />
+
+      {/* 9. Leave */}
+      <Card className="pb-2.5" id="staff_leave">
+        <CardHeader>
+          <CardTitle>Leave</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col items-center justify-center py-10 text-muted-foreground border-2 border-dashed rounded-lg">
+            <p className="text-sm font-medium">Leave Management section coming soon.</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 10. Warnings */}
+      <Card className="pb-2.5" id="staff_warnings">
+        <CardHeader>
+          <CardTitle>Warnings</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col items-center justify-center py-10 text-muted-foreground border-2 border-dashed rounded-lg">
+            <p className="text-sm font-medium">Staff Warnings section coming soon.</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 11. Activity Log */}
       <StaffActivityLog staffId={staffId} refreshTrigger={activityRefreshTrigger} />
     </div>
   );

@@ -8,8 +8,6 @@ import { getDateRange, ViewMode } from '@/components/roster/roster-utils';
 import { EditShiftNoteDialog } from '@/pages/participants/shift-notes/components/edit-shift-note-dialog';
 import { useShiftNotes } from '@/hooks/use-shift-notes';
 import { supabase } from '@/lib/supabase';
-import { ApplyShiftTemplateModal } from './ApplyShiftTemplateModal';
-import { useShiftTemplates } from '@/hooks/use-shift-templates';
 import { useHouseShiftTypes } from '@/hooks/use-house-shift-types';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -32,7 +30,6 @@ interface StaffRosterCalendarProps {
   statusFilter: string;
   canEdit: boolean;
   showLeave?: boolean;
-  groupByHouse?: boolean;
   onBulkAction?: (houseId: string) => void;
   onPopulateRoster?: (houseId: string) => void;
   checklists: any[];
@@ -54,17 +51,15 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
   houseFilter,
   participantFilter,
   shiftTypeFilter,
-  statusFilter,
+  statusFilter: _statusFilter,
   canEdit,
   showLeave = true,
-  groupByHouse = false,
   onBulkAction,
   onPopulateRoster,
   checklists,
 }, ref) => {
   const queryClient = useQueryClient();
   const [showShiftDialog, setShowShiftDialog] = useState(false);
-  const [showApplyTemplateModal, setShowApplyTemplateModal] = useState(false);
   const [isCopying, setIsCopying] = useState(false);
   const [saving, setSaving] = useState(false);
   const [selectedShift, setSelectedShift] = useState<StaffShift | null>(null);
@@ -88,7 +83,6 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
   const { createShiftNote, refetch: refetchNotes } = useShiftNotes();
 
   const { shiftTypes } = useHouseShiftTypes(houseFilter !== 'all' ? houseFilter : undefined);
-  const { groups: templates } = useShiftTemplates(houseFilter !== 'all' ? houseFilter : undefined);
 
   const [scrollToNotes, setScrollToNotes] = useState(false);
 
@@ -388,30 +382,6 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
     }
   };
 
-  const handleApplyShiftTemplate = async (templateId: string, startDate: string, endDate: string) => {
-    if (!houseFilter || houseFilter === 'all') {
-      toast.error('Please select a specific house to apply a template.');
-      return;
-    }
-
-    setIsCopying(true);
-    try {
-      const result = await materializeTemplate({
-        templateId,
-        houseId: houseFilter,
-        startDate,
-        endDate
-      });
-
-      toast.success(`Template applied! Created ${result.created} shifts. ${result.skipped > 0 ? `(Skipped ${result.skipped} duplicates)` : ''}`);
-    } catch (err) {
-      console.error('Error applying template:', err);
-      toast.error('Failed to apply shift template.');
-    } finally {
-      setIsCopying(false);
-    }
-  };
-
   const handleQuickAssign = async (shiftId: string, assignedStaffId: string) => {
     try {
       await updateShift(shiftId, { staff_id: assignedStaffId });
@@ -422,12 +392,12 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
     }
   };
 
-  const triggerApplyTemplate = () => setShowApplyTemplateModal(true);
-
   useImperativeHandle(ref, () => ({
     copyPreviousWeek: handleCopyPreviousWeek,
     rolloutRoster: handleRolloutRoster,
-    applyTemplate: triggerApplyTemplate,
+    applyTemplate: () => {
+      toast.info('Template system has been replaced by Populate tool.');
+    },
     refresh: () => {
       queryClient.invalidateQueries({ queryKey: ['roster-shifts'] });
       queryClient.invalidateQueries({ queryKey: ['leave-requests'] });
@@ -447,7 +417,6 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
         canEdit={canEdit}
         leaveBlocks={showLeave ? (leaveBlocks as any) : []}
         shiftTypes={shiftTypes}
-        templates={templates}
         onAddShift={handleAddShift}
         onEditShift={handleEditShift}
         onWriteNote={handleWriteNote}
@@ -455,18 +424,10 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
         onApplyTemplate={handleApplyTemplateToDate}
         onBulkAction={onBulkAction}
         onPopulateRoster={onPopulateRoster}
-        groupByHouse={groupByHouse}
+        groupByHouse={true}
         houses={houses}
         staffList={staff}
         onQuickAssign={handleQuickAssign}
-      />
-
-      <ApplyShiftTemplateModal
-        open={showApplyTemplateModal}
-        onClose={() => setShowApplyTemplateModal(false)}
-        houseId={houseFilter}
-        onApply={handleApplyShiftTemplate}
-        initialDate={currentDate}
       />
 
       <ShiftDialog

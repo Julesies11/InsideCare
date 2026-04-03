@@ -31,12 +31,6 @@ export function HouseDetailSidebar() {
     {
       title: 'Shift Configuration',
       target: 'shift_configuration',
-      children: [
-        {
-          title: 'Shift Model',
-          target: 'shift_configuration',
-        },
-      ]
     },
     {
       title: 'Checklist/Comms',

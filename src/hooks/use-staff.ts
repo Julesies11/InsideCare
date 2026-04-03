@@ -181,7 +181,7 @@ export function useStaff(
 
       return { data: formatted as Staff[], count: count || 0 };
     },
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 30, // 30 seconds
   });
 
   return {

@@ -39,20 +39,6 @@ vi.mock('@/hooks/useHouseParticipants', () => ({
   })
 }));
 
-vi.mock('@/hooks/use-shift-templates', () => ({
-  useShiftTemplates: () => ({
-    defaults: [],
-    groups: [
-      { id: 'g-1', name: 'Standard Rota', items: [] }
-    ],
-    schedules: [],
-    isLoading: false,
-    refresh: vi.fn(),
-    createSchedule: { isPending: false, mutate: vi.fn(), mutateAsync: vi.fn() },
-    deleteSchedule: { isPending: false, mutate: vi.fn(), mutateAsync: vi.fn() }
-  })
-}));
-
 vi.mock('@/hooks/use-house-checklists', () => ({
   useHouseChecklists: () => ({
     houseChecklists: [],

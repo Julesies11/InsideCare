@@ -4,17 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { CalendarDays, Clock, CheckSquare, Loader2, Zap, AlertCircle, Copy, CheckCircle2, UserPlus } from 'lucide-react';
-import { format, addDays, startOfTomorrow, endOfWeek, startOfWeek, eachDayOfInterval, getDay, differenceInCalendarDays, startOfDay, isBefore } from 'date-fns';
+import { CalendarDays, CheckSquare, Loader2, Zap, Copy, UserPlus } from 'lucide-react';
+import { format, addDays, startOfWeek, isBefore, startOfDay } from 'date-fns';
 import { useHouseShiftTypes } from '@/hooks/use-house-shift-types';
-import { useHouseChecklists } from '@/hooks/use-house-checklists';
 import { useHouseParticipants } from '@/hooks/useHouseParticipants';
-import { useShiftTemplates } from '@/hooks/use-shift-templates';
-import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { cn, getPeriodTheme } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
 
 import { useRosterData } from '@/components/roster/use-roster-data';
 
@@ -38,20 +33,16 @@ const DAYS_OF_WEEK = [
 
 export function PopulateRosterModal({ open, onOpenChange, houseId, houseName, onSuccess }: PopulateRosterModalProps) {
   const [startDate, setStartDate] = useState(format(startOfWeek(addDays(new Date(), 7), { weekStartsOn: 1 }), 'yyyy-MM-dd'));
-  const [weeksToGenerate, setWeeksToGenerate] = useState(4);
+  const [weeksToGenerate, setWeeksToGenerate] = useState(1);
   const [isGenerating, setIsGenerating] = useState(false);
   
   // Pattern: Array of weeks, each is Record<dayIndex, shiftTypeId[]>
   const [pattern, setPattern] = useState<Record<number, string[]>[]>([
-    { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 0: [] },
-    { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 0: [] },
-    { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 0: [] },
     { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 0: [] }
   ]);
 
-  const { shiftTypes = [] } = useHouseShiftTypes(houseId);
+  const { shiftTypes = [], defaults = [] } = useHouseShiftTypes(houseId);
   const { houseParticipants = [] } = useHouseParticipants(houseId);
-  const { defaults = [] } = useShiftTemplates(houseId);
   const { materializePattern } = useRosterData();
 
   const [selectedParticipantIds, setSelectedParticipantIds] = useState<string[]>([]);
@@ -122,6 +113,18 @@ export function PopulateRosterModal({ open, onOpenChange, houseId, houseName, on
     toast.success('Week 1 pattern copied to all weeks');
   };
 
+  const copyMonToWeekdays = (weekIndex: number) => {
+    setPattern(prev => {
+      const next = [...prev];
+      const w = { ...next[weekIndex] };
+      const monPattern = w[1] || [];
+      [2, 3, 4, 5].forEach(day => { w[day] = [...monPattern]; });
+      next[weekIndex] = w;
+      return next;
+    });
+    toast.success(`Monday pattern copied to weekdays for Week ${weekIndex + 1}`);
+  };
+
   const handlePopulate = async () => {
     if (!startDate) {
       toast.error('Please select a valid start date');
@@ -173,7 +176,7 @@ export function PopulateRosterModal({ open, onOpenChange, houseId, houseName, on
             <div>
               <DialogTitle className="text-xl sm:text-2xl font-black uppercase tracking-tight leading-none mb-1">Populate Roster</DialogTitle>
               <DialogDescription className="text-xs sm:text-sm font-medium">
-                Generate open confirmed shifts for <span className="text-gray-900 font-bold">{houseName}</span> based on your shift model.
+                Generate open confirmed shifts for {houseName} based on your shift model.
               </DialogDescription>
             </div>
           </div>
@@ -194,17 +197,20 @@ export function PopulateRosterModal({ open, onOpenChange, houseId, houseName, on
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1 flex items-center gap-2">
-                <CalendarDays className="size-3" /> Weeks to Generate
+              <Label htmlFor="rotation-length" className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1 flex items-center gap-2">
+                <CalendarDays className="size-3" /> Rotation Length
               </Label>
-              <Input
-                type="number"
-                min={1}
-                max={52}
+              <select
+                id="rotation-length"
                 value={weeksToGenerate}
-                onChange={e => setWeeksToGenerate(Math.max(1, Math.min(52, Number(e.target.value))))}
-                className="h-12 text-base font-bold bg-gray-50/50 border-gray-200 focus:bg-white transition-all"
-              />
+                onChange={e => setWeeksToGenerate(Number(e.target.value))}
+                className="flex h-12 w-full items-center justify-between rounded-md border border-input bg-gray-50/50 px-3 py-2 text-base font-bold ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all"
+              >
+                <option value="1">1 Week</option>
+                <option value="2">2 Weeks</option>
+                <option value="3">3 Weeks</option>
+                <option value="4">4 Weeks</option>
+              </select>
             </div>
           </div>
 
@@ -247,12 +253,19 @@ export function PopulateRosterModal({ open, onOpenChange, houseId, houseName, on
                           {format(weekStartDate, 'MMM d')} - {format(weekEndDate, 'MMM d, yyyy')}
                         </span>
                       </div>
+
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => copyMonToWeekdays(weekIndex)}
+                        className="h-7 text-[9px] font-bold uppercase tracking-widest"
+                      >
+                        Copy Mon to Weekdays
+                      </Button>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-4 lg:grid-cols-7 gap-3">
                       {DAYS_OF_WEEK.map(day => {
-                        // Calculate the exact date for this cell
-                        // day.id is 1 (Mon) to 0 (Sun). We need to map it to 0-6 offset from Monday
                         const dayOffset = day.id === 0 ? 6 : day.id - 1;
                         const cellDate = addDays(weekStartDate, dayOffset);
                         const isBeforeStart = isBefore(cellDate, startOfDay(new Date(startDate)));

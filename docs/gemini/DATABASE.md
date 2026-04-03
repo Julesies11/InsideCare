@@ -47,16 +47,11 @@ The care facilities/locations.
 ## Operational Tables
 
 ### Roster & Shifts
-- **`house_shift_types`**: Defines house-specific shift periods (Morning, Day, etc.) with custom icons and colors.
+- **`house_shift_types`**: Defines house-specific shift periods (Morning, Day, etc.) with custom icons, colors, and default times.
 - **`shift_type_default_checklists`**: Junction table mapping default checklists to shift types.
-- **`shift_template_groups`**: Named collections of shifts (e.g., "Standard Weekday", "Christmas Day").
-- **`shift_template_items`**: Individual shift definitions within a template group, linking to `house_shift_types`.
-- **`shift_template_item_checklists`**: Custom checklist overrides for specific template shifts.
-- **`shift_template_participants`**: Junction table for linking specific participants to shifts within a template.
 - **`staff_shifts`**: Scheduled shifts for staff.
-    - **Key Fields**: `id`, `staff_id`, `house_id`, `start_date` (formerly `shift_date`), `start_time`, `end_time`.
+    - **Key Fields**: `id`, `staff_id`, `house_id`, `start_date`, `start_time`, `end_time`.
 - **`shift_assigned_checklists`**: Instances of checklists assigned to a *specific* `staff_shift`.
-- **`shift_template_schedules`**: Recurring RRule patterns for deploying template groups.
 
 ### Checklists & Submissions
 - **`checklist_master` & `checklist_item_master`**: Templates for recurring tasks.

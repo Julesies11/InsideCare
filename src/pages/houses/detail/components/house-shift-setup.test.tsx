@@ -8,12 +8,6 @@ vi.mock('@/hooks/use-house-shift-types', () => ({
     shiftTypes: [
       { id: 'st-1', name: 'Morning', color_theme: 'morning', icon_name: 'Clock', default_start_time: '07:00:00', default_end_time: '15:00:00' }
     ],
-    refresh: vi.fn()
-  })
-}));
-
-vi.mock('@/hooks/use-shift-templates', () => ({
-  useShiftTemplates: () => ({
     defaults: [
       { 
         shift_type_id: 'st-1', 
@@ -30,11 +24,7 @@ vi.mock('@/hooks/use-shift-templates', () => ({
         }
       }
     ],
-    groups: [],
-    schedules: [],
-    refresh: vi.fn(),
-    createSchedule: { mutateAsync: vi.fn(), isPending: false },
-    deleteSchedule: { mutateAsync: vi.fn() }
+    refresh: vi.fn()
   })
 }));
 

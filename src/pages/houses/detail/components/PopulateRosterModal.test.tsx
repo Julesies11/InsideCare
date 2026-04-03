@@ -27,6 +27,7 @@ vi.mock('@/hooks/use-house-shift-types', () => ({
       { id: 'st-1', name: 'Morning', color_theme: 'morning', is_active: true, default_start_time: '07:00', default_end_time: '15:00' },
       { id: 'st-2', name: 'Afternoon', color_theme: 'afternoon', is_active: true, default_start_time: '15:00', default_end_time: '23:00' }
     ],
+    defaults: [],
     isLoading: false
   })
 }));
@@ -36,13 +37,6 @@ vi.mock('@/hooks/useHouseParticipants', () => ({
     participants: [
       { id: 'p-1', first_name: 'Test', last_name: 'Participant', status: 'active' }
     ],
-    isLoading: false
-  })
-}));
-
-vi.mock('@/hooks/use-shift-templates', () => ({
-  useShiftTemplates: () => ({
-    defaults: [],
     isLoading: false
   })
 }));

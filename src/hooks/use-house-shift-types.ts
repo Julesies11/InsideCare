@@ -9,10 +9,22 @@ export interface HouseShiftType {
   short_name?: string;
   icon_name?: string;
   color_theme?: string;
+  default_start_time?: string;
+  default_end_time?: string;
   sort_order: number;
   is_active: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export interface ShiftTypeDefaultChecklist {
+  shift_type_id: string;
+  checklist_id: string;
+  checklist?: {
+    id: string;
+    name: string;
+    description: string;
+  };
 }
 
 export function useHouseShiftTypes(houseId?: string) {
@@ -21,29 +33,51 @@ export function useHouseShiftTypes(houseId?: string) {
   const query = useQuery({
     queryKey: ['house-shift-types', houseId],
     queryFn: async () => {
-      if (!houseId) return [];
-      const { data, error } = await supabase
-        .from('house_shift_types')
-        .select('*')
-        .eq('house_id', houseId)
-        .order('sort_order', { ascending: true });
+      if (!houseId) return { types: [], defaults: [] };
+      
+      const [typesRes, defaultsRes] = await Promise.all([
+        supabase
+          .from('house_shift_types')
+          .select('*')
+          .eq('house_id', houseId)
+          .order('sort_order', { ascending: true }),
+        supabase
+          .from('shift_type_default_checklists')
+          .select('*, checklist:house_checklists(id, name, description)')
+          .in('shift_type_id', (await supabase.from('house_shift_types').select('id').eq('house_id', houseId)).data?.map(t => t.id) || [])
+      ]);
 
-      if (error) throw error;
-      return data as HouseShiftType[];
+      if (typesRes.error) throw typesRes.error;
+      if (defaultsRes.error) throw defaultsRes.error;
+
+      return {
+        types: typesRes.data as HouseShiftType[],
+        defaults: defaultsRes.data as ShiftTypeDefaultChecklist[]
+      };
     },
     enabled: !!houseId,
     staleTime: 1000 * 60 * 10, // 10 minutes
   });
 
   const createShiftType = useMutation({
-    mutationFn: async (shiftType: Partial<HouseShiftType>) => {
+    mutationFn: async (shiftType: Partial<HouseShiftType> & { default_checklists?: string[] }) => {
+      const { default_checklists, ...typeData } = shiftType;
       const { data, error } = await supabase
         .from('house_shift_types')
-        .insert({ ...shiftType, house_id: houseId })
+        .insert({ ...typeData, house_id: houseId })
         .select()
         .single();
 
       if (error) throw error;
+
+      if (default_checklists && default_checklists.length > 0) {
+        const links = default_checklists.map(clId => ({
+          shift_type_id: data.id,
+          checklist_id: clId
+        }));
+        await supabase.from('shift_type_default_checklists').insert(links);
+      }
+
       return data;
     },
     onSuccess: () => {
@@ -56,15 +90,28 @@ export function useHouseShiftTypes(houseId?: string) {
   });
 
   const updateShiftType = useMutation({
-    mutationFn: async (shiftType: Partial<HouseShiftType> & { id: string }) => {
+    mutationFn: async (shiftType: Partial<HouseShiftType> & { id: string, default_checklists?: string[] }) => {
+      const { default_checklists, ...typeData } = shiftType;
       const { data, error } = await supabase
         .from('house_shift_types')
-        .update(shiftType)
-        .eq('id', shiftType.id)
+        .update(typeData)
+        .eq('id', typeData.id)
         .select()
         .maybeSingle();
 
       if (error) throw error;
+
+      if (default_checklists) {
+        await supabase.from('shift_type_default_checklists').delete().eq('shift_type_id', typeData.id);
+        if (default_checklists.length > 0) {
+          const links = default_checklists.map(clId => ({
+            shift_type_id: typeData.id,
+            checklist_id: clId
+          }));
+          await supabase.from('shift_type_default_checklists').insert(links);
+        }
+      }
+
       return data;
     },
     onSuccess: () => {
@@ -96,7 +143,8 @@ export function useHouseShiftTypes(houseId?: string) {
 
   return {
     ...query,
-    shiftTypes: query.data || [],
+    shiftTypes: query.data?.types || [],
+    defaults: query.data?.defaults || [],
     createShiftType,
     updateShiftType,
     deleteShiftType

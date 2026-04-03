@@ -102,7 +102,7 @@ export function ShiftDialog({
           shift_type: shift.shift_type,
           shift_type_id: shift.shift_type_id || null,
           notes: shift.notes || '',
-          participant_ids: shift.shift_participants?.map((p: any) => p.participant_id) || [],
+          participant_ids: shift.participants?.map((p: any) => p.id) || [],
           assigned_checklists: shift.assigned_checklists || [],
         });
         setIsDuplicating(false);
@@ -352,7 +352,7 @@ export function ShiftDialog({
                   >
                     <Checkbox checked={formData.participant_ids.includes(p.id)} onCheckedChange={() => !readOnly && toggleParticipant(p.id)} className="size-4" />
                     <div className="min-w-0">
-                      <p className="text-xs font-bold truncate">{p.first_name} {p.last_name}</p>
+                      <p className="text-xs font-bold truncate">{p.name}</p>
                     </div>
                   </div>
                 ))}

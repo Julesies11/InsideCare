@@ -28,21 +28,10 @@ describe('AdminLeaveRequestsPage', () => {
       http.get(`${SUPABASE_URL}/rest/v1/leave_requests`, () => {
         return HttpResponse.json([mockLeaveRequest]);
       }),
-      http.head(`${SUPABASE_URL}/rest/v1/staff_shifts`, () => {
-        return new HttpResponse(null, {
-          status: 200,
-          headers: {
-            'Content-Range': '0-0/1',
-          },
-        });
-      }),
-      http.get(`${SUPABASE_URL}/rest/v1/staff_shifts`, ({ request }) => {
-        const url = new URL(request.url);
-        if (url.searchParams.get('select') === 'id') {
-           // This is the conflict count query (if it were a GET request)
-           return HttpResponse.json([1], { headers: { 'Content-Range': '0-0/1' } });
-        }
-        return HttpResponse.json([]);
+      http.get(`${SUPABASE_URL}/rest/v1/staff_shifts`, () => {
+        return HttpResponse.json([
+          { id: 'shift-1', staff_id: 'staff-2', start_date: '2024-02-02' }
+        ]);
       }),
       http.patch(`${SUPABASE_URL}/rest/v1/leave_requests`, () => {
         return HttpResponse.json({ ...mockLeaveRequest, status: 'approved' });

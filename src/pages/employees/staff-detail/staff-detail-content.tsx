@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useScrollPosition } from '@/hooks/use-scroll-position';
@@ -8,7 +8,7 @@ import { useAuth } from '@/auth/context/auth-context';
 import { Scrollspy } from '@/components/ui/scrollspy';
 import { StaffDetailForm } from './components/staff-detail-form';
 import { StaffDetailSidebar } from './components/staff-detail-sidebar';
-import { Staff, StaffUpdateData, useStaff, useUpdateStaff, useStaffMember } from '@/hooks/use-staff';
+import { Staff, StaffUpdateData, useUpdateStaff, useStaffMember } from '@/hooks/use-staff';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { StaffPendingChanges, emptyStaffPendingChanges } from '@/models/staff-pending-changes';
@@ -124,19 +124,10 @@ export function StaffDetailContent({
   const parentRef = useRef<HTMLElement | Document>(document);
   const scrollPosition = useScrollPosition({ targetRef: parentRef });
 
-  // Effect to update parentRef after the component mounts
-  useEffect(() => {
-    const scrollableElement = document.getElementById('scrollable_content');
-    if (scrollableElement) {
-      parentRef.current = scrollableElement;
-    }
-  }, []);
-
   // Handle scroll position and sidebar stickiness
   useEffect(() => {
     setSidebarSticky(scrollPosition > 100);
   }, [scrollPosition]);
-
   // Sync staff member data to form state
   useEffect(() => {
     if (staffData && !hasInitialized) {
@@ -280,24 +271,23 @@ export function StaffDetailContent({
       }
 
       // Step 1: Process pending compliance
-      if (currentPending.staffCompliance.toAdd.length) {
-        for (const item of currentPending.staffCompliance.toAdd) {
-          const { error } = await supabase
-            .from('staff_compliance')
-            .insert({
-              staff_id: staffId,
-              compliance_name: item.compliance_name,
-              completion_date: item.completion_date || null,
-              expiry_date: item.expiry_date || null,
-              status: item.status || 'Complete',
-            });
-          if (error) {
-            const parsedError = parseSupabaseError(error);
-            toast.error(parsedError.title, { description: parsedError.description });
-            throw error;
-          }
+      if (currentPending.staffCompliance.toAdd.length > 0) {
+        const toInsert = currentPending.staffCompliance.toAdd.map(item => ({
+          staff_id: staffId,
+          compliance_name: item.compliance_name,
+          completion_date: item.completion_date || null,
+          expiry_date: item.expiry_date || null,
+          status: item.status || 'Complete',
+        }));
 
-          // Log activity
+        const { error } = await supabase.from('staff_compliance').insert(toInsert);
+        if (error) {
+          const parsedError = parseSupabaseError(error);
+          toast.error(parsedError.title, { description: parsedError.description });
+          throw error;
+        }
+
+        for (const item of currentPending.staffCompliance.toAdd) {
           await logActivity({
             activityType: 'create',
             entityType: 'staff',
@@ -309,7 +299,7 @@ export function StaffDetailContent({
         }
       }
 
-      if (currentPending.staffCompliance.toUpdate.length) {
+      if (currentPending.staffCompliance.toUpdate.length > 0) {
         for (const item of currentPending.staffCompliance.toUpdate) {
           const { error } = await supabase
             .from('staff_compliance')
@@ -326,7 +316,6 @@ export function StaffDetailContent({
             throw error;
           }
 
-          // Log activity
           await logActivity({
             activityType: 'update',
             entityType: 'staff',
@@ -338,45 +327,46 @@ export function StaffDetailContent({
         }
       }
 
-      if (currentPending.staffCompliance.toDelete.length) {
-        for (const id of currentPending.staffCompliance.toDelete) {
-          // Get name before deleting for log
-          const { data: compData } = await supabase
-            .from('staff_compliance')
-            .select('compliance_name')
-            .eq('id', id)
-            .single();
+      if (currentPending.staffCompliance.toDelete.length > 0) {
+        // Get names before deleting for log
+        const { data: compRecords } = await supabase
+          .from('staff_compliance')
+          .select('id, compliance_name')
+          .in('id', currentPending.staffCompliance.toDelete);
 
-          const { error } = await supabase
-            .from('staff_compliance')
-            .delete()
-            .eq('id', id);
-          if (error) {
-            const parsedError = parseSupabaseError(error);
-            toast.error(parsedError.title, { description: parsedError.description });
-            throw error;
+        const { error } = await supabase
+          .from('staff_compliance')
+          .delete()
+          .in('id', currentPending.staffCompliance.toDelete);
+        
+        if (error) {
+          const parsedError = parseSupabaseError(error);
+          toast.error(parsedError.title, { description: parsedError.description });
+          throw error;
+        }
+
+        if (compRecords) {
+          for (const record of compRecords) {
+            await logActivity({
+              activityType: 'delete',
+              entityType: 'staff',
+              entityId: staffId,
+              entityName: staffMember?.name,
+              userName,
+              customDescription: `Deleted compliance requirement "${record.compliance_name || 'Unknown requirement'}"`,
+            });
           }
-
-          // Log activity
-          await logActivity({
-            activityType: 'delete',
-            entityType: 'staff',
-            entityId: staffId,
-            entityName: staffMember?.name,
-            userName,
-            customDescription: `Deleted compliance requirement "${compData?.compliance_name || 'Unknown requirement'}"`,
-          });
         }
       }
 
       // Step 2: Process pending training records
-      if (currentPending.training.toAdd.length) {
+      if (currentPending.training.toAdd.length > 0) {
+        const toInsert = [];
         for (const item of currentPending.training.toAdd) {
           let filePath = null;
           let fileName = null;
           let fileSize = null;
 
-          // Upload file if present
           if (item.file) {
             const fileExt = item.file.name.split('.').pop();
             const uniqueFileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
@@ -396,28 +386,29 @@ export function StaffDetailContent({
             fileSize = item.file.size;
           }
 
-          const { error } = await supabase
-            .from('staff_training')
-            .insert({
-              staff_id: staffId,
-              title: item.title,
-              category: item.category,
-              description: item.description || null,
-              provider: item.provider || null,
-              date_completed: item.date_completed || null,
-              expiry_date: item.expiry_date || null,
-              file_path: filePath,
-              file_name: fileName,
-              file_size: fileSize,
-              created_by: staffId,
-            });
-          if (error) {
-            const parsedError = parseSupabaseError(error);
-            toast.error(parsedError.title, { description: parsedError.description });
-            throw error;
-          }
+          toInsert.push({
+            staff_id: staffId,
+            title: item.title,
+            category: item.category,
+            description: item.description || null,
+            provider: item.provider || null,
+            date_completed: item.date_completed || null,
+            expiry_date: item.expiry_date || null,
+            file_path: filePath,
+            file_name: fileName,
+            file_size: fileSize,
+            created_by: staffId,
+          });
+        }
 
-          // Log activity
+        const { error } = await supabase.from('staff_training').insert(toInsert);
+        if (error) {
+          const parsedError = parseSupabaseError(error);
+          toast.error(parsedError.title, { description: parsedError.description });
+          throw error;
+        }
+
+        for (const item of currentPending.training.toAdd) {
           await logActivity({
             activityType: 'create',
             entityType: 'staff',
@@ -429,19 +420,15 @@ export function StaffDetailContent({
         }
       }
 
-      if (currentPending.training.toUpdate.length) {
+      if (currentPending.training.toUpdate.length > 0) {
         for (const item of currentPending.training.toUpdate) {
           let filePath = item.filePath;
           let fileName = item.fileName;
           let fileSize = null;
 
-          // Upload new file if present
           if (item.file) {
-            // Delete old file if exists
             if (item.filePath) {
-              await supabase.storage
-                .from('staff-documents')
-                .remove([item.filePath]);
+              await supabase.storage.from('staff-documents').remove([item.filePath]);
             }
 
             const fileExt = item.file.name.split('.').pop();
@@ -476,13 +463,13 @@ export function StaffDetailContent({
               file_size: fileSize,
             })
             .eq('id', item.id);
+          
           if (error) {
             const parsedError = parseSupabaseError(error);
             toast.error(parsedError.title, { description: parsedError.description });
             throw error;
           }
 
-          // Log activity
           await logActivity({
             activityType: 'update',
             entityType: 'staff',
@@ -494,48 +481,44 @@ export function StaffDetailContent({
         }
       }
 
-      if (currentPending.training.toDelete.length) {
-        for (const item of currentPending.training.toDelete) {
-          // Get title before deleting for log
-          const { data: trainingData } = await supabase
-            .from('staff_training')
-            .select('title')
-            .eq('id', item.id)
-            .single();
+      if (currentPending.training.toDelete.length > 0) {
+        const ids = currentPending.training.toDelete.map(i => i.id);
+        const filePaths = currentPending.training.toDelete.map(i => i.filePath).filter(Boolean) as string[];
 
-          // Delete file from storage if exists
-          if (item.filePath) {
-            await supabase.storage
-              .from('staff-documents')
-              .remove([item.filePath]);
+        const { data: trainingRecords } = await supabase
+          .from('staff_training')
+          .select('id, title')
+          .in('id', ids);
+
+        if (filePaths.length > 0) {
+          await supabase.storage.from('staff-documents').remove(filePaths);
+        }
+
+        const { error } = await supabase.from('staff_training').delete().in('id', ids);
+        if (error) {
+          const parsedError = parseSupabaseError(error);
+          toast.error(parsedError.title, { description: parsedError.description });
+          throw error;
+        }
+
+        if (trainingRecords) {
+          for (const record of trainingRecords) {
+            await logActivity({
+              activityType: 'delete',
+              entityType: 'staff',
+              entityId: staffId,
+              entityName: staffMember?.name,
+              userName,
+              customDescription: `Deleted training record "${record.title || 'Unknown training'}"`,
+            });
           }
-
-          const { error } = await supabase
-            .from('staff_training')
-            .delete()
-            .eq('id', item.id);
-          if (error) {
-            const parsedError = parseSupabaseError(error);
-            toast.error(parsedError.title, { description: parsedError.description });
-            throw error;
-          }
-
-          // Log activity
-          await logActivity({
-            activityType: 'delete',
-            entityType: 'staff',
-            entityId: staffId,
-            entityName: staffMember?.name,
-            userName,
-            customDescription: `Deleted training record "${trainingData?.title || 'Unknown training'}"`,
-          });
         }
       }
 
       // Step 1: Upload pending documents
-      if (currentPending.documents.toAdd.length) {
+      if (currentPending.documents.toAdd.length > 0) {
+        const toInsert = [];
         for (const doc of currentPending.documents.toAdd) {
-          // Upload to storage
           const fileExt = doc.file.name.split('.').pop();
           const fileName = `${staffId}-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
           const filePath = `staff-documents/${fileName}`;
@@ -544,24 +527,19 @@ export function StaffDetailContent({
             .from('staff-documents')
             .upload(filePath, doc.file);
 
-          if (uploadError) {
-            throw new Error(`Failed to upload document: ${uploadError.message}`);
-          }
+          if (uploadError) throw new Error(`Failed to upload document: ${uploadError.message}`);
 
-          // Create database record
-          const { error: dbError } = await supabase
-            .from('staff_documents')
-            .insert({
-              staff_id: staffId,
-              file_name: doc.file.name,
-              file_path: filePath,
-            });
+          toInsert.push({
+            staff_id: staffId,
+            file_name: doc.file.name,
+            file_path: filePath,
+          });
+        }
 
-          if (dbError) {
-            throw new Error(`Failed to create document record: ${dbError.message}`);
-          }
+        const { error: dbError } = await supabase.from('staff_documents').insert(toInsert);
+        if (dbError) throw new Error(`Failed to create document records: ${dbError.message}`);
 
-          // Log activity
+        for (const doc of currentPending.documents.toAdd) {
           await logActivity({
             activityType: 'create',
             entityType: 'staff',
@@ -574,28 +552,16 @@ export function StaffDetailContent({
       }
 
       // Step 2: Delete pending document deletions
-      if (currentPending.documents.toDelete.length) {
+      if (currentPending.documents.toDelete.length > 0) {
+        const ids = currentPending.documents.toDelete.map(d => d.id);
+        const filePaths = currentPending.documents.toDelete.map(d => d.filePath);
+
+        await supabase.storage.from('staff-documents').remove(filePaths);
+
+        const { error: dbError } = await supabase.from('staff_documents').delete().in('id', ids);
+        if (dbError) throw new Error(`Failed to delete document records: ${dbError.message}`);
+
         for (const doc of currentPending.documents.toDelete) {
-          // Delete from storage
-          const { error: storageError } = await supabase.storage
-            .from('staff-documents')
-            .remove([doc.filePath]);
-
-          if (storageError) {
-            console.error('Failed to delete from storage:', storageError);
-          }
-
-          // Delete from database
-          const { error: dbError } = await supabase
-            .from('staff_documents')
-            .delete()
-            .eq('id', doc.id);
-
-          if (dbError) {
-            throw new Error(`Failed to delete document record: ${dbError.message}`);
-          }
-
-          // Log activity
           await logActivity({
             activityType: 'delete',
             entityType: 'staff',

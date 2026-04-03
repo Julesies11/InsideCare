@@ -21,23 +21,6 @@ vi.mock('@/hooks/use-house-shift-types', () => ({
   })
 }));
 
-vi.mock('@/hooks/use-shift-templates', () => ({
-  useShiftTemplates: () => ({
-    defaults: [],
-    groups: [],
-    schedules: [],
-    isLoading: false,
-    refresh: vi.fn(),
-    createGroup: mockMutation,
-    deleteGroup: mockMutation,
-    upsertItem: mockMutation,
-    deleteItem: mockMutation,
-    updateDefaults: mockMutation,
-    createSchedule: mockMutation,
-    deleteSchedule: mockMutation,
-  })
-}));
-
 vi.mock('@/hooks/use-house-checklists', () => ({
   useHouseChecklists: () => ({
     houseChecklists: [

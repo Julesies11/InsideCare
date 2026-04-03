@@ -91,20 +91,29 @@ export function AdminLeaveRequestsPage() {
     const rows = (data as LeaveRequest[]) || [];
     setRequests(rows);
 
-    // Fetch conflict counts for all pending requests
+    // Fetch conflict counts for all pending requests in a single bulk query
     const pending = rows.filter(r => r.status === 'pending');
     if (pending.length > 0) {
+      const staffIds = Array.from(new Set(pending.map(r => r.staff_id)));
+      const minDate = pending.reduce((min, r) => r.start_date < min ? r.start_date : min, pending[0].start_date);
+      const maxDate = pending.reduce((max, r) => r.end_date > max ? r.end_date : max, pending[0].end_date);
+
+      const { data: allShifts } = await supabase
+        .from('staff_shifts')
+        .select('id, staff_id, start_date')
+        .in('staff_id', staffIds)
+        .gte('start_date', minDate)
+        .lte('start_date', maxDate);
+
       const counts: Record<string, number> = {};
-      await Promise.all(pending.map(async (req) => {
-        const { count } = await supabase
-          .from('staff_shifts')
-          .select('id', { count: 'exact', head: true })
-          .eq('staff_id', req.staff_id)
-          .gte('start_date', req.start_date)
-          .lte('start_date', req.end_date)
-          .not('status', 'eq', 'Cancelled');
-        counts[req.id] = count ?? 0;
-      }));
+      pending.forEach(req => {
+        const matches = (allShifts || []).filter(s => 
+          s.staff_id === req.staff_id && 
+          s.start_date >= req.start_date && 
+          s.start_date <= req.end_date
+        );
+        counts[req.id] = matches.length;
+      });
       setConflictCounts(counts);
     }
     setLoading(false);

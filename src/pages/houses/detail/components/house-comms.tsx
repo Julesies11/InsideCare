@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -39,11 +39,10 @@ export function HouseComms({
   const [newEntryContent, setNewEntryContent] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
 
-  const fetchEntries = async (date: Date) => {
+  const fetchEntries = useCallback(async (date: Date) => {
+    setLoading(true);
     try {
-      setLoading(true);
       const dateStr = format(date, 'yyyy-MM-dd');
-      
       const { data, error } = await supabase
         .from('house_comms')
         .select(`
@@ -62,13 +61,13 @@ export function HouseComms({
     } finally {
       setLoading(false);
     }
-  };
+  }, [houseId]);
 
   useEffect(() => {
     if (houseId) {
       fetchEntries(selectedDate);
     }
-  }, [houseId, selectedDate]);
+  }, [houseId, selectedDate, fetchEntries]);
 
   const handleAddEntry = () => {
     if (!newEntryContent.trim() || !pendingChanges || !onPendingChangesChange) return;

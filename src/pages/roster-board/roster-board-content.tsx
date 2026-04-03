@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Download, Calendar, Users } from 'lucide-react';
+import { Download, Calendar } from 'lucide-react';
 import { StaffRosterCalendar, StaffRosterCalendarHandle } from './components/staff-roster-calendar';
 import { RosterCalendarHeader } from '@/components/roster/roster-calendar-header';
 import { ViewMode, getDateRange } from '@/components/roster/roster-utils';
@@ -9,7 +9,6 @@ import { supabase } from '@/lib/supabase';
 import { format, addWeeks, addMonths, addDays } from 'date-fns';
 import { useHouseChecklists } from '@/hooks/use-house-checklists';
 import { useRosterData, useGlobalShiftTypesQuery } from '@/components/roster/use-roster-data';
-import { PublishRosterModal } from './components/PublishRosterModal';
 import { BulkActionModal } from './components/BulkActionModal';
 import { PopulateRosterModal } from '@/pages/houses/detail/components/PopulateRosterModal';
 import { toast } from 'sonner';
@@ -19,7 +18,6 @@ export function RosterBoardContent() {
   const [viewMode, setViewMode] = useState<ViewMode>('week');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedStaffId, setSelectedStaffId] = useState<string>('all');
-  const groupByHouse = true;
   
   const [houseFilter, setHouseFilter] = useState<string>('all');
   const [participantFilter, setParticipantFilter] = useState<string>('all');
@@ -32,13 +30,11 @@ export function RosterBoardContent() {
     participants, 
     staff, 
     loading: rosterLoading,
-    bulkMaterializeTemplate, 
     bulkUpdateShifts, 
     bulkDeleteShifts 
   } = useRosterData();
   const { data: shiftTypes = [] } = useGlobalShiftTypesQuery();
 
-  const [publishModalOpen, setPublishModalOpen] = useState(false);
   const [bulkModalOpen, setBulkModalOpen] = useState(false);
   const [bulkInitialHouseId, setBulkInitialHouseId] = useState<string>('all');
   const [populateModalOpen, setPopulateModalOpen] = useState(false);
@@ -110,25 +106,6 @@ export function RosterBoardContent() {
     }
   };
 
-  const handlePublish = useCallback(async (params: {
-    templateId: string;
-    houseIds: string[];
-    startDate: string;
-    endDate: string;
-    withAssignments?: boolean;
-  }) => {
-    try {
-      const result = await bulkMaterializeTemplate(params);
-      toast.success(
-        `Published ${result.created} shifts across ${params.houseIds.length} houses. ` +
-        (result.skipped > 0 ? `Skipped ${result.skipped} duplicates.` : '')
-      );
-    } catch (error) {
-      console.error('Failed to publish roster:', error);
-      toast.error('Failed to publish roster. Please try again.');
-    }
-  }, [bulkMaterializeTemplate]);
-
   const handleBulkAction = useCallback(async (params: any, action: 'update' | 'delete', updates?: any) => {
     try {
       if (action === 'delete') {
@@ -151,8 +128,6 @@ export function RosterBoardContent() {
     setPopulateInitialHouseId(houseId || houseFilter);
     setPopulateModalOpen(true);
   }, [houseFilter]);
-
-  const handleClosePublishModal = useCallback(() => setPublishModalOpen(false), []);
 
   const navigatePeriod = (direction: 'prev' | 'next') => {
     if (viewMode === 'today') {
@@ -192,10 +167,6 @@ export function RosterBoardContent() {
           <Button variant="outline" size="sm" onClick={handleExport}>
             <Download className="h-4 w-4 mr-2" />
             Export
-          </Button>
-          <Button variant="default" size="sm" onClick={() => setPublishModalOpen(true)}>
-            <Users className="h-4 w-4 mr-2" />
-            Publish Roster
           </Button>
         </div>
       </div>
@@ -241,7 +212,6 @@ export function RosterBoardContent() {
             shiftTypeList={shiftTypes}
             statusFilter={statusFilter}
             onStatusFilterChange={setStatusFilter}
-            onApplyTemplate={(weeks) => calendarRef.current?.applyTemplate(weeks)}
             onPopulateRoster={() => handleOpenPopulateModal()}
             onBulkAction={() => handleOpenBulkModal()}
             isCopying={isCopying}
@@ -260,18 +230,12 @@ export function RosterBoardContent() {
           participantFilter={participantFilter}
           shiftTypeFilter={shiftTypeFilter}
           canEdit={true}
-          groupByHouse={groupByHouse}
+          groupByHouse={true}
           onBulkAction={handleOpenBulkModal}
           onPopulateRoster={handleOpenPopulateModal}
           checklists={houseChecklists}
         />
       )}
-
-      <PublishRosterModal
-        open={publishModalOpen}
-        onClose={() => setPublishModalOpen(false)}
-        onPublish={handlePublish}
-      />
 
       <BulkActionModal
         key={bulkModalOpen ? `bulk-${bulkInitialHouseId}` : 'bulk-closed'}

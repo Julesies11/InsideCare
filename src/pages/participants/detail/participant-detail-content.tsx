@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useScrollPosition } from '@/hooks/use-scroll-position';
@@ -25,9 +25,7 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { logActivity, detectChanges } from '@/lib/activity-logger';
 import { NotificationService } from '@/lib/notification-service';
-import { parseSupabaseError } from '@/lib/error-parser';
 import { useFormValidation } from '@/hooks/use-form-validation';
-import { validators } from '@/lib/validation-rules';
 
 import { ParticipantPendingChanges, emptyParticipantPendingChanges } from '@/models/participant-pending-changes';
 import { MealtimeManagement } from './components/mealtime-management';
@@ -79,12 +77,10 @@ export function ParticipantDetailContent({
   const [originalData, setOriginalData] = useState<Record<string, any>>({});
   const [hasInitialized, setHasInitialized] = useState(false);
   
-  // Use refs to avoid stale closures in handleSave
   const latestPendingChanges = useRef<ParticipantPendingChanges>(pendingChanges || emptyParticipantPendingChanges);
   const latestFormData = useRef<Record<string, any>>({});
   const latestOriginalData = useRef<Record<string, any>>({});
 
-  // Sync refs when state/props change
   useEffect(() => {
     if (pendingChanges) {
       latestPendingChanges.current = pendingChanges;
@@ -182,7 +178,6 @@ export function ParticipantDetailContent({
     onPhotoDirtyChange?.(photoDirty);
   }, [photoFile, photoPreview, originalPhotoUrl, onPhotoDirtyChange]);
 
-  // Initial Data Load
   useEffect(() => {
     if (participantData && !hasInitialized) {
       setParticipant(participantData);
@@ -249,7 +244,6 @@ export function ParticipantDetailContent({
       latestFormData.current = initialData;
       latestOriginalData.current = initialData;
 
-      // Wrap in requestAnimationFrame to avoid "Cannot update a component while rendering a different component"
       requestAnimationFrame(() => {
         onOriginalDataChange?.(initialData);
         onFormDataChange?.(initialData);
@@ -263,13 +257,6 @@ export function ParticipantDetailContent({
   }, [participantData, hasInitialized, onFormDataChange, onOriginalDataChange]);
 
   const loading = participantLoading && !hasInitialized;
-
-  useEffect(() => {
-    const scrollableElement = document.getElementById('scrollable_content');
-    if (scrollableElement) {
-      parentRef.current = scrollableElement;
-    }
-  }, []);
 
   useEffect(() => {
     setSidebarSticky(scrollPosition > 100);
@@ -289,7 +276,6 @@ export function ParticipantDetailContent({
   }, [onFormDataChange]);
 
   const handleSave = useCallback(async () => {
-    // Get latest data from refs to avoid stale closures
     const currentPending = latestPendingChanges.current;
     const currentFormData = latestFormData.current;
     const currentOriginalData = latestOriginalData.current;
@@ -300,17 +286,18 @@ export function ParticipantDetailContent({
 
     try {
       // Step 1: Process pending goals
-      if (currentPending.goals.toAdd.length) {
+      if (currentPending.goals.toAdd.length > 0) {
+        const toInsert = currentPending.goals.toAdd.map(goal => ({
+          participant_id: id,
+          goal_type: goal.goal_type,
+          description: goal.description || null,
+          is_active: goal.is_active,
+        }));
+        
+        const { error } = await supabase.from('participant_goals').insert(toInsert);
+        if (error) throw new Error(`Failed to add goals: ${error.message}`);
+        
         for (const goal of currentPending.goals.toAdd) {
-          const { error } = await supabase
-            .from('participant_goals')
-            .insert({
-              participant_id: id,
-              goal_type: goal.goal_type,
-              description: goal.description || null,
-              is_active: goal.is_active,
-            });
-          if (error) throw new Error(`Failed to add goal: ${error.message}`);
           await logActivity({
             activityType: 'create',
             entityType: 'participant',
@@ -322,7 +309,7 @@ export function ParticipantDetailContent({
         }
       }
 
-      if (currentPending.goals.toUpdate.length) {
+      if (currentPending.goals.toUpdate.length > 0) {
         for (const goal of currentPending.goals.toUpdate) {
           const { error } = await supabase
             .from('participant_goals')
@@ -344,42 +331,47 @@ export function ParticipantDetailContent({
         }
       }
 
-      if (currentPending.goals.toDelete.length) {
-        for (const goalId of currentPending.goals.toDelete) {
-          const { data: goalData } = await supabase
-            .from('participant_goals')
-            .select('goal_type')
-            .eq('id', goalId)
-            .single();
-          const { error } = await supabase
-            .from('participant_goals')
-            .delete()
-            .eq('id', goalId);
-          if (error) throw new Error(`Failed to delete goal: ${error.message}`);
-          await logActivity({
-            activityType: 'delete',
-            entityType: 'participant',
-            entityId: id,
-            entityName: participant?.name,
-            userName,
-            customDescription: `Deleted goal "${goalData?.goal_type || 'Unknown goal'}"`,
-          });
+      if (currentPending.goals.toDelete.length > 0) {
+        const { data: goalRecords } = await supabase
+          .from('participant_goals')
+          .select('id, goal_type')
+          .in('id', currentPending.goals.toDelete);
+
+        const { error } = await supabase
+          .from('participant_goals')
+          .delete()
+          .in('id', currentPending.goals.toDelete);
+        
+        if (error) throw new Error(`Failed to delete goals: ${error.message}`);
+        
+        if (goalRecords) {
+          for (const record of goalRecords) {
+            await logActivity({
+              activityType: 'delete',
+              entityType: 'participant',
+              entityId: id,
+              entityName: participant?.name,
+              userName,
+              customDescription: `Deleted goal "${record.goal_type || 'Unknown goal'}"`,
+            });
+          }
         }
       }
 
       // Step 2: Process pending medications
-      if (currentPending.medications.toAdd.length) {
-        for (const med of currentPending.medications.toAdd) {
-          const { error } = await supabase
-            .from('participant_medications')
-            .insert({
-              participant_id: id,
-              medication_id: med.medication_id,
-              dosage: med.dosage || null,
-              frequency: med.frequency || null,
-              is_active: med.is_active,
-            });
-          if (error) throw new Error(`Failed to add medication: ${error.message}`);
+      if (currentPending.medications.toAdd.length > 0) {
+        const toInsert = currentPending.medications.toAdd.map(med => ({
+          participant_id: id,
+          medication_id: med.medication_id,
+          dosage: med.dosage || null,
+          frequency: med.frequency || null,
+          is_active: med.is_active,
+        }));
+
+        const { error } = await supabase.from('participant_medications').insert(toInsert);
+        if (error) throw new Error(`Failed to add medications: ${error.message}`);
+        
+        for (const _med of currentPending.medications.toAdd) {
           await logActivity({
             activityType: 'create',
             entityType: 'participant',
@@ -388,13 +380,14 @@ export function ParticipantDetailContent({
             userName,
             customDescription: 'Added new medication',
           });
-          if (participant?.house_id) {
-            await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.name || 'Participant', 'medication');
-          }
+        }
+        
+        if (participant?.house_id) {
+          await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.name || 'Participant', 'medication');
         }
       }
 
-      if (currentPending.medications.toUpdate.length) {
+      if (currentPending.medications.toUpdate.length > 0) {
         for (const med of currentPending.medications.toUpdate) {
           const { error } = await supabase
             .from('participant_medications')
@@ -414,19 +407,21 @@ export function ParticipantDetailContent({
             userName,
             customDescription: 'Updated medication details',
           });
-          if (participant?.house_id) {
-            await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.name || 'Participant', 'medication');
-          }
+        }
+        if (participant?.house_id) {
+          await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.name || 'Participant', 'medication');
         }
       }
 
-      if (currentPending.medications.toDelete.length) {
-        for (const medId of currentPending.medications.toDelete) {
-          const { error } = await supabase
-            .from('participant_medications')
-            .delete()
-            .eq('id', medId);
-          if (error) throw new Error(`Failed to delete medication: ${error.message}`);
+      if (currentPending.medications.toDelete.length > 0) {
+        const { error } = await supabase
+          .from('participant_medications')
+          .delete()
+          .in('id', currentPending.medications.toDelete);
+        
+        if (error) throw new Error(`Failed to delete medications: ${error.message}`);
+        
+        for (const _medId of currentPending.medications.toDelete) {
           await logActivity({
             activityType: 'delete',
             entityType: 'participant',
@@ -439,21 +434,22 @@ export function ParticipantDetailContent({
       }
 
       // Step 3: Process pending contacts
-      if (currentPending.contacts.toAdd.length) {
+      if (currentPending.contacts.toAdd.length > 0) {
+        const toInsert = currentPending.contacts.toAdd.map(contact => ({
+          participant_id: id,
+          contact_name: contact.contact_name,
+          contact_type_id: contact.contact_type_id,
+          phone: contact.phone || null,
+          email: contact.email || null,
+          address: contact.address || null,
+          notes: contact.notes || null,
+          is_active: contact.is_active,
+        }));
+
+        const { error } = await supabase.from('participant_contacts').insert(toInsert);
+        if (error) throw new Error(`Failed to add contacts: ${error.message}`);
+        
         for (const contact of currentPending.contacts.toAdd) {
-          const { error } = await supabase
-            .from('participant_contacts')
-            .insert({
-              participant_id: id,
-              contact_name: contact.contact_name,
-              contact_type_id: contact.contact_type_id,
-              phone: contact.phone || null,
-              email: contact.email || null,
-              address: contact.address || null,
-              notes: contact.notes || null,
-              is_active: contact.is_active,
-            });
-          if (error) throw new Error(`Failed to add contact: ${error.message}`);
           await logActivity({
             activityType: 'create',
             entityType: 'participant',
@@ -465,7 +461,7 @@ export function ParticipantDetailContent({
         }
       }
 
-      if (currentPending.contacts.toUpdate.length) {
+      if (currentPending.contacts.toUpdate.length > 0) {
         for (const contact of currentPending.contacts.toUpdate) {
           const { error } = await supabase
             .from('participant_contacts')
@@ -491,13 +487,15 @@ export function ParticipantDetailContent({
         }
       }
 
-      if (currentPending.contacts.toDelete.length) {
-        for (const contactId of currentPending.contacts.toDelete) {
-          const { error } = await supabase
-            .from('participant_contacts')
-            .delete()
-            .eq('id', contactId);
-          if (error) throw new Error(`Failed to delete contact: ${error.message}`);
+      if (currentPending.contacts.toDelete.length > 0) {
+        const { error } = await supabase
+          .from('participant_contacts')
+          .delete()
+          .in('id', currentPending.contacts.toDelete);
+        
+        if (error) throw new Error(`Failed to delete contacts: ${error.message}`);
+        
+        for (const _contactId of currentPending.contacts.toDelete) {
           await logActivity({
             activityType: 'delete',
             entityType: 'participant',
@@ -510,7 +508,8 @@ export function ParticipantDetailContent({
       }
 
       // Step 4: Process pending documents
-      if (currentPending.documents.toAdd.length) {
+      if (currentPending.documents.toAdd.length > 0) {
+        const toInsert = [];
         for (const doc of currentPending.documents.toAdd) {
           const fileExt = doc.file.name.split('.').pop();
           const fileName = `${id}-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
@@ -524,20 +523,19 @@ export function ParticipantDetailContent({
             throw new Error(`Failed to upload document "${doc.file.name}": ${uploadError.message}`);
           }
 
-          const { error: dbError } = await supabase
-            .from('participant_documents')
-            .insert({
-              participant_id: id,
-              file_name: doc.file.name,
-              file_path: filePath,
-              file_size: doc.file.size,
-              mime_type: doc.file.type,
-            });
+          toInsert.push({
+            participant_id: id,
+            file_name: doc.file.name,
+            file_path: filePath,
+            file_size: doc.file.size,
+            mime_type: doc.file.type,
+          });
+        }
 
-          if (dbError) {
-            throw new Error(`Failed to create document record for "${doc.file.name}": ${dbError.message}`);
-          }
+        const { error: dbError } = await supabase.from('participant_documents').insert(toInsert);
+        if (dbError) throw new Error(`Failed to create document records: ${dbError.message}`);
 
+        for (const doc of currentPending.documents.toAdd) {
           await logActivity({
             activityType: 'create',
             entityType: 'participant',
@@ -549,27 +547,16 @@ export function ParticipantDetailContent({
         }
       }
 
-      if (currentPending.documents.toDelete.length) {
+      if (currentPending.documents.toDelete.length > 0) {
+        const ids = currentPending.documents.toDelete.map(d => d.id);
+        const filePaths = currentPending.documents.toDelete.map(d => d.filePath);
+
+        await supabase.storage.from('participant-documents').remove(filePaths);
+
+        const { error: dbError } = await supabase.from('participant_documents').delete().in('id', ids);
+        if (dbError) throw new Error(`Failed to delete document records: ${dbError.message}`);
+
         for (const doc of currentPending.documents.toDelete) {
-          // Delete from storage
-          const { error: storageError } = await supabase.storage
-            .from('participant-documents')
-            .remove([doc.filePath]);
-
-          if (storageError) {
-            console.error('Failed to delete from storage:', storageError);
-          }
-
-          // Delete from database
-          const { error: dbError } = await supabase
-            .from('participant_documents')
-            .delete()
-            .eq('id', doc.id);
-
-          if (dbError) {
-            throw new Error(`Failed to delete document record: ${dbError.message}`);
-          }
-
           await logActivity({
             activityType: 'delete',
             entityType: 'participant',
@@ -674,18 +661,19 @@ export function ParticipantDetailContent({
       }
 
       // Step 5: Process pending shift notes
-      if (currentPending.shiftNotes.toAdd.length) {
-        for (const note of currentPending.shiftNotes.toAdd) {
-          const { error } = await supabase
-            .from('shift_notes')
-            .insert({
-              participant_id: id,
-              staff_id: note.staff_id,
-              start_date: note.start_date,
-              shift_time: note.shift_time || null,
-              full_note: note.full_note,
-            });
-          if (error) throw new Error(`Failed to add shift note: ${error.message}`);
+      if (currentPending.shiftNotes.toAdd.length > 0) {
+        const toInsert = currentPending.shiftNotes.toAdd.map(note => ({
+          participant_id: id,
+          staff_id: note.staff_id,
+          start_date: note.start_date,
+          shift_time: note.shift_time || null,
+          full_note: note.full_note,
+        }));
+        
+        const { error } = await supabase.from('shift_notes').insert(toInsert);
+        if (error) throw new Error(`Failed to add shift notes: ${error.message}`);
+        
+        for (const _note of currentPending.shiftNotes.toAdd) {
           await logActivity({
             activityType: 'create',
             entityType: 'participant',
@@ -694,13 +682,13 @@ export function ParticipantDetailContent({
             userName,
             customDescription: 'Added shift note',
           });
-          if (participant?.house_id) {
-            await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.name || 'Participant', 'note');
-          }
+        }
+        if (participant?.house_id) {
+          await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.name || 'Participant', 'note');
         }
       }
 
-      if (currentPending.shiftNotes.toUpdate.length) {
+      if (currentPending.shiftNotes.toUpdate.length > 0) {
         for (const note of currentPending.shiftNotes.toUpdate) {
           const { error } = await supabase
             .from('shift_notes')
@@ -721,19 +709,20 @@ export function ParticipantDetailContent({
             userName,
             customDescription: 'Updated shift note',
           });
-          if (participant?.house_id) {
-            await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.name || 'Participant', 'note');
-          }
+        }
+        if (participant?.house_id) {
+          await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.name || 'Participant', 'note');
         }
       }
 
-      if (currentPending.shiftNotes.toDelete.length) {
-        for (const noteId of currentPending.shiftNotes.toDelete) {
-          const { error } = await supabase
-            .from('shift_notes')
-            .delete()
-            .eq('id', noteId);
-          if (error) throw new Error(`Failed to delete shift note: ${error.message}`);
+      if (currentPending.shiftNotes.toDelete.length > 0) {
+        const { error } = await supabase
+          .from('shift_notes')
+          .delete()
+          .in('id', currentPending.shiftNotes.toDelete);
+        if (error) throw new Error(`Failed to delete shift notes: ${error.message}`);
+        
+        for (const _noteId of currentPending.shiftNotes.toDelete) {
           await logActivity({
             activityType: 'delete',
             entityType: 'participant',
@@ -831,12 +820,6 @@ export function ParticipantDetailContent({
           canEdit={canEdit}
           onSave={handleSave}
         />
-        
-        <SupportNeeds formData={formData} onFormChange={handleFormChange} canEdit={canEdit} />
-        <MealtimeManagement formData={formData} onFormChange={handleFormChange} canEdit={canEdit} />
-        <MedicalRoutine formData={formData} onFormChange={handleFormChange} canEdit={canEdit} />
-        <EmergencyManagement formData={formData} onFormChange={handleFormChange} canEdit={canEdit} />
-        <BehaviourSupport formData={formData} onFormChange={handleFormChange} canEdit={canEdit} onSave={handleSave} />
 
         <Goals 
           participantId={id} 
@@ -850,6 +833,14 @@ export function ParticipantDetailContent({
           refreshTrigger={refreshKeys.goals}
         />
 
+        <BehaviourSupport formData={formData} onFormChange={handleFormChange} canEdit={canEdit} onSave={handleSave} />
+        
+        <SupportNeeds formData={formData} onFormChange={handleFormChange} canEdit={canEdit} />
+        
+        <MealtimeManagement formData={formData} onFormChange={handleFormChange} canEdit={canEdit} />
+        
+        <MedicalRoutine formData={formData} onFormChange={handleFormChange} canEdit={canEdit} />
+
         <Medications 
           participantId={id} 
           canAdd={canAdd}
@@ -861,16 +852,7 @@ export function ParticipantDetailContent({
           }
         />
 
-        <Documents 
-          participantId={id} 
-          canAdd={canAdd}
-          canDelete={canDelete}
-          canEdit={canEdit}
-          pendingChanges={pendingChanges?.documents}
-          onPendingChangesChange={(docsChanges) => 
-            pendingChanges && onPendingChangesChange?.({ ...pendingChanges, documents: docsChanges })
-          }
-        />
+        <EmergencyManagement formData={formData} onFormChange={handleFormChange} canEdit={canEdit} />
 
         <Contacts 
           participantId={id} 
@@ -880,6 +862,17 @@ export function ParticipantDetailContent({
           pendingChanges={pendingChanges?.contacts}
           onPendingChangesChange={(contactsChanges) => 
             pendingChanges && onPendingChangesChange?.({ ...pendingChanges, contacts: contactsChanges })
+          }
+        />
+
+        <Documents 
+          participantId={id} 
+          canAdd={canAdd}
+          canDelete={canDelete}
+          canEdit={canEdit}
+          pendingChanges={pendingChanges?.documents}
+          onPendingChangesChange={(docsChanges) => 
+            pendingChanges && onPendingChangesChange?.({ ...pendingChanges, documents: docsChanges })
           }
         />
 

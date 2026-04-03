@@ -1,7 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { ChevronLeft, ChevronRight, Loader2, Settings2, CalendarDays, Zap, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { ViewMode } from './roster-utils';
 
 interface RosterCalendarHeaderProps {
@@ -38,7 +37,6 @@ interface RosterCalendarHeaderProps {
   onStatusFilterChange: (value: string) => void;
 
   // Template actions
-  onApplyTemplate?: (weeks: number) => void;
   onPopulateRoster?: () => void;
   onBulkAction?: () => void;
   isCopying?: boolean;
@@ -65,13 +63,10 @@ export function RosterCalendarHeader({
   shiftTypeList = [],
   statusFilter,
   onStatusFilterChange,
-  onApplyTemplate,
-  onPopulateRoster,
-  onBulkAction,
-  isCopying = false,
+  onPopulateRoster: _onPopulateRoster,
+  onBulkAction: _onBulkAction,
+  isCopying: _isCopying = false,
 }: RosterCalendarHeaderProps) {
-  const selectedHouse = houseList.find(h => h.id === houseFilter);
-
   return (
     <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center">
       {/* View Mode and Navigation */}

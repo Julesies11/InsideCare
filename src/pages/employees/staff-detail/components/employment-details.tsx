@@ -158,20 +158,6 @@ export function EmploymentDetails({
 
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <Label className="flex w-full max-w-56">Availability</Label>
-            <Textarea
-              id="availability"
-              placeholder="Staff availability schedule"
-              value={formData.availability || ''}
-              onChange={(e) => onFormChange('availability', e.target.value)}
-              disabled={!canEdit}
-              rows={3}
-            />
-          </div>
-        </div>
-
-        <div className="w-full">
-          <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
             <Label className="flex w-full max-w-56">Any Other Notes</Label>
             <Textarea
               id="notes"

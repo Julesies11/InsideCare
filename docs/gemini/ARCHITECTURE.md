@@ -29,8 +29,8 @@ The system supports two distinct operational workflows:
     - **Attribution**: The UI displays "Signed by [Name]" for each completed task, providing clear accountability within the house.
 2.  **Shift Routines**:
     - **Purpose**: Role-specific responsibilities (e.g., "Morning Protocol", "Night Routine").
-    - **Shift Templates**: Admins define recurring 7-day coverage requirements (**Shift Templates**). Each template can be pre-linked to one or more Checklists.
-    - **Roster Auto-Fill**: A specialized tool on the Roster Board allows admins to deploy these templates into the calendar. This process creates the shifts and automatically generates the shift-specific checklist assignments (`shift_assigned_checklists`).
+    - **Shift Model**: Admins define work periods (Morning, Day, etc.) with custom icons, colors, and **Default Checklists**.
+    - **Roster Auto-Fill**: A specialized "Populate Roster" tool on the Roster Board allows admins to rapidly generate coverage based on the House's Shift Model. This process creates the shifts and automatically generates the shift-specific checklist assignments (`shift_assigned_checklists`) based on the model's defaults.
     - **Shift Locking**: To ensure compliance, "Shift Routines" are locked to the specific assigned shift. Staff can only "Start/Resume" a routine if it matches their currently active `shift_id`.
 
 ### Optimized Saving System

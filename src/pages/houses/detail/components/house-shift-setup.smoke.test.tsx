@@ -21,31 +21,6 @@ vi.mock('@/hooks/use-house-shift-types', () => ({
   })
 }));
 
-vi.mock('@/hooks/use-shift-templates', () => ({
-  useShiftTemplates: () => ({
-    defaults: [],
-    groups: [
-      { 
-        id: 'g1', 
-        name: 'Standard Weekday', 
-        items: [
-          { id: 'i1', shift_type_id: '1', shift_type: { name: 'Morning' }, start_time: '07:00', end_time: '15:00', checklists: [] }
-        ] 
-      }
-    ],
-    schedules: [],
-    isLoading: false,
-    refresh: vi.fn(),
-    createGroup: mockMutation,
-    deleteGroup: mockMutation,
-    upsertItem: mockMutation,
-    deleteItem: mockMutation,
-    updateDefaults: mockMutation,
-    createSchedule: mockMutation,
-    deleteSchedule: mockMutation,
-  })
-}));
-
 vi.mock('@/hooks/use-house-checklists', () => ({
   useHouseChecklists: () => ({
     houseChecklists: [],

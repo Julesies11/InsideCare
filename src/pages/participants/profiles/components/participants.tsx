@@ -17,7 +17,8 @@ import {
   Search,
   X,
 } from 'lucide-react';
-import { useDebouncedSearchParams } from '@/hooks/use-debounced-search-params';
+import { useSearchParams } from 'react-router';
+import { useDebounce } from '@/hooks/use-debounce';
 import { toast } from 'sonner';
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -130,7 +131,7 @@ function getInitials(name: string | null | undefined): string {
 }
 
 const Participants = () => {
-  const [searchParams, setSearchParams] = useDebouncedSearchParams(300);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // Helper functions to parse URL params into initial state
   const getInitialPagination = (): PaginationState => ({
@@ -168,11 +169,14 @@ const Participants = () => {
   const [selectedHouses, setSelectedHouses] = useState<string[]>(getInitialHouses());
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>(getInitialStatuses());
 
+  // Use debounced search query for API calls
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+
   const filters = useMemo(() => ({
-    search: searchQuery,
+    search: debouncedSearchQuery,
     houses: selectedHouses,
     statuses: selectedStatuses
-  }), [searchQuery, selectedHouses, selectedStatuses]);
+  }), [debouncedSearchQuery, selectedHouses, selectedStatuses]);
 
   const { data, isLoading: loading, error } = useParticipants(
     pagination.pageIndex,
@@ -386,6 +390,55 @@ const Participants = () => {
     autoResetPageIndex: false,
   });
 
+  // Sync state changes to URL query parameters
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams);
+    
+    // Pagination - update URL as soon as page changes
+    if (pagination.pageIndex > 0) {
+      params.set('page', (pagination.pageIndex + 1).toString()); // Convert to 1-indexed
+    } else {
+      params.delete('page');
+    }
+
+    if (pagination.pageSize !== 10) {
+      params.set('pageSize', pagination.pageSize.toString());
+    } else {
+      params.delete('pageSize');
+    }
+    
+    // Sorting
+    if (sorting.length > 0) {
+      const sort = sorting[0];
+      params.set('sort', `${sort.id}.${sort.desc ? 'desc' : 'asc'}`);
+    } else {
+      params.delete('sort');
+    }
+    
+    // Search - sync raw query to URL immediately for responsiveness
+    if (searchQuery) {
+      params.set('search', searchQuery);
+    } else {
+      params.delete('search');
+    }
+    
+    // House Filter
+    if (selectedHouses.length > 0) {
+      params.set('houses', selectedHouses.join(','));
+    } else {
+      params.delete('houses');
+    }
+    
+    // Always update the URL with the current statuses
+    if (selectedStatuses.length > 0) {
+      params.set('statuses', selectedStatuses.join(','));
+    } else {
+      params.delete('statuses');
+    }
+
+    // Update URL immediately without adding to history
+    setSearchParams(params, { replace: true });
+  }, [pagination, sorting, searchQuery, selectedHouses, selectedStatuses, setSearchParams, searchParams]);
 
   return (
     <DataGrid
