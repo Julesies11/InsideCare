@@ -96,7 +96,6 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
     addShiftParticipant,
     syncShiftParticipants,
     syncShiftChecklists,
-    materializeTemplate,
   } = useRosterData();
 
   const { startDate, endDate } = useMemo(() => {
@@ -135,26 +134,6 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
     setPreSelectedHouseId(houseId);
     setPreSelectedShiftTypeId(shiftTypeId);
     setShowShiftDialog(true);
-  };
-
-  const handleApplyTemplateToDate = async (templateId: string, date: Date, houseId: string) => {
-    setIsCopying(true);
-    try {
-      const dateStr = format(date, 'yyyy-MM-dd');
-      const result = await materializeTemplate({
-        templateId,
-        houseId,
-        startDate: dateStr,
-        endDate: dateStr
-      });
-      
-      toast.success(`Applied template to ${dateStr}. Created ${result.created} shifts.`);
-    } catch (err) {
-      console.error('Error applying template:', err);
-      toast.error('Failed to apply template.');
-    } finally {
-      setIsCopying(false);
-    }
   };
 
   const handleEditShift = (shift: StaffShift) => {
@@ -421,7 +400,6 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
         onEditShift={handleEditShift}
         onWriteNote={handleWriteNote}
         onNotesClick={handleNotesClick}
-        onApplyTemplate={handleApplyTemplateToDate}
         onBulkAction={onBulkAction}
         onPopulateRoster={onPopulateRoster}
         groupByHouse={true}

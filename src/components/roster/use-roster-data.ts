@@ -1,6 +1,7 @@
 import { useMemo, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { format, addDays, parseISO, startOfWeek } from 'date-fns';
 
 export interface StaffShift {
   id: string;
@@ -23,6 +24,11 @@ export interface StaffShift {
   color_theme?: string;
   icon_name?: string;
   notesCount?: number;
+}
+
+export interface AssignedChecklist {
+  checklist_id: string;
+  assignment_title: string;
 }
 
 export function useGlobalShiftTypesQuery() {
@@ -325,18 +331,105 @@ export function useRosterData() {
     },
   });
 
-  const materializeTemplateMutation = useMutation({
-    mutationFn: async ({ template_id, house_id, start_date }: { template_id: string, house_id: string, start_date: string }) => {
-      console.log('Materializing template', { template_id, house_id, start_date });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['roster-shifts'] });
-    },
-  });
-
   const materializePatternMutation = useMutation({
-    mutationFn: async ({ pattern_id, start_date }: { pattern_id: string, start_date: string }) => {
-      console.log('Materializing pattern', { pattern_id, start_date });
+    mutationFn: async ({ 
+      houseId, 
+      startDate, 
+      pattern, 
+      shiftTypes, 
+      defaults, 
+      participants 
+    }: { 
+      houseId: string;
+      startDate: string;
+      pattern: Record<number, string[]>[];
+      shiftTypes: any[];
+      defaults: any[];
+      participants: any[];
+    }) => {
+      const shiftsToCreate: any[] = [];
+      const anchorMonday = startOfWeek(parseISO(startDate), { weekStartsOn: 1 });
+
+      pattern.forEach((weekPattern, weekIndex) => {
+        const weekStartDate = addDays(anchorMonday, weekIndex * 7);
+        Object.entries(weekPattern).forEach(([dayStr, shiftTypeIds]) => {
+          const dayId = parseInt(dayStr);
+          // dayId 0=Sun, 1=Mon... in pattern. DAYS_OF_WEEK helper in modal uses 1-Mon to 0-Sun.
+          // date-fns addDays(anchorMonday, offset) where 0=Mon, 1=Tue... 6=Sun
+          const dayOffset = dayId === 0 ? 6 : dayId - 1;
+          const targetDate = addDays(weekStartDate, dayOffset);
+          const targetDateStr = format(targetDate, 'yyyy-MM-dd');
+
+          // Skip if before start date
+          if (targetDateStr < startDate) return;
+
+          shiftTypeIds.forEach(typeId => {
+            const type = shiftTypes.find(t => t.id === typeId);
+            if (!type) return;
+
+            shiftsToCreate.push({
+              house_id: houseId,
+              staff_id: null,
+              start_date: targetDateStr,
+              end_date: targetDateStr,
+              start_time: type.default_start_time,
+              end_time: type.default_end_time,
+              shift_type: type.name,
+              shift_type_id: type.id,
+              status: 'Scheduled',
+              notes: null
+            });
+          });
+        });
+      });
+
+      if (shiftsToCreate.length === 0) return { created: 0, checklists: 0, skipped: 0 };
+
+      // Bulk create shifts
+      const { data: createdShifts, error: shiftError } = await supabase
+        .from('staff_shifts')
+        .insert(shiftsToCreate)
+        .select('id, shift_type_id');
+
+      if (shiftError) throw shiftError;
+
+      let checklistsCount = 0;
+      const participantInserts: any[] = [];
+      const checklistInserts: any[] = [];
+
+      createdShifts.forEach(shift => {
+        // Participants
+        participants.forEach(p => {
+          participantInserts.push({ shift_id: shift.id, participant_id: p.id });
+        });
+
+        // Checklists from defaults
+        const typeDefaults = defaults.filter(d => d.shift_type_id === shift.shift_type_id);
+        typeDefaults.forEach(d => {
+          checklistInserts.push({
+            shift_id: shift.id,
+            checklist_id: d.checklist_id,
+            assignment_title: d.checklist?.name || 'Routine Checklist',
+            house_id: houseId,
+            shift_type_id: shift.shift_type_id
+          });
+          checklistsCount++;
+        });
+      });
+
+      if (participantInserts.length > 0) {
+        await supabase.from('shift_participants').insert(participantInserts);
+      }
+
+      if (checklistInserts.length > 0) {
+        await supabase.from('shift_assigned_checklists').insert(checklistInserts);
+      }
+
+      return {
+        created: createdShifts.length,
+        checklists: checklistsCount,
+        skipped: shiftsToCreate.length - createdShifts.length
+      };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['roster-shifts'] });
@@ -344,13 +437,41 @@ export function useRosterData() {
   });
 
   const syncShiftChecklistsMutation = useMutation({
-    mutationFn: async ({ shift_id, checklist_ids }: { shift_id: string, checklist_ids: string[] }) => {
-      console.log('Syncing shift checklists', { shift_id, checklist_ids });
+    mutationFn: async ({ shift_id, checklists }: { shift_id: string, checklists: AssignedChecklist[] }) => {
+      // Get current shift info to get house_id and shift_type_id
+      const { data: shift } = await supabase
+        .from('staff_shifts')
+        .select('house_id, shift_type_id')
+        .eq('id', shift_id)
+        .single();
+
+      // Delete existing
+      await supabase
+        .from('shift_assigned_checklists')
+        .delete()
+        .eq('shift_id', shift_id);
+      
+      // Insert new
+      if (checklists.length > 0) {
+        const { error } = await supabase
+          .from('shift_assigned_checklists')
+          .insert(checklists.map(cl => ({ 
+            shift_id, 
+            checklist_id: cl.checklist_id,
+            assignment_title: cl.assignment_title,
+            house_id: shift?.house_id,
+            shift_type_id: shift?.shift_type_id
+          })));
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['roster-shifts'] });
     },
   });
+
+  const materializePattern = useCallback((params: any) => materializePatternMutation.mutateAsync(params), [materializePatternMutation]);
+  const syncShiftChecklists = useCallback((shift_id: string, checklists: AssignedChecklist[]) => syncShiftChecklistsMutation.mutateAsync({ shift_id, checklists }), [syncShiftChecklistsMutation]);
 
   // Wrappers to keep the original function API
   const createShift = useCallback((shift: any) => createShiftMutation.mutateAsync(shift), [createShiftMutation]);
@@ -361,9 +482,6 @@ export function useRosterData() {
   const addShiftParticipant = useCallback((shift_id: string, participant_id: string) => addShiftParticipantMutation.mutateAsync({ shift_id, participant_id }), [addShiftParticipantMutation]);
   const removeShiftParticipant = useCallback((shift_id: string, participant_id: string) => removeShiftParticipantMutation.mutateAsync({ shift_id, participant_id }), [removeShiftParticipantMutation]);
   const syncShiftParticipants = useCallback((shift_id: string, participant_ids: string[]) => syncShiftParticipantsMutation.mutateAsync({ shift_id, participant_ids }), [syncShiftParticipantsMutation]);
-  const materializeTemplate = useCallback((template_id: string, house_id: string, start_date: string) => materializeTemplateMutation.mutateAsync({ template_id, house_id, start_date }), [materializeTemplateMutation]);
-  const materializePattern = useCallback((pattern_id: string, start_date: string) => materializePatternMutation.mutateAsync({ pattern_id, start_date }), [materializePatternMutation]);
-  const syncShiftChecklists = useCallback((shift_id: string, checklist_ids: string[]) => syncShiftChecklistsMutation.mutateAsync({ shift_id, checklist_ids }), [syncShiftChecklistsMutation]);
 
   return {
     houses: housesQuery.data || [],
@@ -381,8 +499,8 @@ export function useRosterData() {
     addShiftParticipant,
     removeShiftParticipant,
     syncShiftParticipants,
-    materializeTemplate,
     materializePattern,
     syncShiftChecklists,
   };
 }
+
