@@ -34,6 +34,13 @@ export interface Staff {
     name: string;
     description?: string;
   } | null;
+  house_assignments?: Array<{
+    id: string;
+    house: {
+      id: string;
+      name: string;
+    };
+  }>;
   // Compliance checklist fields
   ndis_worker_screening_check?: boolean | null;
   ndis_worker_screening_check_expiry?: string | null;
@@ -115,7 +122,12 @@ const STAFF_LIST_COLUMNS = `
   created_at, updated_at,
   department_info:departments(id, name),
   employment_type_info:employment_types_master(id, name),
-  role:roles!staff_role_id_fkey(id, name, description)
+  role:roles!staff_role_id_fkey(id, name, description),
+  house_assignments:house_staff_assignments(
+    id,
+    house_id,
+    house:houses(id, name)
+  )
 `;
 
 const STAFF_DETAIL_COLUMNS = `
@@ -177,6 +189,10 @@ export function useStaff(
         department_info: Array.isArray(item.department_info) ? item.department_info[0] : item.department_info,
         employment_type_info: Array.isArray(item.employment_type_info) ? item.employment_type_info[0] : item.employment_type_info,
         role: Array.isArray(item.role) ? item.role[0] : item.role,
+        house_assignments: (item.house_assignments || []).map((ha: any) => ({
+          ...ha,
+          house: Array.isArray(ha.house) ? ha.house[0] : ha.house
+        }))
       }));
 
       return { data: formatted as Staff[], count: count || 0 };

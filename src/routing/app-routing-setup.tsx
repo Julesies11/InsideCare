@@ -37,7 +37,6 @@ import {
   AdminLeaveRequestsPage,
 } from '@/pages/employees';
 import { ChecklistMasterPage } from '@/pages/admin/checklists/checklist-master-page';
-import OrgShiftTemplatesPage from '@/pages/admin/roster/OrgShiftTemplatesPage';
 import { NotificationCenter } from '@/pages/account/notifications/notification-center';
 
 export function AppRoutingSetup() {
@@ -95,10 +94,6 @@ export function AppRoutingSetup() {
             <Route
               path="/admin/checklist-templates"
               element={<ChecklistMasterPage />}
-            />
-            <Route
-              path="/admin/shift-templates"
-              element={<OrgShiftTemplatesPage />}
             />
             <Route
               path="/houses/profiles"

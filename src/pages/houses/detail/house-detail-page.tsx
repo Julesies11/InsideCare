@@ -120,6 +120,7 @@ export function HouseDetailPage() {
           saveHandlerRef={saveHandlerRef}
           pendingChanges={pendingChanges}
           onPendingChangesChange={setPendingChanges}
+          canEdit={isAdmin}
         />
       </Container>
 

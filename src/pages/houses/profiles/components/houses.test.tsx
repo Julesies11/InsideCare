@@ -4,9 +4,22 @@ import { Houses } from './houses';
 import { renderWithProviders } from '@/test/test-utils';
 
 // Mock the nested hooks that are not yet fully covered by MSW or need specific returns
+const mockStaffAssignments = [
+  // Active assignment for House 1
+  { house_id: 'house-1', staff: { status: 'active', separation_date: null }, end_date: null },
+  // Inactive staff member for House 1
+  { house_id: 'house-1', staff: { status: 'inactive', separation_date: null }, end_date: null },
+  // Employment ended staff member for House 1
+  { house_id: 'house-1', staff: { status: 'active', separation_date: '2020-01-01' }, end_date: null },
+  // Assignment ended for House 1
+  { house_id: 'house-1', staff: { status: 'active', separation_date: null }, end_date: '2020-01-01' },
+  // Active assignment for House 2
+  { house_id: 'house-2', staff: { status: 'active', separation_date: null }, end_date: null },
+];
+
 vi.mock('@/hooks/use-house-staff-assignments', () => ({
   useHouseStaffAssignments: () => ({
-    data: [],
+    data: mockStaffAssignments,
     isLoading: false,
   }),
 }));
@@ -26,6 +39,20 @@ describe('Houses Component', () => {
 
     // Verify address is displayed
     expect(screen.getByText('123 Test St')).toBeInTheDocument();
+  });
+
+  it('calculates linked staff count correctly (only active assignments)', async () => {
+    renderWithProviders(<Houses />);
+
+    await waitFor(() => expect(screen.getByText('Test House 1')).toBeInTheDocument());
+
+    // House 1 has 4 assignments total, but only 1 should be counted as active
+    const house1Row = screen.getByText('Test House 1').closest('tr');
+    expect(house1Row).toHaveTextContent('1 staff member');
+
+    // House 2 has 1 active assignment
+    const house2Row = screen.getByText('Test House 2').closest('tr');
+    expect(house2Row).toHaveTextContent('1 staff member');
   });
 
   it('filters by status when clicking status filter', async () => {

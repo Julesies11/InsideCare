@@ -161,31 +161,36 @@ const StaffTable = () => {
       size: 200,
     },
     {
-      id: 'email',
-      accessorKey: 'email',
+      id: 'houses',
       header: ({ column }) => (
-        <DataGridColumnHeader title="Email / Phone" column={column} />
+        <DataGridColumnHeader title="House" column={column} />
       ),
-      cell: ({ row }) => (
-        <div className="flex flex-col gap-0.5">
-          <span className="text-sm text-gray-700 dark:text-gray-300">
-            {row.original.email || '-'}
-          </span>
-          <span className="text-xs text-gray-500 dark:text-gray-400">
-            {row.original.phone || '-'}
-          </span>
-        </div>
-      ),
+      cell: ({ row }) => {
+        const assignments = row.original.house_assignments || [];
+        if (assignments.length === 0) return <span className="text-sm text-gray-500">-</span>;
+        
+        return (
+          <div className="flex flex-col gap-1">
+            {assignments.map((assignment) => (
+              <span 
+                key={assignment.id} 
+                className="text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                {assignment.house?.name || 'Unknown House'}
+              </span>
+            ))}
+          </div>
+        );
+      },
       meta: {
         skeleton: (
           <div className="flex flex-col gap-1">
-            <Skeleton className="h-3 w-32" />
-            <Skeleton className="h-2.5 w-20" />
+            <Skeleton className="h-3 w-20" />
+            <Skeleton className="h-3 w-24" />
           </div>
         ),
       },
-      enableSorting: true,
-      size: 230,
+      size: 180,
     },
     {
       id: 'role',

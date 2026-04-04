@@ -69,10 +69,23 @@ function getHouseParticipants(houseId: string, allParticipants: Array<{ id: stri
 }
 
 // Helper function to get active staff count for a house
-function getHouseStaffCount(houseId: string, houseStaffAssignments: Array<{ house_id: string; end_date?: string }>) {
-  return houseStaffAssignments
-    .filter(assignment => assignment.house_id === houseId && !assignment.end_date)
-    .length;
+function getHouseStaffCount(houseId: string, houseStaffAssignments: any[]) {
+  const now = new Date();
+  return houseStaffAssignments.filter(assignment => {
+    // Basic match for this house
+    if (assignment.house_id !== houseId) return false;
+    
+    // Check if staff member is active
+    const isStaffActive = assignment.staff?.status === 'active';
+    
+    // Check if employment has ended (separation_date)
+    const hasEmploymentEnded = assignment.staff?.separation_date && new Date(assignment.staff.separation_date) <= now;
+    
+    // Check if house assignment has ended (end_date)
+    const hasAssignmentEnded = assignment.end_date && new Date(assignment.end_date) <= now;
+    
+    return isStaffActive && !hasEmploymentEnded && !hasAssignmentEnded;
+  }).length;
 }
 
 // Helper function to create Google Maps URL from address

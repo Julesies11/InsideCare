@@ -687,6 +687,7 @@ export function HouseDetailContent({
       if (onFormDataChange) onFormDataChange(currentFormData);
 
       // Invalidate queries to ensure child components fetch fresh data
+      queryClient.invalidateQueries({ queryKey: ['houses'] });
       queryClient.invalidateQueries({ queryKey: ['house-staff-assignments', { houseId: id }] });
       queryClient.invalidateQueries({ queryKey: ['house-participants', { houseId: id }] });
       queryClient.invalidateQueries({ queryKey: ['house-calendar-events', { houseId: id }] });

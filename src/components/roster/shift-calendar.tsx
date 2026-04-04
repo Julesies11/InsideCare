@@ -293,12 +293,20 @@ export function ShiftCalendar({
           
           <div className="space-y-2">
             {allHouses.map((house) => {
-              // Filter staff assigned to this house (active assignment = no end_date)
+              // Filter staff assigned to this house (active assignment = no end_date or in future)
               const houseStaffList = house.id.toLowerCase() === 'unassigned' 
                 ? staffList 
-                : staffList?.filter(s => (s as any).house_assignments?.some((a: any) => 
-                    a.house_id.toLowerCase() === house.id.toLowerCase() && !a.end_date
-                  )) || [];
+                : staffList?.filter(s => {
+                    const assignments = (s as any).house_assignments || [];
+                    return assignments.some((a: any) => {
+                      const assignmentHouseId = (a.house_id || a.house?.id || '').toLowerCase();
+                      const targetHouseId = house.id.toLowerCase();
+                      const isTargetHouse = assignmentHouseId === targetHouseId;
+                      
+                      const hasNoEndDate = !a.end_date || new Date(a.end_date) > new Date();
+                      return isTargetHouse && hasNoEndDate;
+                    });
+                  }) || [];
 
               return (
                 <div key={house.id} className="grid grid-cols-[140px_repeat(7,1fr)] gap-2 border-b border-gray-50 hover:bg-gray-50/30 transition-all rounded-xl p-1 group/row">

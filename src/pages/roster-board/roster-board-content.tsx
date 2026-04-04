@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Download, Calendar } from 'lucide-react';
+import { Download, Calendar, Zap } from 'lucide-react';
 import { StaffRosterCalendar, StaffRosterCalendarHandle } from './components/staff-roster-calendar';
 import { RosterCalendarHeader } from '@/components/roster/roster-calendar-header';
 import { ViewMode, getDateRange } from '@/components/roster/roster-utils';
@@ -164,8 +164,12 @@ export function RosterBoardContent() {
           <p className="text-muted-foreground text-sm">Manage shift schedules and staff assignments</p>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => handleOpenPopulateModal()} className="gap-2 font-bold border-primary/30 text-primary hover:bg-primary/5">
+            <Zap className="size-4 fill-primary" />
+            Publish Roster
+          </Button>
           <Button variant="outline" size="sm" onClick={handleExport}>
-            <Download className="h-4 w-4 mr-2" />
+            <Download className="size-4 mr-2" />
             Export
           </Button>
         </div>

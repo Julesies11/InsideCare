@@ -23,8 +23,8 @@ vi.mock('@/hooks/use-houses', () => ({
 vi.mock('@/hooks/use-participants', () => ({
   useParticipants: () => ({
     participants: [
-      { id: 'p1', first_name: 'UniqueActive', last_name: 'Participant', status: 'active', house_id: 'h1' },
-      { id: 'p2', first_name: 'UniqueInactive', last_name: 'Participant', status: 'inactive', house_id: 'h1' }
+      { id: 'p1', name: 'UniqueActive Participant', status: 'active', house_id: 'h1' },
+      { id: 'p2', name: 'UniqueInactive Participant', status: 'inactive', house_id: 'h1' }
     ],
     isLoading: false
   })

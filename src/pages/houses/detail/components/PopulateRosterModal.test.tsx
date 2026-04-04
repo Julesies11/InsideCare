@@ -34,8 +34,9 @@ vi.mock('@/hooks/use-house-shift-types', () => ({
 
 vi.mock('@/hooks/useHouseParticipants', () => ({
   useHouseParticipants: () => ({
-    participants: [
-      { id: 'p-1', first_name: 'Test', last_name: 'Participant', status: 'active' }
+    houseParticipants: [
+      { id: 'p-1', name: 'John Doe', status: 'active' },
+      { id: 'p-2', name: 'Jane Smith', status: 'active' }
     ],
     isLoading: false
   })
@@ -59,6 +60,29 @@ describe('PopulateRosterModal', () => {
     expect(screen.getByText(/Populate Roster/i)).toBeInTheDocument();
     expect(screen.getByText(/for Test House/i)).toBeInTheDocument();
   }, 30000);
+
+  it('shows participant assignment section', () => {
+    renderWithProviders(<PopulateRosterModal {...defaultProps} />);
+    expect(screen.getByText(/Participant Assignment/i)).toBeInTheDocument();
+    expect(screen.getByText(/John Doe/i)).toBeInTheDocument();
+    expect(screen.getByText(/Jane Smith/i)).toBeInTheDocument();
+  });
+
+  it('allows toggling participants', async () => {
+    renderWithProviders(<PopulateRosterModal {...defaultProps} />);
+    
+    // Checkbox for John Doe should be checked by default (as per component logic)
+    const johnCheckbox = screen.getByLabelText(/John Doe/i);
+    expect(johnCheckbox).toBeChecked();
+    
+    // Uncheck John Doe
+    fireEvent.click(johnCheckbox);
+    expect(johnCheckbox).not.toBeChecked();
+    
+    // Re-check John Doe
+    fireEvent.click(johnCheckbox);
+    expect(johnCheckbox).toBeChecked();
+  });
 
   it('shows rotation length selector', () => {
     renderWithProviders(<PopulateRosterModal {...defaultProps} />);

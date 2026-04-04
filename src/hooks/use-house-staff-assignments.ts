@@ -17,6 +17,7 @@ export interface HouseStaffAssignment {
     email?: string;
     phone?: string;
     status?: string;
+    separation_date?: string | null;
     role_id?: string;
     photo_url?: string;
     role?: {
@@ -29,7 +30,7 @@ export interface HouseStaffAssignment {
 
 const HOUSE_STAFF_ASSIGNMENT_COLUMNS = `
   id, house_id, staff_id, is_primary, start_date, end_date, notes, created_at, updated_at,
-  staff:staff(id, name, email, phone, status, role_id, photo_url, role:roles!staff_role_id_fkey(id, name, description))
+  staff:staff(id, name, email, phone, status, separation_date, role_id, photo_url, role:roles!staff_role_id_fkey(id, name, description))
 `;
 
 export function useHouseStaffAssignments(houseId?: string) {

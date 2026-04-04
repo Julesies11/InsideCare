@@ -48,10 +48,11 @@ The care facilities/locations.
 
 ### Roster & Shifts
 - **`house_shift_types`**: Defines house-specific shift periods (Morning, Day, etc.) with custom icons, colors, and default times.
-- **`shift_type_default_checklists`**: Junction table mapping default checklists to shift types.
+- **`shift_type_default_checklists`**: Junction table mapping default checklists to shift types for automatic assignment.
 - **`staff_shifts`**: Scheduled shifts for staff.
-    - **Key Fields**: `id`, `staff_id`, `house_id`, `start_date`, `start_time`, `end_time`.
+    - **Key Fields**: `id`, `staff_id`, `house_id`, `start_date`, `start_time`, `end_time`, `shift_type_id`.
 - **`shift_assigned_checklists`**: Instances of checklists assigned to a *specific* `staff_shift`.
+- **Note**: Organization-level shift templates (`org_shift_templates`) have been deprecated in favor of this House-specific model for better operational flexibility.
 
 ### Checklists & Submissions
 - **`checklist_master` & `checklist_item_master`**: Templates for recurring tasks.
