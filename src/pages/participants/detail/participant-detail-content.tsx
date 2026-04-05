@@ -18,7 +18,7 @@ import { Documents } from './components/documents';
 import { Medications } from './components/medications';
 import { Contacts } from './components/contacts';
 import { ShiftNotes } from './components/shift-notes';
-import { ActivityLog } from './components/activity-log';
+import { ActivityLog } from '@/components/activities/ActivityLog';
 import { useUpdateParticipant, useParticipant } from '@/hooks/use-participants';
 import { Participant } from '@/models/participant';
 import { supabase } from '@/lib/supabase';
@@ -74,7 +74,7 @@ export function ParticipantDetailContent({
   const { settings } = useSettings();
   const [sidebarSticky, setSidebarSticky] = useState(false);
   const [participant, setParticipant] = useState<Participant | undefined>();
-  const [originalData, setOriginalData] = useState<Record<string, any>>({});
+  const [, setOriginalData] = useState<Record<string, any>>({});
   const [hasInitialized, setHasInitialized] = useState(false);
   
   const latestPendingChanges = useRef<ParticipantPendingChanges>(pendingChanges || emptyParticipantPendingChanges);
@@ -166,7 +166,7 @@ export function ParticipantDetailContent({
   const { mutateAsync: updateParticipantFromHook } = useUpdateParticipant();
   const updateParticipantFn = updateParticipant || updateParticipantFromHook;
 
-  const { validationErrors, setFieldError, clearAllErrors, scrollToField } = useFormValidation();
+  const { validationErrors, setFieldError, scrollToField } = useFormValidation();
 
   const parentRef = useRef<HTMLElement | Document>(document);
   const scrollPosition = useScrollPosition({ targetRef: parentRef });
@@ -371,17 +371,6 @@ export function ParticipantDetailContent({
         const { error } = await supabase.from('participant_medications').insert(toInsert);
         if (error) throw new Error(`Failed to add medications: ${error.message}`);
         
-        for (const _med of currentPending.medications.toAdd) {
-          await logActivity({
-            activityType: 'create',
-            entityType: 'participant',
-            entityId: id,
-            entityName: participant?.name,
-            userName,
-            customDescription: 'Added new medication',
-          });
-        }
-        
         if (participant?.house_id) {
           await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.name || 'Participant', 'medication');
         }
@@ -399,14 +388,6 @@ export function ParticipantDetailContent({
             })
             .eq('id', med.id);
           if (error) throw new Error(`Failed to update medication: ${error.message}`);
-          await logActivity({
-            activityType: 'update',
-            entityType: 'participant',
-            entityId: id,
-            entityName: participant?.name,
-            userName,
-            customDescription: 'Updated medication details',
-          });
         }
         if (participant?.house_id) {
           await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.name || 'Participant', 'medication');
@@ -420,17 +401,6 @@ export function ParticipantDetailContent({
           .in('id', currentPending.medications.toDelete);
         
         if (error) throw new Error(`Failed to delete medications: ${error.message}`);
-        
-        for (const _medId of currentPending.medications.toDelete) {
-          await logActivity({
-            activityType: 'delete',
-            entityType: 'participant',
-            entityId: id,
-            entityName: participant?.name,
-            userName,
-            customDescription: 'Removed medication',
-          });
-        }
       }
 
       // Step 3: Process pending contacts
@@ -494,17 +464,6 @@ export function ParticipantDetailContent({
           .in('id', currentPending.contacts.toDelete);
         
         if (error) throw new Error(`Failed to delete contacts: ${error.message}`);
-        
-        for (const _contactId of currentPending.contacts.toDelete) {
-          await logActivity({
-            activityType: 'delete',
-            entityType: 'participant',
-            entityId: id,
-            entityName: participant?.name,
-            userName,
-            customDescription: 'Removed contact',
-          });
-        }
       }
 
       // Step 4: Process pending documents
@@ -673,16 +632,6 @@ export function ParticipantDetailContent({
         const { error } = await supabase.from('shift_notes').insert(toInsert);
         if (error) throw new Error(`Failed to add shift notes: ${error.message}`);
         
-        for (const _note of currentPending.shiftNotes.toAdd) {
-          await logActivity({
-            activityType: 'create',
-            entityType: 'participant',
-            entityId: id,
-            entityName: participant?.name,
-            userName,
-            customDescription: 'Added shift note',
-          });
-        }
         if (participant?.house_id) {
           await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.name || 'Participant', 'note');
         }
@@ -701,14 +650,6 @@ export function ParticipantDetailContent({
             })
             .eq('id', note.id);
           if (error) throw new Error(`Failed to update shift note: ${error.message}`);
-          await logActivity({
-            activityType: 'update',
-            entityType: 'participant',
-            entityId: id,
-            entityName: participant?.name,
-            userName,
-            customDescription: 'Updated shift note',
-          });
         }
         if (participant?.house_id) {
           await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.name || 'Participant', 'note');
@@ -721,17 +662,6 @@ export function ParticipantDetailContent({
           .delete()
           .in('id', currentPending.shiftNotes.toDelete);
         if (error) throw new Error(`Failed to delete shift notes: ${error.message}`);
-        
-        for (const _noteId of currentPending.shiftNotes.toDelete) {
-          await logActivity({
-            activityType: 'delete',
-            entityType: 'participant',
-            entityId: id,
-            entityName: participant?.name,
-            userName,
-            customDescription: 'Removed shift note',
-          });
-        }
       }
 
       // Reset state and refs
@@ -771,7 +701,7 @@ export function ParticipantDetailContent({
     } finally {
       if (onSavingChange) onSavingChange(false);
     }
-  }, [id, participant, userName, updateParticipantFn, onSavingChange, onOriginalDataChange, onPendingChangesChange, onSaveSuccess, clearAllErrors, setFieldError, scrollToField, photoFile, photoPreview, originalPhotoUrl, queryClient, onFormDataChange]);
+  }, [id, participant, user?.fullname, user?.email, updateParticipantFn, onSavingChange, onOriginalDataChange, onPendingChangesChange, onSaveSuccess, setFieldError, scrollToField, photoFile, photoPreview, originalPhotoUrl, queryClient, onFormDataChange]);
 
   useEffect(() => {
     if (saveHandlerRef) {

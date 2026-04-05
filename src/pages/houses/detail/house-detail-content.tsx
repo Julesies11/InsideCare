@@ -25,6 +25,8 @@ import { HousePendingChanges, emptyHousePendingChanges } from '@/models/house-pe
 import { useAuth } from '@/auth/context/auth-context';
 import { useQueryClient } from '@tanstack/react-query';
 import { handleSupabaseError } from '@/errors/error-handler';
+import { ActivityLog } from '@/components/activities/ActivityLog';
+import { logActivity, detectChanges } from '@/lib/activity-logger';
 
 interface HouseDetailContentProps {
   onFormDataChange?: (data: any) => void;
@@ -95,7 +97,8 @@ export function HouseDetailContent({
     forms: 0,
     resources: 0,
     comms: 0,
-    shiftConfiguration: 0
+    shiftConfiguration: 0,
+    activityLog: 0,
   });
 
   // Handle scroll position and sidebar stickiness
@@ -106,7 +109,6 @@ export function HouseDetailContent({
   useEffect(() => {
     const fetchHouse = async () => {
       try {
-        console.log('fetchHouse starting for id:', id);
         setLoading(true);
         const { data, error } = await supabase
           .from('houses')
@@ -114,7 +116,6 @@ export function HouseDetailContent({
           .eq('id', id)
           .single();
 
-        console.log('fetchHouse result:', { data, error });
         if (error) throw error;
         setHouse(data);
         setOriginalData(data);
@@ -122,13 +123,11 @@ export function HouseDetailContent({
         onHouseChange?.(data);
         onOriginalDataChange?.(data);
         onFormDataChange?.(data);
-        console.log('fetchHouse state updates completed');
       } catch (err) {
         console.error('Error fetching house:', err);
         toast.error('Failed to load house details');
       } finally {
         setLoading(false);
-        console.log('fetchHouse finished, loading set to false');
       }
     };
 
@@ -145,6 +144,8 @@ export function HouseDetailContent({
   const handleSave = useCallback(async () => {
     const currentPending = latestPendingChanges.current;
     const currentFormData = latestFormData.current;
+    const currentOriginalData = latestOriginalData.current;
+    const userName = user?.fullname || user?.email || 'Unknown User';
 
     try {
       if (onSavingChange) onSavingChange(true);
@@ -176,6 +177,19 @@ export function HouseDetailContent({
         return;
       }
 
+      // Log basic detail changes
+      const detailChanges = detectChanges(currentOriginalData, currentFormData);
+      if (Object.keys(detailChanges).length > 0) {
+        await logActivity({
+          activityType: 'update',
+          entityType: 'house',
+          entityId: id!,
+          entityName: currentFormData.name,
+          changes: detailChanges,
+          userName,
+        });
+      }
+
       // Get the staff record ID for the current authenticated user
       let currentStaffId = null;
       if (user?.id) {
@@ -198,6 +212,17 @@ export function HouseDetailContent({
           .update({ house_id: id, status: 'active' })
           .in('id', ids);
         if (error) throw new Error(`Failed to link participants: ${error.message}`);
+
+        for (const p of currentPending.participants.toAdd) {
+          await logActivity({
+            activityType: 'update',
+            entityType: 'house',
+            entityId: id!,
+            entityName: currentFormData.name,
+            userName,
+            customDescription: `Linked participant "${p.name || p.participant_id}" to house`,
+          });
+        }
       }
 
       if (currentPending.participants.toUpdate.length > 0) {
@@ -211,6 +236,15 @@ export function HouseDetailContent({
             .update(updates)
             .eq('id', p.id);
           if (error) throw new Error(`Failed to update participant: ${error.message}`);
+
+          await logActivity({
+            activityType: 'update',
+            entityType: 'house',
+            entityId: id!,
+            entityName: currentFormData.name,
+            userName,
+            customDescription: `Updated participant "${p.name || p.id}" house settings`,
+          });
         }
       }
 
@@ -220,6 +254,17 @@ export function HouseDetailContent({
           .update({ house_id: null })
           .in('id', currentPending.participants.toDelete);
         if (error) throw new Error(`Failed to unlink participants: ${error.message}`);
+
+        for (const pid of currentPending.participants.toDelete) {
+          await logActivity({
+            activityType: 'update',
+            entityType: 'house',
+            entityId: id!,
+            entityName: currentFormData.name,
+            userName,
+            customDescription: `Unlinked participant (ID: ${pid}) from house`,
+          });
+        }
       }
 
       // Step 3: Process pending staff assignments
@@ -234,6 +279,17 @@ export function HouseDetailContent({
         }));
         const { error } = await supabase.from('house_staff_assignments').insert(toInsert);
         if (error) throw new Error(`Failed to add staff assignments: ${error.message}`);
+
+        for (const _s of currentPending.staff.toAdd) {
+          await logActivity({
+            activityType: 'update',
+            entityType: 'house',
+            entityId: id!,
+            entityName: currentFormData.name,
+            userName,
+            customDescription: `Assigned staff member to house`,
+          });
+        }
       }
 
       if (currentPending.staff.toUpdate.length > 0) {
@@ -325,8 +381,6 @@ export function HouseDetailContent({
             .upload(filePath, doc.file);
 
           if (uploadError) throw new Error(`Failed to upload document: ${uploadError.message}`);
-
-          const { data: urlData } = supabase.storage.from('house-documents').getPublicUrl(filePath);
 
           const { error } = await supabase
             .from('house_files')
@@ -420,7 +474,7 @@ export function HouseDetailContent({
 
       // Step 7: Process pending checklist items
       if (currentPending.checklists.checklistItems.toAdd.length > 0) {
-        const toInsert = currentPending.checklists.checklistItems.toAdd.map(item => ({
+        const itemsToInsert = currentPending.checklists.checklistItems.toAdd.map(item => ({
           checklist_id: item.checklist_id,
           title: item.title,
           instructions: item.instructions || null,
@@ -430,7 +484,7 @@ export function HouseDetailContent({
           sort_order: item.sort_order || 0,
           master_item_id: item.master_item_id || null,
         }));
-        const { error } = await supabase.from('house_checklist_items').insert(toInsert);
+        const { error } = await supabase.from('house_checklist_items').insert(itemsToInsert);
         if (error) throw new Error(`Failed to add checklist items: ${error.message}`);
       }
 
@@ -625,7 +679,6 @@ export function HouseDetailContent({
               .single();
 
             if (typeError) throw new Error(`Failed to add shift model: ${typeError.message}`);
-            shiftTypeTempIdMap[st.tempId] = newType.id;
             updatedTypes.push(newType);
 
             if (st.default_checklists && st.default_checklists.length > 0) {
@@ -683,6 +736,7 @@ export function HouseDetailContent({
 
       // Final Step: Refresh local state
       setHouse(houseData as any);
+      setOriginalData(currentFormData);
       if (onOriginalDataChange) onOriginalDataChange(currentFormData);
       if (onFormDataChange) onFormDataChange(currentFormData);
 
@@ -711,7 +765,8 @@ export function HouseDetailContent({
         resources: (currentPending.resources.toAdd.length || 0) > 0 || (currentPending.resources.toUpdate.length || 0) > 0 || (currentPending.resources.toDelete.length || 0) > 0 ? prev.resources + 1 : prev.resources,
         participants: (currentPending.participants.toAdd.length || 0) > 0 || (currentPending.participants.toUpdate.length || 0) > 0 || (currentPending.participants.toDelete.length || 0) > 0 ? prev.participants + 1 : prev.participants,
         comms: (currentPending.comms.toAdd.length || 0) > 0 ? prev.comms + 1 : prev.comms,
-        shiftConfiguration: (currentPending.shiftTypes.toAdd.length || 0) > 0 || (currentPending.shiftTypes.toUpdate.length || 0) > 0 || (currentPending.shiftTypes.toDelete.length || 0) > 0 ? (prev as any).shiftConfiguration + 1 : (prev as any).shiftConfiguration,
+        shiftConfiguration: (currentPending.shiftTypes.toAdd.length || 0) > 0 || (currentPending.shiftTypes.toUpdate.length || 0) > 0 || (currentPending.shiftTypes.toDelete.length || 0) > 0 ? prev.shiftConfiguration + 1 : prev.shiftConfiguration,
+        activityLog: prev.activityLog + 1,
       }));
 
       if (onPendingChangesChange) {
@@ -725,7 +780,7 @@ export function HouseDetailContent({
     } finally {
       if (onSavingChange) onSavingChange(false);
     }
-  }, [id, formData, queryClient, user?.id, onOriginalDataChange, onFormDataChange, onSavingChange, onPendingChangesChange, pendingChanges]);
+  }, [id, queryClient, user?.fullname, user?.email, user?.id, onOriginalDataChange, onFormDataChange, onSavingChange, onPendingChangesChange]);
 
   useEffect(() => {
     if (saveHandlerRef) {
@@ -882,6 +937,12 @@ export function HouseDetailContent({
             canDelete={true}
             pendingChanges={pendingChanges}
             onPendingChangesChange={onPendingChangesChange}
+          />
+
+          <ActivityLog 
+            entityId={id} 
+            entityType="house" 
+            refreshTrigger={refreshKeys.activityLog}
           />
       </div>
 

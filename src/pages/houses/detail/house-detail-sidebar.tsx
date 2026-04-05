@@ -58,6 +58,10 @@ export function HouseDetailSidebar() {
       title: 'Staff',
       target: 'staff',
     },
+    {
+      title: 'Activity Log',
+      target: 'activity_log',
+    },
   ];
 
   return <ScrollspyMenu items={items} />;

@@ -3,12 +3,6 @@ import { HouseShiftSetup } from './house-shift-setup';
 import { describe, it, expect, vi } from 'vitest';
 import { emptyHousePendingChanges } from '@/models/house-pending-changes';
 
-const mockMutation = {
-  mutate: vi.fn(),
-  mutateAsync: vi.fn().mockResolvedValue({}),
-  isPending: false,
-};
-
 // Mock the hooks used in the component
 vi.mock('@/hooks/use-house-shift-types', () => ({
   useHouseShiftTypes: () => ({

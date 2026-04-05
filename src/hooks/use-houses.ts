@@ -57,7 +57,7 @@ export function useHouses(
       if (error) throw error;
       return { data: data as House[], count: count || 0 };
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 30, // 30 seconds
   });
 
   return {
@@ -85,7 +85,7 @@ export function useAddHouse() {
       
       await logActivity({
         activityType: 'create',
-        entityType: 'branch', // Using branch as entity type for house since it's closest in ActivityLog union
+        entityType: 'house',
         entityId: data.id,
         entityName: data.name,
         customDescription: `New house added: ${data.name}`
@@ -116,7 +116,7 @@ export function useUpdateHouse() {
 
       await logActivity({
         activityType: 'update',
-        entityType: 'branch',
+        entityType: 'house',
         entityId: data.id,
         entityName: data.name,
         customDescription: `House updated: ${data.name}`
@@ -146,7 +146,7 @@ export function useDeleteHouse() {
 
       await logActivity({
         activityType: 'delete',
-        entityType: 'branch',
+        entityType: 'house',
         entityId: id,
         entityName: name,
         customDescription: `House deleted: ${name}`

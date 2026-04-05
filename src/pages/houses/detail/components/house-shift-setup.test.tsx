@@ -1,6 +1,6 @@
 import { renderWithProviders, screen } from '@/test/test-utils';
 import { HouseShiftSetup } from './house-shift-setup';
-import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 
 // Mock the hooks used in HouseShiftSetup
 vi.mock('@/hooks/use-house-shift-types', () => ({

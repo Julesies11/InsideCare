@@ -71,6 +71,8 @@ function getHouseParticipants(houseId: string, allParticipants: Array<{ id: stri
 // Helper function to get active staff count for a house
 function getHouseStaffCount(houseId: string, houseStaffAssignments: any[]) {
   const now = new Date();
+  now.setHours(0, 0, 0, 0); // Normalize to start of day
+
   return houseStaffAssignments.filter(assignment => {
     // Basic match for this house
     if (assignment.house_id !== houseId) return false;
@@ -79,10 +81,16 @@ function getHouseStaffCount(houseId: string, houseStaffAssignments: any[]) {
     const isStaffActive = assignment.staff?.status === 'active';
     
     // Check if employment has ended (separation_date)
-    const hasEmploymentEnded = assignment.staff?.separation_date && new Date(assignment.staff.separation_date) <= now;
+    // If separation_date exists and is in the past, staff is not active
+    const separationDate = assignment.staff?.separation_date ? new Date(assignment.staff.separation_date) : null;
+    if (separationDate) separationDate.setHours(0, 0, 0, 0);
+    const hasEmploymentEnded = separationDate && separationDate < now;
     
     // Check if house assignment has ended (end_date)
-    const hasAssignmentEnded = assignment.end_date && new Date(assignment.end_date) <= now;
+    // If end_date exists and is in the past, assignment is not active
+    const assignmentEndDate = assignment.end_date ? new Date(assignment.end_date) : null;
+    if (assignmentEndDate) assignmentEndDate.setHours(0, 0, 0, 0);
+    const hasAssignmentEnded = assignmentEndDate && assignmentEndDate < now;
     
     return isStaffActive && !hasEmploymentEnded && !hasAssignmentEnded;
   }).length;

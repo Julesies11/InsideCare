@@ -4,12 +4,6 @@ import { HouseRosterWizard } from './HouseRosterWizard';
 import { renderWithProviders } from '@/test/test-utils';
 import { emptyHousePendingChanges } from '@/models/house-pending-changes';
 
-const mockMutation = {
-  mutate: vi.fn(),
-  mutateAsync: vi.fn().mockResolvedValue({}),
-  isPending: false,
-};
-
 // Mock the hooks to return stable data and prevent network requests
 vi.mock('@/hooks/use-house-shift-types', () => ({
   useHouseShiftTypes: () => ({

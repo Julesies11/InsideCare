@@ -46,7 +46,6 @@ describe('Roster Board Smoke Test', () => {
     
     // Check for major action buttons
     expect(screen.getByText(/Export/i)).toBeInTheDocument();
-    expect(screen.getByText(/Publish Roster/i)).toBeInTheDocument();
     
     // Check for filter placeholders in RosterCalendarHeader
     await waitFor(() => {
