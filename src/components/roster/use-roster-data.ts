@@ -183,6 +183,7 @@ export function useRosterData() {
   const staffQuery = useQuery({
     queryKey: ['staff'],
     queryFn: async () => {
+      const today = new Date().toISOString().split('T')[0];
       const { data, error } = await supabase
         .from('staff')
         .select(`
@@ -190,6 +191,7 @@ export function useRosterData() {
           house_assignments:house_staff_assignments(
             id,
             house_id,
+            end_date,
             house:houses(id, name)
           )
         `)
@@ -197,14 +199,20 @@ export function useRosterData() {
         .order('name');
       if (error) throw error;
       
-      // Normalize house assignments
-      return (data || []).map((s: any) => ({
-        ...s,
-        house_assignments: (s.house_assignments || []).map((ha: any) => ({
+      // Normalize and Filter house assignments (only active ones)
+      return (data || []).map((s: any) => {
+        const activeAssignments = (s.house_assignments || []).filter((ha: any) => {
+          return !ha.end_date || ha.end_date >= today;
+        }).map((ha: any) => ({
           ...ha,
           house: Array.isArray(ha.house) ? ha.house[0] : ha.house
-        }))
-      }));
+        }));
+
+        return {
+          ...s,
+          house_assignments: activeAssignments
+        };
+      });
     },
     staleTime: 1000 * 60 * 60, // 1 hour
   });

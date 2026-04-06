@@ -27,7 +27,7 @@ interface ShiftCardProps {
   compact: boolean;
   showStaffName: boolean;
   showHouseName?: boolean;
-  onClick: () => void;
+  onClick: (e?: React.MouseEvent) => void;
   onWriteNote?: (shift: ShiftCardData) => void;
   onNotesClick?: (shift: ShiftCardData) => void;
   staffList?: Array<{ id: string; name: string }>;

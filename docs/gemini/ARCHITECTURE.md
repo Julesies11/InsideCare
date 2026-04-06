@@ -55,11 +55,16 @@ For complex entities with child records (like Participants, Staff, or Houses), a
 ### Advanced Data Fetching (Roster Module)
 The Roster module implements a highly optimized data fetching strategy to handle large volumes of shifts (e.g., 500+ on a single board) with minimal latency.
 
-- **TanStack Query Caching**: All roster data (shifts, leave, shift types) is managed via TanStack Query. Queries are keyed by date range and filters, allowing for instantaneous navigation between weeks as data is cached in memory.
-- **Frontend Joining**: To reduce SQL execution time and JSON payload size, the system avoids heavy database joins for static metadata.
+- **Active Staff Filtering:** The system strictly enforces a definition of "Active Staff" for all house-based operations (Roster Board, House Calendar, Staff Dropdowns). A staff member is only included if they are `active` in the `staff` table AND have an assignment to the house with no `end_date` (or a future `end_date`). This must be applied to:
+    - **Linked Staff Counts** on House Profiles.
+    - **Staff Dropdowns** on the Roster Board and House Calendar.
+    - **Shift Assignment logic** in the Shift Dialog.
+- **TanStack Query Caching:** All roster data (shifts, leave, shift types) is managed via TanStack Query. Queries are keyed by date range and filters, allowing for instantaneous navigation between weeks as data is cached in memory.
+- **Frontend Joining:** To reduce SQL execution time and JSON payload size, the system avoids heavy database joins for static metadata.
     - **Pattern**: Instead of joining `houses` and `staff` in every shift query, the application fetches and caches the full lists of active Houses and Staff once.
     - **Mapping**: Shift records are returned with IDs only; the UI layer maps these IDs to the cached metadata arrays in the frontend.
 - **Automatic Cache Invalidation**: Mutations (Creating/Updating/Deleting shifts) use the `queryClient` to invalidate relevant query keys, ensuring that all roster widgets (Calendar, Upcoming Shifts, Staff Detail) stay synchronized without manual state management.
+
 
 ## 4. Activity Logging
 A centralized activity logging system tracks all major changes in the application.

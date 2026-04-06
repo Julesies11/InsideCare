@@ -1,3 +1,9 @@
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { Plus, Zap, Trash2 } from 'lucide-react';
 import { format, isSameDay, isSameMonth, parseISO, isWithinInterval } from 'date-fns';
@@ -96,13 +102,12 @@ export function ShiftCalendar({
     return sortShifts(filtered);
   };
 
-  const checkForDoubleBookings = (staffId: string, date: Date, excludeShiftId?: string) => {
-    const staffShifts = shifts.filter(shift => 
+  const getConflictingShifts = (staffId: string, date: Date, excludeShiftId?: string) => {
+    return shifts.filter(shift => 
       shift.staff_id === staffId && 
       shift.start_date && isSameDay(parseISO(shift.start_date), date) &&
       shift.id !== excludeShiftId
     );
-    return staffShifts.length > 0;
   };
 
   const renderShiftCardWithWarning = (
@@ -112,19 +117,50 @@ export function ShiftCalendar({
     showHouseName: boolean = true,
     customStaffList?: Array<{ id: string; name: string }>
   ) => {
-    const hasDoubleBooking = shift.staff_id ? 
-      checkForDoubleBookings(shift.staff_id, date, shift.id) : false;
+    const conflictingShifts = shift.staff_id ? 
+      getConflictingShifts(shift.staff_id, date, shift.id) : [];
+    
+    const hasDoubleBooking = conflictingShifts.length > 0;
     
     return (
       <div key={shift.id} className={hasDoubleBooking ? 'relative' : ''}>
         {hasDoubleBooking && (
           <div className="absolute -top-1 -right-1 z-10">
-            <div 
-              className={`bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center ${compact ? 'w-3 h-3' : 'w-4 h-4'}`} 
-              title="Double booking detected!"
-            >
-              !
-            </div>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div 
+                    className={`bg-red-500 text-white text-[10px] rounded-full font-bold flex items-center justify-center cursor-help shadow-sm ${compact ? 'w-3.5 h-3.5' : 'w-4 h-4'}`} 
+                  >
+                    !
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="right" className="max-w-[250px] p-3 shadow-xl border-red-100">
+                  <div className="space-y-2">
+                    <p className="font-bold text-red-600 text-xs flex items-center gap-1.5">
+                      <span className="bg-red-100 text-red-600 size-4 rounded-full flex items-center justify-center text-[10px]">!</span>
+                      Double Booking Warning
+                    </p>
+                    <p className="text-[10px] text-muted-foreground leading-tight">
+                      This staff member is already rostered for other shifts on this day:
+                    </p>
+                    <ul className="space-y-2 pt-1 border-t border-red-50 mt-1">
+                      {conflictingShifts.map(conf => (
+                        <li key={conf.id} className="text-[10px] leading-tight flex flex-col gap-0.5">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-bold text-gray-900">{conf.shift_type}</span>
+                            <span className="text-gray-500 font-medium">{conf.start_time.slice(0, 5)} - {conf.end_time.slice(0, 5)}</span>
+                          </div>
+                          <div className="text-gray-600 italic">
+                            at {conf.house?.name || 'Unknown House'}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         )}
         <ShiftCard
@@ -164,7 +200,12 @@ export function ShiftCalendar({
             return (
               <div
                 key={index}
-                className={`min-h-[120px] p-2 border rounded-xl group relative transition-all ${
+                onClick={() => {
+                  if (canEdit && isCurrentMonth) {
+                    onAddShift(day);
+                  }
+                }}
+                className={`min-h-[120px] p-2 border rounded-xl group relative transition-all cursor-pointer ${
                   !isCurrentMonth ? 'bg-muted/10 opacity-60' : 'bg-card'
                 } ${isToday ? 'ring-2 ring-primary border-primary/20 shadow-lg shadow-primary/5' : 'hover:border-gray-300'}`}
               >
@@ -190,7 +231,11 @@ export function ShiftCalendar({
                   {getLeaveForDate(day).map(leave => (
                     <LeaveBlockBadge key={leave.id} leave={leave} />
                   ))}
-                  {dayShifts.map(shift => renderShiftCardWithWarning(shift, day, true, false))}
+                  {dayShifts.map(shift => (
+                    <div key={shift.id} onClick={(e) => e.stopPropagation()}>
+                      {renderShiftCardWithWarning(shift, day, true, false)}
+                    </div>
+                  ))}
                 </div>
               </div>
             );
@@ -215,7 +260,10 @@ export function ShiftCalendar({
 
           return (
             <div key={index} className="space-y-3">
-              <div className={`text-center p-3 rounded-xl group relative border transition-all ${isToday ? 'bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20' : 'bg-muted/30 border-gray-100'}`}>
+              <div 
+                onClick={() => canEdit && onAddShift(day)}
+                className={`text-center p-3 rounded-xl group relative border transition-all cursor-pointer ${isToday ? 'bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20' : 'bg-muted/30 border-gray-100'}`}
+              >
                 <p className={`text-[10px] font-black uppercase tracking-widest ${isToday ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
                   {format(day, 'EEE')}
                 </p>
@@ -237,11 +285,18 @@ export function ShiftCalendar({
                 )}
               </div>
               
-              <div className="space-y-2">
+              <div 
+                className="space-y-2 min-h-[100px] cursor-pointer"
+                onClick={() => canEdit && onAddShift(day)}
+              >
                 {getLeaveForDate(day).map(leave => (
                   <LeaveBlockBadge key={leave.id} leave={leave} />
                 ))}
-                {dayShifts.map(shift => renderShiftCardWithWarning(shift, day, false, false))}
+                {dayShifts.map(shift => (
+                  <div key={shift.id} onClick={(e) => e.stopPropagation()}>
+                    {renderShiftCardWithWarning(shift, day, false, false)}
+                  </div>
+                ))}
                 {dayShifts.length === 0 && getLeaveForDate(day).length === 0 && (
                   <div className="text-center py-8 bg-gray-50/50 rounded-xl border border-dashed border-gray-100">
                     <span className="text-[10px] font-medium text-muted-foreground italic uppercase tracking-widest opacity-40">No shifts</span>
@@ -294,6 +349,7 @@ export function ShiftCalendar({
           <div className="space-y-2">
             {allHouses.map((house) => {
               // Filter staff assigned to this house (active assignment = no end_date or in future)
+              const today = new Date().toISOString().split('T')[0];
               const houseStaffList = house.id.toLowerCase() === 'unassigned' 
                 ? staffList 
                 : staffList?.filter(s => {
@@ -303,8 +359,8 @@ export function ShiftCalendar({
                       const targetHouseId = house.id.toLowerCase();
                       const isTargetHouse = assignmentHouseId === targetHouseId;
                       
-                      const hasNoEndDate = !a.end_date || new Date(a.end_date) > new Date();
-                      return isTargetHouse && hasNoEndDate;
+                      const isAssignmentActive = !a.end_date || a.end_date >= today;
+                      return isTargetHouse && isAssignmentActive;
                     });
                   }) || [];
 
@@ -353,8 +409,13 @@ export function ShiftCalendar({
                     return (
                       <div
                         key={dayIndex}
+                        onClick={() => {
+                          if (canEdit) {
+                            onAddShift(day, house.id === 'unassigned' ? undefined : house.id);
+                          }
+                        }}
                         className={cn(
-                          "min-h-[100px] p-2 border border-transparent rounded-xl group/cell relative transition-all",
+                          "min-h-[100px] p-2 border border-transparent rounded-xl group/cell relative transition-all cursor-pointer",
                           isToday ? "bg-primary/[0.02] ring-1 ring-primary/10" : "hover:bg-white hover:shadow-sm hover:border-gray-100"
                         )}
                       >
@@ -373,7 +434,11 @@ export function ShiftCalendar({
                         )}
                         
                         <div className="space-y-1.5">
-                          {houseShifts.map(shift => renderShiftCardWithWarning(shift, day, true, false, houseStaffList))}
+                          {houseShifts.map(shift => (
+                            <div key={shift.id} onClick={(e) => e.stopPropagation()}>
+                              {renderShiftCardWithWarning(shift, day, true, false, houseStaffList)}
+                            </div>
+                          ))}
                           {houseShifts.length === 0 && (
                             <div className="text-center py-6 opacity-0 group-hover/cell:opacity-20 transition-opacity">
                               <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Empty</span>

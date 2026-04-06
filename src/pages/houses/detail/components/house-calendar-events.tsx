@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar, Clock, MapPin, Users, User, Edit, Trash2, Plus, CalendarDays, ChevronLeft, ChevronRight, Loader2, CheckSquare } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, Edit, Trash2, Plus, CalendarDays, ChevronLeft, ChevronRight, Loader2, CheckSquare } from 'lucide-react';
 import { format, addMonths, addWeeks, addDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameDay, isBefore, startOfDay, eachDayOfInterval, eachWeekOfInterval, isSameMonth } from 'date-fns';
 import { useHouseCalendarEvents } from '@/hooks/useHouseCalendarEvents';
 import { useParticipants } from '@/hooks/use-participants';
@@ -26,6 +26,7 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 // Shift Dialog imports
 import { ShiftDialog, ShiftFormData } from '@/components/roster/shift-dialog';
+import { ShiftCard, ShiftCardData } from '@/components/roster/shift-card';
 import { useRosterData } from '@/components/roster/use-roster-data';
 import { useHouseShiftTypes } from '@/hooks/use-house-shift-types';
 
@@ -98,6 +99,28 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
   const [selectedShift, setSelectedShift] = useState<any>(null);
   const [shiftPreSelectedDate, setShiftPreSelectedDate] = useState<Date>();
   const [savingShift, setSavingShift] = useState(false);
+
+  // Helper to convert calendar event to ShiftCardData
+  const mapEventToShiftCardData = (event: any): ShiftCardData => ({
+    id: event.id.replace('shift-', ''),
+    start_date: event.event_date,
+    end_date: event.end_date,
+    start_time: event.start_time,
+    end_time: event.end_time,
+    shift_type: event.shift_type,
+    color_theme: event.type_details?.color_theme,
+    icon_name: event.type_details?.icon_name,
+    staff_name: event.assigned_staff?.name,
+    staff_id: event.assigned_staff_id,
+    participants: event.participants,
+    assigned_checklists: event.assigned_checklists?.map((ac: any) => ({
+      id: ac.id,
+      checklist_id: ac.checklist_id,
+      assignment_title: ac.assignment_title,
+      is_completed: ac.submissions?.some((s: any) => s.status === 'completed')
+    })),
+    notesCount: event.notes_count || 0
+  });
 
   // Apply filtering
   const filteredEvents = useMemo(() => {
@@ -926,33 +949,51 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
                                 No events
                               </div>
                             ) : (
-                              dayEvents.map(event => (
-                                <div
-                                  key={event.id || event.tempId}
-                                  onClick={() => handleEditEvent(event)}
-                                  className={`p-2 rounded-lg border text-left cursor-pointer transition-all hover:shadow-sm hover:scale-[1.02] active:scale-[0.98] ${
-                                    event.tempId ? 'bg-primary/5 border-primary/20' :
-                                    pendingChanges?.calendarEvents.toDelete.includes(event.id) ? 'opacity-40 bg-destructive/5' :
-                                    'bg-white border-gray-100'
-                                  }`}
-                                >
-                                  <div className="flex items-center gap-1.5 mb-1">
-                                    <div className={`size-1.5 rounded-full bg-${getTypeColor(event)}-500`} />
-                                    {event.is_checklist_event && <CheckSquare className={`size-2.5 text-${getTypeColor(event)}-600`} />}
-                                    <span className="text-[10px] font-bold text-gray-900 truncate leading-none">{event.title}</span>
-                                  </div>                                  <div className="flex flex-col gap-0.5">
-                                    <div className="text-[9px] text-gray-600 font-bold uppercase tracking-tighter">
-                                      {event.type === 'shift' ? 'Shift' : (event.event_type_info?.name || event.type)}
-                                    </div>
-                                    {(event.start_time || event.end_time) && (
-                                      <div className="text-[9px] text-muted-foreground font-medium flex items-center gap-1">
-                                        <Clock className="size-2.5" />
-                                        {event.start_time || '??'} {event.end_time && `- ${event.end_time}`}
+                              dayEvents.map(event => {
+                                if (event.type === 'shift') {
+                                  return (
+                                    <ShiftCard
+                                      key={event.id}
+                                      shift={mapEventToShiftCardData(event)}
+                                      compact={true}
+                                      showStaffName={true}
+                                      showHouseName={false}
+                                      onClick={(e?: React.MouseEvent) => {
+                                        e?.stopPropagation();
+                                        handleEditEvent(event);
+                                      }}
+                                    />
+                                  );
+                                }
+                                
+                                return (
+                                  <div
+                                    key={event.id || event.tempId}
+                                    onClick={() => handleEditEvent(event)}
+                                    className={`p-2 rounded-lg border text-left cursor-pointer transition-all hover:shadow-sm hover:scale-[1.02] active:scale-[0.98] ${
+                                      event.tempId ? 'bg-primary/5 border-primary/20' :
+                                      pendingChanges?.calendarEvents.toDelete.includes(event.id) ? 'opacity-40 bg-destructive/5' :
+                                      'bg-white border-gray-100'
+                                    }`}
+                                  >
+                                    <div className="flex items-center gap-1.5 mb-1">
+                                      <div className={`size-1.5 rounded-full bg-${getTypeColor(event)}-500`} />
+                                      {event.is_checklist_event && <CheckSquare className={`size-2.5 text-${getTypeColor(event)}-600`} />}
+                                      <span className="text-[10px] font-bold text-gray-900 truncate leading-none">{event.title}</span>
+                                    </div>                                  <div className="flex flex-col gap-0.5">
+                                      <div className="text-[9px] text-gray-600 font-bold uppercase tracking-tighter">
+                                        {(event.event_type_info?.name || event.type)}
                                       </div>
-                                    )}
+                                      {(event.start_time || event.end_time) && (
+                                        <div className="text-[9px] text-muted-foreground font-medium flex items-center gap-1">
+                                          <Clock className="size-2.5" />
+                                          {event.start_time || '??'} {event.end_time && `- ${event.end_time}`}
+                                        </div>
+                                      )}
+                                    </div>
                                   </div>
-                                </div>
-                              ))
+                                );
+                              })
                             )}
                           </div>
                         </div>
@@ -982,57 +1023,75 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
                       {getEventsForPeriod.length === 0 ? (
                         <div className="py-12 text-center text-muted-foreground italic">No events for this day</div>
                       ) : (
-                        getEventsForPeriod.map(event => (
-                          <div 
-                            key={event.id || event.tempId}
-                            onClick={() => handleEditEvent(event)}
-                            className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 hover:border-primary/30 hover:bg-primary/[0.02] cursor-pointer transition-all group"
-                          >
-                            <div className={`w-1 self-stretch rounded-full bg-${getTypeColor(event)}-500`} />
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                {event.is_checklist_event && <CheckSquare className={`size-4 text-${getTypeColor(event)}-600`} />}
-                                <h4 className="font-bold text-gray-900">{event.title}</h4>                                <Badge variant="outline" className={`text-[10px] border-${getTypeColor(event)}-200 text-${getTypeColor(event)}-700 bg-${getTypeColor(event)}-50 uppercase font-bold`}>
-                                  {event.type === 'shift' ? 'Shift' : (event.event_type_info?.name || event.type)}
-                                </Badge>
-                              </div>
-                              <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                                {(event.start_time || event.end_time) && (
-                                  <div className="flex items-center gap-1.5">
-                                    <Clock className="size-3.5" />
-                                    {event.start_time || '??'} {event.end_time && `- ${event.end_time}`}
-                                  </div>
+                        getEventsForPeriod.map(event => {
+                          if (event.type === 'shift') {
+                            return (
+                              <ShiftCard
+                                key={event.id}
+                                shift={mapEventToShiftCardData(event)}
+                                compact={false}
+                                showStaffName={true}
+                                showHouseName={false}
+                                onClick={(e?: React.MouseEvent) => {
+                                  e?.stopPropagation();
+                                  handleEditEvent(event);
+                                }}
+                              />
+                            );
+                          }
+
+                          return (
+                            <div 
+                              key={event.id || event.tempId}
+                              onClick={() => handleEditEvent(event)}
+                              className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 hover:border-primary/30 hover:bg-primary/[0.02] cursor-pointer transition-all group"
+                            >
+                              <div className={`w-1 self-stretch rounded-full bg-${getTypeColor(event)}-500`} />
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  {event.is_checklist_event && <CheckSquare className={`size-4 text-${getTypeColor(event)}-600`} />}
+                                  <h4 className="font-bold text-gray-900">{event.title}</h4>                                <Badge variant="outline" className={`text-[10px] border-${getTypeColor(event)}-200 text-${getTypeColor(event)}-700 bg-${getTypeColor(event)}-50 uppercase font-bold`}>
+                                    {(event.event_type_info?.name || event.type)}
+                                  </Badge>
+                                </div>
+                                <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                                  {(event.start_time || event.end_time) && (
+                                    <div className="flex items-center gap-1.5">
+                                      <Clock className="size-3.5" />
+                                      {event.start_time || '??'} {event.end_time && `- ${event.end_time}`}
+                                    </div>
+                                  )}
+                                  {event.location && (
+                                    <div className="flex items-center gap-1.5">
+                                      <MapPin className="size-3.5" />
+                                      {event.location}
+                                    </div>
+                                  )}
+                                </div>
+                                {event.description && <p className="mt-2 text-xs text-gray-600 line-clamp-2">{event.description}</p>}
+                                </div>
+                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                {canDelete && (
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="size-8 text-destructive hover:bg-destructive/10"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteEvent(event);
+                                    }}
+                                  >
+                                    <Trash2 className="size-4" />
+                                  </Button>
                                 )}
-                                {event.location && (
-                                  <div className="flex items-center gap-1.5">
-                                    <MapPin className="size-3.5" />
-                                    {event.location}
-                                  </div>
-                                )}
-                              </div>
-                              {event.description && <p className="mt-2 text-xs text-gray-600 line-clamp-2">{event.description}</p>}
-                              </div>
-                              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              {canDelete && (
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon" 
-                                  className="size-8 text-destructive hover:bg-destructive/10"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDeleteEvent(event);
-                                  }}
-                                >
-                                  <Trash2 className="size-4" />
+                                <Button variant="ghost" size="icon" className="size-8">
+                                  <Edit className="size-4" />
                                 </Button>
-                              )}
-                              <Button variant="ghost" size="icon" className="size-8">
-                                <Edit className="size-4" />
-                              </Button>
-                              </div>
-                              </div>
-                              ))
-                              )}                    </div>
+                                </div>
+                                </div>
+                          );
+                        })
+                      )}                    </div>
                   </div>
                 ) : viewMode === 'month' ? (
                   <div className="p-0 border-t">
@@ -1076,13 +1135,28 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
                             <div className="flex flex-col gap-1 overflow-y-auto max-h-[85px] custom-scrollbar">
                               {dayEvents.map(event => {
                                 const isShift = event.type === 'shift';
-                                const theme = isShift 
-                                  ? getPeriodTheme(event.shift_type, event.type_details?.color_theme, event.type_details?.icon_name)
-                                  : event.is_checklist_event
-                                    ? getPeriodTheme(event.target_shift)
-                                    : null;
                                 
-                                const Icon = isShift ? theme?.icon || User : event.is_checklist_event ? theme?.icon || CheckSquare : null;
+                                if (isShift) {
+                                  return (
+                                    <ShiftCard
+                                      key={event.id}
+                                      shift={mapEventToShiftCardData(event)}
+                                      compact={true}
+                                      showStaffName={true}
+                                      showHouseName={false}
+                                      onClick={(e?: React.MouseEvent) => {
+                                        e?.stopPropagation();
+                                        handleEditEvent(event);
+                                      }}
+                                    />
+                                  );
+                                }
+
+                                const theme = event.is_checklist_event
+                                  ? getPeriodTheme(event.target_shift)
+                                  : null;
+                                
+                                const Icon = event.is_checklist_event ? theme?.icon || CheckSquare : null;
 
                                 return (
                                   <div
@@ -1093,7 +1167,6 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
                                     }}
                                     className={cn(
                                       "px-1.5 py-1 rounded text-[9px] font-medium flex flex-col gap-0.5 border transition-all hover:scale-[1.02]",
-                                      isShift && theme ? `${theme.bg} ${theme.text} ${theme.border}` :
                                       event.is_checklist_event 
                                         ? `bg-${getTypeColor(event)}-50 text-${getTypeColor(event)}-700 border-${getTypeColor(event)}-200`
                                         : `bg-white text-gray-700 border-gray-200`
@@ -1103,50 +1176,24 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
                                     <div className="flex items-center justify-between gap-1">
                                       <span className="uppercase font-bold text-[8px] opacity-70 truncate flex items-center gap-1">
                                         {Icon && <Icon className="size-2 shrink-0" />}
-                                        {isShift ? event.shift_type : (event.event_type_info?.name || event.type)}
+                                        {(event.event_type_info?.name || event.type)}
                                       </span>
                                       <span className={cn(
                                         "size-1.5 rounded-full shrink-0",
-                                        isShift && theme ? theme.dot :
                                         event.is_checklist_event ? getPeriodTheme(event.target_shift).dot : 
                                         `bg-${getTypeColor(event)}-500`
                                       )} />
                                     </div>
                                     <div className="font-bold truncate text-gray-900 leading-tight">
-                                      {isShift ? (event.assigned_staff?.name || 'Unassigned') : event.title}
+                                      {event.title}
                                     </div>
                                     
-                                    {isShift && (
-                                      <div className="flex flex-col gap-0.5 mt-0.5 border-t border-black/5 pt-0.5">
-                                        <div className="text-[8px] font-bold uppercase tracking-tighter flex items-center gap-1 opacity-80">
-                                          <Clock className="size-2" />
-                                          {event.start_time?.substring(0, 5)} - {event.end_time?.substring(0, 5)}
-                                        </div>
-                                        
-                                        {/* Nested Checklists */}
-                                        {event.assigned_checklists && event.assigned_checklists.length > 0 && (
-                                          <div className="flex flex-wrap gap-1 mt-0.5">
-                                            {event.assigned_checklists.map((ac: any) => {
-                                              const isDone = ac.submissions?.some((s: any) => s.status === 'completed');
-                                              return (
-                                                <div key={ac.id} className="flex items-center gap-0.5 bg-white/40 px-1 rounded-[2px] border border-black/5">
-                                                  <div className={cn("size-1 rounded-full", isDone ? "bg-green-500" : "bg-gray-300")} />
-                                                  <span className="text-[7px] truncate max-w-[40px]">{ac.assignment_title}</span>
-                                                </div>
-                                              );
-                                            })}
-                                          </div>
-                                        )}
-                                      </div>
-                                    )}
-                                    {!isShift && (
-                                      <div className={cn(
-                                        "text-[8px] font-bold uppercase tracking-tighter flex items-center gap-1",
-                                        `text-${getTypeColor(event)}-600`
-                                      )}>
-                                        {getStatusText(event)}
-                                      </div>
-                                    )}
+                                    <div className={cn(
+                                      "text-[8px] font-bold uppercase tracking-tighter flex items-center gap-1",
+                                      `text-${getTypeColor(event)}-600`
+                                    )}>
+                                      {getStatusText(event)}
+                                    </div>
                                   </div>
                                 );
                               })}
@@ -1345,7 +1392,25 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
                   <SelectContent>
                     <SelectItem value="none">None</SelectItem>
                     {staff
-                      .filter(s => (s as any).status?.toLowerCase() === 'active' || s.id === formData.assigned_staff_id)
+                      .filter(s => {
+                        // 1. Must be active status (or currently assigned)
+                        const isStatusActive = (s as any).status?.toLowerCase() === 'active' || s.id === formData.assigned_staff_id;
+                        if (!isStatusActive) return false;
+
+                        // 2. Must be assigned to this specific house
+                        const today = new Date().toISOString().split('T')[0];
+                        const assignments = (s as any).house_assignments || [];
+                        const hasActiveAssignment = assignments.some((a: any) => {
+                          const assignmentHouseId = (a.house_id || a.house?.id || '').toLowerCase();
+                          const targetHouseId = (houseId || '').toLowerCase();
+                          const isTargetHouse = assignmentHouseId === targetHouseId;
+                          const isCurrent = !a.end_date || a.end_date >= today;
+                          return isTargetHouse && isCurrent;
+                        });
+
+                        // Always include the currently assigned staff member even if they are no longer active at the house
+                        return hasActiveAssignment || s.id === formData.assigned_staff_id;
+                      })
                       .map((staffMember) => (
                       <SelectItem key={staffMember.id} value={staffMember.id}>
                         <div className="flex items-center gap-2">

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 
 export interface HouseParticipant {
@@ -15,58 +15,41 @@ export interface HouseParticipant {
 }
 
 export function useHouseParticipants(houseId?: string) {
-  const [houseParticipants, setHouseParticipants] = useState<HouseParticipant[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const query = useQuery({
+    queryKey: ['house-participants', { houseId }],
+    queryFn: async () => {
+      if (!houseId) return [];
+      
+      const { data, error } = await supabase
+        .from('participants')
+        .select(`
+          id,
+          name,
+          email,
+          status,
+          house_id,
+          house_phone,
+          personal_mobile,
+          move_in_date,
+          created_at,
+          updated_at
+        `)
+        .eq('house_id', houseId)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
 
-  useEffect(() => {
-    if (!houseId) {
-      setHouseParticipants([]);
-      setLoading(false);
-      return;
-    }
-
-    const fetchHouseParticipants = async () => {
-      try {
-        setLoading(true);
-        
-        const { data, error } = await supabase
-          .from('participants')
-          .select(`
-            id,
-            name,
-            email,
-            status,
-            house_id,
-            house_phone,
-            personal_mobile,
-            move_in_date,
-            created_at,
-            updated_at
-          `)
-          .eq('house_id', houseId)
-          .eq('status', 'active')
-          .order('created_at', { ascending: false });
-
-        if (error) throw error;
-
-        setHouseParticipants(data || []);
-        setError(null);
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to fetch house participants';
-        console.error('Error fetching house participants:', err);
-        setError(errorMessage);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchHouseParticipants();
-  }, [houseId]);
+      if (error) throw error;
+      return data as HouseParticipant[];
+    },
+    enabled: !!houseId,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
 
   return {
-    houseParticipants,
-    loading,
-    error,
+    ...query,
+    houseParticipants: query.data || [],
+    loading: query.isLoading,
+    error: query.error ? (query.error as Error).message : null,
+    refresh: query.refetch,
   };
 }

@@ -21,6 +21,7 @@ export function ShiftChecklistPicker({
   readOnly = false 
 }: ShiftChecklistPickerProps) {
   // Sort checklists so selected ones appear at the top
+  // We exclude selectedIds from the dependencies to prevent re-sorting while the user is picking
   const sortedChecklists = useMemo(() => {
     return [...checklists].sort((a, b) => {
       const aSelected = selectedIds.includes(a.id);
@@ -32,7 +33,8 @@ export function ShiftChecklistPicker({
       // Secondary sort by sort_order
       return (a.sort_order || 0) - (b.sort_order || 0);
     });
-  }, [checklists, selectedIds]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [checklists]); // ONLY re-sort when the master list changes, NOT when selection changes
 
   if (checklists.length === 0) {
     return (

@@ -26,7 +26,12 @@ The central entity representing the individuals receiving care.
 ### 2. Staff (`public.staff`)
 The employees providing care.
 - **Key Fields:** `id`, `name`, `email`, `role_id`, `status`, `auth_user_id` (links to Supabase Auth).
-- **Relationships:** Belongs to a Department. Assigned to many Houses.
+- **Relationships:** Belongs to a Department. Assigned to many Houses via `house_staff_assignments`.
+- **Definition of "Active Staff":** A staff member is considered "Active" for a specific house only if:
+    1. Their `status` in the `staff` table is exactly `'active'`.
+    2. They have a record in `house_staff_assignments` for that house.
+    3. The assignment record has no `end_date` OR the `end_date` is in the future.
+    4. *This definition must be strictly enforced across all dropdowns, rosters, and house-linked counts.*
 
 ### 3. Houses (`public.houses`)
 The care facilities/locations.

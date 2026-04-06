@@ -741,17 +741,17 @@ export function HouseDetailContent({
       if (onFormDataChange) onFormDataChange(currentFormData);
 
       // Invalidate queries to ensure child components fetch fresh data
-      queryClient.invalidateQueries({ queryKey: ['houses'] });
-      queryClient.invalidateQueries({ queryKey: ['house-staff-assignments', { houseId: id }] });
-      queryClient.invalidateQueries({ queryKey: ['house-participants', { houseId: id }] });
-      queryClient.invalidateQueries({ queryKey: ['house-calendar-events', { houseId: id }] });
-      queryClient.invalidateQueries({ queryKey: ['house-documents', id] });
-      queryClient.invalidateQueries({ queryKey: ['house-checklists', id] });
-      queryClient.invalidateQueries({ queryKey: ['house-forms', id] });
-      queryClient.invalidateQueries({ queryKey: ['house-resources', id] });
-      queryClient.invalidateQueries({ queryKey: ['house_comms', { houseId: id }] });
-      queryClient.invalidateQueries({ queryKey: ['house-shift-types', id] });
-      queryClient.invalidateQueries({ queryKey: ['shift-type-defaults', id] });
+      await queryClient.invalidateQueries({ queryKey: ['houses'] });
+      await queryClient.invalidateQueries({ queryKey: ['house-staff-assignments'] });
+      await queryClient.invalidateQueries({ queryKey: ['participants'] });
+      await queryClient.invalidateQueries({ queryKey: ['house-calendar-events', { houseId: id }] });
+      await queryClient.invalidateQueries({ queryKey: ['house-documents', id] });
+      await queryClient.invalidateQueries({ queryKey: ['house-checklists', id] });
+      await queryClient.invalidateQueries({ queryKey: ['house-forms', id] });
+      await queryClient.invalidateQueries({ queryKey: ['house-resources', id] });
+      await queryClient.invalidateQueries({ queryKey: ['house_comms', { houseId: id }] });
+      await queryClient.invalidateQueries({ queryKey: ['house-shift-types', id] });
+      await queryClient.invalidateQueries({ queryKey: ['shift-type-defaults', id] });
 
       toast.success('All changes saved successfully');
 

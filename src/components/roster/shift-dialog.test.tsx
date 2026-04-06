@@ -80,4 +80,26 @@ describe('ShiftDialog Logic', () => {
       expect(onSave).toHaveBeenCalled();
     });
   });
+
+  it('allows staff selection for admins even if staffSelectionDisabled is true', async () => {
+    // renderWithProviders by default provides an admin user (isAdmin: true)
+    renderWithProviders(<ShiftDialog {...mockProps} staffSelectionDisabled={true} />);
+    
+    const staffSelect = screen.getByRole('combobox', { name: /Assign Staff/i });
+    expect(staffSelect).not.toBeDisabled();
+  });
+
+  it('hides Service Location when editing an existing shift', () => {
+    const existingShift = {
+      id: 's1',
+      house_id: 'h1',
+      start_date: '2026-04-05',
+      start_time: '09:00',
+      end_time: '17:00',
+      shift_type: 'SIL'
+    };
+    renderWithProviders(<ShiftDialog {...mockProps} shift={existingShift} />);
+    
+    expect(screen.queryByRole('combobox', { name: /Service Location/i })).not.toBeInTheDocument();
+  });
 });

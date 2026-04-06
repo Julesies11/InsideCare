@@ -44,7 +44,6 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { House } from '@/models/house';
 import { useHouses, useUpdateHouse } from '@/hooks/use-houses';
 import { useParticipants } from '@/hooks/use-participants';
-import { useHouseStaffAssignments } from '@/hooks/use-house-staff-assignments';
 import { useNavigate } from 'react-router';
 import { logActivity } from '@/lib/activity-logger';
 import { useAuth } from '@/auth/context/auth-context';
@@ -66,34 +65,6 @@ function getHouseParticipants(houseId: string, allParticipants: Array<{ id: stri
     .filter(participant => participant.house_id === houseId && participant.status === 'active')
     .map(participant => participant.name)
     .filter(name => name);
-}
-
-// Helper function to get active staff count for a house
-function getHouseStaffCount(houseId: string, houseStaffAssignments: any[]) {
-  const now = new Date();
-  now.setHours(0, 0, 0, 0); // Normalize to start of day
-
-  return houseStaffAssignments.filter(assignment => {
-    // Basic match for this house
-    if (assignment.house_id !== houseId) return false;
-    
-    // Check if staff member is active
-    const isStaffActive = assignment.staff?.status === 'active';
-    
-    // Check if employment has ended (separation_date)
-    // If separation_date exists and is in the past, staff is not active
-    const separationDate = assignment.staff?.separation_date ? new Date(assignment.staff.separation_date) : null;
-    if (separationDate) separationDate.setHours(0, 0, 0, 0);
-    const hasEmploymentEnded = separationDate && separationDate < now;
-    
-    // Check if house assignment has ended (end_date)
-    // If end_date exists and is in the past, assignment is not active
-    const assignmentEndDate = assignment.end_date ? new Date(assignment.end_date) : null;
-    if (assignmentEndDate) assignmentEndDate.setHours(0, 0, 0, 0);
-    const hasAssignmentEnded = assignmentEndDate && assignmentEndDate < now;
-    
-    return isStaffActive && !hasEmploymentEnded && !hasAssignmentEnded;
-  }).length;
 }
 
 // Helper function to create Google Maps URL from address
@@ -160,39 +131,55 @@ function ActionsCell({ row, updateHouse }: { row: Row<House>; updateHouse: (para
 
 export function Houses() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { mutateAsync: updateHouseMutation } = useUpdateHouse();
 
-  // Helper functions to parse URL params into initial state
-  const getInitialPagination = (): PaginationState => ({
-    pageIndex: Math.max(0, parseInt(searchParams.get('page') || '1') - 1), // Convert to 0-indexed
-    pageSize: parseInt(searchParams.get('pageSize') || '10'),
-  });
+  // Helper functions to parse URL params
+  const page = useMemo(() => Math.max(1, parseInt(searchParams.get('page') || '1')), [searchParams]);
+  const pageSize = useMemo(() => parseInt(searchParams.get('pageSize') || '10'), [searchParams]);
+  const sortParam = useMemo(() => searchParams.get('sort') || '', [searchParams]);
+  const searchParam = useMemo(() => searchParams.get('search') || '', [searchParams]);
+  const statusParam = useMemo(() => searchParams.get('statuses') || 'active', [searchParams]);
 
-  const getInitialSorting = (): SortingState => {
-    const sortParam = searchParams.get('sort');
+  // Derived states for TanStack Table
+  const pagination = useMemo(() => ({
+    pageIndex: page - 1,
+    pageSize: pageSize,
+  }), [page, pageSize]);
+
+  const sorting = useMemo((): SortingState => {
     if (!sortParam) return [];
-    
     const [field, direction] = sortParam.split('.');
     return [{ id: field, desc: direction === 'desc' }];
-  };
+  }, [sortParam]);
 
-  const getInitialSearch = (): string => {
-    return searchParams.get('search') || '';
-  };
+  const selectedStatuses = useMemo(() => 
+    statusParam.split(',').filter((s) => HOUSE_STATUS_OPTIONS.some(opt => opt.value === s)),
+  [statusParam]);
 
-  const getInitialStatuses = (): string[] => {
-    const param = searchParams.get('statuses');
-    if (!param) return ['active']; // default visible: Active only
-    return param.split(',').filter((s) => HOUSE_STATUS_OPTIONS.some(opt => opt.value === s));
-  };
-
-  // Initialize state from URL params
-  const [pagination, setPagination] = useState<PaginationState>(getInitialPagination());
-  const [sorting, setSorting] = useState<SortingState>(getInitialSorting());
-  const [searchQuery, setSearchQuery] = useState(getInitialSearch());
-  const [selectedStatuses, setSelectedStatuses] = useState<string[]>(getInitialStatuses());
-
-  // Use debounced search query for API calls
+  // Search query state (local for immediate input feedback)
+  const [searchQuery, setSearchQuery] = useState(searchParam);
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
+
+  // Sync debounced search query back to URL
+  useEffect(() => {
+    if (debouncedSearchQuery !== searchParam) {
+      const params = new URLSearchParams(searchParams);
+      if (debouncedSearchQuery) {
+        params.set('search', debouncedSearchQuery);
+      } else {
+        params.delete('search');
+      }
+      params.set('page', '1'); // Reset to page 1 on search
+      setSearchParams(params, { replace: true });
+    }
+  }, [debouncedSearchQuery, searchParam, setSearchParams, searchParams]);
+
+  // Sync search query state if URL changes externally (e.g. back button)
+  useEffect(() => {
+    setSearchQuery(searchParam);
+  }, [searchParam]);
 
   const filters = useMemo(() => ({
     search: debouncedSearchQuery,
@@ -205,57 +192,59 @@ export function Houses() {
     sorting,
     filters
   );
+  
   const houses = data?.data || [];
   const count = data?.count || 0;
 
-  const { mutateAsync: updateHouse } = useUpdateHouse();
-  const { data: participantsData } = useParticipants(); // Fetch all participants (still needed for nested data)
+  const { data: participantsData } = useParticipants(); 
   const participants = useMemo(() => participantsData?.data || [], [participantsData]);
-  const { data: staffAssignmentsData } = useHouseStaffAssignments(); // Fetch all house staff assignments (still needed for nested data)
-  const houseStaffAssignments = useMemo(() => staffAssignmentsData || [], [staffAssignmentsData]);
 
-  // Sync state changes to URL query parameters
-  useEffect(() => {
+  // Handle pagination change
+  const handlePaginationChange = (updater: any) => {
+    const next = typeof updater === 'function' ? updater(pagination) : updater;
     const params = new URLSearchParams(searchParams);
     
-    // Pagination - update URL as soon as page changes
-    if (pagination.pageIndex > 0) {
-      params.set('page', (pagination.pageIndex + 1).toString()); // Convert to 1-indexed
+    if (next.pageIndex > 0) {
+      params.set('page', (next.pageIndex + 1).toString());
     } else {
       params.delete('page');
     }
 
-    if (pagination.pageSize !== 10) {
-      params.set('pageSize', pagination.pageSize.toString());
+    if (next.pageSize !== 10) {
+      params.set('pageSize', next.pageSize.toString());
     } else {
       params.delete('pageSize');
     }
     
-    // Sorting
-    if (sorting.length > 0) {
-      const sort = sorting[0];
+    setSearchParams(params, { replace: true });
+  };
+
+  // Handle sorting change
+  const handleSortingChange = (updater: any) => {
+    const next = typeof updater === 'function' ? updater(sorting) : updater;
+    const params = new URLSearchParams(searchParams);
+    
+    if (next.length > 0) {
+      const sort = next[0];
       params.set('sort', `${sort.id}.${sort.desc ? 'desc' : 'asc'}`);
     } else {
       params.delete('sort');
     }
     
-    // Search - sync raw query to URL immediately for responsiveness
-    if (searchQuery) {
-      params.set('search', searchQuery);
-    } else {
-      params.delete('search');
-    }
-    
-    // Always update the URL with the current list
-    if (selectedStatuses.length > 0) {
-      params.set('statuses', selectedStatuses.join(','));
+    setSearchParams(params, { replace: true });
+  };
+
+  // Handle status filter change
+  const handleStatusChange = (statuses: string[]) => {
+    const params = new URLSearchParams(searchParams);
+    if (statuses.length > 0) {
+      params.set('statuses', statuses.join(','));
     } else {
       params.delete('statuses');
     }
-
-    // Update URL immediately without adding to history
+    params.set('page', '1'); // Reset to page 1
     setSearchParams(params, { replace: true });
-  }, [pagination, sorting, searchQuery, selectedStatuses, setSearchParams, searchParams]);
+  };
 
   // Table columns
   const columns: ColumnDef<House>[] = useMemo(
@@ -396,7 +385,10 @@ export function Houses() {
           />
         ),
         cell: ({ row }) => {
-          const staffCount = getHouseStaffCount(row.original.id, houseStaffAssignments);
+          // staff_assignments is an array with one object { count: X } because of how Supabase returns aggregate counts
+          const staffCountData = (row.original as any).staff_assignments;
+          const staffCount = Array.isArray(staffCountData) ? (staffCountData[0]?.count || 0) : (staffCountData?.count || 0);
+          
           return (
             <div className="text-sm text-gray-900 dark:text-gray-100">
               <div className="flex items-center gap-2">
@@ -452,7 +444,7 @@ export function Houses() {
       {
         id: 'actions',
         header: 'Actions',
-        cell: ({ row }) => <ActionsCell row={row} updateHouse={updateHouse} />,
+        cell: ({ row }) => <ActionsCell row={row} updateHouse={updateHouseMutation} />,
         meta: {
           skeleton: <Skeleton className="h-8 w-20" />,
         },
@@ -460,7 +452,7 @@ export function Houses() {
         size: 150,
       },
     ],
-    [updateHouse, participants, houseStaffAssignments]
+    [updateHouseMutation, participants]
   );
 
   const pageCount = useMemo(() => {
@@ -479,17 +471,8 @@ export function Houses() {
       pagination,
       sorting,
     },
-    onPaginationChange: (updater) => {
-      setPagination((prev) => {
-        const next = typeof updater === 'function' ? updater(prev) : updater;
-        // If pageSize changed, reset pageIndex to 0
-        if (next.pageSize !== prev.pageSize) {
-          return { ...next, pageIndex: 0 };
-        }
-        return next;
-      });
-    },
-    onSortingChange: setSorting,
+    onPaginationChange: handlePaginationChange,
+    onSortingChange: handleSortingChange,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -543,7 +526,7 @@ export function Houses() {
             </div>
             <StatusFilter
               value={selectedStatuses}
-              onChange={setSelectedStatuses}
+              onChange={handleStatusChange}
               options={HOUSE_STATUS_OPTIONS}
               label="Status"
             />

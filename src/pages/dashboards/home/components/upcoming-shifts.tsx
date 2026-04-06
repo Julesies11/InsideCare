@@ -154,7 +154,7 @@ export function UpcomingShifts() {
                 >
                   <div className="flex flex-col items-center mt-1">
                     <div className="size-2 bg-primary rounded-full"></div>
-                    {index < shifts.length - 1 && (
+                    {index < upcomingShifts.length - 1 && (
                       <div className="w-px h-12 bg-gray-200 dark:bg-gray-800 mt-1"></div>
                     )}
                   </div>

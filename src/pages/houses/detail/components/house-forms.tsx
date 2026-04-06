@@ -836,7 +836,26 @@ export function HouseForms({
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="">None</SelectItem>
-                          {staff.map((staffMember) => (
+                          {staff
+                            .filter(s => {
+                              // 1. Must be active status (or currently assigned)
+                              const isStatusActive = (s as any).status?.toLowerCase() === 'active' || s.id === field.value;
+                              if (!isStatusActive) return false;
+
+                              // 2. Must be assigned to this specific house
+                              const today = new Date().toISOString().split('T')[0];
+                              const assignments = (s as any).house_assignments || [];
+                              const hasActiveAssignment = assignments.some((a: any) => {
+                                const assignmentHouseId = (a.house_id || a.house?.id || '').toLowerCase();
+                                const targetHouseId = (houseId || '').toLowerCase();
+                                const isTargetHouse = assignmentHouseId === targetHouseId;
+                                const isCurrent = !a.end_date || a.end_date >= today;
+                                return isTargetHouse && isCurrent;
+                              });
+
+                              return hasActiveAssignment || s.id === field.value;
+                            })
+                            .map((staffMember) => (
                             <SelectItem key={staffMember.id} value={staffMember.id}>
                               {staffMember.name}
                             </SelectItem>

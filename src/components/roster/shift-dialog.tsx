@@ -10,10 +10,11 @@ import { useHouses } from '@/hooks/use-houses';
 import { useParticipants } from '@/hooks/use-participants';
 import { useHouseShiftTypes } from '@/hooks/use-house-shift-types';
 import { useHouseStaffAssignments } from '@/hooks/use-house-staff-assignments';
+import { useAuth } from '@/auth/context/auth-context';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Calendar, Home, User, Trash2, Copy, CheckSquare, Loader2 } from 'lucide-react';
+import { Calendar, Home, User, Trash2, Copy, CheckSquare, Loader2, Clock, Zap } from 'lucide-react';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
+import { SHIFT_ICONS, cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useHouseChecklists } from '@/hooks/use-house-checklists';
 import { ShiftChecklistPicker } from './ShiftChecklistPicker';
@@ -74,10 +75,14 @@ export function ShiftDialog({
   checklists: passedChecklists,
   scrollToNotes = false
 }: ShiftDialogProps) {
+  const { user, isAdmin } = useAuth();
   const isEdit = !!shift;
   const [isDuplicating, setIsDuplicating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  // Disable staff selection ONLY if explicitly requested AND user is NOT an admin
+  const isStaffSelectionDisabled = staffSelectionDisabled && !isAdmin;
 
   // Use passed props if available, otherwise fallback to local hooks (though props are preferred for Roster Board)
   const { staff: localStaff } = useStaff(0, 1000, [], { statuses: ['active'] });
@@ -87,7 +92,6 @@ export function ShiftDialog({
   const staffList = passedStaffList || localStaff || [];
   const houses = passedHouses || localHouses || [];
   const participants = passedParticipants || localParticipants || [];
-  const allChecklists = passedChecklists || [];
 
   const [formData, setFormData] = useState<ShiftFormData>({
     staff_id: null,
@@ -102,34 +106,50 @@ export function ShiftDialog({
     participant_ids: [],
     assigned_checklists: [],
   });
+  
+  const { houseChecklists } = useHouseChecklists(formData.house_id || undefined);
+  const currentChecklists = (passedChecklists && passedChecklists.length > 0) ? passedChecklists : houseChecklists;
 
   const { assignments: houseStaffAssignments } = useHouseStaffAssignments(formData.house_id || undefined);
 
   // Filter staff list by house if house_id is present
   const filteredStaffList = useMemo(() => {
+    let list = [];
+    const today = new Date().toISOString().split('T')[0];
+
     if (!formData.house_id || formData.house_id === 'none') {
-      return staffList.filter(s => s.status === 'active');
-    }
-    
-    if (houseStaffAssignments && houseStaffAssignments.length > 0) {
-      return houseStaffAssignments
+      list = staffList.filter(s => s.status === 'active');
+    } else if (houseStaffAssignments && houseStaffAssignments.length > 0) {
+      list = houseStaffAssignments
         .filter(a => {
           // Must be active staff and NOT have an end date (or end date is in the future)
           const isStaffActive = a.staff?.status === 'active';
-          const hasNoEndDate = !a.end_date || new Date(a.end_date) > new Date();
-          return isStaffActive && hasNoEndDate;
+          const isAssignmentActive = !a.end_date || a.end_date >= today;
+          return isStaffActive && isAssignmentActive;
         })
         .map(a => a.staff)
         .filter(Boolean);
+    } else {
+      // Fallback to all active staff if no assignments found for this house
+      list = staffList.filter(s => s.status === 'active');
+    }
+
+    // CRITICAL: Ensure the currently assigned staff member is ALWAYS in the list
+    if (formData.staff_id) {
+      const currentStaff = staffList.find(s => s.id === formData.staff_id);
+      if (currentStaff && !list.some(s => s.id === formData.staff_id)) {
+        list.unshift(currentStaff);
+      }
     }
     
-    // Fallback to all active staff if no assignments found for this house
-    return staffList.filter(s => s.status === 'active');
-  }, [formData.house_id, staffList, houseStaffAssignments]);
+    return list;
+  }, [formData.house_id, formData.staff_id, staffList, houseStaffAssignments]);
 
   const { shiftTypes } = useHouseShiftTypes(formData.house_id || undefined);
-  const { houseChecklists } = useHouseChecklists(formData.house_id || undefined);
-  const currentChecklists = passedChecklists || houseChecklists || [];
+  
+  const currentHouse = useMemo(() => {
+    return houses.find(h => h.id === (formData.house_id || preSelectedHouseId));
+  }, [houses, formData.house_id, preSelectedHouseId]);
 
   useEffect(() => {
     if (open) {
@@ -278,6 +298,11 @@ export function ShiftDialog({
               </DialogTitle>
               <DialogDescription className="text-xs truncate">
                 {isEdit ? `Editing shift for ${formData.start_date}` : 'Define the schedule and assignments'}
+                {currentHouse && (
+                  <span className="ml-1 text-primary font-bold">
+                    • {currentHouse.name}
+                  </span>
+                )}
               </DialogDescription>
             </div>
           </div>
@@ -292,9 +317,9 @@ export function ShiftDialog({
               <Select 
                 value={formData.staff_id || 'none'} 
                 onValueChange={val => setFormData({...formData, staff_id: val === 'none' ? null : val})}
-                disabled={readOnly || staffSelectionDisabled}
+                disabled={readOnly || isStaffSelectionDisabled}
               >
-                <SelectTrigger className="h-10 sm:h-11 text-sm font-medium">
+                <SelectTrigger className="h-10 sm:h-11 text-sm font-medium" aria-label="Assign Staff">
                   <SelectValue placeholder="Select staff member" />
                 </SelectTrigger>
                 <SelectContent className="max-h-[300px]">
@@ -315,6 +340,37 @@ export function ShiftDialog({
             </div>
 
             <div className="space-y-1.5">
+              <Label htmlFor="shift_type" className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1 flex items-center gap-1.5">
+                <Zap className="size-3" /> Shift Type *
+              </Label>
+              <Select value={formData.shift_type_id || formData.shift_type} onValueChange={handleShiftTypeChange} disabled={readOnly}>
+                <SelectTrigger className="h-10 sm:h-11 text-sm font-medium" aria-label="Shift Type">
+                  <SelectValue placeholder="Select type..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {shiftTypes.length > 0 ? (
+                    shiftTypes.map(st => {
+                      const Icon = SHIFT_ICONS[st.icon_name || ''] || Clock;
+                      const iconColor = st.color_theme ? `text-${st.color_theme.split('-')[0]}-500` : "text-primary";
+                      return (
+                        <SelectItem key={st.id} value={st.id}>
+                          <div className="flex items-center gap-2">
+                            <Icon className={cn("size-3.5", iconColor)} />
+                            <span>{st.name}</span>
+                          </div>
+                        </SelectItem>
+                      );
+                    })
+                  ) : (
+                    <SelectItem value="SIL">SIL</SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {!preSelectedHouseId && !isEdit && (
+            <div className="space-y-1.5 pt-4 border-t border-gray-100">
               <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1 flex items-center gap-1.5">
                 <Home className="size-3" /> Service Location
               </Label>
@@ -334,7 +390,7 @@ export function ShiftDialog({
                 </SelectContent>
               </Select>
             </div>
-          </div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 pt-4 sm:pt-5 border-t border-gray-100">
             <div className="space-y-1.5">
@@ -366,26 +422,6 @@ export function ShiftDialog({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 pt-4 sm:pt-5 border-t border-gray-100">
-            <div className="space-y-1.5">
-              <Label htmlFor="shift_type" className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">Shift Type *</Label>
-              <Select value={formData.shift_type_id || formData.shift_type} onValueChange={handleShiftTypeChange} disabled={readOnly}>
-                <SelectTrigger className="h-10 sm:h-11 text-sm font-medium">
-                  <SelectValue placeholder="Select type..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {shiftTypes.length > 0 ? (
-                    shiftTypes.map(st => (
-                      <SelectItem key={st.id} value={st.id}>{st.name}</SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem value="SIL">SIL</SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
           <div className="space-y-3 sm:space-y-4 pt-4 sm:pt-5 border-t border-gray-100">
             <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">Participants Present</Label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
@@ -400,7 +436,11 @@ export function ShiftDialog({
                     )}
                     onClick={() => !readOnly && toggleParticipant(p.id)}
                   >
-                    <Checkbox checked={formData.participant_ids.includes(p.id)} onCheckedChange={() => !readOnly && toggleParticipant(p.id)} className="size-3.5 sm:size-4" />
+                    <Checkbox 
+                      checked={formData.participant_ids.includes(p.id)} 
+                      onCheckedChange={() => !readOnly && toggleParticipant(p.id)} 
+                      className="size-3.5 sm:size-4" 
+                    />
                     <div className="min-w-0">
                       <p className="text-[10px] sm:text-xs font-bold truncate">{p.name}</p>
                     </div>

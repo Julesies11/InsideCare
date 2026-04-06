@@ -246,7 +246,8 @@ export function HouseStaff({
       if (isDeleted) return false;
       
       if (showOnlyActive) {
-        const isAssignmentActive = !staff.end_date || new Date(staff.end_date) > new Date();
+        const today = new Date().toISOString().split('T')[0];
+        const isAssignmentActive = !staff.end_date || staff.end_date >= today;
         const isStaffActive = staff.staff?.status === 'active';
         return isAssignmentActive && isStaffActive;
       }
