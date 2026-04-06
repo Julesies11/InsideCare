@@ -240,7 +240,7 @@ export function StaffDetailContent({
           entityId: staffId,
           entityName: staffMember?.name,
           userName,
-          customDescription: 'Updated profile photo',
+          customDescription: `Updated profile photo for ${staffMember?.name || 'staff'}`,
         });
       } else if (photoPreview === null && originalPhotoUrl !== null) {
         // Photo was deleted — clear it in the DB

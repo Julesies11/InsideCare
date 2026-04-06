@@ -83,7 +83,7 @@ function ActionsCell({ row, updateParticipant }: { row: Row<ParticipantWithHouse
         entityId: row.original.id,
         entityName: row.original.name,
         userName: user?.email || 'Unknown user',
-        customDescription: 'Participant archived (set to inactive)',
+        customDescription: `Archived participant "${row.original.name}"`,
       });
 
       toast.success('Participant archived successfully');

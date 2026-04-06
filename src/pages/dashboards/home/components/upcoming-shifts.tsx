@@ -98,13 +98,15 @@ export function UpcomingShifts() {
     try {
       await deleteShift(shiftId);
       
+      const staffMember = staff.find(s => s.id === selectedShift?.staff_id);
+      
       // Log activity
       await logActivity({
         activityType: 'delete',
         entityType: 'shift_note',
         entityId: shiftId,
         userName: user?.email || 'Unknown',
-        customDescription: `Deleted a shift`,
+        customDescription: `Deleted shift for ${staffMember?.name || 'staff'} on ${selectedShift?.start_date || 'an unknown date'}`,
       });
 
       toast.success('Shift deleted successfully');

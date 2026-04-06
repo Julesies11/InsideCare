@@ -6,12 +6,14 @@ export interface HousePendingChanges {
     toAdd: Array<{
       tempId: string;
       participant_id: string;
+      participant_name?: string;
       move_in_date?: string;
       is_active: boolean;
     }>;
     toUpdate: Array<{
       id: string;
       participant_id?: string;
+      participant_name?: string;
       move_in_date?: string;
       is_active?: boolean;
     }>;

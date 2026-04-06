@@ -74,6 +74,12 @@ export function HouseStaff({
     }
     if (!pendingChanges || !onPendingChangesChange) return;
 
+    const staffMember = staff.find(s => s.id === formData.staff_id);
+    const payload = {
+      ...formData,
+      staff_name: staffMember?.name || undefined,
+    };
+
     if (editingStaff) {
       // Update existing staff assignment
       if (editingStaff.tempId) {
@@ -83,7 +89,7 @@ export function HouseStaff({
           staff: {
             ...pendingChanges.staff,
             toAdd: pendingChanges.staff.toAdd.map(staff =>
-              staff.tempId === editingStaff.tempId ? { ...staff, ...formData } : staff
+              staff.tempId === editingStaff.tempId ? { ...staff, ...payload } : staff
             ),
           },
         };
@@ -96,7 +102,7 @@ export function HouseStaff({
             ...pendingChanges.staff,
             toUpdate: [
               ...pendingChanges.staff.toUpdate.filter(s => s.id !== editingStaff.id),
-              { id: editingStaff.id, ...formData },
+              { id: editingStaff.id, ...payload },
             ],
           },
         };
@@ -111,7 +117,7 @@ export function HouseStaff({
           ...pendingChanges.staff,
           toAdd: [
             ...pendingChanges.staff.toAdd,
-            { tempId, ...formData },
+            { tempId, ...payload },
           ],
         },
       };

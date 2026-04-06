@@ -249,6 +249,12 @@ export function HouseDetailContent({
       }
 
       if (currentPending.participants.toDelete.length > 0) {
+        // Fetch participant names before unlinking for the activity log
+        const { data: participantsToDelete } = await supabase
+          .from('participants')
+          .select('id, name')
+          .in('id', currentPending.participants.toDelete);
+
         const { error } = await supabase
           .from('participants')
           .update({ house_id: null })
@@ -256,13 +262,14 @@ export function HouseDetailContent({
         if (error) throw new Error(`Failed to unlink participants: ${error.message}`);
 
         for (const pid of currentPending.participants.toDelete) {
+          const participantName = participantsToDelete?.find(p => p.id === pid)?.name || pid;
           await logActivity({
             activityType: 'update',
             entityType: 'house',
             entityId: id!,
             entityName: currentFormData.name,
             userName,
-            customDescription: `Unlinked participant (ID: ${pid}) from house`,
+            customDescription: `Unlinked participant "${participantName}" from house`,
           });
         }
       }
@@ -287,7 +294,7 @@ export function HouseDetailContent({
             entityId: id!,
             entityName: currentFormData.name,
             userName,
-            customDescription: `Assigned staff member to house`,
+            customDescription: `Assigned staff member "${_s.staff_name || _s.staff_id}" to house`,
           });
         }
       }

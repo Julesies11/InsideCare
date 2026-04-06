@@ -93,7 +93,7 @@ function ActionsCell({ row, updateHouse }: { row: Row<House>; updateHouse: (para
         entityId: row.original.id,
         entityName: row.original.name,
         userName: user?.email || 'Unknown user',
-        customDescription: 'House archived (set to inactive)',
+        customDescription: `Archived house "${row.original.name}"`,
       });
 
       toast.success('House archived successfully');

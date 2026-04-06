@@ -571,7 +571,7 @@ export function ParticipantDetailContent({
           entityId: id,
           entityName: currentFormData.name,
           userName,
-          customDescription: 'Removed profile photo',
+          customDescription: `Removed profile photo for ${currentFormData.name || 'participant'}`,
         });
       }
 

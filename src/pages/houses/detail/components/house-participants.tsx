@@ -110,6 +110,12 @@ export function HouseParticipants({
   const handleSave = (data: ParticipantFormValues) => {
     if (!pendingChanges || !onPendingChangesChange) return;
 
+    const participantMember = participants.find(p => p.id === data.participant_id);
+    const payload = {
+      ...data,
+      participant_name: participantMember?.name || undefined,
+    };
+
     if (editingParticipant) {
       // Update existing participant
       if (editingParticipant.tempId) {
@@ -119,7 +125,7 @@ export function HouseParticipants({
           participants: {
             ...pendingChanges.participants,
             toAdd: pendingChanges.participants.toAdd.map(p =>
-              p.tempId === editingParticipant.tempId ? { ...p, ...data } : p
+              p.tempId === editingParticipant.tempId ? { ...p, ...payload } : p
             ),
           },
         };
@@ -132,7 +138,7 @@ export function HouseParticipants({
             ...pendingChanges.participants,
             toUpdate: [
               ...pendingChanges.participants.toUpdate.filter(p => p.id !== editingParticipant.id),
-              { id: editingParticipant.id, ...data },
+              { id: editingParticipant.id, ...payload },
             ],
           },
         };
@@ -147,7 +153,7 @@ export function HouseParticipants({
           ...pendingChanges.participants,
           toAdd: [
             ...pendingChanges.participants.toAdd,
-            { tempId, ...data },
+            { tempId, ...payload },
           ],
         },
       };
