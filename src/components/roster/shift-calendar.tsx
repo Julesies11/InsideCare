@@ -227,15 +227,36 @@ export function ShiftCalendar({
                     </Button>
                   )}
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-2">
                   {getLeaveForDate(day).map(leave => (
                     <LeaveBlockBadge key={leave.id} leave={leave} />
                   ))}
-                  {dayShifts.map(shift => (
-                    <div key={shift.id} onClick={(e) => e.stopPropagation()}>
-                      {renderShiftCardWithWarning(shift, day, true, false)}
-                    </div>
-                  ))}
+                  
+                  {/* Group shifts by house within the day */}
+                  {(() => {
+                    const shiftsByHouse: Record<string, { name: string, shifts: ShiftCardData[] }> = {};
+                    dayShifts.forEach(s => {
+                      const houseId = s.house?.id || 'unassigned';
+                      const houseName = s.house?.name || 'Unassigned';
+                      if (!shiftsByHouse[houseId]) {
+                        shiftsByHouse[houseId] = { name: houseName, shifts: [] };
+                      }
+                      shiftsByHouse[houseId].shifts.push(s);
+                    });
+
+                    return Object.entries(shiftsByHouse).map(([hId, group]) => (
+                      <div key={hId} className="space-y-1">
+                        <div className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/50 border-b border-gray-100 mb-1 px-0.5">
+                          {group.name}
+                        </div>
+                        {group.shifts.map(shift => (
+                          <div key={shift.id} onClick={(e) => e.stopPropagation()}>
+                            {renderShiftCardWithWarning(shift, day, true, false)}
+                          </div>
+                        ))}
+                      </div>
+                    ));
+                  })()}
                 </div>
               </div>
             );
@@ -245,15 +266,16 @@ export function ShiftCalendar({
     );
   };
 
-  const renderWeekView = () => {
-    const days = generateWeekDays(currentDate);
-
+  const renderWeekView = (days: Date[]) => {
     if (houses.length > 0) {
       return renderHouseGroupedWeekView(days);
     }
 
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-7 gap-4">
+      <div className={cn(
+        "grid gap-4",
+        days.length === 1 ? "grid-cols-1" : "grid-cols-1 lg:grid-cols-7"
+      )}>
         {days.map((day, index) => {
           const dayShifts = getShiftsForDate(day);
           const isToday = isSameDay(day, new Date());
@@ -317,10 +339,14 @@ export function ShiftCalendar({
       allHouses.push({ id: 'unassigned', name: 'Unassigned' });
     }
     
+    const gridColsClass = days.length === 1 
+      ? "grid-cols-[140px_1fr]" 
+      : "grid-cols-[140px_repeat(7,1fr)]";
+
     return (
       <div className="space-y-2 overflow-x-auto pb-4 custom-scrollbar">
-        <div className="min-w-[1000px]">
-          <div className="grid grid-cols-[140px_repeat(7,1fr)] gap-2 border-b border-gray-100 pb-3 mb-2 px-1">
+        <div className={cn(days.length === 1 ? "w-full" : "min-w-[1000px]")}>
+          <div className={cn("grid gap-2 border-b border-gray-100 pb-3 mb-2 px-1", gridColsClass)}>
             <div className="font-black text-[10px] uppercase tracking-[0.2em] text-muted-foreground/50 self-end pb-1">Location</div>
             {days.map((day, index) => {
               const isToday = isSameDay(day, new Date());
@@ -333,7 +359,7 @@ export function ShiftCalendar({
                     "text-[10px] uppercase font-black tracking-widest mb-1",
                     isToday ? "text-primary" : "text-muted-foreground/60"
                   )}>
-                    {weekDays[day.getDay() === 0 ? 6 : day.getDay() - 1]}
+                    {days.length === 1 ? format(day, 'EEEE') : weekDays[day.getDay() === 0 ? 6 : day.getDay() - 1]}
                   </div>
                   <div className={cn(
                     "text-xl font-black leading-none",
@@ -365,7 +391,7 @@ export function ShiftCalendar({
                   }) || [];
 
               return (
-                <div key={house.id} className="grid grid-cols-[140px_repeat(7,1fr)] gap-2 border-b border-gray-50 hover:bg-gray-50/30 transition-all rounded-xl p-1 group/row">
+                <div key={house.id} className={cn("grid gap-2 border-b border-gray-50 hover:bg-gray-50/30 transition-all rounded-xl p-1 group/row", gridColsClass)}>
                   <div className="font-black text-xs p-4 bg-muted/20 flex flex-col gap-3 justify-center rounded-xl border border-transparent group-hover/row:border-gray-100 transition-all">
                     <span className="truncate text-gray-900 uppercase tracking-tight">{house.name}</span>
                     <div className="flex flex-col gap-1.5">
@@ -380,7 +406,7 @@ export function ShiftCalendar({
                           }}
                         >
                           <Zap className="size-3 fill-primary/20 group-hover:fill-white/20" />
-                          POPULATE
+                          BUILD ROSTER
                         </Button>
                       )}
                       {canEdit && house.id !== 'unassigned' && onBulkAction && (
@@ -468,11 +494,9 @@ export function ShiftCalendar({
   return (
     <div className="space-y-4">
       {viewMode === 'today' ? (
-        <div className="grid grid-cols-1 gap-4">
-          {getShiftsForDate(currentDate).map(shift => renderShiftCardWithWarning(shift, currentDate, false))}
-        </div>
+        renderWeekView([currentDate])
       ) : viewMode === 'week' ? (
-        renderWeekView()
+        renderWeekView(generateWeekDays(currentDate))
       ) : (
         renderMonthView()
       )}

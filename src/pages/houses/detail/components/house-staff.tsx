@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Plus, Edit, Trash2, Users, Clock, Star } from 'lucide-react';
+import { Plus, Edit, Trash2, Clock, Star } from 'lucide-react';
 import { useHouseStaffAssignments } from '@/hooks/use-house-staff-assignments';
 import { useStaff } from '@/hooks/use-staff';
 import { StaffCombobox } from './staff-combobox';

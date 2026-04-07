@@ -238,10 +238,12 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
           staff_id: withAssignments ? shift.staff_id : null,
           house_id: houseFilter,
           start_date: targetDate,
+          end_date: targetDate,
           start_time: shift.start_time,
           end_time: shift.end_time,
           shift_type: shift.shift_type,
-          status: 'Scheduled',
+          shift_type_id: shift.shift_type_id,
+          notes: shift.notes || null,
         };
 
         const created = await createShift(newShiftData);
@@ -333,8 +335,8 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
             start_time: shift.start_time,
             end_time: shift.end_time,
             shift_type: shift.shift_type,
-            status: 'Scheduled',
-            notes: null,
+            shift_type_id: shift.shift_type_id,
+            notes: shift.notes || null,
           };
 
           const created = await createShift(newShiftData);
@@ -375,7 +377,7 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
     copyPreviousWeek: handleCopyPreviousWeek,
     rolloutRoster: handleRolloutRoster,
     applyTemplate: () => {
-      toast.info('Template system has been replaced by Populate tool.');
+      toast.info('Template system has been replaced by Build Roster tool.');
     },
     refresh: () => {
       queryClient.invalidateQueries({ queryKey: ['roster-shifts'] });

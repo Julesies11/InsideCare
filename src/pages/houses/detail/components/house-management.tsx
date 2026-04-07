@@ -46,7 +46,7 @@ export function HouseManagement({
 
           <div id="house_management_details" className="flex flex-col gap-6">
             {/* Breakdown of individuals */}
-            <div className="space-y-2">
+            <div id="house_individuals_breakdown" className="space-y-2">
               <Label className="text-sm font-bold flex items-center gap-2">
                 <Users className="size-4 text-primary" />
                 Breakdown of Individuals
@@ -65,7 +65,7 @@ export function HouseManagement({
             </div>
 
             {/* Dynamics within participants */}
-            <div className="space-y-2">
+            <div id="house_participant_dynamics" className="space-y-2">
               <Label className="text-sm font-bold flex items-center gap-2">
                 <Activity className="size-4 text-primary" />
                 Dynamics within Participants
@@ -84,7 +84,7 @@ export function HouseManagement({
             </div>
 
             {/* Observations */}
-            <div className="space-y-2">
+            <div id="house_observations" className="space-y-2">
               <Label className="text-sm font-bold flex items-center gap-2">
                 <Activity className="size-4 text-primary" />
                 Observations
@@ -103,7 +103,7 @@ export function HouseManagement({
             </div>
 
             {/* General house details */}
-            <div className="space-y-2">
+            <div id="house_general_details" className="space-y-2">
               <Label className="text-sm font-bold flex items-center gap-2">
                 <Info className="size-4 text-primary" />
                 General House Details

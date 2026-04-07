@@ -97,7 +97,7 @@ export function HouseDetailContent({
     forms: 0,
     resources: 0,
     comms: 0,
-    shiftConfiguration: 0,
+    shiftTemplates: 0,
     activityLog: 0,
   });
 
@@ -685,7 +685,7 @@ export function HouseDetailContent({
               .select()
               .single();
 
-            if (typeError) throw new Error(`Failed to add shift model: ${typeError.message}`);
+            if (typeError) throw new Error(`Failed to add shift template: ${typeError.message}`);
             updatedTypes.push(newType);
 
             if (st.default_checklists && st.default_checklists.length > 0) {
@@ -716,7 +716,7 @@ export function HouseDetailContent({
               .select()
               .maybeSingle();
 
-            if (typeError) throw new Error(`Failed to update shift model: ${typeError.message}`);
+            if (typeError) throw new Error(`Failed to update shift template: ${typeError.message}`);
             if (updatedType) updatedTypes = updatedTypes.map(t => t.id === st.id ? updatedType : t);
 
             if (st.default_checklists !== undefined) {
@@ -734,7 +734,7 @@ export function HouseDetailContent({
 
         if (currentPending.shiftTypes.toDelete.length > 0) {
           const { error } = await supabase.from('house_shift_types').delete().in('id', currentPending.shiftTypes.toDelete);
-          if (error) throw new Error(`Failed to delete shift models: ${error.message}`);
+          if (error) throw new Error(`Failed to delete shift templates: ${error.message}`);
           updatedTypes = updatedTypes.filter(t => !currentPending.shiftTypes.toDelete.includes(t.id));
         }
 
@@ -772,7 +772,7 @@ export function HouseDetailContent({
         resources: (currentPending.resources.toAdd.length || 0) > 0 || (currentPending.resources.toUpdate.length || 0) > 0 || (currentPending.resources.toDelete.length || 0) > 0 ? prev.resources + 1 : prev.resources,
         participants: (currentPending.participants.toAdd.length || 0) > 0 || (currentPending.participants.toUpdate.length || 0) > 0 || (currentPending.participants.toDelete.length || 0) > 0 ? prev.participants + 1 : prev.participants,
         comms: (currentPending.comms.toAdd.length || 0) > 0 ? prev.comms + 1 : prev.comms,
-        shiftConfiguration: (currentPending.shiftTypes.toAdd.length || 0) > 0 || (currentPending.shiftTypes.toUpdate.length || 0) > 0 || (currentPending.shiftTypes.toDelete.length || 0) > 0 ? prev.shiftConfiguration + 1 : prev.shiftConfiguration,
+        shiftTemplates: (currentPending.shiftTypes.toAdd.length || 0) > 0 || (currentPending.shiftTypes.toUpdate.length || 0) > 0 || (currentPending.shiftTypes.toDelete.length || 0) > 0 ? prev.shiftTemplates + 1 : prev.shiftTemplates,
         activityLog: prev.activityLog + 1,
       }));
 
@@ -892,6 +892,7 @@ export function HouseDetailContent({
 
           <HouseCalendarEvents 
             houseId={id!} 
+            houseName={formData.name}
             events={formData.calendarEvents || []}
             pendingChanges={pendingChanges}
             onPendingChangesChange={onPendingChangesChange}
@@ -899,13 +900,14 @@ export function HouseDetailContent({
             refreshKey={refreshKeys.calendarEvents}
           />
 
-          <HouseShiftSetup
-            houseId={id!}
-            pendingChanges={pendingChanges}
-            onPendingChangesChange={onPendingChangesChange}
-            canEdit={canEdit}
-            refreshKey={refreshKeys.shiftConfiguration}
-          />
+          <div id="shift_templates">
+            <HouseShiftSetup
+              houseId={id!}
+              pendingChanges={pendingChanges}
+              onPendingChangesChange={onPendingChangesChange}
+              canEdit={canEdit}
+              refreshKey={refreshKeys.shiftTemplates}
+              />          </div>
 
           <div id="checklist_comms_section" className="flex flex-col gap-5 lg:gap-7.5">
             <HouseComms 

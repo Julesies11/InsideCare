@@ -1,10 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit, Trash2, Clock, CheckSquare, Download, Info, Zap } from 'lucide-react';
+import { Plus, Edit, Trash2, Clock, CheckSquare, Download, Info } from 'lucide-react';
 import { useHouseShiftTypes } from '@/hooks/use-house-shift-types';
 import { useHouseChecklists } from '@/hooks/use-house-checklists';
 import { useHouses } from '@/hooks/use-houses';
@@ -21,20 +21,58 @@ interface HouseShiftSetupProps {
   pendingChanges?: HousePendingChanges;
   onPendingChangesChange?: (changes: HousePendingChanges) => void;
   directSave?: boolean;
+  canEdit?: boolean;
+  refreshKey?: number;
 }
 
-export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChange, directSave = false }: HouseShiftSetupProps) {
+export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChange, directSave = false, canEdit: _canEdit, refreshKey }: HouseShiftSetupProps) {
   const { shiftTypes, refresh: refreshShiftTypes, defaults } = useHouseShiftTypes(houseId);
   const { houseChecklists } = useHouseChecklists(houseId);
-  const { houses: allHouses } = useHouses(0, 100);
+
+  useEffect(() => {
+    if (refreshKey && refreshKey > 0) {
+      refreshShiftTypes();
+    }
+  }, [refreshKey, refreshShiftTypes]);
+  
+  const housesFilter = useMemo(() => ({ statuses: ['active'] }), []);
+  const { houses: allHouses } = useHouses(0, 100, [], housesFilter);
 
   const [showTypeDialog, setShowTypeDialog] = useState(false);
   const [showPopulateModal, setShowPopulateModal] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [importSourceId, setImportSourceId] = useState<string>('');
+  const [houseShiftCounts, setHouseShiftCounts] = useState<Record<string, number>>({});
 
   const [editingType, setEditingType] = useState<any | null>(null);
+
+  // Fetch shift type counts for the import dialog
+  useEffect(() => {
+    let mounted = true;
+    const fetchCounts = async () => {
+      if (!showImportDialog || allHouses.length === 0) return;
+      
+      try {
+        const { data } = await supabase
+          .from('house_shift_types')
+          .select('house_id, id');
+        
+        if (!mounted) return;
+
+        const counts: Record<string, number> = {};
+        (data || []).forEach(st => {
+          counts[st.house_id] = (counts[st.house_id] || 0) + 1;
+        });
+        setHouseShiftCounts(counts);
+      } catch (err) {
+        console.error('Error fetching shift counts:', err);
+      }
+    };
+
+    fetchCounts();
+    return () => { mounted = false; };
+  }, [showImportDialog, allHouses.length]);
 
   const [typeFormData, setTypeFormData] = useState({
     name: '',
@@ -77,7 +115,7 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
 
   // --- Sorting Logic for Checklists ---
 
-  // Sort checklists for Shift Model (Type) dialog
+  // Sort checklists for Shift Template (Type) dialog
   const sortedModelChecklists = useMemo(() => {
     return [...(houseChecklists || [])].sort((a, b) => {
       const aSelected = typeFormData.default_checklists?.includes(a.id);
@@ -159,12 +197,12 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
           if (clErr) throw clErr;
         }
 
-        toast.success('Shift model updated');
+        toast.success('Shift template updated');
         refreshShiftTypes();
         setShowTypeDialog(false);
         return;
       } catch (err: any) {
-        toast.error(`Failed to save shift model: ${err.message}`);
+        toast.error(`Failed to save shift template: ${err.message}`);
         return;
       }
     }
@@ -214,7 +252,7 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
         try {
           const { error } = await supabase.from('house_shift_types').delete().eq('id', type.id);
           if (error) throw error;
-          toast.success('Shift model removed');
+          toast.success('Shift template removed');
           refreshShiftTypes();
           return;
         } catch (err: any) {
@@ -245,7 +283,7 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
     }
   };
 
-  const handleImportShiftModel = async () => {
+  const handleImportShiftTemplates = async () => {
     if (!importSourceId || !onPendingChangesChange || !pendingChanges) return;
     setIsImporting(true);
     try {
@@ -309,23 +347,15 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h3 className="text-lg font-bold text-gray-900">Shift Model</h3>
+          <h3 className="text-lg font-bold text-gray-900">Shift Templates</h3>
           <p className="text-sm text-muted-foreground">Define work periods and their default checklists.</p>
         </div>
         <div className="flex gap-2">
-          <Button 
-            onClick={() => setShowPopulateModal(true)} 
-            variant="outline" 
-            size="sm" 
-            className="gap-2 font-bold border-primary/30 text-primary hover:bg-primary/5"
-          >
-            <Zap className="size-4 fill-primary" /> Populate Roster
-          </Button>
           <Button onClick={() => { setImportSourceId(''); setShowImportDialog(true); }} variant="outline" size="sm" className="gap-2 font-bold border-gray-300">
-            <Download className="size-4" /> Import Model
+            <Download className="size-4" /> Import Templates
           </Button>
           <Button onClick={() => handleOpenTypeDialog()} size="sm" className="gap-2 font-bold">
-            <Plus className="size-4" /> Add Shift Type
+            <Plus className="size-4" /> Add Template
           </Button>
         </div>
       </div>
@@ -443,7 +473,7 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
                 <Clock className="size-5 text-primary" />
               </div>
               <div>
-                <DialogTitle className="text-lg font-black uppercase tracking-tight">{editingType ? 'Edit Shift Type' : 'Add Shift Type'}</DialogTitle>
+                <DialogTitle className="text-lg font-black uppercase tracking-tight">{editingType ? 'Edit Shift Template' : 'Add Shift Template'}</DialogTitle>
                 <DialogDescription className="text-xs font-medium">Define work periods and default checklists.</DialogDescription>
               </div>
             </div>
@@ -452,7 +482,7 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
           <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5 custom-scrollbar bg-gray-50/30">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="sm:col-span-2 space-y-1.5">
-                <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">Shift Name</Label>
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">Template Name</Label>
                 <Input 
                   value={typeFormData.name} 
                   onChange={e => setTypeFormData({...typeFormData, name: e.target.value})} 
@@ -646,7 +676,7 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
           <DialogFooter className="p-4 border-t bg-white sticky bottom-0 z-10 flex flex-row gap-3">
             <Button variant="ghost" onClick={() => setShowTypeDialog(false)} className="flex-1 font-bold text-xs h-10">Cancel</Button>
             <Button onClick={handleSaveType} className="flex-[2] font-black uppercase tracking-tight text-xs h-10 shadow-lg shadow-primary/20">
-              {editingType ? 'Update Model' : 'Add to Model'}
+              {editingType ? 'Update Template' : 'Add Template'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -655,7 +685,7 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
       <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Import Shift Model</DialogTitle>
+            <DialogTitle>Import Shift Templates</DialogTitle>
             <DialogDescription>
               Clones all shift types and their default checklist links from another house.
             </DialogDescription>
@@ -669,7 +699,14 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
                 </SelectTrigger>
                 <SelectContent>
                   {(allHouses || []).filter(h => h.id !== houseId).map(h => (
-                    <SelectItem key={h.id} value={h.id}>{h.name}</SelectItem>
+                    <SelectItem key={h.id} value={h.id}>
+                      <div className="flex items-center justify-between w-full min-w-[200px]">
+                        <span>{h.name}</span>
+                        <Badge variant="outline" className="ml-2 text-[10px] py-0 h-4 bg-primary/5 text-primary border-primary/10">
+                          {houseShiftCounts[h.id] || 0} Templates
+                        </Badge>
+                      </div>
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -683,9 +720,9 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowImportDialog(false)}>Cancel</Button>
-            <Button onClick={handleImportShiftModel} disabled={!importSourceId || isImporting}>
+            <Button onClick={handleImportShiftTemplates} disabled={!importSourceId || isImporting}>
               {isImporting ? <Loader2 className="size-4 animate-spin mr-2" /> : <Download className="size-4 mr-2" />}
-              Import Model
+              Import Templates
             </Button>
           </DialogFooter>
         </DialogContent>

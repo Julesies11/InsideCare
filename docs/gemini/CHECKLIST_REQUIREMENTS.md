@@ -30,8 +30,8 @@ Instead of a rigid Global Master system, the app uses a "Pull-based" import mode
     *   **Independence**: Once imported, the new checklist is a "fork" and can be modified without affecting the original source.
 *   **Use Case**: Setting up a new house by copying a proven "Monday Tasks" checklist from an existing house and then tweaking it for local needs.
 
-## 4. Dynamic Shift Model
-The system must move away from hardcoded "Morning, Day, Night" constraints to a flexible, House-specific shift model.
+## 4. Dynamic Shift Templates
+The system must move away from hardcoded "Morning, Day, Night" constraints to a flexible, House-specific shift templates.
 
 *   **House Shift Types**: Each House manages its own list of shift names (e.g., "Morning", "Afternoon", "Sleepover", "Active Night").
 *   **Management UI**: Admin can add, rename, or reorder shift types on the House Settings page.
@@ -118,13 +118,13 @@ To provide a polished Metronic v9 experience, the process of setting up a House'
 
 ### 10.1. UI Components
 *   **Metronic Stepper**: Utilizes the `Stepper` component for a guided, non-overwhelming setup process.
-*   **Visual Feedback**: Progress indicators showing completion of House settings, Shift models, and Checklist assignments.
+*   **Visual Feedback**: Progress indicators showing completion of House settings, Shift templates, and Checklist assignments.
 
 ### 10.2. Wizard Steps
-1.  **Step 1: Shift Model Definition**: Configure the dynamic shift types (Morning, Afternoon, Night, etc.) with default start/end times.
+1.  **Step 1: Shift Template Definition**: Configure the dynamic shift types (Morning, Afternoon, Night, etc.) with default start/end times.
 2.  **Step 2: Calendar Task Setup**: Select or import the core "Daily Tasks" (Monday-Sunday) for the House Calendar.
 3.  **Step 3: Shift Routine Assignment**: Link standardized templates (Start/End of Shift) to the shift types defined in Step 1.
-4.  **Step 4: Roster Skeleton Generation**: Build the weekly coverage requirements (The "Skeleton") using the shift model.
+4.  **Step 4: Roster Skeleton Generation**: Build the weekly coverage requirements (The "Skeleton") using the shift templates.
 5.  **Step 5: Review & Publish**: A final summary view to validate the operational flow before taking the House "Live".
 
 ### 10.3. User Experience
@@ -144,7 +144,7 @@ Integrated directly into the Roster Board (permanently grouped by House), this t
 *   **Safety**: Includes confirmation prompts and clear visual warnings for destructive actions.
 
 ### 11.2. Quick Populate Roster
-A one-click tool to rapidly generate coverage based on the House's Shift Model.
+A one-click tool to rapidly generate coverage based on the House's Shift Templates.
 *   **Action**: "POPULATE" button located next to the BULK button under House names.
 *   **Logic**: Uses the `materializePattern` engine to fill a selected date range with the house's standard shift structure, automatically skipping duplicates.
 
@@ -167,13 +167,13 @@ The Shift Template system has been refactored from a rigid 7-day week to a flexi
 *   **Shift Template Items**: Individual shifts defined within a group, inheriting from `house_shift_types` but allowing for custom start/end times and checklist overrides.
 
 ### 12.2. Default Checklists & Dynamic Styling
-*   **Shift Model (Types)**: Admins can define work periods with specific:
+*   **Shift Template Definitions (Types)**: Admins can define work periods with specific:
     *   **Colors**: Standard themes (Morning, Day, Afternoon, Night, Community).
     *   **Icons**: A visual repository of 50+ Lucide icons (Time, Care, Domestic, Logistics).
     *   **Defaults**: Default checklists that are automatically inherited by shifts in a template.
-*   **Roster Board Integration**: Roster cards now dynamically render based on the Shift Model's ID, ensuring visual consistency between configuration and the live roster.
+*   **Roster Board Integration**: Roster cards now dynamically render based on the Shift Template ID, ensuring visual consistency between configuration and the live roster.
 
 ### 12.3. Saving Architecture (Seamless Save)
-*   **Pending Changes Pattern**: Shift Models and Templates are tracked locally in `pendingChanges` and saved only when the main "Save" button is clicked.
+*   **Pending Changes Pattern**: Shift Templates are tracked locally in `pendingChanges` and saved only when the main "Save" button is clicked.
 *   **Optimistic Cache Seeding**: To prevent UI flicker, the system manually "seeds" the TanStack Query cache immediately after a successful save before clearing local state.
 *   **Auth Stability**: Implemented a singleton fetch pattern to prevent Supabase auth lock contention (`NavigatorLockAcquireTimeoutError`) during concurrent component mounts.

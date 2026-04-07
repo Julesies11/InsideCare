@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -47,10 +47,12 @@ export function PopulateRosterModal({ open, onOpenChange, houseId, houseName, on
 
   const [selectedParticipantIds, setSelectedParticipantIds] = useState<string[]>([]);
   const [hasInitializedParticipants, setHasInitializedParticipants] = useState(false);
+  const hasInitializedPattern = useRef(false);
 
   useEffect(() => {
     if (open) {
       setHasInitializedParticipants(false);
+      hasInitializedPattern.current = false;
     }
   }, [open]);
 
@@ -63,6 +65,7 @@ export function PopulateRosterModal({ open, onOpenChange, houseId, houseName, on
 
   // Handle changing weeks to generate
   useEffect(() => {
+    if (!open) return;
     setPattern(prev => {
       if (prev.length === weeksToGenerate) return prev;
       const newPattern = [...prev];
@@ -73,14 +76,18 @@ export function PopulateRosterModal({ open, onOpenChange, houseId, houseName, on
       }
       return newPattern.slice(0, weeksToGenerate);
     });
-  }, [weeksToGenerate]);
+  }, [weeksToGenerate, open]);
 
-  // Auto-select all shift types for all days by default if they are active (only on first load)
+  // Auto-select all shift types for all days by default if they are active (only on first load per open)
   useEffect(() => {
-    if (shiftTypes && shiftTypes.length > 0 && pattern.length > 0 && Object.values(pattern[0]).every(v => v.length === 0)) {
+    if (open && !hasInitializedPattern.current && shiftTypes && shiftTypes.length > 0) {
       const activeIds = shiftTypes.filter(t => t.is_active).map(t => t.id);
+      if (activeIds.length === 0) return;
+
       setPattern(prev => {
         const newPattern = [...prev];
+        if (newPattern.length === 0) return prev;
+        
         const newWeek0 = { ...newPattern[0] };
         [1, 2, 3, 4, 5, 6, 0].forEach(day => {
           newWeek0[day] = [...activeIds];
@@ -88,8 +95,9 @@ export function PopulateRosterModal({ open, onOpenChange, houseId, houseName, on
         newPattern[0] = newWeek0;
         return newPattern;
       });
+      hasInitializedPattern.current = true;
     }
-  }, [shiftTypes]);
+  }, [open, shiftTypes]);
 
   const toggleShiftInPattern = (weekIndex: number, dayIndex: number, shiftTypeId: string) => {
     setPattern(prev => {
@@ -153,7 +161,7 @@ export function PopulateRosterModal({ open, onOpenChange, houseId, houseName, on
       if (onSuccess) onSuccess();
       onOpenChange(false);
     } catch (err: any) {
-      toast.error('Failed to populate roster', { description: err.message });
+      toast.error('Failed to build roster', { description: err.message });
     } finally {
       setIsGenerating(false);
     }
@@ -174,9 +182,9 @@ export function PopulateRosterModal({ open, onOpenChange, houseId, houseName, on
               <Zap className="size-5 text-primary fill-primary" />
             </div>
             <div>
-              <DialogTitle className="text-xl sm:text-2xl font-black uppercase tracking-tight leading-none mb-1">Populate Roster</DialogTitle>
+              <DialogTitle className="text-xl sm:text-2xl font-black uppercase tracking-tight leading-none mb-1">Build Roster</DialogTitle>
               <DialogDescription className="text-xs sm:text-sm font-medium">
-                Generate open confirmed shifts for {houseName} based on your shift model.
+                Generate open confirmed shifts for {houseName} based on your shift templates.
               </DialogDescription>
             </div>
           </div>
@@ -424,7 +432,7 @@ export function PopulateRosterModal({ open, onOpenChange, houseId, houseName, on
               ) : (
                 <>
                   <Zap className="size-4 fill-white" />
-                  Confirm & Populate
+                  Confirm & Build
                 </>
               )}
             </Button>

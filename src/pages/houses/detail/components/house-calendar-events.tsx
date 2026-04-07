@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar, Clock, MapPin, Users, Edit, Trash2, Plus, CalendarDays, ChevronLeft, ChevronRight, Loader2, CheckSquare } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, Edit, Trash2, Plus, CalendarDays, ChevronLeft, ChevronRight, Loader2, CheckSquare, Zap } from 'lucide-react';
 import { format, addMonths, addWeeks, addDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameDay, isBefore, startOfDay, eachDayOfInterval, eachWeekOfInterval, isSameMonth } from 'date-fns';
 import { useHouseCalendarEvents } from '@/hooks/useHouseCalendarEvents';
 import { useParticipants } from '@/hooks/use-participants';
@@ -29,9 +29,11 @@ import { ShiftDialog, ShiftFormData } from '@/components/roster/shift-dialog';
 import { ShiftCard, ShiftCardData } from '@/components/roster/shift-card';
 import { useRosterData } from '@/components/roster/use-roster-data';
 import { useHouseShiftTypes } from '@/hooks/use-house-shift-types';
+import { PopulateRosterModal } from './PopulateRosterModal';
 
 interface HouseCalendarEventsProps {
   houseId?: string;
+  houseName?: string;
   staffId?: string;
   canDelete: boolean;
   pendingChanges?: HousePendingChanges;
@@ -43,17 +45,19 @@ type ViewMode = 'month' | 'week' | 'day';
 
 export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({ 
   houseId, 
+  houseName,
   staffId,
   canDelete,
   pendingChanges,
   onPendingChangesChange,
   onRefreshNeeded 
 }, ref) => {
-  const [viewMode, setViewMode] = useState<ViewMode>('month');
+  const [viewMode, setViewMode] = useState<ViewMode>('week');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showEventDialog, setShowEventDialog] = useState(false);
   const [showEventTypeDialog, setShowEventTypeDialog] = useState(false);
   const [showChecklistDialog, setShowChecklistDialog] = useState(false);
+  const [showPopulateModal, setShowPopulateModal] = useState(false);
   
   // Filtering state
   const [filterTypes, setFilterTypes] = useState<string[]>(['shift', 'checklist', 'meeting', 'appointment', 'clinical', 'other']);
@@ -834,7 +838,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
               <CalendarDays className="size-5 text-primary" />
               House Calendar
             </CardTitle>
-            
+
             <div className="flex items-center gap-2 flex-wrap">
               <div className="flex items-center bg-gray-100 rounded-lg p-1 mr-4">
                 {[
@@ -848,8 +852,8 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
                     onClick={() => toggleFilter(filter.id)}
                     className={cn(
                       "px-2.5 py-1 text-[10px] font-bold rounded-md transition-all",
-                      filterTypes.includes(filter.id) 
-                        ? `bg-${filter.color}-500 text-white shadow-sm` 
+                      filterTypes.includes(filter.id)
+                        ? `bg-${filter.color}-500 text-white shadow-sm`
                         : "text-gray-500 hover:text-gray-700"
                     )}
                   >
@@ -858,9 +862,18 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
                 ))}
               </div>
               <div className="flex items-center gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowPopulateModal(true)}
+                  className="gap-2 font-bold border-primary/30 text-primary hover:bg-primary/5"
+                >
+                  <Zap className="size-4 fill-primary" />
+                  Build Roster
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => {
                     setSelectedShift(null);
                     setShiftPreSelectedDate(currentDate);
@@ -871,37 +884,48 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
                   <Users className="size-4" />
                   Add Shift
                 </Button>
-                <Select value={viewMode} onValueChange={(value: ViewMode) => setViewMode(value)}>
-                  <SelectTrigger className="w-32 h-9">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="day">Day</SelectItem>
-                    <SelectItem value="week">Week</SelectItem>
-                    <SelectItem value="month">Month</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleAddEvent(currentDate)}
+                  className="gap-2"
+                >
+                  <Plus className="size-4" />
+                  Add Event
+                </Button>
               </div>
             </div>
           </div>
           <div className="flex items-center justify-between bg-muted/30 p-2 rounded-lg mt-2">
-            <div className="flex items-center gap-1">
-              <Button variant="ghost" size="icon" className="size-8" onClick={() => navigatePeriod('prev')}>
-                <ChevronLeft className="size-4" />
-              </Button>
-              <Button variant="ghost" size="sm" className="h-8 text-xs font-semibold uppercase" onClick={() => setCurrentDate(new Date())}>
-                Today
-              </Button>
-              <Button variant="ghost" size="icon" className="size-8" onClick={() => navigatePeriod('next')}>
-                <ChevronRight className="size-4" />
-              </Button>
+            <div className="flex items-center gap-2">
+              <Select value={viewMode} onValueChange={(value: ViewMode) => setViewMode(value)}>
+                <SelectTrigger className="w-24 h-8 text-[10px] font-bold uppercase tracking-wider">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="day">Day</SelectItem>
+                  <SelectItem value="week">Week</SelectItem>
+                  <SelectItem value="month">Month</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <div className="flex items-center gap-1 border-l border-gray-300 pl-2">
+                <Button variant="ghost" size="icon" className="size-8" onClick={() => navigatePeriod('prev')}>
+                  <ChevronLeft className="size-4" />
+                </Button>
+                <Button variant="ghost" size="sm" className="h-8 text-xs font-semibold uppercase" onClick={() => setCurrentDate(new Date())}>
+                  Today
+                </Button>
+                <Button variant="ghost" size="icon" className="size-8" onClick={() => navigatePeriod('next')}>
+                  <ChevronRight className="size-4" />
+                </Button>
+              </div>
             </div>
             <span className="text-sm font-bold text-gray-700">
               {getPeriodLabel()}
             </span>
           </div>
-        </CardHeader>
-        <CardContent>
+        </CardHeader>        <CardContent>
           {loading ? (
             <div className="text-center py-12 text-muted-foreground flex flex-col items-center gap-2">
               <Loader2 className="size-8 animate-spin text-primary" />
@@ -1587,6 +1611,14 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
           readOnly={!canDelete}
         />
       )}
+
+      <PopulateRosterModal 
+        open={showPopulateModal}
+        onOpenChange={setShowPopulateModal}
+        houseId={houseId!}
+        houseName={houseName || ''}
+        onSuccess={refresh}
+      />
     </>
   );
 });

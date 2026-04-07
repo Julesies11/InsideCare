@@ -22,7 +22,7 @@ interface HouseRosterWizardProps {
 }
 
 const STEPS = [
-  { id: 1, title: 'Shift Model', description: 'Define work periods', icon: Clock },
+  { id: 1, title: 'Shift Templates', description: 'Define work periods', icon: Clock },
   { id: 2, title: 'Calendar Tasks', description: 'Facility routines', icon: CalendarDays },
   { id: 3, title: 'Review', description: 'Finalize setup', icon: Send },
 ];
@@ -93,7 +93,7 @@ export function HouseRosterWizard({ open, onOpenChange, houseId, houseName, pend
         return (
           <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
             <div className="bg-primary/5 border border-primary/10 rounded-xl p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Step 1: Define Your Shift Model</h3>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Step 1: Define Your Shift Templates</h3>
               <p className="text-sm text-muted-foreground">
                 Set up the periods of work used in this house (e.g., Morning, Afternoon, Night). 
                 Assign <strong>Default Checklists</strong> to each shift type to automate your operational setup.

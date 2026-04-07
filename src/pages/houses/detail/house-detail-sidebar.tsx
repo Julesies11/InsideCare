@@ -19,8 +19,20 @@ export function HouseDetailSidebar() {
           target: 'house_participants',
         },
         {
-          title: 'House Details',
-          target: 'house_management_details',
+          title: 'Breakdown of Individuals',
+          target: 'house_individuals_breakdown',
+        },
+        {
+          title: 'Dynamics within Participants',
+          target: 'house_participant_dynamics',
+        },
+        {
+          title: 'Observations',
+          target: 'house_observations',
+        },
+        {
+          title: 'General House Details',
+          target: 'house_general_details',
         },
       ]
     },
@@ -29,8 +41,8 @@ export function HouseDetailSidebar() {
       target: 'calendar_events',
     },
     {
-      title: 'Shift Configuration',
-      target: 'shift_configuration',
+      title: 'Shift Templates',
+      target: 'shift_templates',
     },
     {
       title: 'Checklist/Comms',

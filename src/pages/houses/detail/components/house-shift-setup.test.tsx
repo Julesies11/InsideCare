@@ -66,11 +66,10 @@ vi.mock('@/components/roster/use-roster-data', () => ({
 describe('HouseShiftSetup', () => {
   it('renders correctly', () => {
     renderWithProviders(<HouseShiftSetup houseId="house-1" />);
-    expect(screen.getByText('Shift Model')).toBeDefined();
-    expect(screen.getByText('Morning')).toBeDefined();
+    expect(screen.getByText('Shift Templates')).toBeDefined();
   });
 
-  it('shows only first 2 checklist items in shift model preview', () => {
+  it('shows only first 2 checklist items in shift template preview', () => {
     renderWithProviders(<HouseShiftSetup houseId="house-1" />);
     
     // Check for Task 1 and Task 2

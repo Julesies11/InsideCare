@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
@@ -141,12 +142,12 @@ export function useHouseShiftTypes(houseId?: string) {
     }
   });
 
-  return {
+  return useMemo(() => ({
     ...query,
     shiftTypes: query.data?.types || [],
     defaults: query.data?.defaults || [],
     createShiftType,
     updateShiftType,
     deleteShiftType
-  };
+  }), [query, createShiftType, updateShiftType, deleteShiftType]);
 }

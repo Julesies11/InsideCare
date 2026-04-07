@@ -44,32 +44,17 @@ vi.mock('@/components/roster/use-roster-data', () => ({
 }));
 
 describe('HouseShiftSetup Smoke Test', () => {
-  it('renders shift model section', () => {
-    renderWithProviders(
-      <HouseShiftSetup 
-        houseId="test-house-id" 
-        mode="model"
-        pendingChanges={emptyHousePendingChanges}
-        onPendingChangesChange={vi.fn()}
-      />
-    );
-    
-    expect(screen.getByRole('heading', { name: /shift model/i })).toBeInTheDocument();
-    expect(screen.getByText('Morning Shift')).toBeInTheDocument();
-    expect(screen.getByText('Day Shift')).toBeInTheDocument();
-  });
-
   it('renders shift templates section', () => {
     renderWithProviders(
       <HouseShiftSetup 
         houseId="test-house-id" 
-        mode="templates"
         pendingChanges={emptyHousePendingChanges}
         onPendingChangesChange={vi.fn()}
       />
     );
     
     expect(screen.getByRole('heading', { name: /shift templates/i })).toBeInTheDocument();
-    expect(screen.getByText('Standard Weekday')).toBeInTheDocument();
+    expect(screen.getByText('Morning Shift')).toBeInTheDocument();
+    expect(screen.getByText('Day Shift')).toBeInTheDocument();
   });
 });

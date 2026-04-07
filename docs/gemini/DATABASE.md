@@ -6,7 +6,7 @@ This document provides an overview of the core database tables and their relatio
 As of **March 30, 2026**, the database schema has been refined for go-live:
 - **Baseline:** `migrations/2026032000_baseline_schema.sql` (Canonical schema).
 - **Security Hardening:** `migrations/2026032001_harden_rls_policies.sql` (Global RLS activation).
-- **Dynamic Shift Model:** `migrations/2026032401_dynamic_shift_model.sql` (House-specific shift types).
+- **Dynamic Shift Templates:** `migrations/2026032401_dynamic_shift_model.sql` (House-specific shift types).
 - **Shift Template Refactor:** `migrations/2026032500_refactor_shift_templates.sql` (Flexible template groups).
 - **Column Standardization:** `migrations/2026032901_rename_shift_date_to_start_date.sql` (Standardized date naming).
 - **Archiving:** Historical files are in `migrations/old_consolidated/`.

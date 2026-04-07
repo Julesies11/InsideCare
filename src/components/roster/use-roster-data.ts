@@ -50,7 +50,7 @@ export function useGlobalShiftTypesQuery() {
 }
 
 export function useLeaveRequestsQuery(staffId: string, startDate: string, endDate: string) {
-  return useQuery({
+  const query = useQuery({
     queryKey: ['leave-requests', staffId, startDate, endDate],
     queryFn: async () => {
       let query = supabase
@@ -76,6 +76,11 @@ export function useLeaveRequestsQuery(staffId: string, startDate: string, endDat
     },
     staleTime: 1000 * 60 * 5,
   });
+
+  return useMemo(() => ({
+    ...query,
+    data: query.data || [],
+  }), [query]);
 }
 
 export function useShiftsQuery(staffId: string, startDate: string, endDate: string, houseId?: string) {
@@ -143,10 +148,10 @@ export function useShiftsQuery(staffId: string, startDate: string, endDate: stri
     });
   }, [query.data, houses, staff]);
 
-  return {
+  return useMemo(() => ({
     ...query,
     shifts,
-  };
+  }), [query, shifts]);
 }
 
 export function useRosterData() {
@@ -384,7 +389,6 @@ export function useRosterData() {
               end_time: type.default_end_time,
               shift_type: type.name,
               shift_type_id: type.id,
-              status: 'Scheduled',
               notes: null
             });
           });
@@ -491,7 +495,7 @@ export function useRosterData() {
   const removeShiftParticipant = useCallback((shift_id: string, participant_id: string) => removeShiftParticipantMutation.mutateAsync({ shift_id, participant_id }), [removeShiftParticipantMutation]);
   const syncShiftParticipants = useCallback((shift_id: string, participant_ids: string[]) => syncShiftParticipantsMutation.mutateAsync({ shift_id, participant_ids }), [syncShiftParticipantsMutation]);
 
-  return {
+  return useMemo(() => ({
     houses: housesQuery.data || [],
     participants: participantsQuery.data || [],
     staff: staffQuery.data || [],
@@ -509,6 +513,26 @@ export function useRosterData() {
     syncShiftParticipants,
     materializePattern,
     syncShiftChecklists,
-  };
+  }), [
+    housesQuery.data, 
+    housesQuery.isLoading, 
+    housesQuery.refetch,
+    participantsQuery.data, 
+    participantsQuery.isLoading, 
+    participantsQuery.refetch,
+    staffQuery.data, 
+    staffQuery.isLoading, 
+    staffQuery.refetch,
+    createShift,
+    updateShift,
+    deleteShift,
+    bulkUpdateShifts,
+    bulkDeleteShifts,
+    addShiftParticipant,
+    removeShiftParticipant,
+    syncShiftParticipants,
+    materializePattern,
+    syncShiftChecklists
+  ]);
 }
 

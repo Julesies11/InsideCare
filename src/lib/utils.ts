@@ -21,7 +21,7 @@ export function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs));
 }
 
-// Full set of available icons for Shift Models (~50 valid Lucide names)
+// Full set of available icons for Shift Templates (~50 valid Lucide names)
 export const SHIFT_ICONS: Record<string, any> = {
   'Clock': Clock,
   'Sun': Sun,

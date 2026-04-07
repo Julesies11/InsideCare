@@ -57,7 +57,7 @@ describe('PopulateRosterModal', () => {
 
   it('renders correctly with house name', () => {
     renderWithProviders(<PopulateRosterModal {...defaultProps} />);
-    expect(screen.getByText(/Populate Roster/i)).toBeInTheDocument();
+    expect(screen.getByText(/Build Roster/i)).toBeInTheDocument();
     expect(screen.getByText(/for Test House/i)).toBeInTheDocument();
   }, 30000);
 
@@ -121,7 +121,7 @@ describe('PopulateRosterModal', () => {
     const select = screen.getByRole('combobox');
     fireEvent.change(select, { target: { value: '2' } });
     
-    const confirmBtn = screen.getByRole('button', { name: /Confirm & Populate/i });
+    const confirmBtn = screen.getByRole('button', { name: /Confirm & Build/i });
     fireEvent.click(confirmBtn);
     
     await waitFor(() => {

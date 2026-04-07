@@ -7,7 +7,6 @@ export interface RosterShift {
   start_time: string;
   end_time: string;
   shift_type: string;
-  status: string;
   house: { name: string } | null;
   has_timesheet?: boolean;
 }
@@ -20,7 +19,7 @@ export function useStaffRoster(staffId?: string) {
 
       const { data: shiftsData, error } = await supabase
         .from('staff_shifts')
-        .select('id, start_date, start_time, end_time, shift_type, status, house:houses(name)')
+        .select('id, start_date, start_time, end_time, shift_type, house:houses(name)')
         .eq('staff_id', staffId)
         .order('start_date', { ascending: false });
 

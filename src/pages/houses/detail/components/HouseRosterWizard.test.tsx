@@ -40,10 +40,9 @@ describe('HouseRosterWizard Smoke Test', () => {
     pendingChanges: emptyHousePendingChanges,
     onPendingChangesChange: vi.fn(),
   };
-
-  it('renders without crashing at Step 1 (Shift Model)', () => {
+  it('renders without crashing at Step 1 (Shift Templates)', () => {
     renderWithProviders(<HouseRosterWizard {...defaultProps} />);
-    expect(screen.getByText(/Step 1: Define Your Shift Model/i)).toBeInTheDocument();
+    expect(screen.getByText(/Step 1: Define Your Shift Templates/i)).toBeInTheDocument();
     expect(screen.getByText('Morning')).toBeInTheDocument();
   });
 

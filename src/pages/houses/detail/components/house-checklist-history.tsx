@@ -124,7 +124,7 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
           const { data: clData, error: clError } = await supabase
             .from('house_checklists')
             .select(`
-              id, house_id, name, type, target_shift, frequency, description, master_id, created_at, updated_at,
+              id, house_id, name, description, master_id, created_at, updated_at,
               house_checklist_items (id, checklist_id, title, instructions, group_title, priority, is_required, sort_order, created_at, updated_at)
             `)
             .eq('id', submission.checklist_id)
@@ -489,7 +489,7 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
                           <DropdownMenuItem key={cl.id} className="cursor-pointer" onClick={() => handleStartNew(cl)}>
                             <div className="flex flex-col">
                               <span className="font-semibold text-sm">{cl.name}</span>
-                              <span className="text-[10px] text-muted-foreground capitalize">{cl.frequency}</span>
+                              {cl.description && <span className="text-[9px] text-muted-foreground line-clamp-1">{cl.description}</span>}
                             </div>
                           </DropdownMenuItem>
                         ))

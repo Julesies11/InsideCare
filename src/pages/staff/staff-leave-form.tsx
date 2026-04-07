@@ -109,8 +109,7 @@ export function StaffLeaveForm() {
         .select('id, start_date, start_time, end_time, house:houses(name)')
         .eq('staff_id', user.staff_id)
         .gte('start_date', startDate)
-        .lte('start_date', endDate)
-        .not('status', 'eq', 'Cancelled');
+        .lte('start_date', endDate);
       setConflictingShifts((data as ConflictingShift[]) || []);
       setCheckingConflicts(false);
     };

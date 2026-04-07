@@ -179,11 +179,11 @@ export function HouseChecklistScheduleModal({
                 <div className="grid grid-cols-1 gap-3">
                   {loadingShifts ? (
                     <div className="flex items-center gap-2 text-muted-foreground italic text-xs py-4">
-                      <Loader2 className="size-3 animate-spin" /> Loading shift model...
+                      <Loader2 className="size-3 animate-spin" /> Loading shift templates...
                     </div>
                   ) : shiftTypes.length === 0 ? (
                     <div className="bg-amber-50 border border-amber-100 rounded-lg p-4 text-xs text-amber-700">
-                      No dynamic shift types defined for this house. Please define your shift model first.
+                      No dynamic shift types defined for this house. Please define your shift templates first.
                     </div>
                   ) : (
                     shiftTypes.map(st => (

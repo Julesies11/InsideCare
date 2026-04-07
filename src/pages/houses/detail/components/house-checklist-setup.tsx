@@ -62,13 +62,11 @@ export function HouseChecklistSetup({
 
   const [checklistFormData, setChecklistFormData] = useState<{
     name: string;
-    frequency: string;
     days_of_week: string[];
     description: string;
     items: any[];
   }>({
     name: '',
-    frequency: 'daily',
     days_of_week: [],
     description: '',
     items: [],
@@ -88,7 +86,6 @@ export function HouseChecklistSetup({
     setSelectedChecklist(null);
     setChecklistFormData({
       name: '',
-      frequency: 'daily',
       days_of_week: [],
       description: '',
       items: [],
@@ -100,7 +97,6 @@ export function HouseChecklistSetup({
     setSelectedChecklist(checklist);
     setChecklistFormData({
       name: checklist.name,
-      frequency: checklist.frequency,
       days_of_week: checklist.days_of_week || [],
       description: checklist.description || '',
       items: checklist.items || [],
@@ -115,7 +111,6 @@ export function HouseChecklistSetup({
           id: cl.id,
           house_id: houseId,
           name: cl.name,
-          frequency: cl.frequency,
           sort_order: index
         }));
 
@@ -176,7 +171,6 @@ export function HouseChecklistSetup({
             .update({
               name: checklistFormData.name,
               description: checklistFormData.description,
-              frequency: checklistFormData.frequency,
               days_of_week: checklistFormData.days_of_week,
               updated_at: new Date().toISOString()
             })
@@ -189,7 +183,6 @@ export function HouseChecklistSetup({
               house_id: houseId,
               name: checklistFormData.name,
               description: checklistFormData.description,
-              frequency: checklistFormData.frequency,
               days_of_week: checklistFormData.days_of_week,
               sort_order: houseChecklists.length * 10
             })
@@ -313,7 +306,6 @@ export function HouseChecklistSetup({
       house_id: houseId,
       master_id: template.id,
       name: template.name,
-      frequency: template.frequency,
       description: template.description,
       items: (template.items || []).map((item: any) => {
         return {
@@ -402,7 +394,7 @@ export function HouseChecklistSetup({
       const { data, error } = await supabase
         .from('house_checklists')
         .select(`
-          id, name, frequency, description, sort_order,
+          id, name, description, sort_order,
           items:house_checklist_items(id, title, instructions, group_title, priority, is_required, sort_order)
         `)
         .eq('house_id', sourceId)
@@ -441,7 +433,6 @@ export function HouseChecklistSetup({
           tempId,
           house_id: houseId,
           name: source.name,
-          frequency: source.frequency,
           description: source.description,
           items: (source.items || []).map((item: any) => ({
             tempId: `temp-item-import-${Date.now()}-${Math.random()}`,
@@ -461,7 +452,6 @@ export function HouseChecklistSetup({
               house_id: houseId,
               name: checklistData.name,
               description: checklistData.description,
-              frequency: checklistData.frequency,
               sort_order: houseChecklists.length * 10
             })
             .select()

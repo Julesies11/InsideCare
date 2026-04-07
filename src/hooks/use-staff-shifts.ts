@@ -5,11 +5,12 @@ export interface StaffShift {
   id: string;
   staff_id: string;
   start_date: string;
+  end_date: string;
   start_time: string;
   end_time: string;
   house_id: string | null;
   shift_type: string;
-  status: string;
+  shift_type_id?: string | null;
   notes?: string;
   created_at?: string;
   updated_at?: string;
@@ -35,10 +36,12 @@ const SHIFT_COLUMNS = `
   id,
   staff_id,
   start_date,
+  end_date,
   start_time,
   end_time,
   house_id,
   shift_type,
+  shift_type_id,
   notes,
   created_at,
   updated_at,

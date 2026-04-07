@@ -1,17 +1,14 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Download, Calendar } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 import { StaffRosterCalendar, StaffRosterCalendarHandle } from './components/staff-roster-calendar';
 import { RosterCalendarHeader } from '@/components/roster/roster-calendar-header';
 import { ViewMode, getDateRange } from '@/components/roster/roster-utils';
-import { supabase } from '@/lib/supabase';
 import { format, addWeeks, addMonths, addDays } from 'date-fns';
 import { useHouseChecklists } from '@/hooks/use-house-checklists';
 import { useRosterData, useGlobalShiftTypesQuery } from '@/components/roster/use-roster-data';
 import { BulkActionModal } from './components/BulkActionModal';
 import { PopulateRosterModal } from '@/pages/houses/detail/components/PopulateRosterModal';
-import { toast } from 'sonner';
 
 export function RosterBoardContent() {
   const calendarRef = useRef<StaffRosterCalendarHandle>(null);
@@ -40,71 +37,6 @@ export function RosterBoardContent() {
   const [populateModalOpen, setPopulateModalOpen] = useState(false);
   const [populateInitialHouseId, setPopulateInitialHouseId] = useState<string>('all');
   const isCopying = false;
-
-  const handleExport = async () => {
-    try {
-      const { startDate, endDate } = getDateRange(currentDate, viewMode);
-
-      let query = supabase
-        .from('staff_shifts')
-        .select(`
-          start_date, start_time, end_time, shift_type, notes,
-          house:houses(name),
-          staff:staff(name),
-          participants:shift_participants(participant:participants(name)),
-          assigned_checklists:shift_assigned_checklists(assignment_title)
-        `)
-        .gte('start_date', startDate)
-        .lte('start_date', endDate)
-        .order('start_date')
-        .order('start_time');
-
-      if (houseFilter !== 'all') query = query.eq('house_id', houseFilter);
-      if (selectedStaffId !== 'all') query = query.eq('staff_id', selectedStaffId);
-
-      const { data, error } = await query;
-      if (error) throw error;
-
-      const rows = (data || []).map((s: any) => ({
-        Date: s.start_date,
-        House: s.house?.name || '',
-        Staff: s.staff?.name || 'Unassigned',
-        'Shift Type': s.shift_type || '',
-        Start: s.start_time?.substring(0, 5) || '',
-        End: s.end_time?.substring(0, 5) || '',
-        Participants: (s.participants || []).map((p: any) => p.participant?.name).filter(Boolean).join('; '),
-        Checklists: (s.assigned_checklists || []).map((c: any) => c.assignment_title).join('; '),
-        Notes: s.notes || '',
-      }));
-
-      if (rows.length === 0) {
-        toast.error('No shifts found for the current view.');
-        return;
-      }
-
-      const headers = Object.keys(rows[0]);
-      const csv = [
-        headers.join(','),
-        ...rows.map(row =>
-          headers.map(h => {
-            const val = String((row as any)[h] ?? '').replace(/"/g, '""');
-            return val.includes(',') || val.includes('"') || val.includes('\n') ? `"${val}"` : val;
-          }).join(',')
-        )
-      ].join('\n');
-
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `roster-${startDate}-to-${endDate}.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error('Export failed:', err);
-      toast.error('Failed to export roster.');
-    }
-  };
 
   const handleBulkAction = useCallback(async (params: any, action: 'update' | 'delete', updates?: any) => {
     try {
@@ -155,6 +87,13 @@ export function RosterBoardContent() {
     }
   };
 
+  const initialFilters = useMemo(() => ({
+    houseId: bulkInitialHouseId,
+    staffId: selectedStaffId,
+    startDate: format(getDateRange(currentDate, viewMode).startDate, 'yyyy-MM-dd'),
+    endDate: format(getDateRange(currentDate, viewMode).endDate, 'yyyy-MM-dd'),
+  }), [bulkInitialHouseId, selectedStaffId, currentDate, viewMode]);
+
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -162,12 +101,6 @@ export function RosterBoardContent() {
         <div>
           <h1 className="text-2xl font-bold">Roster Board</h1>
           <p className="text-muted-foreground text-sm">Manage shift schedules and staff assignments</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={handleExport}>
-            <Download className="size-4 mr-2" />
-            Export
-          </Button>
         </div>
       </div>
 
@@ -245,12 +178,7 @@ export function RosterBoardContent() {
         houses={houses}
         staff={staff}
         shiftTypes={shiftTypes}
-        initialFilters={{
-          houseId: bulkInitialHouseId,
-          staffId: selectedStaffId,
-          startDate: format(getDateRange(currentDate, viewMode).startDate, 'yyyy-MM-dd'),
-          endDate: format(getDateRange(currentDate, viewMode).endDate, 'yyyy-MM-dd'),
-        }}
+        initialFilters={initialFilters}
       />
 
       {populateInitialHouseId !== 'all' && (
