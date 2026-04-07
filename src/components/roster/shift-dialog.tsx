@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useStaff } from '@/hooks/use-staff';
 import { useHouses } from '@/hooks/use-houses';
 import { useParticipants } from '@/hooks/use-participants';
-import { useHouseShiftTypes } from '@/hooks/use-house-shift-types';
+import { useHouseShiftTemplates } from '@/hooks/use-house-shift-templates';
 import { useHouseStaffAssignments } from '@/hooks/use-house-staff-assignments';
 import { useAuth } from '@/auth/context/auth-context';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -31,8 +31,8 @@ export interface ShiftFormData {
   end_time: string;
   end_date?: string;
   house_id: string | null;
-  shift_type: string;
-  shift_type_id?: string | null;
+  shift_template: string;
+  shift_template_id?: string | null;
   notes: string;
   participant_ids: string[];
   assigned_checklists: AssignedChecklist[];
@@ -46,7 +46,7 @@ interface ShiftDialogProps {
   onDelete?: (id: string) => Promise<void>;
   preSelectedDate?: string;
   preSelectedHouseId?: string;
-  preSelectedShiftTypeId?: string;
+  preSelectedShiftTemplateId?: string;
   staffId?: string | null;
   readOnly?: boolean;
   staffSelectionDisabled?: boolean;
@@ -65,7 +65,7 @@ export function ShiftDialog({
   onDelete, 
   preSelectedDate,
   preSelectedHouseId,
-  preSelectedShiftTypeId,
+  preSelectedShiftTemplateId,
   staffId,
   readOnly = false,
   staffSelectionDisabled = false,
@@ -100,8 +100,8 @@ export function ShiftDialog({
     end_time: '17:00',
     end_date: '',
     house_id: null,
-    shift_type: 'SIL',
-    shift_type_id: null,
+    shift_template: 'SIL',
+    shift_template_id: null,
     notes: '',
     participant_ids: [],
     assigned_checklists: [],
@@ -145,7 +145,7 @@ export function ShiftDialog({
     return list;
   }, [formData.house_id, formData.staff_id, staffList, houseStaffAssignments]);
 
-  const { shiftTypes } = useHouseShiftTypes(formData.house_id || undefined);
+  const { shiftTemplates } = useHouseShiftTemplates(formData.house_id || undefined);
   
   const currentHouse = useMemo(() => {
     return houses.find(h => h.id === (formData.house_id || preSelectedHouseId));
@@ -161,8 +161,8 @@ export function ShiftDialog({
           start_time: shift.start_time.substring(0, 5),
           end_time: shift.end_time.substring(0, 5),
           house_id: shift.house_id,
-          shift_type: shift.shift_type,
-          shift_type_id: shift.shift_type_id || null,
+          shift_template: shift.shift_template,
+          shift_template_id: shift.shift_template_id || null,
           notes: shift.notes || '',
           participant_ids: shift.participants?.map((p: any) => p.id) || [],
           assigned_checklists: shift.assigned_checklists || [],
@@ -179,18 +179,18 @@ export function ShiftDialog({
           start_time: '09:00',
           end_time: '17:00',
           house_id: initialHouseId,
-          shift_type: 'SIL',
-          shift_type_id: null,
+          shift_template: 'SIL',
+          shift_template_id: null,
           notes: '',
           participant_ids: initialHouseId ? participants.filter(p => p.house_id === initialHouseId && p.status === 'active').map(p => p.id) : [],
           assigned_checklists: [],
         };
 
-        if (preSelectedShiftTypeId) {
-          const type = shiftTypes.find(t => t.id === preSelectedShiftTypeId);
+        if (preSelectedShiftTemplateId) {
+          const type = shiftTemplates.find(t => t.id === preSelectedShiftTemplateId);
           if (type) {
-            baseData.shift_type = type.name;
-            baseData.shift_type_id = type.id;
+            baseData.shift_template = type.name;
+            baseData.shift_template_id = type.id;
             baseData.start_time = type.default_start_time?.substring(0, 5) || '09:00';
             baseData.end_time = type.default_end_time?.substring(0, 5) || '17:00';
           }
@@ -199,7 +199,7 @@ export function ShiftDialog({
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, shift, preSelectedDate, preSelectedHouseId, preSelectedShiftTypeId, staffId]);
+  }, [open, shift, preSelectedDate, preSelectedHouseId, preSelectedShiftTemplateId, staffId]);
 
   const handleSave = async () => {
     if (!formData.start_date || !formData.start_time || !formData.end_time) {
@@ -244,12 +244,12 @@ export function ShiftDialog({
     });
   };
 
-  const handleShiftTypeChange = async (val: string) => {
-    const dynamicType = shiftTypes?.find(st => st.id === val || st.name === val);
+  const handleShiftTemplateChange = async (val: string) => {
+    const dynamicType = shiftTemplates?.find(st => st.id === val || st.name === val);
     const updatedData = {
       ...formData,
-      shift_type_id: dynamicType?.id || null,
-      shift_type: dynamicType?.name || val
+      shift_template_id: dynamicType?.id || null,
+      shift_template: dynamicType?.name || val
     };
 
     if (dynamicType?.default_start_time) {
@@ -340,16 +340,16 @@ export function ShiftDialog({
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="shift_type" className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1 flex items-center gap-1.5">
-                <Zap className="size-3" /> Shift Type *
+              <Label htmlFor="shift_template" className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1 flex items-center gap-1.5">
+                <Zap className="size-3" /> Shift Template *
               </Label>
-              <Select value={formData.shift_type_id || formData.shift_type} onValueChange={handleShiftTypeChange} disabled={readOnly}>
-                <SelectTrigger className="h-10 sm:h-11 text-sm font-medium" aria-label="Shift Type">
+              <Select value={formData.shift_template_id || formData.shift_template} onValueChange={handleShiftTemplateChange} disabled={readOnly}>
+                <SelectTrigger className="h-10 sm:h-11 text-sm font-medium" aria-label="Shift Template">
                   <SelectValue placeholder="Select type..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {shiftTypes.length > 0 ? (
-                    shiftTypes.map(st => {
+                  {shiftTemplates.length > 0 ? (
+                    shiftTemplates.map(st => {
                       const Icon = SHIFT_ICONS[st.icon_name || ''] || Clock;
                       const iconColor = st.color_theme ? `text-${st.color_theme.split('-')[0]}-500` : "text-primary";
                       return (

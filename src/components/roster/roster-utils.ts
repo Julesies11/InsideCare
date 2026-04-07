@@ -5,8 +5,8 @@ export type ViewMode = 'today' | 'week' | 'month';
 /**
  * Returns Tailwind classes for shift cards based on the dynamic color_theme from DB
  */
-export function getShiftTheme(colorTheme?: string, shiftTypeName?: string) {
-  const theme = (colorTheme || shiftTypeName || 'other').toLowerCase();
+export function getShiftTheme(colorTheme?: string, shiftTemplateName?: string) {
+  const theme = (colorTheme || shiftTemplateName || 'other').toLowerCase();
 
   if (theme.includes('morning') || theme === 'amber') {
     return 'bg-amber-500/10 text-amber-700 border-amber-200';
@@ -28,7 +28,7 @@ export function getShiftTheme(colorTheme?: string, shiftTypeName?: string) {
 }
 
 /** @deprecated Use getShiftTheme instead */
-export const getShiftTypeColor = (type: string): string => {
+export const getShiftTemplateColor = (type: string): string => {
   return getShiftTheme(undefined, type);
 };
 

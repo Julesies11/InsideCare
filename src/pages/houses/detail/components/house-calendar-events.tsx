@@ -28,7 +28,7 @@ import { toast } from 'sonner';
 import { ShiftDialog, ShiftFormData } from '@/components/roster/shift-dialog';
 import { ShiftCard, ShiftCardData } from '@/components/roster/shift-card';
 import { useRosterData } from '@/components/roster/use-roster-data';
-import { useHouseShiftTypes } from '@/hooks/use-house-shift-types';
+import { useHouseShiftTemplates } from '@/hooks/use-house-shift-templates';
 import { PopulateRosterModal } from './PopulateRosterModal';
 
 interface HouseCalendarEventsProps {
@@ -96,7 +96,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
   
   // Shift Dialog hooks
   const { createShift, updateShift, deleteShift } = useRosterData();
-  const { shiftTypes } = useHouseShiftTypes(houseId);
+  const { shiftTemplates } = useHouseShiftTemplates(houseId);
   
   // Shift Dialog state
   const [showShiftDialog, setShowShiftDialog] = useState(false);
@@ -111,7 +111,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
     end_date: event.end_date,
     start_time: event.start_time,
     end_time: event.end_time,
-    shift_type: event.shift_type,
+    shift_template: event.shift_template,
     color_theme: event.type_details?.color_theme,
     icon_name: event.type_details?.icon_name,
     staff_name: event.assigned_staff?.name,
@@ -359,7 +359,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
           house_id: houseId,
           calendar_event_id: isShiftRoutine ? null : selectedEvent.id,
           shift_id: isShiftRoutine ? selectedEvent.shift_id : null,
-          shift_type_id: isShiftRoutine ? selectedEvent.shift_type_id : null,
+          shift_template_id: isShiftRoutine ? selectedEvent.shift_template_id : null,
           scheduled_date: selectedEvent.event_date,
           status: status,
           submitted_by: staffId || null,
@@ -805,7 +805,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
   const getTypeColor = (event: any) => {
     // Priority 1: Shift-specific color
     if (event.type === 'shift') {
-      return getPeriodTheme(event.shift_type, event.type_details?.color_theme).color || 'blue';
+      return getPeriodTheme(event.shift_template, event.type_details?.color_theme).color || 'blue';
     }
 
     // Priority 2: Checklist (Dynamic Period Theme)
@@ -1604,7 +1604,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
           houses={[{ id: houseId, name: 'Current House' }]}
           participants={participants.filter(p => p.house_id === houseId)}
           checklists={houseChecklists}
-          shiftTypes={shiftTypes}
+          shiftTemplates={shiftTemplates}
           onSave={handleSaveShift}
           onDelete={selectedShift ? handleDeleteShift : undefined}
           staffSelectionDisabled={false}

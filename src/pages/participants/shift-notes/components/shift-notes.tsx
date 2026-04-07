@@ -212,7 +212,7 @@ const ShiftNotes = () => {
           return (
             <span className="text-sm text-gray-700 dark:text-gray-300">
               {formatTime(shift.start_time)} – {formatTime(shift.end_time)}
-              <span className="ml-1 text-xs text-muted-foreground">({shift.shift_type})</span>
+              <span className="ml-1 text-xs text-muted-foreground">({shift.shift_template})</span>
             </span>
           );
         },

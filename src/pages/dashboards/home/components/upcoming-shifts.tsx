@@ -55,7 +55,7 @@ export function UpcomingShifts() {
           start_time: formData.start_time,
           end_time: formData.end_time,
           house_id: formData.house_id || null,
-          shift_type: formData.shift_type,
+          shift_template: formData.shift_template,
           status: formData.status,
           notes: formData.notes,
         });
@@ -117,7 +117,7 @@ export function UpcomingShifts() {
     }
   };
 
-  const getShiftTypeColor = (type: string) => {
+  const getShiftTemplateColor = (type: string) => {
     switch (type.toUpperCase()) {
       case 'SIL': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
       case 'COMMUNITY': return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
@@ -166,8 +166,8 @@ export function UpcomingShifts() {
                         <Clock className="size-3" />
                         {shift.start_time.slice(0, 5)} - {shift.end_time.slice(0, 5)}
                       </div>
-                      <Badge variant="secondary" className={`text-[10px] px-1.5 py-0 capitalize ${getShiftTypeColor(shift.shift_type)}`}>
-                        {shift.shift_type.toLowerCase()}
+                      <Badge variant="secondary" className={`text-[10px] px-1.5 py-0 capitalize ${getShiftTemplateColor(shift.shift_template)}`}>
+                        {shift.shift_template.toLowerCase()}
                       </Badge>
                     </div>
                     <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">

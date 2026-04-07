@@ -8,7 +8,7 @@ const mockShift: ShiftCardData = {
   start_date: '2026-04-05',
   start_time: '08:00:00',
   end_time: '16:00:00',
-  shift_type: 'Morning',
+  shift_template: 'Morning',
   staff_name: 'John Doe',
   staff_id: 'staff-1',
   house: { id: 'house-1', name: 'Test House' },

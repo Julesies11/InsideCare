@@ -59,7 +59,7 @@ The Roster module implements a highly optimized data fetching strategy to handle
     - **Linked Staff Counts** on House Profiles.
     - **Staff Dropdowns** on the Roster Board and House Calendar.
     - **Shift Assignment logic** in the Shift Dialog.
-- **TanStack Query Caching:** All roster data (shifts, leave, shift types) is managed via TanStack Query. Queries are keyed by date range and filters, allowing for instantaneous navigation between weeks as data is cached in memory.
+- **TanStack Query Caching:** All roster data (shifts, leave, shift templates) is managed via TanStack Query. Queries are keyed by date range and filters, allowing for instantaneous navigation between weeks as data is cached in memory.
 - **Frontend Joining:** To reduce SQL execution time and JSON payload size, the system avoids heavy database joins for static metadata.
     - **Pattern**: Instead of joining `houses` and `staff` in every shift query, the application fetches and caches the full lists of active Houses and Staff once.
     - **Mapping**: Shift records are returned with IDs only; the UI layer maps these IDs to the cached metadata arrays in the frontend.
@@ -107,7 +107,7 @@ The application features a robust, role-based notification system powered by `su
 The project follows a rigorous testing strategy to ensure reliability of the core business logic.
 
 - **Framework**: [Vitest](https://vitest.dev/) for unit and integration testing.
-- **Library**: [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/) for testing hooks and components.
+- **Library**: [React Testing Library](https://testing-library.com/docs/react-reality-library/intro/) for testing hooks and components.
 - **API Mocking**: [MSW (Mock Service Worker)](https://mswjs.io/) to mock Supabase REST and Auth endpoints.
   - Handlers are located in `src/test/mocks/handlers.ts`.
   - The mock server is configured in `src/test/mocks/server.ts`.

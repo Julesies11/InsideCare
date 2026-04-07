@@ -7,7 +7,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RRuleGenerator } from './RRuleGenerator';
 import { useChecklistSchedules } from '@/hooks/useChecklistSchedules';
-import { useHouseShiftTypes } from '@/hooks/use-house-shift-types';
+import { useHouseShiftTemplates } from '@/hooks/use-house-shift-templates';
 import { format, addMonths } from 'date-fns';
 import { CalendarDays, ClipboardList, UserCheck, Loader2, Info } from 'lucide-react';
 import { toast } from 'sonner';
@@ -38,7 +38,7 @@ export function HouseChecklistScheduleModal({
   const [endDate, setEndDate] = useState(format(addMonths(new Date(), 12), 'yyyy-MM-dd'));
   
   const { createSchedule, loading: loadingSchedule } = useChecklistSchedules(houseId);
-  const { shiftTypes, loading: loadingShifts } = useHouseShiftTypes(houseId);
+  const { shiftTemplates, loading: loadingShifts } = useHouseShiftTemplates(houseId);
 
   const handleSave = async () => {
     if (!checklist) return;
@@ -71,7 +71,7 @@ export function HouseChecklistScheduleModal({
           .insert(selectedShiftIds.map(stId => ({
             house_id: houseId,
             checklist_id: checklist.id,
-            shift_type_id: stId,
+            shift_template_id: stId,
             assignment_title: checklist.name
           })));
 
@@ -181,12 +181,12 @@ export function HouseChecklistScheduleModal({
                     <div className="flex items-center gap-2 text-muted-foreground italic text-xs py-4">
                       <Loader2 className="size-3 animate-spin" /> Loading shift templates...
                     </div>
-                  ) : shiftTypes.length === 0 ? (
+                  ) : shiftTemplates.length === 0 ? (
                     <div className="bg-amber-50 border border-amber-100 rounded-lg p-4 text-xs text-amber-700">
-                      No dynamic shift types defined for this house. Please define your shift templates first.
+                      No dynamic shift templates defined for this house. Please define your shift templates first.
                     </div>
                   ) : (
-                    shiftTypes.map(st => (
+                    shiftTemplates.map(st => (
                       <div 
                         key={st.id} 
                         className={cn(

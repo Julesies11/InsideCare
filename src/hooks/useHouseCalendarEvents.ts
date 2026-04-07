@@ -45,8 +45,8 @@ export interface HouseCalendarEvent {
   house_checklist_id?: string;
   checklist_schedule_id?: string;
   target_shift?: string;
-  shift_type?: string;
-  shift_type_id?: string;
+  shift_template?: string;
+  shift_template_id?: string;
   type_details?: {
     color_theme?: string;
     icon_name?: string;
@@ -122,9 +122,9 @@ export function useHouseCalendarEvents(houseId?: string, staffId?: string) {
           start_time,
           end_time,
           staff_id,
-          shift_type,
-          shift_type_id,
-          type_details:house_shift_types(color_theme, icon_name),
+          shift_template,
+          shift_template_id,
+          type_details:house_shift_templates(color_theme, icon_name),
           staff:staff(id, name),
           assigned_checklists:shift_assigned_checklists(
             id, 
@@ -149,10 +149,10 @@ export function useHouseCalendarEvents(houseId?: string, staffId?: string) {
           combinedEvents.push({
             id: `shift-${shift.id}`,
             house_id: houseId,
-            title: `${shift.shift_type || 'Shift'} - ${shift.staff?.name || 'Unassigned'}`,
+            title: `${shift.shift_template || 'Shift'} - ${shift.staff?.name || 'Unassigned'}`,
             type: 'shift',
-            shift_type: shift.shift_type,
-            shift_type_id: shift.shift_type_id,
+            shift_template: shift.shift_template,
+            shift_template_id: shift.shift_template_id,
             type_details: shift.type_details,
             event_date: shift.start_date,
             start_time: shift.start_time,

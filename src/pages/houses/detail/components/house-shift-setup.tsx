@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Edit, Trash2, Clock, CheckSquare, Download, Info } from 'lucide-react';
-import { useHouseShiftTypes } from '@/hooks/use-house-shift-types';
+import { useHouseShiftTemplates } from '@/hooks/use-house-shift-templates';
 import { useHouseChecklists } from '@/hooks/use-house-checklists';
 import { useHouses } from '@/hooks/use-houses';
 import { toast } from 'sonner';
@@ -26,14 +26,14 @@ interface HouseShiftSetupProps {
 }
 
 export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChange, directSave = false, canEdit: _canEdit, refreshKey }: HouseShiftSetupProps) {
-  const { shiftTypes, refresh: refreshShiftTypes, defaults } = useHouseShiftTypes(houseId);
+  const { shiftTemplates, refresh: refreshShiftTemplates, defaults } = useHouseShiftTemplates(houseId);
   const { houseChecklists } = useHouseChecklists(houseId);
 
   useEffect(() => {
     if (refreshKey && refreshKey > 0) {
-      refreshShiftTypes();
+      refreshShiftTemplates();
     }
-  }, [refreshKey, refreshShiftTypes]);
+  }, [refreshKey, refreshShiftTemplates]);
   
   const housesFilter = useMemo(() => ({ statuses: ['active'] }), []);
   const { houses: allHouses } = useHouses(0, 100, [], housesFilter);
@@ -47,7 +47,7 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
 
   const [editingType, setEditingType] = useState<any | null>(null);
 
-  // Fetch shift type counts for the import dialog
+  // Fetch shift template counts for the import dialog
   useEffect(() => {
     let mounted = true;
     const fetchCounts = async () => {
@@ -55,7 +55,7 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
       
       try {
         const { data } = await supabase
-          .from('house_shift_types')
+          .from('house_shift_templates')
           .select('house_id, id');
         
         if (!mounted) return;
@@ -88,26 +88,26 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
 
   // --- Visibility Logic (Merging current and pending) ---
 
-  const visibleShiftTypes = useMemo(() => {
-    if (directSave || !pendingChanges) return shiftTypes;
+  const visibleShiftTemplates = useMemo(() => {
+    if (directSave || !pendingChanges) return shiftTemplates;
     
-    const dbTypes = shiftTypes.filter(st => !pendingChanges.shiftTypes.toDelete.includes(st.id));
+    const dbTypes = shiftTemplates.filter(st => !pendingChanges.shiftTemplates.toDelete.includes(st.id));
     const merged = dbTypes.map(st => {
-      const update = pendingChanges.shiftTypes.toUpdate.find(u => u.id === st.id);
+      const update = pendingChanges.shiftTemplates.toUpdate.find(u => u.id === st.id);
       return update ? { ...st, ...update } : st;
     });
     
-    return [...merged, ...pendingChanges.shiftTypes.toAdd];
-  }, [shiftTypes, pendingChanges, directSave]);
+    return [...merged, ...pendingChanges.shiftTemplates.toAdd];
+  }, [shiftTemplates, pendingChanges, directSave]);
 
-  const getVisibleDefaults = (shiftTypeId: string) => {
-    const dbDefaults = (defaults || []).filter(d => d.shift_type_id === shiftTypeId).map(d => d.checklist_id);
+  const getVisibleDefaults = (shiftTemplateId: string) => {
+    const dbDefaults = (defaults || []).filter(d => d.shift_template_id === shiftTemplateId).map(d => d.checklist_id);
     if (directSave || !pendingChanges) return dbDefaults;
     
-    const update = pendingChanges.shiftTypes.toUpdate.find(u => u.id === shiftTypeId);
+    const update = pendingChanges.shiftTemplates.toUpdate.find(u => u.id === shiftTemplateId);
     if (update && update.default_checklists) return update.default_checklists;
     
-    const add = pendingChanges.shiftTypes.toAdd.find(a => a.tempId === shiftTypeId);
+    const add = pendingChanges.shiftTemplates.toAdd.find(a => a.tempId === shiftTemplateId);
     if (add) return add.default_checklists;
     
     return dbDefaults;
@@ -152,7 +152,7 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
         color_theme: 'morning', 
         default_start_time: '07:00', 
         default_end_time: '15:00', 
-        sort_order: (visibleShiftTypes?.length || 0) * 10,
+        sort_order: (visibleShiftTemplates?.length || 0) * 10,
         is_active: true,
         default_checklists: [] 
       });
@@ -178,27 +178,27 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
         };
 
         if (typeId) {
-          const { error } = await supabase.from('house_shift_types').update(typePayload).eq('id', typeId);
+          const { error } = await supabase.from('house_shift_templates').update(typePayload).eq('id', typeId);
           if (error) throw error;
         } else {
-          const { data, error } = await supabase.from('house_shift_types').insert(typePayload).select().single();
+          const { data, error } = await supabase.from('house_shift_templates').insert(typePayload).select().single();
           if (error) throw error;
           typeId = data.id;
         }
 
         // Sync default checklists
-        await supabase.from('shift_type_default_checklists').delete().eq('shift_type_id', typeId);
+        await supabase.from('shift_template_default_checklists').delete().eq('shift_template_id', typeId);
         if (typeFormData.default_checklists.length > 0) {
           const toInsert = typeFormData.default_checklists.map(clId => ({
-            shift_type_id: typeId,
+            shift_template_id: typeId,
             checklist_id: clId
           }));
-          const { error: clErr } = await supabase.from('shift_type_default_checklists').insert(toInsert);
+          const { error: clErr } = await supabase.from('shift_template_default_checklists').insert(toInsert);
           if (clErr) throw clErr;
         }
 
         toast.success('Shift template updated');
-        refreshShiftTypes();
+        refreshShiftTemplates();
         setShowTypeDialog(false);
         return;
       } catch (err: any) {
@@ -213,9 +213,9 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
       if (editingType.tempId) {
         onPendingChangesChange({
           ...pendingChanges,
-          shiftTypes: {
-            ...pendingChanges.shiftTypes,
-            toAdd: pendingChanges.shiftTypes.toAdd.map(a => 
+          shiftTemplates: {
+            ...pendingChanges.shiftTemplates,
+            toAdd: pendingChanges.shiftTemplates.toAdd.map(a => 
               a.tempId === editingType.tempId ? { ...a, ...typeFormData } : a
             )
           }
@@ -224,10 +224,10 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
         const update = { id: editingType.id, ...typeFormData };
         onPendingChangesChange({
           ...pendingChanges,
-          shiftTypes: {
-            ...pendingChanges.shiftTypes,
+          shiftTemplates: {
+            ...pendingChanges.shiftTemplates,
             toUpdate: [
-              ...pendingChanges.shiftTypes.toUpdate.filter(u => u.id !== editingType.id),
+              ...pendingChanges.shiftTemplates.toUpdate.filter(u => u.id !== editingType.id),
               update
             ]
           }
@@ -237,9 +237,9 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
       const tempId = `temp-st-${Date.now()}`;
       onPendingChangesChange({
         ...pendingChanges,
-        shiftTypes: {
-          ...pendingChanges.shiftTypes,
-          toAdd: [...pendingChanges.shiftTypes.toAdd, { tempId, ...typeFormData }]
+        shiftTemplates: {
+          ...pendingChanges.shiftTemplates,
+          toAdd: [...pendingChanges.shiftTemplates.toAdd, { tempId, ...typeFormData }]
         }
       });
     }
@@ -248,12 +248,12 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
 
   const handleDeleteType = async (type: any) => {
     if (directSave) {
-      if (confirm('Delete this shift type? This will also remove any template items linked to it.')) {
+      if (confirm('Delete this shift template? This will also remove any template items linked to it.')) {
         try {
-          const { error } = await supabase.from('house_shift_types').delete().eq('id', type.id);
+          const { error } = await supabase.from('house_shift_templates').delete().eq('id', type.id);
           if (error) throw error;
           toast.success('Shift template removed');
-          refreshShiftTypes();
+          refreshShiftTemplates();
           return;
         } catch (err: any) {
           toast.error(`Failed to delete: ${err.message}`);
@@ -267,17 +267,17 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
     if (type.tempId) {
       onPendingChangesChange({
         ...pendingChanges,
-        shiftTypes: {
-          ...pendingChanges.shiftTypes,
-          toAdd: pendingChanges.shiftTypes.toAdd.filter(a => a.tempId !== type.tempId)
+        shiftTemplates: {
+          ...pendingChanges.shiftTemplates,
+          toAdd: pendingChanges.shiftTemplates.toAdd.filter(a => a.tempId !== type.tempId)
         }
       });
     } else {
       onPendingChangesChange({
         ...pendingChanges,
-        shiftTypes: {
-          ...pendingChanges.shiftTypes,
-          toDelete: [...pendingChanges.shiftTypes.toDelete, type.id]
+        shiftTemplates: {
+          ...pendingChanges.shiftTemplates,
+          toDelete: [...pendingChanges.shiftTemplates.toDelete, type.id]
         }
       });
     }
@@ -288,7 +288,7 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
     setIsImporting(true);
     try {
       const { data: sourceTypes, error: typesError } = await supabase
-        .from('house_shift_types')
+        .from('house_shift_templates')
         .select('*')
         .eq('house_id', importSourceId);
       
@@ -297,9 +297,9 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
       const newToAdd = [];
       for (const st of (sourceTypes || [])) {
         const { data: sourceDefaults } = await supabase
-          .from('shift_type_default_checklists')
+          .from('shift_template_default_checklists')
           .select('checklist:house_checklists(name)')
-          .eq('shift_type_id', st.id);
+          .eq('shift_template_id', st.id);
         
         let localChecklistIds: string[] = [];
         if (sourceDefaults && sourceDefaults.length > 0) {
@@ -328,13 +328,13 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
 
       onPendingChangesChange({
         ...pendingChanges,
-        shiftTypes: {
-          ...pendingChanges.shiftTypes,
-          toAdd: [...pendingChanges.shiftTypes.toAdd, ...newToAdd]
+        shiftTemplates: {
+          ...pendingChanges.shiftTemplates,
+          toAdd: [...pendingChanges.shiftTemplates.toAdd, ...newToAdd]
         }
       });
 
-      toast.success(`Imported ${newToAdd.length} shift types to pending changes.`);
+      toast.success(`Imported ${newToAdd.length} shift templates to pending changes.`);
       setShowImportDialog(false);
     } catch (err: any) {
       toast.error(`Import failed: ${err.message}`);
@@ -361,11 +361,11 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        {visibleShiftTypes.map(st => {
+        {visibleShiftTemplates.map(st => {
           const theme = getPeriodTheme(st.name, st.color_theme, st.icon_name);
           const typeDefaults = getVisibleDefaults(st.id || st.tempId);
           const isPendingAdd = !!st.tempId;
-          const isPendingUpdate = pendingChanges?.shiftTypes.toUpdate.some(u => u.id === st.id);
+          const isPendingUpdate = pendingChanges?.shiftTemplates.toUpdate.some(u => u.id === st.id);
 
           return (
             <div key={st.id || st.tempId} className={cn(
@@ -687,7 +687,7 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
           <DialogHeader>
             <DialogTitle>Import Shift Templates</DialogTitle>
             <DialogDescription>
-              Clones all shift types and their default checklist links from another house.
+              Clones all shift templates and their default checklist links from another house.
             </DialogDescription>
           </DialogHeader>
           <div className="py-4 space-y-4">

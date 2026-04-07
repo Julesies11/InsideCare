@@ -11,7 +11,7 @@ export interface ShiftCardData {
   end_date?: string;
   start_time: string;
   end_time: string;
-  shift_type: string;
+  shift_template: string;
   color_theme?: string;
   icon_name?: string;
   house?: { id: string; name: string };
@@ -38,7 +38,7 @@ export function ShiftCard({ shift, compact, showStaffName, showHouseName = true,
   const participantCount = shift.participants?.length || 0;
   const checklistCount = shift.assigned_checklists?.length || 0;
   const isUnassigned = !shift.staff_id;
-  const shiftThemeClasses = getShiftTheme(shift.color_theme, shift.shift_type);
+  const shiftThemeClasses = getShiftTheme(shift.color_theme, shift.shift_template);
   const IconComponent = SHIFT_ICONS[shift.icon_name || ''] || Clock;
   const textColor = shiftThemeClasses.split(' ').find(c => c.startsWith('text-'));
 
@@ -58,7 +58,7 @@ export function ShiftCard({ shift, compact, showStaffName, showHouseName = true,
             <div className="flex items-center gap-1 mb-0.5">
               <IconComponent className={cn("h-2.5 w-2.5 shrink-0", textColor)} />
               <span className={cn("text-[9px] font-bold uppercase tracking-tight truncate", textColor)}>
-                {shift.shift_type}
+                {shift.shift_template}
               </span>
             </div>
             <span className="text-[10px] leading-tight text-gray-700 font-normal">
@@ -191,7 +191,7 @@ export function ShiftCard({ shift, compact, showStaffName, showHouseName = true,
             <div className="flex items-center gap-1.5 mb-1.5">
               <IconComponent className={cn("size-3.5 shrink-0", textColor)} />
               <span className={cn("text-[11px] font-bold uppercase tracking-widest truncate", textColor)}>
-                {shift.shift_type}
+                {shift.shift_template}
               </span>
             </div>
             <span className="text-sm text-gray-700 leading-none font-normal">

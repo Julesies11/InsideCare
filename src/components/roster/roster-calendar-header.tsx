@@ -29,9 +29,9 @@ interface RosterCalendarHeaderProps {
   onHouseFilterChange: (value: string) => void;
   houseList: Array<{ id: string; name: string }>;
   
-  shiftTypeFilter: string;
-  onShiftTypeFilterChange: (value: string) => void;
-  shiftTypeList?: Array<{ id: string; name: string }>;
+  shiftTemplateFilter: string;
+  onShiftTemplateFilterChange: (value: string) => void;
+  shiftTemplateList?: Array<{ id: string; name: string }>;
   
   statusFilter: string;
   onStatusFilterChange: (value: string) => void;
@@ -58,9 +58,9 @@ export function RosterCalendarHeader({
   houseFilter,
   onHouseFilterChange,
   houseList,
-  shiftTypeFilter,
-  onShiftTypeFilterChange,
-  shiftTypeList = [],
+  shiftTemplateFilter,
+  onShiftTemplateFilterChange,
+  shiftTemplateList = [],
   statusFilter,
   onStatusFilterChange,
   onPopulateRoster: _onPopulateRoster,
@@ -159,13 +159,13 @@ export function RosterCalendarHeader({
           </Select>
         )}
 
-        <Select value={shiftTypeFilter} onValueChange={onShiftTypeFilterChange}>
+        <Select value={shiftTemplateFilter} onValueChange={onShiftTemplateFilterChange}>
           <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue placeholder="All Types" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Types</SelectItem>
-            {shiftTypeList.map(type => (
+            {shiftTemplateList.map(type => (
               <SelectItem key={type.id} value={type.id}>
                 {type.name}
               </SelectItem>

@@ -11,8 +11,8 @@ export interface StaffShift {
   start_time: string;
   end_time: string;
   house_id: string | null;
-  shift_type: string;
-  shift_type_id?: string | null;
+  shift_template: string;
+  shift_template_id?: string | null;
   notes: string | null;
   created_at?: string;
   updated_at?: string;
@@ -31,12 +31,12 @@ export interface AssignedChecklist {
   assignment_title: string;
 }
 
-export function useGlobalShiftTypesQuery() {
+export function useGlobalShiftTemplatesQuery() {
   return useQuery({
-    queryKey: ['global-shift-types'],
+    queryKey: ['global-shift-templates'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('house_shift_types')
+        .from('house_shift_templates')
         .select('name')
         .eq('is_active', true)
         .order('name');
@@ -92,8 +92,8 @@ export function useShiftsQuery(staffId: string, startDate: string, endDate: stri
       let query = supabase
         .from('staff_shifts')
         .select(`
-          id, staff_id, start_date, end_date, start_time, end_time, house_id, shift_type, shift_type_id, notes,
-          type_details:house_shift_types(color_theme, icon_name),
+          id, staff_id, start_date, end_date, start_time, end_time, house_id, shift_template, shift_template_id, notes,
+          type_details:house_shift_templates(color_theme, icon_name),
           participants:shift_participants(
             participant:participants(id, name)
           ),
@@ -349,14 +349,14 @@ export function useRosterData() {
       houseId, 
       startDate, 
       pattern, 
-      shiftTypes, 
+      shiftTemplates, 
       defaults, 
       participants 
     }: { 
       houseId: string;
       startDate: string;
       pattern: Record<number, string[]>[];
-      shiftTypes: any[];
+      shiftTemplates: any[];
       defaults: any[];
       participants: any[];
     }) => {
@@ -365,7 +365,7 @@ export function useRosterData() {
 
       pattern.forEach((weekPattern, weekIndex) => {
         const weekStartDate = addDays(anchorMonday, weekIndex * 7);
-        Object.entries(weekPattern).forEach(([dayStr, shiftTypeIds]) => {
+        Object.entries(weekPattern).forEach(([dayStr, shiftTemplateIds]) => {
           const dayId = parseInt(dayStr);
           // dayId 0=Sun, 1=Mon... in pattern. DAYS_OF_WEEK helper in modal uses 1-Mon to 0-Sun.
           // date-fns addDays(anchorMonday, offset) where 0=Mon, 1=Tue... 6=Sun
@@ -376,8 +376,8 @@ export function useRosterData() {
           // Skip if before start date
           if (targetDateStr < startDate) return;
 
-          shiftTypeIds.forEach(typeId => {
-            const type = shiftTypes.find(t => t.id === typeId);
+          shiftTemplateIds.forEach(typeId => {
+            const type = shiftTemplates.find(t => t.id === typeId);
             if (!type) return;
 
             shiftsToCreate.push({
@@ -387,8 +387,8 @@ export function useRosterData() {
               end_date: targetDateStr,
               start_time: type.default_start_time,
               end_time: type.default_end_time,
-              shift_type: type.name,
-              shift_type_id: type.id,
+              shift_template: type.name,
+              shift_template_id: type.id,
               notes: null
             });
           });
@@ -401,7 +401,7 @@ export function useRosterData() {
       const { data: createdShifts, error: shiftError } = await supabase
         .from('staff_shifts')
         .insert(shiftsToCreate)
-        .select('id, shift_type_id');
+        .select('id, shift_template_id');
 
       if (shiftError) throw shiftError;
 
@@ -416,14 +416,14 @@ export function useRosterData() {
         });
 
         // Checklists from defaults
-        const typeDefaults = defaults.filter(d => d.shift_type_id === shift.shift_type_id);
+        const typeDefaults = defaults.filter(d => d.shift_template_id === shift.shift_template_id);
         typeDefaults.forEach(d => {
           checklistInserts.push({
             shift_id: shift.id,
             checklist_id: d.checklist_id,
             assignment_title: d.checklist?.name || 'Routine Checklist',
             house_id: houseId,
-            shift_type_id: shift.shift_type_id
+            shift_template_id: shift.shift_template_id
           });
           checklistsCount++;
         });
@@ -450,10 +450,10 @@ export function useRosterData() {
 
   const syncShiftChecklistsMutation = useMutation({
     mutationFn: async ({ shift_id, checklists }: { shift_id: string, checklists: AssignedChecklist[] }) => {
-      // Get current shift info to get house_id and shift_type_id
+      // Get current shift info to get house_id and shift_template_id
       const { data: shift } = await supabase
         .from('staff_shifts')
-        .select('house_id, shift_type_id')
+        .select('house_id, shift_template_id')
         .eq('id', shift_id)
         .single();
 
@@ -472,7 +472,7 @@ export function useRosterData() {
             checklist_id: cl.checklist_id,
             assignment_title: cl.assignment_title,
             house_id: shift?.house_id,
-            shift_type_id: shift?.shift_type_id
+            shift_template_id: shift?.shift_template_id
           })));
         if (error) throw error;
       }

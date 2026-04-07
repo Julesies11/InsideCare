@@ -662,15 +662,15 @@ export function HouseDetailContent({
         if (error) throw new Error(`Failed to add communication entries: ${error.message}`);
       }
 
-      // Step 12: Process pending Shift Types (Models)
-      if (currentPending.shiftTypes.toAdd.length || currentPending.shiftTypes.toUpdate.length || currentPending.shiftTypes.toDelete.length) {
-        const currentTypes = queryClient.getQueryData<any[]>(['house-shift-types', id]) || [];
+      // Step 12: Process pending Shift Templates (Models)
+      if (currentPending.shiftTemplates.toAdd.length || currentPending.shiftTemplates.toUpdate.length || currentPending.shiftTemplates.toDelete.length) {
+        const currentTypes = queryClient.getQueryData<any[]>(['house-shift-templates', id]) || [];
         let updatedTypes = [...currentTypes];
 
-        if (currentPending.shiftTypes.toAdd.length > 0) {
-          for (const st of currentPending.shiftTypes.toAdd) {
+        if (currentPending.shiftTemplates.toAdd.length > 0) {
+          for (const st of currentPending.shiftTemplates.toAdd) {
             const { data: newType, error: typeError } = await supabase
-              .from('house_shift_types')
+              .from('house_shift_templates')
               .insert({
                 house_id: id,
                 name: st.name,
@@ -690,18 +690,18 @@ export function HouseDetailContent({
 
             if (st.default_checklists && st.default_checklists.length > 0) {
               const toInsert = st.default_checklists.map(clId => ({
-                shift_type_id: newType.id,
+                shift_template_id: newType.id,
                 checklist_id: clId
               }));
-              await supabase.from('shift_type_default_checklists').insert(toInsert);
+              await supabase.from('shift_template_default_checklists').insert(toInsert);
             }
           }
         }
 
-        if (currentPending.shiftTypes.toUpdate.length > 0) {
-          for (const st of currentPending.shiftTypes.toUpdate) {
+        if (currentPending.shiftTemplates.toUpdate.length > 0) {
+          for (const st of currentPending.shiftTemplates.toUpdate) {
             const { data: updatedType, error: typeError } = await supabase
-              .from('house_shift_types')
+              .from('house_shift_templates')
               .update({
                 name: st.name,
                 short_name: st.short_name,
@@ -720,25 +720,25 @@ export function HouseDetailContent({
             if (updatedType) updatedTypes = updatedTypes.map(t => t.id === st.id ? updatedType : t);
 
             if (st.default_checklists !== undefined) {
-              await supabase.from('shift_type_default_checklists').delete().eq('shift_type_id', st.id);
+              await supabase.from('shift_template_default_checklists').delete().eq('shift_template_id', st.id);
               if (st.default_checklists.length > 0) {
                 const toInsert = st.default_checklists.map(clId => ({
-                  shift_type_id: st.id,
+                  shift_template_id: st.id,
                   checklist_id: clId
                 }));
-                await supabase.from('shift_type_default_checklists').insert(toInsert);
+                await supabase.from('shift_template_default_checklists').insert(toInsert);
               }
             }
           }
         }
 
-        if (currentPending.shiftTypes.toDelete.length > 0) {
-          const { error } = await supabase.from('house_shift_types').delete().in('id', currentPending.shiftTypes.toDelete);
+        if (currentPending.shiftTemplates.toDelete.length > 0) {
+          const { error } = await supabase.from('house_shift_templates').delete().in('id', currentPending.shiftTemplates.toDelete);
           if (error) throw new Error(`Failed to delete shift templates: ${error.message}`);
-          updatedTypes = updatedTypes.filter(t => !currentPending.shiftTypes.toDelete.includes(t.id));
+          updatedTypes = updatedTypes.filter(t => !currentPending.shiftTemplates.toDelete.includes(t.id));
         }
 
-        queryClient.setQueryData(['house-shift-types', id], updatedTypes.sort((a, b) => ((a?.sort_order || 0) - (b?.sort_order || 0))));
+        queryClient.setQueryData(['house-shift-templates', id], updatedTypes.sort((a, b) => ((a?.sort_order || 0) - (b?.sort_order || 0))));
       }
 
       // Final Step: Refresh local state
@@ -757,8 +757,8 @@ export function HouseDetailContent({
       await queryClient.invalidateQueries({ queryKey: ['house-forms', id] });
       await queryClient.invalidateQueries({ queryKey: ['house-resources', id] });
       await queryClient.invalidateQueries({ queryKey: ['house_comms', { houseId: id }] });
-      await queryClient.invalidateQueries({ queryKey: ['house-shift-types', id] });
-      await queryClient.invalidateQueries({ queryKey: ['shift-type-defaults', id] });
+      await queryClient.invalidateQueries({ queryKey: ['house-shift-templates', id] });
+      await queryClient.invalidateQueries({ queryKey: ['shift-template-defaults', id] });
 
       toast.success('All changes saved successfully');
 
@@ -772,7 +772,7 @@ export function HouseDetailContent({
         resources: (currentPending.resources.toAdd.length || 0) > 0 || (currentPending.resources.toUpdate.length || 0) > 0 || (currentPending.resources.toDelete.length || 0) > 0 ? prev.resources + 1 : prev.resources,
         participants: (currentPending.participants.toAdd.length || 0) > 0 || (currentPending.participants.toUpdate.length || 0) > 0 || (currentPending.participants.toDelete.length || 0) > 0 ? prev.participants + 1 : prev.participants,
         comms: (currentPending.comms.toAdd.length || 0) > 0 ? prev.comms + 1 : prev.comms,
-        shiftTemplates: (currentPending.shiftTypes.toAdd.length || 0) > 0 || (currentPending.shiftTypes.toUpdate.length || 0) > 0 || (currentPending.shiftTypes.toDelete.length || 0) > 0 ? prev.shiftTemplates + 1 : prev.shiftTemplates,
+        shiftTemplates: (currentPending.shiftTemplates.toAdd.length || 0) > 0 || (currentPending.shiftTemplates.toUpdate.length || 0) > 0 || (currentPending.shiftTemplates.toDelete.length || 0) > 0 ? prev.shiftTemplates + 1 : prev.shiftTemplates,
         activityLog: prev.activityLog + 1,
       }));
 

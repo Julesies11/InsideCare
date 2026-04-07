@@ -126,7 +126,7 @@ export interface HousePendingChanges {
       toDelete: string[];
     };
   };
-  shiftTypes: {
+  shiftTemplates: {
     toAdd: Array<{
       tempId: string;
       name: string;
@@ -266,7 +266,7 @@ export const emptyHousePendingChanges: HousePendingChanges = {
       toDelete: [],
     },
   },
-  shiftTypes: {
+  shiftTemplates: {
     toAdd: [],
     toUpdate: [],
     toDelete: [],
@@ -312,9 +312,9 @@ export function hasHousePendingChanges(pending: HousePendingChanges): boolean {
     pending.checklists.checklistItems.toAdd.length > 0 ||
     pending.checklists.checklistItems.toUpdate.length > 0 ||
     pending.checklists.checklistItems.toDelete.length > 0 ||
-    pending.shiftTypes.toAdd.length > 0 ||
-    pending.shiftTypes.toUpdate.length > 0 ||
-    pending.shiftTypes.toDelete.length > 0 ||
+    pending.shiftTemplates.toAdd.length > 0 ||
+    pending.shiftTemplates.toUpdate.length > 0 ||
+    pending.shiftTemplates.toDelete.length > 0 ||
     pending.forms.toAdd.length > 0 ||
     pending.forms.toUpdate.length > 0 ||
     pending.forms.toDelete.length > 0 ||
@@ -349,9 +349,9 @@ export function countHousePendingChanges(pending: HousePendingChanges): number {
     pending.checklists.checklistItems.toAdd.length +
     pending.checklists.checklistItems.toUpdate.length +
     pending.checklists.checklistItems.toDelete.length +
-    pending.shiftTypes.toAdd.length +
-    pending.shiftTypes.toUpdate.length +
-    pending.shiftTypes.toDelete.length +
+    pending.shiftTemplates.toAdd.length +
+    pending.shiftTemplates.toUpdate.length +
+    pending.shiftTemplates.toDelete.length +
     pending.forms.toAdd.length +
     pending.forms.toUpdate.length +
     pending.forms.toDelete.length +

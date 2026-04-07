@@ -25,7 +25,7 @@ interface Shift {
   end_date: string;
   start_time: string;
   end_time: string;
-  shift_type: string;
+  shift_template: string;
   house: { name: string } | null;
 }
 
@@ -77,7 +77,7 @@ export function StaffTimesheetForm() {
       const [shiftRes, tsRes] = await Promise.all([
         supabase
           .from('staff_shifts')
-          .select('id, start_date, end_date, start_time, end_time, shift_type, house:houses(name)')
+          .select('id, start_date, end_date, start_time, end_time, shift_template, house:houses(name)')
           .eq('id', shiftId)
           .maybeSingle(),
         user?.staff_id

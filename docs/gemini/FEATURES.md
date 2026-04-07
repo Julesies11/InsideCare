@@ -17,7 +17,7 @@ Management of care providers and support staff.
 
 ## 3. Roster & Operations
 The core operational engine of the care system.
-- **House Shift Types**: Define recurring house structures (Morning, Day, Night, etc.) with custom times, icons, and pre-linked checklist routines (e.g., "Morning Protocol + Handover").
+- **House Shift Templates**: Define recurring house structures (Morning, Day, Night, etc.) with custom times, icons, and pre-linked checklist routines (e.g., "Morning Protocol + Handover").
 - **Roster Auto-Fill**: Rapidly generate multi-week coverage by deploying house shift templates into the calendar with one click using the "Publish Roster" (Populate) tool.
 - **Roster Board**: Visual representation of staff shifts and house assignments with intelligent staff filtering (showing active staff assigned to the house).
 - **Shift Routines**: Automated, shift-locked task lists that staff must complete and sign off on during their active shift.

@@ -25,9 +25,9 @@ vi.mock('@/hooks/use-mobile', () => ({
 }));
 
 // Mock the hooks used in child components to avoid ReferenceErrors in tests
-vi.mock('@/hooks/use-house-shift-types', () => ({
-  useHouseShiftTypes: () => ({
-    shiftTypes: [],
+vi.mock('@/hooks/use-house-shift-templates', () => ({
+  useHouseShiftTemplates: () => ({
+    shiftTemplates: [],
     defaults: [],
     isLoading: false
   })
@@ -57,7 +57,7 @@ describe('RosterBoard', () => {
       http.get(`${SUPABASE_URL}/rest/v1/house_checklists`, () => {
         return HttpResponse.json([]);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/shift_type_default_checklists`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/shift_template_default_checklists`, () => {
         return HttpResponse.json([]);
       })
     );

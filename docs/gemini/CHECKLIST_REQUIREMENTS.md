@@ -68,15 +68,15 @@ When an Admin schedules a checklist, they are forced to choose between two disti
 *   **Offline Resilience**: Implement local storage drafting to prevent data loss during connectivity issues (already partially implemented).
 
 ## 7. Migration Requirements
-*   **Shift Type Table**: Create `house_shift_types` table linked to `houses`.
-*   **Refactor Constraints**: Update `checklist_item_master` and `house_checklist_items` to link to `house_shift_types` instead of using a hardcoded string check.
+*   **Shift Type Table**: Create `house_shift_templates` table linked to `houses`.
+*   **Refactor Constraints**: Update `checklist_item_master` and `house_checklist_items` to link to `house_shift_templates` instead of using a hardcoded string check.
 
 ## 8. Roster & Open Shifts Strategy
 To enable efficient, large-scale scheduling across multiple houses, the Roster Board operates on a "Template -> Open Shift -> Assignment" workflow, decoupling shift creation from staff assignment.
 
 ### 8.1. Shift Templates
-The dynamic `house_shift_types` table acts as the foundation for shift templates.
-*   **Enhancement**: `house_shift_types` will be updated to include `default_start_time` and `default_end_time`.
+The dynamic `house_shift_templates` table acts as the foundation for shift templates.
+*   **Enhancement**: `house_shift_templates` will be updated to include `default_start_time` and `default_end_time`.
 *   **Benefit**: When an admin adds a "Morning Shift" to the roster, the system automatically populates the required timeframe, reducing manual data entry.
 
 ### 8.2. Open Shifts (Unassigned Shifts)
@@ -108,7 +108,7 @@ The connection between the roster and checklists is handled through a dynamic "L
 `House Shift Type` (e.g., Morning) -> `Staff Shift` (The Roster Row) -> `Shift Assigned Checklist` (The Mapping Rule) -> `Checklist Submission` (The actual execution data).
 
 ### 9.2. Operational Behavior
-*   **Planning Phase**: Admins create shifts linked to a `shift_type_id`. Checklists are implicitly attached via the mapping table.
+*   **Planning Phase**: Admins create shifts linked to a `shift_template_id`. Checklists are implicitly attached via the mapping table.
 *   **Assignment Phase**: When a staff member is assigned to an "Open Shift", they inherit the responsibility for all linked checklists.
 *   **Execution Phase**: The Staff Dashboard queries for active shifts and displays the corresponding "Start" and "End" checklists automatically.
 *   **Accountability**: Checklist submissions are linked directly to the `shift_id` in the roster, providing a definitive audit trail of who was responsible for which tasks during a specific timeframe.
@@ -164,7 +164,7 @@ The Shift Template system has been refactored from a rigid 7-day week to a flexi
 
 ### 12.1. Hierarchical Structure
 *   **Shift Template Group**: A named container (e.g., "Weekday", "Weekend", "Christmas Day").
-*   **Shift Template Items**: Individual shifts defined within a group, inheriting from `house_shift_types` but allowing for custom start/end times and checklist overrides.
+*   **Shift Template Items**: Individual shifts defined within a group, inheriting from `house_shift_templates` but allowing for custom start/end times and checklist overrides.
 
 ### 12.2. Default Checklists & Dynamic Styling
 *   **Shift Template Definitions (Types)**: Admins can define work periods with specific:

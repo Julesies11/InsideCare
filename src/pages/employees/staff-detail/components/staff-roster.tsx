@@ -21,7 +21,7 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
   const [selectedShift, setSelectedShift] = useState<StaffShift | null>(null);
   
   const [houseFilter, setHouseFilter] = useState<string>('all');
-  const [shiftTypeFilter, setShiftTypeFilter] = useState<string>('all');
+  const [shiftTemplateFilter, setShiftTemplateFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
   const {
@@ -49,10 +49,10 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
   const filteredShifts = useMemo(() => {
     return shifts.filter(shift => {
       const matchesHouse = houseFilter === 'all' || shift.house_id === houseFilter;
-      const matchesType = shiftTypeFilter === 'all' || shift.shift_type === shiftTypeFilter;
+      const matchesType = shiftTemplateFilter === 'all' || shift.shift_template === shiftTemplateFilter;
       return matchesHouse && matchesType;
     });
-  }, [shifts, houseFilter, shiftTypeFilter]);
+  }, [shifts, houseFilter, shiftTemplateFilter]);
 
   const navigatePeriod = (direction: 'prev' | 'next') => {
     if (viewMode === 'today') {
@@ -99,7 +99,7 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
           start_time: formData.start_time,
           end_time: formData.end_time,
           house_id: formData.house_id || null,
-          shift_type: formData.shift_type,
+          shift_template: formData.shift_template,
           status: formData.status,
           notes: formData.notes || null,
         };
@@ -146,7 +146,7 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
           start_time: formData.start_time,
           end_time: formData.end_time,
           house_id: formData.house_id || null,
-          shift_type: formData.shift_type,
+          shift_template: formData.shift_template,
           notes: formData.notes || null,
         };
 
@@ -202,8 +202,8 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
           houseFilter={houseFilter}
           onHouseFilterChange={setHouseFilter}
           houseList={houses}
-          shiftTypeFilter={shiftTypeFilter}
-          onShiftTypeFilterChange={setShiftTypeFilter}
+          shiftTemplateFilter={shiftTemplateFilter}
+          onShiftTemplateFilterChange={setShiftTemplateFilter}
           statusFilter={statusFilter}
           onStatusFilterChange={setStatusFilter}
         />

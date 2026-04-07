@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CalendarDays, CheckSquare, Loader2, Zap, Copy, UserPlus } from 'lucide-react';
 import { format, addDays, startOfWeek, isBefore, startOfDay } from 'date-fns';
-import { useHouseShiftTypes } from '@/hooks/use-house-shift-types';
+import { useHouseShiftTemplates } from '@/hooks/use-house-shift-templates';
 import { useHouseParticipants } from '@/hooks/useHouseParticipants';
 import { toast } from 'sonner';
 import { cn, getPeriodTheme } from '@/lib/utils';
@@ -36,12 +36,12 @@ export function PopulateRosterModal({ open, onOpenChange, houseId, houseName, on
   const [weeksToGenerate, setWeeksToGenerate] = useState(1);
   const [isGenerating, setIsGenerating] = useState(false);
   
-  // Pattern: Array of weeks, each is Record<dayIndex, shiftTypeId[]>
+  // Pattern: Array of weeks, each is Record<dayIndex, shiftTemplateId[]>
   const [pattern, setPattern] = useState<Record<number, string[]>[]>([
     { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 0: [] }
   ]);
 
-  const { shiftTypes = [], defaults = [] } = useHouseShiftTypes(houseId);
+  const { shiftTemplates = [], defaults = [] } = useHouseShiftTemplates(houseId);
   const { houseParticipants = [] } = useHouseParticipants(houseId);
   const { materializePattern } = useRosterData();
 
@@ -78,10 +78,10 @@ export function PopulateRosterModal({ open, onOpenChange, houseId, houseName, on
     });
   }, [weeksToGenerate, open]);
 
-  // Auto-select all shift types for all days by default if they are active (only on first load per open)
+  // Auto-select all shift templates for all days by default if they are active (only on first load per open)
   useEffect(() => {
-    if (open && !hasInitializedPattern.current && shiftTypes && shiftTypes.length > 0) {
-      const activeIds = shiftTypes.filter(t => t.is_active).map(t => t.id);
+    if (open && !hasInitializedPattern.current && shiftTemplates && shiftTemplates.length > 0) {
+      const activeIds = shiftTemplates.filter(t => t.is_active).map(t => t.id);
       if (activeIds.length === 0) return;
 
       setPattern(prev => {
@@ -97,16 +97,16 @@ export function PopulateRosterModal({ open, onOpenChange, houseId, houseName, on
       });
       hasInitializedPattern.current = true;
     }
-  }, [open, shiftTypes]);
+  }, [open, shiftTemplates]);
 
-  const toggleShiftInPattern = (weekIndex: number, dayIndex: number, shiftTypeId: string) => {
+  const toggleShiftInPattern = (weekIndex: number, dayIndex: number, shiftTemplateId: string) => {
     setPattern(prev => {
       const newPattern = [...prev];
       const week = { ...newPattern[weekIndex] };
       const current = week[dayIndex] || [];
-      week[dayIndex] = current.includes(shiftTypeId)
-        ? current.filter(id => id !== shiftTypeId)
-        : [...current, shiftTypeId];
+      week[dayIndex] = current.includes(shiftTemplateId)
+        ? current.filter(id => id !== shiftTemplateId)
+        : [...current, shiftTemplateId];
       newPattern[weekIndex] = week;
       return newPattern;
     });
@@ -149,7 +149,7 @@ export function PopulateRosterModal({ open, onOpenChange, houseId, houseName, on
         startDate,
         endDate: calculatedEndDate,
         pattern,
-        shiftTypes,
+        shiftTemplates,
         defaults,
         participants: houseParticipants.filter(p => selectedParticipantIds.includes(p.id))
       });
@@ -295,8 +295,8 @@ export function PopulateRosterModal({ open, onOpenChange, houseId, houseName, on
                                   </span>
                                 </div>
                               )}
-                              {shiftTypes.length > 0 ? (
-                                shiftTypes.map(type => {
+                              {shiftTemplates.length > 0 ? (
+                                shiftTemplates.map(type => {
                                   const isSelected = !isBeforeStart && weekPattern[day.id]?.includes(type.id);
                                   const theme = getPeriodTheme(type.name, type.color_theme, type.icon_name);
                                   

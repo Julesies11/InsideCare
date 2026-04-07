@@ -8,7 +8,7 @@ import { getDateRange, ViewMode } from '@/components/roster/roster-utils';
 import { EditShiftNoteDialog } from '@/pages/participants/shift-notes/components/edit-shift-note-dialog';
 import { useShiftNotes } from '@/hooks/use-shift-notes';
 import { supabase } from '@/lib/supabase';
-import { useHouseShiftTypes } from '@/hooks/use-house-shift-types';
+import { useHouseShiftTemplates } from '@/hooks/use-house-shift-templates';
 import { useQueryClient } from '@tanstack/react-query';
 
 export interface LeaveBlock {
@@ -26,7 +26,7 @@ interface StaffRosterCalendarProps {
   currentDate: Date;
   houseFilter: string;
   participantFilter: string;
-  shiftTypeFilter: string;
+  shiftTemplateFilter: string;
   statusFilter: string;
   canEdit: boolean;
   showLeave?: boolean;
@@ -40,7 +40,7 @@ export interface StaffRosterCalendarHandle {
   rolloutRoster: (weeks: number, withAssignments?: boolean) => Promise<void>;
   applyTemplate: () => void;
   refresh: () => void;
-  onAddShift: (date: Date, houseId?: string, shiftTypeId?: string) => void;
+  onAddShift: (date: Date, houseId?: string, shiftTemplateId?: string) => void;
   isCopying: boolean;
 }
 
@@ -50,7 +50,7 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
   currentDate,
   houseFilter,
   participantFilter,
-  shiftTypeFilter,
+  shiftTemplateFilter,
   statusFilter: _statusFilter,
   canEdit,
   showLeave = true,
@@ -65,13 +65,13 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
   const [selectedShift, setSelectedShift] = useState<StaffShift | null>(null);
   const [preSelectedDate, setPreSelectedDate] = useState<Date | undefined>(undefined);
   const [preSelectedHouseId, setPreSelectedHouseId] = useState<string | undefined>(undefined);
-  const [preSelectedShiftTypeId, setPreSelectedShiftTypeId] = useState<string | undefined>(undefined);
+  const [preSelectedShiftTemplateId, setPreSelectedShiftTemplateId] = useState<string | undefined>(undefined);
 
   // Write Note state
   const [showNoteDialog, setShowNoteDialog] = useState(false);
   const [notePreFillShiftId, setNotePreFillShiftId] = useState<string | null>(null);
   const [notePreFillLinkedShift, setNotePreFillLinkedShift] = useState<{
-    id: string; start_time: string; end_time: string; shift_type: string; status: string;
+    id: string; start_time: string; end_time: string; shift_template: string; status: string;
   } | null>(null);
   const [notePreFillData, setNotePreFillData] = useState<{
     staff_id?: string | null;
@@ -82,7 +82,7 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
 
   const { createShiftNote, refetch: refetchNotes } = useShiftNotes();
 
-  const { shiftTypes } = useHouseShiftTypes(houseFilter !== 'all' ? houseFilter : undefined);
+  const { shiftTemplates } = useHouseShiftTemplates(houseFilter !== 'all' ? houseFilter : undefined);
 
   const [scrollToNotes, setScrollToNotes] = useState(false);
 
@@ -121,18 +121,18 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
 
   const filteredShifts = useMemo(() => {
     return shifts.filter(shift => {
-      const matchesType = shiftTypeFilter === 'all' || shift.shift_type === shiftTypeFilter;
+      const matchesType = shiftTemplateFilter === 'all' || shift.shift_template === shiftTemplateFilter;
       const matchesParticipant = participantFilter === 'all' || (shift.participants && shift.participants.some((p: any) => p.id === participantFilter));
       
       return matchesType && matchesParticipant;
     }).sort((a, b) => a.start_time.localeCompare(b.start_time));
-  }, [shifts, participantFilter, shiftTypeFilter]);
+  }, [shifts, participantFilter, shiftTemplateFilter]);
 
-  const handleAddShift = (date: Date, houseId?: string, shiftTypeId?: string) => {
+  const handleAddShift = (date: Date, houseId?: string, shiftTemplateId?: string) => {
     setSelectedShift(null);
     setPreSelectedDate(date);
     setPreSelectedHouseId(houseId);
-    setPreSelectedShiftTypeId(shiftTypeId);
+    setPreSelectedShiftTemplateId(shiftTemplateId);
     setShowShiftDialog(true);
   };
 
@@ -140,7 +140,7 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
     setSelectedShift(shift);
     setPreSelectedDate(undefined);
     setPreSelectedHouseId(undefined);
-    setPreSelectedShiftTypeId(undefined);
+    setPreSelectedShiftTemplateId(undefined);
     setScrollToNotes(false);
     setShowShiftDialog(true);
   };
@@ -161,7 +161,7 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
     setSelectedShift(shift);
     setPreSelectedDate(undefined);
     setPreSelectedHouseId(undefined);
-    setPreSelectedShiftTypeId(undefined);
+    setPreSelectedShiftTemplateId(undefined);
     setScrollToNotes(true);
     setShowShiftDialog(true);
   };
@@ -241,8 +241,8 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
           end_date: targetDate,
           start_time: shift.start_time,
           end_time: shift.end_time,
-          shift_type: shift.shift_type,
-          shift_type_id: shift.shift_type_id,
+          shift_template: shift.shift_template,
+          shift_template_id: shift.shift_template_id,
           notes: shift.notes || null,
         };
 
@@ -334,8 +334,8 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
             end_date: targetEndDateStr,
             start_time: shift.start_time,
             end_time: shift.end_time,
-            shift_type: shift.shift_type,
-            shift_type_id: shift.shift_type_id,
+            shift_template: shift.shift_template,
+            shift_template_id: shift.shift_template_id,
             notes: shift.notes || null,
           };
 
@@ -397,7 +397,7 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
         loading={shiftsLoading || isCopying || saving}
         canEdit={canEdit}
         leaveBlocks={showLeave ? (leaveBlocks as any) : []}
-        shiftTypes={shiftTypes}
+        shiftTemplates={shiftTemplates}
         onAddShift={handleAddShift}
         onEditShift={handleEditShift}
         onWriteNote={handleWriteNote}
@@ -422,7 +422,7 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
         staffId={staffId !== 'all' ? staffId : undefined}
         preSelectedDate={preSelectedDate}
         preSelectedHouseId={preSelectedHouseId}
-        preSelectedShiftTypeId={preSelectedShiftTypeId}
+        preSelectedShiftTemplateId={preSelectedShiftTemplateId}
         staffList={staff}
         staffSelectionDisabled={false}
         houses={houses}

@@ -42,7 +42,7 @@ interface LinkedShiftInfo {
   id: string;
   start_time: string;
   end_time: string;
-  shift_type: string;
+  shift_template: string;
   status: string;
 }
 
@@ -50,7 +50,7 @@ interface MatchedShiftOption {
   id: string;
   start_time: string;
   end_time: string;
-  shift_type: string;
+  shift_template: string;
 }
 
 interface EditShiftNoteDialogProps {
@@ -107,7 +107,7 @@ export function EditShiftNoteDialog({
     try {
       const { data, error } = await supabase
         .from('staff_shifts')
-        .select('id, start_time, end_time, shift_type, status')
+        .select('id, start_time, end_time, shift_template, status')
         .eq('staff_id', staffId)
         .eq('start_date', shiftDate)
         .order('start_time');
@@ -406,7 +406,7 @@ export function EditShiftNoteDialog({
               <Link className="size-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
               <span className="text-sm text-emerald-800 dark:text-emerald-300 flex-1">
                 Linked to shift: <strong>{formatTime(linkedShift.start_time)} – {formatTime(linkedShift.end_time)}</strong>
-                {linkedShift.shift_type && <span className="ml-1 text-emerald-600">({linkedShift.shift_type})</span>}
+                {linkedShift.shift_template && <span className="ml-1 text-emerald-600">({linkedShift.shift_template})</span>}
               </span>
               {!initialShiftId && (
                 <Button
@@ -437,7 +437,7 @@ export function EditShiftNoteDialog({
                   <SelectItem value="none">Don't link to a shift</SelectItem>
                   {matchedShiftOptions.map((s) => (
                     <SelectItem key={s.id} value={s.id}>
-                      {formatTime(s.start_time)} – {formatTime(s.end_time)} ({s.shift_type})
+                      {formatTime(s.start_time)} – {formatTime(s.end_time)} ({s.shift_template})
                     </SelectItem>
                   ))}
                 </SelectContent>

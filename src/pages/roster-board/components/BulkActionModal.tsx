@@ -13,7 +13,7 @@ interface BulkActionModalProps {
   onConfirm: (params: any, action: 'update' | 'delete', updates?: any) => Promise<void>;
   houses: any[];
   staff: any[];
-  shiftTypes: any[];
+  shiftTemplates: any[];
   initialFilters?: {
     houseId: string;
     staffId: string;
@@ -28,14 +28,14 @@ export function BulkActionModal({
   onConfirm, 
   houses, 
   staff: _staff, 
-  shiftTypes,
+  shiftTemplates,
   initialFilters 
 }: BulkActionModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [filters, setFilters] = useState({
     houseId: initialFilters?.houseId || 'all',
     staffId: 'all',
-    shiftTypeId: 'all',
+    shiftTemplateId: 'all',
     startDate: initialFilters?.startDate || new Date().toISOString().split('T')[0],
     endDate: initialFilters?.endDate || new Date().toISOString().split('T')[0],
   });
@@ -84,13 +84,13 @@ export function BulkActionModal({
         <div className="grid gap-5 py-4">
           <div className="space-y-2">
             <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">Filter by Template Type</Label>
-            <Select value={filters.shiftTypeId} onValueChange={(val) => setFilters({ ...filters, shiftTypeId: val })}>
+            <Select value={filters.shiftTemplateId} onValueChange={(val) => setFilters({ ...filters, shiftTemplateId: val })}>
               <SelectTrigger className="h-10 text-sm bg-gray-50/50">
                 <SelectValue placeholder="All Template Types" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Types</SelectItem>
-                {shiftTypes.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+                {shiftTemplates.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>

@@ -34,7 +34,7 @@ describe('useStaffShifts', () => {
             start_time: '09:00',
             end_time: '17:00',
             house_id: 'house-1',
-            shift_type: 'day',
+            shift_template: 'day',
             status: 'confirmed',
             house: { id: 'house-1', name: 'Test House 1' }
           },

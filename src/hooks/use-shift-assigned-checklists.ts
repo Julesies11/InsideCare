@@ -6,7 +6,7 @@ export interface ShiftAssignedChecklist {
   id: string;
   house_id: string;
   checklist_id: string;
-  shift_type_id: string;
+  shift_template_id: string;
   assignment_title: string;
   sort_order: number;
 }
@@ -48,7 +48,7 @@ export function useShiftAssignedChecklists(houseId?: string) {
         const toInsert = newAssignments.map((a, index) => ({
           house_id: houseId,
           checklist_id: a.checklist_id,
-          shift_type_id: a.shift_type_id,
+          shift_template_id: a.shift_template_id,
           assignment_title: a.assignment_title || 'Routine',
           sort_order: a.sort_order ?? index
         }));

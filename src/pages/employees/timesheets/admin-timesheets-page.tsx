@@ -52,7 +52,7 @@ interface Timesheet {
     end_date: string | null;
     start_time: string;
     end_time: string;
-    shift_type: string;
+    shift_template: string;
     house: { name: string } | null;
   } | null;
 }
@@ -126,7 +126,7 @@ export function AdminTimesheetsPage() {
         submitted_at, incident_tag, sick_shift, overtime_hours, travel_km,
         overtime_explanation, created_at,
         staff:staff_id(id, name, auth_user_id),
-        shift:shift_id(start_date, end_date, start_time, end_time, shift_type, house:house_id(name))
+        shift:shift_id(start_date, end_date, start_time, end_time, shift_template, house:house_id(name))
       `)
       .order('submitted_at', { ascending: false, nullsFirst: false });
 
@@ -496,8 +496,8 @@ export function AdminTimesheetsPage() {
                     <p className="font-medium">{selected.shift?.house?.name ?? '—'}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Shift Type</p>
-                    <p className="font-medium capitalize">{selected.shift?.shift_type ?? '—'}</p>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Shift Template</p>
+                    <p className="font-medium capitalize">{selected.shift?.shift_template ?? '—'}</p>
                   </div>
                 </div>
 

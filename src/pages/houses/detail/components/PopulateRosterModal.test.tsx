@@ -21,9 +21,9 @@ vi.mock('@/components/roster/use-roster-data', () => ({
   })
 }));
 
-vi.mock('@/hooks/use-house-shift-types', () => ({
-  useHouseShiftTypes: () => ({
-    shiftTypes: [
+vi.mock('@/hooks/use-house-shift-templates', () => ({
+  useHouseShiftTemplates: () => ({
+    shiftTemplates: [
       { id: 'st-1', name: 'Morning', color_theme: 'morning', is_active: true, default_start_time: '07:00', default_end_time: '15:00' },
       { id: 'st-2', name: 'Afternoon', color_theme: 'afternoon', is_active: true, default_start_time: '15:00', default_end_time: '23:00' }
     ],

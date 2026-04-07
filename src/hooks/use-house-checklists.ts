@@ -57,7 +57,7 @@ export function useHouseChecklists(houseId?: string, scheduledDate?: string) {
           id, house_id, name, days_of_week, description, master_id, sort_order, created_at, updated_at,
           house_checklist_items (
             id, checklist_id, title, instructions, group_id, group_title, priority, is_required, sort_order, created_at, updated_at,
-            group:house_shift_types(id, name, short_name, color_theme)
+            group:house_shift_templates(id, name, short_name, color_theme)
           )
         `)
         .eq('house_id', houseId)

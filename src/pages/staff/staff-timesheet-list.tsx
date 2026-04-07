@@ -45,7 +45,7 @@ interface Timesheet {
     start_date: string;
     start_time: string;
     end_time: string;
-    shift_type: string;
+    shift_template: string;
     house: { name: string } | null;
   } | null;
 }
@@ -96,7 +96,7 @@ export function StaffTimesheetList() {
         break_minutes, shift_notes_text, status, admin_notes,
         rejection_reason, submitted_at, incident_tag, sick_shift,
         overtime_hours, travel_km, created_at,
-        shift:staff_shifts(start_date, start_time, end_time, shift_type, house:houses(name))
+        shift:staff_shifts(start_date, start_time, end_time, shift_template, house:houses(name))
       `)
       .eq('staff_id', user.staff_id)
       .order('created_at', { ascending: false });

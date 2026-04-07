@@ -6,7 +6,7 @@ import { RosterCalendarHeader } from '@/components/roster/roster-calendar-header
 import { ViewMode, getDateRange } from '@/components/roster/roster-utils';
 import { format, addWeeks, addMonths, addDays } from 'date-fns';
 import { useHouseChecklists } from '@/hooks/use-house-checklists';
-import { useRosterData, useGlobalShiftTypesQuery } from '@/components/roster/use-roster-data';
+import { useRosterData, useGlobalShiftTemplatesQuery } from '@/components/roster/use-roster-data';
 import { BulkActionModal } from './components/BulkActionModal';
 import { PopulateRosterModal } from '@/pages/houses/detail/components/PopulateRosterModal';
 
@@ -18,7 +18,7 @@ export function RosterBoardContent() {
   
   const [houseFilter, setHouseFilter] = useState<string>('all');
   const [participantFilter, setParticipantFilter] = useState<string>('all');
-  const [shiftTypeFilter, setShiftTypeFilter] = useState<string>('all');
+  const [shiftTemplateFilter, setShiftTemplateFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
   const { houseChecklists } = useHouseChecklists();
@@ -30,7 +30,7 @@ export function RosterBoardContent() {
     bulkUpdateShifts, 
     bulkDeleteShifts 
   } = useRosterData();
-  const { data: shiftTypes = [] } = useGlobalShiftTypesQuery();
+  const { data: shiftTemplates = [] } = useGlobalShiftTemplatesQuery();
 
   const [bulkModalOpen, setBulkModalOpen] = useState(false);
   const [bulkInitialHouseId, setBulkInitialHouseId] = useState<string>('all');
@@ -140,9 +140,9 @@ export function RosterBoardContent() {
             houseFilter={houseFilter}
             onHouseFilterChange={setHouseFilter}
             houseList={houses}
-            shiftTypeFilter={shiftTypeFilter}
-            onShiftTypeFilterChange={setShiftTypeFilter}
-            shiftTypeList={shiftTypes}
+            shiftTemplateFilter={shiftTemplateFilter}
+            onShiftTemplateFilterChange={setShiftTemplateFilter}
+            shiftTemplateList={shiftTemplates}
             statusFilter={statusFilter}
             onStatusFilterChange={setStatusFilter}
             onPopulateRoster={() => handleOpenPopulateModal()}
@@ -161,7 +161,7 @@ export function RosterBoardContent() {
           currentDate={currentDate}
           houseFilter={houseFilter}
           participantFilter={participantFilter}
-          shiftTypeFilter={shiftTypeFilter}
+          shiftTemplateFilter={shiftTemplateFilter}
           canEdit={true}
           groupByHouse={true}
           onBulkAction={handleOpenBulkModal}
@@ -177,7 +177,7 @@ export function RosterBoardContent() {
         onConfirm={handleBulkAction}
         houses={houses}
         staff={staff}
-        shiftTypes={shiftTypes}
+        shiftTemplates={shiftTemplates}
         initialFilters={initialFilters}
       />
 

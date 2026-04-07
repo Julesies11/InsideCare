@@ -13,7 +13,7 @@ const mockShift = {
   end_date: '2026-03-05',
   start_time: '08:00:00',
   end_time: '16:00:00',
-  shift_type: 'Morning',
+  shift_template: 'Morning',
   house: { name: 'Test House' },
 };
 

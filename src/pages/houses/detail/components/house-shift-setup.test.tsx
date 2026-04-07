@@ -3,14 +3,14 @@ import { HouseShiftSetup } from './house-shift-setup';
 import { describe, it, expect, vi } from 'vitest';
 
 // Mock the hooks used in HouseShiftSetup
-vi.mock('@/hooks/use-house-shift-types', () => ({
-  useHouseShiftTypes: () => ({
-    shiftTypes: [
+vi.mock('@/hooks/use-house-shift-templates', () => ({
+  useHouseShiftTemplates: () => ({
+    shiftTemplates: [
       { id: 'st-1', name: 'Morning', color_theme: 'morning', icon_name: 'Clock', default_start_time: '07:00:00', default_end_time: '15:00:00' }
     ],
     defaults: [
       { 
-        shift_type_id: 'st-1', 
+        shift_template_id: 'st-1', 
         checklist_id: 'cl-1',
         checklist: {
           id: 'cl-1',

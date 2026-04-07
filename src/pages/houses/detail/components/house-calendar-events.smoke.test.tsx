@@ -12,7 +12,7 @@ vi.mock('@/hooks/useHouseCalendarEvents', () => ({
         event_date: '2026-04-05', 
         start_time: '08:00:00', 
         end_time: '16:00:00', 
-        shift_type: 'Morning',
+        shift_template: 'Morning',
         assigned_staff: { name: 'John Doe' },
         assigned_staff_id: 'staff-1',
         type_details: { color_theme: 'morning', icon_name: 'Clock' },
@@ -62,9 +62,9 @@ vi.mock('@/auth/context/auth-context', async (importOriginal) => {
   };
 });
 
-vi.mock('@/hooks/use-house-shift-types', () => ({
-  useHouseShiftTypes: () => ({
-    shiftTypes: []
+vi.mock('@/hooks/use-house-shift-templates', () => ({
+  useHouseShiftTemplates: () => ({
+    shiftTemplates: []
   })
 }));
 
@@ -84,7 +84,7 @@ describe('HouseCalendarEvents Smoke Test', () => {
     expect(screen.getByText('House Calendar')).toBeDefined();
     
     // In Month view (default), it should render the ShiftCard
-    // mapEventToShiftCardData converts shift-1 to 1 (id), and Morning (shift_type)
+    // mapEventToShiftCardData converts shift-1 to 1 (id), and Morning (shift_template)
     expect(screen.getByText('Morning')).toBeDefined();
     expect(screen.getByText('John Doe')).toBeDefined();
   });

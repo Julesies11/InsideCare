@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Button } from '@/components/ui/button';
 import { CheckCircle2, ChevronRight, ChevronLeft, Clock, CalendarDays, Send, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useHouseShiftTypes } from '@/hooks/use-house-shift-types';
+import { useHouseShiftTemplates } from '@/hooks/use-house-shift-templates';
 import { HousePendingChanges } from '@/models/house-pending-changes';
 import { HouseChecklistSetup } from './house-checklist-setup';
 import { HouseShiftSetup } from './house-shift-setup';
@@ -32,7 +32,7 @@ export function HouseRosterWizard({ open, onOpenChange, houseId, houseName, pend
   const [currentStep, setCurrentStep] = useState(initialStep);
   const [isSaving, setIsSaving] = useState(false);
   
-  const { shiftTypes } = useHouseShiftTypes(houseId);
+  const { shiftTemplates } = useHouseShiftTemplates(houseId);
   
   // Sync step if initialStep changes
   useEffect(() => {
@@ -96,7 +96,7 @@ export function HouseRosterWizard({ open, onOpenChange, houseId, houseName, pend
               <h3 className="text-lg font-bold text-gray-900 mb-2">Step 1: Define Your Shift Templates</h3>
               <p className="text-sm text-muted-foreground">
                 Set up the periods of work used in this house (e.g., Morning, Afternoon, Night). 
-                Assign <strong>Default Checklists</strong> to each shift type to automate your operational setup.
+                Assign <strong>Default Checklists</strong> to each shift template to automate your operational setup.
               </p>
             </div>
             <HouseShiftSetup 
@@ -145,7 +145,7 @@ export function HouseRosterWizard({ open, onOpenChange, houseId, houseName, pend
               <ul className="space-y-3">
                 <li className="flex items-center gap-2 text-sm font-medium">
                   <div className="size-1.5 rounded-full bg-green-500" />
-                  {shiftTypes.length} Shift Types configured
+                  {shiftTemplates.length} Shift Templates configured
                 </li>
                 <li className="flex items-center gap-2 text-sm font-medium">
                   <div className="size-1.5 rounded-full bg-green-500" />

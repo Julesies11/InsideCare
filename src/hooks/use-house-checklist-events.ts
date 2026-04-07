@@ -10,7 +10,7 @@ export interface HouseChecklistEvent {
   is_checklist_event: boolean;
   is_shift_routine?: boolean;
   shift_id?: string;
-  shift_type_id?: string;
+  shift_template_id?: string;
   house_checklist_id: string;
   status: string;
   checklist?: {
@@ -39,7 +39,7 @@ export function useHouseChecklistEvents(houseId?: string, date?: string, shiftId
       if (shiftId) {
         const { data: assignedData, error: shiftError } = await supabase
           .from('shift_assigned_checklists')
-          .select('checklist_id, assignment_title, shift_type_id')
+          .select('checklist_id, assignment_title, shift_template_id')
           .eq('shift_id', shiftId)
           .order('sort_order', { ascending: true });
         
@@ -97,7 +97,7 @@ export function useHouseChecklistEvents(houseId?: string, date?: string, shiftId
               is_checklist_event: true,
               is_shift_routine: true,
               shift_id: shiftId,
-              shift_type_id: ac.shift_type_id,
+              shift_template_id: ac.shift_template_id,
               house_checklist_id: ac.checklist_id,
               status: 'scheduled',
               submissions: shiftSub ? [shiftSub] : []
@@ -132,7 +132,7 @@ export function useHouseChecklistEvents(houseId?: string, date?: string, shiftId
             sort_order, 
             created_at, 
             updated_at,
-            group:house_shift_types(id, name, short_name, color_theme)
+            group:house_shift_templates(id, name, short_name, color_theme)
           )
         `)
         .in('id', checklistIds);

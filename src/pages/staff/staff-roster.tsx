@@ -33,7 +33,7 @@ export function StaffRoster() {
   const [viewMode, setViewMode] = useState<ViewMode>('week');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [houseFilter, setHouseFilter] = useState('all');
-  const [shiftTypeFilter, setShiftTypeFilter] = useState('all');
+  const [shiftTemplateFilter, setShiftTemplateFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
 
   // List state
@@ -121,8 +121,8 @@ export function StaffRoster() {
                     houseFilter={houseFilter}
                     onHouseFilterChange={setHouseFilter}
                     houseList={[]}
-                    shiftTypeFilter={shiftTypeFilter}
-                    onShiftTypeFilterChange={setShiftTypeFilter}
+                    shiftTemplateFilter={shiftTemplateFilter}
+                    onShiftTemplateFilterChange={setShiftTemplateFilter}
                     statusFilter={statusFilter}
                     onStatusFilterChange={setStatusFilter}
                   />
@@ -134,7 +134,7 @@ export function StaffRoster() {
                 currentDate={currentDate}
                 houseFilter={houseFilter}
                 participantFilter="all"
-                shiftTypeFilter={shiftTypeFilter}
+                shiftTemplateFilter={shiftTemplateFilter}
                 statusFilter={statusFilter}
                 canEdit={false}
               />
@@ -201,7 +201,7 @@ export function StaffRoster() {
                           </td>
                           <td className="px-5 py-3.5">
                             <Badge variant="secondary" appearance="light">
-                              {shift.shift_type || 'Standard'}
+                              {shift.shift_template || 'Standard'}
                             </Badge>
                           </td>
                           <td className="px-5 py-3.5">

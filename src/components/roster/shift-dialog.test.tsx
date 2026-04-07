@@ -30,9 +30,9 @@ vi.mock('@/hooks/use-participants', () => ({
   })
 }));
 
-vi.mock('@/hooks/use-house-shift-types', () => ({
-  useHouseShiftTypes: () => ({
-    shiftTypes: [],
+vi.mock('@/hooks/use-house-shift-templates', () => ({
+  useHouseShiftTemplates: () => ({
+    shiftTemplates: [],
     isLoading: false
   })
 }));
@@ -96,7 +96,7 @@ describe('ShiftDialog Logic', () => {
       start_date: '2026-04-05',
       start_time: '09:00',
       end_time: '17:00',
-      shift_type: 'SIL'
+      shift_template: 'SIL'
     };
     renderWithProviders(<ShiftDialog {...mockProps} shift={existingShift} />);
     

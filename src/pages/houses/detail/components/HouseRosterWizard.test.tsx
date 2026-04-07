@@ -5,9 +5,9 @@ import { renderWithProviders } from '@/test/test-utils';
 import { emptyHousePendingChanges } from '@/models/house-pending-changes';
 
 // Mock the hooks to return stable data and prevent network requests
-vi.mock('@/hooks/use-house-shift-types', () => ({
-  useHouseShiftTypes: () => ({
-    shiftTypes: [
+vi.mock('@/hooks/use-house-shift-templates', () => ({
+  useHouseShiftTemplates: () => ({
+    shiftTemplates: [
       { id: 'st-1', name: 'Morning', color_theme: 'morning', default_start_time: '07:00', default_end_time: '15:00' }
     ],
     isLoading: false,

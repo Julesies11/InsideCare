@@ -9,8 +9,8 @@ export interface StaffShift {
   start_time: string;
   end_time: string;
   house_id: string | null;
-  shift_type: string;
-  shift_type_id?: string | null;
+  shift_template: string;
+  shift_template_id?: string | null;
   notes?: string;
   created_at?: string;
   updated_at?: string;
@@ -40,8 +40,8 @@ const SHIFT_COLUMNS = `
   start_time,
   end_time,
   house_id,
-  shift_type,
-  shift_type_id,
+  shift_template,
+  shift_template_id,
   notes,
   created_at,
   updated_at,

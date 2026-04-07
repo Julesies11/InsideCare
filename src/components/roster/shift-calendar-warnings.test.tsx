@@ -11,7 +11,7 @@ const mockShifts: any[] = [
     start_date: '2026-04-15',
     start_time: '08:00:00',
     end_time: '12:00:00',
-    shift_type: 'Morning',
+    shift_template: 'Morning',
     house: { id: 'h1', name: 'House Alpha' }
   },
   {
@@ -21,7 +21,7 @@ const mockShifts: any[] = [
     start_date: '2026-04-15',
     start_time: '13:00:00',
     end_time: '17:00:00',
-    shift_type: 'Afternoon',
+    shift_template: 'Afternoon',
     house: { id: 'h2', name: 'House Beta' }
   }
 ];

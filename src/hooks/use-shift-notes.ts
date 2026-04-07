@@ -31,7 +31,7 @@ export interface ShiftNote {
     id: string;
     start_time: string;
     end_time: string;
-    shift_type: string;
+    shift_template: string;
     status: string;
   } | null;
   // Legacy aliases
@@ -66,7 +66,7 @@ const SHIFT_NOTE_COLUMNS = `
   participant:participants(id, name),
   staff:staff(id, name),
   house:houses(id, name),
-  shift:staff_shifts(id, start_time, end_time, shift_type)
+  shift:staff_shifts(id, start_time, end_time, shift_template)
 `;
 
 export function useShiftNotes() {

@@ -21,7 +21,7 @@ const mockShiftNotes = [
         id: 'shift-1',
         start_time: '08:00:00',
         end_time: '16:00:00',
-        shift_type: 'Morning',
+        shift_template: 'Morning',
         status: 'Completed'
     }
   },

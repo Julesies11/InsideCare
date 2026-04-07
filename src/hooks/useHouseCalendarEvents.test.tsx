@@ -48,7 +48,7 @@ describe('useHouseCalendarEvents Integration', () => {
             start_date: '2026-03-23', 
             start_time: '09:00',
             end_time: '17:00',
-            shift_type: 'Morning',
+            shift_template: 'Morning',
             staff: { id: 'staff-1', name: 'John Doe' },
             assigned_checklists: [
               {

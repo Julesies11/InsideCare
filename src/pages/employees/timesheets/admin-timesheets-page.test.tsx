@@ -34,7 +34,7 @@ const mockTimesheet = {
     end_date: null,
     start_time: '09:00:00',
     end_time: '17:00:00',
-    shift_type: 'day',
+    shift_template: 'day',
     house: { name: 'Sunset House' },
   },
 };

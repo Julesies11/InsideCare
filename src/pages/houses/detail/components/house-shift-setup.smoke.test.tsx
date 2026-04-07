@@ -4,9 +4,9 @@ import { describe, it, expect, vi } from 'vitest';
 import { emptyHousePendingChanges } from '@/models/house-pending-changes';
 
 // Mock the hooks used in the component
-vi.mock('@/hooks/use-house-shift-types', () => ({
-  useHouseShiftTypes: () => ({
-    shiftTypes: [
+vi.mock('@/hooks/use-house-shift-templates', () => ({
+  useHouseShiftTemplates: () => ({
+    shiftTemplates: [
       { id: '1', name: 'Morning Shift', default_start_time: '07:00:00', default_end_time: '15:00:00', color_theme: 'morning', icon_name: 'Sun' },
       { id: '2', name: 'Day Shift', default_start_time: '15:00:00', default_end_time: '23:00:00', color_theme: 'day', icon_name: 'CloudSun' }
     ],

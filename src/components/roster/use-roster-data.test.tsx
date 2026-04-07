@@ -59,7 +59,7 @@ describe('Roster Query Hooks', () => {
               start_time: '09:00:00',
               end_time: '17:00:00',
               house_id: 'house-1',
-              shift_type: 'SIL',
+              shift_template: 'SIL',
               notes: 'Test note',
               type_details: { color_theme: 'blue', icon_name: 'home' },
               participants: [],

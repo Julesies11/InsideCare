@@ -52,10 +52,10 @@ The care facilities/locations.
 ## Operational Tables
 
 ### Roster & Shifts
-- **`house_shift_types`**: Defines house-specific shift periods (Morning, Day, etc.) with custom icons, colors, and default times.
-- **`shift_type_default_checklists`**: Junction table mapping default checklists to shift types for automatic assignment.
+- **`house_shift_templates`**: Defines house-specific shift periods (Morning, Day, etc.) with custom icons, colors, and default times.
+- **`shift_template_default_checklists`**: Junction table mapping default checklists to shift templates for automatic assignment.
 - **`staff_shifts`**: Scheduled shifts for staff.
-    - **Key Fields**: `id`, `staff_id`, `house_id`, `start_date`, `start_time`, `end_time`, `shift_type_id`.
+    - **Key Fields**: `id`, `staff_id`, `house_id`, `start_date`, `start_time`, `end_time`, `shift_template_id`, `shift_template`.
 - **`shift_assigned_checklists`**: Instances of checklists assigned to a *specific* `staff_shift`.
 - **Note**: Organization-level shift templates (`org_shift_templates`) have been deprecated in favor of this House-specific model for better operational flexibility.
 
@@ -64,7 +64,7 @@ The care facilities/locations.
 - **`house_checklists` & `house_checklist_items`**: Checklists assigned to specific houses.
     - **Optimization**: Frequency logic has been removed from the house checklist level to support pure template-based assignment.
 - **`house_checklist_submissions`**: Tracks the overall status of a checklist execution (e.g., 'in_progress', 'completed').
-    - **Linking**: Submissions explicitly store `shift_id` and `shift_type_id` for compliance tracking.
+    - **Linking**: Submissions explicitly store `shift_id` and `shift_template_id` for compliance tracking.
 - **`house_checklist_submission_items`**: Tracks completion of specific tasks.
     - **Attribution**: The `completed_by` column stores the `staff_id` of the individual who signed off on the task.
     - **Status**: The `status` column ('Completed' or 'Pending') indicates task state.
