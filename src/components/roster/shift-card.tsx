@@ -20,6 +20,12 @@ export interface ShiftCardData {
   participants?: Array<{ id: string; name: string }>;
   assigned_checklists?: Array<{ id: string; checklist_id: string; assignment_title: string; is_completed?: boolean }>;
   notesCount?: number;
+  // Event fields
+  entry_type?: 'shift' | 'event';
+  title?: string;
+  location?: string;
+  type_name?: string;
+  type_color?: string;
 }
 
 interface ShiftCardProps {
@@ -35,12 +41,25 @@ interface ShiftCardProps {
 }
 
 export function ShiftCard({ shift, compact, showStaffName, showHouseName = true, onClick, onWriteNote, onNotesClick, staffList, onQuickAssign }: ShiftCardProps) {
+  const isEvent = shift.entry_type === 'event';
   const participantCount = shift.participants?.length || 0;
   const checklistCount = shift.assigned_checklists?.length || 0;
   const isUnassigned = !shift.staff_id;
-  const shiftThemeClasses = getShiftTheme(shift.color_theme, shift.shift_template);
-  const IconComponent = SHIFT_ICONS[shift.icon_name || ''] || Clock;
-  const textColor = shiftThemeClasses.split(' ').find(c => c.startsWith('text-'));
+  
+  const shiftThemeClasses = isEvent 
+    ? (shift.type_color === 'red' ? 'bg-red-50 text-red-700 border-red-200' :
+       shift.type_color === 'green' ? 'bg-green-50 text-green-700 border-green-200' :
+       shift.type_color === 'purple' ? 'bg-purple-50 text-purple-700 border-purple-200' :
+       'bg-blue-50 text-blue-700 border-blue-200')
+    : getShiftTheme(shift.color_theme, shift.shift_template);
+
+  const IconComponent = isEvent ? Calendar : (SHIFT_ICONS[shift.icon_name || ''] || Clock);
+  const textColor = isEvent 
+    ? (shift.type_color === 'red' ? 'text-red-600' :
+       shift.type_color === 'green' ? 'text-green-600' :
+       shift.type_color === 'purple' ? 'text-purple-600' :
+       'text-blue-600')
+    : shiftThemeClasses.split(' ').find(c => c.startsWith('text-'));
 
   if (compact) {
     return (
@@ -48,9 +67,14 @@ export function ShiftCard({ shift, compact, showStaffName, showHouseName = true,
         onClick={onClick}
         className={cn(
           "p-1.5 mb-1 bg-card border rounded cursor-pointer hover:bg-accent/50 transition-colors group",
-          isUnassigned 
-            ? "border-dashed border-gray-300 bg-gray-50/10" 
-            : "border-solid border-emerald-500/50 bg-emerald-50/5 shadow-sm"
+          isEvent
+            ? (shift.type_color === 'red' ? 'border-red-200 bg-red-50/10' :
+               shift.type_color === 'green' ? 'border-green-200 bg-green-50/10' :
+               shift.type_color === 'purple' ? 'border-purple-200 bg-purple-50/10' :
+               'border-blue-200 bg-blue-50/10')
+            : (isUnassigned 
+                ? "border-dashed border-gray-300 bg-gray-50/10" 
+                : "border-solid border-emerald-500/50 bg-emerald-50/5 shadow-sm")
         )}
       >
         <div className="flex items-center justify-between gap-1 mb-1.5">
@@ -58,15 +82,17 @@ export function ShiftCard({ shift, compact, showStaffName, showHouseName = true,
             <div className="flex items-center gap-1 mb-0.5">
               <IconComponent className={cn("h-2.5 w-2.5 shrink-0", textColor)} />
               <span className={cn("text-[9px] font-bold uppercase tracking-tight truncate", textColor)}>
-                {shift.shift_template}
+                {isEvent ? (shift.type_name || 'Event') : shift.shift_template}
               </span>
             </div>
             <span className="text-[10px] leading-tight text-gray-700 font-normal">
               {formatTime(shift.start_time)} – {formatTime(shift.end_time)}
-              {shift.end_date && shift.end_date !== shift.start_date && (
-                <span className="ml-0.5 text-orange-500" title="Overnight shift">+1</span>
-              )}
             </span>
+            {isEvent && (
+              <span className="text-[10px] font-bold text-gray-900 mt-0.5 line-clamp-1">
+                {shift.title}
+              </span>
+            )}
           </div>
         </div>
 
@@ -180,9 +206,14 @@ export function ShiftCard({ shift, compact, showStaffName, showHouseName = true,
       onClick={onClick}
       className={cn(
         "p-3 cursor-pointer hover:bg-accent/50 transition-colors overflow-hidden group",
-        isUnassigned 
-          ? "border-dashed border-gray-300 bg-gray-50/5 shadow-inner" 
-          : "border-solid border-emerald-500/50 bg-emerald-50/10 shadow-sm"
+        isEvent
+          ? (shift.type_color === 'red' ? 'border-red-200 bg-red-50/10 shadow-sm' :
+             shift.type_color === 'green' ? 'border-green-200 bg-green-50/10 shadow-sm' :
+             shift.type_color === 'purple' ? 'border-purple-200 bg-purple-50/10 shadow-sm' :
+             'border-blue-200 bg-blue-50/10 shadow-sm')
+          : (isUnassigned 
+              ? "border-dashed border-gray-300 bg-gray-50/5 shadow-inner" 
+              : "border-solid border-emerald-500/50 bg-emerald-50/10 shadow-sm")
       )}
     >
       <div className="space-y-2.5">
@@ -191,26 +222,32 @@ export function ShiftCard({ shift, compact, showStaffName, showHouseName = true,
             <div className="flex items-center gap-1.5 mb-1.5">
               <IconComponent className={cn("size-3.5 shrink-0", textColor)} />
               <span className={cn("text-[11px] font-bold uppercase tracking-widest truncate", textColor)}>
-                {shift.shift_template}
+                {isEvent ? (shift.type_name || 'Event') : shift.shift_template}
               </span>
             </div>
             <span className="text-sm text-gray-700 leading-none font-normal">
               {formatTime(shift.start_time)} – {formatTime(shift.end_time)}
-              {shift.end_date && shift.end_date !== shift.start_date && (
+              {!isEvent && shift.end_date && shift.end_date !== shift.start_date && (
                 <span className="ml-1 text-orange-500 text-[10px]" title="Overnight shift">+1 day</span>
               )}
             </span>
           </div>
-          {isUnassigned && (
+          {isUnassigned && !isEvent && (
             <Badge className="bg-amber-100 text-amber-700 border-amber-200 text-[8px] font-normal px-1 py-0 uppercase">Open</Badge>
           )}
         </div>
+
+        {isEvent && (
+          <div className="mt-1">
+            <p className="text-sm font-bold text-gray-900 leading-snug">{shift.title}</p>
+          </div>
+        )}
         
         <div className="space-y-1.5 mt-1 pt-1.5 border-t border-gray-100">
           {showStaffName && (
             <div className="flex items-center gap-2">
-              <User className={`h-3.5 w-3.5 flex-shrink-0 ${isUnassigned ? 'text-amber-500' : 'text-gray-400'}`} />
-              {isUnassigned && onQuickAssign && staffList ? (
+              <User className={`h-3.5 w-3.5 flex-shrink-0 ${isUnassigned && !isEvent ? 'text-amber-500' : 'text-gray-400'}`} />
+              {isUnassigned && !isEvent && onQuickAssign && staffList ? (
                 <DropdownMenu onOpenChange={(open) => {
                   if (open) {
                     console.log(`[QuickAssign Debug] Control: Expanded Shift Card | Shift ID: ${shift.id} | House: ${shift.house?.name || 'Unassigned'} | Available Staff Count: ${staffList.length}`, {
@@ -251,22 +288,26 @@ export function ShiftCard({ shift, compact, showStaffName, showHouseName = true,
             </div>
           )}
 
-          {showHouseName && shift.house && (
+          {showHouseName && (shift.house || (isEvent && shift.location)) && (
             <div className="flex items-center gap-2">
               <MapPin className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
-              <span className="text-xs truncate font-normal text-gray-600">{shift.house.name}</span>
+              <span className="text-xs truncate font-normal text-gray-600">
+                {shift.house?.name || shift.location}
+              </span>
             </div>
           )}
 
-          <div className="flex items-center gap-2">
-            <Users className={cn("h-3.5 w-3.5 flex-shrink-0", participantCount === 0 ? "text-red-500" : "text-gray-400")} />
-            <span className={cn(
-              "text-xs truncate font-normal",
-              participantCount === 0 ? "text-red-600 font-bold" : "text-gray-600"
-            )}>
-              {participantCount} Participant{participantCount !== 1 ? 's' : ''}
-            </span>
-          </div>
+          {!isEvent && (
+            <div className="flex items-center gap-2">
+              <Users className={cn("h-3.5 w-3.5 flex-shrink-0", participantCount === 0 ? "text-red-500" : "text-gray-400")} />
+              <span className={cn(
+                "text-xs truncate font-normal",
+                participantCount === 0 ? "text-red-600 font-bold" : "text-gray-600"
+              )}>
+                {participantCount} Participant{participantCount !== 1 ? 's' : ''}
+              </span>
+            </div>
+          )}
         </div>
 
         {shift.assigned_checklists && shift.assigned_checklists.length > 0 && (
@@ -292,21 +333,23 @@ export function ShiftCard({ shift, compact, showStaffName, showHouseName = true,
           </div>
         )}
 
-        <button
-          type="button"
-          onClick={(e) => { 
-            e.stopPropagation(); 
-            if (onNotesClick) { onNotesClick(shift); } else { onWriteNote?.(shift); } 
-          }}
-          className={`w-full flex items-center justify-center gap-2 h-8 text-[10px] font-normal rounded-lg px-2 mt-1 transition-colors border ${
-            (shift.notesCount ?? 0) > 0
-              ? 'text-emerald-600 border-emerald-100 bg-emerald-50/30 hover:bg-emerald-50'
-              : 'text-red-400 border-red-50 bg-red-50/20 hover:bg-red-50'
-          }`}
-        >
-          <ClipboardList className="h-4 w-4" />
-          {shift.notesCount ?? 0} Note{(shift.notesCount ?? 0) !== 1 ? 's' : ''}
-        </button>
+        {!isEvent && (
+          <button
+            type="button"
+            onClick={(e) => { 
+              e.stopPropagation(); 
+              if (onNotesClick) { onNotesClick(shift); } else { onWriteNote?.(shift); } 
+            }}
+            className={`w-full flex items-center justify-center gap-2 h-8 text-[10px] font-normal rounded-lg px-2 mt-1 transition-colors border ${
+              (shift.notesCount ?? 0) > 0
+                ? 'text-emerald-600 border-emerald-100 bg-emerald-50/30 hover:bg-emerald-50'
+                : 'text-red-400 border-red-50 bg-red-50/20 hover:bg-red-50'
+            }`}
+          >
+            <ClipboardList className="h-4 w-4" />
+            {shift.notesCount ?? 0} Note{(shift.notesCount ?? 0) !== 1 ? 's' : ''}
+          </button>
+        )}
       </div>
     </Card>
   );

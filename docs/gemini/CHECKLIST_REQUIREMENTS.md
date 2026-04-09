@@ -176,4 +176,18 @@ The Shift Template system has been refactored from a rigid 7-day week to a flexi
 ### 12.3. Saving Architecture (Seamless Save)
 *   **Pending Changes Pattern**: Shift Templates are tracked locally in `pendingChanges` and saved only when the main "Save" button is clicked.
 *   **Optimistic Cache Seeding**: To prevent UI flicker, the system manually "seeds" the TanStack Query cache immediately after a successful save before clearing local state.
-*   **Auth Stability**: Implemented a singleton fetch pattern to prevent Supabase auth lock contention (`NavigatorLockAcquireTimeoutError`) during concurrent component mounts.
+## 13. Completion Enforcement & Accountability
+To ensure operational compliance, the system enforces the completion of mandatory routines through a combination of visual cues and submission blocking.
+
+### 13.1. Timesheet Blocking
+*   **Logic**: The "Submit Timesheet" form automatically checks for any `shift_assigned_checklists` linked to the specific shift instance.
+*   **Enforcement**: If any shift-assigned checklists are not in a `completed` status, the "Submit Timesheet" button is disabled (grayscale), and a "Required Shift Routines" card displays the pending tasks with a link to complete them.
+*   **Exception**: Collaborative "House Calendar Tasks" do not block individual timesheets, as they are shared responsibilities.
+
+### 13.2. Dashboard Visual Cues
+*   **Active Shift Tracking**: The Staff Dashboard displays a real-time progress bar for mandatory routines during an active shift.
+*   **End-of-Shift Warnings**: When a shift is within 30 minutes of its scheduled end time, any incomplete mandatory routines are highlighted with an orange pulsed border and an "Urgent" status badge on the Checklists page.
+
+### 13.3. Admin Audit Trail
+*   **Real-time Visibility**: Admins can view the "Checklist History" on the House Detail page to see progress in real-time.
+*   **Granular Attribution**: Every item within a checklist (both shared house tasks and individual routines) records the specific staff member who performed the sign-off, fulfilling the requirement for individual accountability in a collaborative environment.

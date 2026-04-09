@@ -50,6 +50,9 @@ describe('StaffTimesheetForm', () => {
       http.get(`${SUPABASE_URL}/rest/v1/staff`, () => {
         return HttpResponse.json(mockAdmins);
       }),
+      http.get(`${SUPABASE_URL}/rest/v1/shift_assigned_checklists`, () => {
+        return HttpResponse.json([]);
+      }),
       http.post(`${SUPABASE_URL}/rest/v1/timesheets`, () => {
         return HttpResponse.json({ id: 'ts-1' });
       }),
@@ -139,6 +142,37 @@ describe('StaffTimesheetForm', () => {
     fireEvent.click(submitBtn);
 
     // Toast is harder to test without mocking it, but we can verify navigate wasn't called
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('blocks submission if checklists are incomplete', async () => {
+    // Override checklist mock to return an incomplete routine
+    server.use(
+      http.get(`${SUPABASE_URL}/rest/v1/shift_assigned_checklists`, () => {
+        return HttpResponse.json([
+          { 
+            checklist_id: 'cl-1', 
+            assignment_title: 'Morning Routine',
+            submissions: [{ shift_id: 'shift-1', status: 'in_progress' }]
+          }
+        ]);
+      })
+    );
+
+    renderWithProviders(<StaffTimesheetForm />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Required Shift Routines/i)).toBeInTheDocument();
+      expect(screen.getByText(/Morning Routine/i)).toBeInTheDocument();
+      expect(screen.getByText(/Pending/i)).toBeInTheDocument();
+    });
+
+    const submitBtn = screen.getByRole('button', { name: /Submit Timesheet/i });
+    
+    // Check for disabled appearance (grayscale class)
+    expect(submitBtn).toHaveClass('grayscale');
+    
+    fireEvent.click(submitBtn);
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 });

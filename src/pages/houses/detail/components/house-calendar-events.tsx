@@ -46,6 +46,7 @@ export interface HouseCalendarEventsProps {
   onPendingChangesChange?: (changes: HousePendingChanges) => void;
   onRefreshNeeded?: () => void;
   refreshKey?: number;
+  hideCalendar?: boolean;
 }
 
 type ViewMode = 'month' | 'week';
@@ -59,7 +60,8 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
   pendingChanges,
   onPendingChangesChange,
   onRefreshNeeded,
-  refreshKey
+  refreshKey,
+  hideCalendar
 }, ref) => {
   const [viewMode, setViewMode] = useState<ViewMode>('week');
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -366,7 +368,26 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
         if (clError) throw clError;
 
         // 2. Check if a submission already exists for this calendar event
-        const existingSubmission = event.submissions?.[0];
+        let existingSubmission = event.submissions?.[0];
+        
+        // If not found in the passed event object, try a direct lookup to be safe 
+        // (prevents race conditions with stale data from parent)
+        if (!existingSubmission) {
+          const isShiftRoutine = event.is_shift_routine || event.id?.startsWith('shift-cl-');
+          const { data: directSubs } = await supabase
+            .from('house_checklist_submissions')
+            .select('id, status, updated_at, scheduled_date')
+            .eq('checklist_id', event.house_checklist_id)
+            .eq(isShiftRoutine ? 'shift_id' : 'calendar_event_id', isShiftRoutine ? event.shift_id : event.id)
+            .eq('status', 'in_progress')
+            .order('updated_at', { ascending: false })
+            .limit(1);
+            
+          if (directSubs && directSubs.length > 0) {
+            console.log('[ChecklistDebug] Found existing submission via safety check:', directSubs[0].id);
+            existingSubmission = directSubs[0];
+          }
+        }
         
         if (existingSubmission) {
           // Fetch existing submission items to resume, including staff names
@@ -383,9 +404,9 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
           const completedBy: Record<string, { id: string; name: string }> = {};
 
           subItems?.forEach(si => {
-            const isDone = si.status === 'Completed';
+            const isDone = si.status === 'Completed' || si.is_completed;
             completedItems[si.item_id] = isDone;
-            itemNotes[si.item_id] = si.notes || '';
+            itemNotes[si.item_id] = si.note || '';
             if (isDone && si.completed_by_staff) {
               completedBy[si.item_id] = {
                 id: si.completed_by_staff.id,
@@ -420,7 +441,6 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
       event_type_id: event.event_type_id || '',
       description: event.description || '',
       event_date: event.event_date,
-      end_date: event.end_date || event.event_date,
       start_time: event.start_time || '',
       end_time: event.end_time || '',
       participant_ids: event.event_participants?.map((p: any) => p.participant.id) || [],
@@ -436,6 +456,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
   };
 
   const persistChecklistExecution = async (results: any, status: 'in_progress' | 'completed') => {
+    console.log('[ChecklistDebug] persistChecklistExecution', { status, results });
     if (!selectedEvent || !houseId) return;
 
     const staffId = (user as any)?.staff_id;
@@ -443,14 +464,18 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
 
     if (!submissionId) {
       // Create new submission linked to calendar event OR shift
-      const isShiftRoutine = selectedEvent.is_shift_routine;
+      const isShiftRoutine = selectedEvent.is_shift_routine || selectedEvent.id?.startsWith('shift-cl-');
+      console.log('[ChecklistDebug] New submission. isShiftRoutine:', isShiftRoutine);
+      
+      // Ensure we don't try to insert synthetic IDs into UUID columns
+      const calendarEventId = (isShiftRoutine || selectedEvent.id?.startsWith('shift-cl-')) ? null : selectedEvent.id;
       
       const { data, error } = await supabase
         .from('house_checklist_submissions')
         .insert({
           checklist_id: executingChecklist.id,
           house_id: houseId,
-          calendar_event_id: isShiftRoutine ? null : selectedEvent.id,
+          calendar_event_id: calendarEventId,
           shift_id: isShiftRoutine ? selectedEvent.shift_id : null,
           shift_template_id: isShiftRoutine ? selectedEvent.shift_template_id : null,
           scheduled_date: selectedEvent.event_date,
@@ -462,10 +487,15 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('[ChecklistDebug] Insert error:', error);
+        throw error;
+      }
       submissionId = data.id;
+      console.log('[ChecklistDebug] Created ID:', submissionId);
     } else {
       // Update existing submission
+      console.log('[ChecklistDebug] Updating existing submission:', submissionId);
       const { error } = await supabase
         .from('house_checklist_submissions')
         .update({
@@ -476,15 +506,20 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
         })
         .eq('id', submissionId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('[ChecklistDebug] Update error:', error);
+        throw error;
+      }
     }
 
     // Upsert items
+    console.log('[ChecklistDebug] Upserting', results.items?.length, 'items');
     const submissionItems = results.items.map((item: any) => ({
       submission_id: submissionId,
       item_id: item.item_id,
+      is_completed: !!item.is_completed,
       status: item.is_completed ? 'Completed' : 'Pending',
-      notes: item.note,
+      note: item.note,
       completed_by: item.completed_by,
       completed_at: item.is_completed ? new Date().toISOString() : null
     }));
@@ -493,7 +528,11 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
       .from('house_checklist_submission_items')
       .upsert(submissionItems, { onConflict: 'submission_id,item_id' });
 
-    if (itemsError) throw itemsError;
+    if (itemsError) {
+      console.error('[ChecklistDebug] Items error:', itemsError);
+      throw itemsError;
+    }
+    console.log('[ChecklistDebug] Success');
 
     // Handle attachments (simplified for now, following house-checklists pattern)
     if (results.queuedAttachments) {
@@ -519,22 +558,41 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
   };
 
   const handleSaveChecklistProgress = async (results: any) => {
+    console.log('[ChecklistDebug] handleSaveChecklistProgress results:', results);
     try {
       const id = await persistChecklistExecution(results, 'in_progress');
       const completedItems: Record<string, boolean> = {};
       const itemNotes: Record<string, string> = {};
+      const completedBy: Record<string, { id: string; name: string }> = {};
+      
       results.items.forEach((item: any) => {
         completedItems[item.item_id] = item.is_completed;
         itemNotes[item.item_id] = item.note || '';
+        
+        if (item.is_completed && item.completed_by) {
+          const name = item.completed_by === user?.staff_id 
+            ? (user?.staff_name || user?.fullname || user?.email || 'Me')
+            : 'Other Staff';
+            
+          completedBy[item.item_id] = {
+            id: item.completed_by,
+            name: name
+          };
+        }
       });
-      setActiveSubmission(prev => ({ 
-        ...prev, 
+
+      console.log('[ChecklistDebug] New activeSubmission:', { id, completedItems, itemNotes, completedBy });
+
+      setActiveSubmission({ 
         id, 
         completedItems, 
-        itemNotes 
-      }));
+        itemNotes,
+        completedBy,
+        attachments: activeSubmission?.attachments || {}
+      });
       refresh();
       if (onRefreshNeeded) onRefreshNeeded();
+      toast.success('Progress saved successfully');
     } catch (error) {
       console.error('Error saving progress:', error);
       toast.error('Failed to save progress.');
@@ -935,7 +993,8 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
 
   return (
     <>
-      <Card className="pb-2.5" id="calendar_events">
+      {!hideCalendar && (
+        <Card className="pb-2.5" id="calendar_events">
         <CardHeader>
           <div className="flex items-center justify-between flex-wrap gap-5">
             <CardTitle className="flex items-center gap-2">
@@ -1101,20 +1160,25 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
                                       'bg-white border-gray-100'
                                     }`}
                                   >
-                                    <div className="flex items-center gap-1.5 mb-1">
-                                      <div className={`size-1.5 rounded-full bg-${getTypeColor(event)}-500`} />
-                                      {event.is_checklist_event && <CheckSquare className={`size-2.5 text-${getTypeColor(event)}-600`} />}
-                                      <span className="text-[10px] font-bold text-gray-900 truncate leading-none">{event.title}</span>
-                                    </div>                                  <div className="flex flex-col gap-0.5">
-                                      <div className="text-[9px] text-gray-600 font-bold uppercase tracking-tighter">
-                                        {(event.event_type_info?.name || event.type)}
+                                    <div className="flex flex-col gap-1">
+                                      <div className="text-[9px] text-gray-500 font-bold uppercase tracking-tighter flex items-center gap-1.5">
+                                        {event.is_checklist_event && <CheckSquare className={`size-2.5 text-${getTypeColor(event)}-600`} />}
+                                        {event.is_checklist_event ? 'CHECKLIST' : (event.event_type_info?.name || event.type)}
                                       </div>
-                                      {(event.start_time || event.end_time) && (
-                                        <div className="text-[9px] text-muted-foreground font-medium flex items-center gap-1">
-                                          <Clock className="size-2.5" />
-                                          {event.start_time || '??'} {event.end_time && `- ${event.end_time}`}
+                                      
+                                      <div className="flex items-start gap-1.5">
+                                        <div className={`size-1.5 rounded-full bg-${getTypeColor(event)}-500 mt-1 shrink-0`} />
+                                        <div className="flex flex-col gap-1 flex-1 min-w-0">
+                                          <span className="text-[10px] font-bold text-gray-900 leading-tight whitespace-normal break-words">{event.title}</span>
+                                          
+                                          {(event.start_time || event.end_time) && (
+                                            <div className="text-[9px] text-muted-foreground font-medium flex items-center gap-1">
+                                              <Clock className="size-2.5" />
+                                              {event.start_time || '??'} {event.end_time && `- ${event.end_time}`}
+                                            </div>
+                                          )}
                                         </div>
-                                      )}
+                                      </div>
                                     </div>
                                   </div>
                                 );
@@ -1290,7 +1354,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
                                     <div className="flex items-center justify-between gap-1">
                                       <span className="uppercase font-bold text-[8px] opacity-70 truncate flex items-center gap-1">
                                         {Icon && <Icon className="size-2 shrink-0" />}
-                                        {(event.event_type_info?.name || event.type)}
+                                        {event.is_checklist_event ? 'CHECKLIST' : (event.event_type_info?.name || event.type)}
                                       </span>
                                       <span className={cn(
                                         "size-1.5 rounded-full shrink-0",
@@ -1298,7 +1362,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
                                         `bg-${getTypeColor(event)}-500`
                                       )} />
                                     </div>
-                                    <div className="font-bold truncate text-gray-900 leading-tight">
+                                    <div className="font-bold text-gray-900 leading-tight whitespace-normal break-words">
                                       {event.title}
                                     </div>
                                     
@@ -1328,6 +1392,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
           )}
         </CardContent>
       </Card>
+      )}
 
       <BulkDeleteCalendarModal
         open={showBulkDeleteModal}
@@ -1564,6 +1629,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
           <div className="flex-1 py-4 overflow-hidden">
             {executingChecklist && (
               <HouseChecklistExecution 
+                key={activeSubmission?.id || 'new'}
                 checklist={executingChecklist}
                 onComplete={handleCompleteChecklist}
                 onSave={handleSaveChecklistProgress}
@@ -1575,6 +1641,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
                 initialData={activeSubmission ? {
                   completedItems: activeSubmission.completedItems,
                   itemNotes: activeSubmission.itemNotes,
+                  completedBy: activeSubmission.completedBy,
                   attachments: activeSubmission.attachments
                 } : undefined}
               />

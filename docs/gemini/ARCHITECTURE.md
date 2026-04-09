@@ -20,6 +20,14 @@ The application enforces strict role-based access control (RBAC) via Supabase RL
 
 ### Staff Access
 - **Clinical Awareness**: Staff have `SELECT` access to all Participants and their clinical child entities (medications, routines, notes) to ensure they can provide informed care anywhere.
+- **Assigned Events**: Staff can view all calendar events where they are explicitly assigned via the `house_calendar_event_staff` junction table.
+
+### Unified Staff Schedule
+The system provides a unified view of staff commitments by merging two data sources:
+1.  **Staff Shifts**: Formal working hours assigned to a specific house and roster period.
+2.  **Assigned Events**: Specific activities (Community Access, Online Meetings, Training) where the staff member is a participant or facilitator.
+
+This integration is implemented in the `useStaffDashboardData` and `useStaffRoster` hooks, ensuring chronological sorting across both entity types on the Staff Dashboard and My Roster pages.
 ### House Checklist System: Calendar & Shift Integration
 The system supports two distinct operational workflows:
 1.  **House Calendar Tasks**:

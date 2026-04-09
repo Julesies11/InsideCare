@@ -24,6 +24,12 @@ export interface StaffShift {
   color_theme?: string;
   icon_name?: string;
   notesCount?: number;
+  // Event fields
+  entry_type?: 'shift' | 'event';
+  title?: string;
+  location?: string;
+  type_name?: string;
+  type_color?: string;
 }
 
 export interface AssignedChecklist {
@@ -83,13 +89,14 @@ export function useLeaveRequestsQuery(staffId: string, startDate: string, endDat
   }), [query]);
 }
 
-export function useShiftsQuery(staffId: string, startDate: string, endDate: string, houseId?: string) {
+export function useShiftsQuery(staffId: string, startDate: string, endDate: string, houseId?: string, includeEvents: boolean = false) {
   const { houses, staff } = useRosterData();
 
   const query = useQuery({
-    queryKey: ['roster-shifts', staffId, startDate, endDate, houseId],
+    queryKey: ['roster-shifts', staffId, startDate, endDate, houseId, includeEvents],
     queryFn: async () => {
-      let query = supabase
+      // Fetch shifts
+      let shiftQuery = supabase
         .from('staff_shifts')
         .select(`
           id, staff_id, start_date, end_date, start_time, end_time, house_id, shift_template, shift_template_id, notes,
@@ -108,12 +115,56 @@ export function useShiftsQuery(staffId: string, startDate: string, endDate: stri
         .order('start_date', { ascending: true })
         .order('start_time', { ascending: true });
 
-      if (staffId && staffId !== 'all') query = query.eq('staff_id', staffId);
-      if (houseId && houseId !== 'all') query = query.eq('house_id', houseId);
+      if (staffId && staffId !== 'all') shiftQuery = shiftQuery.eq('staff_id', staffId);
+      if (houseId && houseId !== 'all') shiftQuery = shiftQuery.eq('house_id', houseId);
 
-      const { data, error } = await query;
-      if (error) throw error;
-      return data;
+      const fetchShifts = shiftQuery.then(res => {
+        if (res.error) throw res.error;
+        return (res.data || []).map(s => ({ ...s, entry_type: 'shift' as const }));
+      });
+
+      // Fetch events if requested and staffId is provided
+      const fetchEvents = (includeEvents && staffId && staffId !== 'all') 
+        ? supabase
+            .from('house_calendar_events')
+            .select(`
+              id,
+              title,
+              event_date,
+              start_time,
+              end_time,
+              location,
+              type:house_calendar_event_types_master(name, color),
+              house_id,
+              house:houses(name),
+              staff_assignments:house_calendar_event_staff!inner(staff_id)
+            `)
+            .eq('house_calendar_event_staff.staff_id', staffId)
+            .gte('event_date', startDate)
+            .lte('event_date', endDate)
+            .then(res => {
+              if (res.error) throw res.error;
+              return (res.data || []).map(e => ({
+                id: e.id,
+                staff_id: staffId,
+                start_date: e.event_date,
+                end_date: e.event_date,
+                start_time: e.start_time,
+                end_time: e.end_time,
+                house_id: e.house_id,
+                shift_template: 'Event',
+                title: e.title,
+                location: e.location,
+                type_name: e.type?.name,
+                type_color: e.type?.color,
+                entry_type: 'event' as const,
+                house: e.house,
+              }));
+            })
+        : Promise.resolve([]);
+
+      const [shifts, events] = await Promise.all([fetchShifts, fetchEvents]);
+      return [...shifts, ...events];
     },
     staleTime: 1000 * 60 * 5, // 5 minutes cache
   });
@@ -125,26 +176,30 @@ export function useShiftsQuery(staffId: string, startDate: string, endDate: stri
     const houseMap = new Map(houses.map(h => [h.id, { id: h.id, name: h.name }]));
     const staffMap = new Map(staff.map(s => [s.id, s.name]));
 
-    return query.data.map((shift: any): StaffShift => {
-      const colorTheme = shift.type_details?.color_theme;
-      const iconName = shift.type_details?.icon_name;
+    return query.data.map((item: any): StaffShift => {
+      const colorTheme = item.type_details?.color_theme || item.type_color;
+      const iconName = item.type_details?.icon_name;
 
       return {
-        ...shift,
-        house: shift.house_id ? houseMap.get(shift.house_id) : undefined,
-        staff_name: shift.staff_id ? staffMap.get(shift.staff_id) || 'Unassigned' : 'Unassigned',
-        participants: shift.participants?.map((p: any) => ({
+        ...item,
+        house: item.house || (item.house_id ? houseMap.get(item.house_id) : undefined),
+        staff_name: item.staff_id ? staffMap.get(item.staff_id) || 'Unassigned' : 'Unassigned',
+        participants: item.participants?.map((p: any) => ({
           id: p.participant.id,
           name: p.participant.name,
         })) || [],
-        assigned_checklists: shift.assigned_checklists?.map((cl: any) => ({
+        assigned_checklists: item.assigned_checklists?.map((cl: any) => ({
           ...cl,
           is_completed: cl.submissions?.some((s: any) => s.status === 'completed') || false
         })) || [],
-        notesCount: shift.notes_count?.[0]?.count || 0,
+        notesCount: item.notes_count?.[0]?.count || 0,
         color_theme: colorTheme,
         icon_name: iconName,
       };
+    }).sort((a, b) => {
+      const dateCompare = a.start_date.localeCompare(b.start_date);
+      if (dateCompare !== 0) return dateCompare;
+      return (a.start_time || '').localeCompare(b.start_time || '');
     });
   }, [query.data, houses, staff]);
 

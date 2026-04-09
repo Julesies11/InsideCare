@@ -42,29 +42,35 @@ export interface HousePendingChanges {
     toAdd: Array<{
       tempId: string;
       title: string;
-      type: string;
+      event_type_id?: string;
       description?: string;
       event_date: string;
       start_time?: string;
       end_time?: string;
-      participant_id?: string;
-      assigned_staff_id?: string;
+      participant_ids?: string[];
+      assigned_staff_ids?: string[];
       status?: string;
       location?: string;
+      is_checklist_event?: boolean;
+      house_checklist_id?: string;
+      checklist_schedule_id?: string;
       notes?: string;
     }>;
     toUpdate: Array<{
       id: string;
       title?: string;
-      type?: string;
+      event_type_id?: string;
       description?: string;
       event_date?: string;
       start_time?: string;
       end_time?: string;
-      participant_id?: string;
-      assigned_staff_id?: string;
+      participant_ids?: string[];
+      assigned_staff_ids?: string[];
       status?: string;
       location?: string;
+      is_checklist_event?: boolean;
+      house_checklist_id?: string;
+      checklist_schedule_id?: string;
       notes?: string;
     }>;
     toDelete: string[];
@@ -88,6 +94,7 @@ export interface HousePendingChanges {
       days_of_week?: string[];
       description?: string;
       master_id?: string;
+      sort_order: number;
       items: Array<{
         tempId: string;
         title: string;
@@ -103,6 +110,7 @@ export interface HousePendingChanges {
       days_of_week?: string[];
       description?: string;
       master_id?: string;
+      sort_order?: number;
     }>;
     toDelete: string[];
     checklistItems: {

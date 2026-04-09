@@ -614,18 +614,19 @@ function Sortable<T>({
         </div>
       </SortableContext>
 
-      <DragOverlay>
+      <DragOverlay adjustScale={true} dropAnimation={dropAnimationConfig}>
         {activeId ? (
-          <div className="z-50">
-            {React.Children.map(children, (child) => {
-              if (React.isValidElement(child) && (child.props as any).value === activeId) {
-                return React.cloneElement(child as React.ReactElement<any>, {
-                  ...(child.props as any),
-                  className: cn((child.props as any).className, 'z-50 shadow-lg'),
-                });
+          <div className="z-50 cursor-grabbing shadow-2xl rounded-xl overflow-hidden ring-2 ring-primary/20 scale-105 transition-transform duration-200">
+            {(() => {
+              const activeChild = React.Children.toArray(children).find(
+                (child) => React.isValidElement(child) && (child.props as any).value === activeId
+              ) as React.ReactElement<any>;
+              
+              if (activeChild && activeChild.props.children) {
+                return activeChild.props.children;
               }
               return null;
-            })}
+            })()}
           </div>
         ) : null}
       </DragOverlay>
@@ -672,7 +673,7 @@ function SortableItem({ value, asChild = false, className, children, disabled }:
         style={style}
         {...attributes}
         className={cn(
-          isSortableDragging && 'opacity-50 z-50', 
+          isSortableDragging && 'opacity-10 scale-95 grayscale pointer-events-none ring-2 ring-dashed ring-gray-300 rounded-xl', 
           disabled && 'opacity-50', 
           className
         )}

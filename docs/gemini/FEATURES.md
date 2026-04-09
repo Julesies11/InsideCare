@@ -21,7 +21,7 @@ The core operational engine of the care system.
 - **Roster Auto-Fill**: Rapidly generate multi-week coverage by deploying house shift templates into the calendar with one click using the "Build Roster" tool.
 - **Schedule Checklists**: Standalone tool to bulk schedule facility-wide checklists (e.g., "Weekly Deep Clean", "Vehicle Check") across multiple weeks independently of specific shifts.
 - **Roster Board**: Visual representation of staff shifts and house assignments with intelligent staff filtering (showing active staff assigned to the house).
-- **Shift Routines**: Automated, shift-locked task lists that staff must complete and sign off on during their active shift.
+- **Shift Routines**: Automated, shift-locked task lists that staff must complete and sign off on during their active shift. Completion is enforced; staff cannot submit timesheets if mandatory shift routines are incomplete.
 - **Timesheets**: Integration with actual worked hours and manager approval workflow.
 
 ## 4. House & Facility Management
@@ -44,6 +44,7 @@ System-wide tools for ensuring regulatory and operational standards.
 ## 6. Dashboards
 - **Management Dashboard**: High-level overview of occupancy, staffing levels, and compliance status.
 - **Staff Dashboard**: Personalized view of upcoming shifts, tasks, and notifications.
+    - **Assigned Events Integration**: Merges rostered shifts with assigned calendar events (meetings, training, community outings) into a single chronological "Upcoming Schedule" timeline.
 
 ## 7. Notification Center
 Comprehensive alert system for critical updates and workflows.

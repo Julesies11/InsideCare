@@ -72,8 +72,16 @@ export function useHouseChecklistEvents(houseId?: string, date?: string, shiftId
 
       if (eventError) throw eventError;
 
+      // Filter submissions to only those matching the event date
+      const eventsWithFilteredSubs = (events || []).map(e => ({
+        ...e,
+        submissions: (e.submissions as any[] || [])
+          .filter(s => s.scheduled_date === date)
+          .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+      }));
+
       // 3. Combine calendar events with shift-assigned checklists
-      const combinedEvents = [...(events || [])];
+      const combinedEvents = [...eventsWithFilteredSubs];
 
       if (shiftId && shiftSpecificChecklists.length > 0) {
         for (const ac of shiftSpecificChecklists) {
@@ -82,12 +90,15 @@ export function useHouseChecklistEvents(houseId?: string, date?: string, shiftId
           
           if (!existingEvent) {
             // Check for existing submission for this specific shift
-            const { data: shiftSub } = await supabase
+            const { data: shiftSubs } = await supabase
               .from('house_checklist_submissions')
               .select('id, status, updated_at, scheduled_date')
               .eq('checklist_id', ac.checklist_id)
               .eq('shift_id', shiftId)
-              .maybeSingle();
+              .order('updated_at', { ascending: false })
+              .limit(1);
+
+            const shiftSub = shiftSubs?.[0];
 
             combinedEvents.push({
               id: `shift-cl-${ac.checklist_id}-${shiftId}`, // Unique synthetic ID
@@ -120,7 +131,6 @@ export function useHouseChecklistEvents(houseId?: string, date?: string, shiftId
           name, 
           description,
           items:house_checklist_items(
-      ...
             id, 
             checklist_id, 
             title, 

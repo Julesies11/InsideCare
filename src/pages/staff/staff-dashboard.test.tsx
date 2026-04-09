@@ -4,16 +4,33 @@ import { StaffDashboard } from './staff-dashboard';
 import { renderWithProviders } from '@/test/test-utils';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
+import { format } from 'date-fns';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+
+const today = format(new Date(), 'yyyy-MM-dd');
 
 const mockShifts = [
   {
     id: 'shift-1',
-    start_date: new Date(Date.now() + 86400000).toISOString().split('T')[0], // Tomorrow
-    start_time: '08:00:00',
-    end_time: '16:00:00',
-    house: { name: 'Test House' },
+    start_date: today,
+    start_time: '00:00',
+    end_time: '23:59',
+    house: { id: 'house-1', name: 'Test House' },
+    assigned_checklists: [
+      {
+        checklist_id: 'cl-1',
+        submissions: [{ shift_id: 'shift-1', status: 'completed' }]
+      },
+      {
+        checklist_id: 'cl-2',
+        submissions: []
+      },
+      {
+        checklist_id: 'cl-3',
+        submissions: []
+      }
+    ]
   },
 ];
 
@@ -47,9 +64,20 @@ vi.mock('react-router-dom', async () => {
 
 describe('StaffDashboard', () => {
   beforeEach(() => {
+    vi.clearAllMocks();
+    
+    // Ensure mock shift always matches the current real local date and time
+    const localToday = format(new Date(), 'yyyy-MM-dd');
+    const mockShiftsWithCurrentDate = [{
+      ...mockShifts[0],
+      start_date: localToday,
+      start_time: '00:00',
+      end_time: '23:59'
+    }];
+
     server.use(
       http.get(`${SUPABASE_URL}/rest/v1/staff_shifts`, () => {
-        return HttpResponse.json(mockShifts);
+        return HttpResponse.json(mockShiftsWithCurrentDate);
       }),
       http.get(`${SUPABASE_URL}/rest/v1/leave_requests`, () => {
         return HttpResponse.json(mockLeave);
@@ -60,19 +88,34 @@ describe('StaffDashboard', () => {
     );
   });
 
-  it('renders the dashboard with upcoming shifts, leave, and timesheets', async () => {
+  it('renders the dashboard with upcoming schedule, leave, and timesheets', async () => {
     renderWithProviders(<StaffDashboard />);
 
     // Check headings
-    expect(screen.getByRole('heading', { name: /upcoming shifts/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /upcoming schedule/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /leave requests/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /timesheets/i })).toBeInTheDocument();
 
     // Wait for data to load
     await waitFor(() => {
-      expect(screen.getByText(/Test House/)).toBeInTheDocument();
+      expect(screen.getAllByText(/Test House/)[0]).toBeInTheDocument();
       expect(screen.getByText(/Annual Leave/)).toBeInTheDocument();
       expect(screen.getByText(/1 draft/i)).toBeInTheDocument();
+    });
+  });
+
+  it('renders checklist progress for active shift', async () => {
+    renderWithProviders(<StaffDashboard />);
+
+    await waitFor(() => {
+      // Check for the active shift section
+      expect(screen.getByText(/Active Shift/i)).toBeInTheDocument();
+      
+      // Verify progress section exists via test-id
+      const progressSection = screen.getByTestId('shift-checklist-progress');
+      expect(progressSection).toBeInTheDocument();
+      expect(progressSection.textContent).toContain('1 / 3');
+      expect(progressSection.textContent).toContain('33%');
     });
   });
 
@@ -86,7 +129,7 @@ describe('StaffDashboard', () => {
     renderWithProviders(<StaffDashboard />);
 
     await waitFor(() => {
-      expect(screen.getByText(/no upcoming shifts/i)).toBeInTheDocument();
+      expect(screen.getByText(/no upcoming commitments/i)).toBeInTheDocument();
       expect(screen.getByText(/no active leave requests/i)).toBeInTheDocument();
       expect(screen.getByText(/no timesheets awaiting action/i)).toBeInTheDocument();
     });

@@ -124,10 +124,25 @@ export function useHouseCalendarEvents(houseId?: string, staffId?: string) {
 
       if (eventError) throw eventError;
 
-      const combinedEvents = (events || []).map((e: any) => ({
-        ...e,
-        type: e.is_checklist_event ? 'checklist' : 'event'
-      }));
+      const combinedEvents = (events || []).map((e: any) => {
+        let type = 'other';
+        if (e.is_checklist_event) {
+          type = 'checklist';
+        } else if (e.event_type_info?.name) {
+          const name = e.event_type_info.name.toLowerCase();
+          if (name.includes('meeting')) type = 'meeting';
+          else if (name.includes('appointment')) type = 'appointment';
+          else if (name.includes('clinical')) type = 'clinical';
+          else type = 'other';
+        } else {
+          type = 'other';
+        }
+
+        return {
+          ...e,
+          type
+        };
+      });
 
       // 2. Fetch shifts at this house (+/- 60 days)
       const startDate = new Date();

@@ -245,16 +245,15 @@ export function HouseChecklists({
         .select(`
           *,
           house_checklist_submission_items (
-            id, 
-            submission_id, 
-            item_id, 
-            status, 
-            notes, 
+            id,
+            submission_id,
+            item_id,
+            status,
+            note,
             completed_at,
             completed_by_staff:staff!completed_by(id, name)
           )
-        `)
-        .eq('checklist_id', checklist.id)
+        `)        .eq('checklist_id', checklist.id)
         .eq('house_id', houseId)
         .eq('status', 'in_progress')
         .maybeSingle();
@@ -268,9 +267,9 @@ export function HouseChecklists({
         const completedBy: Record<string, { id: string; name: string }> = {};
         
         data.house_checklist_submission_items.forEach((item: any) => {
-          const isDone = item.status === 'Completed';
+          const isDone = item.status === 'Completed' || item.is_completed;
           completedItems[item.item_id] = isDone;
-          itemNotes[item.item_id] = item.notes || '';
+          itemNotes[item.item_id] = item.note || '';
           if (isDone && item.completed_by_staff) {
             completedBy[item.item_id] = {
               id: item.completed_by_staff.id,
@@ -387,8 +386,9 @@ export function HouseChecklists({
     const submissionItems = results.items.map((item: any) => ({
       submission_id: submissionId,
       item_id: item.item_id,
+      is_completed: !!item.is_completed,
       status: item.is_completed ? 'Completed' : 'Pending',
-      notes: item.note,
+      note: item.note,
       completed_by: item.completed_by,
       completed_at: item.is_completed ? new Date().toISOString() : null
     }));
@@ -471,32 +471,39 @@ export function HouseChecklists({
     return submissionId;
   };
 
-  const handleSaveExecution = async (results: {
-    checklist_id: string;
-    items: Array<{
-      item_id: string;
-      is_completed: boolean;
-      note: string;
-    }>;
-    toDeleteAttachments?: string[];
-    queuedAttachments?: any;
-  }) => {
+  const handleSaveExecution = async (results: any) => {
     try {
       const id = await persistExecution(results, 'in_progress');
       // Update local state for active submission so next save works
       const completedItems: Record<string, boolean> = {};
       const itemNotes: Record<string, string> = {};
-      results.items.forEach((item) => {
+      const completedBy: Record<string, { id: string; name: string }> = {};
+      
+      results.items.forEach((item: any) => {
         completedItems[item.item_id] = item.is_completed;
         itemNotes[item.item_id] = item.note || '';
+        
+        if (item.is_completed && item.completed_by) {
+          const name = item.completed_by === user?.staff_id 
+            ? (user?.staff_name || user?.fullname || user?.email || 'Me')
+            : 'Other Staff';
+            
+          completedBy[item.item_id] = {
+            id: item.completed_by,
+            name: name
+          };
+        }
       });
-      setActiveSubmission(prev => ({ 
-        ...prev, 
+
+      setActiveSubmission({ 
         id, 
         completedItems, 
-        itemNotes 
-      }));
+        itemNotes,
+        completedBy,
+        attachments: activeSubmission?.attachments || {}
+      });
       refresh();
+      toast.success('Progress saved successfully');
     } catch (error) {
       console.error('Error saving progress:', error);
       throw error;
@@ -1141,6 +1148,7 @@ export function HouseChecklists({
           <div className="flex-1 py-4 overflow-hidden">
             {executingChecklist && (
               <HouseChecklistExecution 
+                key={activeSubmission?.id || 'new'}
                 checklist={executingChecklist}
                 onComplete={handleCompleteExecution}
                 onSave={handleSaveExecution}
@@ -1151,6 +1159,7 @@ export function HouseChecklists({
                 initialData={activeSubmission ? {
                   completedItems: activeSubmission.completedItems,
                   itemNotes: activeSubmission.itemNotes,
+                  completedBy: activeSubmission.completedBy,
                   attachments: activeSubmission.attachments
                 } : undefined}
               />

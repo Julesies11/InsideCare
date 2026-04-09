@@ -10,8 +10,8 @@ describe('HouseDetailSidebar', () => {
     expect(screen.getByText('House Details')).toBeDefined();
     expect(screen.getByText('House Management')).toBeDefined();
     expect(screen.getByText('Calendar')).toBeDefined();
-    expect(screen.getByText('Shift Templates')).toBeDefined();
-    expect(screen.getByText('Checklist/Comms')).toBeDefined();
+    expect(screen.getByText('Shift Setup')).toBeDefined();
+    expect(screen.getAllByText('Checklist Setup').length).toBeGreaterThan(0);
     expect(screen.getByText('Resources')).toBeDefined();
     expect(screen.getByText('Staff')).toBeDefined();
     expect(screen.getByText('Activity Log')).toBeDefined();
@@ -25,7 +25,7 @@ describe('HouseDetailSidebar', () => {
 
     // Checklist/Comms sub-items
     expect(screen.getByText('Daily Comms')).toBeDefined();
-    expect(screen.getByText('Checklist Setup')).toBeDefined();
+    expect(screen.getAllByText('Checklist Setup').length).toBeGreaterThan(0);
     expect(screen.getByText('Checklist History')).toBeDefined();
   });
 });

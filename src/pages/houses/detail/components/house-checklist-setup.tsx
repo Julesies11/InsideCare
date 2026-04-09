@@ -184,7 +184,7 @@ export function HouseChecklistSetup({
               name: checklistFormData.name,
               description: checklistFormData.description,
               days_of_week: checklistFormData.days_of_week,
-              sort_order: houseChecklists.length * 10
+              sort_order: visibleChecklists.length
             })
             .select()
             .single();
@@ -234,6 +234,7 @@ export function HouseChecklistSetup({
       ...checklistFormData,
       items: itemsWithUpdatedSortOrder,
       house_id: houseId,
+      sort_order: visibleChecklists.length
     };
 
     if (selectedChecklist) {
@@ -307,6 +308,7 @@ export function HouseChecklistSetup({
       master_id: template.id,
       name: template.name,
       description: template.description,
+      sort_order: visibleChecklists.length,
       items: (template.items || []).map((item: any) => {
         return {
           tempId: `temp-item-${Date.now()}-${Math.random()}`,
@@ -422,6 +424,7 @@ export function HouseChecklistSetup({
     setIsImporting(true);
     try {
       const checklistsToAdd: any[] = [];
+      let importCounter = 0;
       
       for (const id of selectedImportIds) {
         const source = sourceChecklists.find(cl => cl.id === id);
@@ -434,6 +437,7 @@ export function HouseChecklistSetup({
           house_id: houseId,
           name: source.name,
           description: source.description,
+          sort_order: (visibleChecklists.length + importCounter),
           items: (source.items || []).map((item: any) => ({
             tempId: `temp-item-import-${Date.now()}-${Math.random()}`,
             title: item.title,
@@ -452,7 +456,7 @@ export function HouseChecklistSetup({
               house_id: houseId,
               name: checklistData.name,
               description: checklistData.description,
-              sort_order: houseChecklists.length * 10
+              sort_order: checklistData.sort_order
             })
             .select()
             .single();
@@ -474,6 +478,7 @@ export function HouseChecklistSetup({
         } else {
           checklistsToAdd.push(checklistData);
         }
+        importCounter++;
       }
 
       if (!directSave) {
@@ -504,7 +509,7 @@ export function HouseChecklistSetup({
         return update ? { ...checklist, ...update } : checklist;
       }),
     ...(pendingChanges?.checklists?.toAdd || []),
-  ];
+  ].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
 
   return (
     <>
@@ -557,6 +562,7 @@ export function HouseChecklistSetup({
             value={visibleChecklists} 
             onValueChange={handleSortChecklists}
             getItemValue={(cl) => (cl.id || cl.tempId).toString()}
+            strategy="grid"
             className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
           >
             {visibleChecklists.map((checklist) => {
@@ -572,13 +578,13 @@ export function HouseChecklistSetup({
                     isPendingUpdate={isPendingUpdate}
                     isPendingDelete={isPendingDelete}
                     onDelete={handleDeleteChecklist}
+                    dragHandle={
+                      <SortableItemHandle>
+                        <GripVertical className="size-5 text-gray-400 cursor-grab group-hover/drag:text-primary transition-colors" />
+                      </SortableItemHandle>
+                    }
                     renderActions={(cl) => (
                       <>
-                        <SortableItemHandle>
-                          <Button variant="ghost" size="icon" className="size-8 text-gray-400 cursor-grab hover:text-primary">
-                            <Move className="size-3.5" />
-                          </Button>
-                        </SortableItemHandle>
                         <Button 
                           variant="ghost" 
                           size="icon" 

@@ -1,20 +1,21 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/auth/context/auth-context';
 import { format } from 'date-fns';
-import { Calendar, Umbrella, ClipboardList, ChevronRight, PlayCircle, Clock } from 'lucide-react';
+import { Calendar, Umbrella, ClipboardList, ChevronRight, PlayCircle, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Container } from '@/components/common/container';
 import { WelcomeBanner } from '../dashboards/home/components';
 import { useStaffDashboardData } from '@/hooks/use-staff-dashboard-data';
+import { cn } from '@/lib/utils';
 
 export function StaffDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { data, isLoading } = useStaffDashboardData(user?.staff_id);
 
-  const upcomingShifts = data?.upcomingShifts || [];
+  const upcomingSchedule = data?.upcomingSchedule || [];
   const pendingLeave = data?.pendingLeave || [];
   const pendingTimesheets = data?.pendingTimesheets || [];
 
@@ -23,10 +24,11 @@ export function StaffDashboard() {
   const nowTime = format(now, 'HH:mm:ss');
   const todayStr = format(now, 'yyyy-MM-dd');
   
-  const currentShift = upcomingShifts.find((s: any) => 
-    s.start_date === todayStr && 
-    nowTime >= s.start_time && 
-    nowTime <= s.end_time
+  const currentShift = upcomingSchedule.find((item: any) => 
+    item.entry_type === 'shift' &&
+    item.start_date === todayStr && 
+    nowTime >= item.start_time && 
+    nowTime <= item.end_time
   );
 
   return (
@@ -39,27 +41,59 @@ export function StaffDashboard() {
         <div className="grid gap-4 sm:gap-5 lg:gap-7.5 lg:grid-cols-2">
           {/* Active Shift / Clock In Suggestion */}
           {currentShift && (
-            <Card className="lg:col-span-2 border-primary/20 bg-primary/5 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
+            <Card className={cn(
+              "lg:col-span-2 border-primary/20 bg-primary/5 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500",
+              !currentShift.checklist_stats?.all_done && currentShift.checklist_stats?.total > 0 && "border-orange-200 bg-orange-50/10"
+            )}>
               <CardContent className="p-6">
                 <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-                  <div className="flex items-center gap-4">
-                    <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center animate-pulse">
-                      <PlayCircle className="size-6 text-primary" />
+                  <div className="flex items-center gap-4 flex-1">
+                    <div className={cn(
+                      "size-12 rounded-full flex items-center justify-center animate-pulse",
+                      currentShift.checklist_stats?.all_done ? "bg-green-100 text-green-600" : "bg-primary/10 text-primary"
+                    )}>
+                      {currentShift.checklist_stats?.all_done ? <CheckCircle2 className="size-6" /> : <PlayCircle className="size-6" />}
                     </div>
-                    <div>
+                    <div className="flex-1">
                       <h3 className="text-lg font-bold text-gray-900">Active Shift: {currentShift.house?.name}</h3>
                       <p className="text-sm text-muted-foreground">
                         Started at {currentShift.start_time.slice(0, 5)} · Scheduled until {currentShift.end_time.slice(0, 5)}
                       </p>
+                      
+                      {currentShift.checklist_stats?.total > 0 && (
+                        <div className="mt-3 max-w-md" data-testid="shift-checklist-progress">
+                          <div className="flex items-center justify-between mb-1.5">
+                            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                              Shift Routines: {currentShift.checklist_stats.completed} / {currentShift.checklist_stats.total}
+                              {!currentShift.checklist_stats.all_done && <AlertTriangle className="size-3 text-orange-500" />}
+                            </span>
+                            <span className="text-xs font-bold text-primary">
+                              {Math.round((currentShift.checklist_stats.completed / currentShift.checklist_stats.total) * 100)}%
+                            </span>
+                          </div>
+                          <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
+                            <div 
+                              className={cn(
+                                "h-full transition-all duration-1000",
+                                currentShift.checklist_stats.all_done ? "bg-green-500" : "bg-primary"
+                              )} 
+                              style={{ width: `${(currentShift.checklist_stats.completed / currentShift.checklist_stats.total) * 100}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-3 w-full md:w-auto">
                     <Button 
-                      className="flex-1 md:flex-none font-bold shadow-lg shadow-primary/20" 
+                      className={cn(
+                        "flex-1 md:flex-none font-bold shadow-lg shadow-primary/20",
+                        currentShift.checklist_stats?.all_done ? "bg-green-600 hover:bg-green-700" : "bg-primary"
+                      )} 
                       onClick={() => navigate('/staff/checklists')}
                     >
                       <ClipboardList className="size-4 me-2" />
-                      Go to Checklists
+                      {currentShift.checklist_stats?.all_done ? 'Review Checklists' : 'Complete Checklists'}
                     </Button>
                   </div>
                 </div>
@@ -67,11 +101,11 @@ export function StaffDashboard() {
             </Card>
           )}
 
-          {/* Upcoming Shifts */}
+          {/* Upcoming Schedule */}
           <Card className="border-0 sm:border">
             <CardHeader className="pb-2 flex flex-row items-center justify-between">
               <CardTitle className="text-base flex items-center gap-2">
-                <Calendar className="size-4" /> Upcoming Shifts
+                <Calendar className="size-4" /> Upcoming Schedule
               </CardTitle>
               <Button variant="ghost" size="sm" onClick={() => navigate('/staff/roster')}>
                 View all <ChevronRight className="size-4 ms-1" />
@@ -83,18 +117,44 @@ export function StaffDashboard() {
                   <div className="h-10 w-full bg-gray-100 animate-pulse rounded" />
                   <div className="h-10 w-full bg-gray-100 animate-pulse rounded" />
                 </div>
-              ) : upcomingShifts.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-4 text-center">No upcoming shifts.</p>
+              ) : upcomingSchedule.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-4 text-center">No upcoming commitments.</p>
               ) : (
                 <div className="divide-y">
-                  {upcomingShifts.map((shift: any) => (
-                    <div key={shift.id} className="flex items-center justify-between py-2.5">
-                      <div>
-                        <p className="text-sm font-medium">{format(new Date(shift.start_date), 'EEE dd MMM')}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {shift.start_time?.slice(0, 5)} – {shift.end_time?.slice(0, 5)}
-                          {shift.house ? ` · ${shift.house.name}` : ''}
-                        </p>
+                  {upcomingSchedule.map((item: any) => (
+                    <div key={item.id} className="flex items-center justify-between py-2.5">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium">{format(new Date(item.start_date), 'EEE dd MMM')}</p>
+                          {item.entry_type === 'event' && (
+                            <Badge variant="outline" className={cn("text-[9px] font-bold h-4 px-1", 
+                              item.type_color === 'red' ? 'text-red-600 bg-red-50 border-red-200' :
+                              item.type_color === 'green' ? 'text-green-600 bg-green-50 border-green-200' :
+                              item.type_color === 'purple' ? 'text-purple-600 bg-purple-50 border-purple-200' :
+                              'text-blue-600 bg-blue-50 border-blue-200'
+                            )}>
+                              {item.type_name}
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <p className="text-xs text-muted-foreground">
+                            {item.start_time?.slice(0, 5)} – {item.end_time?.slice(0, 5)}
+                            {item.house ? ` · ${item.house.name}` : ''}
+                            {item.entry_type === 'event' && item.location ? ` · ${item.location}` : ''}
+                          </p>
+                          {item.entry_type === 'shift' && item.checklist_stats?.total > 0 && (
+                            <Badge 
+                              variant={item.checklist_stats.all_done ? 'success' : 'outline'} 
+                              className="text-[9px] font-bold h-4 px-1"
+                            >
+                              {item.checklist_stats.completed}/{item.checklist_stats.total} Tasks
+                            </Badge>
+                          )}
+                        </div>
+                        {item.entry_type === 'event' && (
+                          <p className="text-sm font-semibold text-gray-800 mt-1">{item.title}</p>
+                        )}
                       </div>
                     </div>
                   ))}

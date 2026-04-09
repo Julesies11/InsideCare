@@ -12,7 +12,7 @@ import { useHouseShiftTemplates } from '@/hooks/use-house-shift-templates';
 import { useHouseStaffAssignments } from '@/hooks/use-house-staff-assignments';
 import { useAuth } from '@/auth/context/auth-context';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Calendar, Home, User, Trash2, Copy, CheckSquare, Loader2, Clock, Zap } from 'lucide-react';
+import { Calendar, Home, User, Trash2, Copy, CheckSquare, Loader2, Clock, Zap, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 import { SHIFT_ICONS, cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -36,6 +36,10 @@ export interface ShiftFormData {
   notes: string;
   participant_ids: string[];
   assigned_checklists: AssignedChecklist[];
+  // Event fields
+  title?: string;
+  location?: string;
+  entry_type?: 'shift' | 'event';
 }
 
 interface ShiftDialogProps {
@@ -158,14 +162,17 @@ export function ShiftDialog({
           staff_id: shift.staff_id,
           start_date: shift.start_date,
           end_date: shift.end_date || shift.start_date,
-          start_time: shift.start_time.substring(0, 5),
-          end_time: shift.end_time.substring(0, 5),
+          start_time: (shift.start_time || '09:00').substring(0, 5),
+          end_time: (shift.end_time || '17:00').substring(0, 5),
           house_id: shift.house_id,
           shift_template: shift.shift_template,
           shift_template_id: shift.shift_template_id || null,
           notes: shift.notes || '',
           participant_ids: shift.participants?.map((p: any) => p.id) || [],
           assigned_checklists: shift.assigned_checklists || [],
+          title: shift.title || '',
+          location: shift.location || '',
+          entry_type: shift.entry_type || 'shift',
         });
         setIsDuplicating(false);
       } else {
@@ -290,14 +297,16 @@ export function ShiftDialog({
         <DialogHeader className="p-4 sm:p-5 pb-2 sm:pb-3 bg-gray-50/50 border-b">
           <div className="flex items-center gap-3">
             <div className="size-9 sm:size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
-              <Calendar className="size-5 sm:size-6" />
+              {formData.entry_type === 'event' ? <Calendar className="size-5 sm:size-6" /> : <Clock className="size-5 sm:size-6" />}
             </div>
             <div className="min-w-0">
               <DialogTitle className="text-lg sm:text-xl font-black uppercase tracking-tight truncate">
-                {isEdit ? 'Update Shift' : 'Create New Shift'}
+                {formData.entry_type === 'event' ? 'Calendar Event' : (isEdit ? 'Update Shift' : 'Create New Shift')}
               </DialogTitle>
               <DialogDescription className="text-xs truncate">
-                {isEdit ? `Editing shift for ${formData.start_date}` : 'Define the schedule and assignments'}
+                {formData.entry_type === 'event' 
+                  ? `Commitment for ${formData.start_date}`
+                  : (isEdit ? `Editing shift for ${formData.start_date}` : 'Define the schedule and assignments')}
                 {currentHouse && (
                   <span className="ml-1 text-primary font-bold">
                     • {currentHouse.name}
@@ -309,6 +318,17 @@ export function ShiftDialog({
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-5 space-y-5 sm:space-y-6 custom-scrollbar bg-white">
+          {formData.entry_type === 'event' && formData.title && (
+            <div className="p-4 bg-primary/5 border border-primary/20 rounded-xl space-y-1">
+              <h4 className="text-sm font-black text-gray-900 uppercase tracking-tight">Event: {formData.title}</h4>
+              {formData.location && (
+                <p className="text-xs text-muted-foreground flex items-center gap-1.5 font-medium">
+                  <MapPin className="size-3" /> {formData.location}
+                </p>
+              )}
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
             <div className="space-y-1.5">
               <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1 flex items-center gap-1.5">
@@ -339,34 +359,45 @@ export function ShiftDialog({
               </Select>
             </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="shift_template" className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1 flex items-center gap-1.5">
-                <Zap className="size-3" /> Shift Template *
-              </Label>
-              <Select value={formData.shift_template_id || formData.shift_template} onValueChange={handleShiftTemplateChange} disabled={readOnly}>
-                <SelectTrigger className="h-10 sm:h-11 text-sm font-medium" aria-label="Shift Template">
-                  <SelectValue placeholder="Select type..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {shiftTemplates.length > 0 ? (
-                    shiftTemplates.map(st => {
-                      const Icon = SHIFT_ICONS[st.icon_name || ''] || Clock;
-                      const iconColor = st.color_theme ? `text-${st.color_theme.split('-')[0]}-500` : "text-primary";
-                      return (
-                        <SelectItem key={st.id} value={st.id}>
-                          <div className="flex items-center gap-2">
-                            <Icon className={cn("size-3.5", iconColor)} />
-                            <span>{st.name}</span>
-                          </div>
-                        </SelectItem>
-                      );
-                    })
-                  ) : (
-                    <SelectItem value="SIL">SIL</SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
+            {formData.entry_type !== 'event' ? (
+              <div className="space-y-1.5">
+                <Label htmlFor="shift_template" className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1 flex items-center gap-1.5">
+                  <Zap className="size-3" /> Shift Template *
+                </Label>
+                <Select value={formData.shift_template_id || formData.shift_template} onValueChange={handleShiftTemplateChange} disabled={readOnly}>
+                  <SelectTrigger className="h-10 sm:h-11 text-sm font-medium" aria-label="Shift Template">
+                    <SelectValue placeholder="Select type..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {shiftTemplates.length > 0 ? (
+                      shiftTemplates.map(st => {
+                        const Icon = SHIFT_ICONS[st.icon_name || ''] || Clock;
+                        const iconColor = st.color_theme ? `text-${st.color_theme.split('-')[0]}-500` : "text-primary";
+                        return (
+                          <SelectItem key={st.id} value={st.id}>
+                            <div className="flex items-center gap-2">
+                              <Icon className={cn("size-3.5", iconColor)} />
+                              <span>{st.name}</span>
+                            </div>
+                          </SelectItem>
+                        );
+                      })
+                    ) : (
+                      <SelectItem value="SIL">SIL</SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1 flex items-center gap-1.5">
+                  <Zap className="size-3" /> Entry Type
+                </Label>
+                <div className="h-10 sm:h-11 px-3 flex items-center text-sm font-bold bg-gray-50 rounded-lg border border-dashed border-gray-200 text-primary uppercase tracking-tight">
+                  Calendar Event
+                </div>
+              </div>
+            )}
           </div>
 
           {!preSelectedHouseId && !isEdit && (

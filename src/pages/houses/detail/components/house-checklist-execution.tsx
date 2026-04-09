@@ -91,6 +91,19 @@ export function HouseChecklistExecution({
   const [completedItems, setCompletedItems] = useState<Record<string, boolean>>(initialData?.completedItems || {});
   const [itemNotes, setItemNotes] = useState<Record<string, string>>(initialData?.itemNotes || {});
   const [completedBy, setCompletedBy] = useState<Record<string, { id: string; name: string }>>(initialData?.completedBy || {});
+
+  // Sync state if initialData changes (e.g. after a successful save in the parent)
+  useEffect(() => {
+    if (initialData) {
+      console.log('[ChecklistDebug] Syncing local state with initialData:', {
+        items: Object.keys(initialData.completedItems).length,
+        notes: Object.keys(initialData.itemNotes).length
+      });
+      setCompletedItems(initialData.completedItems || {});
+      setItemNotes(initialData.itemNotes || {});
+      setCompletedBy(initialData.completedBy || {});
+    }
+  }, [initialData]);
   const [queuedAttachments, setQueuedAttachments] = useState<Record<string, QueuedAttachment[]>>({});
   const [toDeleteAttachments, setToDeleteAttachments] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -221,7 +234,7 @@ export function HouseChecklistExecution({
   };
 
   const getResults = () => {
-    return {
+    const results = {
       checklist_id: checklist.id,
       items: items.map(item => ({
         item_id: item.id,
@@ -232,6 +245,8 @@ export function HouseChecklistExecution({
       queuedAttachments,
       toDeleteAttachments
     };
+    console.log('[ChecklistDebug] getResults generated:', results);
+    return results;
   };
 
   const handleSaveDraft = async () => {

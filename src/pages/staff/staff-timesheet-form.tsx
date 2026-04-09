@@ -4,9 +4,10 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/auth/context/auth-context';
 import { format, parseISO, differenceInMinutes } from 'date-fns';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 import { logActivity } from '@/lib/activity-logger';
 import {
-  ArrowLeft, Clock, FileText, AlertTriangle, Car, Info, CheckCircle2,
+  ArrowLeft, Clock, FileText, AlertTriangle, Car, Info, CheckCircle2, ClipboardList,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,12 +22,19 @@ import {
 
 interface Shift {
   id: string;
+  house_id: string;
   start_date: string;
   end_date: string;
   start_time: string;
   end_time: string;
   shift_template: string;
   house: { name: string } | null;
+}
+
+interface AssignedChecklist {
+  checklist_id: string;
+  assignment_title: string;
+  status?: string;
 }
 
 
@@ -42,6 +50,7 @@ export function StaffTimesheetForm() {
   const [saving, setSaving]         = useState(false);
   const [existingId, setExistingId] = useState<string | null>(null);
   const [lastSaved, setLastSaved]   = useState<Date | null>(null);
+  const [assignedChecklists, setAssignedChecklists] = useState<AssignedChecklist[]>([]);
 
   const [shiftNotes, setShiftNotes]                   = useState('');
   const [actualStart, setActualStart]                 = useState('');
@@ -74,10 +83,10 @@ export function StaffTimesheetForm() {
   useEffect(() => {
     if (!shiftId) return;
     const load = async () => {
-      const [shiftRes, tsRes] = await Promise.all([
+      const [shiftRes, tsRes, checklistsRes] = await Promise.all([
         supabase
           .from('staff_shifts')
-          .select('id, start_date, end_date, start_time, end_time, shift_template, house:houses(name)')
+          .select('id, house_id, start_date, end_date, start_time, end_time, shift_template, house:houses(name)')
           .eq('id', shiftId)
           .maybeSingle(),
         user?.staff_id
@@ -88,6 +97,14 @@ export function StaffTimesheetForm() {
               .eq('staff_id', user.staff_id)
               .maybeSingle()
           : Promise.resolve({ data: null }),
+        supabase
+          .from('shift_assigned_checklists')
+          .select(`
+            checklist_id,
+            assignment_title,
+            submissions:house_checklist_submissions!house_checklist_submissions_checklist_id_fkey(id, status, shift_id)
+          `)
+          .eq('shift_id', shiftId)
       ]);
 
       if (shiftRes.data) {
@@ -110,6 +127,20 @@ export function StaffTimesheetForm() {
         if (d.sick_shift)            setSickShift(d.sick_shift);
         if (d.notes)                 setSickReason(d.notes);
       }
+
+      if (checklistsRes.data) {
+        const mapped = (checklistsRes.data as any[]).map(cl => {
+          // Filter submissions to only those for THIS specific shift instance
+          const shiftSubmission = cl.submissions?.find((s: any) => s.shift_id === shiftId);
+          return {
+            checklist_id: cl.checklist_id,
+            assignment_title: cl.assignment_title,
+            status: shiftSubmission?.status || 'not_started'
+          };
+        });
+        setAssignedChecklists(mapped);
+      }
+
       setLoading(false);
     };
     load();
@@ -168,6 +199,19 @@ export function StaffTimesheetForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user?.staff_id || !shiftId || !shift) return;
+
+    // 1. Enforce Checklist Completion
+    const incompleteChecklists = assignedChecklists.filter(cl => cl.status !== 'completed');
+    if (incompleteChecklists.length > 0) {
+      toast.error('Mandatory Checklists Incomplete', {
+        description: `Please complete the following routines before submitting: ${incompleteChecklists.map(cl => cl.assignment_title).join(', ')}`,
+        action: {
+          label: 'Go to Checklists',
+          onClick: () => navigate('/staff/checklists')
+        }
+      });
+      return;
+    }
 
     if (!timesValid) { toast.error('Please enter valid actual start and end times'); return; }
     if (overtimeNeedsReason) { toast.error('Please explain the overtime hours before submitting'); return; }
@@ -515,9 +559,73 @@ export function StaffTimesheetForm() {
             </CardContent>
           </Card>
 
+          {/* Section 4 — Checklist Completion Enforcement */}
+          {assignedChecklists.length > 0 && (
+            <Card className={cn(
+              "border-0 sm:border",
+              assignedChecklists.every(cl => cl.status === 'completed') ? "border-green-200 bg-green-50/10" : "border-orange-200 bg-orange-50/10"
+            )}>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <CheckCircle2 className={cn(
+                    "size-4",
+                    assignedChecklists.every(cl => cl.status === 'completed') ? "text-green-600" : "text-orange-600"
+                  )} />
+                  Required Shift Routines
+                </CardTitle>
+                <p className="text-sm text-muted-foreground mt-1">
+                  You must complete all routines assigned to your shift before submitting your timesheet.
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="divide-y border rounded-lg bg-white overflow-hidden">
+                  {assignedChecklists.map((cl) => (
+                    <div key={cl.checklist_id} className="flex items-center justify-between p-3">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className={cn(
+                          "size-2 rounded-full shrink-0",
+                          cl.status === 'completed' ? "bg-green-500" : "bg-orange-400 animate-pulse"
+                        )} />
+                        <span className="text-sm font-medium text-gray-700 truncate">{cl.assignment_title}</span>
+                      </div>
+                      <Badge 
+                        variant={cl.status === 'completed' ? 'success' : 'warning'} 
+                        appearance="light" 
+                        className="text-[10px] font-bold uppercase shrink-0"
+                      >
+                        {cl.status === 'completed' ? 'Completed' : 'Pending'}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+                
+                {assignedChecklists.some(cl => cl.status !== 'completed') && (
+                  <div className="mt-4">
+                    <Button 
+                      type="button" 
+                      variant="primary" 
+                      className="w-full font-bold shadow-sm"
+                      onClick={() => navigate('/staff/checklists')}
+                    >
+                      <ClipboardList className="size-4 me-2" />
+                      Complete Checklists Now
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           {/* Submit */}
           <div className="flex items-center gap-3 pb-8">
-            <Button type="submit" disabled={saving} className="flex-1 sm:flex-none sm:min-w-[160px]">
+            <Button 
+              type="submit" 
+              disabled={saving} 
+              className={cn(
+                "flex-1 sm:flex-none sm:min-w-[160px]",
+                assignedChecklists.some(cl => cl.status !== 'completed') && "opacity-50 grayscale cursor-not-allowed"
+              )}
+            >
               {saving ? 'Submitting...' : 'Submit Timesheet'}
             </Button>
             <Button

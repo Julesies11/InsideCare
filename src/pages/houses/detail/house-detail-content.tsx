@@ -338,6 +338,9 @@ export function HouseDetailContent({
               status: event.status || 'scheduled',
               location: event.location || null,
               created_by: currentStaffId,
+              is_checklist_event: !!event.is_checklist_event,
+              house_checklist_id: event.house_checklist_id || null,
+              checklist_schedule_id: event.checklist_schedule_id || null,
             })
             .select('id')
             .single();
@@ -374,6 +377,9 @@ export function HouseDetailContent({
               end_time: event.end_time || null,
               status: event.status || 'scheduled',
               location: event.location || null,
+              is_checklist_event: !!event.is_checklist_event,
+              house_checklist_id: event.house_checklist_id || null,
+              checklist_schedule_id: event.checklist_schedule_id || null,
             })
             .eq('id', event.id);
 
@@ -462,6 +468,7 @@ export function HouseDetailContent({
               days_of_week: checklist.days_of_week || null,
               description: checklist.description || null,
               master_id: checklist.master_id || null,
+              sort_order: checklist.sort_order || 0,
             })
             .select()
             .single();
@@ -495,6 +502,7 @@ export function HouseDetailContent({
               name: checklist.name,
               days_of_week: checklist.days_of_week || null,
               description: checklist.description || null,
+              sort_order: checklist.sort_order,
             })
             .eq('id', checklist.id);
           if (error) throw new Error(`Failed to update checklist: ${error.message}`);

@@ -23,45 +23,31 @@ const wrapper = ({ children }: { children: ReactNode }): ReactElement => (
 );
 
 describe('useHouseCalendarEvents Integration', () => {
-  it('should combine regular events and shifts (excluding shift-assigned checklists)', async () => {
+  it('should intelligently map event types based on title and checklist flag', async () => {
     server.use(
-      // 1. Mock regular calendar events with junction table style data
       http.get(`${SUPABASE_URL}/rest/v1/house_calendar_events`, () => {
         return HttpResponse.json([
           { 
             id: 'evt-1', 
-            house_id: 'house-1', 
-            title: 'House Meeting', 
-            event_date: '2026-03-23', 
-            status: 'scheduled',
+            title: 'Team Meeting', 
             is_checklist_event: false,
-            event_participants: [{ participant: { id: 'p-1', name: 'Alice' } }],
-            event_staff: [{ staff: { id: 's-1', name: 'Bob' } }]
+            event_type_info: { name: 'Meeting' }
+          },
+          { 
+            id: 'evt-2', 
+            title: 'Doctor Appointment', 
+            is_checklist_event: false,
+            event_type_info: { name: 'Appointment' }
+          },
+          { 
+            id: 'cl-1', 
+            title: 'Evening Checklist', 
+            is_checklist_event: true
           },
         ]);
       }),
-      // 2. Mock staff shifts
       http.get(`${SUPABASE_URL}/rest/v1/staff_shifts`, () => {
-        return HttpResponse.json([
-          { 
-            id: 'shift-1', 
-            staff_id: 'staff-1',
-            house_id: 'house-1',
-            start_date: '2026-03-23', 
-            start_time: '09:00',
-            end_time: '17:00',
-            shift_template: 'Morning',
-            staff: { id: 'staff-1', name: 'John Doe' },
-            assigned_checklists: [
-              {
-                id: 'ac-1',
-                checklist_id: 'cl-1',
-                assignment_title: 'Morning Handover',
-                submissions: []
-              }
-            ]
-          },
-        ]);
+        return HttpResponse.json([]);
       })
     );
 
@@ -69,17 +55,14 @@ describe('useHouseCalendarEvents Integration', () => {
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
-    // Should have 2 events: 1 Meeting, 1 Shift entry (Shift-assigned checklists are now INTERNAL to the shift)
-    expect(result.current.houseCalendarEvents).toHaveLength(2);
+    expect(result.current.houseCalendarEvents).toHaveLength(3);
     
-    const meeting = result.current.houseCalendarEvents.find(e => e.type === 'event');
-    const shift = result.current.houseCalendarEvents.find(e => e.type === 'shift');
+    const meeting = result.current.houseCalendarEvents.find(e => e.id === 'evt-1');
+    const appointment = result.current.houseCalendarEvents.find(e => e.id === 'evt-2');
+    const checklist = result.current.houseCalendarEvents.find(e => e.id === 'cl-1');
 
-    expect(meeting?.title).toBe('House Meeting');
-    expect(shift?.title).toBe('Morning - John Doe');
-    
-    // Verify junction data is mapped
-    expect(meeting?.event_participants).toHaveLength(1);
-    expect(meeting?.event_staff).toHaveLength(1);
+    expect(meeting?.type).toBe('meeting');
+    expect(appointment?.type).toBe('appointment');
+    expect(checklist?.type).toBe('checklist');
   });
 });

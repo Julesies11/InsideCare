@@ -32,7 +32,7 @@ describe('HouseChecklistSetup Dialogs', () => {
     const importBtn = screen.getByRole('button', { name: /import/i });
     fireEvent.click(importBtn);
     
-    expect(screen.getByText(/Import Checklists/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Import Checklists/i })).toBeInTheDocument();
   });
 
   it('allows opening the Add Checklist dialog', async () => {

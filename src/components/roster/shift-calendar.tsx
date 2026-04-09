@@ -148,11 +148,11 @@ export function ShiftCalendar({
                       {conflictingShifts.map(conf => (
                         <li key={conf.id} className="text-[10px] leading-tight flex flex-col gap-0.5">
                           <div className="flex items-center justify-between gap-2">
-                            <span className="font-bold text-gray-900">{conf.shift_template}</span>
-                            <span className="text-gray-500 font-medium">{conf.start_time.slice(0, 5)} - {conf.end_time.slice(0, 5)}</span>
+                            <span className="font-bold text-gray-900">{conf.title || conf.shift_template}</span>
+                            <span className="text-gray-500 font-medium">{(conf.start_time || '').slice(0, 5)} - {(conf.end_time || '').slice(0, 5)}</span>
                           </div>
                           <div className="text-gray-600 italic">
-                            at {conf.house?.name || 'Unknown House'}
+                            {conf.entry_type === 'event' ? (conf.location || 'No location') : `at ${conf.house?.name || 'Unknown House'}`}
                           </div>
                         </li>
                       ))}

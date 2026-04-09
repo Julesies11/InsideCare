@@ -24,7 +24,7 @@ interface HouseChecklistGroupProps {
   onStartChecklist: (checklist: any, event: any) => void;
   onResumeChecklist: (submission: any, checklist: any, event: any) => void;
   isCurrentShift?: boolean;
-  shiftId?: string;
+  currentShift?: any;
 }
 
 function HouseChecklistGroup({ 
@@ -33,12 +33,29 @@ function HouseChecklistGroup({
   onStartChecklist, 
   onResumeChecklist,
   isCurrentShift,
-  shiftId
+  currentShift
 }: HouseChecklistGroupProps) {
+  const shiftId = currentShift?.id;
   const { events = [], loading: loadingEvents } = useHouseChecklistEvents(house.id, todayStr, shiftId);
 
   const shiftChecklists = events.filter(e => e.id.startsWith('shift-cl-'));
   const scheduledHouseTasks = events.filter(e => !e.id.startsWith('shift-cl-'));
+
+  // Calculate if shift is ending soon (within 30 minutes)
+  const isShiftEndingSoon = useMemo(() => {
+    if (!isCurrentShift || !currentShift?.end_time) return false;
+    try {
+      const now = new Date();
+      const [hours, minutes] = currentShift.end_time.split(':').map(Number);
+      const end = new Date();
+      end.setHours(hours, minutes, 0);
+      
+      const diff = (end.getTime() - now.getTime()) / 60000;
+      return diff > 0 && diff <= 30;
+    } catch (e) {
+      return false;
+    }
+  }, [isCurrentShift, currentShift]);
 
   if (!loadingEvents && events.length === 0) return null;
 
@@ -59,18 +76,37 @@ function HouseChecklistGroup({
             const isCompleted = submission?.status === 'completed';
             const isInProgress = submission?.status === 'in_progress';
             
+            const isMandatory = item.is_shift_routine;
+            const isMandatoryIncomplete = isMandatory && !isCompleted && isShiftEndingSoon;
+            
             const checklistItems = checklist.items || [];
             const previewItems = checklistItems.slice(0, 2);
             const remainingCount = Math.max(0, checklistItems.length - 2);
 
             return (
-              <Card key={item.id} className={`flex flex-col h-full transition-all border-l-4 border-0 sm:border ${isCompleted ? 'border-l-green-500 bg-green-50/10' : isInProgress ? 'border-l-primary bg-primary/[0.02]' : 'border-l-gray-300'}`}>
+              <Card 
+                key={item.id} 
+                className={cn(
+                  "flex flex-col h-full transition-all border-l-4 border-0 sm:border",
+                  isCompleted ? "border-l-green-500 bg-green-50/10" : 
+                  isInProgress ? "border-l-primary bg-primary/[0.02]" : "border-l-gray-300",
+                  isMandatoryIncomplete && "border-orange-500 bg-orange-50/20 ring-2 ring-orange-500/20 animate-pulse"
+                )}
+              >
                 <CardHeader className="pb-3 flex flex-row items-start justify-between space-y-0">
                   <div className="flex flex-col gap-1 min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <h4 className="text-sm font-bold text-gray-900 break-words whitespace-normal">
                         {item.title || checklist.name}
                       </h4>
+                      {isMandatory && (
+                        <Badge variant="outline" className={cn(
+                          "text-[8px] font-bold h-4 px-1.5 uppercase",
+                          isCompleted ? "border-green-200 text-green-600" : "border-orange-200 text-orange-600"
+                        )}>
+                          Mandatory
+                        </Badge>
+                      )}
                     </div>
                   </div>
                 </CardHeader>
@@ -143,9 +179,13 @@ function HouseChecklistGroup({
                   )}
                   
                   <Button 
-                    variant={isCompleted ? "outline" : (isInProgress ? "primary" : "secondary")}
+                    variant={isCompleted ? "outline" : (isInProgress ? "primary" : (isMandatoryIncomplete ? "primary" : "secondary"))}
                     size="sm" 
-                    className={`h-8 text-[10px] shadow-sm w-full mt-1 font-bold ${!isCompleted && !isInProgress ? 'border border-gray-300' : ''}`}
+                    className={cn(
+                      "h-8 text-[10px] shadow-sm w-full mt-1 font-bold",
+                      !isCompleted && !isInProgress && !isMandatoryIncomplete && "border border-gray-300",
+                      isMandatoryIncomplete && "bg-orange-600 hover:bg-orange-700 border-none shadow-orange-200"
+                    )}
                     onClick={() => {
                       if (isInProgress || isCompleted) {
                         onResumeChecklist(submission, checklist, item);
@@ -156,7 +196,7 @@ function HouseChecklistGroup({
                     disabled={checklistItems.length === 0 || (item.is_shift_routine && item.shift_id !== shiftId)}
                     title={(item.is_shift_routine && item.shift_id !== shiftId) ? "You can only execute routines assigned to your current active shift." : undefined}
                   >
-                    {isCompleted ? 'Review Completed' : (isInProgress ? 'Resume Checklist' : 'Start Checklist')}
+                    {isCompleted ? 'Review Completed' : (isInProgress ? 'Resume Checklist' : (isMandatoryIncomplete ? 'Complete Routine Now' : 'Start Checklist'))}
                     <ArrowRight className="size-3 ms-1.5" />
                   </Button>
                 </div>
@@ -207,10 +247,15 @@ function HouseChecklistGroup({
   );
 }
 
+import { useStaffShifts } from '@/hooks/use-staff-shifts';
+
 export function StaffChecklists() {
   const { user, loading: authLoading } = useAuth();
+  const todayStr = format(new Date(), 'yyyy-MM-dd');
+  
   const { data: assignedHouses = [], isLoading: loadingHouses } = useStaffAssignedHouses(user?.staff_id);
-  const { data: currentShift, isLoading: loadingShift } = useCurrentStaffShift(user?.staff_id);
+  const { data: todayShifts = [], isLoading: loadingShifts } = useStaffShifts(user?.staff_id, todayStr, todayStr);
+  const { data: activeShift, isLoading: loadingActiveShift } = useCurrentStaffShift(user?.staff_id);
   
   const [selectedCalendarHouseId, setSelectedCalendarHouseId] = useState<string | null>(null);
   
@@ -219,29 +264,36 @@ export function StaffChecklists() {
   
   const calendarRef = useRef<any>(null);
 
-  const todayStr = format(new Date(), 'yyyy-MM-dd');
+  const isLoading = authLoading || loadingHouses || loadingShifts || loadingActiveShift;
 
-  const isLoading = authLoading || loadingHouses || loadingShift;
-
-  // Set default calendar house to current shift house or first assigned house
+  // Set default calendar house to active shift house or first assigned house
   useEffect(() => {
     if (!selectedCalendarHouseId && assignedHouses.length > 0) {
-      if (currentShift?.house_id) {
-        setSelectedCalendarHouseId(currentShift.house_id);
+      if (activeShift?.house_id) {
+        setSelectedCalendarHouseId(activeShift.house_id);
+      } else if (todayShifts.length > 0) {
+        setSelectedCalendarHouseId(todayShifts[0].house_id);
       } else {
         setSelectedCalendarHouseId(assignedHouses[0].house_id);
       }
     }
-  }, [assignedHouses, currentShift, selectedCalendarHouseId]);
+  }, [assignedHouses, activeShift, todayShifts, selectedCalendarHouseId]);
 
-  // Sort houses so current shift house is first
+  // Sort houses so current/today's shift houses are first
   const sortedHouses = useMemo(() => {
     return [...assignedHouses].sort((a, b) => {
-      if (a.house_id === currentShift?.house_id) return -1;
-      if (b.house_id === currentShift?.house_id) return 1;
+      const aHasShift = todayShifts.some(s => s.house_id === a.house_id);
+      const bHasShift = todayShifts.some(s => s.house_id === b.house_id);
+      const aIsActive = activeShift?.house_id === a.house_id;
+      const bIsActive = activeShift?.house_id === b.house_id;
+
+      if (aIsActive && !bIsActive) return -1;
+      if (bIsActive && !aIsActive) return 1;
+      if (aHasShift && !bHasShift) return -1;
+      if (bHasShift && !aHasShift) return 1;
       return a.house.name.localeCompare(b.house.name);
     });
-  }, [assignedHouses, currentShift]);
+  }, [assignedHouses, todayShifts, activeShift]);
 
   // Hook to get a refresh function for all today's tasks across all houses
   const queryClient = useQueryClient();
@@ -324,88 +376,61 @@ export function StaffChecklists() {
                   </Card>
                 ) : (
                   <div className="flex flex-col gap-10">
-                    {sortedHouses.map((item) => (
-                      <HouseChecklistGroup 
-                        key={item.house_id}
-                        house={item.house}
-                        todayStr={todayStr}
-                        isCurrentShift={item.house_id === currentShift?.house_id}
-                        shiftId={item.house_id === currentShift?.house_id ? currentShift?.id : undefined}
-                        onStartChecklist={(cl, event) => {
-                          if (calendarRef.current) {
-                            if (event) {
+                    {sortedHouses.map((item) => {
+                      // Find the best shift to show for this house
+                      const shiftForHouse = todayShifts.find(s => s.house_id === item.house_id) || 
+                                          (activeShift?.house_id === item.house_id ? activeShift : undefined);
+                      
+                      return (
+                        <HouseChecklistGroup 
+                          key={item.house_id}
+                          house={item.house}
+                          todayStr={todayStr}
+                          isCurrentShift={item.house_id === activeShift?.house_id}
+                          currentShift={shiftForHouse}
+                          onStartChecklist={(cl, event) => {
+                            if (calendarRef.current) {
+                              if (event) {
+                                calendarRef.current.handleEditEvent({
+                                  ...event,
+                                  is_checklist_event: true,
+                                  house_checklist_id: cl.id,
+                                  event_date: todayStr
+                                });
+                              } else {
+                                toast.info('Please select a scheduled checklist from the calendar.');
+                              }
+                            }
+                          }}
+                          onResumeChecklist={(sub, cl, event) => {
+                            if (calendarRef.current) {
                               calendarRef.current.handleEditEvent({
                                 ...event,
                                 is_checklist_event: true,
                                 house_checklist_id: cl.id,
-                                event_date: todayStr
+                                event_date: todayStr,
+                                submissions: [sub]
                               });
-                            } else {
-                              toast.info('Please select a scheduled checklist from the calendar.');
                             }
-                          }
-                        }}
-                        onResumeChecklist={(sub, cl, event) => {
-                          if (calendarRef.current) {
-                            calendarRef.current.handleEditEvent({
-                              ...event,
-                              is_checklist_event: true,
-                              house_checklist_id: cl.id,
-                              event_date: todayStr,
-                              submissions: [sub]
-                            });
-                          }
-                        }}
-                      />
-                    ))}
+                          }}
+                        />
+                      );
+                    })}
                   </div>
                 )}
               </div>
 
-              {/* House Calendar Section */}
-              {assignedHouses.length > 0 && (
-                <div className="pt-10 border-t border-gray-100 flex flex-col gap-6" id="house_calendar">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div className="flex items-center gap-2">
-                      <ClipboardCheck className="size-5 text-gray-500" />
-                      <h2 className="text-xl font-bold text-gray-900">House Calendar</h2>
-                    </div>
-                    
-                    {assignedHouses.length > 1 && (
-                      <div className="flex items-center gap-2 w-full sm:w-auto">
-                        <span className="text-xs font-bold text-muted-foreground uppercase">Viewing House:</span>
-                        <Select 
-                          value={selectedCalendarHouseId || ''} 
-                          onValueChange={setSelectedCalendarHouseId}
-                        >
-                          <SelectTrigger className="w-[200px] h-9 text-xs font-semibold">
-                            <SelectValue placeholder="Select House" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {assignedHouses.map((h) => (
-                              <SelectItem key={h.house_id} value={h.house_id}>
-                                {h.house.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
-                  </div>
-
-                  {selectedCalendarHouseId && (
-                    <div className="rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
-                      <HouseCalendarEvents 
-                        ref={calendarRef}
-                        houseId={selectedCalendarHouseId}
-                        staffId={user?.staff_id}
-                        canEdit={false}
-                        canDelete={false} // Staff cannot delete/manage schedule
-                        onRefreshNeeded={refreshAllTodayTasks}
-                      />
-                    </div>
-                  )}
-                </div>
+              {/* Checklist Execution Provider (Hidden Calendar) */}
+              {selectedCalendarHouseId && (
+                <HouseCalendarEvents 
+                  ref={calendarRef}
+                  houseId={selectedCalendarHouseId}
+                  staffId={user?.staff_id}
+                  canEdit={false}
+                  canDelete={false}
+                  onRefreshNeeded={refreshAllTodayTasks}
+                  hideCalendar={true}
+                />
               )}
             </>
           )}

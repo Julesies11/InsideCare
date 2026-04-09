@@ -58,18 +58,23 @@ describe('HouseChecklistSetup Component', () => {
       />
     );
 
-    const importBtn = screen.getByText(/Import Checklists/i);
+    const importBtn = screen.getByRole('button', { name: /Import Checklists/i });
     fireEvent.click(importBtn);
 
-    expect(screen.getByText(/Source House/i)).toBeDefined();
+    // Dialog title check
+    expect(screen.getByRole('heading', { name: /Import Checklists/i })).toBeInTheDocument();
     
-    // Open select
-    const selectTrigger = screen.getByText(/Select house.../i);
+    // Open select - searching for the trigger text
+    const selectTrigger = screen.getByText(/Select source house.../i);
     fireEvent.click(selectTrigger);
 
-    await waitFor(() => {
-      expect(screen.getAllByText(/Source House/i).length).toBeGreaterThan(0);
-      expect(screen.getAllByText(/Other House/i).length).toBeGreaterThan(0);
+    await waitFor(async () => {
+      // The mock name "Source House" and "Other House" should appear in the options
+      const sourceHouses = await screen.findAllByText(/Source House/i);
+      expect(sourceHouses.length).toBeGreaterThan(0);
+      
+      const otherHouses = await screen.findAllByText(/Other House/i);
+      expect(otherHouses.length).toBeGreaterThan(0);
     });
   });
 });

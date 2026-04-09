@@ -24,8 +24,8 @@ export function useCurrentStaffShift(staffId?: string) {
       const today = format(new Date(), 'yyyy-MM-dd');
       const nowTime = format(new Date(), 'HH:mm:ss');
 
-      // Find shift for today where current time is between start and end
-      const { data, error } = await supabase
+      // 1. First try to find an ACTIVE shift (now is between start and end)
+      const { data: activeShift, error: activeError } = await supabase
         .from('staff_shifts')
         .select('id, staff_id, house_id, start_date, start_time, end_time, house:houses(id, name)')
         .eq('staff_id', staffId)
@@ -34,12 +34,33 @@ export function useCurrentStaffShift(staffId?: string) {
         .gte('end_time', nowTime)
         .maybeSingle();
 
-      if (error) {
-        console.error('Error fetching current shift:', error);
-        return null;
-      }
+      if (!activeError && activeShift) return activeShift as unknown as StaffShift;
 
-      return data as unknown as StaffShift;
+      // 2. If no active shift, find the NEXT shift for today
+      const { data: nextShift, error: nextError } = await supabase
+        .from('staff_shifts')
+        .select('id, staff_id, house_id, start_date, start_time, end_time, house:houses(id, name)')
+        .eq('staff_id', staffId)
+        .eq('start_date', today)
+        .gt('start_time', nowTime)
+        .order('start_time', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+
+      if (!nextError && nextShift) return nextShift as unknown as StaffShift;
+
+      // 3. If still nothing, check for the most RECENT shift today (in case they just finished)
+      const { data: pastShift } = await supabase
+        .from('staff_shifts')
+        .select('id, staff_id, house_id, start_date, start_time, end_time, house:houses(id, name)')
+        .eq('staff_id', staffId)
+        .eq('start_date', today)
+        .lt('end_time', nowTime)
+        .order('end_time', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      return pastShift as unknown as StaffShift;
     },
     enabled: !!staffId,
     staleTime: 1000 * 60 * 5, // 5 minutes

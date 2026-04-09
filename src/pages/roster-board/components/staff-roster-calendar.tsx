@@ -33,6 +33,7 @@ interface StaffRosterCalendarProps {
   onBulkAction?: (houseId: string) => void;
   onPopulateRoster?: (houseId: string) => void;
   checklists: any[];
+  includeEvents?: boolean;
 }
 
 export interface StaffRosterCalendarHandle {
@@ -57,6 +58,7 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
   onBulkAction,
   onPopulateRoster,
   checklists,
+  includeEvents = false,
 }, ref) => {
   const queryClient = useQueryClient();
   const [showShiftDialog, setShowShiftDialog] = useState(false);
@@ -110,7 +112,8 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
     staffId, 
     startDate, 
     endDate, 
-    houseFilter !== 'all' ? houseFilter : undefined
+    houseFilter !== 'all' ? houseFilter : undefined,
+    includeEvents
   );
   
   const { data: leaveBlocks = [] } = useLeaveRequestsQuery(
