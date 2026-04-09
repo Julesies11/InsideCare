@@ -267,12 +267,28 @@ export function useRosterData() {
   });
 
   const bulkUpdateShiftsMutation = useMutation({
-    mutationFn: async ({ ids, updates }: { ids: string[], updates: any }) => {
-      const { data, error } = await supabase
-        .from('staff_shifts')
-        .update(updates)
-        .in('id', ids)
-        .select();
+    mutationFn: async ({ params, updates }: { params: string[] | any, updates: any }) => {
+      let query = supabase.from('staff_shifts').update(updates);
+      
+      if (Array.isArray(params)) {
+        query = query.in('id', params);
+      } else {
+        // Handle criteria object
+        if (params.houseId && params.houseId !== 'all') {
+          query = query.eq('house_id', params.houseId);
+        }
+        if (params.staffId && params.staffId !== 'all') {
+          query = query.eq('staff_id', params.staffId);
+        }
+        if (params.startDate) {
+          query = query.gte('start_date', params.startDate);
+        }
+        if (params.endDate) {
+          query = query.lte('start_date', params.endDate);
+        }
+      }
+      
+      const { data, error } = await query.select();
       if (error) throw error;
       return data;
     },
@@ -282,11 +298,28 @@ export function useRosterData() {
   });
 
   const bulkDeleteShiftsMutation = useMutation({
-    mutationFn: async (ids: string[]) => {
-      const { error } = await supabase
-        .from('staff_shifts')
-        .delete()
-        .in('id', ids);
+    mutationFn: async (params: string[] | any) => {
+      let query = supabase.from('staff_shifts').delete();
+      
+      if (Array.isArray(params)) {
+        query = query.in('id', params);
+      } else {
+        // Handle criteria object
+        if (params.houseId && params.houseId !== 'all') {
+          query = query.eq('house_id', params.houseId);
+        }
+        if (params.staffId && params.staffId !== 'all') {
+          query = query.eq('staff_id', params.staffId);
+        }
+        if (params.startDate) {
+          query = query.gte('start_date', params.startDate);
+        }
+        if (params.endDate) {
+          query = query.lte('start_date', params.endDate);
+        }
+      }
+      
+      const { error } = await query;
       if (error) throw error;
     },
     onSuccess: () => {
@@ -489,8 +522,8 @@ export function useRosterData() {
   const createShift = useCallback((shift: any) => createShiftMutation.mutateAsync(shift), [createShiftMutation]);
   const updateShift = useCallback((id: string, updates: any) => updateShiftMutation.mutateAsync({ id, updates }), [updateShiftMutation]);
   const deleteShift = useCallback((id: string) => deleteShiftMutation.mutateAsync(id), [deleteShiftMutation]);
-  const bulkUpdateShifts = useCallback((ids: string[], updates: any) => bulkUpdateShiftsMutation.mutateAsync({ ids, updates }), [bulkUpdateShiftsMutation]);
-  const bulkDeleteShifts = useCallback((ids: string[]) => bulkDeleteShiftsMutation.mutateAsync(ids), [bulkDeleteShiftsMutation]);
+  const bulkUpdateShifts = useCallback((params: string[] | any, updates: any) => bulkUpdateShiftsMutation.mutateAsync({ params, updates }), [bulkUpdateShiftsMutation]);
+  const bulkDeleteShifts = useCallback((params: string[] | any) => bulkDeleteShiftsMutation.mutateAsync(params), [bulkDeleteShiftsMutation]);
   const addShiftParticipant = useCallback((shift_id: string, participant_id: string) => addShiftParticipantMutation.mutateAsync({ shift_id, participant_id }), [addShiftParticipantMutation]);
   const removeShiftParticipant = useCallback((shift_id: string, participant_id: string) => removeShiftParticipantMutation.mutateAsync({ shift_id, participant_id }), [removeShiftParticipantMutation]);
   const syncShiftParticipants = useCallback((shift_id: string, participant_ids: string[]) => syncShiftParticipantsMutation.mutateAsync({ shift_id, participant_ids }), [syncShiftParticipantsMutation]);

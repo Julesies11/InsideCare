@@ -399,6 +399,7 @@ export function StaffChecklists() {
                         ref={calendarRef}
                         houseId={selectedCalendarHouseId}
                         staffId={user?.staff_id}
+                        canEdit={false}
                         canDelete={false} // Staff cannot delete/manage schedule
                         onRefreshNeeded={refreshAllTodayTasks}
                       />

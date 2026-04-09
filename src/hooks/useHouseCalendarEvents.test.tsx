@@ -23,18 +23,20 @@ const wrapper = ({ children }: { children: ReactNode }): ReactElement => (
 );
 
 describe('useHouseCalendarEvents Integration', () => {
-  it('should combine regular events, shifts, and shift checklists', async () => {
+  it('should combine regular events and shifts (excluding shift-assigned checklists)', async () => {
     server.use(
-      // 1. Mock regular calendar events
+      // 1. Mock regular calendar events with junction table style data
       http.get(`${SUPABASE_URL}/rest/v1/house_calendar_events`, () => {
         return HttpResponse.json([
           { 
             id: 'evt-1', 
             house_id: 'house-1', 
             title: 'House Meeting', 
-            type: 'meeting',
             event_date: '2026-03-23', 
-            status: 'scheduled'
+            status: 'scheduled',
+            is_checklist_event: false,
+            event_participants: [{ participant: { id: 'p-1', name: 'Alice' } }],
+            event_staff: [{ staff: { id: 's-1', name: 'Bob' } }]
           },
         ]);
       }),
@@ -52,6 +54,7 @@ describe('useHouseCalendarEvents Integration', () => {
             staff: { id: 'staff-1', name: 'John Doe' },
             assigned_checklists: [
               {
+                id: 'ac-1',
                 checklist_id: 'cl-1',
                 assignment_title: 'Morning Handover',
                 submissions: []
@@ -66,15 +69,17 @@ describe('useHouseCalendarEvents Integration', () => {
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
-    // Should have 3 events: 1 Meeting, 1 Shift entry, 1 Shift-assigned checklist
-    expect(result.current.houseCalendarEvents).toHaveLength(3);
+    // Should have 2 events: 1 Meeting, 1 Shift entry (Shift-assigned checklists are now INTERNAL to the shift)
+    expect(result.current.houseCalendarEvents).toHaveLength(2);
     
-    const meeting = result.current.houseCalendarEvents.find(e => e.type === 'meeting');
+    const meeting = result.current.houseCalendarEvents.find(e => e.type === 'event');
     const shift = result.current.houseCalendarEvents.find(e => e.type === 'shift');
-    const checklist = result.current.houseCalendarEvents.find(e => e.type === 'checklist');
 
     expect(meeting?.title).toBe('House Meeting');
     expect(shift?.title).toBe('Morning - John Doe');
-    expect(checklist?.title).toBe('Morning Handover');
+    
+    // Verify junction data is mapped
+    expect(meeting?.event_participants).toHaveLength(1);
+    expect(meeting?.event_staff).toHaveLength(1);
   });
 });

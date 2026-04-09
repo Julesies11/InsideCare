@@ -148,7 +148,16 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
       try {
         const { data: itemData } = await supabase
           .from('house_checklist_submission_items')
-          .select('id, submission_id, item_id, is_completed, note, completed_at')
+          .select(`
+            id, 
+            submission_id, 
+            item_id, 
+            is_completed, 
+            status,
+            note, 
+            completed_at,
+            completed_by_staff:staff!completed_by(id, name)
+          `)
           .eq('submission_id', submission.id);
 
         const { data: attachmentData } = await supabase
@@ -158,9 +167,18 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
 
         const completedItems: Record<string, boolean> = {};
         const itemNotes: Record<string, string> = {};
-        itemData?.forEach(item => {
-          completedItems[item.item_id] = item.is_completed;
+        const completedBy: Record<string, { id: string; name: string }> = {};
+        
+        itemData?.forEach((item: any) => {
+          const isDone = item.status === 'Completed' || item.is_completed;
+          completedItems[item.item_id] = isDone;
           itemNotes[item.item_id] = item.note || '';
+          if (isDone && item.completed_by_staff) {
+            completedBy[item.item_id] = {
+              id: item.completed_by_staff.id,
+              name: item.completed_by_staff.name
+            };
+          }
         });
 
         const attachments: Record<string, any[]> = {};
@@ -172,7 +190,7 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
           });
         }
 
-        setActiveSubmission({ id: submission.id, status: submission.status, completedItems, itemNotes, attachments });
+        setActiveSubmission({ id: submission.id, status: submission.status, completedItems, itemNotes, completedBy, attachments });
         setShowExecutionDialog(true);
       } catch (error) {
         toast.error('Failed to load checklist details');
@@ -228,6 +246,8 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
           item_id: item.item_id,
           master_item_id: originalItem?.master_item_id || null,
           is_completed: item.is_completed,
+          status: item.is_completed ? 'Completed' : 'Pending',
+          completed_by: item.completed_by,
           note: item.note,
           completed_at: item.is_completed ? new Date().toISOString() : null
         };

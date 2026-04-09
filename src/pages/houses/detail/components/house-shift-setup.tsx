@@ -14,7 +14,6 @@ import { cn, getPeriodTheme, SHIFT_ICONS } from '@/lib/utils';
 import { Switch } from '@/components/ui/switch';
 import { HousePendingChanges } from '@/models/house-pending-changes';
 import { supabase } from '@/lib/supabase';
-import { PopulateRosterModal } from './PopulateRosterModal';
 
 interface HouseShiftSetupProps {
   houseId: string;
@@ -39,7 +38,6 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
   const { houses: allHouses } = useHouses(0, 100, [], housesFilter);
 
   const [showTypeDialog, setShowTypeDialog] = useState(false);
-  const [showPopulateModal, setShowPopulateModal] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [importSourceId, setImportSourceId] = useState<string>('');
@@ -408,7 +406,7 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
                   {typeDefaults.length > 0 ? (
                     typeDefaults.map(clId => {
                       const defaultInfo = defaults?.find(d => d.checklist_id === clId);
-                      const cl = defaultInfo?.checklist || houseChecklists.find(c => c.id === clId);
+                      const cl = houseChecklists.find(c => c.id === clId) || defaultInfo?.checklist;
                       
                       const topItems = cl?.items?.slice(0, 2) || [];
 
@@ -457,13 +455,6 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
   return (
     <div className="space-y-12">
       {renderModel()}
-
-      <PopulateRosterModal 
-        open={showPopulateModal}
-        onOpenChange={setShowPopulateModal}
-        houseId={houseId}
-        houseName={allHouses.find(h => h.id === houseId)?.name || 'this house'}
-      />
 
       <Dialog open={showTypeDialog} onOpenChange={setShowTypeDialog}>
         <DialogContent className="max-w-2xl max-h-[95vh] sm:max-h-[90vh] flex flex-col p-0 overflow-hidden shadow-2xl border-none">
@@ -703,7 +694,7 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
                       <div className="flex items-center justify-between w-full min-w-[200px]">
                         <span>{h.name}</span>
                         <Badge variant="outline" className="ml-2 text-[10px] py-0 h-4 bg-primary/5 text-primary border-primary/10">
-                          {houseShiftCounts[h.id] || 0} Templates
+                          {houseShiftCounts[h.id] || 0} Shift Templates
                         </Badge>
                       </div>
                     </SelectItem>

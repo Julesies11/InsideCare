@@ -51,7 +51,16 @@ export function ChecklistExecutionDialog({
         .from('house_checklist_submissions')
         .select(`
           *,
-          house_checklist_submission_items (id, submission_id, item_id, is_completed, note, completed_at)
+          house_checklist_submission_items (
+            id, 
+            submission_id, 
+            item_id, 
+            status, 
+            is_completed, 
+            note, 
+            completed_at,
+            completed_by_staff:staff!completed_by(id, name)
+          )
         `)
         .eq('checklist_id', checklist.id)
         .eq('house_id', houseId)
@@ -63,9 +72,17 @@ export function ChecklistExecutionDialog({
       if (data) {
         const completedItems: Record<string, boolean> = {};
         const itemNotes: Record<string, string> = {};
-        data.house_checklist_submission_items.forEach((item: { item_id: string; is_completed: boolean; note?: string | null }) => {
-          completedItems[item.item_id] = item.is_completed;
+        const completedBy: Record<string, { id: string; name: string }> = {};
+        data.house_checklist_submission_items.forEach((item: any) => {
+          const isDone = item.status === 'Completed' || item.is_completed;
+          completedItems[item.item_id] = isDone;
           itemNotes[item.item_id] = item.note || '';
+          if (isDone && item.completed_by_staff) {
+            completedBy[item.item_id] = {
+              id: item.completed_by_staff.id,
+              name: item.completed_by_staff.name
+            };
+          }
         });
 
         // Fetch existing attachments
@@ -83,7 +100,7 @@ export function ChecklistExecutionDialog({
           });
         }
 
-        setActiveSubmission({ id: data.id, completedItems, itemNotes, attachments });
+        setActiveSubmission({ id: data.id, completedItems, itemNotes, completedBy, attachments });
       }
     } catch (error) {
       console.error('Error fetching draft:', error);
@@ -148,6 +165,8 @@ export function ChecklistExecutionDialog({
         item_id: item.item_id,
         master_item_id: originalItem?.master_item_id || null,
         is_completed: item.is_completed,
+        status: item.is_completed ? 'Completed' : 'Pending',
+        completed_by: item.completed_by,
         note: item.note,
         completed_at: item.is_completed ? new Date().toISOString() : null
       };

@@ -56,13 +56,11 @@ export function useChecklistSchedules(houseId?: string) {
         const calendarEvents = eventDates.map(date => ({
           house_id: schedule.house_id,
           title: houseChecklist?.name || 'Scheduled Checklist',
-          type: 'checklist',
           event_date: format(date, 'yyyy-MM-dd'),
           checklist_schedule_id: newSchedule.id,
           house_checklist_id: schedule.house_checklist_id,
           is_checklist_event: true,
           status: 'scheduled',
-          target_shift: schedule.target_shift
         }));
 
         const { error: eventError } = await supabase

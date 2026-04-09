@@ -56,6 +56,7 @@ export function BulkActionModal({
     try {
       await onConfirm(filters, 'delete');
       toast.success(`Deletion completed successfully`);
+      onClose();
     } catch (error: any) {
       console.error('Deletion failed:', error);
       toast.error(`Failed to perform deletion: ${error.message}`);

@@ -18,7 +18,8 @@ Management of care providers and support staff.
 ## 3. Roster & Operations
 The core operational engine of the care system.
 - **House Shift Templates**: Define recurring house structures (Morning, Day, Night, etc.) with custom times, icons, and pre-linked checklist routines (e.g., "Morning Protocol + Handover").
-- **Roster Auto-Fill**: Rapidly generate multi-week coverage by deploying house shift templates into the calendar with one click using the "Publish Roster" (Populate) tool.
+- **Roster Auto-Fill**: Rapidly generate multi-week coverage by deploying house shift templates into the calendar with one click using the "Build Roster" tool.
+- **Schedule Checklists**: Standalone tool to bulk schedule facility-wide checklists (e.g., "Weekly Deep Clean", "Vehicle Check") across multiple weeks independently of specific shifts.
 - **Roster Board**: Visual representation of staff shifts and house assignments with intelligent staff filtering (showing active staff assigned to the house).
 - **Shift Routines**: Automated, shift-locked task lists that staff must complete and sign off on during their active shift.
 - **Timesheets**: Integration with actual worked hours and manager approval workflow.
@@ -26,9 +27,12 @@ The core operational engine of the care system.
 ## 4. House & Facility Management
 Management of the physical locations where care is provided.
 - **House Profiles**: Information about capacity, occupancy, and facility details.
-- **Setup Wizard**: Interactive guide for configuring shift templates, templates, and facility routines.
+- **Setup Wizard**: Interactive guide for configuring shift templates and facility routines.
 - **Checklists**: Recurring operational tasks for house maintenance and compliance.
-- **Calendar**: House-specific events, appointments, and shared collaborative tasks.
+- **House Calendar**: Centralized hub for all house activities.
+    - **Integrated View**: Displays rostered shifts, scheduled checklists, and general events (Meetings, Appointments) in a single unified view.
+    - **Multi-Assignment**: General events support multiple assigned staff and participants using a robust many-to-many junction table architecture.
+    - **Quick Assign**: Ability to assign staff to "Open" shifts directly from the calendar view.
 - **Forms**: Data collection forms for various house-related activities.
 
 ## 5. Compliance & Audit

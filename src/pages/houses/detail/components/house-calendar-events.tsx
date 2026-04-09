@@ -1,4 +1,4 @@
-import { useState, useMemo, forwardRef, useImperativeHandle } from 'react';
+import { useState, useMemo, useCallback, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -6,12 +6,14 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar, Clock, MapPin, Users, Edit, Trash2, Plus, CalendarDays, ChevronLeft, ChevronRight, Loader2, CheckSquare, Zap } from 'lucide-react';
-import { format, addMonths, addWeeks, addDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameDay, isBefore, startOfDay, eachDayOfInterval, eachWeekOfInterval, isSameMonth } from 'date-fns';
+import { Clock, MapPin, Edit, Trash2, Plus, CalendarDays, ChevronLeft, ChevronRight, Loader2, CheckSquare, Zap, CalendarCheck } from 'lucide-react';
+import { format, addMonths, addWeeks, addDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameDay, isBefore, startOfDay, eachDayOfInterval, isSameMonth } from 'date-fns';
 import { useHouseCalendarEvents } from '@/hooks/useHouseCalendarEvents';
 import { useParticipants } from '@/hooks/use-participants';
 import { useStaff } from '@/hooks/use-staff';
+import { useHouseStaffAssignments } from '@/hooks/use-house-staff-assignments';
 import { useAuth } from '@/auth/context/auth-context';
 import { useHouseChecklists } from '@/hooks/use-house-checklists';
 import { useChecklistSchedules } from '@/hooks/useChecklistSchedules';
@@ -30,27 +32,34 @@ import { ShiftCard, ShiftCardData } from '@/components/roster/shift-card';
 import { useRosterData } from '@/components/roster/use-roster-data';
 import { useHouseShiftTemplates } from '@/hooks/use-house-shift-templates';
 import { PopulateRosterModal } from './PopulateRosterModal';
+import { ScheduleChecklistsModal } from './ScheduleChecklistsModal';
+import { BulkDeleteCalendarModal } from './BulkDeleteCalendarModal';
+import { useQueryClient } from '@tanstack/react-query';
 
-interface HouseCalendarEventsProps {
+export interface HouseCalendarEventsProps {
   houseId?: string;
   houseName?: string;
   staffId?: string;
+  canEdit: boolean;
   canDelete: boolean;
   pendingChanges?: HousePendingChanges;
   onPendingChangesChange?: (changes: HousePendingChanges) => void;
   onRefreshNeeded?: () => void;
+  refreshKey?: number;
 }
 
-type ViewMode = 'month' | 'week' | 'day';
+type ViewMode = 'month' | 'week';
 
 export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({ 
   houseId, 
   houseName,
   staffId,
+  canEdit,
   canDelete,
   pendingChanges,
   onPendingChangesChange,
-  onRefreshNeeded 
+  onRefreshNeeded,
+  refreshKey
 }, ref) => {
   const [viewMode, setViewMode] = useState<ViewMode>('week');
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -58,6 +67,8 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
   const [showEventTypeDialog, setShowEventTypeDialog] = useState(false);
   const [showChecklistDialog, setShowChecklistDialog] = useState(false);
   const [showPopulateModal, setShowPopulateModal] = useState(false);
+  const [showScheduleChecklistsModal, setShowScheduleChecklistsModal] = useState(false);
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
   
   // Filtering state
   const [filterTypes, setFilterTypes] = useState<string[]>(['shift', 'checklist', 'meeting', 'appointment', 'clinical', 'other']);
@@ -68,41 +79,121 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const [formData, setFormData] = useState({
     title: '',
-    type: 'meeting',
     event_type_id: '',
     description: '',
     event_date: '',
     end_date: '',
     start_time: '',
     end_time: '',
-    participant_id: '',
-    assigned_staff_id: '',
+    participant_ids: [] as string[],
+    assigned_staff_ids: [] as string[],
     status: 'scheduled',
     location: '',
-    notes: '',
     house_checklist_id: '',
-    target_shift: 'all',
     existingAttachments: [] as any[],
     queuedAttachments: [] as QueuedAttachment[],
     toDeleteAttachments: [] as string[],
   });
 
+  const queryClient = useQueryClient();
   const { houseCalendarEvents, loading, refresh } = useHouseCalendarEvents(houseId, staffId);
   const { houseChecklists } = useHouseChecklists(houseId);
   const { deleteSchedule, deleteEvent, loading: deleting } = useChecklistSchedules(houseId);
   const { participants } = useParticipants();
-  const { staff } = useStaff();
+  const { staff: systemStaff } = useStaff(0, 1000, [], { statuses: ['active'] }); // Fetch more staff for general events
+  const { assignments: houseStaffAssignments } = useHouseStaffAssignments(houseId);
   const { user } = useAuth();
   
   // Shift Dialog hooks
-  const { createShift, updateShift, deleteShift } = useRosterData();
+  const { createShift, updateShift, deleteShift, staff: allRosterStaff } = useRosterData();
   const { shiftTemplates } = useHouseShiftTemplates(houseId);
   
+  // Refresh when refreshKey changes
+  useEffect(() => {
+    if (refreshKey) refresh();
+  }, [refreshKey, refresh]);
+
+  const handleBulkDelete = async ({ startDate, endDate, deleteShifts, deleteEvents, deleteChecklists }: any) => {
+    if (!houseId) return;
+    
+    try {
+      const promises = [];
+      
+      if (deleteShifts) {
+        promises.push(
+          supabase.from('staff_shifts')
+            .delete()
+            .eq('house_id', houseId)
+            .gte('start_date', startDate)
+            .lte('start_date', endDate)
+        );
+      }
+      
+      if (deleteEvents) {
+        promises.push(
+          supabase.from('house_calendar_events')
+            .delete()
+            .eq('house_id', houseId)
+            .gte('event_date', startDate)
+            .lte('event_date', endDate)
+        );
+      }
+      
+      if (deleteChecklists) {
+        promises.push(
+          supabase.from('house_checklist_submissions')
+            .delete()
+            .eq('house_id', houseId)
+            .gte('created_at', `${startDate}T00:00:00.000Z`)
+            .lte('created_at', `${endDate}T23:59:59.999Z`)
+        );
+      }
+      
+      const results = await Promise.all(promises);
+      const error = results.find(r => r.error)?.error;
+      
+      if (error) throw error;
+      
+      await queryClient.invalidateQueries({ queryKey: ['house-calendar-events', { houseId }] });
+      await queryClient.invalidateQueries({ queryKey: ['roster-shifts'] });
+      await queryClient.invalidateQueries({ queryKey: ['house-checklist-history', houseId] });
+      refresh();
+      
+    } catch (error: any) {
+      console.error('Bulk delete error:', error);
+      throw error;
+    }
+  };
+
   // Shift Dialog state
   const [showShiftDialog, setShowShiftDialog] = useState(false);
   const [selectedShift, setSelectedShift] = useState<any>(null);
   const [shiftPreSelectedDate, setShiftPreSelectedDate] = useState<Date>();
   const [savingShift, setSavingShift] = useState(false);
+
+  const handleQuickAssign = useCallback(async (shiftId: string, staffId: string) => {
+    try {
+      await updateShift(shiftId, { staff_id: staffId });
+      toast.success('Staff assigned successfully');
+      refresh();
+    } catch (error: any) {
+      toast.error('Failed to assign staff: ' + error.message);
+    }
+  }, [updateShift, refresh]);
+
+  const staffList = useMemo(() => {
+    if (!allRosterStaff || !houseId) return [];
+    
+    const targetHouseId = houseId.toLowerCase();
+    
+    return allRosterStaff.filter(s => {
+      const assignments = (s as any).house_assignments || [];
+      return assignments.some((a: any) => {
+        const assignmentHouseId = (a.house_id || a.house?.id || '').toLowerCase();
+        return assignmentHouseId === targetHouseId;
+      });
+    }).map(s => ({ id: s.id, name: s.name }));
+  }, [allRosterStaff, houseId]);
 
   // Helper to convert calendar event to ShiftCardData
   const mapEventToShiftCardData = (event: any): ShiftCardData => ({
@@ -114,9 +205,9 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
     shift_template: event.shift_template,
     color_theme: event.type_details?.color_theme,
     icon_name: event.type_details?.icon_name,
-    staff_name: event.assigned_staff?.name,
-    staff_id: event.assigned_staff_id,
-    participants: event.participants,
+    staff_name: event.event_staff?.[0]?.staff?.name,
+    staff_id: event.event_staff?.[0]?.staff?.id,
+    participants: event.event_participants?.map((p: any) => ({ id: p.participant.id, name: p.participant.name })) || event.participants,
     assigned_checklists: event.assigned_checklists?.map((ac: any) => ({
       id: ac.id,
       checklist_id: ac.checklist_id,
@@ -170,6 +261,14 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
     return visibleEvents.filter(event => {
       const eventDate = event.event_date; // This is already yyyy-MM-dd
       return eventDate >= startStr && eventDate <= endStr;
+    }).sort((a, b) => {
+      const startA = a.start_time || '00:00';
+      const startB = b.start_time || '00:00';
+      if (startA !== startB) return startA.localeCompare(startB);
+      
+      const endA = a.end_time || '00:00';
+      const endB = b.end_time || '00:00';
+      return endA.localeCompare(endB);
     });
   }, [visibleEvents, currentDate, viewMode]);
 
@@ -200,20 +299,17 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
     const dateStr = format(date, 'yyyy-MM-dd');
     setFormData({
       title: '',
-      type: 'meeting',
       event_type_id: '',
       description: '',
       event_date: dateStr,
       end_date: dateStr,
       start_time: '',
       end_time: '',
-      participant_id: '',
-      assigned_staff_id: '',
+      participant_ids: [],
+      assigned_staff_ids: [],
       status: 'scheduled',
       location: '',
-      notes: '',
       house_checklist_id: '',
-      target_shift: 'all',
       existingAttachments: [],
       queuedAttachments: [],
       toDeleteAttachments: [],
@@ -278,7 +374,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
             .from('house_checklist_submission_items')
             .select(`
               *,
-              completed_by_staff:staff(id, name)
+              completed_by_staff:staff!completed_by(id, name)
             `)
             .eq('submission_id', existingSubmission.id);
 
@@ -321,20 +417,17 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
     setSelectedEvent(event);
     setFormData({
       title: event.title,
-      type: event.type,
       event_type_id: event.event_type_id || '',
       description: event.description || '',
       event_date: event.event_date,
       end_date: event.end_date || event.event_date,
       start_time: event.start_time || '',
       end_time: event.end_time || '',
-      participant_id: event.participant_id || '',
-      assigned_staff_id: event.assigned_staff_id || '',
+      participant_ids: event.event_participants?.map((p: any) => p.participant.id) || [],
+      assigned_staff_ids: event.event_staff?.map((s: any) => s.staff.id) || [],
       status: event.status || 'scheduled',
       location: event.location || '',
-      notes: event.notes || '',
       house_checklist_id: event.house_checklist_id || '',
-      target_shift: event.target_shift || 'all',
       existingAttachments: event.attachments || [],
       queuedAttachments: [],
       toDeleteAttachments: [],
@@ -494,22 +587,19 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
     try {
       const eventData = {
         title: formData.title,
-        type: formData.type,
         event_type_id: formData.event_type_id || null,
         description: formData.description || null,
         event_date: formData.event_date,
         end_date: formData.end_date || formData.event_date,
         start_time: formData.start_time || null,
         end_time: formData.end_time || null,
-        participant_id: formData.participant_id || null,
-        assigned_staff_id: formData.assigned_staff_id || null,
+        participant_ids: formData.participant_ids || [],
+        assigned_staff_ids: formData.assigned_staff_ids || [],
         status: formData.status || 'scheduled',
         location: formData.location || null,
-        notes: formData.notes || null,
         created_by: user?.id,
-        is_checklist_event: formData.type === 'checklist',
-        house_checklist_id: formData.type === 'checklist' ? formData.house_checklist_id : null,
-        target_shift: formData.target_shift,
+        is_checklist_event: !!formData.house_checklist_id,
+        house_checklist_id: formData.house_checklist_id || null,
       };
 
       let finalEventId: string | null = null;
@@ -550,17 +640,33 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
         if (formData.queuedAttachments.length > 0) {
           toast.loading('Creating event and uploading attachments...');
           
+          // Exclude junction fields for direct table insert
+          const { participant_ids, assigned_staff_ids, ...directTableData } = eventData;
+
           const { data: newEvent, error: insertError } = await supabase
             .from('house_calendar_events')
             .insert({
-              ...eventData,
+              ...directTableData,
               house_id: houseId,
             })
-            .select()
+            .select('id')
             .single();
 
           if (insertError) throw insertError;
           finalEventId = newEvent.id;
+
+          // Also handle immediate junction inserts
+          if (participant_ids?.length > 0) {
+            await supabase
+              .from('house_calendar_event_participants')
+              .insert(participant_ids.map(id => ({ event_id: finalEventId, participant_id: id })));
+          }
+          if (assigned_staff_ids?.length > 0) {
+            await supabase
+              .from('house_calendar_event_staff')
+              .insert(assigned_staff_ids.map(id => ({ event_id: finalEventId, staff_id: id })));
+          }
+
           toast.dismiss();
         } else {
           // Normal flow for events without attachments (keep them pending)
@@ -755,20 +861,18 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
 
   // Helper function to get participant name
   const getParticipantName = (event: any) => {
-    if (event.participant?.name) return event.participant.name;
-    if (event.participant_id) {
-      const participant = participants.find(p => p.id === event.participant_id);
-      return participant?.name || 'Unknown Participant';
+    if (event.event_participants?.length > 0) {
+      const names = event.event_participants.map((ep: any) => ep.participant?.name).filter(Boolean);
+      if (names.length > 0) return names.join(', ');
     }
     return null;
   };
 
   // Helper function to get staff name
   const getStaffName = (event: any) => {
-    if (event.assigned_staff?.name) return event.assigned_staff.name;
-    if (event.assigned_staff_id) {
-      const staffMember = staff.find(s => s.id === event.assigned_staff_id);
-      return staffMember?.name || 'Unknown Staff';
+    if (event.event_staff?.length > 0) {
+      const names = event.event_staff.map((es: any) => es.staff?.name).filter(Boolean);
+      if (names.length > 0) return names.join(', ');
     }
     return null;
   };
@@ -874,24 +978,20 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => {
-                    setSelectedShift(null);
-                    setShiftPreSelectedDate(currentDate);
-                    setShowShiftDialog(true);
-                  }}
-                  className="gap-2"
+                  onClick={() => setShowScheduleChecklistsModal(true)}
+                  className="gap-2 font-bold border-primary/30 text-primary hover:bg-primary/5"
                 >
-                  <Users className="size-4" />
-                  Add Shift
+                  <CalendarCheck className="size-4 text-primary" />
+                  Schedule Checklists
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleAddEvent(currentDate)}
-                  className="gap-2"
+                  onClick={() => setShowBulkDeleteModal(true)}
+                  className="gap-2 font-bold border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 shadow-sm bg-white"
                 >
-                  <Plus className="size-4" />
-                  Add Event
+                  <Trash2 className="size-4" />
+                  Bulk Delete
                 </Button>
               </div>
             </div>
@@ -903,7 +1003,6 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="day">Day</SelectItem>
                   <SelectItem value="week">Week</SelectItem>
                   <SelectItem value="month">Month</SelectItem>
                 </SelectContent>
@@ -925,14 +1024,14 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
               {getPeriodLabel()}
             </span>
           </div>
-        </CardHeader>        <CardContent>
-          {loading ? (
+        </CardHeader>        <CardContent className="relative">
+          {loading && getEventsForPeriod.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground flex flex-col items-center gap-2">
               <Loader2 className="size-8 animate-spin text-primary" />
               <p className="text-sm">Loading calendar events...</p>
             </div>
           ) : (
-            <div className="space-y-6">
+            <div className={`space-y-6 transition-opacity ${loading ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
               {/* Visual Calendar View */}
               <div className="border rounded-xl overflow-hidden bg-background">
                 {viewMode === 'week' ? (
@@ -957,13 +1056,13 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
                               <Button 
                                 variant="ghost" 
                                 size="icon" 
-                                className="size-6 opacity-0 group-hover/day:opacity-100 transition-opacity -mr-1"
+                                className="size-8 opacity-0 group-hover/day:opacity-100 transition-opacity -mr-1"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleAddEvent(day);
                                 }}
                               >
-                                <Plus className="size-3 text-primary" />
+                                <Plus className="size-5 text-primary" />
                               </Button>
                             </div>
                           </div>
@@ -986,6 +1085,8 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
                                         e?.stopPropagation();
                                         handleEditEvent(event);
                                       }}
+                                      staffList={staffList}
+                                      onQuickAssign={handleQuickAssign}
                                     />
                                   );
                                 }
@@ -1028,20 +1129,6 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
                   <div className="p-4 flex flex-col gap-4 min-h-[300px]">
                     <div className="flex items-center justify-between border-b pb-2">
                       <h3 className="font-bold text-lg">{format(currentDate, 'EEEE, MMMM d')}</h3>
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm" onClick={() => {
-                          setSelectedShift(null);
-                          setShiftPreSelectedDate(currentDate);
-                          setShowShiftDialog(true);
-                        }}>
-                          <Users className="size-4 me-1.5" />
-                          Add Shift
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={() => handleAddEvent(currentDate)}>
-                          <Plus className="size-4 me-1.5" />
-                          Add Event
-                        </Button>
-                      </div>
                     </div>
                     <div className="space-y-3">
                       {getEventsForPeriod.length === 0 ? (
@@ -1060,8 +1147,9 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
                                   e?.stopPropagation();
                                   handleEditEvent(event);
                                 }}
-                              />
-                            );
+                                staffList={staffList}
+                                onQuickAssign={handleQuickAssign}
+                              />                            );
                           }
 
                           return (
@@ -1172,6 +1260,8 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
                                         e?.stopPropagation();
                                         handleEditEvent(event);
                                       }}
+                                      staffList={staffList}
+                                      onQuickAssign={handleQuickAssign}
                                     />
                                   );
                                 }
@@ -1239,6 +1329,13 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
         </CardContent>
       </Card>
 
+      <BulkDeleteCalendarModal
+        open={showBulkDeleteModal}
+        onClose={() => setShowBulkDeleteModal(false)}
+        onConfirm={handleBulkDelete}
+        houseName={houseName || 'Selected House'}
+      />
+
       <Dialog open={showEventDialog} onOpenChange={setShowEventDialog}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -1261,72 +1358,12 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="type">Type</Label>
-                <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
-                  <SelectTrigger id="type">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="meeting">Meeting</SelectItem>
-                    <SelectItem value="appointment">Appointment</SelectItem>
-                    <SelectItem value="clinical">Clinical</SelectItem>
-                    <SelectItem value="checklist">Checklist</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {formData.type === 'checklist' && (
-              <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-                <Label htmlFor="house_checklist_id">Select Checklist Template *</Label>
-                <Select 
-                  value={formData.house_checklist_id} 
-                  onValueChange={(value) => {
-                    const cl = houseChecklists.find(c => c.id === value);
-                    setFormData({ 
-                      ...formData, 
-                      house_checklist_id: value,
-                      title: cl ? cl.name : formData.title 
-                    });
-                  }}
-                >
-                  <SelectTrigger id="house_checklist_id">
-                    <SelectValue placeholder="Select a checklist template..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {houseChecklists.map((cl) => (
-                      <SelectItem key={cl.id} value={cl.id}>
-                        {cl.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="event_type">Category / Style</Label>
+                <Label htmlFor="event_type">Type</Label>
                 <HouseCalendarEventTypeCombobox
                   value={formData.event_type_id || ''}
                   onChange={(value) => setFormData({ ...formData, event_type_id: value })}
                   onManageList={() => setShowEventTypeDialog(true)}
                 />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="target_shift">Period / Shift</Label>
-                <Select value={formData.target_shift} onValueChange={(v) => setFormData({ ...formData, target_shift: v })}>
-                  <SelectTrigger id="target_shift">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Full Day</SelectItem>
-                    <SelectItem value="morning">Morning</SelectItem>
-                    <SelectItem value="day">Day</SelectItem>
-                    <SelectItem value="night">Night</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
             </div>
 
@@ -1390,64 +1427,71 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="participant_id">Participant</Label>
-                <Select value={formData.participant_id || "none"} onValueChange={(value) => setFormData({ ...formData, participant_id: value === "none" ? "" : value })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select participant" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">None</SelectItem>
-                    {participants
-                      .filter(p => p.status === 'active' || p.id === formData.participant_id)
-                      .map((participant) => (
-                      <SelectItem key={participant.id} value={participant.id}>
-                        {participant.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label>Participants</Label>
+                <div className="max-h-40 overflow-y-auto border rounded-md p-2 space-y-2 bg-gray-50/50">
+                  {participants.filter(p => p.status === 'active' || formData.participant_ids?.includes(p.id)).map(participant => (
+                    <label key={participant.id} className="flex items-center space-x-2 cursor-pointer p-1 hover:bg-white rounded">
+                      <Checkbox 
+                        checked={formData.participant_ids?.includes(participant.id)}
+                        onCheckedChange={(checked) => {
+                          setFormData(prev => ({
+                            ...prev,
+                            participant_ids: checked 
+                              ? [...(prev.participant_ids || []), participant.id]
+                              : (prev.participant_ids || []).filter(id => id !== participant.id)
+                          }));
+                        }}
+                      />
+                      <span className="text-sm">{participant.name}</span>
+                    </label>
+                  ))}
+                  {participants.length === 0 && (
+                    <span className="text-xs text-muted-foreground italic px-2">No active participants found</span>
+                  )}
+                </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="assigned_staff_id">Assigned Staff</Label>
-                <Select value={formData.assigned_staff_id || "none"} onValueChange={(value) => setFormData({ ...formData, assigned_staff_id: value === "none" ? "" : value })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select staff" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">None</SelectItem>
-                    {staff
-                      .filter(s => {
-                        // 1. Must be active status (or currently assigned)
-                        const isStatusActive = (s as any).status?.toLowerCase() === 'active' || s.id === formData.assigned_staff_id;
-                        if (!isStatusActive) return false;
-
-                        // 2. Must be assigned to this specific house
-                        const today = new Date().toISOString().split('T')[0];
-                        const assignments = (s as any).house_assignments || [];
-                        const hasActiveAssignment = assignments.some((a: any) => {
-                          const assignmentHouseId = (a.house_id || a.house?.id || '').toLowerCase();
-                          const targetHouseId = (houseId || '').toLowerCase();
-                          const isTargetHouse = assignmentHouseId === targetHouseId;
-                          const isCurrent = !a.end_date || a.end_date >= today;
-                          return isTargetHouse && isCurrent;
-                        });
-
-                        // Always include the currently assigned staff member even if they are no longer active at the house
-                        return hasActiveAssignment || s.id === formData.assigned_staff_id;
-                      })
-                      .map((staffMember) => (
-                      <SelectItem key={staffMember.id} value={staffMember.id}>
-                        <div className="flex items-center gap-2">
-                          <Avatar className="size-5">
-                            <AvatarImage src={(staffMember as any).photo_url} />
-                            <AvatarFallback className="text-[8px]">{staffMember.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
-                          </Avatar>
-                          <span>{staffMember.name}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label>Assigned Staff</Label>
+                <div className="max-h-40 overflow-y-auto border rounded-md p-2 space-y-2 bg-gray-50/50">
+                  {systemStaff.filter(s => {
+                    const isStatusActive = (s as any).status?.toLowerCase() === 'active' || formData.assigned_staff_ids?.includes(s.id);
+                    if (!isStatusActive) return false;
+                    const today = new Date().toISOString().split('T')[0];
+                    const assignments = (s as any).house_assignments || [];
+                    const hasActiveAssignment = assignments.some((a: any) => {
+                      const assignmentHouseId = (a.house_id || a.house?.id || '').toLowerCase();
+                      const targetHouseId = (houseId || '').toLowerCase();
+                      const isTargetHouse = assignmentHouseId === targetHouseId;
+                      const isCurrent = !a.end_date || a.end_date >= today;
+                      return isTargetHouse && isCurrent;
+                    });
+                    return hasActiveAssignment || formData.assigned_staff_ids?.includes(s.id);
+                  }).map(staffMember => (
+                    <label key={staffMember.id} className="flex items-center space-x-2 cursor-pointer p-1 hover:bg-white rounded">
+                      <Checkbox 
+                        checked={formData.assigned_staff_ids?.includes(staffMember.id)}
+                        onCheckedChange={(checked) => {
+                          setFormData(prev => ({
+                            ...prev,
+                            assigned_staff_ids: checked 
+                              ? [...(prev.assigned_staff_ids || []), staffMember.id]
+                              : (prev.assigned_staff_ids || []).filter(id => id !== staffMember.id)
+                          }));
+                        }}
+                      />
+                      <div className="flex items-center gap-2">
+                        <Avatar className="size-5">
+                          <AvatarImage src={(staffMember as any).photo_url} />
+                          <AvatarFallback className="text-[8px]">{staffMember.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm">{staffMember.name}</span>
+                      </div>
+                    </label>
+                  ))}
+                  {systemStaff.length === 0 && (
+                    <span className="text-xs text-muted-foreground italic px-2">No assigned staff found</span>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -1458,17 +1502,6 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
                 value={formData.location}
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                 placeholder="Event location"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea
-                id="notes"
-                value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                placeholder="Additional notes"
-                rows={3}
               />
             </div>
 
@@ -1600,7 +1633,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
           staffId={staffId}
           preSelectedDate={shiftPreSelectedDate}
           preSelectedHouseId={houseId}
-          staffList={staff}
+          staffList={allRosterStaff || []}
           houses={[{ id: houseId, name: 'Current House' }]}
           participants={participants.filter(p => p.house_id === houseId)}
           checklists={houseChecklists}
@@ -1615,6 +1648,14 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
       <PopulateRosterModal 
         open={showPopulateModal}
         onOpenChange={setShowPopulateModal}
+        houseId={houseId!}
+        houseName={houseName || ''}
+        onSuccess={refresh}
+      />
+
+      <ScheduleChecklistsModal
+        open={showScheduleChecklistsModal}
+        onOpenChange={setShowScheduleChecklistsModal}
         houseId={houseId!}
         houseName={houseName || ''}
         onSuccess={refresh}

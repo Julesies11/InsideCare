@@ -15,11 +15,10 @@ import { cn } from '@/lib/utils';
 import { HouseDetailSidebar } from './house-detail-sidebar';
 import { HouseStaff } from './components/house-staff';
 import { HouseCalendarEvents } from './components/house-calendar-events';
-import { HouseChecklists } from './components/house-checklists';
+import { HouseChecklistSetup } from './components/house-checklist-setup';
 import { HouseResources } from './components/house-resources';
 import { HouseComms } from './components/house-comms';
 import { HouseShiftSetup } from './components/house-shift-setup';
-import { HouseChecklistHistory } from './components/house-checklist-history';
 import { HouseManagement } from './components/house-management';
 import { HousePendingChanges, emptyHousePendingChanges } from '@/models/house-pending-changes';
 import { useAuth } from '@/auth/context/auth-context';
@@ -325,46 +324,77 @@ export function HouseDetailContent({
 
       // Step 4: Process pending calendar events
       if (currentPending.calendarEvents.toAdd.length > 0) {
-        const toInsert = currentPending.calendarEvents.toAdd.map(event => ({
-          house_id: id,
-          title: event.title,
-          type: event.type,
-          event_type_id: event.event_type_id || null,
-          description: event.description || null,
-          event_date: event.event_date,
-          start_time: event.start_time || null,
-          end_time: event.end_time || null,
-          participant_id: event.participant_id || null,
-          assigned_staff_id: event.assigned_staff_id || null,
-          status: event.status || 'scheduled',
-          location: event.location || null,
-          notes: event.notes || null,
-          created_by: currentStaffId,
-        }));
-        const { error } = await supabase.from('house_calendar_events').insert(toInsert);
-        if (error) throw new Error(`Failed to add calendar events: ${error.message}`);
-      }
-
-      if (currentPending.calendarEvents.toUpdate.length > 0) {
-        for (const event of currentPending.calendarEvents.toUpdate) {
-          const { error } = await supabase
+        for (const event of currentPending.calendarEvents.toAdd) {
+          const { data: newEvent, error: eventError } = await supabase
             .from('house_calendar_events')
-            .update({
+            .insert({
+              house_id: id,
               title: event.title,
-              type: event.type,
               event_type_id: event.event_type_id || null,
               description: event.description || null,
               event_date: event.event_date,
               start_time: event.start_time || null,
               end_time: event.end_time || null,
-              participant_id: event.participant_id || null,
-              assigned_staff_id: event.assigned_staff_id || null,
               status: event.status || 'scheduled',
               location: event.location || null,
-              notes: event.notes || null,
+              created_by: currentStaffId,
+            })
+            .select('id')
+            .single();
+
+          if (eventError) throw new Error(`Failed to add calendar event: ${eventError.message}`);
+
+          // Insert into junction tables
+          if (event.participant_ids?.length > 0) {
+            const { error: pError } = await supabase
+              .from('house_calendar_event_participants')
+              .insert(event.participant_ids.map((pId: string) => ({ event_id: newEvent.id, participant_id: pId })));
+            if (pError) throw new Error(`Failed to link participants: ${pError.message}`);
+          }
+
+          if (event.assigned_staff_ids?.length > 0) {
+            const { error: sError } = await supabase
+              .from('house_calendar_event_staff')
+              .insert(event.assigned_staff_ids.map((sId: string) => ({ event_id: newEvent.id, staff_id: sId })));
+            if (sError) throw new Error(`Failed to link staff: ${sError.message}`);
+          }
+        }
+      }
+
+      if (currentPending.calendarEvents.toUpdate.length > 0) {
+        for (const event of currentPending.calendarEvents.toUpdate) {
+          const { error: eventError } = await supabase
+            .from('house_calendar_events')
+            .update({
+              title: event.title,
+              event_type_id: event.event_type_id || null,
+              description: event.description || null,
+              event_date: event.event_date,
+              start_time: event.start_time || null,
+              end_time: event.end_time || null,
+              status: event.status || 'scheduled',
+              location: event.location || null,
             })
             .eq('id', event.id);
-          if (error) throw new Error(`Failed to update calendar event: ${error.message}`);
+
+          if (eventError) throw new Error(`Failed to update calendar event: ${eventError.message}`);
+
+          // Sync junction tables: delete all and re-insert
+          await supabase.from('house_calendar_event_participants').delete().eq('event_id', event.id);
+          if (event.participant_ids?.length > 0) {
+            const { error: pError } = await supabase
+              .from('house_calendar_event_participants')
+              .insert(event.participant_ids.map((pId: string) => ({ event_id: event.id, participant_id: pId })));
+            if (pError) throw new Error(`Failed to link participants: ${pError.message}`);
+          }
+
+          await supabase.from('house_calendar_event_staff').delete().eq('event_id', event.id);
+          if (event.assigned_staff_ids?.length > 0) {
+            const { error: sError } = await supabase
+              .from('house_calendar_event_staff')
+              .insert(event.assigned_staff_ids.map((sId: string) => ({ event_id: event.id, staff_id: sId })));
+            if (sError) throw new Error(`Failed to link staff: ${sError.message}`);
+          }
         }
       }
 
@@ -919,16 +949,14 @@ export function HouseDetailContent({
               refreshKey={refreshKeys.comms}
             />
 
-            <HouseChecklists 
+            <HouseChecklistSetup 
               houseId={id!} 
-              checklists={formData.checklists || []}
+              canAdd={canEdit}
+              canDelete={canEdit}
               pendingChanges={pendingChanges}
               onPendingChangesChange={onPendingChangesChange}
-              canEdit={canEdit}
-              refreshKey={refreshKeys.checklists}
+              onRefresh={() => queryClient.invalidateQueries({ queryKey: ['house-checklists', id] })}
             />
-
-            <HouseChecklistHistory houseId={id!} />
           </div>
 
           <HouseResources 

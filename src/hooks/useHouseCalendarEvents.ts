@@ -32,19 +32,20 @@ export interface HouseCalendarEvent {
   event_date: string;
   start_time?: string;
   end_time?: string;
-  participant_id?: string;
-  assigned_staff_id?: string;
+  participant_ids?: string[];
+  assigned_staff_ids?: string[];
   status: string;
   location?: string;
-  notes?: string;
   created_by?: string;
   created_at: string;
   updated_at: string;
+  // Relationship data from junction tables
+  event_participants?: Array<{ participant: { id: string; name: string } }>;
+  event_staff?: Array<{ staff: { id: string; name: string } }>;
   // Checklist-specific fields
   is_checklist_event?: boolean;
   house_checklist_id?: string;
   checklist_schedule_id?: string;
-  target_shift?: string;
   shift_template?: string;
   shift_template_id?: string;
   type_details?: {
@@ -57,16 +58,6 @@ export interface HouseCalendarEvent {
     status: string;
     completed_at: string | null;
   }>;
-  participant?: {
-    id: string;
-    name: string;
-    email?: string;
-  };
-  assigned_staff?: {
-    id: string;
-    name: string;
-    email?: string;
-  };
   creator?: {
     id: string;
     name: string;
@@ -89,24 +80,54 @@ export function useHouseCalendarEvents(houseId?: string, staffId?: string) {
     try {
       setLoading(true);
       
-      // 1. Fetch regular calendar events
+      // 1. Fetch regular calendar events including junction data
       const { data: events, error: eventError } = await supabase
         .from('house_calendar_events')
         .select(`
-          *,
+          id,
+          house_id,
+          title,
+          event_type_id,
+          description,
+          event_date,
+          start_time,
+          end_time,
+          status,
+          location,
+          created_by,
+          created_at,
+          updated_at,
+          is_checklist_event,
+          house_checklist_id,
+          checklist_schedule_id,
           event_type_info:house_calendar_event_types_master(*),
           attachments:house_calendar_event_attachments(*),
-          participant:participants(id, name, email),
-          assigned_staff:staff!assigned_staff_id(id, name, email),
           creator:staff!created_by(id, name, email),
-          submissions:house_checklist_submissions(id, status, completed_at)
+          submissions:house_checklist_submissions(
+            id, 
+            status, 
+            completed_at,
+            house_checklist_submission_items(
+              id,
+              item_id,
+              status,
+              is_completed,
+              note,
+              completed_by_staff:staff!completed_by(id, name)
+            )
+          ),
+          event_participants:house_calendar_event_participants(participant:participants(id, name)),
+          event_staff:house_calendar_event_staff(staff:staff(id, name))
         `)
         .eq('house_id', houseId)
         .order('event_date', { ascending: true });
 
       if (eventError) throw eventError;
 
-      const combinedEvents = [...(events || [])];
+      const combinedEvents = (events || []).map((e: any) => ({
+        ...e,
+        type: e.is_checklist_event ? 'checklist' : 'event'
+      }));
 
       // 2. Fetch shifts at this house (+/- 60 days)
       const startDate = new Date();
@@ -157,34 +178,13 @@ export function useHouseCalendarEvents(houseId?: string, staffId?: string) {
             event_date: shift.start_date,
             start_time: shift.start_time,
             end_time: shift.end_time,
-            assigned_staff_id: shift.staff_id,
-            assigned_staff: shift.staff,
+            event_staff: shift.staff ? [{ staff: shift.staff }] : [],
             assigned_checklists: shift.assigned_checklists,
             status: 'scheduled'
           } as any);
 
-          // B. Add shift-assigned checklists
-          for (const ac of (shift.assigned_checklists as any[] || [])) {
-            // Unique key per checklist per shift instance
-            const syntheticId = `shift-cl-${ac.checklist_id}-${shift.id}`;
-            
-            // Avoid duplicates if already present as a house-wide event
-            if (!combinedEvents.some(e => e.house_checklist_id === ac.checklist_id && e.event_date === shift.start_date)) {
-              combinedEvents.push({
-                id: syntheticId,
-                house_id: houseId,
-                title: ac.assignment_title,
-                type: 'checklist',
-                event_date: shift.start_date,
-                is_checklist_event: true,
-                house_checklist_id: ac.checklist_id,
-                assigned_staff_id: shift.staff_id,
-                assigned_staff: shift.staff,
-                status: 'scheduled',
-                submissions: ac.submissions || []
-              } as HouseCalendarEvent);
-            }
-          }
+          // Shift-assigned checklists are rendered inside the Shift component itself
+          // We no longer duplicate them as standalone calendar events.
         }
       }
 

@@ -41,17 +41,23 @@ export function HouseDetailSidebar() {
       target: 'calendar_events',
     },
     {
-      title: 'Shift Templates',
+      title: 'Shift Setup',
       target: 'shift_templates',
-    },
-    {
-      title: 'Checklist/Comms',
-      target: 'checklist_comms_section',
       children: [
+        {
+          title: 'Shift Templates',
+          target: 'shift_templates',
+        },
         {
           title: 'Daily Comms',
           target: 'house_comms',
         },
+      ]
+    },
+    {
+      title: 'Checklist Setup',
+      target: 'checklist_comms_section',
+      children: [
         {
           title: 'Checklist Setup',
           target: 'checklists',

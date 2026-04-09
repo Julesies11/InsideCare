@@ -25,6 +25,7 @@ export interface ShiftTemplateDefaultChecklist {
     id: string;
     name: string;
     description: string;
+    items?: Array<{ id: string; title: string; sort_order: number }>;
   };
 }
 
@@ -44,7 +45,7 @@ export function useHouseShiftTemplates(houseId?: string) {
           .order('sort_order', { ascending: true }),
         supabase
           .from('shift_template_default_checklists')
-          .select('*, checklist:house_checklists(id, name, description)')
+          .select('*, checklist:house_checklists(id, name, description, items:house_checklist_items(id, title, sort_order))')
           .in('shift_template_id', (await supabase.from('house_shift_templates').select('id').eq('house_id', houseId)).data?.map(t => t.id) || [])
       ]);
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -8,8 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Trash2, CheckSquare, Clock, PlayCircle, GripVertical, Loader2, ChevronDown, Copy, CalendarDays } from 'lucide-react';
+import { Plus, Edit, Trash2, CheckSquare, Clock, PlayCircle, GripVertical, Loader2, ChevronDown, Copy, CalendarDays, Download, Info } from 'lucide-react';
 import { useHouseChecklists } from '@/hooks/use-house-checklists';
+import { useHouses } from '@/hooks/use-houses';
 import { useChecklistMaster } from '@/hooks/use-checklist-master';
 import { HousePendingChanges } from '@/models/house-pending-changes';
 import { HouseChecklistExecution } from './house-checklist-execution';
@@ -39,6 +40,10 @@ export function HouseChecklists({
   const { masterChecklists, loading: loadingMaster } = useChecklistMaster();
   const [showChecklistDialog, setShowChecklistDialog] = useState(false);
   const [showTemplateDialog, setShowTemplateDialog] = useState(false);
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importSourceId, setImportSourceId] = useState<string>('');
+  const [houseChecklistCounts, setHouseChecklistCounts] = useState<Record<string, number>>({});
   const [showItemDialog, setShowItemDialog] = useState(false);
   const [showExecutionDialog, setShowExecutionDialog] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
@@ -67,6 +72,36 @@ export function HouseChecklists({
   });
 
   const { houseChecklists, loading, refresh } = useHouseChecklists(houseId);
+
+  const housesFilter = useMemo(() => ({ statuses: ['active'] }), []);
+  const { houses: allHouses } = useHouses(0, 100, [], housesFilter);
+
+  // Fetch checklist counts for the import dialog
+  useEffect(() => {
+    let mounted = true;
+    const fetchCounts = async () => {
+      if (!showImportDialog || !allHouses || allHouses.length === 0) return;
+      
+      try {
+        const { data } = await supabase
+          .from('house_checklists')
+          .select('house_id, id');
+        
+        if (!mounted) return;
+
+        const counts: Record<string, number> = {};
+        (data || []).forEach(cl => {
+          counts[cl.house_id] = (counts[cl.house_id] || 0) + 1;
+        });
+        setHouseChecklistCounts(counts);
+      } catch (err) {
+        console.error('Error fetching checklist counts:', err);
+      }
+    };
+
+    fetchCounts();
+    return () => { mounted = false; };
+  }, [showImportDialog, allHouses]);
 
   const handleAddChecklist = () => {
     setSelectedChecklist(null);
@@ -216,7 +251,7 @@ export function HouseChecklists({
             status, 
             notes, 
             completed_at,
-            completed_by_staff:staff(id, name)
+            completed_by_staff:staff!completed_by(id, name)
           )
         `)
         .eq('checklist_id', checklist.id)
@@ -574,6 +609,58 @@ export function HouseChecklists({
     onPendingChangesChange(newPending);
   };
 
+  const handleImportChecklists = async () => {
+    if (!importSourceId || !onPendingChangesChange || !pendingChanges || !houseId) return;
+    setIsImporting(true);
+    try {
+      const { data: sourceChecklists, error: clError } = await supabase
+        .from('house_checklists')
+        .select('*')
+        .eq('house_id', importSourceId);
+      
+      if (clError) throw clError;
+
+      const newToAdd = [];
+      for (const cl of (sourceChecklists || [])) {
+        const { data: sourceItems } = await supabase
+          .from('house_checklist_items')
+          .select('*')
+          .eq('checklist_id', cl.id);
+        
+        newToAdd.push({
+          tempId: `temp-cl-import-${Date.now()}-${Math.random()}`,
+          house_id: houseId,
+          name: cl.name,
+          description: cl.description,
+          master_id: cl.master_id,
+          items: (sourceItems || []).map((item: any) => ({
+            tempId: `temp-item-import-${Date.now()}-${Math.random()}`,
+            title: item.title,
+            instructions: item.instructions,
+            priority: item.priority,
+            is_required: item.is_required,
+            sort_order: item.sort_order
+          }))
+        });
+      }
+
+      onPendingChangesChange({
+        ...pendingChanges,
+        checklists: {
+          ...pendingChanges.checklists,
+          toAdd: [...pendingChanges.checklists.toAdd, ...newToAdd]
+        }
+      });
+
+      toast.success(`Imported ${newToAdd.length} checklists to pending changes.`);
+      setShowImportDialog(false);
+    } catch (err: any) {
+      toast.error(`Import failed: ${err.message}`);
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
   const visibleChecklists = [
     ...houseChecklists
       .filter(checklist => !pendingChanges?.checklists.toDelete.includes(checklist.id))
@@ -595,32 +682,42 @@ export function HouseChecklists({
 
   return (
     <>
-      <div className="flex flex-col gap-5 lg:gap-7.5" id="checklists">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <CheckSquare className="size-5 text-gray-500" />
-            <h2 className="text-lg font-semibold text-gray-900">House Checklists</h2>
+      <div className="flex flex-col gap-6 lg:gap-8" id="checklists">
+        <div className="flex justify-between items-center">
+          <div>
+            <h3 className="text-lg font-bold text-gray-900">House Checklists</h3>
+            <p className="text-sm text-muted-foreground">Configure house-specific tasks and routines.</p>
           </div>
           
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="secondary" size="sm" className="border border-gray-300" disabled={!houseId || !canAdd}>
-                <Plus className="size-4 me-1.5" />
-                New Checklist
-                <ChevronDown className="size-4 ms-1.5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem onClick={handleAddChecklist} className="cursor-pointer">
-                <Plus className="size-4 me-2" />
-                Create Ad-hoc
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setShowTemplateDialog(true)} className="cursor-pointer">
-                <Copy className="size-4 me-2" />
-                Add from Template
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => { setImportSourceId(''); setShowImportDialog(true); }} 
+              variant="outline" 
+              size="sm" 
+              className="gap-2 font-bold border-gray-300"
+              disabled={!houseId || !canAdd}
+            >
+              <Download className="size-4" /> Import Checklists
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" className="gap-2 font-bold" disabled={!houseId || !canAdd}>
+                  <Plus className="size-4" /> Add Checklist
+                  <ChevronDown className="size-4 ms-1" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onClick={handleAddChecklist} className="cursor-pointer">
+                  <Plus className="size-4 me-2" />
+                  Create Ad-hoc
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setShowTemplateDialog(true)} className="cursor-pointer">
+                  <Copy className="size-4 me-2" />
+                  Add from Template
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
 
         {loading ? (
@@ -757,16 +854,6 @@ export function HouseChecklists({
                         </span>
                       </div>
                     )}
-                    <Button 
-                      variant="secondary"
-                      size="sm" 
-                      className="border border-gray-300 h-8 text-xs shadow-sm w-full mt-1"
-                      onClick={() => handleStartExecution(checklist)}
-                      disabled={isPendingAdd || isPendingUpdate || checklistItems.length === 0}
-                    >
-                      <PlayCircle className="size-3.5 me-1.5" />
-                      {checklist.latest_submission?.status === 'in_progress' ? 'Resume Checklist' : 'Start Checklist'}
-                    </Button>
                   </div>
                 </Card>
               );
@@ -1069,6 +1156,52 @@ export function HouseChecklists({
               />
             )}
           </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Import Checklists</DialogTitle>
+            <DialogDescription>
+              Clones all checklists and their items from another house.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div className="space-y-2">
+              <Label>Source House</Label>
+              <Select value={importSourceId} onValueChange={setImportSourceId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select house..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {(allHouses || []).filter(h => h.id !== houseId).map(h => (
+                    <SelectItem key={h.id} value={h.id}>
+                      <div className="flex items-center justify-between w-full min-w-[200px]">
+                        <span>{h.name}</span>
+                        <Badge variant="outline" className="ml-2 text-[10px] py-0 h-4 bg-primary/5 text-primary border-primary/10">
+                          {houseChecklistCounts[h.id] || 0} Checklists
+                        </Badge>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 flex gap-3 text-xs text-blue-800 leading-relaxed">
+              <Info className="size-4 shrink-0 mt-0.5" />
+              <p>
+                <strong>Note:</strong> This will clone all checklists and their tasks into your pending changes. You can review and edit them before clicking <strong>Save Changes</strong> at the top of the page.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowImportDialog(false)}>Cancel</Button>
+            <Button onClick={handleImportChecklists} disabled={!importSourceId || isImporting}>
+              {isImporting ? <Loader2 className="size-4 animate-spin mr-2" /> : <Download className="size-4 mr-2" />}
+              Import Checklists
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
