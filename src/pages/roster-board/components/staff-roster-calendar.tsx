@@ -3,6 +3,7 @@ import { format, addDays, parseISO } from 'date-fns';
 import { toast } from 'sonner';
 import { ShiftCalendar } from '@/components/roster/shift-calendar';
 import { ShiftDialog, ShiftFormData } from '@/components/roster/shift-dialog';
+import { LeaveDialog } from '@/components/roster/leave-dialog';
 import { StaffShift, useRosterData, useShiftsQuery, useLeaveRequestsQuery } from '@/components/roster/use-roster-data';
 import { getDateRange, ViewMode } from '@/components/roster/roster-utils';
 import { EditShiftNoteDialog } from '@/pages/participants/shift-notes/components/edit-shift-note-dialog';
@@ -18,6 +19,7 @@ export interface LeaveBlock {
   status: 'pending' | 'approved' | 'rejected';
   leave_type_name: string;
   staff_id: string;
+  reason?: string | null;
 }
 
 interface StaffRosterCalendarProps {
@@ -54,7 +56,7 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
   shiftTemplateFilter,
   statusFilter: _statusFilter,
   canEdit,
-  showLeave = true,
+  showLeave = false,
   onBulkAction,
   onPopulateRoster,
   checklists,
@@ -65,6 +67,8 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
   const [isCopying, setIsCopying] = useState(false);
   const [saving, setSaving] = useState(false);
   const [selectedShift, setSelectedShift] = useState<StaffShift | null>(null);
+  const [selectedLeaveId, setSelectedLeaveId] = useState<string | null>(null);
+  const [showLeaveDialog, setShowLeaveDialog] = useState(false);
   const [preSelectedDate, setPreSelectedDate] = useState<Date | undefined>(undefined);
   const [preSelectedHouseId, setPreSelectedHouseId] = useState<string | undefined>(undefined);
   const [preSelectedShiftTemplateId, setPreSelectedShiftTemplateId] = useState<string | undefined>(undefined);
@@ -101,11 +105,7 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
   } = useRosterData();
 
   const { startDate, endDate } = useMemo(() => {
-    const range = getDateRange(currentDate, viewMode);
-    return {
-      startDate: format(range.startDate, 'yyyy-MM-dd'),
-      endDate: format(range.endDate, 'yyyy-MM-dd')
-    };
+    return getDateRange(currentDate, viewMode);
   }, [currentDate, viewMode]);
 
   const { shifts = [], isLoading: shiftsLoading } = useShiftsQuery(
@@ -167,6 +167,12 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
     setPreSelectedShiftTemplateId(undefined);
     setScrollToNotes(true);
     setShowShiftDialog(true);
+  };
+
+  const handleEditLeave = (leave: LeaveBlock) => {
+    // Only allow editing if it's the staff member's own leave OR if admin (canEdit)
+    setSelectedLeaveId(leave.id);
+    setShowLeaveDialog(true);
   };
 
   const handleSaveShift = async (formData: ShiftFormData) => {
@@ -411,6 +417,16 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
         houses={houses}
         staffList={staff}
         onQuickAssign={handleQuickAssign}
+        onEditLeave={handleEditLeave}
+      />
+
+      <LeaveDialog
+        open={showLeaveDialog}
+        onOpenChange={setShowLeaveDialog}
+        leaveId={selectedLeaveId}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['leave-requests'] });
+        }}
       />
 
       <ShiftDialog

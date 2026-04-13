@@ -2,6 +2,8 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { ViewMode } from './roster-utils';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 interface RosterCalendarHeaderProps {
   // View mode
@@ -36,6 +38,10 @@ interface RosterCalendarHeaderProps {
   statusFilter: string;
   onStatusFilterChange: (value: string) => void;
 
+  // Leave filter
+  showLeave?: boolean;
+  onShowLeaveChange?: (value: boolean) => void;
+
   // Template actions
   onPopulateRoster?: () => void;
   onBulkAction?: () => void;
@@ -63,6 +69,8 @@ export function RosterCalendarHeader({
   shiftTemplateList = [],
   statusFilter,
   onStatusFilterChange,
+  showLeave = false,
+  onShowLeaveChange,
   onPopulateRoster: _onPopulateRoster,
   onBulkAction: _onBulkAction,
   isCopying: _isCopying = false,
@@ -112,7 +120,24 @@ export function RosterCalendarHeader({
       </div>
 
       {/* Filters & Bulk Actions */}
-      <div className="flex flex-wrap gap-2 w-full lg:w-auto items-center">
+      <div className="flex flex-wrap gap-4 w-full lg:w-auto items-center">
+        {onShowLeaveChange && (
+          <div className="flex items-center gap-2 mr-2">
+            <Switch 
+              id="header-show-leave" 
+              checked={showLeave} 
+              onCheckedChange={onShowLeaveChange} 
+              size="sm" 
+            />
+            <Label 
+              htmlFor="header-show-leave" 
+              className="font-bold text-[10px] uppercase tracking-wider cursor-pointer text-muted-foreground"
+            >
+              Staff Leave
+            </Label>
+          </div>
+        )}
+
         {showStaffFilter && onStaffFilterChange && (
           <Select value={staffFilter} onValueChange={onStaffFilterChange}>
             <SelectTrigger className="w-full sm:w-[180px]">

@@ -61,7 +61,7 @@ export function useLeaveRequestsQuery(staffId: string, startDate: string, endDat
     queryFn: async () => {
       let query = supabase
         .from('leave_requests')
-        .select('id, start_date, end_date, status, leave_type:leave_types(name), staff_id')
+        .select('id, start_date, end_date, status, leave_type:leave_types(name), staff_id, reason')
         .neq('status', 'rejected')
         .lte('start_date', endDate)
         .gte('end_date', startDate);
@@ -78,8 +78,10 @@ export function useLeaveRequestsQuery(staffId: string, startDate: string, endDat
         status: r.status,
         leave_type_name: r.leave_type?.name ?? 'Leave',
         staff_id: r.staff_id,
+        reason: r.reason,
       }));
     },
+    enabled: staffId !== 'skip',
     staleTime: 1000 * 60 * 5,
   });
 
@@ -118,68 +120,62 @@ export function useShiftsQuery(staffId: string, startDate: string, endDate: stri
       if (staffId && staffId !== 'all') shiftQuery = shiftQuery.eq('staff_id', staffId);
       if (houseId && houseId !== 'all') shiftQuery = shiftQuery.eq('house_id', houseId);
 
-      const fetchShifts = shiftQuery.then(res => {
-        if (res.error) throw res.error;
-        return (res.data || []).map(s => ({ 
-          ...s, 
-          entry_type: 'shift' as const,
-          participants: s.participants?.map((p: any) => ({
-            id: p.participant?.id,
-            name: p.participant?.name
-          })).filter((p: any) => p.id && p.name) || []
-        }));
-      });
-
       // Fetch events if requested and staffId is provided
-      const fetchEvents = (includeEvents && staffId && staffId !== 'all') 
-        ? supabase
-            .from('house_calendar_events')
-            .select(`
-              id,
-              title,
-              event_date,
-              start_time,
-              end_time,
-              location,
-              type:house_calendar_event_types_master(name, color),
-              house_id,
-              house:houses(name),
-              staff_assignments:house_calendar_event_staff!inner(staff_id)
-            `)
-            .eq('house_calendar_event_staff.staff_id', staffId)
-            .gte('event_date', startDate)
-            .lte('event_date', endDate)
-            .then(res => {
-              if (res.error) throw res.error;
-              return (res.data || []).map(e => ({
-                id: e.id,
-                staff_id: staffId,
-                start_date: e.event_date,
-                end_date: e.event_date,
-                start_time: e.start_time,
-                end_time: e.end_time,
-                house_id: e.house_id,
-                shift_template: 'Event',
-                title: e.title,
-                location: e.location,
-                type_name: e.type?.name,
-                type_color: e.type?.color,
-                entry_type: 'event' as const,
-                house: e.house,
-              }));
-            })
-        : Promise.resolve([]);
+      let eventQuery: any = null;
+      if (includeEvents && staffId && staffId !== 'all') {
+        eventQuery = supabase
+          .from('house_calendar_events')
+          .select(`
+            id,
+            title,
+            event_date,
+            start_time,
+            end_time,
+            location,
+            type:house_calendar_event_types_master(name, color),
+            house_id,
+            house:houses(name),
+            staff_assignments:house_calendar_event_staff!inner(staff_id)
+          `)
+          .eq('house_calendar_event_staff.staff_id', staffId)
+          .gte('event_date', startDate)
+          .lte('event_date', endDate);
+      }
 
-      const [shifts, events] = await Promise.all([fetchShifts, fetchEvents]);
+      const [shiftsRes, eventsRes] = await Promise.all([
+        shiftQuery,
+        eventQuery || Promise.resolve({ data: [], error: null })
+      ]);
+
+      if (shiftsRes.error) throw shiftsRes.error;
+      if (eventsRes.error) throw eventsRes.error;
+
+      const shifts = (shiftsRes.data || []).map(s => ({ ...s, entry_type: 'shift' as const }));
+      const events = (eventsRes.data || []).map(e => ({
+        id: e.id,
+        staff_id: staffId,
+        start_date: e.event_date,
+        end_date: e.event_date,
+        start_time: e.start_time,
+        end_time: e.end_time,
+        house_id: e.house_id,
+        shift_template: 'Event',
+        title: e.title,
+        location: e.location,
+        type_name: e.type?.name,
+        type_color: e.type?.color,
+        entry_type: 'event' as const,
+        house: e.house,
+      }));
+
       return [...shifts, ...events];
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes cache
+    staleTime: 1000 * 60 * 5,
   });
 
   const shifts = useMemo(() => {
     if (!query.data) return [];
     
-    // Frontend Joining
     const houseMap = new Map(houses.map(h => [h.id, { id: h.id, name: h.name }]));
     const staffMap = new Map(staff.map(s => [s.id, s.name]));
 
@@ -187,14 +183,22 @@ export function useShiftsQuery(staffId: string, startDate: string, endDate: stri
       const colorTheme = item.type_details?.color_theme || item.type_color;
       const iconName = item.type_details?.icon_name;
 
+      // Flatten participants if they are in the nested shift_participants format
+      const participants = item.participants?.map((p: any) => {
+        // If it's already flattened (from a previous mapping or different query)
+        if (p.id && p.name && !p.participant) return p;
+        // If it's nested
+        return {
+          id: p.participant?.id,
+          name: p.participant?.name
+        };
+      }).filter((p: any) => p.id && p.name) || [];
+
       return {
         ...item,
         house: item.house || (item.house_id ? houseMap.get(item.house_id) : undefined),
         staff_name: item.staff_id ? staffMap.get(item.staff_id) || 'Unassigned' : 'Unassigned',
-        participants: item.participants?.map((p: any) => ({
-          id: p.participant.id,
-          name: p.participant.name,
-        })) || [],
+        participants,
         assigned_checklists: item.assigned_checklists?.map((cl: any) => ({
           ...cl,
           is_completed: cl.submissions?.some((s: any) => s.status === 'completed') || false

@@ -26,6 +26,14 @@ const mockEntries = [
     type: { name: 'Meeting', color: 'blue' },
     house: { name: 'House A' },
     staff_assignments: [{ staff_id: 'staff-1' }]
+  },
+  {
+    id: 'leave-1',
+    start_date: '2026-04-12',
+    end_date: '2026-04-13',
+    status: 'approved',
+    reason: 'Family event',
+    leave_type: { name: 'Personal Leave' }
   }
 ];
 
@@ -45,6 +53,7 @@ describe('StaffRoster', () => {
     server.use(
       http.get(`${SUPABASE_URL}/rest/v1/staff_shifts`, () => HttpResponse.json([mockEntries[0]])),
       http.get(`${SUPABASE_URL}/rest/v1/house_calendar_events`, () => HttpResponse.json([mockEntries[1]])),
+      http.get(`${SUPABASE_URL}/rest/v1/leave_requests`, () => HttpResponse.json([mockEntries[2]])),
       http.get(`${SUPABASE_URL}/rest/v1/timesheets`, () => HttpResponse.json([]))
     );
   });
@@ -58,7 +67,7 @@ describe('StaffRoster', () => {
     expect(screen.getByRole('button', { name: /week/i, exact: true })).toBeInTheDocument();
   });
 
-  it('renders the list view with shifts and events', async () => {
+  it('renders the list view with shifts, events, and leave', async () => {
     const { user } = renderWithProviders(<StaffRoster />);
     
     // Switch to list tab
@@ -69,7 +78,8 @@ describe('StaffRoster', () => {
     await waitFor(() => {
       expect(screen.getByText(/Client Meeting/)).toBeInTheDocument();
       expect(screen.getByText(/Standard/)).toBeInTheDocument();
-      expect(screen.getByText(/2 items/i)).toBeInTheDocument();
+      expect(screen.getByText(/Family event/)).toBeInTheDocument();
+      expect(screen.getByText(/3 items/i)).toBeInTheDocument();
     });
   });
 
@@ -77,6 +87,7 @@ describe('StaffRoster', () => {
     server.use(
       http.get(`${SUPABASE_URL}/rest/v1/staff_shifts`, () => HttpResponse.json([])),
       http.get(`${SUPABASE_URL}/rest/v1/house_calendar_events`, () => HttpResponse.json([])),
+      http.get(`${SUPABASE_URL}/rest/v1/leave_requests`, () => HttpResponse.json([])),
       http.get(`${SUPABASE_URL}/rest/v1/timesheets`, () => HttpResponse.json([]))
     );
 

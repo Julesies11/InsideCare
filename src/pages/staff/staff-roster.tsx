@@ -17,15 +17,19 @@ import {
 import { StaffRosterCalendar } from '@/pages/roster-board/components/staff-roster-calendar';
 import { RosterCalendarHeader } from '@/components/roster/roster-calendar-header';
 import { ViewMode } from '@/components/roster/roster-utils';
+import { LeaveDialog } from '@/components/roster/leave-dialog';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { cn } from '@/lib/utils';
 import { useStaffRoster, RosterEntry as Entry } from '@/hooks/use-staff-roster';
+import { Pencil } from 'lucide-react';
 
 type TabView = 'calendar' | 'list';
 
 export function StaffRoster() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   // Tab
   const [tab, setTab] = useState<TabView>('calendar');
@@ -36,9 +40,14 @@ export function StaffRoster() {
   const [houseFilter, setHouseFilter] = useState('all');
   const [shiftTemplateFilter, setShiftTemplateFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [showLeave, setShowLeave] = useState(false);
+
+  // Leave Dialog state
+  const [selectedLeaveId, setSelectedLeaveId] = useState<string | null>(null);
+  const [showLeaveDialog, setShowLeaveDialog] = useState(false);
 
   // List state
-  const { data: entries = [], isLoading: loading } = useStaffRoster(user?.staff_id);
+  const { data: entries = [], isLoading: loading, refetch } = useStaffRoster(user?.staff_id);
 
   const navigatePeriod = (direction: 'prev' | 'next') => {
     if (viewMode === 'today') {
@@ -64,6 +73,17 @@ export function StaffRoster() {
 
   const isPast = (entry: Entry) =>
     entry.start_date <= new Date().toISOString().split('T')[0];
+
+  const handleEditLeave = (leaveId: string) => {
+    setSelectedLeaveId(leaveId);
+    setShowLeaveDialog(true);
+  };
+
+  const handleLeaveSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ['staff-roster', user?.staff_id] });
+    queryClient.invalidateQueries({ queryKey: ['leave-requests', user?.staff_id] });
+    refetch();
+  };
 
   return (
     <>
@@ -126,6 +146,8 @@ export function StaffRoster() {
                     onShiftTemplateFilterChange={setShiftTemplateFilter}
                     statusFilter={statusFilter}
                     onStatusFilterChange={setStatusFilter}
+                    showLeave={showLeave}
+                    onShowLeaveChange={setShowLeave}
                   />
                 </CardContent>
               </Card>
@@ -138,8 +160,10 @@ export function StaffRoster() {
                 shiftTemplateFilter={shiftTemplateFilter}
                 statusFilter={statusFilter}
                 canEdit={false}
+                showLeave={showLeave}
                 includeEvents={true}
                 checklists={[]}
+                onEditLeave={(leave) => handleEditLeave(leave.id)}
               />
             </div>
           ) : (
@@ -195,7 +219,7 @@ export function StaffRoster() {
                       {entries.map((entry) => (
                         <tr key={entry.id} className="hover:bg-muted/30 transition-colors">
                           <td className="px-5 py-3.5 font-medium">
-                            {format(parseISO(entry.start_date), 'EEE dd MMM yyyy')}
+                            {format(new Date(entry.start_date + 'T00:00:00'), 'EEE dd MMM yyyy')}
                           </td>
                           <td className="px-5 py-3.5 text-muted-foreground hidden sm:table-cell">
                             {entry.start_time?.slice(0, 5)} – {entry.end_time?.slice(0, 5)}
@@ -207,6 +231,15 @@ export function StaffRoster() {
                             {entry.entry_type === 'shift' ? (
                               <Badge variant="secondary" appearance="light">
                                 Shift
+                              </Badge>
+                            ) : entry.entry_type === 'leave' ? (
+                              <Badge 
+                                variant="outline" 
+                                className={cn("font-bold", 
+                                  entry.status === 'pending' ? 'text-yellow-600 bg-yellow-50 border-yellow-200' : 'text-gray-600 bg-gray-50 border-gray-200'
+                                )}
+                              >
+                                {entry.status === 'pending' ? '⏳ ' : '🏖 '}{entry.status === 'pending' ? 'Pending Leave' : 'Approved Leave'}
                               </Badge>
                             ) : (
                               <Badge 
@@ -225,6 +258,11 @@ export function StaffRoster() {
                           <td className="px-5 py-3.5">
                             {entry.entry_type === 'shift' ? (
                               <span className="text-muted-foreground">{entry.shift_template || 'Standard'}</span>
+                            ) : entry.entry_type === 'leave' ? (
+                              <div className="flex flex-col">
+                                <span className="font-semibold text-gray-800">{entry.title}</span>
+                                {entry.reason && <span className="text-xs text-muted-foreground italic truncate max-w-[200px]">{entry.reason}</span>}
+                              </div>
                             ) : (
                               <span className="font-semibold text-gray-800">{entry.title}</span>
                             )}
@@ -259,6 +297,18 @@ export function StaffRoster() {
                               ) : (
                                 <span className="text-xs text-muted-foreground">Upcoming</span>
                               )
+                            ) : entry.entry_type === 'leave' ? (
+                              <div className="flex items-center gap-1">
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-7 w-7 p-0"
+                                  title="Edit"
+                                  onClick={() => handleEditLeave(entry.id)}
+                                >
+                                  <Pencil className="size-3.5" />
+                                </Button>
+                              </div>
                             ) : (
                               <span className="text-xs text-muted-foreground">—</span>
                             )}
@@ -273,6 +323,13 @@ export function StaffRoster() {
           </div>
         )}
       </Container>
+
+      <LeaveDialog
+        open={showLeaveDialog}
+        onOpenChange={setShowLeaveDialog}
+        leaveId={selectedLeaveId}
+        onSuccess={handleLeaveSuccess}
+      />
     </>
   );
 }

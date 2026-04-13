@@ -29,20 +29,30 @@ export interface ShiftCalendarProps {
   houses?: Array<{ id: string; name: string }>;
   staffList?: Array<{ id: string; name: string }>;
   onQuickAssign?: (shiftId: string, staffId: string) => void;
+  onEditLeave?: (leave: LeaveBlock) => void;
 }
 
-function LeaveBlockBadge({ leave }: { leave: LeaveBlock }) {
+function LeaveBlockBadge({ leave, staffName, onClick }: { leave: LeaveBlock; staffName?: string, onClick?: () => void }) {
   const isPending = leave.status === 'pending';
+  const reason = leave.reason ? (leave.reason.length > 50 ? `${leave.reason.slice(0, 50)}...` : leave.reason) : null;
   return (
     <div
-      className={`text-[10px] px-1.5 py-0.5 rounded font-medium truncate ${
+      onClick={(e) => {
+        if (onClick) {
+          e.stopPropagation();
+          onClick();
+        }
+      }}
+      className={`text-[10px] px-1.5 py-0.5 rounded font-medium truncate transition-colors ${
+        onClick ? 'cursor-pointer hover:brightness-95' : ''
+      } ${
         isPending
           ? 'bg-yellow-100 text-yellow-800 border border-yellow-300'
           : 'bg-gray-100 text-gray-600 border border-gray-300'
       }`}
-      title={`${leave.leave_type_name} (${leave.status})`}
+      title={`${staffName ? `${staffName} - ` : ''}${leave.leave_type_name} (${leave.status})${leave.reason ? `: ${leave.reason}` : ''}`}
     >
-      {isPending ? '⏳' : '🏖'} {leave.leave_type_name}
+      {isPending ? '⏳' : '🏖'} {staffName ? `${staffName}: ` : ''}{leave.leave_type_name}{reason ? ` - ${reason}` : ''}
     </div>
   );
 }
@@ -64,6 +74,7 @@ export function ShiftCalendar({
   houses = [],
   staffList,
   onQuickAssign,
+  onEditLeave,
 }: ShiftCalendarProps) {
   const sortShifts = (shiftsToSort: ShiftCardData[]) => {
     return [...shiftsToSort].sort((a, b) => {
@@ -78,34 +89,33 @@ export function ShiftCalendar({
   };
 
   const getShiftsForDate = (date: Date) => {
+    const dateStr = format(date, 'yyyy-MM-dd');
     const filtered = shifts.filter(shift =>
-      shift.start_date && isSameDay(parseISO(shift.start_date), date)
+      shift.start_date && shift.start_date === dateStr
     );
     return sortShifts(filtered);
   };
 
   const getLeaveForDate = (date: Date) => {
+    const dateStr = format(date, 'yyyy-MM-dd');
     return leaveBlocks.filter(leave => {
-      try {
-        return isWithinInterval(date, {
-          start: parseISO(leave.start_date),
-          end: parseISO(leave.end_date),
-        });
-      } catch { return false; }
+      return dateStr >= leave.start_date && dateStr <= leave.end_date;
     });
   };
 
   const getShiftsForHouseAndDate = (houseId: string, date: Date) => {
+    const dateStr = format(date, 'yyyy-MM-dd');
     const filtered = shifts.filter(shift =>
-      shift.house?.id === houseId && shift.start_date && isSameDay(parseISO(shift.start_date), date)
+      shift.house?.id === houseId && shift.start_date && shift.start_date === dateStr
     );
     return sortShifts(filtered);
   };
 
   const getConflictingShifts = (staffId: string, date: Date, excludeShiftId?: string) => {
+    const dateStr = format(date, 'yyyy-MM-dd');
     return shifts.filter(shift => 
       shift.staff_id === staffId && 
-      shift.start_date && isSameDay(parseISO(shift.start_date), date) &&
+      shift.start_date && shift.start_date === dateStr &&
       shift.id !== excludeShiftId
     );
   };
@@ -229,7 +239,12 @@ export function ShiftCalendar({
                 </div>
                 <div className="space-y-2">
                   {getLeaveForDate(day).map(leave => (
-                    <LeaveBlockBadge key={leave.id} leave={leave} />
+                    <LeaveBlockBadge 
+                      key={leave.id} 
+                      leave={leave} 
+                      staffName={staffId === 'all' ? staffList?.find(s => s.id === leave.staff_id)?.name : undefined}
+                      onClick={onEditLeave ? () => onEditLeave(leave) : undefined}
+                    />
                   ))}
                   
                   {/* Group shifts by house within the day */}
@@ -312,7 +327,12 @@ export function ShiftCalendar({
                 onClick={() => canEdit && onAddShift(day)}
               >
                 {getLeaveForDate(day).map(leave => (
-                  <LeaveBlockBadge key={leave.id} leave={leave} />
+                  <LeaveBlockBadge 
+                    key={leave.id} 
+                    leave={leave} 
+                    staffName={staffId === 'all' ? staffList?.find(s => s.id === leave.staff_id)?.name : undefined}
+                    onClick={onEditLeave ? () => onEditLeave(leave) : undefined}
+                  />
                 ))}
                 {dayShifts.map(shift => (
                   <div key={shift.id} onClick={(e) => e.stopPropagation()}>
@@ -427,8 +447,9 @@ export function ShiftCalendar({
                   </div>
                   
                   {days.map((day, dayIndex) => {
+                    const dateStr = format(day, 'yyyy-MM-dd');
                     const houseShifts = house.id === 'unassigned' 
-                      ? sortShifts(shifts.filter(shift => shift.start_date && !shift.house && isSameDay(parseISO(shift.start_date), day)))
+                      ? sortShifts(shifts.filter(shift => shift.start_date && !shift.house && shift.start_date === dateStr))
                       : getShiftsForHouseAndDate(house.id, day);
                     const isToday = isSameDay(day, new Date());
                     
@@ -460,6 +481,20 @@ export function ShiftCalendar({
                         )}
                         
                         <div className="space-y-1.5">
+                          {/* Render leave blocks for staff assigned to this house */}
+                          {leaveBlocks.filter(leave => {
+                            const dateStr = format(day, 'yyyy-MM-dd');
+                            return houseStaffList.some(s => s.id === leave.staff_id) && 
+                                   dateStr >= leave.start_date && dateStr <= leave.end_date;
+                          }).map(leave => (
+                            <LeaveBlockBadge 
+                              key={leave.id} 
+                              leave={leave} 
+                              staffName={staffList?.find(s => s.id === leave.staff_id)?.name} 
+                              onClick={onEditLeave ? () => onEditLeave(leave) : undefined}
+                            />
+                          ))}
+
                           {houseShifts.map(shift => (
                             <div key={shift.id} onClick={(e) => e.stopPropagation()}>
                               {renderShiftCardWithWarning(shift, day, true, false, houseStaffList)}

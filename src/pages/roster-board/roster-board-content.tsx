@@ -15,6 +15,7 @@ export function RosterBoardContent() {
   const [viewMode, setViewMode] = useState<ViewMode>('week');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedStaffId, setSelectedStaffId] = useState<string>('all');
+  const [showLeave, setShowLeave] = useState(false);
   
   const [houseFilter, setHouseFilter] = useState<string>('all');
   const [participantFilter, setParticipantFilter] = useState<string>('all');
@@ -87,12 +88,15 @@ export function RosterBoardContent() {
     }
   };
 
-  const initialFilters = useMemo(() => ({
-    houseId: bulkInitialHouseId,
-    staffId: selectedStaffId,
-    startDate: format(getDateRange(currentDate, viewMode).startDate, 'yyyy-MM-dd'),
-    endDate: format(getDateRange(currentDate, viewMode).endDate, 'yyyy-MM-dd'),
-  }), [bulkInitialHouseId, selectedStaffId, currentDate, viewMode]);
+  const initialFilters = useMemo(() => {
+    const range = getDateRange(currentDate, viewMode);
+    return {
+      houseId: bulkInitialHouseId,
+      staffId: selectedStaffId,
+      startDate: range.startDate,
+      endDate: range.endDate,
+    };
+  }, [bulkInitialHouseId, selectedStaffId, currentDate, viewMode]);
 
   return (
     <div className="p-6 space-y-6">
@@ -145,6 +149,8 @@ export function RosterBoardContent() {
             shiftTemplateList={shiftTemplates}
             statusFilter={statusFilter}
             onStatusFilterChange={setStatusFilter}
+            showLeave={showLeave}
+            onShowLeaveChange={setShowLeave}
             onPopulateRoster={() => handleOpenPopulateModal()}
             onBulkAction={() => handleOpenBulkModal()}
             isCopying={isCopying}
@@ -164,6 +170,7 @@ export function RosterBoardContent() {
           shiftTemplateFilter={shiftTemplateFilter}
           canEdit={true}
           groupByHouse={true}
+          showLeave={showLeave}
           onBulkAction={handleOpenBulkModal}
           onPopulateRoster={handleOpenPopulateModal}
           checklists={houseChecklists}

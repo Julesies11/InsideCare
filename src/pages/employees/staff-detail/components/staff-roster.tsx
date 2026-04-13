@@ -4,10 +4,12 @@ import { toast } from 'sonner';
 import { format, addMonths, addWeeks, addDays } from 'date-fns';
 import { ShiftCalendar } from '@/components/roster/shift-calendar';
 import { ShiftDialog, ShiftFormData } from '@/components/roster/shift-dialog';
+import { LeaveDialog } from '@/components/roster/leave-dialog';
 import { RosterCalendarHeader } from '@/components/roster/roster-calendar-header';
-import { useRosterData, StaffShift, useShiftsQuery } from '@/components/roster/use-roster-data';
+import { useRosterData, StaffShift, useShiftsQuery, useLeaveRequestsQuery } from '@/components/roster/use-roster-data';
 import { getDateRange, calculateDuration, ViewMode } from '@/components/roster/roster-utils';
 import { NotificationService } from '@/lib/notification-service';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface StaffRosterProps {
   staffId: string;
@@ -15,14 +17,18 @@ interface StaffRosterProps {
 }
 
 export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
+  const queryClient = useQueryClient();
   const [viewMode, setViewMode] = useState<ViewMode>('week');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showShiftDialog, setShowShiftDialog] = useState(false);
+  const [showLeaveDialog, setShowLeaveDialog] = useState(false);
   const [selectedShift, setSelectedShift] = useState<StaffShift | null>(null);
+  const [selectedLeaveId, setSelectedLeaveId] = useState<string | null>(null);
   
   const [houseFilter, setHouseFilter] = useState<string>('all');
   const [shiftTemplateFilter, setShiftTemplateFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [showLeave, setShowLeave] = useState<boolean>(false);
 
   const {
     houses,
@@ -37,14 +43,11 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
   } = useRosterData();
 
   const { startDate, endDate } = useMemo(() => {
-    const range = getDateRange(currentDate, viewMode);
-    return {
-      startDate: format(range.startDate, 'yyyy-MM-dd'),
-      endDate: format(range.endDate, 'yyyy-MM-dd')
-    };
+    return getDateRange(currentDate, viewMode);
   }, [currentDate, viewMode]);
 
   const { shifts = [], isLoading: shiftsLoading } = useShiftsQuery(staffId, startDate, endDate);
+  const { data: leaveBlocks = [] } = useLeaveRequestsQuery(staffId, startDate, endDate);
 
   const filteredShifts = useMemo(() => {
     return shifts.filter(shift => {
@@ -84,6 +87,11 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
     setShowShiftDialog(true);
   };
 
+  const handleEditLeave = (leave: any) => {
+    setSelectedLeaveId(leave.id);
+    setShowLeaveDialog(true);
+  };
+
   const handleSaveShift = async (formData: ShiftFormData) => {
     if (!formData.start_date || !formData.end_date || !formData.start_time || !formData.end_time) {
       toast.error('Please fill in all required fields');
@@ -118,15 +126,6 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
           await removeShiftParticipant(selectedShift.id, participantId);
         }
 
-        // Get updated data for local state
-        const house = formData.house_id ? houses.find(h => h.id === formData.house_id) : null;
-        const shiftParticipants = formData.participant_ids
-          .map(id => participants.find(p => p.id === id))
-          .filter(p => p !== undefined) as typeof participants;
-
-        // Update local state - NO LONGER NEEDED with TanStack Query
-        // We just need to wait for the updateShift to complete, which invalidates the query
-
         toast.success('Shift updated successfully');
         
         const staffMember = staff.find(s => s.id === staffId);
@@ -136,10 +135,9 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
             await NotificationService.notifyShiftModified(staffMember.auth_user_id, formData.start_date, shiftHouse.name);
           }
         }
-
       } else {
         // CREATE NEW SHIFT
-        const shiftData = {
+        const newShift = {
           staff_id: staffId,
           start_date: formData.start_date,
           end_date: formData.end_date,
@@ -147,42 +145,44 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
           end_time: formData.end_time,
           house_id: formData.house_id || null,
           shift_template: formData.shift_template,
+          status: formData.status,
           notes: formData.notes || null,
         };
 
-        const data = await createShift(shiftData);
+        const created = await createShift(newShift);
 
-        if (!data) return;
-
-        if (formData.participant_ids.length > 0) {
-          for (const participantId of formData.participant_ids) {
-            await addShiftParticipant(data.id, participantId);
-          }
+        for (const participantId of formData.participant_ids) {
+          await addShiftParticipant(created.id, participantId);
         }
 
         toast.success('Shift created successfully');
-        
+
         const staffMember = staff.find(s => s.id === staffId);
-        const house = formData.house_id ? houses.find(h => h.id === formData.house_id) : null;
-        if (staffMember?.auth_user_id && house) {
-          await NotificationService.notifyShiftAssigned(staffMember.auth_user_id, formData.start_date, house.name);
+        if (staffMember?.auth_user_id && formData.house_id) {
+          const shiftHouse = houses.find(h => h.id === formData.house_id);
+          if (shiftHouse) {
+            await NotificationService.notifyShiftAssigned(staffMember.auth_user_id, formData.start_date, shiftHouse.name);
+          }
         }
       }
+
       setShowShiftDialog(false);
-    } catch (error) {
-      toast.error(selectedShift ? 'Failed to update shift' : 'Failed to create shift');
-      console.error(error);
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to save shift');
     }
   };
 
   const handleDeleteShift = async (shiftId: string) => {
+    if (!confirm('Are you sure you want to delete this shift?')) return;
+
     try {
       await deleteShift(shiftId);
       toast.success('Shift deleted successfully');
       setShowShiftDialog(false);
-    } catch (error) {
+    } catch (err) {
+      console.error(err);
       toast.error('Failed to delete shift');
-      console.error(error);
     }
   };
 
@@ -206,6 +206,8 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
           onShiftTemplateFilterChange={setShiftTemplateFilter}
           statusFilter={statusFilter}
           onStatusFilterChange={setStatusFilter}
+          showLeave={showLeave}
+          onShowLeaveChange={setShowLeave}
         />
 
         <ShiftCalendar
@@ -215,8 +217,19 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
           shifts={filteredShifts}
           loading={shiftsLoading || metaLoading}
           canEdit={canEdit}
+          leaveBlocks={showLeave ? (leaveBlocks as any) : []}
           onAddShift={handleAddShift}
           onEditShift={handleEditShift}
+          onEditLeave={handleEditLeave}
+        />
+
+        <LeaveDialog
+          open={showLeaveDialog}
+          onOpenChange={setShowLeaveDialog}
+          leaveId={selectedLeaveId}
+          onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ['leave-requests'] });
+          }}
         />
 
         <ShiftDialog

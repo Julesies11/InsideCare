@@ -1,7 +1,7 @@
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { ClipboardList, Clock, MapPin, User, Users, UserCheck, CheckCircle2, ChevronDown } from 'lucide-react';
+import { ClipboardList, Clock, MapPin, User, Users, UserCheck, CheckCircle2, ChevronDown, Calendar } from 'lucide-react';
 import { getShiftTheme, formatTime } from './roster-utils';
 import { SHIFT_ICONS, cn } from '@/lib/utils';
 

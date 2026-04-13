@@ -4,9 +4,10 @@ import { supabase } from '@/lib/supabase';
 export interface RosterEntry {
   id: string;
   start_date: string;
+  end_date?: string;
   start_time: string;
   end_time: string;
-  entry_type: 'shift' | 'event';
+  entry_type: 'shift' | 'event' | 'leave';
   title?: string;
   shift_template?: string;
   type_name?: string;
@@ -15,6 +16,8 @@ export interface RosterEntry {
   has_timesheet?: boolean;
   location?: string;
   participants?: Array<{ id: string; name: string }>;
+  status?: string;
+  reason?: string | null;
 }
 
 export function useStaffRoster(staffId?: string) {
@@ -23,7 +26,7 @@ export function useStaffRoster(staffId?: string) {
     queryFn: async () => {
       if (!staffId) return [];
 
-      const [shiftsRes, eventsRes] = await Promise.all([
+      const [shiftsRes, eventsRes, leaveRes] = await Promise.all([
         supabase
           .from('staff_shifts')
           .select(`
@@ -53,14 +56,29 @@ export function useStaffRoster(staffId?: string) {
             staff_assignments:house_calendar_event_staff!inner(staff_id)
           `)
           .eq('house_calendar_event_staff.staff_id', staffId)
-          .order('event_date', { ascending: false })
+          .order('event_date', { ascending: false }),
+        supabase
+          .from('leave_requests')
+          .select(`
+            id,
+            start_date,
+            end_date,
+            status,
+            reason,
+            leave_type:leave_types(name)
+          `)
+          .eq('staff_id', staffId)
+          .neq('status', 'rejected')
+          .order('start_date', { ascending: false })
       ]);
 
       if (shiftsRes.error) throw shiftsRes.error;
       if (eventsRes.error) throw eventsRes.error;
+      if (leaveRes.error) throw leaveRes.error;
 
       const shiftsData = shiftsRes.data || [];
       const eventsData = eventsRes.data || [];
+      const leaveData = leaveRes.data || [];
 
       const shiftIds = shiftsData.map((s) => s.id);
       
@@ -101,8 +119,22 @@ export function useStaffRoster(staffId?: string) {
         has_timesheet: false,
       }));
 
+      const leaves = leaveData.map((l) => ({
+        id: l.id,
+        start_date: l.start_date,
+        end_date: l.end_date,
+        start_time: '00:00:00',
+        end_time: '23:59:59',
+        entry_type: 'leave' as const,
+        title: l.leave_type?.name || 'Leave',
+        reason: l.reason,
+        status: l.status,
+        house: null,
+        has_timesheet: false,
+      }));
+
       // Combine and sort by date descending
-      return [...shifts, ...events].sort((a, b) => {
+      return [...shifts, ...events, ...leaves].sort((a, b) => {
         const dateCompare = b.start_date.localeCompare(a.start_date);
         if (dateCompare !== 0) return dateCompare;
         return (b.start_time || '').localeCompare(a.start_time || '');
