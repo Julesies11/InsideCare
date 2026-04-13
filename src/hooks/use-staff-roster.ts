@@ -14,6 +14,7 @@ export interface RosterEntry {
   house: { name: string } | null;
   has_timesheet?: boolean;
   location?: string;
+  participants?: Array<{ id: string; name: string }>;
 }
 
 export function useStaffRoster(staffId?: string) {
@@ -25,7 +26,17 @@ export function useStaffRoster(staffId?: string) {
       const [shiftsRes, eventsRes] = await Promise.all([
         supabase
           .from('staff_shifts')
-          .select('id, start_date, start_time, end_time, shift_template, house:houses(name)')
+          .select(`
+            id, 
+            start_date, 
+            start_time, 
+            end_time, 
+            shift_template, 
+            house:houses(name),
+            participants:shift_participants(
+              participant:participants(id, name)
+            )
+          `)
           .eq('staff_id', staffId)
           .order('start_date', { ascending: false }),
         supabase
@@ -70,6 +81,10 @@ export function useStaffRoster(staffId?: string) {
         entry_type: 'shift' as const,
         house: s.house as { name: string } | null,
         has_timesheet: timesheetedIds.has(s.id),
+        participants: s.participants?.map((p: any) => ({
+          id: p.participant?.id,
+          name: p.participant?.name
+        })).filter((p: any) => p.id && p.name) || []
       }));
 
       const events = eventsData.map((e) => ({

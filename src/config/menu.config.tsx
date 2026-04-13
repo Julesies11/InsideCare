@@ -23,7 +23,7 @@ export const MENU_SIDEBAR: MenuConfig = [
     roles: ['staff'],
   },
   {
-    title: 'House Checklists',
+    title: 'My Checklists',
     icon: ClipboardList,
     path: '/staff/checklists',
     roles: ['staff'],

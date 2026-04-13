@@ -261,7 +261,7 @@ export function StaffDashboard() {
                   <Umbrella className="size-4 me-1.5" /> Request Leave
                 </Button>
                 <Button variant="outline" onClick={() => navigate('/staff/checklists')}>
-                  <ClipboardList className="size-4 me-1.5" /> House Checklists
+                  <ClipboardList className="size-4 me-1.5" /> My Checklists
                 </Button>
                 <Button variant="outline" onClick={() => navigate('/staff/timesheets')}>
                   <ClipboardList className="size-4 me-1.5" /> My Timesheets

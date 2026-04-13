@@ -120,7 +120,14 @@ export function useShiftsQuery(staffId: string, startDate: string, endDate: stri
 
       const fetchShifts = shiftQuery.then(res => {
         if (res.error) throw res.error;
-        return (res.data || []).map(s => ({ ...s, entry_type: 'shift' as const }));
+        return (res.data || []).map(s => ({ 
+          ...s, 
+          entry_type: 'shift' as const,
+          participants: s.participants?.map((p: any) => ({
+            id: p.participant?.id,
+            name: p.participant?.name
+          })).filter((p: any) => p.id && p.name) || []
+        }));
       });
 
       // Fetch events if requested and staffId is provided
@@ -279,12 +286,35 @@ export function useRosterData() {
 
   const createShiftMutation = useMutation({
     mutationFn: async (shift: any) => {
+      // Sanitize payload: Remove UI-only fields and relational data that doesn't belong in staff_shifts table
+      const { 
+        participant_ids, 
+        assigned_checklists, 
+        entry_type, 
+        title, 
+        location,
+        participants, // Sometimes passed as array of objects
+        ...dbPayload 
+      } = shift;
+
       const { data, error } = await supabase
         .from('staff_shifts')
-        .insert([shift])
+        .insert([dbPayload])
         .select()
         .single();
+      
       if (error) throw error;
+
+      // Sync participants if provided
+      if (participant_ids) {
+        await syncShiftParticipantsMutation.mutateAsync({ shift_id: data.id, participant_ids });
+      }
+
+      // Sync checklists if provided
+      if (assigned_checklists) {
+        await syncShiftChecklistsMutation.mutateAsync({ shift_id: data.id, checklists: assigned_checklists });
+      }
+
       return data;
     },
     onSuccess: () => {
@@ -294,13 +324,36 @@ export function useRosterData() {
 
   const updateShiftMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string, updates: any }) => {
+      // Sanitize payload: Remove UI-only fields and relational data that doesn't belong in staff_shifts table
+      const { 
+        participant_ids, 
+        assigned_checklists, 
+        entry_type, 
+        title, 
+        location,
+        participants, // Sometimes passed from calendar events
+        ...dbPayload 
+      } = updates;
+
       const { data, error } = await supabase
         .from('staff_shifts')
-        .update(updates)
+        .update(dbPayload)
         .eq('id', id)
         .select()
         .single();
+      
       if (error) throw error;
+
+      // Sync participants if provided
+      if (participant_ids) {
+        await syncShiftParticipantsMutation.mutateAsync({ shift_id: id, participant_ids });
+      }
+
+      // Sync checklists if provided
+      if (assigned_checklists) {
+        await syncShiftChecklistsMutation.mutateAsync({ shift_id: id, checklists: assigned_checklists });
+      }
+
       return data;
     },
     onSuccess: () => {

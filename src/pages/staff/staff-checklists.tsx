@@ -309,7 +309,7 @@ export function StaffChecklists() {
       <Container>
         <Toolbar>
           <ToolbarHeading>
-            <ToolbarPageTitle>House Checklists</ToolbarPageTitle>
+            <ToolbarPageTitle>My Checklists</ToolbarPageTitle>
             <ToolbarDescription>
               {format(new Date(), 'EEEE, do MMMM yyyy')}
             </ToolbarDescription>

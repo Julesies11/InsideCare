@@ -12,7 +12,7 @@ import { useHouseShiftTemplates } from '@/hooks/use-house-shift-templates';
 import { useHouseStaffAssignments } from '@/hooks/use-house-staff-assignments';
 import { useAuth } from '@/auth/context/auth-context';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Calendar, Home, User, Trash2, Copy, CheckSquare, Loader2, Clock, Zap, MapPin } from 'lucide-react';
+import { Calendar, Home, User, Trash2, CheckSquare, Loader2, Clock, Zap, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 import { SHIFT_ICONS, cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -46,7 +46,7 @@ interface ShiftDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   shift?: any;
-  onSave: (data: ShiftFormData, isDuplicate?: boolean) => Promise<void>;
+  onSave: (data: ShiftFormData) => Promise<void>;
   onDelete?: (id: string) => Promise<void>;
   preSelectedDate?: string;
   preSelectedHouseId?: string;
@@ -81,7 +81,6 @@ export function ShiftDialog({
 }: ShiftDialogProps) {
   const { user, isAdmin } = useAuth();
   const isEdit = !!shift;
-  const [isDuplicating, setIsDuplicating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -168,13 +167,12 @@ export function ShiftDialog({
           shift_template: shift.shift_template,
           shift_template_id: shift.shift_template_id || null,
           notes: shift.notes || '',
-          participant_ids: shift.participants?.map((p: any) => p.id) || [],
+          participant_ids: shift.participant_ids || shift.participants?.map((p: any) => p.participant?.id || p.id) || [],
           assigned_checklists: shift.assigned_checklists || [],
           title: shift.title || '',
           location: shift.location || '',
           entry_type: shift.entry_type || 'shift',
         });
-        setIsDuplicating(false);
       } else {
         const initialDate = preSelectedDate || new Date().toISOString().split('T')[0];
         const initialHouseId = preSelectedHouseId || null;
@@ -215,7 +213,7 @@ export function ShiftDialog({
     }
     setSaving(true);
     try {
-      await onSave(formData, isDuplicating);
+      await onSave(formData);
       onOpenChange(false);
     } catch (err: any) {
       toast.error(`Failed to save: ${err.message}`);
@@ -269,17 +267,8 @@ export function ShiftDialog({
     setFormData(updatedData);
   };
 
-  const handleDuplicate = () => {
-    setIsDuplicating(true);
-    // Use a small timeout or just call handleSave directly if handleSave uses the state
-    // But since handleSave is defined here, we can just pass the flag if needed or trust state update if it's simple enough
-    // Actually, handleSave uses isDuplicating state.
-    setTimeout(() => handleSave(), 0);
-  };
-
   const handleDelete = async () => {
     if (!onDelete || !shift) return;
-    if (!confirm('Are you sure you want to delete this shift?')) return;
     setDeleting(true);
     try {
       await onDelete(shift.id);
@@ -337,7 +326,7 @@ export function ShiftDialog({
               <Select 
                 value={formData.staff_id || 'none'} 
                 onValueChange={val => setFormData({...formData, staff_id: val === 'none' ? null : val})}
-                disabled={readOnly || isStaffSelectionDisabled}
+                disabled={(readOnly || isStaffSelectionDisabled) && !isAdmin}
               >
                 <SelectTrigger className="h-10 sm:h-11 text-sm font-medium" aria-label="Assign Staff">
                   <SelectValue placeholder="Select staff member" />
@@ -364,7 +353,7 @@ export function ShiftDialog({
                 <Label htmlFor="shift_template" className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1 flex items-center gap-1.5">
                   <Zap className="size-3" /> Shift Template *
                 </Label>
-                <Select value={formData.shift_template_id || formData.shift_template} onValueChange={handleShiftTemplateChange} disabled={readOnly}>
+                <Select value={formData.shift_template_id || formData.shift_template} onValueChange={handleShiftTemplateChange} disabled={readOnly && !isAdmin}>
                   <SelectTrigger className="h-10 sm:h-11 text-sm font-medium" aria-label="Shift Template">
                     <SelectValue placeholder="Select type..." />
                   </SelectTrigger>
@@ -408,7 +397,7 @@ export function ShiftDialog({
               <Select 
                 value={formData.house_id || 'none'} 
                 onValueChange={handleHouseChange}
-                disabled={readOnly}
+                disabled={readOnly && !isAdmin}
               >
                 <SelectTrigger className="h-10 sm:h-11 text-sm font-medium">
                   <SelectValue placeholder="Select house" />
@@ -439,16 +428,16 @@ export function ShiftDialog({
                     }));
                   }} 
                   className="h-10 sm:h-11 font-bold text-sm" 
-                  disabled={readOnly} 
+                  disabled={readOnly && !isAdmin} 
                 />
-                <Input type="time" value={formData.start_time} onChange={e => setFormData({...formData, start_time: e.target.value})} className="h-10 sm:h-11 w-28 sm:w-32 font-black text-sm" disabled={readOnly} />
+                <Input type="time" value={formData.start_time} onChange={e => setFormData({...formData, start_time: e.target.value})} className="h-10 sm:h-11 w-28 sm:w-32 font-black text-sm" disabled={readOnly && !isAdmin} />
               </div>
             </div>
             <div className="space-y-1.5">
               <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">Shift End</Label>
               <div className="flex gap-2">
-                <Input type="date" value={formData.end_date} onChange={e => setFormData({...formData, end_date: e.target.value})} className="h-10 sm:h-11 font-bold text-sm" disabled={readOnly} />
-                <Input type="time" value={formData.end_time} onChange={e => setFormData({...formData, end_time: e.target.value})} className="h-10 sm:h-11 w-28 sm:w-32 font-black text-sm" disabled={readOnly} />
+                <Input type="date" value={formData.end_date} onChange={e => setFormData({...formData, end_date: e.target.value})} className="h-10 sm:h-11 font-bold text-sm" disabled={readOnly && !isAdmin} />
+                <Input type="time" value={formData.end_time} onChange={e => setFormData({...formData, end_time: e.target.value})} className="h-10 sm:h-11 w-28 sm:w-32 font-black text-sm" disabled={readOnly && !isAdmin} />
               </div>
             </div>
           </div>
@@ -459,23 +448,22 @@ export function ShiftDialog({
               {participants
                 .filter(p => (!formData.house_id || p.house_id === formData.house_id) && p.status === 'active')
                 .map(p => (
-                  <div 
+                  <Label 
                     key={p.id} 
                     className={cn(
-                      "flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl border transition-all cursor-pointer",
+                      "flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl border transition-all cursor-pointer m-0",
                       formData.participant_ids.includes(p.id) ? "bg-primary/5 border-primary shadow-sm" : "bg-gray-50 border-gray-100 opacity-60 grayscale-[50%]"
                     )}
-                    onClick={() => !readOnly && toggleParticipant(p.id)}
                   >
                     <Checkbox 
                       checked={formData.participant_ids.includes(p.id)} 
-                      onCheckedChange={() => !readOnly && toggleParticipant(p.id)} 
+                      onCheckedChange={() => toggleParticipant(p.id)} 
                       className="size-3.5 sm:size-4" 
                     />
-                    <div className="min-w-0">
-                      <p className="text-[10px] sm:text-xs font-bold truncate">{p.name}</p>
+                    <div className="min-w-0 pointer-events-none">
+                      <p className="text-[10px] sm:text-xs font-bold truncate m-0">{p.name}</p>
                     </div>
-                  </div>
+                  </Label>
                 ))}
             </div>
           </div>
@@ -486,7 +474,7 @@ export function ShiftDialog({
               checklists={currentChecklists}
               selectedIds={formData.assigned_checklists.map(ac => ac.checklist_id)}
               onToggle={toggleChecklist}
-              readOnly={readOnly}
+              readOnly={readOnly && !isAdmin}
             />
           </div>
 
@@ -497,7 +485,7 @@ export function ShiftDialog({
               onChange={e => setFormData({...formData, notes: e.target.value})} 
               placeholder="Enter instructions for staff working this shift..."
               className="min-h-[80px] sm:min-h-[100px] text-xs sm:text-sm"
-              disabled={readOnly}
+              disabled={readOnly && !isAdmin}
             />
           </div>
         </div>
@@ -515,23 +503,12 @@ export function ShiftDialog({
                 {deleting ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
               </Button>
             )}
-            {isEdit && !readOnly && (
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className="size-9 sm:size-10 shrink-0"
-                onClick={handleDuplicate}
-                disabled={isDuplicating}
-              >
-                {isDuplicating ? <Loader2 className="size-4 animate-spin" /> : <Copy className="size-4" />}
-              </Button>
-            )}
           </div>
           <div className="flex gap-2 grow sm:grow-0">
             <Button variant="outline" onClick={() => onOpenChange(false)} className="grow sm:grow-0 text-xs sm:text-sm h-9 sm:h-10">Cancel</Button>
             <Button 
               onClick={handleSave} 
-              disabled={saving || readOnly} 
+              disabled={saving || (readOnly && !isAdmin)} 
               className="grow sm:grow-0 text-xs sm:text-sm h-9 sm:h-10 font-bold"
             >
               {saving ? <Loader2 className="size-4 animate-spin mr-2" /> : <CheckSquare className="size-4 mr-2" />}

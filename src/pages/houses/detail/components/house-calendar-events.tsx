@@ -101,10 +101,10 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
   const { houseCalendarEvents, loading, refresh } = useHouseCalendarEvents(houseId, staffId);
   const { houseChecklists } = useHouseChecklists(houseId);
   const { deleteSchedule, deleteEvent, loading: deleting } = useChecklistSchedules(houseId);
-  const { participants } = useParticipants();
+  const { participants } = useParticipants(0, 1000);
   const { staff: systemStaff } = useStaff(0, 1000, [], { statuses: ['active'] }); // Fetch more staff for general events
   const { assignments: houseStaffAssignments } = useHouseStaffAssignments(houseId);
-  const { user } = useAuth();
+  const { user, isAdmin = false } = useAuth();
   
   // Shift Dialog hooks
   const { createShift, updateShift, deleteShift, staff: allRosterStaff } = useRosterData();
@@ -1708,10 +1708,9 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
           onSave={handleSaveShift}
           onDelete={selectedShift ? handleDeleteShift : undefined}
           staffSelectionDisabled={false}
-          readOnly={!canDelete}
-        />
-      )}
-
+          readOnly={!isAdmin && !canEdit}
+          />
+          )}
       <PopulateRosterModal 
         open={showPopulateModal}
         onOpenChange={setShowPopulateModal}

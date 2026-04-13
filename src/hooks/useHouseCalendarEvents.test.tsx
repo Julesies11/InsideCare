@@ -65,4 +65,40 @@ describe('useHouseCalendarEvents Integration', () => {
     expect(appointment?.type).toBe('appointment');
     expect(checklist?.type).toBe('checklist');
   });
+
+  it('should include participants when fetching shifts', async () => {
+    const mockParticipants = [
+      { participant: { id: 'p1', name: 'John Doe' } },
+      { participant: { id: 'p2', name: 'Jane Smith' } }
+    ];
+
+    server.use(
+      http.get(`${SUPABASE_URL}/rest/v1/house_calendar_events`, () => {
+        return HttpResponse.json([]);
+      }),
+      http.get(`${SUPABASE_URL}/rest/v1/staff_shifts`, () => {
+        return HttpResponse.json([
+          {
+            id: 'shift-1',
+            start_date: '2026-04-13',
+            start_time: '08:00',
+            end_time: '16:00',
+            staff_id: { id: 's1', name: 'Staff Member' },
+            shift_template: 'Morning',
+            participants: mockParticipants
+          }
+        ]);
+      })
+    );
+
+    const { result } = renderHook(() => useHouseCalendarEvents('house-1'), { wrapper });
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    const shiftEvent = result.current.houseCalendarEvents.find(e => e.id === 'shift-shift-1');
+    expect(shiftEvent).toBeDefined();
+    expect(shiftEvent?.event_participants).toHaveLength(2);
+    expect(shiftEvent?.event_participants?.[0].participant.name).toBe('John Doe');
+    expect(shiftEvent?.event_participants?.[1].participant.id).toBe('p2');
+  });
 });

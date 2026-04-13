@@ -161,7 +161,8 @@ export function useHouseCalendarEvents(houseId?: string, staffId?: string) {
           shift_template,
           shift_template_id,
           type_details:house_shift_templates(color_theme, icon_name),
-          staff:staff(id, name),
+          staff:staff_id(id, name),
+          participants:shift_participants(participant:participants(id, name)),
           assigned_checklists:shift_assigned_checklists(
             id, 
             checklist_id, 
@@ -193,7 +194,8 @@ export function useHouseCalendarEvents(houseId?: string, staffId?: string) {
             event_date: shift.start_date,
             start_time: shift.start_time,
             end_time: shift.end_time,
-            event_staff: shift.staff ? [{ staff: shift.staff }] : [],
+            event_staff: shift.staff_id ? [{ staff: shift.staff_id }] : [],
+            event_participants: shift.participants || [],
             assigned_checklists: shift.assigned_checklists,
             status: 'scheduled'
           } as any);

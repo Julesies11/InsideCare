@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/auth/context/auth-context';
 import { format, parseISO, addDays, addWeeks, addMonths } from 'date-fns';
-import { ClipboardList, Calendar, List } from 'lucide-react';
+import { ClipboardList, Calendar, List, Users } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTable } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -187,6 +187,7 @@ export function StaffRoster() {
                         <th className="text-left px-5 py-3 font-medium text-muted-foreground hidden md:table-cell">Location</th>
                         <th className="text-left px-5 py-3 font-medium text-muted-foreground">Type</th>
                         <th className="text-left px-5 py-3 font-medium text-muted-foreground">Details</th>
+                        <th className="text-left px-5 py-3 font-medium text-muted-foreground hidden lg:table-cell">Participants</th>
                         <th className="text-left px-5 py-3 font-medium text-muted-foreground">Action</th>
                       </tr>
                     </thead>
@@ -226,6 +227,20 @@ export function StaffRoster() {
                               <span className="text-muted-foreground">{entry.shift_template || 'Standard'}</span>
                             ) : (
                               <span className="font-semibold text-gray-800">{entry.title}</span>
+                            )}
+                          </td>
+                          <td className="px-5 py-3.5 hidden lg:table-cell">
+                            {entry.entry_type === 'shift' ? (
+                              <div className="flex items-center gap-1.5">
+                                <Users className="size-3.5 text-muted-foreground" />
+                                <span className="text-xs">
+                                  {entry.participants && entry.participants.length > 0 
+                                    ? entry.participants.map(p => p.name).join(', ')
+                                    : 'None'}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">—</span>
                             )}
                           </td>
                           <td className="px-5 py-3.5">
