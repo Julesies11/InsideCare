@@ -1,7 +1,7 @@
 import { useState, useMemo, forwardRef, useImperativeHandle } from 'react';
 import { format, addDays, parseISO } from 'date-fns';
 import { toast } from 'sonner';
-import { ShiftCalendar } from '@/components/roster/shift-calendar';
+import { ShiftCalendar, LeaveBlock } from '@/components/roster/shift-calendar';
 import { ShiftDialog, ShiftFormData } from '@/components/roster/shift-dialog';
 import { LeaveDialog } from '@/components/roster/leave-dialog';
 import { StaffShift, useRosterData, useShiftsQuery, useLeaveRequestsQuery } from '@/components/roster/use-roster-data';
@@ -405,7 +405,7 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
         shifts={filteredShifts}
         loading={shiftsLoading || isCopying || saving}
         canEdit={canEdit}
-        leaveBlocks={showLeave ? (leaveBlocks as any) : []}
+        leaveBlocks={showLeave ? (leaveBlocks as LeaveBlock[]) : []}
         shiftTemplates={shiftTemplates}
         onAddShift={handleAddShift}
         onEditShift={handleEditShift}

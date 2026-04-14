@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/auth/context/auth-context';
-import { format, parseISO, addDays, addWeeks, addMonths } from 'date-fns';
+import { format, addDays, addWeeks, addMonths } from 'date-fns';
 import { ClipboardList, Calendar, List, Users } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTable } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';

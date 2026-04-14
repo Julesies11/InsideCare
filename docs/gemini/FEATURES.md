@@ -22,9 +22,17 @@ The core operational engine of the care system.
 - **Schedule Checklists**: Standalone tool to bulk schedule facility-wide checklists (e.g., "Weekly Deep Clean", "Vehicle Check") across multiple weeks independently of specific shifts.
 - **Roster Board**: Visual representation of staff shifts and house assignments with intelligent staff filtering (showing active staff assigned to the house).
 - **Shift Routines**: Automated, shift-locked task lists that staff must complete and sign off on during their active shift. Completion is enforced; staff cannot submit timesheets if mandatory shift routines are incomplete.
-- **Timesheets**: Integration with actual worked hours and manager approval workflow.
+- **Timesheets**: Integration with actual worked hours and manager workflow.
 
-## 4. House & Facility Management
+## 4. Leave Management
+Integrated system for managing staff unavailability and holiday requests.
+- **Request Workflow**: Staff can submit leave requests with specific types, date ranges, reasons, and supporting documentation (attachments).
+- **Calendar Integration**: Approved and pending leave blocks are visible directly on the Roster Board, House Calendar, and personal "My Roster" views.
+- **Visibility Toggles**: Modern switch toggles allow managers and staff to show/hide leave blocks to manage visual clutter.
+- **Interactive Editing**: Ability to edit or cancel leave requests directly by clicking the leave blocks on any calendar view.
+- **Conflict Detection**: Real-time validation that warns staff if they are requesting leave that overlaps with their existing rostered shifts.
+
+## 5. House & Facility Management
 Management of the physical locations where care is provided.
 - **House Profiles**: Information about capacity, occupancy, and facility details.
 - **Setup Wizard**: Interactive guide for configuring shift templates and facility routines.

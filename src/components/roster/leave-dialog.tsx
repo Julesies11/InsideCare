@@ -62,7 +62,6 @@ export function LeaveDialog({ open, onOpenChange, leaveId, onSuccess, initialDat
 
   // Conflict detection
   const [conflictingShifts, setConflictingShifts] = useState<ConflictingShift[]>([]);
-  const [checkingConflicts, setCheckingConflicts] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -115,7 +114,6 @@ export function LeaveDialog({ open, onOpenChange, leaveId, onSuccess, initialDat
     }
 
     const check = async () => {
-      setCheckingConflicts(true);
       const { data } = await supabase
         .from('staff_shifts')
         .select('id, start_date, start_time, end_time, house:houses(name)')
@@ -123,8 +121,7 @@ export function LeaveDialog({ open, onOpenChange, leaveId, onSuccess, initialDat
         .gte('start_date', startDate)
         .lte('start_date', endDate)
         .order('start_date');
-      setConflictingShifts((data as any[]) || []);
-      setCheckingConflicts(false);
+      setConflictingShifts((data as ConflictingShift[]) || []);
     };
 
     const timer = setTimeout(check, 500);
@@ -161,14 +158,22 @@ export function LeaveDialog({ open, onOpenChange, leaveId, onSuccess, initialDat
     }
 
     if (isEdit && leaveId) {
-      const { error } = await supabase.from('leave_requests').update({
+      const updates: {
+        leave_type_id: string;
+        start_date: string;
+        end_date: string;
+        reason: string | null;
+        attachment_url?: string;
+        updated_at: string;
+      } = {
         leave_type_id: leaveTypeId,
         start_date: startDate,
         end_date: endDate,
         reason: reason || null,
         ...(attachmentUrl !== undefined ? { attachment_url: attachmentUrl } : {}),
         updated_at: new Date().toISOString(),
-      }).eq('id', leaveId);
+      };
+      const { error } = await supabase.from('leave_requests').update(updates).eq('id', leaveId);
       if (error) { toast.error('Failed to update leave request'); setSaving(false); return; }
       toast.success('Leave request updated');
     } else {

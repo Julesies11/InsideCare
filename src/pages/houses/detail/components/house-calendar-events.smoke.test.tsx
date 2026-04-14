@@ -73,6 +73,10 @@ vi.mock('@/components/roster/use-roster-data', () => ({
     createShift: vi.fn(),
     updateShift: vi.fn(),
     deleteShift: vi.fn()
+  }),
+  useLeaveRequestsQuery: () => ({
+    data: [],
+    isLoading: false
   })
 }));
 

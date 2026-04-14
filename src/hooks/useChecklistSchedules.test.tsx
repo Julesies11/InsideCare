@@ -45,8 +45,8 @@ describe('useChecklistSchedules', () => {
       house_id: 'house-1',
       house_checklist_id: 'cl-1',
       rrule: 'FREQ=DAILY',
-      start_date: '2026-04-01',
-      end_date: '2026-04-10',
+      start_date: '2026-05-01',
+      end_date: '2026-05-10',
       is_active: true
     };
 

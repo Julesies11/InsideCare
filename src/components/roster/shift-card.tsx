@@ -1,7 +1,7 @@
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { ClipboardList, Clock, MapPin, User, Users, UserCheck, CheckCircle2, ChevronDown, Calendar } from 'lucide-react';
+import { ClipboardList, Clock, MapPin, User, Users, CheckCircle2, ChevronDown, Calendar } from 'lucide-react';
 import { getShiftTheme, formatTime } from './roster-utils';
 import { SHIFT_ICONS, cn } from '@/lib/utils';
 
@@ -43,7 +43,6 @@ interface ShiftCardProps {
 export function ShiftCard({ shift, compact, showStaffName, showHouseName = true, onClick, onWriteNote, onNotesClick, staffList, onQuickAssign }: ShiftCardProps) {
   const isEvent = shift.entry_type === 'event';
   const participantCount = shift.participants?.length || 0;
-  const checklistCount = shift.assigned_checklists?.length || 0;
   const isUnassigned = !shift.staff_id;
   
   const shiftThemeClasses = isEvent 
@@ -103,7 +102,7 @@ export function ShiftCard({ shift, compact, showStaffName, showHouseName = true,
               <DropdownMenu onOpenChange={(open) => {
                 if (open) {
                   console.log(`[QuickAssign Debug] Control: Compact Shift Card | Shift ID: ${shift.id} | House: ${shift.house?.name || 'Unassigned'} | Available Staff Count: ${staffList.length}`, {
-                    staffList: staffList.map(s => ({ id: s.id, name: s.name, assignments: (s as any).house_assignments }))
+                    staffList: staffList.map(s => ({ id: s.id, name: s.name, assignments: (s as { house_assignments?: any[] }).house_assignments }))
                   });
                 }
               }}>
@@ -251,7 +250,7 @@ export function ShiftCard({ shift, compact, showStaffName, showHouseName = true,
                 <DropdownMenu onOpenChange={(open) => {
                   if (open) {
                     console.log(`[QuickAssign Debug] Control: Expanded Shift Card | Shift ID: ${shift.id} | House: ${shift.house?.name || 'Unassigned'} | Available Staff Count: ${staffList.length}`, {
-                      staffList: staffList.map(s => ({ id: s.id, name: s.name, assignments: (s as any).house_assignments }))
+                      staffList: staffList.map(s => ({ id: s.id, name: s.name, assignments: (s as { house_assignments?: any[] }).house_assignments }))
                     });
                   }
                 }}>

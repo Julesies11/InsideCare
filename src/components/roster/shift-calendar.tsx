@@ -6,7 +6,7 @@ import {
 } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { Plus, Zap, Trash2 } from 'lucide-react';
-import { format, isSameDay, isSameMonth, parseISO, isWithinInterval } from 'date-fns';
+import { format, isSameDay, isSameMonth } from 'date-fns';
 import { ShiftCard, ShiftCardData } from './shift-card';
 import { generateMonthDays, generateWeekDays, ViewMode } from './roster-utils';
 import { LeaveBlock } from '@/pages/roster-board/components/staff-roster-calendar';
@@ -399,8 +399,8 @@ export function ShiftCalendar({
               const houseStaffList = house.id.toLowerCase() === 'unassigned' 
                 ? staffList 
                 : staffList?.filter(s => {
-                    const assignments = (s as any).house_assignments || [];
-                    return assignments.some((a: any) => {
+                    const assignments: Array<{ house_id?: string; house?: { id: string }; end_date?: string | null }> = (s as any).house_assignments || [];
+                    return assignments.some((a) => {
                       const assignmentHouseId = (a.house_id || a.house?.id || '').toLowerCase();
                       const targetHouseId = house.id.toLowerCase();
                       const isTargetHouse = assignmentHouseId === targetHouseId;
