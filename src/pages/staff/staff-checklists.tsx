@@ -279,21 +279,25 @@ export function StaffChecklists() {
     }
   }, [assignedHouses, activeShift, todayShifts, selectedCalendarHouseId]);
 
-  // Sort houses so current/today's shift houses are first
+  // Filter houses so only houses with a shift today are shown
+  const activeHouses = useMemo(() => {
+    return assignedHouses.filter(h => {
+      // Show house if staff has a shift there today
+      return todayShifts.some(s => s.house_id === h.house_id);
+    });
+  }, [assignedHouses, todayShifts]);
+
+  // Sort filtered houses so current active shift house is first
   const sortedHouses = useMemo(() => {
-    return [...assignedHouses].sort((a, b) => {
-      const aHasShift = todayShifts.some(s => s.house_id === a.house_id);
-      const bHasShift = todayShifts.some(s => s.house_id === b.house_id);
+    return [...activeHouses].sort((a, b) => {
       const aIsActive = activeShift?.house_id === a.house_id;
       const bIsActive = activeShift?.house_id === b.house_id;
 
       if (aIsActive && !bIsActive) return -1;
       if (bIsActive && !aIsActive) return 1;
-      if (aHasShift && !bHasShift) return -1;
-      if (bHasShift && !aHasShift) return 1;
       return a.house.name.localeCompare(b.house.name);
     });
-  }, [assignedHouses, todayShifts, activeShift]);
+  }, [activeHouses, activeShift]);
 
   // Hook to get a refresh function for all today's tasks across all houses
   const queryClient = useQueryClient();
@@ -364,13 +368,15 @@ export function StaffChecklists() {
                   </div>
                 </div>
 
-                {assignedHouses.length === 0 ? (
+                {activeHouses.length === 0 ? (
                   <Card>
-                    <CardContent className="py-12 text-center">
-                      <ClipboardCheck className="size-12 text-muted-foreground/20 mx-auto mb-4" />
-                      <h3 className="text-lg font-bold text-gray-900 mb-1">No Assigned Houses</h3>
-                      <p className="text-sm text-muted-foreground">
-                        You are not currently assigned to any houses. Please contact an administrator.
+                    <CardContent className="py-16 text-center">
+                      <div className="flex size-14 items-center justify-center rounded-full bg-muted mx-auto mb-4">
+                        <CalendarDays className="size-7 text-muted-foreground" />
+                      </div>
+                      <h3 className="text-lg font-bold text-gray-900 mb-1">No shifts scheduled for today</h3>
+                      <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+                        Your daily checklists will appear here when you have a scheduled shift at one of your assigned houses.
                       </p>
                     </CardContent>
                   </Card>
