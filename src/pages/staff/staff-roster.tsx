@@ -22,6 +22,7 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import { cn } from '@/lib/utils';
 import { useStaffRoster, RosterEntry as Entry } from '@/hooks/use-staff-roster';
+import { useRosterData } from '@/components/roster/use-roster-data';
 import { Pencil } from 'lucide-react';
 
 type TabView = 'calendar' | 'list';
@@ -48,6 +49,9 @@ export function StaffRoster() {
 
   // List state
   const { data: entries = [], isLoading: loading, refetch } = useStaffRoster(user?.staff_id);
+
+  // Houses for filter
+  const { houses } = useRosterData(user?.staff_id);
 
   const navigatePeriod = (direction: 'prev' | 'next') => {
     if (viewMode === 'today') {
@@ -141,7 +145,7 @@ export function StaffRoster() {
                     showParticipantFilter={false}
                     houseFilter={houseFilter}
                     onHouseFilterChange={setHouseFilter}
-                    houseList={[]}
+                    houseList={houses || []}
                     shiftTemplateFilter={shiftTemplateFilter}
                     onShiftTemplateFilterChange={setShiftTemplateFilter}
                     statusFilter={statusFilter}

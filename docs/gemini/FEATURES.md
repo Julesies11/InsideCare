@@ -11,6 +11,10 @@ Central hub for all information related to care recipients.
 ## 2. Staff Management
 Management of care providers and support staff.
 - **Profiles**: Personal and professional information, qualifications, and certifications.
+- **My Roster**: Personalized staff view of upcoming commitments.
+    - **Personalized Filtering**: Automatically filters the roster to only show Houses the staff member is actively assigned to.
+    - **Robust Tracking**: Intelligent data mapping ensures participants and routines are correctly linked and displayed even across complex database relationships.
+    - **Unified View**: Displays personal shifts, assigned events (meetings/outings), and approved leave in one consolidated calendar.
 - **Compliance Tracking**: Monitoring of mandatory NDIS checks and their expiry dates.
 - **Training Records**: Tracking of staff training sessions and certifications.
 - **Document Management**: Management of employee documents (ID, insurance, etc.).

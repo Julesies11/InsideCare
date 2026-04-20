@@ -99,10 +99,15 @@ export function useStaffRoster(staffId?: string) {
         entry_type: 'shift' as const,
         house: s.house as { name: string } | null,
         has_timesheet: timesheetedIds.has(s.id),
-        participants: s.participants?.map((p: any) => ({
-          id: p.participant?.id,
-          name: p.participant?.name
-        })).filter((p: any) => p.id && p.name) || []
+        participants: (s.participants || s.shift_participants || [])?.map((p: any) => {
+          const part = p.participant || p.participants || p;
+          const actualPart = Array.isArray(part) ? part[0] : part;
+          
+          return {
+            id: actualPart?.id || p.id || p.participant_id,
+            name: actualPart?.name || p.name
+          };
+        }).filter((p: any) => p.id && p.name) || []
       }));
 
       const events = eventsData.map((e) => ({

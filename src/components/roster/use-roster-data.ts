@@ -184,13 +184,15 @@ export function useShiftsQuery(staffId: string, startDate: string, endDate: stri
       const iconName = item.type_details?.icon_name;
 
       // Flatten participants if they are in the nested shift_participants format
-      const participants = item.participants?.map((p: any) => {
-        // If it's already flattened (from a previous mapping or different query)
-        if (p.id && p.name && !p.participant) return p;
-        // If it's nested
+      const rawParticipants = item.participants || item.shift_participants;
+      const participants = (rawParticipants || [])?.map((p: any) => {
+        // Extract the actual participant data regardless of how Supabase structured the join
+        const part = p.participant || p.participants || p;
+        const actualPart = Array.isArray(part) ? part[0] : part;
+        
         return {
-          id: p.participant?.id,
-          name: p.participant?.name
+          id: actualPart?.id || p.id || p.participant_id,
+          name: actualPart?.name || p.name
         };
       }).filter((p: any) => p.id && p.name) || [];
 
@@ -220,12 +222,33 @@ export function useShiftsQuery(staffId: string, startDate: string, endDate: stri
   }), [query, shifts]);
 }
 
-export function useRosterData() {
+export function useRosterData(staffId?: string) {
   const queryClient = useQueryClient();
 
   const housesQuery = useQuery({
-    queryKey: ['houses'],
+    queryKey: ['houses', staffId],
     queryFn: async () => {
+      const today = new Date().toISOString().split('T')[0];
+
+      if (staffId && staffId !== 'all') {
+        const { data, error } = await supabase
+          .from('house_staff_assignments')
+          .select('house:houses(id, name, status, branch_id)')
+          .eq('staff_id', staffId)
+          .or(`end_date.is.null,end_date.gte.${today}`);
+        
+        if (error) throw error;
+        
+        const houses = (data || [])
+          .map((a: any) => a.house)
+          .filter((h: any) => h && h.status === 'active');
+        
+        // Deduplicate by ID
+        const uniqueHouses = Array.from(new Map(houses.map(h => [h.id, h])).values());
+        
+        return uniqueHouses.sort((a, b) => a.name.localeCompare(b.name));
+      }
+
       const { data, error } = await supabase
         .from('houses')
         .select('id, name, status, branch_id')

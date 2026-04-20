@@ -102,7 +102,7 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
     addShiftParticipant,
     syncShiftParticipants,
     syncShiftChecklists,
-  } = useRosterData();
+  } = useRosterData(staffId);
 
   const { startDate, endDate } = useMemo(() => {
     return getDateRange(currentDate, viewMode);

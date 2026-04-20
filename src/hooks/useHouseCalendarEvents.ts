@@ -195,12 +195,16 @@ export function useHouseCalendarEvents(houseId?: string, staffId?: string) {
             start_time: shift.start_time,
             end_time: shift.end_time,
             event_staff: shift.staff_id ? [{ staff: shift.staff_id }] : [],
-            event_participants: shift.participants?.map((p: any) => ({
-              participant: {
-                id: p.participant?.id,
-                name: p.participant?.name
-              }
-            })).filter((p: any) => p.participant.id && p.participant.name) || [],
+            event_participants: (shift.participants || shift.shift_participants || [])?.map((p: any) => {
+              const part = p.participant || p.participants || p;
+              const actualPart = Array.isArray(part) ? part[0] : part;
+              return {
+                participant: {
+                  id: actualPart?.id || p.id || p.participant_id,
+                  name: actualPart?.name || p.name
+                }
+              };
+            }).filter((p: any) => p.participant.id && p.participant.name) || [],
             assigned_checklists: shift.assigned_checklists,
             status: 'scheduled'
           } as any);
