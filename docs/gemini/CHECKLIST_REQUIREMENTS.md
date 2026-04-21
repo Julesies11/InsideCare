@@ -64,8 +64,14 @@ When an Admin schedules a checklist, they are forced to choose between two disti
 ## 6. Technical Specifications
 *   **Logic in TypeScript**: All calculations for due dates, shift linking, and completion status must reside in React hooks/API utilities.
 *   **Attribution Storage**: `house_checklist_submission_items` must store `completed_by` (staff_id), `status` (Completed/Pending), and `notes`.
-*   **Granular Persistence**: Support "Save Progress" (Draft) and "Complete" (Final) states.
+*   **Granular Persistence**: Support "Complete" (Final) states. Manual "Draft" states for timesheets have been removed to simplify the workflow; submissions are direct.
 *   **Offline Resilience**: Implement local storage drafting to prevent data loss during connectivity issues (already partially implemented).
+
+### 6.1. Shift-Aware Filtering for Staff
+To prevent operational confusion, the **Staff Checklists** page implement strict filtering:
+*   **Rostered Visibility**: Daily House Calendar tasks are only visible to a staff member if they have an active or upcoming shift at that specific House on that day.
+*   **Casual Staff Focus**: This ensures casual staff only see "work" they are rostered to perform, hiding facility tasks for houses where they aren't working today.
+*   **Overnight Support**: Filtering logic correctly accounts for overnight shifts starting on the previous calendar day.
 
 ## 7. Migration Requirements
 *   **Shift Type Table**: Create `house_shift_templates` table linked to `houses`.
