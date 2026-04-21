@@ -1,5 +1,5 @@
 import { renderWithProviders, screen, waitFor } from '@/test/test-utils';
-import { StaffRoster, StaffChecklists, StaffLeaveList, StaffLeaveForm } from './index';
+import { StaffRoster, StaffChecklists, StaffLeaveList, StaffLeaveForm, StaffDashboard, StaffTimesheetList } from './index';
 import { describe, it, expect, vi } from 'vitest';
 
 // Mock useNavigate and useParams
@@ -48,6 +48,20 @@ vi.mock('@/lib/supabase', () => ({
 }));
 
 describe('Staff Pages Smoke Tests', () => {
+  it('renders Staff Dashboard without crashing', async () => {
+    renderWithProviders(<StaffDashboard />);
+    await waitFor(() => {
+      expect(screen.getByText(/Upcoming Schedule/i)).toBeInTheDocument();
+    });
+  });
+
+  it('renders Staff Timesheet List without crashing', async () => {
+    renderWithProviders(<StaffTimesheetList />);
+    await waitFor(() => {
+      expect(screen.getByText(/My Timesheets/i)).toBeInTheDocument();
+    });
+  });
+
   it('renders Staff Roster without crashing', async () => {
     renderWithProviders(<StaffRoster />);
     await waitFor(() => {

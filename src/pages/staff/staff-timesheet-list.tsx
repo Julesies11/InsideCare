@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/auth/context/auth-context';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, subDays, isBefore } from 'date-fns';
 import {
   Clock,
   ClipboardList,
@@ -12,7 +12,7 @@ import {
   ChevronRight,
   AlertTriangle,
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTable } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTable, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Container } from '@/components/common/container';
@@ -22,6 +22,15 @@ import {
   ToolbarPageTitle,
   ToolbarDescription,
 } from '@/partials/common/toolbar';
+import {
+  useReactTable,
+  getCoreRowModel,
+  getPaginationRowModel,
+  ColumnDef,
+} from '@tanstack/react-table';
+import { DataGrid } from '@/components/ui/data-grid';
+import { DataGridTable } from '@/components/ui/data-grid-table';
+import { DataGridPagination } from '@/components/ui/data-grid-pagination';
 
 interface Timesheet {
   id: string;
@@ -32,7 +41,7 @@ interface Timesheet {
   actual_end: string | null;
   break_minutes: number;
   shift_notes_text: string | null;
-  status: 'draft' | 'pending' | 'approved' | 'rejected';
+  status: 'missing' | 'pending' | 'approved' | 'rejected';
   admin_notes: string | null;
   rejection_reason: string | null;
   submitted_at: string | null;
@@ -50,24 +59,24 @@ interface Timesheet {
   } | null;
 }
 
-type TabKey = 'draft' | 'pending' | 'approved' | 'rejected';
+type TabKey = 'missing' | 'pending' | 'approved' | 'rejected';
 
 const TABS: { key: TabKey; label: string; icon: React.ElementType }[] = [
-  { key: 'draft',    label: 'Needs Submission',  icon: AlertCircle  },
+  { key: 'missing',  label: 'Needs Submission',  icon: AlertCircle  },
   { key: 'pending',  label: 'Awaiting Approval', icon: Clock        },
   { key: 'approved', label: 'Approved',          icon: CheckCircle2 },
   { key: 'rejected', label: 'Rejected',          icon: XCircle      },
 ];
 
 const statusVariant: Record<TabKey, 'warning' | 'secondary' | 'success' | 'destructive'> = {
-  draft:    'warning',
+  missing:  'warning',
   pending:  'secondary',
   approved: 'success',
   rejected: 'destructive',
 };
 
 const statusLabel: Record<TabKey, string> = {
-  draft:    'Needs Submission',
+  missing:  'Needs Submission',
   pending:  'Awaiting Approval',
   approved: 'Approved',
   rejected: 'Rejected',
@@ -85,22 +94,90 @@ export function StaffTimesheetList() {
   const navigate   = useNavigate();
   const [timesheets, setTimesheets] = useState<Timesheet[]>([]);
   const [loading, setLoading]       = useState(true);
-  const [activeTab, setActiveTab]   = useState<TabKey>('draft');
+  const [activeTab, setActiveTab]   = useState<TabKey>('missing');
 
   const fetchTimesheets = useCallback(async () => {
     if (!user?.staff_id) { setLoading(false); return; }
-    const { data } = await supabase
+    
+    const now = new Date();
+    const thirtyDaysAgo = subDays(now, 30).toISOString().split('T')[0];
+    const todayStr = format(now, 'yyyy-MM-dd');
+
+    // 1. Fetch existing timesheets
+    const { data: existingTs } = await supabase
       .from('timesheets')
       .select(`
         id, shift_id, clock_in, clock_out, actual_start, actual_end,
         break_minutes, shift_notes_text, status, admin_notes,
         rejection_reason, submitted_at, incident_tag, sick_shift,
         overtime_hours, travel_km, created_at,
-        shift:staff_shifts(start_date, start_time, end_time, shift_template, house:houses(name))
+        shift:staff_shifts(id, start_date, end_date, start_time, end_time, shift_template, house:houses(name))
       `)
       .eq('staff_id', user.staff_id)
       .order('created_at', { ascending: false });
-    setTimesheets((data as Timesheet[]) || []);
+
+    // 2. Fetch shifts from the last 30 days
+    const { data: pastShifts } = await supabase
+      .from('staff_shifts')
+      .select(`
+        id, start_date, end_date, start_time, end_time, shift_template,
+        house:houses(name)
+      `)
+      .eq('staff_id', user.staff_id)
+      .gte('end_date', thirtyDaysAgo)
+      .lte('start_date', todayStr)
+      .order('start_date', { ascending: false });
+
+    const tsList = (existingTs as any[]) || [];
+    const shifts = (pastShifts as any[]) || [];
+
+    // 3. Identify shifts that have passed but have no timesheet
+    const timesheetedShiftIds = new Set(tsList.map(ts => ts.shift_id).filter(Boolean));
+    
+    const missingTimesheets: Timesheet[] = shifts
+      .filter(s => {
+        // If it already has a timesheet, skip
+        if (timesheetedShiftIds.has(s.id)) return false;
+        
+        // Check if the shift has actually finished
+        const shiftEnd = parseISO(`${s.end_date}T${s.end_time}`);
+        return isBefore(shiftEnd, now);
+      })
+      .map(s => ({
+        id: `missing-${s.id}`,
+        shift_id: s.id,
+        clock_in: `${s.start_date}T${s.start_time}`,
+        clock_out: `${s.end_date}T${s.end_time}`,
+        actual_start: null,
+        actual_end: null,
+        break_minutes: 0,
+        shift_notes_text: null,
+        status: 'missing' as const,
+        admin_notes: null,
+        rejection_reason: null,
+        submitted_at: null,
+        incident_tag: false,
+        sick_shift: false,
+        overtime_hours: 0,
+        travel_km: 0,
+        created_at: `${s.start_date}T${s.start_time}`,
+        shift: {
+          start_date: s.start_date,
+          start_time: s.start_time,
+          end_time: s.end_time,
+          shift_template: s.shift_template,
+          house: s.house
+        }
+      }));
+
+    // 4. Combine and sort
+    const combined = [...missingTimesheets, ...tsList].sort((a, b) => {
+      const dateA = a.shift?.start_date || a.clock_in;
+      const dateB = b.shift?.start_date || b.clock_in;
+      return dateB.localeCompare(dateA);
+    });
+
+    setTimesheets(combined);
     setLoading(false);
   }, [user?.staff_id]);
 
@@ -111,7 +188,129 @@ export function StaffTimesheetList() {
     return acc;
   }, {} as Record<TabKey, number>);
 
-  const visible = timesheets.filter(ts => ts.status === activeTab);
+  const visible = useMemo(() => timesheets.filter(ts => ts.status === activeTab), [timesheets, activeTab]);
+
+  const columns = useMemo<ColumnDef<Timesheet>[]>(() => [
+    {
+      accessorKey: 'date',
+      header: 'Date',
+      cell: ({ row }) => {
+        const ts = row.original;
+        return ts.shift?.start_date
+          ? format(parseISO(ts.shift.start_date), 'EEE dd MMM yyyy')
+          : format(new Date(ts.clock_in), 'EEE dd MMM yyyy');
+      },
+    },
+    {
+      accessorKey: 'location',
+      header: 'Location',
+      cell: ({ row }) => row.original.shift?.house?.name ?? '—',
+      meta: { className: 'hidden sm:table-cell' },
+    },
+    {
+      accessorKey: 'hours',
+      header: 'Hours',
+      cell: ({ row }) => {
+        const ts = row.original;
+        const hrs = calcHours(ts).toFixed(1);
+        return (
+          <div className="flex items-center gap-1.5">
+            {hrs} hrs
+            {ts.overtime_hours > 0 && (
+              <span className="text-xs text-orange-600 font-medium">
+                +{Number(ts.overtime_hours).toFixed(1)} OT
+              </span>
+            )}
+          </div>
+        );
+      },
+      meta: { className: 'hidden md:table-cell' },
+    },
+    {
+      accessorKey: 'flags',
+      header: 'Flags',
+      cell: ({ row }) => {
+        const ts = row.original;
+        if (activeTab === 'missing') return null;
+        return (
+          <div className="flex flex-wrap items-center gap-1">
+            {ts.incident_tag && (
+              <Badge variant="destructive" appearance="light" className="text-[10px] py-0 h-4 px-1.5 uppercase font-bold">
+                Incident
+              </Badge>
+            )}
+            {ts.sick_shift && (
+              <Badge variant="secondary" appearance="light" className="text-[10px] py-0 h-4 px-1.5 uppercase font-bold bg-purple-100 text-purple-700 border-purple-200">
+                Sick
+              </Badge>
+            )}
+            {ts.overtime_hours > 0 && (
+              <Badge variant="warning" appearance="light" className="text-[10px] py-0 h-4 px-1.5 uppercase font-bold">
+                Overtime
+              </Badge>
+            )}
+            {ts.travel_km > 0 && (
+              <Badge variant="outline" className="text-[10px] py-0 h-4 px-1.5 uppercase font-bold bg-blue-50 text-blue-700 border-blue-200">
+                Travel
+              </Badge>
+            )}
+            {!ts.shift_notes_text && (
+              <Badge variant="destructive" appearance="outline" className="text-[10px] py-0 h-4 px-1.5 uppercase font-bold">
+                No Notes
+              </Badge>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: 'status',
+      header: 'Status',
+      cell: ({ row }) => (
+        <Badge variant={statusVariant[row.original.status]} appearance="light">
+          {statusLabel[row.original.status]}
+        </Badge>
+      ),
+      meta: { className: 'hidden lg:table-cell' },
+    },
+    {
+      id: 'actions',
+      header: '',
+      cell: ({ row }) => {
+        const ts = row.original;
+        return (
+          <div className="text-right">
+            {ts.status === 'missing' ? (
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 px-2.5 text-xs font-bold"
+                onClick={() => navigate(`/staff/roster/${ts.shift_id}/timesheet`)}
+              >
+                Submit <ChevronRight className="size-3.5 ms-1" />
+              </Button>
+            ) : ts.status === 'rejected' && (ts.rejection_reason || ts.admin_notes) ? (
+              <p className="text-xs text-destructive italic max-w-[180px] truncate">
+                {ts.rejection_reason || ts.admin_notes}
+              </p>
+            ) : null}
+          </div>
+        );
+      },
+    },
+  ], [activeTab, navigate]);
+
+  const table = useReactTable({
+    data: visible,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    initialState: {
+      pagination: {
+        pageSize: 10,
+      },
+    },
+  });
 
   return (
     <>
@@ -132,7 +331,10 @@ export function StaffTimesheetList() {
             {TABS.map(({ key, label, icon: Icon }) => (
               <button
                 key={key}
-                onClick={() => setActiveTab(key)}
+                onClick={() => {
+                  setActiveTab(key);
+                  table.setPageIndex(0);
+                }}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex-1 justify-center ${
                   activeTab === key
                     ? 'bg-background shadow-sm text-foreground'
@@ -169,8 +371,8 @@ export function StaffTimesheetList() {
             </div>
           )}
 
-          {/* Draft reminder banner */}
-          {activeTab === 'draft' && visible.length > 0 && (
+          {/* Missing reminder banner */}
+          {activeTab === 'missing' && visible.length > 0 && (
             <div className="rounded-lg border border-warning/50 bg-warning/10 p-4 flex gap-3">
               <AlertCircle className="size-5 text-warning mt-0.5 shrink-0" />
               <div>
@@ -199,7 +401,7 @@ export function StaffTimesheetList() {
                 <div className="text-center">
                   <p className="font-medium">No timesheets here</p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    {activeTab === 'draft'
+                    {activeTab === 'missing'
                       ? 'All your completed shifts have been submitted.'
                       : `No ${statusLabel[activeTab].toLowerCase()} timesheets.`}
                   </p>
@@ -207,91 +409,25 @@ export function StaffTimesheetList() {
               </CardContent>
             </Card>
           ) : (
-            <Card className="border-0 sm:border">
-              <CardHeader className="py-4 px-5 border-b">
-                <span className="text-sm text-muted-foreground">
-                  {visible.length} timesheet{visible.length !== 1 ? 's' : ''}
-                </span>
-              </CardHeader>
-              <CardTable>
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b bg-muted/40">
-                      <th className="text-left px-5 py-3 font-medium text-muted-foreground">Date</th>
-                      <th className="text-left px-5 py-3 font-medium text-muted-foreground hidden sm:table-cell">Location</th>
-                      <th className="text-left px-5 py-3 font-medium text-muted-foreground hidden md:table-cell">Hours</th>
-                      <th className="text-left px-5 py-3 font-medium text-muted-foreground">Flags</th>
-                      <th className="text-left px-5 py-3 font-medium text-muted-foreground hidden lg:table-cell">Status</th>
-                      <th className="px-5 py-3"></th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {visible.map((ts) => {
-                      const dateStr = ts.shift?.start_date
-                        ? format(parseISO(ts.shift.start_date), 'EEE dd MMM yyyy')
-                        : format(new Date(ts.clock_in), 'EEE dd MMM yyyy');
-                      const hrs = calcHours(ts).toFixed(1);
-                      return (
-                        <tr key={ts.id} className="hover:bg-muted/30 transition-colors">
-                          <td className="px-5 py-3.5 font-medium">{dateStr}</td>
-                          <td className="px-5 py-3.5 text-muted-foreground hidden sm:table-cell">
-                            {ts.shift?.house?.name ?? '—'}
-                          </td>
-                          <td className="px-5 py-3.5 text-muted-foreground hidden md:table-cell">
-                            {hrs} hrs
-                            {ts.overtime_hours > 0 && (
-                              <span className="ml-1.5 text-xs text-orange-600 font-medium">
-                                +{Number(ts.overtime_hours).toFixed(1)} OT
-                              </span>
-                            )}
-                          </td>
-                          <td className="px-5 py-3.5">
-                            <div className="flex items-center gap-1.5">
-                              {ts.incident_tag && (
-                                <span title="Incident tagged" className="text-sm leading-none">📝</span>
-                              )}
-                              {ts.sick_shift && (
-                                <span title="Sick shift" className="text-sm leading-none">💊</span>
-                              )}
-                              {ts.overtime_hours > 0 && (
-                                <span title="Overtime claimed" className="text-sm leading-none">🟧</span>
-                              )}
-                              {ts.travel_km > 0 && (
-                                <span title="Travel claimed" className="text-sm leading-none">📍</span>
-                              )}
-                              {!ts.shift_notes_text && (
-                                <span title="No shift notes" className="text-sm leading-none">⚠️</span>
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-5 py-3.5 hidden lg:table-cell">
-                            <Badge variant={statusVariant[ts.status]} appearance="light">
-                              {statusLabel[ts.status]}
-                            </Badge>
-                          </td>
-                          <td className="px-5 py-3.5 text-right">
-                            {ts.status === 'draft' ? (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="h-7 px-2.5 text-xs"
-                                onClick={() => navigate(`/staff/roster/${ts.shift_id}/timesheet`)}
-                              >
-                                Submit <ChevronRight className="size-3.5 ms-1" />
-                              </Button>
-                            ) : ts.status === 'rejected' && (ts.rejection_reason || ts.admin_notes) ? (
-                              <p className="text-xs text-destructive italic max-w-[180px] truncate text-right">
-                                {ts.rejection_reason || ts.admin_notes}
-                              </p>
-                            ) : null}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </CardTable>
-            </Card>
+            <DataGrid
+              table={table}
+              recordCount={visible.length}
+              isLoading={loading}
+            >
+              <Card className="border-0 sm:border">
+                <CardHeader className="py-4 px-5 border-b">
+                  <span className="text-sm text-muted-foreground">
+                    {visible.length} timesheet{visible.length !== 1 ? 's' : ''}
+                  </span>
+                </CardHeader>
+                <CardTable>
+                  <DataGridTable />
+                </CardTable>
+                <CardFooter>
+                  <DataGridPagination />
+                </CardFooter>
+              </Card>
+            </DataGrid>
           )}
         </div>
       </Container>

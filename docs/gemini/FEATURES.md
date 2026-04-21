@@ -26,7 +26,12 @@ The core operational engine of the care system.
 - **Schedule Checklists**: Standalone tool to bulk schedule facility-wide checklists (e.g., "Weekly Deep Clean", "Vehicle Check") across multiple weeks independently of specific shifts.
 - **Roster Board**: Visual representation of staff shifts and house assignments with intelligent staff filtering (showing active staff assigned to the house).
 - **Shift Routines**: Automated, shift-locked task lists that staff must complete and sign off on during their active shift. Completion is enforced; staff cannot submit timesheets if mandatory shift routines are incomplete.
-- **Timesheets**: Integration with actual worked hours and manager workflow.
+- **Overnight Shift Logic**: Intelligent date-range querying ensures that overnight shifts (starting yesterday but ending today) are correctly recognized in "Today's" views and "Active Shift" detection.
+- **Smart Timesheets**: Proactive timesheet management system.
+    - **Missing Shift Detection**: Automatically identifies completed shifts that are missing timesheets and flags them for creation.
+    - **Robust Submission**: Optimized submission flow prevents autosave race conditions, ensuring a single click successfully transitions a timesheet from draft to pending.
+    - **Action-Oriented Alerts**: The Staff Dashboard displays high-visibility prompts when timesheets are required for past work.
+    - **Consolidated Tracking**: Real-time visibility across Needs Submission (Drafts/Missing), Awaiting Approval, Approved, and Rejected states.
 
 ## 4. Leave Management
 Integrated system for managing staff unavailability and holiday requests.
@@ -56,7 +61,9 @@ System-wide tools for ensuring regulatory and operational standards.
 ## 6. Dashboards
 - **Management Dashboard**: High-level overview of occupancy, staffing levels, and compliance status.
 - **Staff Dashboard**: Personalized view of upcoming shifts, tasks, and notifications.
-    - **Assigned Events Integration**: Merges rostered shifts with assigned calendar events (meetings, training, community outings) into a single chronological "Upcoming Schedule" timeline.
+    - **Upcoming Schedule**: Chronological merge of rostered shifts and assigned calendar events (meetings, training, community outings) with period-specific icons and colors.
+    - **Proactive Alerts**: High-visibility cards for missing timesheets, expiring compliance items, and urgent shift routines.
+    - **Overnight Awareness**: Active shift detection accurately identifies work-in-progress across calendar day boundaries.
 
 ## 7. Notification Center
 Comprehensive alert system for critical updates and workflows.

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/auth/context/auth-context';
@@ -49,7 +49,6 @@ export function StaffTimesheetForm() {
   const [loading, setLoading]       = useState(true);
   const [saving, setSaving]         = useState(false);
   const [existingId, setExistingId] = useState<string | null>(null);
-  const [lastSaved, setLastSaved]   = useState<Date | null>(null);
   const [assignedChecklists, setAssignedChecklists] = useState<AssignedChecklist[]>([]);
 
   const [shiftNotes, setShiftNotes]                   = useState('');
@@ -61,8 +60,6 @@ export function StaffTimesheetForm() {
   const [incidentTag, setIncidentTag]                 = useState(false);
   const [sickShift, setSickShift]                     = useState(false);
   const [sickReason, setSickReason]                   = useState('');
-
-  const autosaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const scheduledMins = shift
     ? (() => {
@@ -145,56 +142,6 @@ export function StaffTimesheetForm() {
     };
     load();
   }, [shiftId, user?.staff_id]);
-
-  const saveDraft = useCallback(async () => {
-    if (!user?.staff_id || !shiftId || !shift) return;
-
-    // Ensure timestamps are full ISO strings for Supabase
-    const formatToFullISO = (val: string) => {
-      if (!val) return null;
-      const d = new Date(val);
-      return isNaN(d.getTime()) ? null : d.toISOString();
-    };
-
-    const payload = {
-      staff_id:             user.staff_id,
-      shift_id:             shiftId,
-      clock_in:             formatToFullISO(actualStart) || `${shift.start_date}T${shift.start_time.slice(0, 5)}:00Z`,
-      clock_out:            formatToFullISO(actualEnd)   || `${(shift.end_date || shift.start_date)}T${shift.end_time.slice(0, 5)}:00Z`,
-      actual_start:         formatToFullISO(actualStart),
-      actual_end:           formatToFullISO(actualEnd),
-      break_minutes:        parseInt(breakMins) || 0,
-      shift_notes_text:     shiftNotes.trim() || null,
-      overtime_explanation: overtimeExplanation || null,
-      travel_km:            parseFloat(travelKm) || 0,
-      incident_tag:         incidentTag,
-      sick_shift:           sickShift,
-      notes:                sickShift ? (sickReason || null) : null,
-      overtime_hours:       overtimeHours,
-      status:               'draft',
-      updated_at:           new Date().toISOString(),
-    };
-
-    if (existingId) {
-      await supabase.from('timesheets').update(payload).eq('id', existingId);
-    } else {
-      const { data } = await supabase
-        .from('timesheets')
-        .upsert({ ...payload, created_at: new Date().toISOString() }, { onConflict: 'shift_id,staff_id' })
-        .select('id')
-        .single();
-      if (data) setExistingId(data.id);
-    }
-    setLastSaved(new Date());
-  }, [user?.staff_id, shiftId, shift, actualStart, actualEnd, breakMins, shiftNotes,
-      overtimeExplanation, travelKm, incidentTag, sickShift, sickReason, overtimeHours, existingId]);
-
-  useEffect(() => {
-    if (!shift || loading) return;
-    if (autosaveRef.current) clearTimeout(autosaveRef.current);
-    autosaveRef.current = setTimeout(saveDraft, 3000);
-    return () => { if (autosaveRef.current) clearTimeout(autosaveRef.current); };
-  }, [shift, loading, saveDraft, shiftNotes, actualStart, actualEnd, breakMins, travelKm, incidentTag, sickShift, sickReason]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -347,7 +294,7 @@ export function StaffTimesheetForm() {
         <Toolbar className="hidden sm:flex">
           <ToolbarHeading>
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" onClick={() => navigate('/staff/roster')} className="-ml-2">
+              <Button variant="ghost" size="sm" onClick={() => navigate('/staff/timesheets')} className="-ml-2">
                 <ArrowLeft className="size-4" />
               </Button>
               <div>
@@ -359,12 +306,6 @@ export function StaffTimesheetForm() {
               </div>
             </div>
           </ToolbarHeading>
-          {lastSaved && (
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <CheckCircle2 className="size-3.5 text-green-500" />
-              Draft saved {format(lastSaved, 'HH:mm')}
-            </div>
-          )}
         </Toolbar>
       </Container>
 
@@ -631,7 +572,7 @@ export function StaffTimesheetForm() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => navigate('/staff/roster')}
+              onClick={() => navigate('/staff/timesheets')}
               disabled={saving}
             >
               Cancel

@@ -112,10 +112,13 @@ export function useShiftsQuery(staffId: string, startDate: string, endDate: stri
           ),
           notes_count:shift_notes(count)
         `)
-        .gte('start_date', startDate)
-        .lte('start_date', endDate)
         .order('start_date', { ascending: true })
         .order('start_time', { ascending: true });
+
+      // Handle overlapping date ranges (useful for overnight shifts)
+      // Intersection rule: (Shift End >= Range Start) AND (Shift Start <= Range End)
+      if (startDate) shiftQuery = shiftQuery.gte('end_date', startDate);
+      if (endDate) shiftQuery = shiftQuery.lte('start_date', endDate);
 
       if (staffId && staffId !== 'all') shiftQuery = shiftQuery.eq('staff_id', staffId);
       if (houseId && houseId !== 'all') shiftQuery = shiftQuery.eq('house_id', houseId);

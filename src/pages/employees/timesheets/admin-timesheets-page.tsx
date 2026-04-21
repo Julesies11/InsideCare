@@ -1,19 +1,18 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/auth/context/auth-context';
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
 import { logActivity } from '@/lib/activity-logger';
 import {
-  Check, X, Clock, AlertTriangle, Car, Stethoscope, FileText,
-  ChevronRight, Search, Filter, RefreshCw, ClipboardList,
+  Check, X, ChevronRight, Search, Filter, RefreshCw, ClipboardList,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTable, CardFooter } from '@/components/ui/card';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
@@ -24,6 +23,19 @@ import { Container } from '@/components/common/container';
 import {
   Toolbar, ToolbarHeading, ToolbarPageTitle, ToolbarDescription,
 } from '@/partials/common/toolbar';
+import { NotificationService } from '@/lib/notification-service';
+import {
+  useReactTable,
+  getCoreRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  getFilteredRowModel,
+  ColumnDef,
+} from '@tanstack/react-table';
+import { DataGrid } from '@/components/ui/data-grid';
+import { DataGridTable } from '@/components/ui/data-grid-table';
+import { DataGridPagination } from '@/components/ui/data-grid-pagination';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface Timesheet {
   id: string;
@@ -74,34 +86,33 @@ function ExceptionIcons({ ts }: { ts: Timesheet }) {
   return (
     <div className="flex items-center gap-1.5 flex-wrap">
       {ts.incident_tag && (
-        <span title="Incident flagged" className="inline-flex items-center gap-1 rounded-full bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 px-2 py-0.5 text-xs font-medium">
-          <AlertTriangle className="size-3" /> Incident
-        </span>
+        <Badge variant="destructive" appearance="light" className="text-[10px] py-0 h-4 px-1.5 uppercase font-bold">
+          Incident
+        </Badge>
       )}
       {ts.sick_shift && (
-        <span title="Sick shift" className="inline-flex items-center gap-1 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 px-2 py-0.5 text-xs font-medium">
-          <Stethoscope className="size-3" /> Sick
-        </span>
+        <Badge variant="secondary" appearance="light" className="text-[10px] py-0 h-4 px-1.5 uppercase font-bold bg-purple-100 text-purple-700 border-purple-200">
+          Sick
+        </Badge>
       )}
       {ts.overtime_hours > 0 && (
-        <span title={`${Number(ts.overtime_hours).toFixed(1)} hrs overtime`} className="inline-flex items-center gap-1 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 px-2 py-0.5 text-xs font-medium">
-          <Clock className="size-3" /> +{Number(ts.overtime_hours).toFixed(1)}h OT
-        </span>
+        <Badge variant="warning" appearance="light" className="text-[10px] py-0 h-4 px-1.5 uppercase font-bold">
+          Overtime
+        </Badge>
       )}
       {ts.travel_km > 0 && (
-        <span title={`${ts.travel_km} km travel`} className="inline-flex items-center gap-1 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-2 py-0.5 text-xs font-medium">
-          <Car className="size-3" /> {ts.travel_km} km
-        </span>
+        <Badge variant="outline" className="text-[10px] py-0 h-4 px-1.5 uppercase font-bold bg-blue-50 text-blue-700 border-blue-200">
+          Travel
+        </Badge>
       )}
       {!ts.shift_notes_text && (
-        <span title="No shift notes" className="inline-flex items-center gap-1 rounded-full bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 px-2 py-0.5 text-xs font-medium">
-          <FileText className="size-3" /> No notes
-        </span>
+        <Badge variant="destructive" appearance="outline" className="text-[10px] py-0 h-4 px-1.5 uppercase font-bold">
+          No Notes
+        </Badge>
       )}
     </div>
   );
 }
-import { NotificationService } from '@/lib/notification-service';
 
 export function AdminTimesheetsPage() {
   const { user } = useAuth();
@@ -114,7 +125,7 @@ export function AdminTimesheetsPage() {
   const [adminNotes, setAdminNotes]           = useState('');
   const [rejectionReason, setRejectionReason] = useState('');
   const [saving, setSaving]                   = useState(false);
-  const [selectedIds, setSelectedIds]         = useState<Set<string>>(new Set());
+  const [rowSelection, setRowSelection]       = useState({});
 
   const fetchTimesheets = useCallback(async () => {
     setLoading(true);
@@ -140,19 +151,22 @@ export function AdminTimesheetsPage() {
     if (error) toast.error('Failed to load timesheets');
     else setTimesheets((data as Timesheet[]) || []);
     setLoading(false);
+    setRowSelection({}); // Reset selection on filter/refresh
   }, [statusFilter]);
 
   useEffect(() => { fetchTimesheets(); }, [fetchTimesheets]);
 
-  const filtered = timesheets.filter((ts) => {
-    if (!search.trim()) return true;
-    const q = search.toLowerCase();
-    return (
-      ts.staff?.name?.toLowerCase().includes(q) ||
-      ts.shift?.house?.name?.toLowerCase().includes(q) ||
-      ts.shift?.start_date?.includes(q)
-    );
-  });
+  const filtered = useMemo(() => {
+    return timesheets.filter((ts) => {
+      if (!search.trim()) return true;
+      const q = search.toLowerCase();
+      return (
+        ts.staff?.name?.toLowerCase().includes(q) ||
+        ts.shift?.house?.name?.toLowerCase().includes(q) ||
+        ts.shift?.start_date?.includes(q)
+      );
+    });
+  }, [timesheets, search]);
 
   const pendingCount   = timesheets.filter(t => t.status === 'pending').length;
   const exceptionCount = timesheets.filter(t =>
@@ -162,7 +176,8 @@ export function AdminTimesheetsPage() {
   const openReview = (ts: Timesheet, act: 'approve' | 'reject') => {
     setSelected(ts); setAction(act); setAdminNotes(''); setRejectionReason('');
   };
-    const handleAction = async () => {
+
+  const handleAction = async () => {
     if (!selected || !action || !user) return;
     setSaving(true);
     const newStatus = action === 'approve' ? 'approved' : 'rejected';
@@ -209,25 +224,18 @@ export function AdminTimesheetsPage() {
     }
 
     toast.success(`Timesheet ${newStatus}`);
-    setSelected(null); setAction(null); setSelectedIds(new Set());
+    setSelected(null); setAction(null); setRowSelection({});
     fetchTimesheets(); setSaving(false);
   };
 
-  const toggleSelect = (id: string) => {
-    setSelectedIds(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
-  };
-
-  const selectableRows = filtered.filter(
-    t => t.status === 'pending' && !t.incident_tag && !t.sick_shift && t.overtime_hours === 0
-  );
+  // Actually, TanStack table indices match the data passed to it
+  const selectedItems = useMemo(() => {
+    return filtered.filter((_, _idx) => rowSelection[_idx as keyof typeof rowSelection]);
+  }, [filtered, rowSelection]);
 
   const handleBulkApprove = async () => {
-    if (selectedIds.size === 0) return;
-    const ids = Array.from(selectedIds);
+    if (selectedItems.length === 0) return;
+    const ids = selectedItems.map(item => item.id);
     setSaving(true);
     const now = new Date().toISOString();
     const { error } = await supabase
@@ -238,16 +246,14 @@ export function AdminTimesheetsPage() {
     if (error) { toast.error('Bulk approve failed'); setSaving(false); return; }
 
     const userName = user?.fullname || user?.email || 'Admin';
-    for (const id of ids) {
-      const ts = timesheets.find(t => t.id === id);
-      if (!ts) continue;
+    for (const ts of selectedItems) {
       const shiftDate = ts.shift?.start_date
         ? format(parseISO(ts.shift.start_date), 'dd MMM yyyy')
         : format(new Date(ts.clock_in), 'dd MMM yyyy');
       await logActivity({
         activityType:      'approve',
         entityType:        'timesheet',
-        entityId:          id,
+        entityId:          ts.id,
         entityName:        `Timesheet – ${shiftDate} (${ts.staff?.name ?? 'Unknown'})`,
         userName,
         customDescription: `Bulk approved timesheet for ${ts.staff?.name ?? 'staff'} on ${shiftDate}`,
@@ -261,9 +267,131 @@ export function AdminTimesheetsPage() {
     }
 
     toast.success(`${ids.length} timesheet${ids.length !== 1 ? 's' : ''} approved`);
-    setSelectedIds(new Set()); fetchTimesheets(); setSaving(false);
+    setRowSelection({}); fetchTimesheets(); setSaving(false);
   };
-    return (
+
+  const columns = useMemo<ColumnDef<Timesheet>[]>(() => [
+    {
+      id: 'select',
+      header: ({ table }) => (
+        statusFilter === 'pending' ? (
+          <Checkbox
+            checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            aria-label="Select all"
+          />
+        ) : null
+      ),
+      cell: ({ row }) => {
+        const ts = row.original;
+        const hasException = ts.incident_tag || ts.sick_shift || ts.overtime_hours > 0;
+        const canSelect = ts.status === 'pending' && !hasException;
+        
+        if (statusFilter !== 'pending') return null;
+        if (!canSelect) return <span title="Cannot bulk approve — has exceptions" className="text-muted-foreground/40 text-xs">—</span>;
+
+        return (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+          />
+        );
+      },
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: 'staff.name',
+      header: 'Staff',
+      cell: ({ row }) => <span className="font-medium">{row.original.staff?.name ?? 'Unknown'}</span>,
+    },
+    {
+      accessorKey: 'date',
+      header: 'Date',
+      cell: ({ row }) => {
+        const ts = row.original;
+        return ts.shift?.start_date
+          ? format(parseISO(ts.shift.start_date), 'dd MMM yyyy') +
+            (ts.shift.end_date && ts.shift.end_date !== ts.shift.start_date
+              ? ` – ${format(parseISO(ts.shift.end_date), 'dd MMM yyyy')}`
+              : '')
+          : format(new Date(ts.clock_in), 'dd MMM yyyy');
+      },
+      meta: { className: 'hidden sm:table-cell' },
+    },
+    {
+      accessorKey: 'location',
+      header: 'Location',
+      cell: ({ row }) => row.original.shift?.house?.name ?? '—',
+      meta: { className: 'hidden md:table-cell' },
+    },
+    {
+      accessorKey: 'hours',
+      header: 'Hours',
+      cell: ({ row }) => `${calcHours(row.original).toFixed(1)} hrs`,
+      meta: { className: 'hidden lg:table-cell' },
+    },
+    {
+      id: 'exceptions',
+      header: 'Exceptions',
+      cell: ({ row }) => <ExceptionIcons ts={row.original} />,
+    },
+    {
+      accessorKey: 'status',
+      header: 'Status',
+      cell: ({ row }) => (
+        <Badge variant={statusVariant[row.original.status] ?? 'secondary'} appearance="light">
+          {row.original.status}
+        </Badge>
+      ),
+    },
+    {
+      id: 'actions',
+      header: '',
+      cell: ({ row }) => {
+        const ts = row.original;
+        return (
+          <div className="flex items-center gap-1.5 justify-end">
+            {ts.status === 'pending' ? (
+              <>
+                <Button size="sm" className="h-7 px-2.5 text-xs bg-green-600 hover:bg-green-700 text-white" onClick={() => openReview(ts, 'approve')}>
+                  <Check className="size-3.5 mr-1" /> Approve
+                </Button>
+                <Button size="sm" variant="destructive" className="h-7 px-2.5 text-xs" onClick={() => openReview(ts, 'reject')}>
+                  <X className="size-3.5 mr-1" /> Reject
+                </Button>
+              </>
+            ) : (
+              <Button size="sm" variant="ghost" className="h-7 px-2.5 text-xs" onClick={() => { setSelected(ts); setAction(null); }}>
+                View <ChevronRight className="size-3.5 ml-1" />
+              </Button>
+            )}
+          </div>
+        );
+      },
+    },
+  ], [statusFilter]);
+
+  const table = useReactTable({
+    data: filtered,
+    columns,
+    state: {
+      rowSelection,
+    },
+    onRowSelectionChange: setRowSelection,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    initialState: {
+      pagination: {
+        pageSize: 10,
+      },
+    },
+  });
+
+  return (
     <>
       <Container>
         <Toolbar>
@@ -328,15 +456,15 @@ export function AdminTimesheetsPage() {
                 <SelectItem value="all">All Submitted</SelectItem>
               </SelectContent>
             </Select>
-            {selectedIds.size > 0 && (
+            {selectedItems.length > 0 && (
               <Button size="sm" onClick={handleBulkApprove} disabled={saving} className="bg-green-600 hover:bg-green-700 text-white">
                 <Check className="size-4 mr-1.5" />
-                Approve {selectedIds.size} selected
+                Approve {selectedItems.length} selected
               </Button>
             )}
           </div>
 
-          {statusFilter === 'pending' && selectableRows.length > 0 && (
+          {statusFilter === 'pending' && filtered.some(ts => ts.incident_tag || ts.sick_shift || ts.overtime_hours > 0) && (
             <p className="text-xs text-muted-foreground -mt-2">
               Timesheets with exceptions (incident, sick, overtime) must be reviewed individually and cannot be bulk approved.
             </p>
@@ -362,95 +490,26 @@ export function AdminTimesheetsPage() {
               </CardContent>
             </Card>
           ) : (
-            <Card>
-              <CardHeader className="py-4 px-5 border-b">
-                <span className="text-sm text-muted-foreground">
-                  {filtered.length} timesheet{filtered.length !== 1 ? 's' : ''}
-                  {selectedIds.size > 0 && ` · ${selectedIds.size} selected`}
-                </span>
-              </CardHeader>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b bg-muted/40">
-                      {statusFilter === 'pending' && (
-                        <th className="px-4 py-3 w-10">
-                          <input
-                            type="checkbox"
-                            className="rounded"
-                            checked={selectedIds.size === selectableRows.length && selectableRows.length > 0}
-                            onChange={(e) => {
-                              if (e.target.checked) setSelectedIds(new Set(selectableRows.map(r => r.id)));
-                              else setSelectedIds(new Set());
-                            }}
-                          />
-                        </th>
-                      )}
-                      <th className="text-left px-4 py-3 font-medium text-muted-foreground">Staff</th>
-                      <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden sm:table-cell">Date</th>
-                      <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden md:table-cell">Location</th>
-                      <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden lg:table-cell">Hours</th>
-                      <th className="text-left px-4 py-3 font-medium text-muted-foreground">Exceptions</th>
-                      <th className="text-left px-4 py-3 font-medium text-muted-foreground">Status</th>
-                      <th className="px-4 py-3"></th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {filtered.map((ts) => {
-                      const shiftDate = ts.shift?.start_date
-                        ? format(parseISO(ts.shift.start_date), 'dd MMM yyyy') +
-                          (ts.shift.end_date && ts.shift.end_date !== ts.shift.start_date
-                            ? ` – ${format(parseISO(ts.shift.end_date), 'dd MMM yyyy')}`
-                            : '')
-                        : format(new Date(ts.clock_in), 'dd MMM yyyy');
-                      const hrs = calcHours(ts).toFixed(1);
-                      const hasException = ts.incident_tag || ts.sick_shift || ts.overtime_hours > 0;
-                      const canSelect = ts.status === 'pending' && !hasException;
-                      return (
-                        <tr
-                          key={ts.id}
-                          className={`hover:bg-muted/30 transition-colors ${hasException && ts.status === 'pending' ? 'bg-orange-50/50 dark:bg-orange-950/10' : ''}`}
-                        >
-                          {statusFilter === 'pending' && (
-                            <td className="px-4 py-3.5">
-                              {canSelect ? (
-                                <input type="checkbox" className="rounded" checked={selectedIds.has(ts.id)} onChange={() => toggleSelect(ts.id)} />
-                              ) : (
-                                <span title="Cannot bulk approve — has exceptions" className="text-muted-foreground/40 text-xs">—</span>
-                              )}
-                            </td>
-                          )}
-                          <td className="px-4 py-3.5 font-medium">{ts.staff?.name ?? 'Unknown'}</td>
-                          <td className="px-4 py-3.5 text-muted-foreground hidden sm:table-cell">{shiftDate}</td>
-                          <td className="px-4 py-3.5 text-muted-foreground hidden md:table-cell">{ts.shift?.house?.name ?? '—'}</td>
-                          <td className="px-4 py-3.5 text-muted-foreground hidden lg:table-cell">{hrs} hrs</td>
-                          <td className="px-4 py-3.5"><ExceptionIcons ts={ts} /></td>
-                          <td className="px-4 py-3.5">
-                            <Badge variant={statusVariant[ts.status] ?? 'secondary'} appearance="light">{ts.status}</Badge>
-                          </td>
-                          <td className="px-4 py-3.5 text-right">
-                            {ts.status === 'pending' ? (
-                              <div className="flex items-center gap-1.5 justify-end">
-                                <Button size="sm" className="h-7 px-2.5 text-xs bg-green-600 hover:bg-green-700 text-white" onClick={() => openReview(ts, 'approve')}>
-                                  <Check className="size-3.5 mr-1" /> Approve
-                                </Button>
-                                <Button size="sm" variant="destructive" className="h-7 px-2.5 text-xs" onClick={() => openReview(ts, 'reject')}>
-                                  <X className="size-3.5 mr-1" /> Reject
-                                </Button>
-                              </div>
-                            ) : (
-                              <Button size="sm" variant="ghost" className="h-7 px-2.5 text-xs" onClick={() => { setSelected(ts); setAction(null); }}>
-                                View <ChevronRight className="size-3.5 ml-1" />
-                              </Button>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
+            <DataGrid
+              table={table}
+              recordCount={filtered.length}
+              isLoading={loading}
+            >
+              <Card>
+                <CardHeader className="py-4 px-5 border-b">
+                  <span className="text-sm text-muted-foreground">
+                    {filtered.length} timesheet{filtered.length !== 1 ? 's' : ''}
+                    {selectedItems.length > 0 && ` · ${selectedItems.length} selected`}
+                  </span>
+                </CardHeader>
+                <CardTable>
+                  <DataGridTable />
+                </CardTable>
+                <CardFooter>
+                  <DataGridPagination />
+                </CardFooter>
+              </Card>
+            </DataGrid>
           )}
         </div>
       </Container>

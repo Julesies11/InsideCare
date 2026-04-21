@@ -81,7 +81,9 @@ export function useStaffShifts(staffId?: string, startDate?: string, endDate?: s
         .order('start_date', { ascending: true })
         .order('start_time', { ascending: true });
 
-      if (startDate) query = query.gte('start_date', startDate);
+      // Handle overlapping date ranges (useful for overnight shifts)
+      // Intersection rule: (Shift End >= Range Start) AND (Shift Start <= Range End)
+      if (startDate) query = query.gte('end_date', startDate);
       if (endDate) query = query.lte('start_date', endDate);
 
       const { data: shifts, error: shiftsError } = await query;

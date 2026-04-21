@@ -9,6 +9,7 @@ As of **March 30, 2026**, the database schema has been refined for go-live:
 - **Dynamic Shift Templates:** `migrations/2026032401_dynamic_shift_model.sql` (House-specific shift types).
 - **Shift Template Refactor:** `migrations/2026032500_refactor_shift_templates.sql` (Flexible template groups).
 - **Column Standardization:** `migrations/2026032901_rename_shift_date_to_start_date.sql` (Standardized date naming).
+- **Security & Participants:** `migrations/2026040901_shift_participants_rls.sql` (RLS policies for staff participants).
 - **Archiving:** Historical files are in `migrations/old_consolidated/`.
 
 ## Enum Compatibility & Querying
@@ -55,7 +56,8 @@ The care facilities/locations.
 - **`house_shift_templates`**: Defines house-specific shift periods (Morning, Day, etc.) with custom icons, colors, and default times.
 - **`shift_template_default_checklists`**: Junction table mapping default checklists to shift templates for automatic assignment.
 - **`staff_shifts`**: Scheduled shifts for staff.
-    - **Key Fields**: `id`, `staff_id`, `house_id`, `start_date`, `start_time`, `end_time`, `shift_template_id`, `shift_template`.
+    - **Key Fields**: `id`, `staff_id`, `house_id`, `start_date`, `end_date`, `start_time`, `end_time`, `shift_template_id`, `shift_template`.
+- **`shift_participants`**: Many-to-many relationship between shifts and care recipients (`participants`).
 - **`shift_assigned_checklists`**: Instances of checklists assigned to a *specific* `staff_shift`.
 - **Note**: Organization-level shift templates (`org_shift_templates`) have been deprecated in favor of this House-specific model for better operational flexibility.
 

@@ -47,7 +47,7 @@ const mockLeave = [
 const mockTimesheets = [
   {
     id: 'ts-1',
-    status: 'draft',
+    status: 'pending',
     clock_in: '2026-03-04T08:00:00Z',
     shift: { start_date: '2026-03-04' },
   },
@@ -100,7 +100,7 @@ describe('StaffDashboard', () => {
     await waitFor(() => {
       expect(screen.getAllByText(/Test House/)[0]).toBeInTheDocument();
       expect(screen.getByText(/Annual Leave/)).toBeInTheDocument();
-      expect(screen.getByText(/1 draft/i)).toBeInTheDocument();
+      expect(screen.getByText(/1 awaiting approval/i)).toBeInTheDocument();
     });
   });
 

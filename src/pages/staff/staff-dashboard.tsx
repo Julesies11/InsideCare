@@ -1,14 +1,14 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/auth/context/auth-context';
 import { format } from 'date-fns';
-import { Calendar, Umbrella, ClipboardList, ChevronRight, PlayCircle, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { Calendar, Umbrella, ClipboardList, ChevronRight, PlayCircle, CheckCircle2, AlertTriangle, AlertCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Container } from '@/components/common/container';
 import { WelcomeBanner } from '../dashboards/home/components';
 import { useStaffDashboardData } from '@/hooks/use-staff-dashboard-data';
-import { cn } from '@/lib/utils';
+import { cn, getPeriodTheme } from '@/lib/utils';
 
 export function StaffDashboard() {
   const { user } = useAuth();
@@ -18,6 +18,7 @@ export function StaffDashboard() {
   const upcomingSchedule = data?.upcomingSchedule || [];
   const pendingLeave = data?.pendingLeave || [];
   const pendingTimesheets = data?.pendingTimesheets || [];
+  const missingTimesheetsCount = data?.missingTimesheetsCount || 0;
 
   // Identify if currently on shift
   const now = new Date();
@@ -39,6 +40,35 @@ export function StaffDashboard() {
 
       <Container>
         <div className="grid gap-4 sm:gap-5 lg:gap-7.5 lg:grid-cols-2">
+          {/* Missing Timesheets Alert */}
+          {missingTimesheetsCount > 0 && (
+            <Card className="lg:col-span-2 border-orange-200 bg-orange-50/10 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="size-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 shrink-0">
+                      <AlertCircle className="size-6" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-orange-900">Timesheets Required</h3>
+                      <p className="text-xs text-orange-700 mt-0.5">
+                        You have {missingTimesheetsCount} completed shift{missingTimesheetsCount !== 1 ? 's' : ''} missing a timesheet.
+                      </p>
+                    </div>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full sm:w-auto border-orange-200 text-orange-700 hover:bg-orange-100 font-bold text-xs"
+                    onClick={() => navigate('/staff/timesheets')}
+                  >
+                    CREATE NOW <ChevronRight className="size-3.5 ms-1" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Active Shift / Clock In Suggestion */}
           {currentShift && (
             <Card className={cn(
@@ -126,16 +156,16 @@ export function StaffDashboard() {
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <p className="text-sm font-medium">{format(new Date(item.start_date), 'EEE dd MMM')}</p>
-                          {item.entry_type === 'event' && (
-                            <Badge variant="outline" className={cn("text-[9px] font-bold h-4 px-1", 
-                              item.type_color === 'red' ? 'text-red-600 bg-red-50 border-red-200' :
-                              item.type_color === 'green' ? 'text-green-600 bg-green-50 border-green-200' :
-                              item.type_color === 'purple' ? 'text-purple-600 bg-purple-50 border-purple-200' :
-                              'text-blue-600 bg-blue-50 border-blue-200'
-                            )}>
-                              {item.type_name}
-                            </Badge>
-                          )}
+                          {(() => {
+                            const theme = getPeriodTheme(item.type_name, item.type_color);
+                            const Icon = theme.icon;
+                            return (
+                              <Badge variant="outline" className={cn("text-[9px] font-bold h-4 px-1 gap-1", theme.badge)}>
+                                <Icon className={cn("size-2", theme.text)} />
+                                {item.type_name}
+                              </Badge>
+                            );
+                          })()}
                         </div>
                         <div className="flex items-center gap-2 mt-0.5">
                           <p className="text-xs text-muted-foreground">
@@ -143,14 +173,6 @@ export function StaffDashboard() {
                             {item.house ? ` · ${item.house.name}` : ''}
                             {item.entry_type === 'event' && item.location ? ` · ${item.location}` : ''}
                           </p>
-                          {item.entry_type === 'shift' && item.checklist_stats?.total > 0 && (
-                            <Badge 
-                              variant={item.checklist_stats.all_done ? 'success' : 'outline'} 
-                              className="text-[9px] font-bold h-4 px-1"
-                            >
-                              {item.checklist_stats.completed}/{item.checklist_stats.total} Tasks
-                            </Badge>
-                          )}
                         </div>
                         {item.entry_type === 'event' && (
                           <p className="text-sm font-semibold text-gray-800 mt-1">{item.title}</p>
@@ -206,11 +228,16 @@ export function StaffDashboard() {
             <CardHeader className="pb-2 flex flex-row items-center justify-between">
               <CardTitle className="text-base flex items-center gap-2">
                 <ClipboardList className="size-4" /> Timesheets
-                {pendingTimesheets.length > 0 && (
-                  <Badge variant="warning" appearance="light" className="ml-1">
-                    {pendingTimesheets.filter((t: any) => t.status === 'draft').length > 0
-                      ? `${pendingTimesheets.filter((t: any) => t.status === 'draft').length} draft${pendingTimesheets.filter((t: any) => t.status === 'draft').length !== 1 ? 's' : ''}`
-                      : `${pendingTimesheets.length} pending`}
+                {(pendingTimesheets.length > 0 || missingTimesheetsCount > 0) && (
+                  <Badge variant="warning" appearance="light" className="ml-1 text-[10px]">
+                    {(() => {
+                      const drafts = missingTimesheetsCount;
+                      const pending = pendingTimesheets.filter((t: any) => t.status === 'pending').length;
+                      
+                      if (drafts > 0 && pending > 0) return `${drafts} action, ${pending} pending`;
+                      if (drafts > 0) return `${drafts} action required`;
+                      return `${pending} awaiting approval`;
+                    })()}
                   </Badge>
                 )}
               </CardTitle>
@@ -238,9 +265,11 @@ export function StaffDashboard() {
                         </p>
                         <p className="text-xs text-muted-foreground capitalize">{ts.status}</p>
                       </div>
-                      <Badge variant={ts.status === 'draft' ? 'warning' : 'secondary'} appearance="light">
-                        {ts.status}
-                      </Badge>
+                      <div className="text-right">
+                        <Badge variant="secondary" appearance="light">
+                          {ts.status}
+                        </Badge>
+                      </div>
                     </div>
                   ))}
                 </div>
