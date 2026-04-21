@@ -168,11 +168,11 @@ export function useCreateShiftNote() {
     mutationFn: async (noteData: ShiftNoteUpdateData) => {
       const { data, error } = await supabase
         .from('shift_notes')
-        .insert([{
+        .upsert({
           ...noteData,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-        }])
+        }, { onConflict: 'shift_id,staff_id' })
         .select(SHIFT_NOTE_COLUMNS)
         .single();
 

@@ -15,6 +15,7 @@ Management of care providers and support staff.
     - **Personalized Filtering**: Automatically filters the roster to only show Houses the staff member is actively assigned to.
     - **Robust Tracking**: Intelligent data mapping ensures participants and routines are correctly linked and displayed even across complex database relationships.
     - **Unified View**: Displays personal shifts, assigned events (meetings/outings), and approved leave in one consolidated calendar.
+    - **Staff Shift View**: Dedicated read-only dashboard for staff to view their assigned shifts with checklist previews and scheduler instructions.
 - **Compliance Tracking**: Monitoring of mandatory NDIS checks and their expiry dates.
 - **Training Records**: Tracking of staff training sessions and certifications.
 - **Document Management**: Management of employee documents (ID, insurance, etc.).
@@ -26,12 +27,14 @@ The core operational engine of the care system.
 - **Schedule Checklists**: Standalone tool to bulk schedule facility-wide checklists (e.g., "Weekly Deep Clean", "Vehicle Check") across multiple weeks independently of specific shifts.
 - **Roster Board**: Visual representation of staff shifts and house assignments with intelligent staff filtering (showing active staff assigned to the house).
 - **Shift Routines**: Automated, shift-locked task lists that staff must complete and sign off on during their active shift. Completion is enforced; staff cannot submit timesheets if mandatory shift routines are incomplete.
+- **Enhanced Clinical Notes**: Streamlined "Write Shift Note" experience for staff with locked context (Staff, House, Date) and filtered participant selection. Includes automatic synchronization between mid-shift notes and end-of-shift timesheets.
 - **Overnight Shift Logic**: Intelligent date-range querying ensures that overnight shifts (starting yesterday but ending today) are correctly recognized in "Today's" views and "Active Shift" detection.
 - **Smart Timesheets**: Proactive timesheet management system.
     - **Missing Shift Detection**: Automatically identifies completed shifts that are missing timesheets and flags them for creation.
     - **Robust Submission**: Optimized submission flow prevents autosave race conditions, ensuring a single click successfully transitions a timesheet from draft to pending.
+    - **Audit Trail Visibility**: Staff can now view a full read-only version of their submitted timesheets exactly as they were reported.
     - **Action-Oriented Alerts**: The Staff Dashboard displays high-visibility prompts when timesheets are required for past work.
-    - **Consolidated Tracking**: Real-time visibility across Needs Submission (Drafts/Missing), Awaiting Approval, Approved, and Rejected states.
+    - **Consolidated Tracking**: Real-time visibility across Needs Submission (Drafts/Missing), Awaiting Approval, Approved, and Rejected states with tab state persistence.
 
 ## 4. Leave Management
 Integrated system for managing staff unavailability and holiday requests.

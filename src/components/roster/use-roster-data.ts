@@ -18,7 +18,13 @@ export interface StaffShift {
   updated_at?: string;
   house?: { id: string; name: string };
   participants?: Array<{ id: string; name: string; house_id?: string | null }>;
-  assigned_checklists?: Array<{ id: string; checklist_id: string; assignment_title: string; is_completed?: boolean }>;
+  assigned_checklists?: Array<{ 
+    id: string; 
+    checklist_id: string; 
+    assignment_title: string; 
+    is_completed?: boolean;
+    items?: Array<{ id: string; title: string }>;
+  }>;
   staff_name?: string;
   duration_hours?: number;
   color_theme?: string;
@@ -108,7 +114,10 @@ export function useShiftsQuery(staffId: string, startDate: string, endDate: stri
           ),
           assigned_checklists:shift_assigned_checklists(
             id, checklist_id, assignment_title,
-            submissions:house_checklist_submissions(status)
+            submissions:house_checklist_submissions(status),
+            checklist:house_checklists(
+              items:house_checklist_items(id, title, sort_order)
+            )
           ),
           notes_count:shift_notes(count)
         `)
@@ -206,7 +215,8 @@ export function useShiftsQuery(staffId: string, startDate: string, endDate: stri
         participants,
         assigned_checklists: item.assigned_checklists?.map((cl: any) => ({
           ...cl,
-          is_completed: cl.submissions?.some((s: any) => s.status === 'completed') || false
+          is_completed: cl.submissions?.some((s: any) => s.status === 'completed') || false,
+          items: (cl.checklist?.items || []).sort((a: any, b: any) => a.sort_order - b.sort_order)
         })) || [],
         notesCount: item.notes_count?.[0]?.count || 0,
         color_theme: colorTheme,

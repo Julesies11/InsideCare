@@ -3,10 +3,12 @@ import { format, addDays, parseISO } from 'date-fns';
 import { toast } from 'sonner';
 import { ShiftCalendar, LeaveBlock } from '@/components/roster/shift-calendar';
 import { ShiftDialog, ShiftFormData } from '@/components/roster/shift-dialog';
+import { ViewShiftDialog } from '@/components/roster/view-shift-dialog';
 import { LeaveDialog } from '@/components/roster/leave-dialog';
 import { StaffShift, useRosterData, useShiftsQuery, useLeaveRequestsQuery } from '@/components/roster/use-roster-data';
 import { getDateRange, ViewMode } from '@/components/roster/roster-utils';
 import { EditShiftNoteDialog } from '@/pages/participants/shift-notes/components/edit-shift-note-dialog';
+import { StaffShiftNoteDialog } from '@/components/roster/staff-shift-note-dialog';
 import { useShiftNotes } from '@/hooks/use-shift-notes';
 import { supabase } from '@/lib/supabase';
 import { useHouseShiftTemplates } from '@/hooks/use-house-shift-templates';
@@ -429,41 +431,65 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
         }}
       />
 
-      <ShiftDialog
-        open={showShiftDialog}
-        onOpenChange={(open) => {
-          setShowShiftDialog(open);
-          if (!open) {
-            setScrollToNotes(false);
-          }
-        }}
-        shift={selectedShift}
-        staffId={staffId !== 'all' ? staffId : undefined}
-        preSelectedDate={preSelectedDate}
-        preSelectedHouseId={preSelectedHouseId}
-        preSelectedShiftTemplateId={preSelectedShiftTemplateId}
-        staffList={staff}
-        staffSelectionDisabled={false}
-        houses={houses}
-        participants={participants}
-        checklists={checklists}
-        onSave={handleSaveShift}
-        onDelete={selectedShift ? handleDeleteShift : undefined}
-        scrollToNotes={scrollToNotes}
-        readOnly={!canEdit}
-      />
+      {canEdit ? (
+        <ShiftDialog
+          open={showShiftDialog}
+          onOpenChange={(open) => {
+            setShowShiftDialog(open);
+            if (!open) {
+              setScrollToNotes(false);
+            }
+          }}
+          shift={selectedShift}
+          staffId={staffId !== 'all' ? staffId : undefined}
+          preSelectedDate={preSelectedDate}
+          preSelectedHouseId={preSelectedHouseId}
+          preSelectedShiftTemplateId={preSelectedShiftTemplateId}
+          staffList={staff}
+          staffSelectionDisabled={false}
+          houses={houses}
+          participants={participants}
+          checklists={checklists}
+          onSave={handleSaveShift}
+          onDelete={selectedShift ? handleDeleteShift : undefined}
+          scrollToNotes={scrollToNotes}
+          readOnly={false}
+        />
+      ) : (
+        <ViewShiftDialog
+          open={showShiftDialog}
+          onOpenChange={setShowShiftDialog}
+          shift={selectedShift}
+          onWriteNote={handleWriteNote}
+        />
+      )}
 
-      <EditShiftNoteDialog
-        open={showNoteDialog}
-        onOpenChange={setShowNoteDialog}
-        shiftNote={null}
-        onCreate={async (data) => createShiftNote({ ...data, ...notePreFillData, shift_id: notePreFillShiftId })}
-        onSave={async () => ({ data: null, error: 'Not applicable' })}
-        onSuccess={() => refetchNotes(true)}
-        mode="create"
-        initialShiftId={notePreFillShiftId}
-        initialLinkedShift={notePreFillLinkedShift}
-      />
+      {canEdit ? (
+        <EditShiftNoteDialog
+          open={showNoteDialog}
+          onOpenChange={setShowNoteDialog}
+          shiftNote={null}
+          onCreate={async (data) => createShiftNote({ ...data, ...notePreFillData, shift_id: notePreFillShiftId })}
+          onSave={async () => ({ data: null, error: 'Not applicable' })}
+          onSuccess={() => refetchNotes(true)}
+          mode="create"
+          initialShiftId={notePreFillShiftId}
+          initialLinkedShift={notePreFillLinkedShift}
+        />
+      ) : (
+        <StaffShiftNoteDialog
+          open={showNoteDialog}
+          onOpenChange={setShowNoteDialog}
+          shift={notePreFillLinkedShift ? { 
+            ...notePreFillLinkedShift, 
+            house_id: notePreFillLinkedShift.house_id || (selectedShift?.house_id ?? ''), 
+            staff_id: staffId !== 'all' ? staffId : (selectedShift?.staff_id ?? ''), 
+            start_date: notePreFillLinkedShift.start_date || (selectedShift?.start_date ?? format(new Date(), 'yyyy-MM-dd')),
+            house: notePreFillLinkedShift.house || selectedShift?.house
+          } as any : selectedShift}
+          onSuccess={() => refetchNotes(true)}
+        />
+      )}
     </>
   );
 });

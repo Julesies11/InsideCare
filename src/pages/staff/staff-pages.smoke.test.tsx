@@ -1,5 +1,5 @@
 import { renderWithProviders, screen, waitFor } from '@/test/test-utils';
-import { StaffRoster, StaffChecklists, StaffLeaveList, StaffLeaveForm, StaffDashboard, StaffTimesheetList } from './index';
+import { StaffRoster, StaffChecklists, StaffLeaveList, StaffLeaveForm, StaffDashboard, StaffTimesheetList, StaffTimesheetForm } from './index';
 import { describe, it, expect, vi } from 'vitest';
 
 // Mock useNavigate and useParams
@@ -8,44 +8,36 @@ vi.mock('react-router-dom', async () => {
   return {
     ...actual,
     useNavigate: () => vi.fn(),
-    useParams: () => ({ id: undefined }),
+    useParams: () => ({ shiftId: 'test-shift' }),
+    useLocation: () => ({ state: { fromTab: 'missing' } }),
   };
 });
 
 // Mock Supabase to return empty data
-vi.mock('@/lib/supabase', () => ({
-  supabase: {
-    from: vi.fn(() => ({
-      select: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          not: vi.fn(() => ({
-            order: vi.fn(() => Promise.resolve({ data: [], error: null }))
-          })),
-          neq: vi.fn(() => ({
-            order: vi.fn(() => Promise.resolve({ data: [], error: null }))
-          })),
-          gte: vi.fn(() => ({
-            lte: vi.fn(() => ({
-              order: vi.fn(() => ({
-                order: vi.fn(() => Promise.resolve({ data: [], error: null }))
-              }))
-            }))
-          })),
-          order: vi.fn(() => Promise.resolve({ data: [], error: null }))
-        })),
-        gte: vi.fn(() => ({
-          lte: vi.fn(() => ({
-            order: vi.fn(() => ({
-              order: vi.fn(() => Promise.resolve({ data: [], error: null }))
-            }))
-          }))
-        })),
-        order: vi.fn(() => Promise.resolve({ data: [], error: null })),
-        maybeSingle: vi.fn(() => Promise.resolve({ data: null, error: null }))
-      }))
-    }))
-  }
-}));
+vi.mock('@/lib/supabase', () => {
+  const mockResult = { data: [], error: null };
+  const mockSingleResult = { data: null, error: null };
+  
+  const queryBuilder: any = {
+    select: vi.fn(() => queryBuilder),
+    eq: vi.fn(() => queryBuilder),
+    neq: vi.fn(() => queryBuilder),
+    not: vi.fn(() => queryBuilder),
+    gte: vi.fn(() => queryBuilder),
+    lte: vi.fn(() => queryBuilder),
+    order: vi.fn(() => queryBuilder),
+    range: vi.fn(() => queryBuilder),
+    maybeSingle: vi.fn(() => Promise.resolve(mockSingleResult)),
+    single: vi.fn(() => Promise.resolve(mockSingleResult)),
+    then: (resolve: any) => resolve(mockResult),
+  };
+
+  return {
+    supabase: {
+      from: vi.fn(() => queryBuilder),
+    }
+  };
+});
 
 describe('Staff Pages Smoke Tests', () => {
   it('renders Staff Dashboard without crashing', async () => {
@@ -91,6 +83,13 @@ describe('Staff Pages Smoke Tests', () => {
     await waitFor(() => {
       expect(screen.getByText(/New Leave Request/i)).toBeInTheDocument();
       expect(screen.getByText(/Submit Request/i)).toBeInTheDocument();
+    });
+  });
+
+  it('renders Staff Timesheet Form without crashing', async () => {
+    renderWithProviders(<StaffTimesheetForm />);
+    await waitFor(() => {
+      expect(screen.getByText(/Shift not found/i)).toBeInTheDocument();
     });
   });
 });

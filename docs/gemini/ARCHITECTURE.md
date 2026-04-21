@@ -54,11 +54,23 @@ For checklists, the saving logic is granular:
 - **Attribution**: Every item completion event includes the current user's `staff_id` in the `completed_by` column.
 - **Notes & Signs**: Individual task-level notes and staff signatures are persisted to ensure a complete audit trail of facility operations.
 
+### Staff Workspace Separation
+The system architecture differentiates between "Administrative Control" and "Frontline Consumption":
+- **Admin Workspace**: Uses complex, high-control components like `ShiftDialog` and `EditShiftNoteDialog` for multi-house coordination and backdating.
+- **Staff Workspace**: Uses context-locked, read-only components like `ViewShiftDialog` and `StaffShiftNoteDialog`. These components automatically inherit their state from the active roster context, eliminating dropdown errors and streamlining documentation.
+
+### Enhanced Documentation Flow
+Clinical notes are integrated into the operational lifecycle:
+- **Mid-Shift**: Staff capture observations via the context-aware note dialog.
+- **Data Sync**: Mid-shift `shift_notes` are automatically fetched and pre-filled into the `timesheet_form` at the end of the shift.
+- **Atomic Operations**: The `useCreateShiftNote` hook implements `upsert` logic to ensure that clinical records are safely merged across multiple save events (mid-shift, draft timesheet, final submission).
+
 ### Pending Changes Management
 For complex entities with child records (like Participants, Staff, or Houses), a "pending changes" pattern is used.
 - **Models**: `src/models/*-pending-changes.ts` define the structure for tracking additions, updates, and deletions of child records.
 - **State**: These changes are tracked in local component state and committed to the database during the `onSave` process.
 - **Benefits**: Allows users to make multiple changes to child entities and save them all at once, providing a better user experience and reducing database round-trips.
+
 
 ### Advanced Data Fetching (Roster Module)
 The Roster module implements a highly optimized data fetching strategy to handle large volumes of shifts (e.g., 500+ on a single board) with minimal latency.

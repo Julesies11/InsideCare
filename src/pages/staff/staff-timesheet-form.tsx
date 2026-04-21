@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/auth/context/auth-context';
 import { format, parseISO, differenceInMinutes } from 'date-fns';
@@ -40,16 +40,30 @@ interface AssignedChecklist {
 
 import { NotificationService } from '@/lib/notification-service';
 
+interface ShiftNoteRes {
+  id: string;
+  full_note: string | null;
+  participant_id: string | null;
+}
+
 export function StaffTimesheetForm() {
   const { shiftId } = useParams<{ shiftId: string }>();
   const { user }    = useAuth();
   const navigate    = useNavigate();
+  const location    = useLocation();
+  const fromTab     = (location.state as any)?.fromTab;
 
   const [shift, setShift]           = useState<Shift | null>(null);
   const [loading, setLoading]       = useState(true);
   const [saving, setSaving]         = useState(false);
   const [existingId, setExistingId] = useState<string | null>(null);
+  const [status, setStatus]         = useState<string | null>(null);
+  const [isReadOnly, setIsReadOnly] = useState(false);
   const [assignedChecklists, setAssignedChecklists] = useState<AssignedChecklist[]>([]);
+
+  const handleBack = () => {
+    navigate('/staff/timesheets', { state: { activeTab: fromTab } });
+  };
 
   const [shiftNotes, setShiftNotes]                   = useState('');
   const [actualStart, setActualStart]                 = useState('');
@@ -80,7 +94,7 @@ export function StaffTimesheetForm() {
   useEffect(() => {
     if (!shiftId) return;
     const load = async () => {
-      const [shiftRes, tsRes, checklistsRes] = await Promise.all([
+      const [shiftRes, tsRes, shiftNoteRes, checklistsRes] = await Promise.all([
         supabase
           .from('staff_shifts')
           .select('id, house_id, start_date, end_date, start_time, end_time, shift_template, house:houses(name)')
@@ -89,7 +103,15 @@ export function StaffTimesheetForm() {
         user?.staff_id
           ? supabase
               .from('timesheets')
-              .select('id, actual_start, actual_end, break_minutes, shift_notes_text, overtime_explanation, travel_km, incident_tag, sick_shift, notes')
+              .select('id, actual_start, actual_end, break_minutes, shift_notes_text, overtime_explanation, travel_km, incident_tag, sick_shift, notes, status')
+              .eq('shift_id', shiftId)
+              .eq('staff_id', user.staff_id)
+              .maybeSingle()
+          : Promise.resolve({ data: null }),
+        user?.staff_id
+          ? supabase
+              .from('shift_notes')
+              .select('id, full_note, participant_id')
               .eq('shift_id', shiftId)
               .eq('staff_id', user.staff_id)
               .maybeSingle()
@@ -99,7 +121,7 @@ export function StaffTimesheetForm() {
           .select(`
             checklist_id,
             assignment_title,
-            submissions:house_checklist_submissions!house_checklist_submissions_checklist_id_fkey(id, status, shift_id)
+            submissions:house_checklist_submissions(id, status, shift_id)
           `)
           .eq('shift_id', shiftId)
       ]);
@@ -111,18 +133,41 @@ export function StaffTimesheetForm() {
         setActualEnd(`${(s.end_date || s.start_date)}T${s.end_time.slice(0, 5)}`);
       }
 
+      // Keep track of any pre-existing shift note from the mid-shift note dialog
+      let midShiftNoteText = '';
+      if ((shiftNoteRes?.data as ShiftNoteRes | null)?.full_note) {
+        midShiftNoteText = (shiftNoteRes.data as ShiftNoteRes).full_note || '';
+      }
+
       if (tsRes.data) {
-        const d = tsRes.data as { id: string; actual_start?: string; actual_end?: string; break_minutes?: number; shift_notes_text?: string; overtime_explanation?: string; travel_km?: number; incident_tag?: boolean; sick_shift?: boolean; notes?: string };
+        const d = tsRes.data as { id: string; actual_start?: string; actual_end?: string; break_minutes?: number; shift_notes_text?: string; overtime_explanation?: string; travel_km?: number; incident_tag?: boolean; sick_shift?: boolean; notes?: string; status: string };
         setExistingId(d.id);
+        setStatus(d.status);
+        
+        // If it's already submitted (not missing), make it read-only
+        if (['pending', 'approved', 'rejected'].includes(d.status)) {
+          setIsReadOnly(true);
+        }
+
         if (d.actual_start)          setActualStart(d.actual_start.slice(0, 16));
         if (d.actual_end)            setActualEnd(d.actual_end.slice(0, 16));
         if (d.break_minutes != null) setBreakMins(String(d.break_minutes));
-        if (d.shift_notes_text)      setShiftNotes(d.shift_notes_text);
+        
+        // Prioritize text saved in the timesheet, fallback to the pre-written shift note
+        if (d.shift_notes_text) {
+          setShiftNotes(d.shift_notes_text);
+        } else if (midShiftNoteText) {
+          setShiftNotes(midShiftNoteText);
+        }
+
         if (d.overtime_explanation)  setOvertimeExplanation(d.overtime_explanation);
         if (d.travel_km)             setTravelKm(String(d.travel_km));
         if (d.incident_tag)          setIncidentTag(d.incident_tag);
         if (d.sick_shift)            setSickShift(d.sick_shift);
         if (d.notes)                 setSickReason(d.notes);
+      } else if (midShiftNoteText) {
+        // If no timesheet exists yet but a mid-shift note does, pre-fill it!
+        setShiftNotes(midShiftNoteText);
       }
 
       if (checklistsRes.data) {
@@ -261,7 +306,7 @@ export function StaffTimesheetForm() {
       }
 
       toast.success('Timesheet submitted successfully');
-      navigate('/staff/timesheets');
+      handleBack();
     } catch (error: any) {
       console.error('Timesheet submission error details:', error);
       toast.error(`Failed to submit timesheet: ${error.message || 'Unknown error'}`);
@@ -294,11 +339,11 @@ export function StaffTimesheetForm() {
         <Toolbar className="hidden sm:flex">
           <ToolbarHeading>
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" onClick={() => navigate('/staff/timesheets')} className="-ml-2">
+              <Button variant="ghost" size="sm" onClick={handleBack} className="-ml-2">
                 <ArrowLeft className="size-4" />
               </Button>
               <div>
-                <ToolbarPageTitle text="Submit Timesheet" />
+                <ToolbarPageTitle text={isReadOnly ? 'View Timesheet' : 'Submit Timesheet'} />
                 <ToolbarDescription>
                   {format(parseISO(shift.start_date), 'EEEE, dd MMM yyyy')}
                   {shift.house ? ` · ${shift.house.name}` : ''}
@@ -312,6 +357,16 @@ export function StaffTimesheetForm() {
       <Container className="py-6 sm:py-0">
         <form onSubmit={handleSubmit} className="grid gap-5 lg:gap-7.5 max-w-2xl">
 
+          {/* Read-only status banner */}
+          {isReadOnly && (
+            <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 flex items-center gap-3">
+              <Info className="size-5 text-primary" />
+              <p className="text-sm">
+                This timesheet has been submitted and is currently <strong>{status}</strong>. It cannot be edited.
+              </p>
+            </div>
+          )}
+
           {/* Section 1 — Shift Notes */}
           <Card className="border-0 sm:border">
             <CardHeader className="pb-3">
@@ -320,7 +375,7 @@ export function StaffTimesheetForm() {
                   <FileText className="size-4 text-primary" />
                   Shift Notes
                 </CardTitle>
-                <Badge variant="destructive" appearance="light" className="text-xs">Required</Badge>
+                {!isReadOnly && <Badge variant="destructive" appearance="light" className="text-xs">Required</Badge>}
               </div>
               <p className="text-sm text-muted-foreground mt-1">
                 Document what happened during this shift.
@@ -334,14 +389,19 @@ export function StaffTimesheetForm() {
                 placeholder="Describe what happened during the shift — participant wellbeing, activities, any concerns or incidents..."
                 rows={6}
                 className=""
+                readOnly={isReadOnly}
               />
               <div className="flex items-center justify-between">
-                <label className="flex items-center gap-2 cursor-pointer select-none">
+                <label className={cn(
+                  "flex items-center gap-2 select-none",
+                  isReadOnly ? "cursor-default" : "cursor-pointer"
+                )}>
                   <input
                     type="checkbox"
                     checked={incidentTag}
                     onChange={(e) => setIncidentTag(e.target.checked)}
                     className="rounded"
+                    disabled={isReadOnly}
                   />
                   <span className="text-sm font-medium flex items-center gap-1.5">
                     <AlertTriangle className="size-3.5 text-orange-500" />
@@ -384,6 +444,7 @@ export function StaffTimesheetForm() {
                     value={actualStart}
                     onChange={(e) => setActualStart(e.target.value)}
                     required
+                    readOnly={isReadOnly}
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -394,6 +455,7 @@ export function StaffTimesheetForm() {
                     value={actualEnd}
                     onChange={(e) => setActualEnd(e.target.value)}
                     required
+                    readOnly={isReadOnly}
                   />
                 </div>
               </div>
@@ -407,6 +469,7 @@ export function StaffTimesheetForm() {
                   value={breakMins}
                   onChange={(e) => setBreakMins(e.target.value)}
                   className="max-w-[140px]"
+                  readOnly={isReadOnly}
                 />
               </div>
               {actualMins !== null && (
@@ -425,7 +488,7 @@ export function StaffTimesheetForm() {
               {overtimeHours > 0 && (
                 <div className="space-y-1.5">
                   <Label htmlFor="overtimeExplanation">
-                    Overtime Explanation <span className="text-destructive">*</span>
+                    Overtime Explanation <span className={cn(isReadOnly ? "hidden" : "text-destructive")}>*</span>
                   </Label>
                   <Textarea
                     id="overtimeExplanation"
@@ -433,9 +496,10 @@ export function StaffTimesheetForm() {
                     onChange={(e) => setOvertimeExplanation(e.target.value)}
                     placeholder="Explain why overtime was required..."
                     rows={2}
-                    className={overtimeNeedsReason ? 'border-destructive' : ''}
+                    className={!isReadOnly && overtimeNeedsReason ? 'border-destructive' : ''}
+                    readOnly={isReadOnly}
                   />
-                  {overtimeNeedsReason && (
+                  {!isReadOnly && overtimeNeedsReason && (
                     <p className="text-xs text-destructive">Required when overtime is claimed</p>
                   )}
                 </div>
@@ -463,25 +527,32 @@ export function StaffTimesheetForm() {
                   onChange={(e) => setTravelKm(e.target.value)}
                   placeholder="0"
                   className="max-w-[140px]"
+                  readOnly={isReadOnly}
                 />
-                <p className="text-xs text-muted-foreground">Leave blank if no travel claimed</p>
+                {!isReadOnly && <p className="text-xs text-muted-foreground">Leave blank if no travel claimed</p>}
               </div>
 
               <div className="border-t pt-4">
-                <label className="flex items-start gap-3 cursor-pointer select-none">
+                <label className={cn(
+                  "flex items-start gap-3 select-none",
+                  isReadOnly ? "cursor-default" : "cursor-pointer"
+                )}>
                   <input
                     type="checkbox"
                     checked={sickShift}
                     onChange={(e) => setSickShift(e.target.checked)}
                     className="rounded mt-0.5"
+                    disabled={isReadOnly}
                   />
                   <div>
                     <span className="text-sm font-medium flex items-center gap-1.5">
                       Convert to Sick Leave
                     </span>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      Check this if you were unwell and this shift should be converted to sick leave.
-                    </p>
+                    {!isReadOnly && (
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Check this if you were unwell and this shift should be converted to sick leave.
+                      </p>
+                    )}
                   </div>
                 </label>
                 {sickShift && (
@@ -493,6 +564,7 @@ export function StaffTimesheetForm() {
                       onChange={(e) => setSickReason(e.target.value)}
                       placeholder="Brief description of illness..."
                       rows={2}
+                      readOnly={isReadOnly}
                     />
                   </div>
                 )}
@@ -514,9 +586,11 @@ export function StaffTimesheetForm() {
                   )} />
                   Required Shift Routines
                 </CardTitle>
-                <p className="text-sm text-muted-foreground mt-1">
-                  You must complete all routines assigned to your shift before submitting your timesheet.
-                </p>
+                {!isReadOnly && (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    You must complete all routines assigned to your shift before submitting your timesheet.
+                  </p>
+                )}
               </CardHeader>
               <CardContent>
                 <div className="divide-y border rounded-lg bg-white overflow-hidden">
@@ -525,7 +599,7 @@ export function StaffTimesheetForm() {
                       <div className="flex items-center gap-2.5 min-w-0">
                         <div className={cn(
                           "size-2 rounded-full shrink-0",
-                          cl.status === 'completed' ? "bg-green-500" : "bg-orange-400 animate-pulse"
+                          cl.status === 'completed' ? "bg-green-500" : "bg-orange-400" + (!isReadOnly ? " animate-pulse" : "")
                         )} />
                         <span className="text-sm font-medium text-gray-700 truncate">{cl.assignment_title}</span>
                       </div>
@@ -540,7 +614,7 @@ export function StaffTimesheetForm() {
                   ))}
                 </div>
                 
-                {assignedChecklists.some(cl => cl.status !== 'completed') && (
+                {!isReadOnly && assignedChecklists.some(cl => cl.status !== 'completed') && (
                   <div className="mt-4">
                     <Button 
                       type="button" 
@@ -559,24 +633,36 @@ export function StaffTimesheetForm() {
 
           {/* Submit */}
           <div className="flex items-center gap-3 pb-8">
-            <Button 
-              type="submit" 
-              disabled={saving} 
-              className={cn(
-                "flex-1 sm:flex-none sm:min-w-[160px]",
-                assignedChecklists.some(cl => cl.status !== 'completed') && "opacity-50 grayscale cursor-not-allowed"
-              )}
-            >
-              {saving ? 'Submitting...' : 'Submit Timesheet'}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => navigate('/staff/timesheets')}
-              disabled={saving}
-            >
-              Cancel
-            </Button>
+            {!isReadOnly ? (
+              <>
+                <Button 
+                  type="submit" 
+                  disabled={saving} 
+                  className={cn(
+                    "flex-1 sm:flex-none sm:min-w-[160px]",
+                    assignedChecklists.some(cl => cl.status !== 'completed') && "opacity-50 grayscale cursor-not-allowed"
+                  )}
+                >
+                  {saving ? 'Submitting...' : 'Submit Timesheet'}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleBack}
+                  disabled={saving}
+                >
+                  Cancel
+                </Button>
+              </>
+            ) : (
+              <Button
+                type="button"
+                className="flex-1 sm:flex-none sm:min-w-[160px]"
+                onClick={handleBack}
+              >
+                Close
+              </Button>
+            )}
           </div>
 
         </form>

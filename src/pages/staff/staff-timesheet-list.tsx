@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/auth/context/auth-context';
 import { format, parseISO, subDays, isBefore } from 'date-fns';
@@ -11,6 +11,7 @@ import {
   AlertCircle,
   ChevronRight,
   AlertTriangle,
+  FileText,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTable, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -92,9 +93,14 @@ function calcHours(ts: Timesheet) {
 export function StaffTimesheetList() {
   const { user }   = useAuth();
   const navigate   = useNavigate();
+  const location   = useLocation();
   const [timesheets, setTimesheets] = useState<Timesheet[]>([]);
   const [loading, setLoading]       = useState(true);
-  const [activeTab, setActiveTab]   = useState<TabKey>('missing');
+  
+  // Initialize tab from location state if coming back from a form
+  const [activeTab, setActiveTab]   = useState<TabKey>(
+    (location.state as any)?.activeTab || 'missing'
+  );
 
   const fetchTimesheets = useCallback(async () => {
     if (!user?.staff_id) { setLoading(false); return; }
@@ -128,11 +134,11 @@ export function StaffTimesheetList() {
       .lte('start_date', todayStr)
       .order('start_date', { ascending: false });
 
-    const tsList = (existingTs as any[]) || [];
-    const shifts = (pastShifts as any[]) || [];
+    const tsList = (existingTs as Timesheet[]) || [];
+    const shifts = (pastShifts as any[]) || []; // Keeping any here for simplicity as it's a complex join
 
     // 3. Identify shifts that have passed but have no timesheet
-    const timesheetedShiftIds = new Set(tsList.map(ts => ts.shift_id).filter(Boolean));
+    const timesheetedShiftIds = new Set(tsList.map(ts => ts.shift_id).filter(Boolean) as string[]);
     
     const missingTimesheets: Timesheet[] = shifts
       .filter(s => {
@@ -279,13 +285,24 @@ export function StaffTimesheetList() {
       cell: ({ row }) => {
         const ts = row.original;
         return (
-          <div className="text-right">
+          <div className="flex items-center justify-end gap-2">
+            {ts.status !== 'missing' && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 px-2.5 text-xs font-bold gap-1.5"
+                onClick={() => navigate(`/staff/roster/${ts.shift_id}/timesheet`, { state: { fromTab: activeTab } })}
+              >
+                <FileText className="size-3.5" />
+                View Timesheet
+              </Button>
+            )}
             {ts.status === 'missing' ? (
               <Button
                 size="sm"
                 variant="outline"
                 className="h-7 px-2.5 text-xs font-bold"
-                onClick={() => navigate(`/staff/roster/${ts.shift_id}/timesheet`)}
+                onClick={() => navigate(`/staff/roster/${ts.shift_id}/timesheet`, { state: { fromTab: activeTab } })}
               >
                 Submit <ChevronRight className="size-3.5 ms-1" />
               </Button>
