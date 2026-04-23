@@ -71,6 +71,16 @@ For complex entities with child records (like Participants, Staff, or Houses), a
 - **State**: These changes are tracked in local component state and committed to the database during the `onSave` process.
 - **Benefits**: Allows users to make multiple changes to child entities and save them all at once, providing a better user experience and reducing database round-trips.
 
+### Master List Management Pattern
+For shared lookup data (e.g., Medications, Contact Types, Role Master, etc.), the application uses a "Master List" pattern to ensure data consistency.
+- **Master Tables**: Dedicated lookup tables (e.g., `medications_master`, `contact_types_master`) store the source of truth for dropdown options.
+- **Management Dialogs**: Dedicated "MasterDialog" components (e.g., `MedicationMasterDialog`) allow authorized users to manage these lists (Add/Edit/Deactivate) directly from the context where they are used.
+- **Prop Interface**: Standardized prop interface for these dialogs:
+    - `open`: boolean visibility state.
+    - `onClose`: function to hide the dialog (must be passed correctly to avoid "unclosable" bugs).
+    - `onUpdate`: callback for additional side effects after a change (though TanStack Query handles most refreshing automatically).
+- **Cache Invalidation**: Mutations on master tables explicitly invalidate the relevant TanStack Query key (e.g., `['medications-master']`), ensuring all dropdowns and pickers across the app instantly reflect the changes without a page reload.
+
 
 ### Advanced Data Fetching (Roster Module)
 The Roster module implements a highly optimized data fetching strategy to handle large volumes of shifts (e.g., 500+ on a single board) with minimal latency.

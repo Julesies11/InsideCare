@@ -353,7 +353,8 @@ export function Contacts({
 
       <ContactTypeMasterDialog
         open={showContactTypeMasterDialog}
-        onOpenChange={setShowContactTypeMasterDialog}
+        onClose={() => setShowContactTypeMasterDialog(false)}
+        onUpdate={() => {}}
       />
     </>
   );

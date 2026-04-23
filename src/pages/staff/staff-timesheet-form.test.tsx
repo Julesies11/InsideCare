@@ -29,6 +29,10 @@ vi.mock('react-router-dom', async () => {
     ...actual,
     useParams: () => ({ shiftId: 'shift-1' }),
     useNavigate: () => mockNavigate,
+    useLocation: () => ({
+      state: {},
+      pathname: '/staff/timesheet/new',
+    }),
   };
 });
 
@@ -123,7 +127,9 @@ describe('StaffTimesheetForm', () => {
     fireEvent.click(submitBtn);
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/staff/timesheets');
+      expect(mockNavigate).toHaveBeenCalledWith('/staff/timesheets', {
+        state: { activeTab: undefined },
+      });
     });
   });
 

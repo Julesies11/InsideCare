@@ -53,7 +53,6 @@ export function Medications({
   const [showDialog, setShowDialog] = useState(false);
   const [editingMedication, setEditingMedication] = useState<{ id?: string; tempId?: string; medication_id: string; dosage?: string; frequency?: string; is_active: boolean } | null>(null);
   const [showMasterDialog, setShowMasterDialog] = useState(false);
-  const [refreshMedicationKey, setRefreshMedicationKey] = useState(0);
 
   const { data: medications = [], isLoading: loading } = useParticipantMedications(participantId);
   const { data: medicationsMaster = [] } = useMedicationsMaster();
@@ -397,8 +396,8 @@ export function Medications({
 
       <MedicationMasterDialog
         open={showMasterDialog}
-        onOpenChange={setShowMasterDialog}
-        onSuccess={() => setRefreshMedicationKey(prev => prev + 1)}
+        onClose={() => setShowMasterDialog(false)}
+        onUpdate={() => {}}
       />
     </>
   );
