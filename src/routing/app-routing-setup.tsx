@@ -1,5 +1,5 @@
 import { AuthRouting } from '@/auth/auth-routing';
-import { RequireAuth, RequireAdmin } from '@/auth/require-auth';
+import { RequireAuth, RequireAdmin, RequirePermission } from '@/auth/require-auth';
 import { ErrorRouting } from '@/errors/error-routing';
 import { Demo1Layout } from '@/layouts/demo1/layout';
 import {
@@ -37,6 +37,7 @@ import {
   AdminLeaveRequestsPage,
 } from '@/pages/employees';
 import { ChecklistMasterPage } from '@/pages/admin/checklists/checklist-master-page';
+import { RolesPage } from '@/pages/admin/roles/roles-page';
 import { NotificationCenter } from '@/pages/account/notifications/notification-center';
 
 export function AppRoutingSetup() {
@@ -45,56 +46,57 @@ export function AppRoutingSetup() {
       <Route element={<RequireAuth />}>
         <Route element={<Demo1Layout />}>
           <Route path="/account/notifications" element={<NotificationCenter />} />
-          <Route path="/staff/dashboard" element={<StaffDashboard />} />
-          <Route path="/staff/checklists" element={<StaffChecklists />} />
-          <Route path="/staff/roster" element={<StaffRoster />} />
-          <Route path="/staff/roster/:shiftId/timesheet" element={<StaffTimesheetForm />} />
-          <Route path="/staff/timesheets" element={<StaffTimesheetList />} />
-          <Route path="/staff/leave" element={<StaffLeaveList />} />
-          <Route path="/staff/leave/new" element={<StaffLeaveForm />} />
-          <Route path="/staff/leave/:id/edit" element={<StaffLeaveForm />} />
+          
+          <Route element={<RequirePermission module="shift_routines" />}>
+            <Route path="/staff/dashboard" element={<StaffDashboard />} />
+          </Route>
+          
+          <Route element={<RequirePermission module="house_checklists" />}>
+            <Route path="/staff/checklists" element={<StaffChecklists />} />
+          </Route>
+          
+          <Route element={<RequirePermission module="roster_board" />}>
+            <Route path="/staff/roster" element={<StaffRoster />} />
+          </Route>
+
+          <Route element={<RequirePermission module="timesheets_submit" />}>
+            <Route path="/staff/roster/:shiftId/timesheet" element={<StaffTimesheetForm />} />
+            <Route path="/staff/timesheets" element={<StaffTimesheetList />} />
+          </Route>
+
+          <Route element={<RequirePermission module="leave_requests" />}>
+            <Route path="/staff/leave" element={<StaffLeaveList />} />
+            <Route path="/staff/leave/new" element={<StaffLeaveForm />} />
+            <Route path="/staff/leave/:id/edit" element={<StaffLeaveForm />} />
+          </Route>
+
           <Route path="/staff/profile" element={<StaffProfile />} />
           
           <Route path="/" element={<HomePage />} />
           
-          <Route
-            path="/participants/profiles"
-            element={<ParticipantsProfilesPage />}
-          />
-          <Route
-            path="/participants/shift-notes"
-            element={<ShiftNotesPage />}
-          />
-          <Route
-            path="/participants/detail/:id"
-            element={<ParticipantDetailPage />}
-          />
-          <Route
-            path="/participants/detail/:id/edit"
-            element={<ParticipantDetailPage />}
-          />
+          <Route element={<RequirePermission module="participant_profiles" />}>
+            <Route
+              path="/participants/profiles"
+              element={<ParticipantsProfilesPage />}
+            />
+            <Route
+              path="/participants/detail/:id"
+              element={<ParticipantDetailPage />}
+            />
+            <Route
+              path="/participants/detail/:id/edit"
+              element={<ParticipantDetailPage />}
+            />
+          </Route>
+
+          <Route element={<RequirePermission module="shift_notes" />}>
+            <Route
+              path="/participants/shift-notes"
+              element={<ShiftNotesPage />}
+            />
+          </Route>
           
-          <Route element={<RequireAdmin />}>
-            <Route
-              path="/employees/staff-profiles"
-              element={<StaffProfilesPage />}
-            />
-            <Route
-              path="/employees/staff-detail/:id"
-              element={<StaffDetailPage />}
-            />
-            <Route
-              path="/employees/timesheets"
-              element={<AdminTimesheetsPage />}
-            />
-            <Route
-              path="/employees/leave-requests"
-              element={<AdminLeaveRequestsPage />}
-            />
-            <Route
-              path="/admin/checklist-templates"
-              element={<ChecklistMasterPage />}
-            />
+          <Route element={<RequirePermission module="house_profiles" />}>
             <Route
               path="/houses/profiles"
               element={<HousesProfilesPage />}
@@ -103,9 +105,48 @@ export function AppRoutingSetup() {
               path="/houses/detail/:id"
               element={<HouseDetailPage />}
             />
+          </Route>
+
+          <Route element={<RequirePermission module="staff_profiles" />}>
+            <Route
+              path="/employees/staff-profiles"
+              element={<StaffProfilesPage />}
+            />
+            <Route
+              path="/employees/staff-detail/:id"
+              element={<StaffDetailPage />}
+            />
+          </Route>
+
+          <Route element={<RequirePermission module="timesheets_approve" />}>
+            <Route
+              path="/employees/timesheets"
+              element={<AdminTimesheetsPage />}
+            />
+          </Route>
+
+          <Route element={<RequirePermission module="leave_requests" />}>
+            <Route
+              path="/employees/leave-requests"
+              element={<AdminLeaveRequestsPage />}
+            />
+          </Route>
+
+          <Route element={<RequirePermission module="roster_board" />}>
             <Route
               path="/roster-board"
               element={<RosterBoard />}
+            />
+          </Route>
+          
+          <Route element={<RequireAdmin />}>
+            <Route
+              path="/admin/checklist-templates"
+              element={<ChecklistMasterPage />}
+            />
+            <Route
+              path="/admin/roles"
+              element={<RolesPage />}
             />
           </Route>
 

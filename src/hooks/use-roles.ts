@@ -18,11 +18,19 @@ export function useRoles() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('roles')
-        .select('*')
+        .select(`
+          *,
+          staff(count)
+        `)
         .order('name', { ascending: true });
 
       if (error) throw error;
-      return data as Role[];
+      
+      // Transform the response to include a flattened assigned_count
+      return (data || []).map(role => ({
+        ...role,
+        assigned_count: (role as any).staff?.[0]?.count || 0
+      })) as Role[];
     },
     staleTime: 1000 * 60 * 60, // 1 hour
   });

@@ -30,4 +30,5 @@ export interface UserModel {
   staff_name?: string; // Name from the staff table
   role_name?: string; // Role name from the roles table
   photo_url?: string | null; // Profile picture URL from staff table
+  permissions?: Record<string, string>; // Granular RBAC permissions
 }

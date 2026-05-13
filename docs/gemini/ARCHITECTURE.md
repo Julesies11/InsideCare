@@ -10,11 +10,24 @@ This document describes the architectural patterns and state management strategi
 3.  **No Server-Side Logic**: Do NOT create Supabase SQL functions, triggers, stored procedures, RPC endpoints, or views.
 4.  **Client-Side Transforms**: All data transformations, joins, groupings, and aggregations must be done in the app.
 5.  **Enum Querying**: Enum columns (like `status`) do NOT support `.ilike()`. Always use `.eq()` or `.in()` for these fields.
-
 ## 2. Security & Row Level Security (RLS)
-The application enforces strict role-based access control (RBAC) via Supabase RLS.
+The application enforces strict role-based access control (RBAC) via a normalized permissions model and Supabase RLS.
+
+### Granular RBAC (Normalized Model)
+As of **May 13, 2026**, the system uses a fully normalized, column-based RBAC model:
+- **`role_permissions` Table**: Stores module-specific access levels for each Role.
+- **Access Levels**:
+    - `full`: Global access to all records.
+    - `context_locked`: Access constrained to assigned houses/shifts (enforced via RLS).
+    - `read_only`: Global view access without modification.
+    - `none`: Hidden and blocked.
+- **Dynamic Roles**: Admins can create and edit roles. A database trigger (`trigger_handle_new_role_permissions`) automatically creates a default permission record for every new role.
+- **User Assignment Visibility**: The management UI provides real-time counts of staff assigned to each role, with a drill-down dialog to audit specific users.
+- **JWT Sync**: Permissions are automatically synced to the Supabase Auth user metadata (`permissions` object). Triggers ensure that changes to roles or permissions propagate instantly to all affected users' secure JWTs.
 
 ### Admin Access
+...
+
 - **Global Policy**: A "policy factory" grants users with `is_admin: true` in their JWT metadata full (`FOR ALL`) access to every table in the `public` schema.
 - **Storage**: Admins have full access to all storage buckets.
 

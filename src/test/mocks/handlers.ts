@@ -138,6 +138,38 @@ export const handlers = [
     ]);
   }),
 
+  // Database Mocks - Roles
+  http.get(`${SUPABASE_URL}/rest/v1/roles`, () => {
+    return HttpResponse.json([
+      { id: 'role-1', name: 'Admin', description: 'Admin role', is_active: true },
+      { id: 'role-2', name: 'Support Worker', description: 'Staff role', is_active: true },
+    ]);
+  }),
+
+  // Database Mocks - Role Permissions
+  http.get(`${SUPABASE_URL}/rest/v1/role_permissions`, () => {
+    return HttpResponse.json([
+      {
+        role_id: 'role-1',
+        participant_profiles: 'full',
+        participant_notes: 'full',
+        house_profiles: 'full',
+        roster_board: 'full',
+      },
+      {
+        role_id: 'role-2',
+        participant_profiles: 'context_locked',
+        participant_notes: 'context_locked',
+        house_profiles: 'context_locked',
+        roster_board: 'read_only',
+      },
+    ]);
+  }),
+
+  http.post(`${SUPABASE_URL}/rest/v1/role_permissions`, () => {
+    return HttpResponse.json({ success: true }, { status: 201 });
+  }),
+
   // Generic handler for all other rest requests to avoid "unhandled request" errors
   // This MUST be last
   http.get(`${SUPABASE_URL}/rest/v1/:table`, () => {

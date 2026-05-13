@@ -10,6 +10,7 @@ As of **March 30, 2026**, the database schema has been refined for go-live:
 - **Shift Template Refactor:** `migrations/2026032500_refactor_shift_templates.sql` (Flexible template groups).
 - **Column Standardization:** `migrations/2026032901_rename_shift_date_to_start_date.sql` (Standardized date naming).
 - **Security & Participants:** `migrations/2026040901_shift_participants_rls.sql` (RLS policies for staff participants).
+- **Normalized RBAC:** `migrations/2026051300_normalized_rbac_system.sql` (Column-based permissions and JWT sync).
 - **Archiving:** Historical files are in `migrations/old_consolidated/`.
 
 ## Enum Compatibility & Querying
@@ -80,7 +81,8 @@ The care facilities/locations.
 ## System Tables
 
 - **`activity_log`**: Audit trail for all changes in the system.
-- **`roles`**: RBAC permissions for staff.
+- **`roles`**: RBAC role definitions.
+- **`role_permissions`**: Granular module-by-module access levels (`access_level_enum`) linked 1:1 to roles.
 - **`departments` & `branches`**: Organizational structure.
 
 ## Data Rules

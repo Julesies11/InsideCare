@@ -133,6 +133,7 @@ export const SupabaseAdapter = {
       pic: metadata.pic || '',
       language: metadata.language || 'en',
       is_admin: metadata.is_admin || false,
+      permissions: metadata.permissions || {},
       staff_id,
       staff_name,
       photo_url,
@@ -159,6 +160,7 @@ export const SupabaseAdapter = {
       pic: userData.pic,
       language: userData.language,
       is_admin: userData.is_admin,
+      role_name: userData.role_name,
       updated_at: new Date().toISOString(),
     };
 

@@ -1,6 +1,27 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { ScreenLoader } from '@/components/common/screen-loader';
 import { useAuth } from './context/auth-context';
+import { usePermissions, PermissionModule } from '@/hooks/use-permissions';
+
+/**
+ * Protects routes based on granular permissions.
+ */
+export const RequirePermission = ({ module }: { module: PermissionModule }) => {
+  const { auth, loading } = useAuth();
+  const { canView } = usePermissions();
+
+  if (loading) return <ScreenLoader />;
+
+  if (!auth?.access_token) {
+    return <Navigate to="/auth/signin" replace />;
+  }
+
+  if (!canView(module)) {
+    return <Navigate to="/error/403" replace />;
+  }
+
+  return <Outlet />;
+};
 
 /**
  * Protects routes that require authentication.

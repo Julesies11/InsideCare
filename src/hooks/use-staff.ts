@@ -384,6 +384,36 @@ export function useStaffCompliance(staffId?: string) {
   };
 }
 
+export function useStaffByRole(roleId?: string) {
+  const query = useQuery({
+    queryKey: ['staff', 'by-role', roleId],
+    queryFn: async () => {
+      if (!roleId) return [];
+      const { data, error } = await supabase
+        .from('staff')
+        .select(`
+          id, name, email, status, photo_url,
+          department_info:departments(id, name)
+        `)
+        .eq('role_id', roleId)
+        .order('name', { ascending: true });
+
+      if (error) throw error;
+      return (data || []).map(item => ({
+        ...item,
+        department_info: Array.isArray(item.department_info) ? item.department_info[0] : item.department_info,
+      })) as any[];
+    },
+    enabled: !!roleId,
+  });
+
+  return {
+    ...query,
+    staff: query.data || [],
+    loading: query.isLoading,
+  };
+}
+
 export function useStaffTraining(staffId?: string) {
   const query = useQuery({
     queryKey: ['staff-training', staffId],
