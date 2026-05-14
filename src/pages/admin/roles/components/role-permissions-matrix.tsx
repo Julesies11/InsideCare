@@ -6,27 +6,28 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useRoles } from '@/hooks/use-roles';
 import { useAllRolePermissions, useUpdateRolePermissions, AccessLevel } from '@/hooks/use-role-permissions';
 import { toast } from 'sonner';
+import { Info } from 'lucide-react';
 
 const MODULES = [
-  { id: 'participant_profiles', label: 'Participant Profiles' },
-  { id: 'staff_profiles', label: 'Staff Profiles' },
-  { id: 'house_profiles', label: 'House Profiles' },
-  { id: 'shift_notes', label: 'Shift Notes' },
-  { id: 'participant_documents', label: 'Participant Documents' },
-  { id: 'house_documents', label: 'House Documents' },
-  { id: 'staff_documents', label: 'Staff Documents' },
-  { id: 'roster_board', label: 'Roster Board' },
-  { id: 'assign_staff_to_shift', label: 'Assign Staff to Shift' },
-  { id: 'shift_routines', label: 'Shift Routines' },
-  { id: 'house_checklists', label: 'House Checklists' },
-  { id: 'leave_requests', label: 'Leave Requests' },
-  { id: 'timesheets_submit', label: 'Timesheets – Submit' },
-  { id: 'timesheets_approve', label: 'Timesheets – Approve' },
+  { id: 'participant_profiles', label: 'Participant Profiles', contextHelp: 'Locks to Assigned Houses' },
+  { id: 'staff_profiles', label: 'Staff Profiles', contextHelp: 'Locks to Assigned Houses & Direct Reports' },
+  { id: 'house_profiles', label: 'House Profiles', contextHelp: 'Locks to Assigned Houses' },
+  { id: 'shift_notes', label: 'Shift Notes', contextHelp: 'Locks to Assigned Houses & Direct Reports' },
+  { id: 'participant_documents', label: 'Participant Documents', contextHelp: 'Locks to Assigned Houses' },
+  { id: 'house_documents', label: 'House Documents', contextHelp: 'Locks to Assigned Houses' },
+  { id: 'staff_documents', label: 'Staff Documents', contextHelp: 'Locks to Assigned Houses & Direct Reports' },
+  { id: 'roster_board', label: 'Roster Board', contextHelp: 'Locks to Assigned Houses & Direct Reports' },
+  { id: 'assign_staff_to_shift', label: 'Assign Staff to Shift', contextHelp: 'Locks to Assigned Houses' },
+  { id: 'shift_routines', label: 'Shift Routines', contextHelp: 'Locks to Assigned Houses' },
+  { id: 'house_checklists', label: 'House Checklists', contextHelp: 'Locks to Assigned Houses' },
+  { id: 'leave_requests', label: 'Leave Requests', contextHelp: 'Locks to Direct Reports (Managerial)' },
+  { id: 'timesheets_submit', label: 'Timesheets – Submit', contextHelp: 'Locks to Self' },
+  { id: 'timesheets_approve', label: 'Timesheets – Approve', contextHelp: 'Locks to Direct Reports (Managerial)' },
 ] as const;
 
 const ACCESS_LEVELS: { value: AccessLevel; label: string; description: string }[] = [
   { value: 'full', label: 'Full Access', description: 'Global access to all records' },
-  { value: 'context_locked', label: 'Context-Locked', description: 'Assigned House/Shift Only' },
+  { value: 'context_locked', label: 'Context-Locked', description: 'See module for context' },
   { value: 'read_only', label: 'Read-Only', description: 'Global View, No Edits' },
   { value: 'none', label: 'No Access', description: 'Hidden & Blocked' },
 ];
@@ -128,13 +129,19 @@ export function RolePermissionsMatrix() {
               const currentLevel = getPermission(module.id);
               return (
                 <TableRow key={module.id} className="hover:bg-gray-50/50 transition-colors">
-                  <TableCell className="py-5 text-gray-700 font-semibold">
-                    {module.label}
+                  <TableCell className="py-4">
+                    <div className="flex flex-col">
+                      <span className="font-semibold text-gray-700">{module.label}</span>
+                      <div className="flex items-center gap-1 text-[11px] text-gray-400 mt-1">
+                        <Info className="size-3" />
+                        <span>Context: {module.contextHelp}</span>
+                      </div>
+                    </div>
                   </TableCell>
                   {ACCESS_LEVELS.map(level => {
                     const isChecked = currentLevel === level.value;
                     return (
-                      <TableCell key={level.value} className="py-5 text-center">
+                      <TableCell key={level.value} className="py-4 text-center">
                         <div className="flex justify-center">
                           <Checkbox 
                             checked={isChecked} 

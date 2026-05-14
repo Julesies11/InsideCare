@@ -83,8 +83,8 @@ export const MENU_SIDEBAR: MenuConfig = [
         permission: 'staff_profiles',
         children: [{ title: 'Detail', path: '/employees/staff-detail/:id', permission: 'staff_profiles' }],
       },
-      { title: 'Timesheets', path: '/employees/timesheets', permission: 'timesheets_approve' },
-      { title: 'Leave Requests', path: '/employees/leave-requests', permission: 'leave_requests' },
+      { title: 'Timesheets', path: '/employees/timesheets', roles: ['admin'], permission: 'timesheets_approve' },
+      { title: 'Leave Requests', path: '/employees/leave-requests', roles: ['admin'], permission: 'leave_requests' },
     ],
   },
   {
@@ -103,7 +103,7 @@ export const MENU_SIDEBAR: MenuConfig = [
     roles: ['admin'],
     permission: 'roster_board',
   },
-  { heading: 'Settings' },
+  { heading: 'Settings', roles: ['admin'] },
   {
     title: 'Roles & Permissions',
     icon: Settings,

@@ -107,9 +107,12 @@ export function useParticipant(id?: string) {
         .from('participants')
         .select(PARTICIPANT_DETAIL_COLUMNS)
         .eq('id', id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) {
+        throw new Error('You do not have permission to view this participant, or it does not exist.');
+      }
 
       const participantWithHouse = {
         ...data,
@@ -138,9 +141,12 @@ export function useAddParticipant() {
         .from('participants')
         .insert([participant])
         .select(PARTICIPANT_DETAIL_COLUMNS)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) {
+        throw new Error('You do not have permission to add this participant.');
+      }
       return data as Participant;
     },
     onSuccess: () => {
@@ -159,9 +165,12 @@ export function useUpdateParticipant() {
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq('id', id)
         .select(PARTICIPANT_DETAIL_COLUMNS)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) {
+        throw new Error('You do not have permission to edit this participant, or it does not exist.');
+      }
 
       const participantWithHouse = {
         ...data,

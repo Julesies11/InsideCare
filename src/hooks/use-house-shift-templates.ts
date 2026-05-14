@@ -68,9 +68,12 @@ export function useHouseShiftTemplates(houseId?: string) {
         .from('house_shift_templates')
         .insert({ ...typeData, house_id: houseId })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) {
+        throw new Error('You do not have permission to create shift templates for this house.');
+      }
 
       if (default_checklists && default_checklists.length > 0) {
         const links = default_checklists.map(clId => ({
@@ -102,6 +105,9 @@ export function useHouseShiftTemplates(houseId?: string) {
         .maybeSingle();
 
       if (error) throw error;
+      if (!data) {
+        throw new Error('You do not have permission to update this shift template.');
+      }
 
       if (default_checklists) {
         await supabase.from('shift_template_default_checklists').delete().eq('shift_template_id', typeData.id);

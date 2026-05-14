@@ -174,9 +174,10 @@ export function useCreateShiftNote() {
           updated_at: new Date().toISOString(),
         }, { onConflict: 'shift_id,staff_id' })
         .select(SHIFT_NOTE_COLUMNS)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) throw new Error("You do not have permission to create this shift note");
       return data as ShiftNote;
     },
     onSuccess: () => {
@@ -198,9 +199,10 @@ export function useUpdateShiftNote() {
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq('id', id)
         .select(SHIFT_NOTE_COLUMNS)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) throw new Error("You do not have permission to edit this shift note");
       return data as ShiftNote;
     },
     onSuccess: (data) => {

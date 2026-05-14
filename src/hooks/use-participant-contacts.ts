@@ -69,9 +69,12 @@ export function useAddParticipantContact() {
         .from('participant_contacts')
         .insert(contact)
         .select(CONTACT_COLUMNS)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) {
+        throw new Error('You do not have permission to add a contact for this participant.');
+      }
       return data as ParticipantContact;
     },
     onSuccess: (data) => {
@@ -90,9 +93,12 @@ export function useUpdateParticipantContact() {
         .update(updates)
         .eq('id', id)
         .select(CONTACT_COLUMNS)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) {
+        throw new Error('You do not have permission to update this contact.');
+      }
       return data as ParticipantContact;
     },
     onSuccess: (data) => {

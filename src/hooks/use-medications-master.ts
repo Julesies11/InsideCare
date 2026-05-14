@@ -41,13 +41,17 @@ export function useAddMedicationMaster() {
           updated_by: user?.id || null,
         })
         .select(MEDICATION_MASTER_COLUMNS)
-        .single();
+        .maybeSingle();
 
       if (error) {
         if (error.code === '23505' && error.message.includes('medications_master_name_key')) {
           throw new Error('DUPLICATE_NAME');
         }
         throw error;
+      }
+
+      if (!data) {
+        throw new Error('You do not have permission to perform this action');
       }
 
       await logActivity({
@@ -81,13 +85,17 @@ export function useUpdateMedicationMaster() {
         })
         .eq('id', id)
         .select(MEDICATION_MASTER_COLUMNS)
-        .single();
+        .maybeSingle();
 
       if (error) {
         if (error.code === '23505' && error.message.includes('medications_master_name_key')) {
           throw new Error('DUPLICATE_NAME');
         }
         throw error;
+      }
+
+      if (!data) {
+        throw new Error('You do not have permission to perform this action');
       }
 
       if (oldMedication) {

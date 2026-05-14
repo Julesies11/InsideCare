@@ -213,7 +213,12 @@ export function useStaff(
         .from('staff')
         .select(STAFF_DETAIL_COLUMNS)
         .eq('id', id)
-        .single();
+        .maybeSingle();
+      
+      if (!data && !error) {
+        return { data: null, error: "Staff member not found or you do not have permission to view them" };
+      }
+      
       return { data, error: error ? error.message : null };
     },
     updateStaff: async (id: string, updates: StaffUpdateData) => {
@@ -222,7 +227,12 @@ export function useStaff(
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq('id', id)
         .select(STAFF_DETAIL_COLUMNS)
-        .single();
+        .maybeSingle();
+
+      if (!data && !error) {
+        return { data: null, error: `You do not have permission to edit staff member: ${updates.name || id}` };
+      }
+
       return { data, error: error ? error.message : null };
     },
     deleteStaff: async (id: string) => {
@@ -265,9 +275,10 @@ export function useStaffMember(id?: string) {
         .from('staff')
         .select(STAFF_DETAIL_COLUMNS)
         .eq('id', id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) throw new Error("Staff member not found or you do not have permission to view them");
 
       // Format joined data (Supabase might return arrays for some relations depending on schema)
       const formattedData = {
@@ -307,9 +318,10 @@ export function useCreateStaff() {
           updated_at: new Date().toISOString(),
         }])
         .select(STAFF_DETAIL_COLUMNS)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) throw new Error(`You do not have permission to create staff member: ${staffData.name || 'New Staff'}`);
       return data as Staff;
     },
     onSuccess: () => {
@@ -328,9 +340,10 @@ export function useUpdateStaff() {
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq('id', id)
         .select(STAFF_DETAIL_COLUMNS)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) throw new Error(`You do not have permission to edit staff member: ${updates.name || id}`);
       return data as Staff;
     },
     onSuccess: (data) => {

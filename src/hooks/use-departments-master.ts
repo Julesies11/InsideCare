@@ -46,9 +46,12 @@ export function useAddDepartmentMaster() {
         .from('departments')
         .insert([departmentData])
         .select(DEPARTMENT_COLUMNS)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) {
+        throw new Error('You do not have permission to perform this action');
+      }
       return data as Department;
     },
     onSuccess: () => {
@@ -67,13 +70,20 @@ export function useUpdateDepartmentMaster() {
         .update(updates)
         .eq('id', id)
         .select(DEPARTMENT_COLUMNS)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) {
+        throw new Error('You do not have permission to edit this department, or it does not exist.');
+      }
       return data as Department;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['departments-master'] });
+    },
+  });
+}
+r'] });
     },
   });
 }

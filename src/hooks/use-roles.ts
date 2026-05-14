@@ -54,12 +54,17 @@ export function useAddRole() {
         .from('roles')
         .insert([roleData])
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error adding role:', error);
         throw error;
       }
+
+      if (!data) {
+        throw new Error('You do not have permission to perform this action');
+      }
+
       return data as Role;
     },
     onSuccess: () => {
@@ -78,12 +83,17 @@ export function useUpdateRole() {
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq('id', id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error updating role:', error);
         throw error;
       }
+
+      if (!data) {
+        throw new Error('You do not have permission to perform this action');
+      }
+
       return data as Role;
     },
     onSuccess: () => {

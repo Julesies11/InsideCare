@@ -143,9 +143,11 @@ export const SupabaseAdapter = {
 
   /**
    * Update user profile (stored in metadata)
+   * Note: Sensitive fields like is_admin and roles are excluded here to prevent 
+   * self-privilege elevation. Use updateUserRoles for administrative updates.
    */
   async updateUserProfile(userData: Partial<UserModel>): Promise<UserModel> {
-    // Transform from UserModel to metadata format
+    // Transform from UserModel to metadata format (excluding sensitive fields)
     const metadata: Record<string, unknown> = {
       username: userData.username,
       first_name: userData.first_name,
@@ -156,11 +158,8 @@ export const SupabaseAdapter = {
       occupation: userData.occupation,
       company_name: userData.company_name,
       phone: userData.phone,
-      roles: userData.roles,
       pic: userData.pic,
       language: userData.language,
-      is_admin: userData.is_admin,
-      role_name: userData.role_name,
       updated_at: new Date().toISOString(),
     };
 
@@ -179,6 +178,29 @@ export const SupabaseAdapter = {
     if (error) throw new Error(error.message);
 
     return this.getUserProfile();
+  },
+
+  /**
+   * Update user roles and administrative status via secure Edge Function.
+   * Only accessible by Admins.
+   */
+  async updateUserRoles(
+    userId: string,
+    updates: { isAdmin?: boolean; permissions?: Record<string, string> },
+  ): Promise<void> {
+    const { data, error } = await supabase.functions.invoke(
+      'update-user-roles',
+      {
+        body: {
+          userId,
+          isAdmin: updates.isAdmin,
+          permissions: updates.permissions,
+        },
+      },
+    );
+
+    if (error) throw new Error(error.message);
+    if (data?.error) throw new Error(data.error);
   },
 
   /**

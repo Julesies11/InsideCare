@@ -29,9 +29,12 @@ export function useAddHouseCalendarEventTypeMaster() {
         .from('house_calendar_event_types_master')
         .insert([eventTypeData])
         .select(EVENT_TYPE_COLUMNS)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) {
+        throw new Error('You do not have permission to add this event type, or it does not exist.');
+      }
       return data as HouseCalendarEventType;
     },
     onSuccess: () => {
@@ -50,9 +53,12 @@ export function useUpdateHouseCalendarEventTypeMaster() {
         .update(updates)
         .eq('id', id)
         .select(EVENT_TYPE_COLUMNS)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) {
+        throw new Error('You do not have permission to edit this event type, or it does not exist.');
+      }
       return data as HouseCalendarEventType;
     },
     onSuccess: () => {

@@ -132,8 +132,9 @@ export function ChecklistMasterPage() {
             description: formData.description,
           })
           .select()
-          .single();
+          .maybeSingle();
         if (error) throw error;
+        if (!data) throw new Error("You do not have permission to perform this action");
         masterId = data.id;
       }
 

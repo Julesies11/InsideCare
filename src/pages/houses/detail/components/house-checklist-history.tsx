@@ -128,9 +128,10 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
               house_checklist_items (id, checklist_id, title, instructions, group_title, priority, is_required, sort_order, created_at, updated_at)
             `)
             .eq('id', submission.checklist_id)
-            .single();
+            .maybeSingle();
 
           if (clError) throw clError;
+          if (!clData) throw new Error("You do not have permission to view this checklist template");
           
           setExecutingChecklist({
             ...clData,
@@ -223,8 +224,9 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
             scheduled_date: format(new Date(), 'yyyy-MM-dd'),
             completed_at: status === 'completed' ? new Date().toISOString() : null
           })
-          .select().single();
+          .select().maybeSingle();
         if (error) throw error;
+        if (!data) throw new Error("You do not have permission to create checklist submissions");
         submissionId = data.id;
       } else {
         const { error } = await supabase
@@ -257,7 +259,8 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
       // Handle attachments...
       if (results.toDeleteAttachments?.length > 0) {
         for (const attId of results.toDeleteAttachments) {
-          const { data: att } = await supabase.from('house_checklist_item_attachments').select('file_path').eq('id', attId).single();
+          const { data: att } = await supabase.from('house_checklist_item_attachments').select('file_path').eq('id', attId).maybeSingle();
+          if (!att) throw new Error("You do not have permission to perform this action");
           if (att?.file_path) await supabase.storage.from('checklist-attachments').remove([att.file_path]);
           await supabase.from('house_checklist_item_attachments').delete().eq('id', attId);
         }
@@ -576,4 +579,5 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
       </div>
     );
   }
+);
 );

@@ -41,9 +41,12 @@ export function useAddContactTypeMaster() {
           updated_by: user?.id || null,
         })
         .select(CONTACT_TYPE_MASTER_COLUMNS)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) {
+        throw new Error('You do not have permission to add this contact type.');
+      }
 
       await logActivity({
         activityType: 'create',
@@ -76,9 +79,12 @@ export function useUpdateContactTypeMaster() {
         })
         .eq('id', id)
         .select(CONTACT_TYPE_MASTER_COLUMNS)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) {
+        throw new Error('You do not have permission to edit this contact type, or it does not exist.');
+      }
 
       if (oldContactType) {
         const changes = detectChanges(oldContactType, data);

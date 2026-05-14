@@ -113,9 +113,11 @@ export function HouseDetailContent({
           .from('houses')
           .select('id, name, branch_id, address, phone, house_type_id, capacity, current_occupancy, house_manager, status, notes, individuals_breakdown, participant_dynamics, observations, general_house_details, is_configured, setup_step, created_at, updated_at')
           .eq('id', id)
-          .single();
+          .maybeSingle();
 
         if (error) throw error;
+        if (!data) throw new Error("You do not have permission to perform this action");
+        
         setHouse(data);
         setOriginalData(data);
         setFormData(data);
@@ -169,12 +171,13 @@ export function HouseDetailContent({
         })
         .eq('id', id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (houseError) {
         handleSupabaseError(houseError, 'Failed to save house details');
         return;
       }
+      if (!houseData) throw new Error("You do not have permission to perform this action");
 
       // Log basic detail changes
       const detailChanges = detectChanges(currentOriginalData, currentFormData);
@@ -343,9 +346,10 @@ export function HouseDetailContent({
               checklist_schedule_id: event.checklist_schedule_id || null,
             })
             .select('id')
-            .single();
+            .maybeSingle();
 
           if (eventError) throw new Error(`Failed to add calendar event: ${eventError.message}`);
+          if (!newEvent) throw new Error("You do not have permission to perform this action");
 
           // Insert into junction tables
           if (event.participant_ids?.length > 0) {
@@ -471,9 +475,10 @@ export function HouseDetailContent({
               sort_order: checklist.sort_order || 0,
             })
             .select()
-            .single();
+            .maybeSingle();
 
           if (checklistError) throw new Error(`Failed to add checklist: ${checklistError.message}`);
+          if (!checklistData) throw new Error("You do not have permission to perform this action");
 
           if (checklist.items && checklist.items.length > 0) {
             const itemsToInsert = checklist.items.map((item: any) => ({
@@ -721,9 +726,10 @@ export function HouseDetailContent({
                 is_active: st.is_active ?? true,
               })
               .select()
-              .single();
+              .maybeSingle();
 
             if (typeError) throw new Error(`Failed to add shift template: ${typeError.message}`);
+            if (!newType) throw new Error("You do not have permission to perform this action");
             updatedTypes.push(newType);
 
             if (st.default_checklists && st.default_checklists.length > 0) {

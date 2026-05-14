@@ -179,8 +179,9 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
           const { error } = await supabase.from('house_shift_templates').update(typePayload).eq('id', typeId);
           if (error) throw error;
         } else {
-          const { data, error } = await supabase.from('house_shift_templates').insert(typePayload).select().single();
+          const { data, error } = await supabase.from('house_shift_templates').insert(typePayload).select().maybeSingle();
           if (error) throw error;
+          if (!data) throw new Error("You do not have permission to perform this action");
           typeId = data.id;
         }
 

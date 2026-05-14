@@ -47,9 +47,14 @@ export function useUpdateRolePermissions() {
         .from('role_permissions')
         .upsert({ role_id, ...updates, updated_at: new Date().toISOString() })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      
+      if (!data) {
+        throw new Error('You do not have permission to perform this action');
+      }
+      
       return data as RolePermissions;
     },
     onSuccess: () => {

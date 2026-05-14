@@ -368,9 +368,10 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
             assigned_checklists:shift_assigned_checklists(id, checklist_id, assignment_title)
           `)
           .eq('id', shiftId)
-          .single();
+          .maybeSingle();
         
         if (shiftError) throw shiftError;
+        if (!shift) throw new Error("You do not have permission to perform this action");
         
         // Convert participants array to participant_ids
         const participant_ids = shift.participants?.map((p: any) => p.participant.id) || [];
@@ -396,9 +397,10 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
           .from('house_checklists')
           .select('*, items:house_checklist_items(*)')
           .eq('id', event.house_checklist_id)
-          .single();
+          .maybeSingle();
 
         if (clError) throw clError;
+        if (!checklist) throw new Error("You do not have permission to perform this action");
 
         // 2. Check if a submission already exists for this calendar event
         let existingSubmission = event.submissions?.[0];
@@ -523,12 +525,13 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
           completed_at: status === 'completed' ? new Date().toISOString() : null
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('[ChecklistDebug] Insert error:', error);
         throw error;
       }
+      if (!data) throw new Error("You do not have permission to perform this action");
       submissionId = data.id;
       console.log('[ChecklistDebug] Created ID:', submissionId);
     } else {
@@ -746,9 +749,10 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
               house_id: houseId,
             })
             .select('id')
-            .single();
+            .maybeSingle();
 
           if (insertError) throw insertError;
+          if (!newEvent) throw new Error("You do not have permission to perform this action");
           finalEventId = newEvent.id;
 
           // Also handle immediate junction inserts

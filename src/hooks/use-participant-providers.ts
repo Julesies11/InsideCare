@@ -50,9 +50,10 @@ export function useAddParticipantProvider() {
         .from('participant_providers')
         .insert(provider)
         .select(PROVIDER_COLUMNS)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) throw new Error("You do not have permission to add providers for this participant");
       return data as ParticipantProvider;
     },
     onSuccess: (data) => {
@@ -71,9 +72,10 @@ export function useUpdateParticipantProvider() {
         .update(updates)
         .eq('id', id)
         .select(PROVIDER_COLUMNS)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) throw new Error("You do not have permission to edit this provider");
       return data as ParticipantProvider;
     },
     onSuccess: (data) => {

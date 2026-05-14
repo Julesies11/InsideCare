@@ -73,10 +73,14 @@ export function useUploadStaffDocument() {
           uploaded_by: uploadedBy || null
         })
         .select(STAFF_DOCUMENT_COLUMNS)
-        .single();
+        .maybeSingle();
 
       if (error) {
         throw new Error(`Database insert failed: ${error.message}`);
+      }
+
+      if (!data) {
+        throw new Error('You do not have permission to upload documents for this staff member.');
       }
       return data as StaffDocument;
     },

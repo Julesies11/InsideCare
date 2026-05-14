@@ -84,9 +84,12 @@ export function useLogActivity() {
           metadata: metadata
         }])
         .select(ACTIVITY_LOG_COLUMNS)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) {
+        throw new Error('You do not have permission to log this activity.');
+      }
       return data as ActivityLog;
     },
     onSuccess: () => {
@@ -208,8 +211,11 @@ export async function logActivity(params: LogActivityParams) {
       metadata: params.metadata
     }])
     .select(ACTIVITY_LOG_COLUMNS)
-    .single();
+    .maybeSingle();
 
   if (error) throw error;
+  if (!data) {
+    throw new Error('You do not have permission to log this activity.');
+  }
   return { data, error: null };
 }

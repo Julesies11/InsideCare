@@ -30,9 +30,13 @@ export function useChecklistSchedules(houseId?: string) {
         .from('checklist_schedules')
         .insert(schedule)
         .select()
-        .single();
+        .maybeSingle();
 
       if (scheduleError) throw scheduleError;
+
+      if (!newSchedule) {
+        throw new Error('You do not have permission to perform this action');
+      }
 
       // 2. Materialize Events (e.g., for the next 6 months)
       const rangeStart = new Date();
@@ -51,7 +55,11 @@ export function useChecklistSchedules(houseId?: string) {
           .from('house_checklists')
           .select('name')
           .eq('id', schedule.house_checklist_id)
-          .single();
+          .maybeSingle();
+
+        if (!houseChecklist) {
+          throw new Error('You do not have permission to perform this action');
+        }
 
         const calendarEvents = eventDates.map(date => ({
           house_id: schedule.house_id,

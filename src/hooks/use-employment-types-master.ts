@@ -37,9 +37,12 @@ export function useAddEmploymentTypeMaster() {
         .from('employment_types_master')
         .insert([employmentTypeData])
         .select(EMPLOYMENT_TYPE_COLUMNS)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) {
+        throw new Error(`You do not have permission to ${updates ? 'edit' : 'add'} this employment type, or it does not exist.`);
+      }
       return data as EmploymentType;
     },
     onSuccess: () => {
@@ -58,9 +61,12 @@ export function useUpdateEmploymentTypeMaster() {
         .update(updates)
         .eq('id', id)
         .select(EMPLOYMENT_TYPE_COLUMNS)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) {
+        throw new Error('You do not have permission to perform this action');
+      }
       return data as EmploymentType;
     },
     onSuccess: () => {

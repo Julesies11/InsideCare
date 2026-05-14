@@ -35,6 +35,6 @@ describe('RolePermissionsMatrix', () => {
 
     // Check for access level labels in headers
     expect(screen.getByText('Full Access')).toBeInTheDocument();
-    expect(screen.getByText('Assigned House/Shift Only')).toBeInTheDocument();
+    expect(screen.getByText('See module for context')).toBeInTheDocument();
   });
 });

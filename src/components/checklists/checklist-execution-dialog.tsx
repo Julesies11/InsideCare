@@ -142,8 +142,9 @@ export function ChecklistExecutionDialog({
           status: status,
           completed_at: status === 'completed' ? new Date().toISOString() : null
         })
-        .select().single();
+        .select().maybeSingle();
       if (error) throw error;
+      if (!data) throw new Error("You do not have permission to perform this action");
       submissionId = data.id;
     } else {
       const { error } = await supabase
@@ -175,7 +176,8 @@ export function ChecklistExecutionDialog({
 
     if (results.toDeleteAttachments && results.toDeleteAttachments.length > 0) {
       for (const attId of results.toDeleteAttachments) {
-        const { data: att } = await supabase.from('house_checklist_item_attachments').select('file_path').eq('id', attId).single();
+        const { data: att } = await supabase.from('house_checklist_item_attachments').select('file_path').eq('id', attId).maybeSingle();
+        if (!att) throw new Error("You do not have permission to perform this action");
         if (att?.file_path) await supabase.storage.from('checklist-attachments').remove([att.file_path]);
         await supabase.from('house_checklist_item_attachments').delete().eq('id', attId);
       }

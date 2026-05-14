@@ -109,9 +109,13 @@ export function useAddHouse() {
         .from('houses')
         .insert([house])
         .select(HOUSE_COLUMNS)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+
+      if (!data) {
+        throw new Error('You do not have permission to perform this action');
+      }
       
       await logActivity({
         activityType: 'create',
@@ -140,9 +144,13 @@ export function useUpdateHouse() {
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq('id', id)
         .select(HOUSE_COLUMNS)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+
+      if (!data) {
+        throw new Error('You do not have permission to edit this house, or it does not exist.');
+      }
 
       await logActivity({
         activityType: 'update',

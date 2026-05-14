@@ -75,9 +75,10 @@ export function useAddParticipantMedication() {
         .from('participant_medications')
         .insert(medication)
         .select(PARTICIPANT_MEDICATION_COLUMNS)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) throw new Error("You do not have permission to add medications for this participant");
       return data as ParticipantMedication;
     },
     onSuccess: (data) => {
@@ -96,9 +97,10 @@ export function useUpdateParticipantMedication() {
         .update(updates)
         .eq('id', id)
         .select(PARTICIPANT_MEDICATION_COLUMNS)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) throw new Error("You do not have permission to edit this medication");
       return data as ParticipantMedication;
     },
     onSuccess: (data) => {

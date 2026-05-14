@@ -141,9 +141,10 @@ export function useCreateShift() {
         .from('staff_shifts')
         .insert([shiftData])
         .select(SHIFT_COLUMNS)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) throw new Error("You do not have permission to create this shift");
       return data as StaffShift;
     },
     onSuccess: () => {
@@ -162,9 +163,10 @@ export function useUpdateShift() {
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq('id', id)
         .select(SHIFT_COLUMNS)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) throw new Error("You do not have permission to edit this shift");
       return data as StaffShift;
     },
     onSuccess: () => {
@@ -230,9 +232,10 @@ export function useAddShiftParticipant() {
         .from('shift_participants')
         .insert([{ shift_id: shiftId, participant_id: participantId }])
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) throw new Error("You do not have permission to add a participant to this shift");
       return data as ShiftParticipant;
     },
     onSuccess: (_, variables) => {

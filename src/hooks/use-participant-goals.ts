@@ -65,9 +65,10 @@ export function useAddParticipantGoal() {
         .from('participant_goals')
         .insert(goal)
         .select(GOAL_COLUMNS)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) throw new Error("You do not have permission to add goals for this participant");
       return data as ParticipantGoal;
     },
     onSuccess: (data) => {
@@ -86,9 +87,10 @@ export function useUpdateParticipantGoal() {
         .update(updates)
         .eq('id', id)
         .select(GOAL_COLUMNS)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) throw new Error("You do not have permission to edit this goal");
       return data as ParticipantGoal;
     },
     onSuccess: (data) => {
@@ -124,9 +126,10 @@ export function useAddGoalProgress() {
         .from('participant_goal_progress')
         .insert(progress)
         .select(PROGRESS_COLUMNS)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) throw new Error("You do not have permission to add progress for this goal");
       return { data: data as GoalProgress, participantId };
     },
     onSuccess: (result) => {
@@ -145,9 +148,10 @@ export function useUpdateGoalProgress() {
         .update({ progress_note })
         .eq('id', id)
         .select(PROGRESS_COLUMNS)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) throw new Error("You do not have permission to edit this progress note");
       return { data: data as GoalProgress, participantId };
     },
     onSuccess: (result) => {

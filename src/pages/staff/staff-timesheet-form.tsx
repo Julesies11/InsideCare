@@ -261,8 +261,9 @@ export function StaffTimesheetForm() {
           .from('timesheets')
           .upsert({ ...payload, created_at: now }, { onConflict: 'shift_id,staff_id' })
           .select('id')
-          .single();
+          .maybeSingle();
         if (error) throw error;
+        if (!data) throw new Error("You do not have permission to perform this action");
         tsId = data.id;
       }
 

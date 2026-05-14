@@ -58,9 +58,10 @@ export function ShiftNoteDetailContent({
         .from('shift_notes')
         .select('id, participant_id, staff_id, start_date, shift_time, house_id, shift_id, notes, full_note, tags, created_at, updated_at, participant:participants(id, name), staff:staff(id, name), house:houses(id, name), shift:staff_shifts(id, start_time, end_time, shift_template)')
         .eq('id', id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) throw new Error("You do not have permission to view this shift note");
 
       setShiftNote(data);
       
@@ -138,9 +139,10 @@ export function ShiftNoteDetailContent({
           .from('shift_notes')
           .insert([dataToSave])
           .select()
-          .single();
+          .maybeSingle();
 
         if (error) throw error;
+        if (!data) throw new Error("You do not have permission to perform this action");
 
         toast.success('Shift note created successfully');
         navigate(`/shift-notes/detail/${data.id}`);

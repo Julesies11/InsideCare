@@ -187,8 +187,9 @@ export function HouseChecklistSetup({
               sort_order: visibleChecklists.length
             })
             .select()
-            .single();
+            .maybeSingle();
           if (error) throw error;
+          if (!data) throw new Error("You do not have permission to create checklists for this house");
           savedChecklistId = data.id;
         }
 
@@ -459,9 +460,10 @@ export function HouseChecklistSetup({
               sort_order: checklistData.sort_order
             })
             .select()
-            .single();
+            .maybeSingle();
           
           if (clErr) throw clErr;
+          if (!newCl) throw new Error("You do not have permission to perform this action");
 
           const toInsertItems = checklistData.items.map(i => ({
             checklist_id: newCl.id,

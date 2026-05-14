@@ -29,9 +29,12 @@ export function useAddHouseTypeMaster() {
         .from('house_types_master')
         .insert([houseTypeData])
         .select(HOUSE_TYPE_COLUMNS)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) {
+        throw new Error('You do not have permission to add this house type, or it does not exist.');
+      }
       return data as HouseType;
     },
     onSuccess: () => {
@@ -50,9 +53,12 @@ export function useUpdateHouseTypeMaster() {
         .update(updates)
         .eq('id', id)
         .select(HOUSE_TYPE_COLUMNS)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) {
+        throw new Error('You do not have permission to edit this house type, or it does not exist.');
+      }
       return data as HouseType;
     },
     onSuccess: () => {

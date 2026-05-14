@@ -341,9 +341,10 @@ export function useRosterData(staffId?: string) {
         .from('staff_shifts')
         .insert([dbPayload])
         .select()
-        .single();
+        .maybeSingle();
       
       if (error) throw error;
+      if (!data) throw new Error("You do not have permission to perform this action");
 
       // Sync participants if provided
       if (participant_ids) {
@@ -380,9 +381,10 @@ export function useRosterData(staffId?: string) {
         .update(dbPayload)
         .eq('id', id)
         .select()
-        .single();
+        .maybeSingle();
       
       if (error) throw error;
+      if (!data) throw new Error("You do not have permission to perform this action");
 
       // Sync participants if provided
       if (participant_ids) {
@@ -481,8 +483,9 @@ export function useRosterData(staffId?: string) {
         .from('shift_participants')
         .insert([{ shift_id, participant_id }])
         .select()
-        .single();
+        .maybeSingle();
       if (error) throw error;
+      if (!data) throw new Error("You do not have permission to perform this action");
       return data;
     },
     onSuccess: () => {
@@ -636,7 +639,9 @@ export function useRosterData(staffId?: string) {
         .from('staff_shifts')
         .select('house_id, shift_template_id')
         .eq('id', shift_id)
-        .single();
+        .maybeSingle();
+      
+      if (!shift) throw new Error("You do not have permission to perform this action");
 
       // Delete existing
       await supabase

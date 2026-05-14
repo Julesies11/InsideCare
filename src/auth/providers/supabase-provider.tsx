@@ -154,6 +154,13 @@ export function AuthProvider({ children }: PropsWithChildren) {
     return await SupabaseAdapter.updateUserProfile(userData);
   };
 
+  const updateUserRoles = async (
+    userId: string,
+    updates: { isAdmin?: boolean; permissions?: Record<string, string> },
+  ) => {
+    await SupabaseAdapter.updateUserRoles(userId, updates);
+  };
+
   const saveAuth = useCallback((authModel: AuthModel | undefined) => {
     setAuth(authModel);
     // We no longer need to manually save to localStorage as @supabase/ssr handles it via cookies
@@ -175,6 +182,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
         resendVerificationEmail,
         getUser,
         updateProfile,
+        updateUserRoles,
         logout,
         verify,
         isAdmin,

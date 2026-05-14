@@ -351,16 +351,18 @@ export function HouseChecklists({
           house_id: houseId,
           submitted_by: staffId || null,
           status: status,
-          completed_at: status === 'completed' ? new Date().toISOString() : null
-        })
-        .select()
-        .single();
+          .completed_at: status === 'completed' ? new Date().toISOString() : null
+          })
+          .select()
+          .maybeSingle();
 
-      if (error) {
-        console.error('Error creating submission:', error);
-        throw error;
-      }
-      submissionId = data.id;
+          if (error) {
+          console.error('Error creating submission:', error);
+          throw error;
+          }
+          if (!data) throw new Error("You do not have permission to create checklist submissions");
+          submissionId = data.id;
+
       console.log('New submission created:', submissionId);
     } else {
       // Update existing submission
@@ -411,7 +413,9 @@ export function HouseChecklists({
           .from('house_checklist_item_attachments')
           .select('file_path')
           .eq('id', attachmentId)
-          .single();
+          .maybeSingle();
+
+        if (!attData) throw new Error("You do not have permission to perform this action");
 
         if (attData?.file_path) {
           // Delete from storage

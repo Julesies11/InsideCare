@@ -82,7 +82,8 @@ export function LeaveDialog({ open, onOpenChange, leaveId, onSuccess, initialDat
             .from('leave_requests')
             .select('leave_type_id, start_date, end_date, reason, attachment_url')
             .eq('id', leaveId)
-            .single();
+            .maybeSingle();
+          if (!data) throw new Error("You do not have permission to perform this action");
           if (data) {
             setLeaveTypeId(data.leave_type_id || '');
             setStartDate(data.start_date || '');

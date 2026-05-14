@@ -25,6 +25,10 @@ export const AuthContext = createContext<{
   resendVerificationEmail: (email: string) => Promise<void>;
   getUser: () => Promise<UserModel | null>;
   updateProfile: (userData: Partial<UserModel>) => Promise<UserModel>;
+  updateUserRoles: (
+    userId: string,
+    updates: { isAdmin?: boolean; permissions?: Record<string, string> },
+  ) => Promise<void>;
   logout: () => void;
   verify: () => Promise<void>;
   isAdmin: boolean;
@@ -41,6 +45,7 @@ export const AuthContext = createContext<{
   resendVerificationEmail: async () => {},
   getUser: async () => null,
   updateProfile: async () => ({}) as UserModel,
+  updateUserRoles: async () => {},
   logout: () => {},
   verify: async () => {},
   isAdmin: false,

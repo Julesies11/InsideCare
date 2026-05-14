@@ -65,10 +65,14 @@ export function useUploadParticipantDocument() {
           uploaded_by: uploadedBy || null
         })
         .select(PARTICIPANT_DOCUMENT_COLUMNS)
-        .single();
+        .maybeSingle();
 
       if (error) {
         throw new Error(`Database insert failed: ${error.message}`);
+      }
+
+      if (!data) {
+        throw new Error('You do not have permission to upload documents for this participant.');
       }
       return data as ParticipantDocument;
     },

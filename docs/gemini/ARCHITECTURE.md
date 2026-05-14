@@ -14,16 +14,18 @@ This document describes the architectural patterns and state management strategi
 The application enforces strict role-based access control (RBAC) via a normalized permissions model and Supabase RLS.
 
 ### Granular RBAC (Normalized Model)
-As of **May 13, 2026**, the system uses a fully normalized, column-based RBAC model:
+As of **May 14, 2026**, the system uses a fully normalized, column-based RBAC model with **Polymorphic RLS Hardening**:
 - **`role_permissions` Table**: Stores module-specific access levels for each Role.
 - **Access Levels**:
     - `full`: Global access to all records.
-    - `context_locked`: Access constrained to assigned houses/shifts (enforced via RLS).
+    - `context_locked`: Domain-aware access. Enforced via polymorphic RLS:
+        - **House Context**: Clinical data (Participants, Medications, Notes) is locked to the user's assigned houses via `house_staff_assignments`.
+        - **Managerial Context**: HR data (Timesheets, Leave) is locked to the user's direct reports via `manager_id`.
     - `read_only`: Global view access without modification.
     - `none`: Hidden and blocked.
-- **Dynamic Roles**: Admins can create and edit roles. A database trigger (`trigger_handle_new_role_permissions`) automatically creates a default permission record for every new role.
-- **User Assignment Visibility**: The management UI provides real-time counts of staff assigned to each role, with a drill-down dialog to audit specific users.
-- **JWT Sync**: Permissions are automatically synced to the Supabase Auth user metadata (`permissions` object). Triggers ensure that changes to roles or permissions propagate instantly to all affected users' secure JWTs.
+- **Performance Optimization**: The user's `staff_id` is embedded directly into the JWT metadata during synchronization. This allows RLS policies to perform security checks instantly without joining the `staff` table on every row.
+- **Global Flag Support**: Operational entities like `house_checklists` support an `is_global` flag which overrides house-based locking for facility-wide visibility.
+- **JWT Sync**: Permissions and identity metadata are automatically synced to the Supabase Auth user metadata. Triggers ensure that changes propagate instantly to all affected users.
 
 ### Admin Access
 ...
