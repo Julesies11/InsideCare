@@ -1,22 +1,36 @@
 -- ========================================================================================
--- ULTIMATE RBAC ENHANCEMENT: UNIFIED SCHEMA & POLICIES 2026-05-16
+-- ULTIMATE RBAC ENHANCEMENT: UNIFIED SCHEMA & POLICIES 2026-05-16 (FINAL REVISED)
 -- Objective: Robustly rename 'context_locked' to 'context_read_write' and add 'context_read_only'.
 -- This script integrates ALL hardening logic, recursion fixes, and approval constraints.
+-- REVISION: Corrected PL/pgSQL loop syntax and join logic for clinical tables.
+-- REVISION: Removed invalid NEW/OLD aliases from RLS policies.
 -- ========================================================================================
 
 BEGIN;
 
--- 1. DROP ALL RBAC POLICIES FIRST
--- We must drop policies that depend on the helper functions before we can modify/replace them.
+-- 1. DROP ALL EXISTING POLICIES ON SECURED TABLES
+-- We must drop ALL policies (including legacy non-'RBAC' ones) on tables we are managing 
+-- to prevent security leaks like self-approval of leave/timesheets.
 DO $$
 DECLARE
     r RECORD;
+    v_tables text[] := ARRAY[
+        'role_permissions', 'houses', 'participants', 'staff', 'staff_shifts', 
+        'timesheets', 'leave_requests', 'participant_medications', 'participant_notes',
+        'participant_goals', 'participant_goal_progress', 'participant_hygiene_routines',
+        'participant_contacts', 'participant_restrictive_practices', 'participant_documents',
+        'house_files', 'staff_documents', 'staff_compliance', 'staff_training', 
+        'participant_funding', 'shift_notes', 'house_checklists', 'house_checklist_items',
+        'house_checklist_submissions', 'house_checklist_submission_items', 
+        'house_checklist_item_attachments', 'house_staff_assignments', 'house_forms',
+        'house_form_assignments', 'house_form_submissions'
+    ];
 BEGIN
     FOR r IN (
         SELECT policyname, tablename 
         FROM pg_policies 
         WHERE schemaname = 'public' 
-        AND (policyname LIKE 'RBAC %' OR policyname = 'Admins manage role permissions')
+        AND tablename = ANY(v_tables)
     ) LOOP
         EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I', r.policyname, r.tablename);
     END LOOP;
@@ -316,18 +330,20 @@ DO $$
 DECLARE
     t text;
     v_join_clause text;
+    v_tables text[] := ARRAY[
+        'participant_notes', 'participant_goals',
+        'participant_goal_progress', 'participant_hygiene_routines',
+        'participant_contacts', 'participant_restrictive_practices'
+    ];
 BEGIN
-    FOR t IN VALUES 
-        ('participant_medications'), ('participant_notes'), ('participant_goals'),
-        ('participant_goal_progress'), ('participant_hygiene_routines'),
-        ('participant_contacts'), ('participant_restrictive_practices')
-    LOOP
+    FOREACH t IN ARRAY v_tables LOOP
         IF t = 'participant_goal_progress' THEN
             v_join_clause := 'JOIN public.participant_goals pg ON pg.id = public.participant_goal_progress.goal_id JOIN public.participants p ON p.id = pg.participant_id';
         ELSE
             v_join_clause := 'JOIN public.participants p ON p.id = public.' || t || '.participant_id';
         END IF;
 
+        -- SELECT POLICY
         EXECUTE format('
             CREATE POLICY "RBAC %I SELECT" ON public.%I FOR SELECT TO authenticated
             USING (
@@ -344,25 +360,8 @@ BEGIN
                 )
             );
         ', t, t, v_join_clause);
-    END LOOP;
-END $$;
 
--- 7.7.1 Medications Hardening: Only Full access can manage lifecycle
-CREATE POLICY "RBAC Medications ALL" ON public.participant_medications
-FOR ALL TO authenticated
-USING (public.is_admin() OR public.get_access_level('participant_profiles') = 'full')
-WITH CHECK (public.is_admin() OR public.get_access_level('participant_profiles') = 'full');
-
--- 7.7.2 Other Child Entities: Full or Context Read/Write can manage
-DO $$
-DECLARE
-    t text;
-BEGIN
-    FOR t IN VALUES 
-        ('participant_notes'), ('participant_goals'),
-        ('participant_goal_progress'), ('participant_hygiene_routines'),
-        ('participant_contacts'), ('participant_restrictive_practices')
-    LOOP
+        -- ALL POLICY (Context Read/Write)
         EXECUTE format('
             CREATE POLICY "RBAC %I ALL (Full/Context)" ON public.%I FOR ALL TO authenticated
             USING (
@@ -371,8 +370,10 @@ BEGIN
                 (
                     public.get_access_level(''participant_profiles'') = ''context_read_write'' AND
                     EXISTS (
-                        SELECT 1 FROM public.participants p
-                        WHERE p.id = public.%I.participant_id AND public.is_staff_assigned_to_house(public.get_my_staff_id(), p.house_id)
+                        SELECT 1 FROM public.house_staff_assignments hsa
+                        %s
+                        WHERE hsa.house_id = p.house_id AND hsa.staff_id = public.get_my_staff_id()
+                        AND (hsa.end_date IS NULL OR hsa.end_date > NOW())
                     )
                 )
             )
@@ -382,14 +383,36 @@ BEGIN
                 (
                     public.get_access_level(''participant_profiles'') = ''context_read_write'' AND
                     EXISTS (
-                        SELECT 1 FROM public.participants p
-                        WHERE p.id = public.%I.participant_id AND public.is_staff_assigned_to_house(public.get_my_staff_id(), p.house_id)
+                        SELECT 1 FROM public.house_staff_assignments hsa
+                        %s
+                        WHERE hsa.house_id = p.house_id AND hsa.staff_id = public.get_my_staff_id()
+                        AND (hsa.end_date IS NULL OR hsa.end_date > NOW())
                     )
                 )
             );
-        ', t, t, t, t);
+        ', t, t, v_join_clause, v_join_clause);
     END LOOP;
 END $$;
+
+-- 7.7.1 Medications Hardening: Only Full access can manage lifecycle
+CREATE POLICY "RBAC Medications SELECT" ON public.participant_medications
+FOR SELECT TO authenticated
+USING (
+    public.is_admin() OR
+    public.get_access_level('participant_profiles') IN ('full', 'read_only') OR
+    (
+        public.get_access_level('participant_profiles') IN ('context_read_write', 'context_read_only') AND
+        EXISTS (
+            SELECT 1 FROM public.participants p
+            WHERE p.id = public.participant_medications.participant_id AND public.is_staff_assigned_to_house(public.get_my_staff_id(), p.house_id)
+        )
+    )
+);
+
+CREATE POLICY "RBAC Medications ALL" ON public.participant_medications
+FOR ALL TO authenticated
+USING (public.is_admin() OR public.get_access_level('participant_profiles') = 'full')
+WITH CHECK (public.is_admin() OR public.get_access_level('participant_profiles') = 'full');
 
 -- 7.8 DOCUMENTS
 CREATE POLICY "RBAC Participant Documents SELECT" ON public.participant_documents
