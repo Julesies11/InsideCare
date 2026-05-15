@@ -643,4 +643,127 @@ USING (
     )
 );
 
+-- 7.13 HOUSE STAFF ASSIGNMENTS (Crucial for visibility)
+CREATE POLICY "RBAC House Staff Assignments SELECT" ON public.house_staff_assignments
+FOR SELECT TO authenticated
+USING (
+    public.is_admin() OR
+    public.get_access_level('staff_profiles') IN ('full', 'read_only') OR
+    staff_id = public.get_my_staff_id() OR
+    (
+        public.get_access_level('staff_profiles') IN ('context_read_write', 'context_read_only') AND
+        (
+            public.is_staff_assigned_to_house(public.get_my_staff_id(), house_id) OR
+            public.is_staff_managed_by(staff_id, public.get_my_staff_id())
+        )
+    )
+);
+
+-- 7.14 HOUSE FILES
+CREATE POLICY "RBAC House Files SELECT" ON public.house_files
+FOR SELECT TO authenticated
+USING (
+    public.is_admin() OR
+    public.get_access_level('house_documents') IN ('full', 'read_only') OR
+    (
+        public.get_access_level('house_documents') IN ('context_read_write', 'context_read_only') AND
+        public.is_staff_assigned_to_house(public.get_my_staff_id(), house_id)
+    )
+);
+
+CREATE POLICY "RBAC House Files ALL" ON public.house_files
+FOR ALL TO authenticated
+USING (public.is_admin() OR public.get_access_level('house_documents') = 'full')
+WITH CHECK (public.is_admin() OR public.get_access_level('house_documents') = 'full');
+
+-- 7.15 STAFF DOCUMENTS
+CREATE POLICY "RBAC Staff Documents SELECT" ON public.staff_documents
+FOR SELECT TO authenticated
+USING (
+    public.is_admin() OR
+    public.get_access_level('staff_documents') IN ('full', 'read_only') OR
+    staff_id = public.get_my_staff_id() OR
+    (
+        public.get_access_level('staff_documents') IN ('context_read_write', 'context_read_only') AND
+        (
+            public.is_staff_managed_by(staff_id, public.get_my_staff_id()) OR
+            public.do_staff_share_house(public.get_my_staff_id(), staff_id)
+        )
+    )
+);
+
+CREATE POLICY "RBAC Staff Documents ALL" ON public.staff_documents
+FOR ALL TO authenticated
+USING (
+    public.is_admin() OR
+    public.get_access_level('staff_documents') = 'full' OR
+    staff_id = public.get_my_staff_id()
+)
+WITH CHECK (
+    public.is_admin() OR
+    public.get_access_level('staff_documents') = 'full' OR
+    staff_id = public.get_my_staff_id()
+);
+
+-- 7.16 CHECKLIST ATTACHMENTS
+CREATE POLICY "RBAC Checklist Item Attachments SELECT" ON public.house_checklist_item_attachments
+FOR SELECT TO authenticated
+USING (
+    public.is_admin() OR
+    EXISTS (
+        SELECT 1 FROM public.house_checklist_submissions hcs
+        WHERE hcs.id = public.house_checklist_item_attachments.submission_id
+        AND (
+            public.get_access_level('house_checklists') IN ('full', 'read_only') OR
+            public.get_access_level('shift_routines') IN ('full', 'read_only') OR
+            (
+                (public.get_access_level('house_checklists') IN ('context_read_write', 'context_read_only') OR 
+                 public.get_access_level('shift_routines') IN ('context_read_write', 'context_read_only')) AND
+                public.is_staff_assigned_to_house(public.get_my_staff_id(), hcs.house_id)
+            )
+        )
+    )
+);
+
+CREATE POLICY "RBAC Checklist Item Attachments INSERT" ON public.house_checklist_item_attachments
+FOR INSERT TO authenticated
+WITH CHECK (
+    public.is_admin() OR
+    EXISTS (
+        SELECT 1 FROM public.house_checklist_submissions hcs
+        WHERE hcs.id = public.house_checklist_item_attachments.submission_id
+        AND (
+            public.get_access_level('shift_routines') = 'full' OR
+            (
+                public.get_access_level('shift_routines') = 'context_read_write' AND
+                public.is_staff_assigned_to_house(public.get_my_staff_id(), hcs.house_id)
+            )
+        )
+    )
+);
+
+-- 7.17 HOUSE FORMS
+DO $$
+DECLARE
+    t text;
+BEGIN
+    FOR t IN VALUES ('house_forms'), ('house_form_assignments'), ('house_form_submissions') LOOP
+        EXECUTE format('
+            CREATE POLICY "RBAC %I SELECT" ON public.%I FOR SELECT TO authenticated
+            USING (
+                public.is_admin() OR
+                public.get_access_level(''house_checklists'') IN (''full'', ''read_only'') OR
+                (
+                    public.get_access_level(''house_checklists'') IN (''context_read_write'', ''context_read_only'') AND
+                    EXISTS (
+                        SELECT 1 FROM public.house_forms hf
+                        WHERE hf.id = (CASE WHEN %L = ''house_forms'' THEN public.%I.id ELSE public.%I.form_id END)
+                        AND public.is_staff_assigned_to_house(public.get_my_staff_id(), hf.house_id)
+                    )
+                )
+            );
+        ', t, t, t, t, t);
+    END LOOP;
+END $$;
+
 COMMIT;
