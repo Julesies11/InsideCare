@@ -580,4 +580,3 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
     );
   }
 );
-);

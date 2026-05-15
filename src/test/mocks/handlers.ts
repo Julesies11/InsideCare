@@ -158,9 +158,9 @@ export const handlers = [
       },
       {
         role_id: 'role-2',
-        participant_profiles: 'context_locked',
-        participant_notes: 'context_locked',
-        house_profiles: 'context_locked',
+        participant_profiles: 'context_read_write',
+        participant_notes: 'context_read_write',
+        house_profiles: 'context_read_write',
         roster_board: 'read_only',
       },
     ]);

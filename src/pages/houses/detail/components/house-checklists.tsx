@@ -351,7 +351,7 @@ export function HouseChecklists({
           house_id: houseId,
           submitted_by: staffId || null,
           status: status,
-          .completed_at: status === 'completed' ? new Date().toISOString() : null
+          completed_at: status === 'completed' ? new Date().toISOString() : null
           })
           .select()
           .maybeSingle();

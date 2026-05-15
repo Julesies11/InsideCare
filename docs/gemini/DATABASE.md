@@ -11,7 +11,15 @@ As of **March 30, 2026**, the database schema has been refined for go-live:
 - **Column Standardization:** `migrations/2026032901_rename_shift_date_to_start_date.sql` (Standardized date naming).
 - **Security & Participants:** `migrations/2026040901_shift_participants_rls.sql` (RLS policies for staff participants).
 - **Normalized RBAC:** `migrations/2026051300_normalized_rbac_system.sql` (Column-based permissions and JWT sync).
-- **Archiving:** Historical files are in `migrations/old_consolidated/`.
+- **RBAC Enhancement:** `migrations/2026051600_rbac_enhancement_unified.sql` (Contextual access levels and hardening).
+
+## RBAC Access Levels (`public.access_level_enum`)
+Used in `role_permissions` to define granular module access:
+- `full`: Global Read/Write.
+- `context_read_write`: Domain-aware Read/Write (Assigned houses/Reports).
+- `context_read_only`: Domain-aware Read-Only (Assigned houses/Reports).
+- `read_only`: Global Read-Only.
+- `none`: No access.
 
 ## Enum Compatibility & Querying
 The project uses Postgres Enums for critical columns (e.g., `public.status_enum`).

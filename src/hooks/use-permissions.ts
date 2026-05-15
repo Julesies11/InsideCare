@@ -53,12 +53,12 @@ export function usePermissions() {
 
   const canEdit = (module: PermissionModule) => {
     const level = permissions[module] || 'none';
-    return level === 'full' || level === 'context_locked';
+    return level === 'full' || level === 'context_read_write';
   };
 
-  const isContextLocked = (module: PermissionModule) => {
+  const isContextAware = (module: PermissionModule) => {
     const level = permissions[module] || 'none';
-    return level === 'context_locked';
+    return level === 'context_read_write' || level === 'context_read_only';
   };
 
   const hasFullAccess = (module: PermissionModule) => {
@@ -70,7 +70,7 @@ export function usePermissions() {
     permissions,
     canView,
     canEdit,
-    isContextLocked,
+    isContextAware,
     hasFullAccess,
   };
 }

@@ -18,7 +18,9 @@ As of **May 14, 2026**, the system uses a fully normalized, column-based RBAC mo
 - **`role_permissions` Table**: Stores module-specific access levels for each Role.
 - **Access Levels**:
     - `full`: Global access to all records.
-    - `context_locked`: Domain-aware access. Enforced via polymorphic RLS:
+    - `context_read_write`: Domain-aware read/write access. (Formerly `context_locked`).
+    - `context_read_only`: Domain-aware read-only access.
+    - Enforcement via polymorphic RLS:
         - **House Context**: Clinical data (Participants, Medications, Notes) is locked to the user's assigned houses via `house_staff_assignments`.
         - **Managerial Context**: HR data (Timesheets, Leave) is locked to the user's direct reports via `manager_id`.
     - `read_only`: Global view access without modification.

@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 
-export type AccessLevel = 'full' | 'context_locked' | 'read_only' | 'none';
+export type AccessLevel = 'full' | 'context_read_write' | 'context_read_only' | 'read_only' | 'none';
 
 export interface RolePermissions {
   role_id: string;

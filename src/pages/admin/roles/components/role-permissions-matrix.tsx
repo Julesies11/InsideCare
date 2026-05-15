@@ -27,7 +27,8 @@ const MODULES = [
 
 const ACCESS_LEVELS: { value: AccessLevel; label: string; description: string }[] = [
   { value: 'full', label: 'Full Access', description: 'Global access to all records' },
-  { value: 'context_locked', label: 'Context-Locked', description: 'See module for context' },
+  { value: 'context_read_write', label: 'Context Read/Write', description: 'Locked to house/reports' },
+  { value: 'context_read_only', label: 'Context Read-Only', description: 'View locked to house/reports' },
   { value: 'read_only', label: 'Read-Only', description: 'Global View, No Edits' },
   { value: 'none', label: 'No Access', description: 'Hidden & Blocked' },
 ];

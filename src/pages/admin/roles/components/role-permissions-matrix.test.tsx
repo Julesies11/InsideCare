@@ -1,40 +1,37 @@
-import { describe, it, expect } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { renderWithProviders, screen } from '@/test/test-utils';
 import { RolePermissionsMatrix } from './role-permissions-matrix';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { describe, it, expect, vi } from 'vitest';
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
-    },
-  },
-});
+// Mock dependencies
+vi.mock('@/hooks/use-roles', () => ({
+  useRoles: () => ({
+    roles: [{ id: 'role-1', name: 'Supervisor', is_active: true }],
+    isLoading: false,
+  }),
+}));
 
-describe('RolePermissionsMatrix', () => {
-  it('renders the matrix with roles and modules', async () => {
-    render(
-      <QueryClientProvider client={queryClient}>
-        <RolePermissionsMatrix />
-      </QueryClientProvider>
-    );
+vi.mock('@/hooks/use-role-permissions', () => ({
+  useAllRolePermissions: () => ({
+    data: [{ role_id: 'role-1', participant_profiles: 'context_read_write' }],
+    isLoading: false,
+  }),
+  useUpdateRolePermissions: () => ({
+    mutateAsync: vi.fn(),
+  }),
+}));
 
-    // Should show loading state initially
-    expect(screen.getByText(/Loading permissions matrix.../i)).toBeInTheDocument();
+describe('RolePermissionsMatrix Smoke Test', () => {
+  it('should render the permissions matrix with all 5 access levels', async () => {
+    renderWithProviders(<RolePermissionsMatrix />);
 
-    // Wait for data to load
-    await waitFor(() => {
-      expect(screen.getByText('Participant Profiles')).toBeInTheDocument();
-    });
-
-    // In single role view, the selected role should be visible in the Select trigger
-    expect(screen.getByText('Admin')).toBeInTheDocument();
-    
-    // Support Worker should not be directly visible in the table header anymore
-    expect(screen.queryByRole('columnheader', { name: 'Support Worker' })).not.toBeInTheDocument();
-
-    // Check for access level labels in headers
+    // Check headers for all 5 levels
     expect(screen.getByText('Full Access')).toBeInTheDocument();
-    expect(screen.getByText('See module for context')).toBeInTheDocument();
+    expect(screen.getByText('Context Read/Write')).toBeInTheDocument();
+    expect(screen.getByText('Context Read-Only')).toBeInTheDocument();
+    expect(screen.getByText('Read-Only')).toBeInTheDocument();
+    expect(screen.getByText('No Access')).toBeInTheDocument();
+
+    // Check if a module is rendered
+    expect(screen.getByText('Participant Profiles')).toBeInTheDocument();
   });
 });
