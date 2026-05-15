@@ -103,11 +103,13 @@ RETURNS boolean AS $$
 $$ LANGUAGE sql SECURITY DEFINER STABLE;
 
 -- C. is_staff_managed_by: SECURITY DEFINER helper for managerial line checks.
+-- Hardened: Explicitly returns false if staff tries to manage themselves.
 CREATE OR REPLACE FUNCTION public.is_staff_managed_by(p_staff_id UUID, p_manager_id UUID)
 RETURNS boolean AS $$
   SELECT EXISTS (
     SELECT 1 FROM public.staff
     WHERE id = p_staff_id AND manager_id = p_manager_id
+    AND p_staff_id != p_manager_id
   );
 $$ LANGUAGE sql SECURITY DEFINER STABLE;
 
@@ -120,6 +122,7 @@ RETURNS boolean AS $$
     WHERE hsa1.staff_id = p_staff_id_1 AND hsa2.staff_id = p_staff_id_2
     AND (hsa1.end_date IS NULL OR hsa1.end_date > NOW())
     AND (hsa2.end_date IS NULL OR hsa2.end_date > NOW())
+    AND p_staff_id_1 != p_staff_id_2
   );
 $$ LANGUAGE sql SECURITY DEFINER STABLE;
 
@@ -258,16 +261,20 @@ USING (
     (staff_id = public.get_my_staff_id() AND status IN ('draft', 'pending')) OR
     public.get_access_level('timesheets_approve') = 'full' OR
     (
+        -- Hardened: Block self-approval even if staff is their own manager
         public.get_access_level('timesheets_approve') = 'context_read_write' AND
-        public.is_staff_managed_by(staff_id, public.get_my_staff_id())
+        public.is_staff_managed_by(staff_id, public.get_my_staff_id()) AND
+        staff_id != public.get_my_staff_id()
     )
 )
 WITH CHECK (
     public.is_admin() OR
     public.get_access_level('timesheets_approve') = 'full' OR
     (
+        -- Hardened: Block self-approval
         public.get_access_level('timesheets_approve') = 'context_read_write' AND
-        public.is_staff_managed_by(staff_id, public.get_my_staff_id())
+        public.is_staff_managed_by(staff_id, public.get_my_staff_id()) AND
+        staff_id != public.get_my_staff_id()
     ) OR
     (
         staff_id = public.get_my_staff_id() AND status IN ('draft', 'pending')
@@ -303,15 +310,19 @@ USING (
     public.is_admin() OR
     (staff_id = public.get_my_staff_id() AND status = 'pending') OR
     (
+        -- Hardened: Block self-approval
         public.get_access_level('leave_requests') IN ('full', 'context_read_write') AND
-        public.is_staff_managed_by(staff_id, public.get_my_staff_id())
+        public.is_staff_managed_by(staff_id, public.get_my_staff_id()) AND
+        staff_id != public.get_my_staff_id()
     )
 )
 WITH CHECK (
     public.is_admin() OR
     (
+        -- Hardened: Block self-approval
         public.get_access_level('leave_requests') IN ('full', 'context_read_write') AND
-        public.is_staff_managed_by(staff_id, public.get_my_staff_id())
+        public.is_staff_managed_by(staff_id, public.get_my_staff_id()) AND
+        staff_id != public.get_my_staff_id()
     ) OR
     (
         staff_id = public.get_my_staff_id() AND status = 'pending'
