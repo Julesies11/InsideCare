@@ -6,9 +6,17 @@ import { useNavigate } from 'react-router';
 import { supabase } from '@/lib/supabase';
 import { logActivity } from '@/lib/activity-logger';
 import { handleSupabaseError } from '@/errors/error-handler';
+import { RBAC_MODULES } from '@/config/rbac-modules';
+import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
 
 export function StaffProfilesContent() {
   const navigate = useNavigate();
+  const { hasAccess } = useRBAC();
+  
+  const canAdd = hasAccess({ 
+    resource: RBAC_MODULES.EMPLOYEES, 
+    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE 
+  });
 
   const handleAddStaff = async () => {
     try {
@@ -54,10 +62,12 @@ export function StaffProfilesContent() {
             Manage staff member information and profiles
           </p>
         </div>
-        <Button onClick={handleAddStaff}>
-          <UserRoundPlus className="size-4" />
-          Add Staff
-        </Button>
+        {canAdd && (
+          <Button onClick={handleAddStaff}>
+            <UserRoundPlus className="size-4" />
+            Add Staff
+          </Button>
+        )}
       </div>
 
       {/* Motivational Banner */}

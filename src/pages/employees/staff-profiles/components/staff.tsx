@@ -45,6 +45,9 @@ import { useNavigate } from 'react-router';
 import { useSearchParams } from 'react-router';
 import { useDebounce } from '@/hooks/use-debounce';
 
+import { RBAC_MODULES } from '@/config/rbac-modules';
+import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
+
 const STAFF_STATUS_OPTIONS: StatusOption[] = [
   { value: 'active', label: 'Active', badge: 'success' },
   { value: 'draft', label: 'Draft', badge: 'warning' },
@@ -53,6 +56,12 @@ const STAFF_STATUS_OPTIONS: StatusOption[] = [
 
 function ActionsCell({ row }: { row: Row<Staff> }) {
   const navigate = useNavigate();
+  const { hasAccess } = useRBAC();
+  
+  const canEdit = hasAccess({ 
+    resource: RBAC_MODULES.EMPLOYEES, 
+    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE 
+  });
 
   const handleEdit = () => {
     navigate(`/employees/staff-detail/${row.original.id}`);
@@ -67,7 +76,7 @@ function ActionsCell({ row }: { row: Row<Staff> }) {
         className="h-8"
       >
         <Edit className="size-4 me-1.5" />
-        Edit
+        {canEdit ? 'Edit' : 'View'}
       </Button>
     </div>
   );
@@ -75,6 +84,12 @@ function ActionsCell({ row }: { row: Row<Staff> }) {
 
 const StaffTable = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { hasAccess } = useRBAC();
+  
+  const canManageAny = hasAccess({ 
+    resource: RBAC_MODULES.EMPLOYEES, 
+    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE 
+  });
 
   // Helper functions to parse URL params into initial state
   const getInitialPagination = (): PaginationState => ({
@@ -366,6 +381,11 @@ const StaffTable = () => {
               options={STAFF_STATUS_OPTIONS}
               label="Status"
             />
+            {!canManageAny && (
+              <Badge variant="warning" appearance="light" size="sm" className="h-9 px-3">
+                Read Only
+              </Badge>
+            )}
             <CardToolbar>
               <div className="flex flex-wrap items-center gap-2.5">
                 {/* Additional toolbar items here if needed */}

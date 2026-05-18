@@ -26,6 +26,8 @@ import { toast } from 'sonner';
 import { logActivity, detectChanges } from '@/lib/activity-logger';
 import { NotificationService } from '@/lib/notification-service';
 import { useFormValidation } from '@/hooks/use-form-validation';
+import { RBAC_MODULES } from '@/config/rbac-modules';
+import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
 
 import { ParticipantPendingChanges, emptyParticipantPendingChanges } from '@/models/participant-pending-changes';
 import { MealtimeManagement } from './components/mealtime-management';
@@ -96,9 +98,10 @@ export function ParticipantDetailContent({
     activityLog: 0,
   });
   
-  const canEdit = true;
-  const canAdd = true;
-  const canDelete = true;
+  const { hasAccess } = useRBAC();
+  const canEdit = hasAccess({ resource: RBAC_MODULES.PARTICIPANTS, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE });
+  const canAdd = hasAccess({ resource: RBAC_MODULES.PARTICIPANTS, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE });
+  const canDelete = hasAccess({ resource: RBAC_MODULES.PARTICIPANTS, requiredLevel: ACCESS_LEVEL.FULL });
   
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);

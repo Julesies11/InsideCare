@@ -1,5 +1,5 @@
-import { Fragment, useState, useRef, useCallback, useEffect } from 'react';
-import { useParams } from 'react-router';
+import { Fragment, useState, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Container } from '@/components/common/container';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
@@ -13,55 +13,43 @@ import {
 } from '@/partials/common/toolbar';
 import { useDirtyTracker } from '@/hooks/useDirtyTracker';
 import { useUpdateHouse } from '@/hooks/use-houses';
-import { HousePendingChanges, emptyHousePendingChanges } from '@/models/house-pending-changes';
+import { HousePendingChanges, emptyHousePendingChanges, hasHousePendingChanges } from '@/models/house-pending-changes';
 import { House } from '@/models/house';
-import { useAuth } from '@/auth/context/auth-context';
+
+import { RBAC_MODULES } from '@/config/rbac-modules';
+import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
 
 export function HouseDetailPage() {
-  const { id } = useParams<{ id: string }>();
-  const { mutateAsync: updateHouse } = useUpdateHouse();
-  const { isAdmin } = useAuth();
+  const { id: _id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { mutateAsync: _updateHouse } = useUpdateHouse();
+  const { hasAccess } = useRBAC();
+  
+  const canEdit = hasAccess({ 
+    resource: RBAC_MODULES.HOUSES, 
+    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE 
+  });
+  
   const [formData, setFormData] = useState<Record<string, any> | null>(null);
   const [originalData, setOriginalData] = useState<Record<string, any> | null>(null);
-  const [house, setHouse] = useState<House | null>(null);
+  const [_house, setHouse] = useState<House | null>(null);
   const [pendingChanges, setPendingChanges] = useState<HousePendingChanges>(emptyHousePendingChanges);
   const [saving, setSaving] = useState(false);
   const saveHandlerRef = useRef<(() => Promise<void>) | null>(null);
 
-  // Use centralized dirty tracking
-  const { isDirty } = useDirtyTracker({
-    formData: formData || {},
-    originalData: originalData || {},
-    pendingChanges,
-  });
-
-  // Warn user before leaving page with unsaved changes
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (isDirty) {
-        e.preventDefault();
-        e.returnValue = '';
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [isDirty]);
-
-  const handleBack = useCallback(() => {
-    if (isDirty) {
-      const confirmLeave = window.confirm('You have unsaved changes. Are you sure you want to leave?');
-      if (!confirmLeave) return;
-    }
-    // Use browser back to preserve URL state from previous page
-    window.history.back();
-  }, [isDirty]);
+  const handleBack = () => navigate('/houses/profiles');
 
   const handleSave = async () => {
     if (saveHandlerRef.current) {
       await saveHandlerRef.current();
     }
   };
+
+  const { isDirty } = useDirtyTracker({
+    formData,
+    originalData,
+    customDirtyCheck: () => hasHousePendingChanges(pendingChanges)
+  });
 
   return (
     <Fragment>
@@ -77,20 +65,22 @@ export function HouseDetailPage() {
                 <div>
                   <ToolbarPageTitle text="House Details" />
                   <ToolbarDescription>
-                    View and manage house information
+                    {canEdit ? 'View and manage house information' : 'View house information (Read Only)'}
                   </ToolbarDescription>
                 </div>
               </div>
             </ToolbarHeading>
             <ToolbarActions>
-              <Button 
-                onClick={handleSave} 
-                disabled={!isDirty || saving}
-                variant={isDirty ? 'primary' : 'secondary'}
-                size="sm"
-              >
-                {saving ? 'Saving...' : 'Save Changes'}
-              </Button>
+              {canEdit && (
+                <Button 
+                  onClick={handleSave} 
+                  disabled={!isDirty || saving}
+                  variant={isDirty ? 'primary' : 'secondary'}
+                  size="sm"
+                >
+                  {saving ? 'Saving...' : 'Save Changes'}
+                </Button>
+              )}
             </ToolbarActions>
           </Toolbar>
         </Container>
@@ -104,10 +94,9 @@ export function HouseDetailPage() {
           saveHandlerRef={saveHandlerRef}
           pendingChanges={pendingChanges}
           onPendingChangesChange={setPendingChanges}
-          canEdit={isAdmin}
+          canEdit={canEdit}
         />
       </Container>
     </Fragment>
   );
 }
-

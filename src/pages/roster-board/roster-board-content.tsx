@@ -9,8 +9,16 @@ import { useHouseChecklists } from '@/hooks/use-house-checklists';
 import { useRosterData, useGlobalShiftTemplatesQuery } from '@/components/roster/use-roster-data';
 import { BulkActionModal } from './components/BulkActionModal';
 import { PopulateRosterModal } from '@/pages/houses/detail/components/PopulateRosterModal';
+import { RBAC_MODULES } from '@/config/rbac-modules';
+import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
 
 export function RosterBoardContent() {
+  const { hasAccess } = useRBAC();
+  const canEdit = hasAccess({ 
+    resource: RBAC_MODULES.ROSTER_BOARD, 
+    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE 
+  });
+
   const calendarRef = useRef<StaffRosterCalendarHandle>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('week');
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -168,7 +176,7 @@ export function RosterBoardContent() {
           houseFilter={houseFilter}
           participantFilter={participantFilter}
           shiftTemplateFilter={shiftTemplateFilter}
-          canEdit={true}
+          canEdit={canEdit}
           groupByHouse={true}
           showLeave={showLeave}
           onBulkAction={handleOpenBulkModal}

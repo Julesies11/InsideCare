@@ -89,7 +89,7 @@ export const SupabaseAdapter = {
   },
 
   /**
-   * Get user profile from user metadata
+   * Get user profile from user and app metadata
    */
   async getUserProfile(): Promise<UserModel> {
     const {
@@ -101,8 +101,10 @@ export const SupabaseAdapter = {
       throw new Error(error?.message || 'User not found');
     }
 
-    // Get user metadata and transform to UserModel format
-    const metadata = user.user_metadata || {};
+    // RBAC Source of Truth: app_metadata (verified by server)
+    // User Profile Source: user_metadata (user settings)
+    const appMetadata = user.app_metadata || {};
+    const userMetadata = user.user_metadata || {};
 
     // Look up linked staff record
     const { data: staffRow } = await supabase
@@ -111,29 +113,32 @@ export const SupabaseAdapter = {
       .eq('auth_user_id', user.id)
       .maybeSingle();
       
-    const staff_id = staffRow?.id ?? undefined;
+    const staff_id = staffRow?.id ?? appMetadata.staff_id ?? undefined;
     const staff_name = staffRow?.name ?? undefined;
     const photo_url = staffRow?.photo_url ?? null;
-    const role_name = (staffRow as any)?.role?.name ?? undefined;
+    const role_name = (staffRow as any)?.role?.name ?? appMetadata.role_name ?? undefined;
     
     // Format data to maintain compatibility with existing UI
     return {
       email: user.email || '',
       email_verified: user.email_confirmed_at !== null,
-      username: metadata.username || '',
-      first_name: metadata.first_name || '',
-      last_name: metadata.last_name || '',
+      username: userMetadata.username || '',
+      first_name: userMetadata.first_name || '',
+      last_name: userMetadata.last_name || '',
       fullname:
-        metadata.fullname ||
-        `${metadata.first_name || ''} ${metadata.last_name || ''}`.trim(),
-      occupation: metadata.occupation || '',
-      company_name: metadata.company_name || '',
-      phone: metadata.phone || '',
-      roles: metadata.roles || [],
-      pic: metadata.pic || '',
-      language: metadata.language || 'en',
-      is_admin: metadata.is_admin || false,
-      permissions: metadata.permissions || {},
+        userMetadata.fullname ||
+        `${userMetadata.first_name || ''} ${userMetadata.last_name || ''}`.trim(),
+      occupation: userMetadata.occupation || '',
+      company_name: userMetadata.company_name || '',
+      phone: userMetadata.phone || '',
+      roles: userMetadata.roles || [],
+      pic: userMetadata.pic || '',
+      language: userMetadata.language || 'en',
+      
+      // RBAC Fields (Always use appMetadata as source of truth)
+      is_admin: appMetadata.is_admin === true,
+      permissions: (appMetadata.permissions as Record<string, string>) || {},
+      
       staff_id,
       staff_name,
       photo_url,

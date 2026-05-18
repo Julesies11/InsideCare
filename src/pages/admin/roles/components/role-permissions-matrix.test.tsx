@@ -1,6 +1,7 @@
 import { renderWithProviders, screen } from '@/test/test-utils';
 import { RolePermissionsMatrix } from './role-permissions-matrix';
 import { describe, it, expect, vi } from 'vitest';
+import { ACCESS_LEVEL } from '@/hooks/useRBAC';
 
 // Mock dependencies
 vi.mock('@/hooks/use-roles', () => ({
@@ -12,7 +13,7 @@ vi.mock('@/hooks/use-roles', () => ({
 
 vi.mock('@/hooks/use-role-permissions', () => ({
   useAllRolePermissions: () => ({
-    data: [{ role_id: 'role-1', participant_profiles: 'context_read_write' }],
+    data: [{ role_id: 'role-1', participants: ACCESS_LEVEL.CONTEXT_READ_WRITE }],
     isLoading: false,
   }),
   useUpdateRolePermissions: () => ({
@@ -32,6 +33,6 @@ describe('RolePermissionsMatrix Smoke Test', () => {
     expect(screen.getByText('No Access')).toBeInTheDocument();
 
     // Check if a module is rendered
-    expect(screen.getByText('Participant Profiles')).toBeInTheDocument();
+    expect(screen.getByText('Participants')).toBeInTheDocument();
   });
 });

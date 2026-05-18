@@ -47,6 +47,8 @@ import { useParticipants } from '@/hooks/use-participants';
 import { useNavigate } from 'react-router';
 import { logActivity } from '@/lib/activity-logger';
 import { useAuth } from '@/auth/context/auth-context';
+import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
+import { RBAC_MODULES } from '@/config/rbac-modules';
 import { parseSupabaseError } from '@/lib/error-parser';
 
 import { useSearchParams } from 'react-router';
@@ -77,12 +79,20 @@ function createGoogleMapsUrl(address: string) {
 function ActionsCell({ row, updateHouse }: { row: Row<House>; updateHouse: (params: { id: string; updates: Partial<House> }) => Promise<void> }) {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { hasAccess } = useRBAC();
+
+  const canEdit = hasAccess({ 
+    resource: RBAC_MODULES.HOUSES, 
+    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE
+  });
 
   const handleEdit = () => {
     navigate(`/houses/detail/${row.original.id}`);
   };
 
   const handleArchive = async () => {
+    if (!canEdit) return;
+    
     try {
       await updateHouse({ id: row.original.id, updates: { status: 'inactive' } });
 
@@ -114,13 +124,15 @@ function ActionsCell({ row, updateHouse }: { row: Row<House>; updateHouse: (para
         className="h-8"
       >
         <Edit className="size-4 me-1.5" />
-        Edit
+        {canEdit ? 'Edit' : 'View'}
       </Button>
       <Button
         variant="ghost"
         size="sm"
         onClick={handleArchive}
+        disabled={!canEdit}
         className="h-8"
+        title={!canEdit ? 'You do not have permission to archive houses' : ''}
       >
         <Archive className="size-4 me-1.5" />
         Archive
@@ -133,7 +145,11 @@ export function Houses() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { hasAccess } = useRBAC();
   const { mutateAsync: updateHouseMutation } = useUpdateHouse();
+
+  const canManageGlobal = hasAccess({ resource: RBAC_MODULES.HOUSES, requiredLevel: ACCESS_LEVEL.FULL });
+  const canManageAny = hasAccess({ resource: RBAC_MODULES.HOUSES, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE });
 
   // Helper functions to parse URL params
   const page = useMemo(() => Math.max(1, parseInt(searchParams.get('page') || '1')), [searchParams]);
@@ -530,6 +546,11 @@ export function Houses() {
               options={HOUSE_STATUS_OPTIONS}
               label="Status"
             />
+            {!canManageAny && (
+              <Badge variant="warning" appearance="light" size="sm" className="h-9 px-3">
+                Read Only
+              </Badge>
+            )}
           </div>
         </CardHeader>
 

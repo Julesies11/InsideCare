@@ -13,27 +13,34 @@ This document describes the architectural patterns and state management strategi
 ## 2. Security & Row Level Security (RLS)
 The application enforces strict role-based access control (RBAC) via a normalized permissions model and Supabase RLS.
 
-### Granular RBAC (Normalized Model)
-As of **May 14, 2026**, the system uses a fully normalized, column-based RBAC model with **Polymorphic RLS Hardening**:
-- **`role_permissions` Table**: Stores module-specific access levels for each Role.
+### Granular RBAC (JWT-Based High Performance)
+As of **May 18, 2026**, the system uses a high-performance RBAC model enforced via **JWT Metadata Injection** and lightweight RLS. 
+
+**Metadata-First SQL Generation:**
+To maintain system integrity, any modifications to RLS policies or RBAC logic must be preceded by an audit of `migrations/schema_metadata.json` and `migrations/current_database_rbac.json`.
+- **Application-Driven Claims**: Permission calculation is handled by a TypeScript Supabase Edge Function (`update-user-permissions`). This function aggregates a user's role, house assignments, and managed staff.
+- **JWT Metadata**: The calculated access profile is injected directly into the user's Supabase Auth `app_metadata`. This includes:
+    - `permissions`: A JSON object of module-specific access levels (e.g., `{"participants": "context_read_write"}`).
+    - `assigned_houses`: An array of House UUIDs the user is authorized to access.
+    - `managed_staff_ids`: An array of Staff UUIDs for direct reports.
+- **Lightweight RLS**: Database Row Level Security is simplified to perform fast, memory-resident JSON lookups on the `auth.jwt()` instead of expensive multi-table joins.
+    - **`jwt_has_house(house_id)`**: Instant check if the house ID exists in the user's token.
+    - **`jwt_get_perm(module)`**: Instant retrieval of the authorized access level for a specific module.
 - **Access Levels**:
     - `full`: Global access to all records.
-    - `context_read_write`: Domain-aware read/write access. (Formerly `context_locked`).
+    - `context_read_write`: Domain-aware read/write access (locked to `assigned_houses` or `managed_staff_ids`).
     - `context_read_only`: Domain-aware read-only access.
-    - Enforcement via polymorphic RLS:
-        - **House Context**: Clinical data (Participants, Medications, Notes) is locked to the user's assigned houses via `house_staff_assignments`.
-        - **Managerial Context**: HR data (Timesheets, Leave) is locked to the user's direct reports via `manager_id`.
     - `read_only`: Global view access without modification.
     - `none`: Hidden and blocked.
-- **Performance Optimization**: The user's `staff_id` is embedded directly into the JWT metadata during synchronization. This allows RLS policies to perform security checks instantly without joining the `staff` table on every row.
-- **Global Flag Support**: Operational entities like `house_checklists` support an `is_global` flag which overrides house-based locking for facility-wide visibility.
-- **JWT Sync**: Permissions and identity metadata are automatically synced to the Supabase Auth user metadata. Triggers ensure that changes propagate instantly to all affected users.
+- **Sync Synchronization**: Changes to user roles or assignments automatically trigger the Edge Function to refresh the user's JWT metadata, ensuring security profiles stay up-to-date.
 
-### Admin Access
-...
+### Dynamic & Database-Driven RBAC
+To ensure system flexibility, the RBAC model strictly forbids hard-coding of role identities.
 
-- **Global Policy**: A "policy factory" grants users with `is_admin: true` in their JWT metadata full (`FOR ALL`) access to every table in the `public` schema.
-- **Storage**: Admins have full access to all storage buckets.
+1.  **Role Agnosticism**: Roles must never be identified by name (e.g., `'Admin'`) in application logic or Edge Functions. Roles are managed exclusively via the `roles` table.
+2.  **Permission-Based Authorization**: Authorization checks must be performed against specific module permissions in the `role_permissions` table.
+3.  **Defining "Admin"**: In the context of system-wide administrative actions (e.g., syncing all user permissions, updating roles), a user is considered an **Admin** if and only if their assigned role has `'full'` access to the `access_control` module.
+4.  **Frontend Sync**: Permission-based checks in the frontend should utilize the `RBAC_MODULES` constants found in `src/config/rbac-modules.ts`.
 
 ### Staff Access
 - **Clinical Awareness**: Staff have `SELECT` access to all Participants and their clinical child entities (medications, routines, notes) to ensure they can provide informed care anywhere.
@@ -140,14 +147,27 @@ The application features a robust, role-based notification system powered by `su
     - Pass state via React Router.
 - **Section Auto-Scrolling**: Complex pages (like Participant Detail) use the `tab` query parameter to automatically scroll the user to the relevant section and provide a visual highlight.
 
-## 6. Directory Structure
+## 6. Frontend Authorization (RBAC)
+The UI follows a **"Dumb Frontend, Smart Backend"** philosophy. The frontend only checks if a user has the *theoretical* permission to access a module, while the Supabase Row-Level Security (RLS) handles the actual contextual data filtering (e.g., which houses or participants are visible).
+
+- **`RBAC_MODULES` Constant**: Centralized identifiers for all system modules (found in `src/config/rbac-modules.ts`). Use these instead of hardcoded strings to ensure type safety.
+- **`useRBAC` Hook**: Evaluates permissions against a hierarchy (`full > context_read_write > read_only > context_read_only > none`). It performs a simple level check and does not handle database relationship logic.
+- **`<AccessControl>` Component**: A declarative wrapper for conditional rendering.
+    - **Standard Pattern**: Conditionally shows/hides components based on permission.
+    - **Render Prop Pattern**: Passes an `isAllowed` boolean to its children. This is the **preferred pattern for forms**, allowing them to gracefully degrade into a "Read Only" state with disabled buttons and visual labels.
+- **Routing Guards**: The `RequirePermission` component ensures a user has at least `context_read_only` access before allowing them into a route section.
+
+**Key Rule:** Never attempt to calculate "Am I assigned to this house?" in the frontend. Let the database filter the query results automatically via RLS.
+
+## 7. Directory Structure
 - `src/pages/`: Feature-specific pages and local components.
 - `src/hooks/`: Data fetching and business logic hooks.
 - `src/components/`: Shared UI components.
 - `src/lib/`: Core utilities (Supabase client, activity logger, helpers).
 - `src/models/`: TypeScript types and interfaces.
-- `migrations/`: SQL migration files for the database schema.
-  - `2026032000_baseline_schema.sql`: The consolidated schema baseline (March 20, 2026).
+- `migrations/`: Live schema metadata and RBAC definitions.
+  - `schema_metadata.json`: Full database structure source of truth.
+  - `current_database_rbac.json`: Live RLS policy definitions.
   - `old_consolidated/`: Historical migration files (archived).
 
 ## 8. Testing Strategy

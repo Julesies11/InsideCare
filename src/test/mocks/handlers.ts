@@ -151,17 +151,19 @@ export const handlers = [
     return HttpResponse.json([
       {
         role_id: 'role-1',
-        participant_profiles: 'full',
-        participant_notes: 'full',
-        house_profiles: 'full',
+        participants: 'full',
+        shift_notes: 'full',
+        houses: 'full',
         roster_board: 'full',
+        employees: 'full',
       },
       {
         role_id: 'role-2',
-        participant_profiles: 'context_read_write',
-        participant_notes: 'context_read_write',
-        house_profiles: 'context_read_write',
+        participants: 'context_read_write',
+        shift_notes: 'context_read_write',
+        houses: 'context_read_write',
         roster_board: 'read_only',
+        employees: 'read_only',
       },
     ]);
   }),

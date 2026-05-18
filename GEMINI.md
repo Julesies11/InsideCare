@@ -29,4 +29,20 @@ For detailed information on the project architecture, database, and features, re
 - [Database Schema](./docs/gemini/DATABASE.md) - Tables, Relationships, and Data rules.
 - [Features & Modules](./docs/gemini/FEATURES.md) - Overview of Participant, Staff, House, and Roster modules.
 
+# ===============================
+# 4. DATABASE STANDARDS
+# ===============================
+- **Source of Truth**: Before generating any SQL, migrations, or RLS policies, you **MUST** read:
+    - `migrations/schema_metadata.json`: For exact table names, columns, and types.
+    - `migrations/current_database_rbac.json`: For current RLS policies and RBAC state.
+- **No Hard-coding Roles/Permissions**: 
+    - NEVER hard-code role names (e.g., 'Admin', 'Staff') in Edge Functions or SQL. Roles are database-driven.
+    - NEVER hard-code permission levels.
+    - **Admin Verification**: Determine "Admin" status by checking if a user's role has `'full'` access to the `'access_control'` module in the `role_permissions` table.
+- **Migrations**: Always use the `YYYYMMDDXX_description.sql` format.
+    - `YYYYMMDD`: Today's date.
+    - `XX`: Sequential number starting at `00`.
+- **Logic**: Favor implementing logic in TypeScript/Hooks over SQL Functions/Triggers (as per ARCHITECTURE.md).
+- **Enums**: Use `.eq()` or `.in()` for enum columns in Supabase queries; do NOT use `.ilike()`.
+
 # Gemini Project Instructions — Metronic React (Vite) + TanStack Query + Supabase

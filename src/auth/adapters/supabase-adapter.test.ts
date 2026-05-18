@@ -74,6 +74,7 @@ describe('SupabaseAdapter', () => {
         staff_name: 'John Doe Staff',
         photo_url: 'https://example.com/photo.jpg',
         role_name: 'Super Admin',
+        permissions: {},
       });
 
       expect(supabase.from).toHaveBeenCalledWith('staff');

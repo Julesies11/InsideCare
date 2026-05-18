@@ -1,120 +1,114 @@
-import {
-  Calendar,
+import { 
+  Home, 
+  CheckSquare, 
+  Calendar, 
+  LogOut, 
+  Clock, 
+  Users, 
+  Settings, 
   ClipboardList,
-  House,
-  LayoutGrid,
-  Umbrella,
-  Users as PeopleIcon,
-  Settings,
+  Activity,
+  UserCheck
 } from 'lucide-react';
-import { type MenuConfig } from './types';
+import { MenuItemConfig } from '@/layouts/demo1/sidebar/SidebarMenu';
+import { RBAC_MODULES } from './rbac-modules';
 
-export const MENU_SIDEBAR: MenuConfig = [
-  { heading: 'Main' },
-  {
-    title: 'Dashboard',
-    icon: LayoutGrid,
-    path: '/',
-    roles: ['admin'],
-  },
+export const MENU_SIDEBAR: MenuItemConfig[] = [
   {
     title: 'My Dashboard',
-    icon: LayoutGrid,
+    icon: Home,
     path: '/staff/dashboard',
-    roles: ['staff'],
-    permission: 'shift_routines', // Staff view their routines
   },
   {
-    title: 'My Checklists',
-    icon: ClipboardList,
+    heading: 'Staff Portal',
+    permission: RBAC_MODULES.SHIFT_ROUTINES,
+  },
+  {
+    title: 'House Checklists',
+    icon: CheckSquare,
     path: '/staff/checklists',
-    roles: ['staff'],
-    permission: 'house_checklists',
+    permission: RBAC_MODULES.HOUSE_CHECKLISTS,
   },
   {
     title: 'My Roster',
     icon: Calendar,
     path: '/staff/roster',
-    roles: ['staff'],
-    permission: 'roster_board',
+    permission: RBAC_MODULES.MY_ROSTER,
   },
   {
-    title: 'Leave Requests',
-    icon: Umbrella,
+    title: 'My Leave',
+    icon: LogOut,
     path: '/staff/leave',
-    roles: ['staff'],
-    permission: 'leave_requests',
+    permission: RBAC_MODULES.MY_LEAVE,
   },
   {
     title: 'My Timesheets',
-    icon: ClipboardList,
+    icon: Clock,
     path: '/staff/timesheets',
-    roles: ['staff'],
-    permission: 'timesheets_submit',
+    permission: RBAC_MODULES.MY_TIMESHEETS,
+  },
+  {
+    heading: 'Participant Records',
+    permission: RBAC_MODULES.PARTICIPANTS,
   },
   {
     title: 'Participants',
-    icon: PeopleIcon,
-    roles: ['admin'],
-    permission: 'participant_profiles',
+    icon: Users,
+    permission: RBAC_MODULES.PARTICIPANTS,
     children: [
-      { title: 'Participant Profiles', path: '/participants/profiles', permission: 'participant_profiles' },
-      {
-        title: 'Participant Detail',
-        path: '/participants/detail',
-        hidden: true,
-        permission: 'participant_profiles',
-        children: [{ title: 'Detail', path: '/participants/detail/:id', permission: 'participant_profiles' }],
-      },
-      { title: 'Shift Notes', path: '/participants/shift-notes', permission: 'shift_notes' },
+      { title: 'Participant Profiles', path: '/participants/profiles', permission: RBAC_MODULES.PARTICIPANTS },
+      { title: 'Shift Notes', path: '/participants/shift-notes', permission: RBAC_MODULES.SHIFT_NOTES },
     ],
+  },
+  {
+    heading: 'Employees & HR',
+    permission: RBAC_MODULES.EMPLOYEES,
   },
   {
     title: 'Employees',
-    icon: PeopleIcon,
-    roles: ['admin'],
-    permission: 'staff_profiles',
+    icon: UserCheck,
+    permission: RBAC_MODULES.EMPLOYEES,
     children: [
-      { title: 'Staff Profiles', path: '/employees/staff-profiles', permission: 'staff_profiles' },
-      {
-        title: 'Staff Detail',
-        path: '/employees/staff-detail',
-        hidden: true,
-        permission: 'staff_profiles',
-        children: [{ title: 'Detail', path: '/employees/staff-detail/:id', permission: 'staff_profiles' }],
-      },
-      { title: 'Timesheets', path: '/employees/timesheets', roles: ['admin'], permission: 'timesheets_approve' },
-      { title: 'Leave Requests', path: '/employees/leave-requests', roles: ['admin'], permission: 'leave_requests' },
-    ],
-  },
-  {
-    title: 'Houses',
-    icon: House,
-    roles: ['admin'],
-    permission: 'house_profiles',
-    children: [
-      { title: 'House Profiles', path: '/houses/profiles', permission: 'house_profiles' },
+      { title: 'Staff Profiles', path: '/employees/staff-profiles', permission: RBAC_MODULES.EMPLOYEES },
+      { title: 'Timesheets', path: '/employees/timesheets', permission: RBAC_MODULES.TIMESHEETS },
+      { title: 'Leave Requests', path: '/employees/leave-requests', permission: RBAC_MODULES.LEAVE_REQUESTS },
     ],
   },
   {
     title: 'Roster Board',
     icon: Calendar,
     path: '/roster-board',
-    roles: ['admin'],
-    permission: 'roster_board',
+    permission: RBAC_MODULES.ROSTER_BOARD,
   },
-  { heading: 'Settings', roles: ['admin'] },
   {
-    title: 'Roles & Permissions',
+    heading: 'Operations & Facilities',
+    permission: RBAC_MODULES.HOUSES,
+  },
+  {
+    title: 'Houses',
+    icon: Home,
+    permission: RBAC_MODULES.HOUSES,
+    children: [
+      { title: 'House Profiles', path: '/houses/profiles', permission: RBAC_MODULES.HOUSES },
+    ],
+  },
+  { heading: 'System Administration', permission: RBAC_MODULES.ACCESS_CONTROL },
+  {
+    title: 'Access Control',
     icon: Settings,
     path: '/admin/roles',
-    roles: ['admin'],
+    permission: RBAC_MODULES.ACCESS_CONTROL,
+  },
+  {
+    title: 'Checklist Templates',
+    icon: ClipboardList,
+    path: '/admin/checklist-templates',
+    permission: RBAC_MODULES.ACCESS_CONTROL,
+  },
+  {
+    title: 'Activity Log',
+    icon: Activity,
+    path: '/activity-log',
+    permission: RBAC_MODULES.ACTIVITY_LOG,
   },
 ];
-
-export const MENU_SIDEBAR_CUSTOM: MenuConfig = [];
-export const MENU_SIDEBAR_COMPACT: MenuConfig = [];
-export const MENU_MEGA: MenuConfig = [];
-export const MENU_MEGA_MOBILE: MenuConfig = [];
-export const MENU_HELP: MenuConfig = [];
-export const MENU_ROOT: MenuConfig = [];

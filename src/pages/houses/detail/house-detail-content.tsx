@@ -26,6 +26,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { handleSupabaseError } from '@/errors/error-handler';
 import { ActivityLog } from '@/components/activities/ActivityLog';
 import { logActivity, detectChanges } from '@/lib/activity-logger';
+import { syncUserPermissionsByStaffId } from '@/lib/rbac-sync';
 
 interface HouseDetailContentProps {
   onFormDataChange?: (data: any) => void;
@@ -822,6 +823,28 @@ export function HouseDetailContent({
 
       if (onPendingChangesChange) {
         onPendingChangesChange(emptyHousePendingChanges);
+      }
+
+      // Final Step: Sync RBAC for affected staff
+      try {
+        const staffIdsToSync = new Set<string>();
+        currentPending.staff.toAdd.forEach(s => staffIdsToSync.add(s.staff_id));
+        currentPending.staff.toUpdate.forEach(s => {
+          if (s.staff_id) staffIdsToSync.add(s.staff_id);
+        });
+
+        if (currentPending.staff.toDelete.length > 0) {
+          const { data: deletedAssignments } = await supabase
+            .from('house_staff_assignments')
+            .select('staff_id')
+            .in('id', currentPending.staff.toDelete);
+          deletedAssignments?.forEach(a => staffIdsToSync.add(a.staff_id));
+        }
+
+        // Sync each staff member (fire and forget to not block UI)
+        Array.from(staffIdsToSync).forEach(sId => syncUserPermissionsByStaffId(sId));
+      } catch (syncErr) {
+        console.error('Non-critical: Failed to collect staff IDs for RBAC sync:', syncErr);
       }
 
     } catch (error) {

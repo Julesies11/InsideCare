@@ -58,6 +58,9 @@ import { logActivity } from '@/lib/activity-logger';
 import { useAuth } from '@/auth/context/auth-context';
 import { parseSupabaseError } from '@/lib/error-parser';
 
+import { RBAC_MODULES } from '@/config/rbac-modules';
+import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
+
 const PARTICIPANT_STATUS_OPTIONS: StatusOption[] = [
   { value: 'active', label: 'Active', badge: 'success' },
   { value: 'draft', label: 'Draft', badge: 'warning' },
@@ -67,12 +70,23 @@ const PARTICIPANT_STATUS_OPTIONS: StatusOption[] = [
 function ActionsCell({ row, updateParticipant }: { row: Row<ParticipantWithHouse>; updateParticipant: (params: { id: string; updates: Partial<Participant> }) => Promise<void> }) {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { hasAccess } = useRBAC();
+  
+  const canEdit = hasAccess({ 
+    resource: RBAC_MODULES.PARTICIPANTS, 
+    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE 
+  });
+  const canArchive = hasAccess({ 
+    resource: RBAC_MODULES.PARTICIPANTS, 
+    requiredLevel: ACCESS_LEVEL.FULL 
+  });
 
   const handleEdit = () => {
     navigate(`/participants/detail/${row.original.id}`);
   };
 
   const handleArchive = async () => {
+    if (!canArchive) return;
     try {
       await updateParticipant({ id: row.original.id, updates: { status: 'inactive' } });
 
@@ -104,13 +118,15 @@ function ActionsCell({ row, updateParticipant }: { row: Row<ParticipantWithHouse
         className="h-8"
       >
         <Edit className="size-4 me-1.5" />
-        Edit
+        {canEdit ? 'Edit' : 'View'}
       </Button>
       <Button
         variant="ghost"
         size="sm"
         onClick={handleArchive}
+        disabled={!canArchive}
         className="h-8"
+        title={!canArchive ? 'You do not have permission to archive participants' : ''}
       >
         <Archive className="size-4 me-1.5" />
         Archive
@@ -132,6 +148,12 @@ function getInitials(name: string | null | undefined): string {
 
 const Participants = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { hasAccess } = useRBAC();
+
+  const canManageAny = hasAccess({ 
+    resource: RBAC_MODULES.PARTICIPANTS, 
+    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE 
+  });
 
   // Helper functions to parse URL params into initial state
   const getInitialPagination = (): PaginationState => ({
@@ -480,6 +502,11 @@ const Participants = () => {
               options={PARTICIPANT_STATUS_OPTIONS}
               label="Status"
             />
+            {!canManageAny && (
+              <Badge variant="warning" appearance="light" size="sm" className="h-9 px-3">
+                Read Only
+              </Badge>
+            )}
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline">

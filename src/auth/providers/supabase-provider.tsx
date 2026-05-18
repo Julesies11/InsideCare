@@ -4,6 +4,7 @@ import { AuthContext } from '@/auth/context/auth-context';
 import { AuthModel, UserModel } from '@/auth/lib/models';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { syncUserPermissions } from '@/lib/rbac-sync';
 
 // Singleton promise to prevent concurrent profile fetches and auth lock contention
 let activeUserPromise: Promise<UserModel | null> | null = null;
@@ -48,14 +49,26 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const isStaff = !currentUser?.is_admin && !!currentUser?.staff_id;
 
   const handleAuthStateChange = useCallback(async (event: string, session: any) => {
+    // Only trigger global loading for initial bootstrap or sign-in if we are currently "empty"
+    // We check the 'loading' state and session to decide if we need a full-screen loader.
+    // VERIFY events (from navigation) should not flip loading back to true if we already have a session.
+    if ((event === 'INITIAL_SESSION' || event === 'SIGNED_IN') && !session) {
+      setLoading(true);
+    }
+    
     if (session) {
       setAuth({
         access_token: session.access_token,
         refresh_token: session.refresh_token,
       });
 
-      if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'USER_UPDATED') {
+      if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'USER_UPDATED' || event === 'VERIFY') {
         try {
+          // Hardening: Ensure permissions are synced on login
+          if (event === 'SIGNED_IN') {
+            await syncUserPermissions(session.user.id);
+          }
+          
           const user = await fetchUserWithTimeout();
           setCurrentUser(user || undefined);
         } catch (err) {

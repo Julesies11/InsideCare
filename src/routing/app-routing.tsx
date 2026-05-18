@@ -26,7 +26,8 @@ export function AppRouting() {
         setFirstLoad(false);
       });
     }
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!firstLoad) {

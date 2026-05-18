@@ -1,0 +1,7348 @@
+[
+  {
+    "tables": [
+      {
+        "name": "activity_log",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "activity_type",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "entity_type",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "entity_id",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "entity_name",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "description",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "user_name",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "metadata",
+            "type": "jsonb",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [],
+        "policy_count": 2
+      },
+      {
+        "name": "branch_documents",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "uuid_generate_v4()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "branch_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "file_name",
+            "type": "character varying",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "file_path",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "file_size",
+            "type": "integer",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "mime_type",
+            "type": "character varying",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "uploaded_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "CURRENT_TIMESTAMP",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "CURRENT_TIMESTAMP",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "branch_id",
+            "ref_col": "id",
+            "ref_table": "branches"
+          }
+        ],
+        "policy_count": 0
+      },
+      {
+        "name": "branch_policies",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "uuid_generate_v4()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "branch_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "policy_type",
+            "type": "character varying",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "title",
+            "type": "character varying",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "description",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "document_url",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "version",
+            "type": "character varying",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "effective_date",
+            "type": "date",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "review_date",
+            "type": "date",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "status",
+            "type": "character varying",
+            "default": "'active'::character varying",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "approved_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "notes",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "CURRENT_TIMESTAMP",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "CURRENT_TIMESTAMP",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "branch_id",
+            "ref_col": "id",
+            "ref_table": "branches"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "branches",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "name",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "company_name",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "address",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "phone",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "email",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "manager_name",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "operating_hours",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "service_areas",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "number_of_staff",
+            "type": "integer",
+            "default": "0",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "number_of_houses",
+            "type": "integer",
+            "default": "0",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "compliance_status",
+            "type": "text",
+            "default": "'pending'::text",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "last_audit_date",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "next_review_date",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "notes",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [],
+        "policy_count": 2
+      },
+      {
+        "name": "checklist_item_master",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "uuid_generate_v4()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "master_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "title",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "instructions",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "priority",
+            "type": "text",
+            "default": "'medium'::text",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "is_required",
+            "type": "boolean",
+            "default": "true",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "sort_order",
+            "type": "integer",
+            "default": "0",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "group_title",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "group_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "group_id",
+            "ref_col": "id",
+            "ref_table": "house_shift_templates"
+          },
+          {
+            "col": "master_id",
+            "ref_col": "id",
+            "ref_table": "checklist_master"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "checklist_master",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "uuid_generate_v4()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "name",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "description",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "days_of_week",
+            "type": "ARRAY",
+            "default": null,
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [],
+        "policy_count": 2
+      },
+      {
+        "name": "checklist_schedules",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "uuid_generate_v4()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "house_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "house_checklist_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "rrule",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "start_date",
+            "type": "date",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "end_date",
+            "type": "date",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "is_active",
+            "type": "boolean",
+            "default": "true",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "target_shift",
+            "type": "USER-DEFINED",
+            "default": "'all'::shift_period_enum",
+            "nullable": "NO"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "house_checklist_id",
+            "ref_col": "id",
+            "ref_table": "house_checklists"
+          },
+          {
+            "col": "house_id",
+            "ref_col": "id",
+            "ref_table": "houses"
+          }
+        ],
+        "policy_count": 0
+      },
+      {
+        "name": "contact_types_master",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "name",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "is_active",
+            "type": "boolean",
+            "default": "true",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [],
+        "policy_count": 2
+      },
+      {
+        "name": "departments",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "name",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "description",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "access_level",
+            "type": "text",
+            "default": "'Limited'::text",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "status",
+            "type": "text",
+            "default": "'Active'::text",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [],
+        "policy_count": 2
+      },
+      {
+        "name": "employment_types_master",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "name",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "description",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "status",
+            "type": "text",
+            "default": "'Active'::text",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [],
+        "policy_count": 2
+      },
+      {
+        "name": "error_logs",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "uuid_generate_v4()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "user_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "message",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "category",
+            "type": "character varying",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "details",
+            "type": "jsonb",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "url",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "user_agent",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "app_version",
+            "type": "character varying",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "resolved",
+            "type": "boolean",
+            "default": "false",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [],
+        "policy_count": 2
+      },
+      {
+        "name": "funding_claims",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "funding_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "claim_date",
+            "type": "date",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "category",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "description",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "amount",
+            "type": "numeric",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "status",
+            "type": "text",
+            "default": "'Pending'::text",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "notes",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "funding_id",
+            "ref_col": "id",
+            "ref_table": "participant_funding"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "funding_invoices",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "funding_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "invoice_number",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "invoice_date",
+            "type": "date",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "amount",
+            "type": "numeric",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "due_date",
+            "type": "date",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "status",
+            "type": "text",
+            "default": "'Pending'::text",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "notes",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "funding_id",
+            "ref_col": "id",
+            "ref_table": "participant_funding"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "funding_sources_master",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "name",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "is_active",
+            "type": "boolean",
+            "default": "true",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [],
+        "policy_count": 2
+      },
+      {
+        "name": "funding_types_master",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "name",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "is_active",
+            "type": "boolean",
+            "default": "true",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [],
+        "policy_count": 2
+      },
+      {
+        "name": "house_calendar_event_attachments",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "event_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "file_name",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "file_path",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "file_size",
+            "type": "integer",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "mime_type",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "uploaded_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "event_id",
+            "ref_col": "id",
+            "ref_table": "house_calendar_events"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "house_calendar_event_participants",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "event_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "participant_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "participant_id",
+            "ref_col": "id",
+            "ref_table": "participants"
+          },
+          {
+            "col": "event_id",
+            "ref_col": "id",
+            "ref_table": "house_calendar_events"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "house_calendar_event_staff",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "event_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "staff_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "staff_id",
+            "ref_col": "id",
+            "ref_table": "staff"
+          },
+          {
+            "col": "event_id",
+            "ref_col": "id",
+            "ref_table": "house_calendar_events"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "house_calendar_event_types_master",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "name",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "description",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "status",
+            "type": "text",
+            "default": "'Active'::text",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "color",
+            "type": "text",
+            "default": "'blue'::text",
+            "nullable": "NO"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [],
+        "policy_count": 2
+      },
+      {
+        "name": "house_calendar_events",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "uuid_generate_v4()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "house_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "title",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "description",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "event_date",
+            "type": "date",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "start_time",
+            "type": "time without time zone",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "end_time",
+            "type": "time without time zone",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "status",
+            "type": "text",
+            "default": "'scheduled'::text",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "location",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "event_type_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "checklist_schedule_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "house_checklist_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "is_checklist_event",
+            "type": "boolean",
+            "default": "false",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "house_id",
+            "ref_col": "id",
+            "ref_table": "houses"
+          },
+          {
+            "col": "event_type_id",
+            "ref_col": "id",
+            "ref_table": "house_calendar_event_types_master"
+          },
+          {
+            "col": "house_checklist_id",
+            "ref_col": "id",
+            "ref_table": "house_checklists"
+          },
+          {
+            "col": "created_by",
+            "ref_col": "id",
+            "ref_table": "staff"
+          },
+          {
+            "col": "checklist_schedule_id",
+            "ref_col": "id",
+            "ref_table": "checklist_schedules"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "house_checklist_item_attachments",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "uuid_generate_v4()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "submission_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "item_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "file_name",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "file_path",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "file_size",
+            "type": "bigint",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "mime_type",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "uploaded_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "uploaded_by",
+            "ref_col": "id",
+            "ref_table": "staff"
+          },
+          {
+            "col": "item_id",
+            "ref_col": "id",
+            "ref_table": "house_checklist_items"
+          },
+          {
+            "col": "submission_id",
+            "ref_col": "id",
+            "ref_table": "house_checklist_submissions"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "house_checklist_items",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "uuid_generate_v4()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "checklist_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "title",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "instructions",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "priority",
+            "type": "text",
+            "default": "'medium'::text",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "is_required",
+            "type": "boolean",
+            "default": "true",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "sort_order",
+            "type": "integer",
+            "default": "0",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "master_item_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "group_title",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "group_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "group_id",
+            "ref_col": "id",
+            "ref_table": "house_shift_templates"
+          },
+          {
+            "col": "checklist_id",
+            "ref_col": "id",
+            "ref_table": "house_checklists"
+          },
+          {
+            "col": "master_item_id",
+            "ref_col": "id",
+            "ref_table": "checklist_item_master"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "house_checklist_submission_items",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "uuid_generate_v4()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "submission_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "item_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "is_completed",
+            "type": "boolean",
+            "default": "false",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "note",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "completed_at",
+            "type": "timestamp with time zone",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "master_item_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "completed_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "status",
+            "type": "text",
+            "default": "'Pending'::text",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "master_item_id",
+            "ref_col": "id",
+            "ref_table": "checklist_item_master"
+          },
+          {
+            "col": "item_id",
+            "ref_col": "id",
+            "ref_table": "house_checklist_items"
+          },
+          {
+            "col": "submission_id",
+            "ref_col": "id",
+            "ref_table": "house_checklist_submissions"
+          },
+          {
+            "col": "completed_by",
+            "ref_col": "id",
+            "ref_table": "staff"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "house_checklist_submissions",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "uuid_generate_v4()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "checklist_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "house_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "submitted_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "status",
+            "type": "text",
+            "default": "'in_progress'::text",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "started_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "completed_at",
+            "type": "timestamp with time zone",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "master_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "scheduled_date",
+            "type": "date",
+            "default": "CURRENT_DATE",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "shift_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "calendar_event_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "shift_assignment_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "shift_template_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "submitted_by",
+            "ref_col": "id",
+            "ref_table": "staff"
+          },
+          {
+            "col": "shift_template_id",
+            "ref_col": "id",
+            "ref_table": "house_shift_templates"
+          },
+          {
+            "col": "shift_assignment_id",
+            "ref_col": "id",
+            "ref_table": "shift_assigned_checklists"
+          },
+          {
+            "col": "calendar_event_id",
+            "ref_col": "id",
+            "ref_table": "house_calendar_events"
+          },
+          {
+            "col": "shift_id",
+            "ref_col": "id",
+            "ref_table": "staff_shifts"
+          },
+          {
+            "col": "house_id",
+            "ref_col": "id",
+            "ref_table": "houses"
+          },
+          {
+            "col": "checklist_id",
+            "ref_col": "id",
+            "ref_table": "house_checklists"
+          },
+          {
+            "col": "master_id",
+            "ref_col": "id",
+            "ref_table": "checklist_master"
+          }
+        ],
+        "policy_count": 3
+      },
+      {
+        "name": "house_checklists",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "uuid_generate_v4()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "house_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "name",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "description",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "master_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "days_of_week",
+            "type": "ARRAY",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "sort_order",
+            "type": "integer",
+            "default": "0",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "is_global",
+            "type": "boolean",
+            "default": "false",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "house_id",
+            "ref_col": "id",
+            "ref_table": "houses"
+          },
+          {
+            "col": "master_id",
+            "ref_col": "id",
+            "ref_table": "checklist_master"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "house_comms",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "house_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "entry_date",
+            "type": "date",
+            "default": "CURRENT_DATE",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "content",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "created_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "house_id",
+            "ref_col": "id",
+            "ref_table": "houses"
+          },
+          {
+            "col": "created_by",
+            "ref_col": "id",
+            "ref_table": "staff"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "house_files",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "uuid_generate_v4()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "house_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "file_name",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "file_path",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "file_size",
+            "type": "bigint",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "file_type",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "category",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "version",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "status",
+            "type": "text",
+            "default": "'current'::text",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "uploaded_by",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "notes",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "house_id",
+            "ref_col": "id",
+            "ref_table": "houses"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "house_form_assignments",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "uuid_generate_v4()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "form_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "participant_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "staff_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "assigned_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "due_date",
+            "type": "date",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "status",
+            "type": "text",
+            "default": "'pending'::text",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "completed_at",
+            "type": "timestamp with time zone",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "completed_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "notes",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "staff_id",
+            "ref_col": "id",
+            "ref_table": "staff"
+          },
+          {
+            "col": "participant_id",
+            "ref_col": "id",
+            "ref_table": "participants"
+          },
+          {
+            "col": "form_id",
+            "ref_col": "id",
+            "ref_table": "house_forms"
+          },
+          {
+            "col": "completed_by",
+            "ref_col": "id",
+            "ref_table": "staff"
+          },
+          {
+            "col": "assigned_by",
+            "ref_col": "id",
+            "ref_table": "staff"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "house_form_submissions",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "uuid_generate_v4()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "form_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "assignment_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "submitted_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "participant_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "submission_data",
+            "type": "jsonb",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "status",
+            "type": "text",
+            "default": "'complete'::text",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "submitted_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "submitted_by",
+            "ref_col": "id",
+            "ref_table": "staff"
+          },
+          {
+            "col": "participant_id",
+            "ref_col": "id",
+            "ref_table": "participants"
+          },
+          {
+            "col": "assignment_id",
+            "ref_col": "id",
+            "ref_table": "house_form_assignments"
+          },
+          {
+            "col": "form_id",
+            "ref_col": "id",
+            "ref_table": "house_forms"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "house_forms",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "uuid_generate_v4()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "house_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "name",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "type",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "description",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "frequency",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "is_global",
+            "type": "boolean",
+            "default": "false",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "status",
+            "type": "text",
+            "default": "'active'::text",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "created_by",
+            "ref_col": "id",
+            "ref_table": "staff"
+          },
+          {
+            "col": "house_id",
+            "ref_col": "id",
+            "ref_table": "houses"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "house_resources",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "uuid_generate_v4()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "house_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "title",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "category",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "type",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "description",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "priority",
+            "type": "text",
+            "default": "'Medium'::text",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "phone",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "address",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "file_url",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "file_name",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "file_size",
+            "type": "integer",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "notes",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "created_by",
+            "ref_col": "id",
+            "ref_table": "staff"
+          },
+          {
+            "col": "house_id",
+            "ref_col": "id",
+            "ref_table": "houses"
+          }
+        ],
+        "policy_count": 1
+      },
+      {
+        "name": "house_shift_templates",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "uuid_generate_v4()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "house_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "name",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "short_name",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "icon_name",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "color_theme",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "sort_order",
+            "type": "integer",
+            "default": "0",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "is_active",
+            "type": "boolean",
+            "default": "true",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "default_start_time",
+            "type": "time without time zone",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "default_end_time",
+            "type": "time without time zone",
+            "default": null,
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "house_id",
+            "ref_col": "id",
+            "ref_table": "houses"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "house_staff_assignments",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "uuid_generate_v4()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "house_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "staff_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "is_primary",
+            "type": "boolean",
+            "default": "false",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "start_date",
+            "type": "date",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "end_date",
+            "type": "date",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "notes",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "house_id",
+            "ref_col": "id",
+            "ref_table": "houses"
+          },
+          {
+            "col": "staff_id",
+            "ref_col": "id",
+            "ref_table": "staff"
+          }
+        ],
+        "policy_count": 1
+      },
+      {
+        "name": "house_types_master",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "name",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "description",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "status",
+            "type": "text",
+            "default": "'Active'::text",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [],
+        "policy_count": 2
+      },
+      {
+        "name": "houses",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "name",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "branch_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "address",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "phone",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "capacity",
+            "type": "integer",
+            "default": "0",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "current_occupancy",
+            "type": "integer",
+            "default": "0",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "house_manager",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "status",
+            "type": "text",
+            "default": "'active'::text",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "notes",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "house_type_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "individuals_breakdown",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "participant_dynamics",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "observations",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "general_house_details",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "setup_step",
+            "type": "integer",
+            "default": "1",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "is_configured",
+            "type": "boolean",
+            "default": "false",
+            "nullable": "NO"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "house_type_id",
+            "ref_col": "id",
+            "ref_table": "house_types_master"
+          },
+          {
+            "col": "branch_id",
+            "ref_col": "id",
+            "ref_table": "branches"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "incidents",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "description",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "status",
+            "type": "text",
+            "default": "'open'::text",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "participant_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "reported_by",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "reported_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "resolved_at",
+            "type": "timestamp with time zone",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "resolution_notes",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "incident_type",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "involved",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "priority",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "follow_up_required",
+            "type": "boolean",
+            "default": "false",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "participant_id",
+            "ref_col": "id",
+            "ref_table": "participants"
+          }
+        ],
+        "policy_count": 0
+      },
+      {
+        "name": "leave_requests",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "staff_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "leave_type_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "start_date",
+            "type": "date",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "end_date",
+            "type": "date",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "reason",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "status",
+            "type": "text",
+            "default": "'pending'::text",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "admin_notes",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "attachment_url",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "staff_id",
+            "ref_col": "id",
+            "ref_table": "staff"
+          },
+          {
+            "col": "leave_type_id",
+            "ref_col": "id",
+            "ref_table": "leave_types"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "leave_types",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "name",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "is_active",
+            "type": "boolean",
+            "default": "true",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "NO"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [],
+        "policy_count": 2
+      },
+      {
+        "name": "medications_master",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "name",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "category",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "common_dosages",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "is_active",
+            "type": "boolean",
+            "default": "true",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "side_effects",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "interactions",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [],
+        "policy_count": 2
+      },
+      {
+        "name": "notifications",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "user_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "type",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "title",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "body",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "link",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "is_read",
+            "type": "boolean",
+            "default": "false",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "metadata",
+            "type": "jsonb",
+            "default": null,
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [],
+        "policy_count": 1
+      },
+      {
+        "name": "participant_contacts",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "participant_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "contact_name",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "is_active",
+            "type": "boolean",
+            "default": "true",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "phone",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "email",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "address",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "notes",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "contact_type_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "contact_type_id",
+            "ref_col": "id",
+            "ref_table": "contact_types_master"
+          },
+          {
+            "col": "participant_id",
+            "ref_col": "id",
+            "ref_table": "participants"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "participant_documents",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "participant_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "file_name",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "file_path",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "file_size",
+            "type": "integer",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "mime_type",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "uploaded_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "is_restricted",
+            "type": "boolean",
+            "default": "false",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "participant_id",
+            "ref_col": "id",
+            "ref_table": "participants"
+          },
+          {
+            "col": "uploaded_by",
+            "ref_col": "id",
+            "ref_table": "staff"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "participant_forms",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "participant_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "form_type",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "form_title",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "form_data",
+            "type": "jsonb",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "submitted_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "submission_date",
+            "type": "date",
+            "default": "CURRENT_DATE",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "submitted_by",
+            "ref_col": "id",
+            "ref_table": "staff"
+          },
+          {
+            "col": "participant_id",
+            "ref_col": "id",
+            "ref_table": "participants"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "participant_funding",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "participant_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "house_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "code",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "invoice_recipient",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "allocated_amount",
+            "type": "numeric",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "used_amount",
+            "type": "numeric",
+            "default": "0",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "remaining_amount",
+            "type": "numeric",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "status",
+            "type": "text",
+            "default": "'Active'::text",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "end_date",
+            "type": "date",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "notes",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "funding_source_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "funding_type_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "participant_id",
+            "ref_col": "id",
+            "ref_table": "participants"
+          },
+          {
+            "col": "funding_source_id",
+            "ref_col": "id",
+            "ref_table": "funding_sources_master"
+          },
+          {
+            "col": "house_id",
+            "ref_col": "id",
+            "ref_table": "houses"
+          },
+          {
+            "col": "funding_type_id",
+            "ref_col": "id",
+            "ref_table": "funding_types_master"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "participant_goal_progress",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "goal_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "progress_note",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "goal_id",
+            "ref_col": "id",
+            "ref_table": "participant_goals"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "participant_goals",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "participant_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "goal_type",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "description",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "is_active",
+            "type": "boolean",
+            "default": "true",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "participant_id",
+            "ref_col": "id",
+            "ref_table": "participants"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "participant_hygiene_routines",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "participant_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "routine_type",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "support_level",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "frequency",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "time_of_day",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "duration_minutes",
+            "type": "integer",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "specific_instructions",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "equipment_needed",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "notes",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "participant_id",
+            "ref_col": "id",
+            "ref_table": "participants"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "participant_medications",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "participant_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "dosage",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "frequency",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "is_active",
+            "type": "boolean",
+            "default": "true",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "medication_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "participant_id",
+            "ref_col": "id",
+            "ref_table": "participants"
+          },
+          {
+            "col": "medication_id",
+            "ref_col": "id",
+            "ref_table": "medications_master"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "participant_notes",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "participant_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "note_type",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "content",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "is_important",
+            "type": "boolean",
+            "default": "false",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "is_private",
+            "type": "boolean",
+            "default": "false",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "created_by",
+            "ref_col": "id",
+            "ref_table": "staff"
+          },
+          {
+            "col": "participant_id",
+            "ref_col": "id",
+            "ref_table": "participants"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "participant_restrictive_practices",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "participant_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "practice_type",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "description",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "justification",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "authorization_date",
+            "type": "date",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "authorized_by",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "review_date",
+            "type": "date",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "status",
+            "type": "text",
+            "default": "'Active'::text",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "conditions",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "alternatives_considered",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "monitoring_requirements",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "incident_reporting_protocol",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "is_ndis_reportable",
+            "type": "boolean",
+            "default": "true",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "created_by",
+            "ref_col": "id",
+            "ref_table": "staff"
+          },
+          {
+            "col": "participant_id",
+            "ref_col": "id",
+            "ref_table": "participants"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "participants",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "name",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "email",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "address",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "date_of_birth",
+            "type": "date",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "ndis_number",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "support_coordinator",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "allergies",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "support_level",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "routine",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "hygiene_support",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "current_goals",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "current_medications",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "general_notes",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "restrictive_practices",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "service_providers",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "house_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "photo_url",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "status",
+            "type": "USER-DEFINED",
+            "default": "'draft'::status_enum",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "house_phone",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "personal_mobile",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "primary_diagnosis",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "secondary_diagnosis",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "behaviour_of_concern",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "pbsp_engaged",
+            "type": "boolean",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "bsp_available",
+            "type": "boolean",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "specialist_name",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "specialist_phone",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "specialist_email",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "restrictive_practice_authorisation",
+            "type": "boolean",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "restrictive_practice_details",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "restrictive_practices_yn",
+            "type": "boolean",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "mtmp_required",
+            "type": "boolean",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "mtmp_details",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "mobility_support",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "meal_prep_support",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "household_support",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "communication_type",
+            "type": "character varying",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "communication_notes",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "communication_language_needs",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "finance_support",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "health_wellbeing_support",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "cultural_religious_support",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "other_support",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "mental_health_plan",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "medical_plan",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "natural_disaster_plan",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "pharmacy_name",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "pharmacy_contact",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "pharmacy_location",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "gp_name",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "gp_contact",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "gp_location",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "psychiatrist_name",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "psychiatrist_contact",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "psychiatrist_location",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "medical_routine_other",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "medical_routine_general_process",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "move_in_date",
+            "type": "date",
+            "default": null,
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "house_id",
+            "ref_col": "id",
+            "ref_table": "houses"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "permission_mappings",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "uuid_generate_v4()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "permission_name",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "page_id",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "parent_group",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "icon_name",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "display_order",
+            "type": "integer",
+            "default": "0",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "description",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [],
+        "policy_count": 2
+      },
+      {
+        "name": "positions",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "department_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "title",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "description",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "compliance_requirements",
+            "type": "ARRAY",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "access_level",
+            "type": "text",
+            "default": "'Limited'::text",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "status",
+            "type": "text",
+            "default": "'Active'::text",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "department_id",
+            "ref_col": "id",
+            "ref_table": "departments"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "provider_participants",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "provider_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "participant_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "participant_id",
+            "ref_col": "id",
+            "ref_table": "participants"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "providers",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "name",
+            "type": "character varying",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "company",
+            "type": "character varying",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "type",
+            "type": "character varying",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "phone",
+            "type": "character varying",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "email",
+            "type": "character varying",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "status",
+            "type": "character varying",
+            "default": "'Active'::character varying",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "specialties",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "notes",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [],
+        "policy_count": 2
+      },
+      {
+        "name": "role_permissions",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "uuid_generate_v4()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "role_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "my_roster",
+            "type": "USER-DEFINED",
+            "default": "'none'::access_level_enum",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "my_timesheets",
+            "type": "USER-DEFINED",
+            "default": "'none'::access_level_enum",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "my_leave",
+            "type": "USER-DEFINED",
+            "default": "'none'::access_level_enum",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "shift_routines",
+            "type": "USER-DEFINED",
+            "default": "'none'::access_level_enum",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "participants",
+            "type": "USER-DEFINED",
+            "default": "'none'::access_level_enum",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "shift_notes",
+            "type": "USER-DEFINED",
+            "default": "'none'::access_level_enum",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "employees",
+            "type": "USER-DEFINED",
+            "default": "'none'::access_level_enum",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "timesheets",
+            "type": "USER-DEFINED",
+            "default": "'none'::access_level_enum",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "leave_requests",
+            "type": "USER-DEFINED",
+            "default": "'none'::access_level_enum",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "roster_board",
+            "type": "USER-DEFINED",
+            "default": "'none'::access_level_enum",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "houses",
+            "type": "USER-DEFINED",
+            "default": "'none'::access_level_enum",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "house_checklists",
+            "type": "USER-DEFINED",
+            "default": "'none'::access_level_enum",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "access_control",
+            "type": "USER-DEFINED",
+            "default": "'none'::access_level_enum",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "master_lists",
+            "type": "USER-DEFINED",
+            "default": "'none'::access_level_enum",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "activity_log",
+            "type": "USER-DEFINED",
+            "default": "'none'::access_level_enum",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "role_id",
+            "ref_col": "id",
+            "ref_table": "roles"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "roles",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "uuid_generate_v4()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "name",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "description",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "permissions",
+            "type": "ARRAY",
+            "default": "'{}'::text[]",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "assigned_count",
+            "type": "integer",
+            "default": "0",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "is_active",
+            "type": "boolean",
+            "default": "true",
+            "nullable": "NO"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [],
+        "policy_count": 2
+      },
+      {
+        "name": "service_participants",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "service_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "participant_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "participant_id",
+            "ref_col": "id",
+            "ref_table": "participants"
+          },
+          {
+            "col": "service_id",
+            "ref_col": "id",
+            "ref_table": "services"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "service_staff",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "service_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "staff_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "service_id",
+            "ref_col": "id",
+            "ref_table": "services"
+          },
+          {
+            "col": "staff_id",
+            "ref_col": "id",
+            "ref_table": "staff"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "services",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "name",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "type",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "description",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "status",
+            "type": "text",
+            "default": "'Active'::text",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [],
+        "policy_count": 2
+      },
+      {
+        "name": "shift_assigned_checklists",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "uuid_generate_v4()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "shift_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "checklist_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "assignment_title",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "sort_order",
+            "type": "integer",
+            "default": "0",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "house_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "shift_template_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "house_id",
+            "ref_col": "id",
+            "ref_table": "houses"
+          },
+          {
+            "col": "checklist_id",
+            "ref_col": "id",
+            "ref_table": "house_checklists"
+          },
+          {
+            "col": "shift_id",
+            "ref_col": "id",
+            "ref_table": "staff_shifts"
+          },
+          {
+            "col": "shift_template_id",
+            "ref_col": "id",
+            "ref_table": "house_shift_templates"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "shift_notes",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "participant_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "staff_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "start_date",
+            "type": "date",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "shift_time",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "notes",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "full_note",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "house_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "shift_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "participant_id",
+            "ref_col": "id",
+            "ref_table": "participants"
+          },
+          {
+            "col": "staff_id",
+            "ref_col": "id",
+            "ref_table": "staff"
+          },
+          {
+            "col": "house_id",
+            "ref_col": "id",
+            "ref_table": "houses"
+          },
+          {
+            "col": "shift_id",
+            "ref_col": "id",
+            "ref_table": "staff_shifts"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "shift_participants",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "uuid_generate_v4()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "shift_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "participant_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "participant_id",
+            "ref_col": "id",
+            "ref_table": "participants"
+          },
+          {
+            "col": "shift_id",
+            "ref_col": "id",
+            "ref_table": "staff_shifts"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "shift_template_checklists",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "uuid_generate_v4()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "shift_template_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "checklist_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "checklist_id",
+            "ref_col": "id",
+            "ref_table": "house_checklists"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "shift_template_default_checklists",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "uuid_generate_v4()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "shift_template_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "checklist_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "checklist_id",
+            "ref_col": "id",
+            "ref_table": "house_checklists"
+          },
+          {
+            "col": "shift_template_id",
+            "ref_col": "id",
+            "ref_table": "house_shift_templates"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "staff",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "name",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "email",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "phone",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "hire_date",
+            "type": "date",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "date_of_birth",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "address",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "emergency_contact_name",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "emergency_contact_phone",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "notes",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "branch_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "role_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "status",
+            "type": "USER-DEFINED",
+            "default": "'draft'::status_enum",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "hobbies",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "allergies",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "availability",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "department_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "employment_type_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "manager_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "ndis_worker_screening_check",
+            "type": "boolean",
+            "default": "false",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "ndis_worker_screening_check_expiry",
+            "type": "date",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "ndis_orientation_module",
+            "type": "boolean",
+            "default": "false",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "ndis_orientation_module_expiry",
+            "type": "date",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "ndis_code_of_conduct",
+            "type": "boolean",
+            "default": "false",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "ndis_code_of_conduct_expiry",
+            "type": "date",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "ndis_infection_control_training",
+            "type": "boolean",
+            "default": "false",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "ndis_infection_control_training_expiry",
+            "type": "date",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "drivers_license",
+            "type": "boolean",
+            "default": "false",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "drivers_license_expiry",
+            "type": "date",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "comprehensive_car_insurance",
+            "type": "boolean",
+            "default": "false",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "comprehensive_car_insurance_expiry",
+            "type": "date",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "separation_date",
+            "type": "date",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "auth_user_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "photo_url",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "role_id",
+            "ref_col": "id",
+            "ref_table": "roles"
+          },
+          {
+            "col": "manager_id",
+            "ref_col": "id",
+            "ref_table": "staff"
+          },
+          {
+            "col": "employment_type_id",
+            "ref_col": "id",
+            "ref_table": "employment_types_master"
+          },
+          {
+            "col": "department_id",
+            "ref_col": "id",
+            "ref_table": "departments"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "staff_compliance",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "staff_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "compliance_name",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "completion_date",
+            "type": "date",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "expiry_date",
+            "type": "date",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "status",
+            "type": "text",
+            "default": "'Complete'::text",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "staff_id",
+            "ref_col": "id",
+            "ref_table": "staff"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "staff_documents",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "staff_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "file_name",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "file_path",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "file_size",
+            "type": "integer",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "mime_type",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "uploaded_by",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "is_restricted",
+            "type": "boolean",
+            "default": "false",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "staff_id",
+            "ref_col": "id",
+            "ref_table": "staff"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "staff_shifts",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "uuid_generate_v4()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "staff_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "start_date",
+            "type": "date",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "start_time",
+            "type": "time without time zone",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "end_time",
+            "type": "time without time zone",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "house_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "shift_template",
+            "type": "character varying",
+            "default": "'SIL'::character varying",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "notes",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "end_date",
+            "type": "date",
+            "default": "CURRENT_DATE",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "template_item_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "shift_template_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "house_id",
+            "ref_col": "id",
+            "ref_table": "houses"
+          },
+          {
+            "col": "shift_template_id",
+            "ref_col": "id",
+            "ref_table": "house_shift_templates"
+          },
+          {
+            "col": "staff_id",
+            "ref_col": "id",
+            "ref_table": "staff"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "staff_training",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "uuid_generate_v4()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "staff_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "title",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "category",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "description",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "provider",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "date_completed",
+            "type": "date",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "expiry_date",
+            "type": "date",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "file_path",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "file_name",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "file_size",
+            "type": "integer",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "staff_id",
+            "ref_col": "id",
+            "ref_table": "staff"
+          },
+          {
+            "col": "created_by",
+            "ref_col": "id",
+            "ref_table": "staff"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "support_plans",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "participant_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "plan_name",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "start_date",
+            "type": "date",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "end_date",
+            "type": "date",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "goals",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "support_hours_weekly",
+            "type": "integer",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "funding_type",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "participant_id",
+            "ref_col": "id",
+            "ref_table": "participants"
+          }
+        ],
+        "policy_count": 0
+      },
+      {
+        "name": "tasks",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "title",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "description",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "assigned_to",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "participant_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "due_date",
+            "type": "date",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "priority",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "status",
+            "type": "text",
+            "default": "'pending'::text",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "completed_at",
+            "type": "timestamp with time zone",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "participant_id",
+            "ref_col": "id",
+            "ref_table": "participants"
+          },
+          {
+            "col": "assigned_to",
+            "ref_col": "id",
+            "ref_table": "staff"
+          }
+        ],
+        "policy_count": 0
+      },
+      {
+        "name": "team_members",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "team_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "staff_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "role",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "joined_date",
+            "type": "date",
+            "default": "CURRENT_DATE",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "staff_id",
+            "ref_col": "id",
+            "ref_table": "staff"
+          },
+          {
+            "col": "team_id",
+            "ref_col": "id",
+            "ref_table": "teams"
+          }
+        ],
+        "policy_count": 0
+      },
+      {
+        "name": "teams",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "name",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "department",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "team_leader_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "description",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "member_count",
+            "type": "integer",
+            "default": "0",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "team_leader_id",
+            "ref_col": "id",
+            "ref_table": "staff"
+          }
+        ],
+        "policy_count": 0
+      },
+      {
+        "name": "timesheets",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "staff_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "shift_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "clock_in",
+            "type": "timestamp with time zone",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "clock_out",
+            "type": "timestamp with time zone",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "break_minutes",
+            "type": "integer",
+            "default": "0",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "notes",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "status",
+            "type": "text",
+            "default": "'pending'::text",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "admin_notes",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "actual_start",
+            "type": "timestamp with time zone",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "actual_end",
+            "type": "timestamp with time zone",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "overtime_hours",
+            "type": "numeric",
+            "default": "0",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "overtime_explanation",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "travel_km",
+            "type": "numeric",
+            "default": "0",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "incident_tag",
+            "type": "boolean",
+            "default": "false",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "sick_shift",
+            "type": "boolean",
+            "default": "false",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "shift_notes_text",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "submitted_at",
+            "type": "timestamp with time zone",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "rejection_reason",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "approved_at",
+            "type": "timestamp with time zone",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "approved_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "late_submission",
+            "type": "boolean",
+            "default": "false",
+            "nullable": "NO"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "staff_id",
+            "ref_col": "id",
+            "ref_table": "staff"
+          },
+          {
+            "col": "approved_by",
+            "ref_col": "id",
+            "ref_table": "staff"
+          },
+          {
+            "col": "shift_id",
+            "ref_col": "id",
+            "ref_table": "staff_shifts"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "user_roles",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "staff_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "role_name",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "permissions",
+            "type": "jsonb",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "assigned_date",
+            "type": "date",
+            "default": "CURRENT_DATE",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "staff_id",
+            "ref_col": "id",
+            "ref_table": "staff"
+          }
+        ],
+        "policy_count": 2
+      }
+    ],
+    "enums": [
+      {
+        "name": "access_level_enum",
+        "values": [
+          "full",
+          "context_read_write",
+          "context_read_only",
+          "read_only",
+          "none"
+        ]
+      },
+      {
+        "name": "shift_period_enum",
+        "values": [
+          "morning",
+          "day",
+          "night",
+          "all"
+        ]
+      },
+      {
+        "name": "status_enum",
+        "values": [
+          "draft",
+          "active",
+          "inactive",
+          "archived"
+        ]
+      }
+    ],
+    "functions": [
+      {
+        "args": "",
+        "name": "handle_new_role_permissions",
+        "returns": "trigger",
+        "definition": "\nBEGIN\n    INSERT INTO public.role_permissions (role_id)\n    VALUES (NEW.id)\n    ON CONFLICT (role_id) DO NOTHING;\n    RETURN NEW;\nEND;\n"
+      },
+      {
+        "args": "",
+        "name": "handle_role_deletion_sync",
+        "returns": "trigger",
+        "definition": "\nDECLARE\n  v_staff_id UUID;\nBEGIN\n  -- We don't delete staff, we just clear their metadata or re-sync\n  FOR v_staff_id IN SELECT id FROM public.staff WHERE role_id = OLD.id LOOP\n    -- Re-syncing will now find no role and thus no permissions\n    PERFORM public.sync_staff_role_to_metadata_for_staff(v_staff_id);\n  END LOOP;\n  RETURN OLD;\nEND;\n"
+      },
+      {
+        "args": "p_module text",
+        "name": "jwt_get_perm",
+        "returns": "text",
+        "definition": "\nDECLARE\n  v_perm_text text;\nBEGIN\n  -- 1. Check JWT (Fastest)\n  v_perm_text := auth.jwt() -> 'app_metadata' -> 'permissions' ->> p_module;\n  IF v_perm_text IS NOT NULL THEN\n    RETURN v_perm_text;\n  END IF;\n\n  -- 2. Fallback to Database (Reliable)\n  -- Uses correct column names from 2026051703_rbac_reset_and_rebuild.sql\n  SELECT \n    CASE p_module\n      WHEN 'my_roster' THEN my_roster::text\n      WHEN 'my_timesheets' THEN my_timesheets::text\n      WHEN 'my_leave' THEN my_leave::text\n      WHEN 'shift_routines' THEN shift_routines::text\n      WHEN 'participants' THEN participants::text\n      WHEN 'shift_notes' THEN shift_notes::text\n      WHEN 'employees' THEN employees::text\n      WHEN 'timesheets' THEN timesheets::text\n      WHEN 'leave_requests' THEN leave_requests::text\n      WHEN 'roster_board' THEN roster_board::text\n      WHEN 'houses' THEN houses::text\n      WHEN 'house_checklists' THEN house_checklists::text\n      WHEN 'access_control' THEN access_control::text\n      WHEN 'master_lists' THEN master_lists::text\n      WHEN 'activity_log' THEN activity_log::text\n      ELSE 'none'\n    END INTO v_perm_text\n  FROM public.role_permissions rp\n  JOIN public.staff s ON s.role_id = rp.role_id\n  WHERE s.auth_user_id = auth.uid()\n  LIMIT 1;\n\n  RETURN COALESCE(v_perm_text, 'none');\nEND;\n"
+      },
+      {
+        "args": "",
+        "name": "jwt_get_staff_id",
+        "returns": "uuid",
+        "definition": "\nDECLARE\n  v_staff_id uuid;\nBEGIN\n  -- 1. Check JWT\n  v_staff_id := (auth.jwt() -> 'app_metadata' ->> 'staff_id')::uuid;\n  IF v_staff_id IS NOT NULL THEN\n    RETURN v_staff_id;\n  END IF;\n\n  -- 2. Fallback to Database\n  SELECT id INTO v_staff_id FROM public.staff WHERE auth_user_id = auth.uid() LIMIT 1;\n  RETURN v_staff_id;\nEND;\n"
+      },
+      {
+        "args": "p_house_id uuid",
+        "name": "jwt_has_house",
+        "returns": "bool",
+        "definition": "\nBEGIN\n  -- 1. Check JWT (JSONB containment)\n  IF (auth.jwt() -> 'app_metadata' -> 'assigned_houses') @> jsonb_build_array(p_house_id::text) THEN\n    RETURN true;\n  END IF;\n\n  -- 2. Fallback to Database\n  IF EXISTS (\n    SELECT 1 FROM public.house_staff_assignments hsa\n    JOIN public.staff s ON s.id = hsa.staff_id\n    WHERE s.auth_user_id = auth.uid()\n    AND hsa.house_id = p_house_id\n    AND (hsa.end_date IS NULL OR hsa.end_date > now())\n  ) THEN\n    RETURN true;\n  END IF;\n\n  RETURN false;\nEND;\n"
+      },
+      {
+        "args": "",
+        "name": "jwt_is_admin",
+        "returns": "bool",
+        "definition": "\nBEGIN\n  -- 1. Check app_metadata (Fastest)\n  IF (auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean = true THEN\n    RETURN true;\n  END IF;\n\n  -- 2. Check user_metadata (Supabase defaults/stale claims)\n  IF (auth.jwt() -> 'user_metadata' ->> 'is_admin')::boolean = true THEN\n    RETURN true;\n  END IF;\n\n  -- 3. Fallback to Database (Reliable during transition)\n  IF EXISTS (\n    SELECT 1 FROM public.staff s\n    JOIN public.roles r ON s.role_id = r.id\n    WHERE s.auth_user_id = auth.uid()\n    AND (r.name IN ('Admin', 'Director', 'Management') OR (auth.jwt() -> 'user_metadata' ->> 'role_name') IN ('Admin', 'Director', 'Management'))\n    AND s.status = 'active'\n  ) THEN\n    RETURN true;\n  END IF;\n\n  RETURN false;\nEND;\n"
+      },
+      {
+        "args": "p_staff_id uuid",
+        "name": "jwt_manages_staff",
+        "returns": "bool",
+        "definition": "\nBEGIN\n  -- 1. Check JWT\n  IF (auth.jwt() -> 'app_metadata' -> 'managed_staff_ids') @> jsonb_build_array(p_staff_id::text) THEN\n    RETURN true;\n  END IF;\n\n  -- 2. Fallback to Database\n  IF EXISTS (\n    SELECT 1 FROM public.staff s\n    WHERE s.auth_user_id = auth.uid()\n    AND s.id = (SELECT manager_id FROM public.staff WHERE id = p_staff_id)\n  ) THEN\n    RETURN true;\n  END IF;\n\n  RETURN false;\nEND;\n"
+      },
+      {
+        "args": "",
+        "name": "propagate_role_permission_changes",
+        "returns": "trigger",
+        "definition": "\nDECLARE\n  v_staff_record RECORD;\nBEGIN\n  FOR v_staff_record IN \n    SELECT id FROM public.staff WHERE role_id = NEW.role_id AND auth_user_id IS NOT NULL\n  LOOP\n    PERFORM public.sync_staff_role_to_metadata_for_staff(v_staff_record.id);\n  END LOOP;\n  RETURN NEW;\nEND;\n"
+      },
+      {
+        "args": "",
+        "name": "sync_staff_role_to_metadata",
+        "returns": "trigger",
+        "definition": "\nDECLARE\n  v_role_name TEXT;\n  v_permissions JSONB;\nBEGIN\n  SELECT name INTO v_role_name FROM public.roles WHERE id = NEW.role_id;\n  SELECT jsonb_build_object(\n    'my_roster', my_roster, 'my_timesheets', my_timesheets, 'my_leave', my_leave, 'shift_routines', shift_routines,\n    'participants', participants, 'shift_notes', shift_notes,\n    'employees', employees, 'timesheets', timesheets, 'leave_requests', leave_requests, 'roster_board', roster_board,\n    'houses', houses, 'house_checklists', house_checklists,\n    'access_control', access_control, 'master_lists', master_lists, 'activity_log', activity_log\n  ) INTO v_permissions FROM public.role_permissions WHERE role_id = NEW.role_id;\n  \n  IF NEW.auth_user_id IS NOT NULL THEN\n    UPDATE auth.users SET raw_user_meta_data = raw_user_meta_data || jsonb_build_object('role_name', v_role_name, 'permissions', COALESCE(v_permissions, '{}'::jsonb)) WHERE id = NEW.auth_user_id;\n  END IF;\n  RETURN NEW;\nEND;\n"
+      },
+      {
+        "args": "p_staff_id uuid",
+        "name": "sync_staff_role_to_metadata_for_staff",
+        "returns": "void",
+        "definition": "\nDECLARE\n  v_staff_record RECORD;\n  v_role_name TEXT;\n  v_permissions JSONB;\nBEGIN\n  SELECT * INTO v_staff_record FROM public.staff WHERE id = p_staff_id;\n  SELECT name INTO v_role_name FROM public.roles WHERE id = v_staff_record.role_id;\n  SELECT jsonb_build_object(\n    'my_roster', my_roster, 'my_timesheets', my_timesheets, 'my_leave', my_leave, 'shift_routines', shift_routines,\n    'participants', participants, 'shift_notes', shift_notes,\n    'employees', employees, 'timesheets', timesheets, 'leave_requests', leave_requests, 'roster_board', roster_board,\n    'houses', houses, 'house_checklists', house_checklists,\n    'access_control', access_control, 'master_lists', master_lists, 'activity_log', activity_log\n  ) INTO v_permissions FROM public.role_permissions WHERE role_id = v_staff_record.role_id;\n  \n  IF v_staff_record.auth_user_id IS NOT NULL THEN\n    UPDATE auth.users SET raw_user_meta_data = raw_user_meta_data || jsonb_build_object('role_name', v_role_name, 'permissions', COALESCE(v_permissions, '{}'::jsonb)) WHERE id = v_staff_record.auth_user_id;\n  END IF;\nEND;\n"
+      },
+      {
+        "args": "",
+        "name": "update_compliance_status",
+        "returns": "trigger",
+        "definition": "\r\nBEGIN\r\n  IF NEW.expiry_date IS NOT NULL THEN\r\n    IF NEW.expiry_date < CURRENT_DATE THEN\r\n      NEW.status := 'Expired';\r\n    ELSIF NEW.expiry_date <= CURRENT_DATE + INTERVAL '30 days' THEN\r\n      NEW.status := 'Expiring Soon';\r\n    ELSE\r\n      NEW.status := 'Complete';\r\n    END IF;\r\n  END IF;\r\n  \r\n  NEW.updated_at := NOW();\r\n  RETURN NEW;\r\nEND;\r\n"
+      },
+      {
+        "args": "",
+        "name": "update_house_checklist_items_updated_at",
+        "returns": "trigger",
+        "definition": "\r\nBEGIN\r\n  NEW.updated_at = NOW();\r\n  RETURN NEW;\r\nEND;\r\n"
+      },
+      {
+        "args": "",
+        "name": "update_house_checklists_updated_at",
+        "returns": "trigger",
+        "definition": "\r\nBEGIN\r\n  NEW.updated_at = NOW();\r\n  RETURN NEW;\r\nEND;\r\n"
+      },
+      {
+        "args": "",
+        "name": "update_house_files_updated_at",
+        "returns": "trigger",
+        "definition": "\r\nBEGIN\r\n  NEW.updated_at = NOW();\r\n  RETURN NEW;\r\nEND;\r\n"
+      },
+      {
+        "args": "",
+        "name": "update_updated_at_column",
+        "returns": "trigger",
+        "definition": "\r\nBEGIN\r\n  NEW.updated_at = NOW();\r\n  RETURN NEW;\r\nEND;\r\n"
+      }
+    ],
+    "triggers": [
+      {
+        "name": "update_checklist_item_master_updated_at",
+        "event": "UPDATE",
+        "table": "checklist_item_master",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION update_updated_at_column()"
+      },
+      {
+        "name": "update_checklist_master_updated_at",
+        "event": "UPDATE",
+        "table": "checklist_master",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION update_updated_at_column()"
+      },
+      {
+        "name": "update_checklist_schedules_updated_at",
+        "event": "UPDATE",
+        "table": "checklist_schedules",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION update_updated_at_column()"
+      },
+      {
+        "name": "update_house_calendar_events_updated_at",
+        "event": "UPDATE",
+        "table": "house_calendar_events",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION update_updated_at_column()"
+      },
+      {
+        "name": "update_house_checklist_item_attachments_updated_at",
+        "event": "UPDATE",
+        "table": "house_checklist_item_attachments",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION update_updated_at_column()"
+      },
+      {
+        "name": "update_house_checklist_items_updated_at",
+        "event": "UPDATE",
+        "table": "house_checklist_items",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION update_updated_at_column()"
+      },
+      {
+        "name": "update_house_checklist_submission_items_updated_at",
+        "event": "UPDATE",
+        "table": "house_checklist_submission_items",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION update_updated_at_column()"
+      },
+      {
+        "name": "update_house_checklist_submissions_updated_at",
+        "event": "UPDATE",
+        "table": "house_checklist_submissions",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION update_updated_at_column()"
+      },
+      {
+        "name": "update_house_checklists_updated_at",
+        "event": "UPDATE",
+        "table": "house_checklists",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION update_updated_at_column()"
+      },
+      {
+        "name": "update_house_files_updated_at",
+        "event": "UPDATE",
+        "table": "house_files",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION update_house_files_updated_at()"
+      },
+      {
+        "name": "update_house_form_assignments_updated_at",
+        "event": "UPDATE",
+        "table": "house_form_assignments",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION update_updated_at_column()"
+      },
+      {
+        "name": "update_house_form_submissions_updated_at",
+        "event": "UPDATE",
+        "table": "house_form_submissions",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION update_updated_at_column()"
+      },
+      {
+        "name": "update_house_forms_updated_at",
+        "event": "UPDATE",
+        "table": "house_forms",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION update_updated_at_column()"
+      },
+      {
+        "name": "update_house_resources_updated_at",
+        "event": "UPDATE",
+        "table": "house_resources",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION update_updated_at_column()"
+      },
+      {
+        "name": "update_house_staff_assignments_updated_at",
+        "event": "UPDATE",
+        "table": "house_staff_assignments",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION update_updated_at_column()"
+      },
+      {
+        "name": "update_participant_documents_updated_at",
+        "event": "UPDATE",
+        "table": "participant_documents",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION update_updated_at_column()"
+      },
+      {
+        "name": "update_participant_forms_updated_at",
+        "event": "UPDATE",
+        "table": "participant_forms",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION update_updated_at_column()"
+      },
+      {
+        "name": "update_participant_hygiene_updated_at",
+        "event": "UPDATE",
+        "table": "participant_hygiene_routines",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION update_updated_at_column()"
+      },
+      {
+        "name": "update_participant_notes_updated_at",
+        "event": "UPDATE",
+        "table": "participant_notes",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION update_updated_at_column()"
+      },
+      {
+        "name": "update_participant_restrictive_updated_at",
+        "event": "UPDATE",
+        "table": "participant_restrictive_practices",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION update_updated_at_column()"
+      },
+      {
+        "name": "trigger_handle_new_role_permissions",
+        "event": "INSERT",
+        "table": "roles",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION handle_new_role_permissions()"
+      },
+      {
+        "name": "trigger_handle_role_deletion_sync",
+        "event": "DELETE",
+        "table": "roles",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION handle_role_deletion_sync()"
+      },
+      {
+        "name": "trigger_sync_staff_role_to_metadata",
+        "event": "INSERT",
+        "table": "staff",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION sync_staff_role_to_metadata()"
+      },
+      {
+        "name": "trigger_sync_staff_role_to_metadata",
+        "event": "UPDATE",
+        "table": "staff",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION sync_staff_role_to_metadata()"
+      },
+      {
+        "name": "trigger_update_compliance_status",
+        "event": "UPDATE",
+        "table": "staff_compliance",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION update_compliance_status()"
+      },
+      {
+        "name": "trigger_update_compliance_status",
+        "event": "INSERT",
+        "table": "staff_compliance",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION update_compliance_status()"
+      }
+    ],
+    "extensions": [
+      {
+        "name": "pg_stat_statements",
+        "version": "1.11"
+      },
+      {
+        "name": "pgcrypto",
+        "version": "1.3"
+      },
+      {
+        "name": "plpgsql",
+        "version": "1.0"
+      },
+      {
+        "name": "supabase_vault",
+        "version": "0.3.1"
+      },
+      {
+        "name": "uuid-ossp",
+        "version": "1.1"
+      }
+    ]
+  }
+]

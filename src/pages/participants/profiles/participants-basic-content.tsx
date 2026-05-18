@@ -6,9 +6,17 @@ import { useNavigate } from 'react-router';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { logActivity } from '@/lib/activity-logger';
+import { RBAC_MODULES } from '@/config/rbac-modules';
+import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
 
 export function ParticipantsProfilesContent() {
   const navigate = useNavigate();
+  const { hasAccess } = useRBAC();
+  
+  const canAdd = hasAccess({ 
+    resource: RBAC_MODULES.PARTICIPANTS, 
+    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE 
+  });
 
   const handleAddParticipant = async () => {
     try {
@@ -56,10 +64,12 @@ export function ParticipantsProfilesContent() {
             Manage participant information and profiles
           </p>
         </div>
-        <Button onClick={handleAddParticipant}>
-          <UserRoundPlus className="size-4" />
-          Add Participant
-        </Button>
+        {canAdd && (
+          <Button onClick={handleAddParticipant}>
+            <UserRoundPlus className="size-4" />
+            Add Participant
+          </Button>
+        )}
       </div>
 
       {/* Motivational Banner */}

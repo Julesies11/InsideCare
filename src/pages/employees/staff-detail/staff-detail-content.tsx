@@ -16,6 +16,8 @@ import { logActivity, detectChanges } from '@/lib/activity-logger';
 import { parseSupabaseError } from '@/lib/error-parser';
 import { useFormValidation } from '@/hooks/use-form-validation';
 import { validators } from '@/lib/validation-rules';
+import { RBAC_MODULES } from '@/config/rbac-modules';
+import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
 
 const stickySidebarClasses: Record<string, string> = {
   'demo1-layout': 'top-[calc(var(--header-height)+1rem)]',
@@ -94,7 +96,8 @@ export function StaffDetailContent({
     onPhotoDirtyChange?.(photoDirty);
   }, [photoFile, photoPreview, originalPhotoUrl, onPhotoDirtyChange]);
 
-  const canEdit = true;
+  const { hasAccess } = useRBAC();
+  const canEdit = hasAccess({ resource: RBAC_MODULES.EMPLOYEES, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE });
 
   const [formData, setFormData] = useState<Record<string, any>>({
     name: '',

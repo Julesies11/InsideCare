@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { syncUserPermissionsByStaffId } from '@/lib/rbac-sync';
 
 export type StaffStatus = 'draft' | 'active' | 'inactive' | 'archived';
 
@@ -349,6 +350,9 @@ export function useUpdateStaff() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['staff'] });
       queryClient.invalidateQueries({ queryKey: ['staff', data.id] });
+      
+      // Sync RBAC permissions to Auth metadata
+      syncUserPermissionsByStaffId(data.id);
     },
   });
 }

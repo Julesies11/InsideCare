@@ -2,24 +2,34 @@
 
 This document provides an overview of the core database tables and their relationships in the InsideCare application.
 
-## Database Baseline
-As of **March 30, 2026**, the database schema has been refined for go-live:
-- **Baseline:** `migrations/2026032000_baseline_schema.sql` (Canonical schema).
-- **Security Hardening:** `migrations/2026032001_harden_rls_policies.sql` (Global RLS activation).
-- **Dynamic Shift Templates:** `migrations/2026032401_dynamic_shift_model.sql` (House-specific shift types).
-- **Shift Template Refactor:** `migrations/2026032500_refactor_shift_templates.sql` (Flexible template groups).
-- **Column Standardization:** `migrations/2026032901_rename_shift_date_to_start_date.sql` (Standardized date naming).
-- **Security & Participants:** `migrations/2026040901_shift_participants_rls.sql` (RLS policies for staff participants).
-- **Normalized RBAC:** `migrations/2026051300_normalized_rbac_system.sql` (Column-based permissions and JWT sync).
-- **RBAC Enhancement:** `migrations/2026051600_rbac_enhancement_unified.sql` (Contextual access levels and hardening).
+## Database Source of Truth
+As of **May 18, 2026**, the database schema source of truth is maintained in:
+- **Schema Metadata:** `migrations/schema_metadata.json` (Tables, Columns, Enums, Logic).
+- **RBAC Policies:** `migrations/current_database_rbac.json` (Live RLS policy state).
+
+**Mandatory AI Workflow:**
+Before generating any SQL statements, the AI **MUST** perform a `read_file` on both JSON metadata files to verify naming conventions, data types, and existing security policies.
+
+### Migration Naming Convention
+New migrations must follow the `YYYYMMDDXX_description.sql` format:
+- `YYYYMMDD`: The current date (Year, Month, Day).
+- `XX`: A sequential number starting from `00` for each unique migration on that date (e.g., `00`, `01`, `02`).
+- `description`: A brief, lowercase, underscore-separated description of the change.
 
 ## RBAC Access Levels (`public.access_level_enum`)
-Used in `role_permissions` to define granular module access:
+Used in `role_permissions` to define granular module access. Enforcement is performed via optimized JWT-based RLS:
 - `full`: Global Read/Write.
-- `context_read_write`: Domain-aware Read/Write (Assigned houses/Reports).
-- `context_read_only`: Domain-aware Read-Only (Assigned houses/Reports).
+- `context_read_write`: Domain-aware Read/Write (Locked to `assigned_houses` or `managed_staff_ids` in JWT).
+- `context_read_only`: Domain-aware Read-Only.
 - `read_only`: Global Read-Only.
 - `none`: No access.
+
+### Security Helpers (Postgres)
+The following optimized functions are used in RLS policies to query the user's JWT metadata:
+- **`jwt_is_admin()`**: Returns true if the user has global admin rights.
+- **`jwt_has_house(uuid)`**: Returns true if the user is authorized for the given house.
+- **`jwt_get_perm(text)`**: Returns the access level string for a specific module.
+- **`jwt_manages_staff(uuid)`**: Returns true if the user manages the given staff member.
 
 ## Enum Compatibility & Querying
 The project uses Postgres Enums for critical columns (e.g., `public.status_enum`).

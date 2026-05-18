@@ -1,14 +1,14 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { ScreenLoader } from '@/components/common/screen-loader';
 import { useAuth } from './context/auth-context';
-import { usePermissions, PermissionModule } from '@/hooks/use-permissions';
+import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
 
 /**
  * Protects routes based on granular permissions.
  */
-export const RequirePermission = ({ module }: { module: PermissionModule }) => {
+export const RequirePermission = ({ module }: { module: string }) => {
   const { auth, loading } = useAuth();
-  const { canView } = usePermissions();
+  const { hasAccess } = useRBAC();
 
   if (loading) return <ScreenLoader />;
 
@@ -16,7 +16,11 @@ export const RequirePermission = ({ module }: { module: PermissionModule }) => {
     return <Navigate to="/auth/signin" replace />;
   }
 
-  if (!canView(module)) {
+  // Check if the user has any level of access to the module.
+  // A user is allowed to enter a route section if their permission is not 'none'.
+  // We use ACCESS_LEVEL.CONTEXT_READ_ONLY as the base check level (Level 1), allowing 
+  // users with contextual or global access to enter.
+  if (!hasAccess({ resource: module, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY })) {
     return <Navigate to="/error/403" replace />;
   }
 

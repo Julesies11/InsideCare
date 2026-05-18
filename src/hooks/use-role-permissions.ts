@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-
-export type AccessLevel = 'full' | 'context_read_write' | 'context_read_only' | 'read_only' | 'none';
+import { AccessLevel } from './useRBAC';
+import { syncAllUsersOfRole } from '@/lib/rbac-sync';
 
 export interface RolePermissions {
   role_id: string;
@@ -45,7 +45,10 @@ export function useUpdateRolePermissions() {
     mutationFn: async ({ role_id, updates }: { role_id: string; updates: Partial<RolePermissions> }) => {
       const { data, error } = await supabase
         .from('role_permissions')
-        .upsert({ role_id, ...updates, updated_at: new Date().toISOString() })
+        .upsert(
+          { role_id, ...updates, updated_at: new Date().toISOString() },
+          { onConflict: 'role_id' }
+        )
         .select()
         .maybeSingle();
 
@@ -57,8 +60,10 @@ export function useUpdateRolePermissions() {
       
       return data as RolePermissions;
     },
-    onSuccess: () => {
+    onSuccess: (_, { role_id }) => {
       queryClient.invalidateQueries({ queryKey: ['role-permissions'] });
+      // Propagate changes to all users of this role
+      syncAllUsersOfRole(role_id);
     },
   });
 }

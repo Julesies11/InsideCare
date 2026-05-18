@@ -746,8 +746,15 @@ WITH CHECK (
 DO $$
 DECLARE
     t text;
+    v_join_clause text;
 BEGIN
     FOR t IN VALUES ('house_forms'), ('house_form_assignments'), ('house_form_submissions') LOOP
+        IF t = 'house_forms' THEN
+            v_join_clause := 'JOIN public.house_forms hf ON hf.id = public.house_forms.id';
+        ELSE
+            v_join_clause := 'JOIN public.house_forms hf ON hf.id = public.' || t || '.form_id';
+        END IF;
+
         EXECUTE format('
             CREATE POLICY "RBAC %I SELECT" ON public.%I FOR SELECT TO authenticated
             USING (
@@ -756,13 +763,15 @@ BEGIN
                 (
                     public.get_access_level(''house_checklists'') IN (''context_read_write'', ''context_read_only'') AND
                     EXISTS (
-                        SELECT 1 FROM public.house_forms hf
-                        WHERE hf.id = (CASE WHEN %L = ''house_forms'' THEN public.%I.id ELSE public.%I.form_id END)
-                        AND public.is_staff_assigned_to_house(public.get_my_staff_id(), hf.house_id)
+                        SELECT 1 FROM public.house_staff_assignments hsa
+                        %s
+                        WHERE hsa.house_id = hf.house_id
+                        AND hsa.staff_id = public.get_my_staff_id()
+                        AND (hsa.end_date IS NULL OR hsa.end_date > NOW())
                     )
                 )
             );
-        ', t, t, t, t, t);
+        ', t, t, v_join_clause);
     END LOOP;
 END $$;
 

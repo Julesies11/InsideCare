@@ -12,7 +12,6 @@ export default defineConfig({
     testTimeout: 15000,
     exclude: [
       'node_modules/',
-      'src/test/',
       'tests/',
       '**/*.d.ts',
       '**/*.config.*',

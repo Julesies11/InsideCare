@@ -1,5 +1,6 @@
 import { AuthRouting } from '@/auth/auth-routing';
 import { RequireAuth, RequireAdmin, RequirePermission } from '@/auth/require-auth';
+import { RBAC_MODULES } from '@/config/rbac-modules';
 import { ErrorRouting } from '@/errors/error-routing';
 import { Demo1Layout } from '@/layouts/demo1/layout';
 import {
@@ -38,6 +39,7 @@ import {
 } from '@/pages/employees';
 import { ChecklistMasterPage } from '@/pages/admin/checklists/checklist-master-page';
 import { RolesPage } from '@/pages/admin/roles/roles-page';
+import { ActivityLogPage } from '@/pages/admin/activity-log/activity-log-page';
 import { NotificationCenter } from '@/pages/account/notifications/notification-center';
 
 export function AppRoutingSetup() {
@@ -47,24 +49,24 @@ export function AppRoutingSetup() {
         <Route element={<Demo1Layout />}>
           <Route path="/account/notifications" element={<NotificationCenter />} />
           
-          <Route element={<RequirePermission module="shift_routines" />}>
+          <Route element={<RequirePermission module={RBAC_MODULES.SHIFT_ROUTINES} />}>
             <Route path="/staff/dashboard" element={<StaffDashboard />} />
           </Route>
           
-          <Route element={<RequirePermission module="house_checklists" />}>
+          <Route element={<RequirePermission module={RBAC_MODULES.HOUSE_CHECKLISTS} />}>
             <Route path="/staff/checklists" element={<StaffChecklists />} />
           </Route>
           
-          <Route element={<RequirePermission module="roster_board" />}>
+          <Route element={<RequirePermission module={RBAC_MODULES.MY_ROSTER} />}>
             <Route path="/staff/roster" element={<StaffRoster />} />
           </Route>
 
-          <Route element={<RequirePermission module="timesheets_submit" />}>
+          <Route element={<RequirePermission module={RBAC_MODULES.MY_TIMESHEETS} />}>
             <Route path="/staff/roster/:shiftId/timesheet" element={<StaffTimesheetForm />} />
             <Route path="/staff/timesheets" element={<StaffTimesheetList />} />
           </Route>
 
-          <Route element={<RequirePermission module="leave_requests" />}>
+          <Route element={<RequirePermission module={RBAC_MODULES.MY_LEAVE} />}>
             <Route path="/staff/leave" element={<StaffLeaveList />} />
             <Route path="/staff/leave/new" element={<StaffLeaveForm />} />
             <Route path="/staff/leave/:id/edit" element={<StaffLeaveForm />} />
@@ -74,7 +76,7 @@ export function AppRoutingSetup() {
           
           <Route path="/" element={<HomePage />} />
           
-          <Route element={<RequirePermission module="participant_profiles" />}>
+          <Route element={<RequirePermission module={RBAC_MODULES.PARTICIPANTS} />}>
             <Route
               path="/participants/profiles"
               element={<ParticipantsProfilesPage />}
@@ -89,14 +91,14 @@ export function AppRoutingSetup() {
             />
           </Route>
 
-          <Route element={<RequirePermission module="shift_notes" />}>
+          <Route element={<RequirePermission module={RBAC_MODULES.SHIFT_NOTES} />}>
             <Route
               path="/participants/shift-notes"
               element={<ShiftNotesPage />}
             />
           </Route>
           
-          <Route element={<RequirePermission module="house_profiles" />}>
+          <Route element={<RequirePermission module={RBAC_MODULES.HOUSES} />}>
             <Route
               path="/houses/profiles"
               element={<HousesProfilesPage />}
@@ -107,7 +109,7 @@ export function AppRoutingSetup() {
             />
           </Route>
 
-          <Route element={<RequirePermission module="staff_profiles" />}>
+          <Route element={<RequirePermission module={RBAC_MODULES.EMPLOYEES} />}>
             <Route
               path="/employees/staff-profiles"
               element={<StaffProfilesPage />}
@@ -118,24 +120,31 @@ export function AppRoutingSetup() {
             />
           </Route>
 
-          <Route element={<RequirePermission module="timesheets_approve" />}>
+          <Route element={<RequirePermission module={RBAC_MODULES.TIMESHEETS} />}>
             <Route
               path="/employees/timesheets"
               element={<AdminTimesheetsPage />}
             />
           </Route>
 
-          <Route element={<RequirePermission module="leave_requests" />}>
+          <Route element={<RequirePermission module={RBAC_MODULES.LEAVE_REQUESTS} />}>
             <Route
               path="/employees/leave-requests"
               element={<AdminLeaveRequestsPage />}
             />
           </Route>
 
-          <Route element={<RequirePermission module="roster_board" />}>
+          <Route element={<RequirePermission module={RBAC_MODULES.ROSTER_BOARD} />}>
             <Route
               path="/roster-board"
               element={<RosterBoard />}
+            />
+          </Route>
+
+          <Route element={<RequirePermission module={RBAC_MODULES.ACTIVITY_LOG} />}>
+            <Route
+              path="/activity-log"
+              element={<ActivityLogPage />}
             />
           </Route>
           
