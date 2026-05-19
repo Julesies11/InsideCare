@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { RoleStaffListDialog } from './role-staff-list-dialog';
 import { useStaffByRole } from '@/hooks/use-staff';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter } from 'react-router';
 
 // Mock the hook
 vi.mock('@/hooks/use-staff', () => ({

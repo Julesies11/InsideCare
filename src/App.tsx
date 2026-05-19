@@ -1,5 +1,5 @@
 import { AppRouting } from '@/routing/app-routing';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter } from 'react-router';
 import { LoadingBarContainer } from 'react-top-loading-bar';
 import { Toaster } from '@/components/ui/sonner';
 import { AuthProvider } from './auth/providers/supabase-provider';

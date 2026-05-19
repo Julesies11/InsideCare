@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { EllipsisVertical } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { HexagonBadge } from '../common/hexagon-badge';

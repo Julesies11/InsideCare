@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { Users, UserCheck, CheckSquare, ClipboardList } from 'lucide-react';
 import { WelcomeBanner, StatCard, MotivationalBanner, RecentActivity, UpcomingShifts } from './components';
 import { useParticipants } from '@/hooks/use-participants';

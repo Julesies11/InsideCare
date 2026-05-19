@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { SearchDialog } from '@/partials/dialogs/search/search-dialog';
 import { ChevronsUpDown, Plus, Search } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router';
 import { MENU_ROOT } from '@/config/menu.config';
 import { toAbsoluteUrl } from '@/lib/helpers';
 import { cn } from '@/lib/utils';

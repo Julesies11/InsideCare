@@ -1,5 +1,5 @@
 import { ErrorLayout } from '@/layouts/error/layout';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router';
 import { Error404 } from './error-404';
 import { Error403 } from './error-403';
 import { Error500 } from './error-500';

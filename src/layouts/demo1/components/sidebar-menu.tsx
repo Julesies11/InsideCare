@@ -1,7 +1,7 @@
 'use client';
 
 import { JSX, useCallback } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router';
 import { MENU_SIDEBAR } from '@/config/menu.config';
 import { MenuConfig, MenuItem } from '@/config/types';
 import { useAuth } from '@/auth/context/auth-context';

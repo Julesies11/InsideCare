@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { HouseDetailContent } from './house-detail-content';
 
 // Mock hooks
-vi.mock('react-router-dom', async (importOriginal) => {
+vi.mock('react-router', async (importOriginal) => {
   const actual = await importOriginal<any>();
   return {
     ...actual,
@@ -57,7 +57,7 @@ const mockSupabaseQuery = {
   order: vi.fn().mockReturnThis(),
   limit: vi.fn().mockReturnThis(),
   single: vi.fn(() => Promise.resolve({ data: { id: 'house-1', name: 'Test House' }, error: null })),
-  maybeSingle: vi.fn(() => Promise.resolve({ data: null, error: null })),
+  maybeSingle: vi.fn(() => Promise.resolve({ data: { id: 'house-1', name: 'Test House' }, error: null })),
   then: vi.fn((onFulfilled) => Promise.resolve({ data: [], error: null }).then(onFulfilled))
 };
 

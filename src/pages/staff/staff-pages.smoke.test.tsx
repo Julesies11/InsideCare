@@ -3,8 +3,8 @@ import { StaffRoster, StaffChecklists, StaffLeaveList, StaffLeaveForm, StaffDash
 import { describe, it, expect, vi } from 'vitest';
 
 // Mock useNavigate and useParams
-vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual('react-router-dom');
+vi.mock('react-router', async () => {
+  const actual = await vi.importActual('react-router');
   return {
     ...actual,
     useNavigate: () => vi.fn(),

@@ -1,7 +1,7 @@
 import { renderWithProviders, screen, waitFor } from '@/test/test-utils';
 import { StaffDetailPage } from './staff-detail-page';
 import { describe, it, expect, vi } from 'vitest';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router';
 
 // Mock Supabase with improved chaining
 const mockSupabaseQuery = {
@@ -62,11 +62,9 @@ vi.mock('react-router', async () => {
 
 describe('Staff Detail Smoke Test', () => {
   it('renders the staff detail page without crashing', async () => {
-    renderWithProviders(
-      <MemoryRouter initialEntries={['/employees/staff-detail/staff-1']}>
-        <StaffDetailPage />
-      </MemoryRouter>
-    );
+    renderWithProviders(<StaffDetailPage />, { 
+      route: '/employees/staff-detail/staff-1' 
+    });
     
     // Check for core page elements
     await waitFor(() => {

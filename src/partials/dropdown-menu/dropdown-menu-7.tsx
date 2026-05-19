@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { Copy, FileUp, Pencil, Search, Trash2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import {
   DropdownMenu,
   DropdownMenuContent,

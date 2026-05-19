@@ -1,5 +1,5 @@
 import { AvatarGroup } from '@/partials/common/avatar-group';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import {
   Avatar,
   AvatarFallback,

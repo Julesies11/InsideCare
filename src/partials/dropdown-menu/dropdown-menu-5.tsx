@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { FileDown, FilePlus, FileUp, Settings } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import {
   DropdownMenu,
   DropdownMenuContent,

@@ -1,5 +1,5 @@
 import { Rocket } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { Card, CardContent } from '@/components/ui/card';
 import { HexagonBadge } from '../common/hexagon-badge';
 

@@ -1,6 +1,6 @@
 import { Rocket } from 'lucide-react';
 import { useTheme } from 'next-themes';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { toAbsoluteUrl } from '@/lib/helpers';
 import { Card, CardContent } from '@/components/ui/card';
 import { HexagonBadge } from '../common/hexagon-badge';

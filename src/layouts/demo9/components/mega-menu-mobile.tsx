@@ -2,7 +2,7 @@
 
 import { JSX, useCallback } from 'react';
 import { LucideIcon } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router';
 import { MENU_MEGA_MOBILE } from '@/config/menu.config';
 import { cn } from '@/lib/utils';
 import {

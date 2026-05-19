@@ -13,6 +13,7 @@ const createMockQuery = (data: any = [], error: any = null) => {
     lte: vi.fn().mockReturnThis(),
     order: vi.fn().mockReturnThis(),
     single: vi.fn().mockResolvedValue({ data: Array.isArray(data) ? data[0] : data, error }),
+    maybeSingle: vi.fn().mockResolvedValue({ data: Array.isArray(data) ? data[0] : data, error }),
     insert: vi.fn().mockResolvedValue({ data: null, error }),
     update: vi.fn().mockReturnThis(),
     then: vi.fn().mockImplementation((callback) => {

@@ -15,9 +15,9 @@ const mockHouse = {
   address: '123 Test St',
 };
 
-// Mock useParams from react-router-dom as used in the component
-vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual('react-router-dom');
+// Mock useParams from react-router as used in the component
+vi.mock('react-router', async () => {
+  const actual = await vi.importActual('react-router');
   return {
     ...actual,
     useParams: () => ({ id: 'house-1' }),

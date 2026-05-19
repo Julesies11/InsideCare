@@ -5,6 +5,21 @@ import { useAuth } from '@/auth/context/auth-context';
 import { supabase } from '@/lib/supabase';
 import { SupabaseAdapter } from '@/auth/adapters/supabase-adapter';
 import { ReactNode } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: false,
+    },
+  },
+});
+
+const Wrapper = ({ children }: { children: ReactNode }) => (
+  <QueryClientProvider client={queryClient}>
+    {children}
+  </QueryClientProvider>
+);
 
 // Mock Supabase
 vi.mock('@/lib/supabase', () => ({
@@ -24,6 +39,10 @@ vi.mock('@/auth/adapters/supabase-adapter', () => ({
   SupabaseAdapter: {
     getCurrentUser: vi.fn(),
   },
+}));
+
+vi.mock('@/lib/rbac-sync', () => ({
+  syncUserPermissions: vi.fn().mockResolvedValue(true),
 }));
 
 // Test component to access context
@@ -53,7 +72,8 @@ describe('AuthProvider', () => {
     render(
       <AuthProvider>
         <TestConsumer />
-      </AuthProvider>
+      </AuthProvider>,
+      { wrapper: Wrapper }
     );
 
     await waitFor(() => {
@@ -73,7 +93,8 @@ describe('AuthProvider', () => {
     render(
       <AuthProvider>
         <TestConsumer />
-      </AuthProvider>
+      </AuthProvider>,
+      { wrapper: Wrapper }
     );
 
     await waitFor(() => {
@@ -95,14 +116,15 @@ describe('AuthProvider', () => {
     render(
       <AuthProvider>
         <TestConsumer />
-      </AuthProvider>
+      </AuthProvider>,
+      { wrapper: Wrapper }
     );
 
     // Initial load
     await waitFor(() => expect(screen.queryByTestId('loading')).not.toBeInTheDocument());
 
     // Trigger SIGNED_IN
-    const mockSession = { access_token: 'new-token' };
+    const mockSession = { access_token: 'new-token', user: { id: 'user-1' } };
     const mockProfile = { email: 'new@example.com' };
     (SupabaseAdapter.getCurrentUser as any).mockResolvedValue(mockProfile);
 
@@ -129,7 +151,8 @@ describe('AuthProvider', () => {
     render(
       <AuthProvider>
         <TestConsumer />
-      </AuthProvider>
+      </AuthProvider>,
+      { wrapper: Wrapper }
     );
 
     await waitFor(() => expect(screen.getByTestId('user-email')).toHaveTextContent('initial@example.com'));

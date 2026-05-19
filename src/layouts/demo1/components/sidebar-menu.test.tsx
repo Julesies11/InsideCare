@@ -3,7 +3,7 @@ import { SidebarMenu } from './sidebar-menu';
 import { useAuth } from '@/auth/context/auth-context';
 import { usePermissions } from '@/hooks/use-permissions';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router';
 import { RBAC_MODULES } from '@/config/rbac-modules';
 
 vi.mock('@/auth/context/auth-context', () => ({

@@ -1,4 +1,4 @@
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate } from 'react-router';
 import { LayoutDashboard, Calendar, Umbrella, ClipboardList, LogOut } from 'lucide-react';
 import { useAuth } from '@/auth/context/auth-context';
 import { cn } from '@/lib/utils';

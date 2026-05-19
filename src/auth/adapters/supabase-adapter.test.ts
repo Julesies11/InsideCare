@@ -34,6 +34,8 @@ describe('SupabaseAdapter', () => {
         user_metadata: {
           first_name: 'John',
           last_name: 'Doe',
+        },
+        app_metadata: {
           is_admin: true,
         },
       };

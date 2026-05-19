@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { useAuth } from '@/auth/context/auth-context';
 import { format, addDays, addWeeks, addMonths } from 'date-fns';
 import { ClipboardList, Calendar, List, Users } from 'lucide-react';

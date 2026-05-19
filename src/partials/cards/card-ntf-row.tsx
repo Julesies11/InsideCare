@@ -1,5 +1,5 @@
 import { Copy, Settings } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { AvatarSingle } from '../common/avatar-single';

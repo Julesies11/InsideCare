@@ -1,7 +1,7 @@
 import { StoreClientTopbar } from '@/pages/store-client/components/common/topbar';
 import { UserDropdownMenu } from '@/partials/topbar/user-dropdown-menu';
 import { ArrowUp, Crown } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router';
 import { Button } from '@/components/ui/button';
 
 const HeaderTopbar = () => {

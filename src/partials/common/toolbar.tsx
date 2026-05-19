@@ -1,5 +1,5 @@
 import { Fragment, ReactNode } from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import { useLocation, Link } from 'react-router';
 import { ChevronRight } from 'lucide-react';
 import { MENU_SIDEBAR } from '@/config/menu.config';
 import { MenuItem } from '@/config/types';

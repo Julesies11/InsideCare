@@ -7,11 +7,13 @@ import { supabase } from '@/lib/supabase';
 const mockInsert = vi.fn().mockImplementation(() => ({
   select: vi.fn().mockReturnThis(),
   single: vi.fn().mockResolvedValue({ data: { id: 'schedule-1', name: 'Test Checklist' }, error: null }),
+  maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'schedule-1', name: 'Test Checklist' }, error: null }),
 }));
 
 const mockSelect = vi.fn().mockImplementation(() => ({
   eq: vi.fn().mockReturnThis(),
   single: vi.fn().mockResolvedValue({ data: { id: 'cl-1', name: 'Test Checklist' }, error: null }),
+  maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'cl-1', name: 'Test Checklist' }, error: null }),
 }));
 
 const mockDelete = vi.fn().mockImplementation(() => ({
@@ -45,8 +47,8 @@ describe('useChecklistSchedules', () => {
       house_id: 'house-1',
       house_checklist_id: 'cl-1',
       rrule: 'FREQ=DAILY',
-      start_date: '2026-05-01',
-      end_date: '2026-05-10',
+      start_date: '2026-06-01',
+      end_date: '2026-06-10',
       is_active: true
     };
 

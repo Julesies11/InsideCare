@@ -3,8 +3,8 @@ import { screen, waitFor } from '@testing-library/react';
 import { NotificationsSheet } from './notifications-sheet';
 import { renderWithProviders } from '@/test/test-utils';
 
-vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual('react-router-dom');
+vi.mock('react-router', async () => {
+  const actual = await vi.importActual('react-router');
   return {
     ...actual,
     useNavigate: () => vi.fn(),

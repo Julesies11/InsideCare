@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { useAuth } from '@/auth/context/auth-context';
 import { format } from 'date-fns';
 import { Calendar, Umbrella, ClipboardList, ChevronRight, PlayCircle, CheckCircle2, AlertTriangle, AlertCircle } from 'lucide-react';

@@ -6,7 +6,7 @@ import {
   User,
   Users,
 } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router';
 import { MENU_HELP, MENU_SIDEBAR } from '@/config/menu.config';
 import { MenuConfig } from '@/config/types';
 import { cn } from '@/lib/utils';
