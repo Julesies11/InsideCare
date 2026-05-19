@@ -48,9 +48,14 @@ export function useHouseDocuments(houseId?: string) {
   };
 }
 
-export const getHouseFileUrl = (filePath: string) => {
-  const { data } = supabase.storage
+export const getHouseFileUrl = async (filePath: string) => {
+  const { data, error } = await supabase.storage
     .from('house-documents')
-    .getPublicUrl(filePath);
-  return data.publicUrl;
+    .createSignedUrl(filePath, 3600);
+  
+  if (error) {
+    console.error('Error creating signed URL:', error);
+    return null;
+  }
+  return data.signedUrl;
 };

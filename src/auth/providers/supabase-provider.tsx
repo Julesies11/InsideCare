@@ -1,4 +1,5 @@
 import { PropsWithChildren, useCallback, useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { SupabaseAdapter } from '@/auth/adapters/supabase-adapter';
 import { AuthContext } from '@/auth/context/auth-context';
 import { AuthModel, UserModel } from '@/auth/lib/models';
@@ -40,6 +41,7 @@ async function fetchUserWithTimeout(timeoutMs = 60000): Promise<UserModel | null
 
 // Define the Supabase Auth Provider
 export function AuthProvider({ children }: PropsWithChildren) {
+  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<UserModel | undefined>();
   const [auth, setAuth] = useState<AuthModel | undefined>(undefined);
@@ -50,8 +52,6 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   const handleAuthStateChange = useCallback(async (event: string, session: any) => {
     // Only trigger global loading for initial bootstrap or sign-in if we are currently "empty"
-    // We check the 'loading' state and session to decide if we need a full-screen loader.
-    // VERIFY events (from navigation) should not flip loading back to true if we already have a session.
     if ((event === 'INITIAL_SESSION' || event === 'SIGNED_IN') && !session) {
       setLoading(true);
     }
@@ -110,7 +110,6 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const login = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
-    // onAuthStateChange will handle the state updates
   };
 
   const register = async (
@@ -139,7 +138,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   const logout = async () => {
     await supabase.auth.signOut();
-    // onAuthStateChange will handle the state updates
+    queryClient.clear();
   };
 
   const verify = useCallback(async () => {
@@ -176,7 +175,6 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   const saveAuth = useCallback((authModel: AuthModel | undefined) => {
     setAuth(authModel);
-    // We no longer need to manually save to localStorage as @supabase/ssr handles it via cookies
   }, []);
 
   return (

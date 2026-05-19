@@ -11,7 +11,7 @@ import { useParticipants } from '@/hooks/use-participants';
 import { useHouseShiftTemplates } from '@/hooks/use-house-shift-templates';
 import { useHouseStaffAssignments } from '@/hooks/use-house-staff-assignments';
 import { useAuth } from '@/auth/context/auth-context';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { SecureAvatar } from '@/components/ui/secure-avatar';
 import { Calendar, Home, User, Trash2, CheckSquare, Loader2, Clock, Zap, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 import { SHIFT_ICONS, cn } from '@/lib/utils';
@@ -336,10 +336,12 @@ export function ShiftDialog({
                   {filteredStaffList.map(s => (
                     <SelectItem key={s.id} value={s.id}>
                       <div className="flex items-center gap-2">
-                        <Avatar className="size-5 sm:size-6">
-                          <AvatarImage src={s.photo_url || undefined} />
-                          <AvatarFallback className="text-[10px]">{s.name?.substring(0, 2).toUpperCase() ?? '?'}</AvatarFallback>
-                        </Avatar>
+                        <SecureAvatar 
+                          src={s.photo_url || undefined} 
+                          initials={s.name?.substring(0, 2).toUpperCase() ?? '?'} 
+                          className="size-5 sm:size-6"
+                          bucket="staff-documents" 
+                        />
                         <span className="text-sm">{s.name}</span>
                       </div>
                     </SelectItem>

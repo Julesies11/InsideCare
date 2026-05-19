@@ -67,8 +67,9 @@ describe('Staff Pages Smoke Tests', () => {
   it('renders Staff Checklists without crashing', async () => {
     renderWithProviders(<StaffChecklists />);
     await waitFor(() => {
-      // It might show "Dashboard" or "Checklists" depending on state
-      expect(screen.getByText(/Dashboard/i)).toBeInTheDocument();
+      // Look for page title or section header
+      expect(screen.getByText(/My Roster/i)).toBeInTheDocument();
+      expect(screen.getByText(/Today's Tasks/i)).toBeInTheDocument();
     });
   });
 

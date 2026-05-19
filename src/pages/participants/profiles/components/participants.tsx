@@ -49,7 +49,7 @@ import {
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 import { Participant, ParticipantWithHouse }  from '@/models/participant';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { SecureAvatar } from '@/components/ui/secure-avatar';
 import { Archive, Edit } from 'lucide-react';
 import { useParticipants, useUpdateParticipant } from '@/hooks/use-participants';
 import { useHouses } from '@/hooks/use-houses';
@@ -283,12 +283,12 @@ const Participants = () => {
         ),
         cell: ({ row }) => (
           <div className="flex items-center gap-2.5">
-            <Avatar className="size-9">
-              {row.original.photo_url && (
-                <AvatarImage src={row.original.photo_url} alt={row.original.name} />
-              )}
-              <AvatarFallback>{getInitials(row.original.name)}</AvatarFallback>
-            </Avatar>
+            <SecureAvatar 
+              src={row.original.photo_url} 
+              initials={getInitials(row.original.name)} 
+              className="size-9"
+              bucket="participant-documents" 
+            />
             <div className="flex flex-col gap-0.5">
               <span className="leading-none font-medium text-sm text-mono hover:text-primary">
                 {row.original.name || '-'}

@@ -152,10 +152,16 @@ export function LeaveDialog({ open, onOpenChange, leaveId, onSuccess, initialDat
         setSaving(false);
         return;
       }
-      const { data: { publicUrl } } = supabase.storage
+      const { data: urlData, error: urlError } = await supabase.storage
         .from('staff-documents')
-        .getPublicUrl(filePath);
-      attachmentUrl = publicUrl;
+        .createSignedUrl(filePath, 3600);
+      if (urlError) {
+        console.error('Error creating signed URL:', urlError);
+        toast.error('Failed to resolve attachment URL');
+        setSaving(false);
+        return;
+      }
+      attachmentUrl = urlData.signedUrl;
     }
 
     if (isEdit && leaveId) {

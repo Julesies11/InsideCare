@@ -7,7 +7,6 @@ import {
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Link } from 'react-router';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -17,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Switch } from '@/components/ui/switch';
+import { SecureAvatar } from '@/components/ui/secure-avatar';
 
 export function UserDropdownMenu({ trigger }: { trigger: ReactNode }) {
   const { logout, user } = useAuth();
@@ -50,10 +50,11 @@ export function UserDropdownMenu({ trigger }: { trigger: ReactNode }) {
         {/* Header */}
         <div className="flex items-center justify-between p-3">
           <div className="flex items-center gap-2">
-            <Avatar className="size-9 border-2 border-green-500">
-              {user?.photo_url && <AvatarImage src={user.photo_url} alt="User avatar" className="object-cover" />}
-              <AvatarFallback className="text-xs font-semibold">{initials}</AvatarFallback>
-            </Avatar>
+            <SecureAvatar 
+              src={user?.photo_url} 
+              initials={initials} 
+              className="size-9 border-2 border-green-500" 
+            />
             <div className="flex flex-col">
               <Link
                 to="/staff/profile"

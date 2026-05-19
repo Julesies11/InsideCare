@@ -90,7 +90,7 @@ export function useHouseChecklists(houseId?: string, scheduledDate?: string) {
       })) as HouseChecklist[];
     },
     enabled: !!houseId,
-    staleTime: 1000 * 60 * 5,
+    staleTime: 0, // Real-time RLS enforcement
   });
 
   return {

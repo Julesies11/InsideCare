@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { SecureAvatar } from '@/components/ui/secure-avatar';
 import { useStaff } from '@/hooks/use-staff';
 
 interface StaffComboboxProps {
@@ -32,10 +32,12 @@ export function StaffCombobox({ value, onChange, placeholder = "Select staff..."
         >
           {selectedStaff ? (
             <div className="flex items-center gap-2">
-              <Avatar className="size-6">
-                <AvatarImage src={selectedStaff.photo_url || undefined} />
-                <AvatarFallback className="text-[10px]">{selectedStaff.name?.substring(0, 2).toUpperCase() ?? '?'}</AvatarFallback>
-              </Avatar>
+              <SecureAvatar 
+                src={selectedStaff.photo_url || undefined} 
+                initials={selectedStaff.name?.substring(0, 2).toUpperCase() ?? '?'} 
+                className="size-6"
+                bucket="staff-documents" 
+              />
               <span className="font-bold">{selectedStaff.name}</span>
             </div>
           ) : (
@@ -61,10 +63,12 @@ export function StaffCombobox({ value, onChange, placeholder = "Select staff..."
                   className="flex items-center gap-3 py-3"
                 >
                   <div className="flex items-center flex-1 gap-3">
-                    <Avatar className="size-8">
-                      <AvatarImage src={staffMember.photo_url || undefined} />
-                      <AvatarFallback>{staffMember.name?.substring(0, 2).toUpperCase() ?? '?'}</AvatarFallback>
-                    </Avatar>
+                    <SecureAvatar 
+                      src={staffMember.photo_url || undefined} 
+                      initials={staffMember.name?.substring(0, 2).toUpperCase() ?? '?'} 
+                      className="size-8"
+                      bucket="staff-documents" 
+                    />
                     <div className="flex flex-col">
                       <span className="font-bold text-sm text-gray-900">{staffMember.name}</span>
                       <span className="text-[10px] text-primary font-black uppercase tracking-widest leading-none mt-0.5">

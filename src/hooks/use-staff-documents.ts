@@ -116,9 +116,14 @@ export function useDeleteStaffDocument() {
   });
 }
 
-export const getStaffFileUrl = (filePath: string) => {
-  const { data: { publicUrl } } = supabase.storage
+export const getStaffFileUrl = async (filePath: string) => {
+  const { data, error } = await supabase.storage
     .from('staff-documents')
-    .getPublicUrl(filePath);
-  return publicUrl;
+    .createSignedUrl(filePath, 3600);
+  
+  if (error) {
+    console.error('Error creating signed URL:', error);
+    return null;
+  }
+  return data.signedUrl;
 };

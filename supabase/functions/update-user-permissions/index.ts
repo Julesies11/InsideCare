@@ -117,11 +117,12 @@ serve(async (req) => {
     if (permError) throw permError;
 
     // 5. Fetch House Assignments
+    const today = new Date().toISOString().split('T')[0];
     const { data: assignments, error: assignError } = await supabaseAdmin
       .from('house_staff_assignments')
       .select('house_id')
       .eq('staff_id', staff.id)
-      .or(`end_date.is.null,end_date.gt.${new Date().toISOString()}`);
+      .or(`end_date.is.null,end_date.gte.${today}`);
 
     if (assignError) throw assignError;
     const assignedHouses = assignments?.map(a => a.house_id) || [];

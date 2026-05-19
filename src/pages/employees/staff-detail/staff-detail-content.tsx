@@ -215,8 +215,9 @@ export function StaffDetailContent({
           toast.error('Failed to upload profile photo', { description: uploadErr.message });
           throw uploadErr;
         }
-        const { data: urlData } = supabase.storage.from('staff-documents').getPublicUrl(path);
-        const newPhotoUrl = urlData.publicUrl;
+
+        // Save the PATH to the database, not the temporary signed URL
+        const newPhotoUrl = path;
 
         const { error: photoErr } = await supabase
           .from('staff')

@@ -39,6 +39,9 @@ For detailed information on the project architecture, database, and features, re
     - NEVER hard-code role names (e.g., 'Admin', 'Staff') in Edge Functions or SQL. Roles are database-driven.
     - NEVER hard-code permission levels.
     - **Admin Verification**: Determine "Admin" status by checking if a user's role has `'full'` access to the `'access_control'` module in the `role_permissions` table.
+- **Pending Security Tasks**:
+    - [x] **Storage Toggles**: Manually switch all storage buckets to "Private" in the Supabase Dashboard.
+    - [x] **Signed URL Refactor**: Update frontend to use `createSignedUrl` instead of `getPublicUrl` for all clinical and employee documents.
 - **Migrations**: Always use the `YYYYMMDDXX_description.sql` format.
     - `YYYYMMDD`: Today's date.
     - `XX`: Sequential number starting at `00`.

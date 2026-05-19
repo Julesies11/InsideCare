@@ -286,19 +286,24 @@ export function HouseChecklists({
 
         const attachments: Record<string, any[]> = {};
         if (attachmentData) {
-          attachmentData.forEach(att => {
+          for (const att of attachmentData) {
             if (!attachments[att.item_id]) attachments[att.item_id] = [];
             
-            // Get signed/public URL
-            const { data: urlData } = supabase.storage
+            // Get signed URL
+            const { data: urlData, error: urlError } = await supabase.storage
               .from('checklist-attachments')
-              .getPublicUrl(att.file_path);
+              .createSignedUrl(att.file_path, 3600);
+
+            if (urlError) {
+              console.error('Error creating signed URL:', urlError);
+              continue;
+            }
 
             attachments[att.item_id].push({
               ...att,
-              file_path: urlData.publicUrl
+              file_path: urlData.signedUrl
             });
-          });
+          }
         }
 
         setActiveSubmission({

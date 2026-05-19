@@ -146,6 +146,6 @@ export function useStaffRoster(staffId?: string) {
       }) as RosterEntry[];
     },
     enabled: !!staffId,
-    staleTime: 1000 * 60 * 5,
+    staleTime: 0, // Real-time RLS enforcement
   });
 }

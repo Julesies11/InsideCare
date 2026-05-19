@@ -88,7 +88,7 @@ export function useShiftNotes() {
         house_name: note.house?.name,
       })) as ShiftNote[];
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 0, // Ensure real-time RLS enforcement
   });
 
   const { mutateAsync: createShiftNote } = useCreateShiftNote();

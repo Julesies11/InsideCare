@@ -108,9 +108,14 @@ export function useDeleteParticipantDocument() {
   });
 }
 
-export const getParticipantFileUrl = (filePath: string) => {
-  const { data: { publicUrl } } = supabase.storage
+export const getParticipantFileUrl = async (filePath: string) => {
+  const { data, error } = await supabase.storage
     .from('participant-documents')
-    .getPublicUrl(filePath);
-  return publicUrl;
+    .createSignedUrl(filePath, 3600);
+  
+  if (error) {
+    console.error('Error creating signed URL:', error);
+    return null;
+  }
+  return data.signedUrl;
 };

@@ -8,11 +8,13 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { ImageInput, ImageInputFile } from './image-input';
+import { useSignedUrl } from '@/hooks/use-signed-url';
 
 interface AvatarInputProps {
   value?: string;
   onChange: (file: File | null, dataURL: string | null) => void;
   size?: 'sm' | 'md' | 'lg';
+  bucket?: string; // Optional: specify bucket for paths
 }
 
 const sizeClasses = {
@@ -21,19 +23,23 @@ const sizeClasses = {
   lg: 'size-20',
 };
 
-export function AvatarInput({ value, onChange, size = 'md' }: AvatarInputProps) {
-  const [avatar, setAvatar] = useState<ImageInputFile[]>(
-    value ? [{ dataURL: value }] : []
-  );
+export function AvatarInput({ value, onChange, size = 'md', bucket = 'staff-documents' }: AvatarInputProps) {
+  // Use useSignedUrl to resolve Supabase URLs or paths
+  const { url: signedUrl } = useSignedUrl(bucket, value);
+  
+  const [avatar, setAvatar] = useState<ImageInputFile[]>([]);
 
-  // Update internal state if value prop changes (e.g. after save)
+  // Update internal state if value prop changes or signed URL is resolved
   useEffect(() => {
-    if (value) {
+    if (signedUrl) {
+      setAvatar([{ dataURL: signedUrl }]);
+    } else if (value && value.startsWith('data:')) {
+      // Local preview
       setAvatar([{ dataURL: value }]);
-    } else {
+    } else if (!value) {
       setAvatar([]);
     }
-  }, [value]);
+  }, [value, signedUrl]);
 
   const handleChange = (selectedAvatar: ImageInputFile[]) => {
     setAvatar(selectedAvatar);

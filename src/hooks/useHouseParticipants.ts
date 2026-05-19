@@ -42,7 +42,7 @@ export function useHouseParticipants(houseId?: string) {
       return data as HouseParticipant[];
     },
     enabled: !!houseId,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 0, // Real-time RLS enforcement
   });
 
   return {

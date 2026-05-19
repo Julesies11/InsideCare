@@ -47,6 +47,7 @@ export function PersonalDetails({
               value={formData.photo_url}
               onChange={handlePhotoChange}
               size="lg"
+              bucket="participant-documents"
             />
             {!canEdit && <span className="text-sm text-muted-foreground">View only</span>}
           </div>

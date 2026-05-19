@@ -144,8 +144,9 @@ export function StaffProfile() {
           .from('staff-documents')
           .upload(path, photoFile, { upsert: true });
         if (uploadErr) throw uploadErr;
-        const { data: urlData } = supabase.storage.from('staff-documents').getPublicUrl(path);
-        const newPhotoUrl = urlData.publicUrl;
+        
+        // Save the PATH to the database, not the temporary signed URL
+        const newPhotoUrl = path;
 
         await supabase.from('staff').update({ photo_url: newPhotoUrl }).eq('id', staffId);
         setOriginalPhotoUrl(newPhotoUrl);

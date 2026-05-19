@@ -3,12 +3,22 @@
 This document provides an overview of the core database tables and their relationships in the InsideCare application.
 
 ## Database Source of Truth
-As of **May 18, 2026**, the database schema source of truth is maintained in:
-- **Schema Metadata:** `migrations/schema_metadata.json` (Tables, Columns, Enums, Logic).
-- **RBAC Policies:** `migrations/current_database_rbac.json` (Live RLS policy state).
+As of **May 19, 2026**, the database schema source of truth is maintained in:
+- **Directory:** `docs/database_schema/`
+- **Schema Metadata:** `docs/database_schema/schema_metadata.json` (Tables, Columns, Enums, Logic).
+- **RBAC Policies:** `docs/database_schema/current_database_rbac.json` (Live RLS policy state).
+- **Storage Policies:** `docs/database_schema/storage_schema.json` (Storage RLS state).
 
 **Mandatory AI Workflow:**
-Before generating any SQL statements, the AI **MUST** perform a `read_file` on both JSON metadata files to verify naming conventions, data types, and existing security policies.
+Before generating any SQL statements, the AI **MUST** perform a `read_file` on these metadata files to verify naming conventions, data types, and existing security policies.
+
+### Security Model (Gold Standard RLS)
+The project employs a **Gold Standard RLS architecture**:
+1.  **Granular Commands**: Policies are explicitly separated into `SELECT`, `INSERT`, `UPDATE`, and `DELETE`.
+2.  **Delete Restriction**: All records (clinical, transactional, organizational, master lists) can **only** be deleted by users with the `Admin` role (defined as `full` access to `access_control`). This supports the project-wide soft-delete architecture.
+3.  **Level-Guarded Context**: House or staff-specific access is only granted if the user's permission level for that specific module is at least `context_read_only`.
+4.  **Master List Protection**: Master List tables (e.g., `medications_master`) are restricted to users with the `master_lists` permission.
+5.  **JWT-Driven**: Performance is maintained using `auth.jwt()` lookups.
 
 ### Migration Naming Convention
 New migrations must follow the `YYYYMMDDXX_description.sql` format:

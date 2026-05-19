@@ -37,6 +37,7 @@ export function PersonalDetails({
                 value={formData.photo_url_preview ?? formData.photo_url ?? undefined}
                 onChange={canEdit ? handlePhotoChange : () => {}}
                 size="lg"
+                bucket="staff-documents"
               />
               {canEdit && (
                 <p className="text-xs text-muted-foreground">Click the photo to change it</p>

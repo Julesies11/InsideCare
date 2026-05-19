@@ -93,11 +93,18 @@ export function ChecklistExecutionDialog({
 
         const attachments: Record<string, any[]> = {};
         if (attachmentData) {
-          attachmentData.forEach(att => {
+          for (const att of attachmentData) {
             if (!attachments[att.item_id]) attachments[att.item_id] = [];
-            const { data: urlData } = supabase.storage.from('checklist-attachments').getPublicUrl(att.file_path);
-            attachments[att.item_id].push({ ...att, file_path: urlData.publicUrl });
-          });
+            const { data: urlData, error: urlError } = await supabase.storage
+              .from('checklist-attachments')
+              .createSignedUrl(att.file_path, 3600);
+            
+            if (urlError) {
+              console.error('Error creating signed URL for attachment:', urlError);
+              continue;
+            }
+            attachments[att.item_id].push({ ...att, file_path: urlData.signedUrl });
+          }
         }
 
         setActiveSubmission({ id: data.id, completedItems, itemNotes, completedBy, attachments });

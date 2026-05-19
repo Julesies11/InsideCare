@@ -61,9 +61,9 @@ export function HouseDocuments({
     setSelectedFile(null);
   };
 
-  const handleDownload = (filePath: string) => {
-    const url = getFileUrl(filePath);
-    window.open(url, '_blank');
+  const handleDownload = async (filePath: string) => {
+    const url = await getFileUrl(filePath);
+    if (url) window.open(url, '_blank');
   };
 
   const handleDelete = (id: string, filePath: string, fileName: string) => {

@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { SecureAvatar } from '@/components/ui/secure-avatar';
 import { Plus, Edit, Trash2, Clock, Star } from 'lucide-react';
 import { useHouseStaffAssignments } from '@/hooks/use-house-staff-assignments';
 import { useStaff } from '@/hooks/use-staff';
@@ -324,14 +324,12 @@ export function HouseStaff({
                     >
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <Avatar className="size-9">
-                            {getStaffPhoto(staffAssignment) && (
-                              <AvatarImage src={getStaffPhoto(staffAssignment)} alt={getStaffName(staffAssignment)} />
-                            )}
-                            <AvatarFallback>
-                              {getStaffName(staffAssignment).split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2)}
-                            </AvatarFallback>
-                          </Avatar>
+                          <SecureAvatar 
+                            src={getStaffPhoto(staffAssignment)} 
+                            initials={getStaffName(staffAssignment).split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2)} 
+                            className="size-9"
+                            bucket="staff-documents" 
+                          />
                           <div className={`flex flex-col ${isPendingDelete ? 'line-through' : ''}`}>
                             <span className="font-bold text-gray-900">{getStaffName(staffAssignment)}</span>
                             {staffAssignment.is_primary && (

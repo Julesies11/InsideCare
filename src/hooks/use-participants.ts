@@ -86,7 +86,7 @@ export function useParticipants(
 
       return { data: participantsWithHouse, count: count || 0 };
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 0, // Always re-fetch from database on visit to ensure RLS truth
   });
 
   return {

@@ -26,6 +26,18 @@ To maintain system integrity, any modifications to RLS policies or RBAC logic mu
 - **Lightweight RLS**: Database Row Level Security is simplified to perform fast, memory-resident JSON lookups on the `auth.jwt()` instead of expensive multi-table joins.
     - **`jwt_has_house(house_id)`**: Instant check if the house ID exists in the user's token.
     - **`jwt_get_perm(module)`**: Instant retrieval of the authorized access level for a specific module.
+- **Granular Operation Policies (Gold Standard)**: 
+    - The application explicitly separates `SELECT`, `INSERT`, `UPDATE`, and `DELETE` policies to prevent permissive bypasses.
+    - **Delete Protection**: `DELETE` access is strictly reserved for the `Admin` role (users with `full` access to `access_control`) for all tables, supporting a project-wide soft-delete architecture.
+    - **Level-Guarded Context**: House-specific access is strictly guarded by the user's permission level. Being assigned to a house is not sufficient; the user must also possess at least `context_read_only` for the specific module to access the data.
+    - **Explicit Validation**: All mutations (`INSERT`/`UPDATE`) use `WITH CHECK` clauses to ensure data integrity and prevent unauthorized record creation.
+- **Data Synchronization & Caching**:
+    - **Consolidated Source of Truth**: The application uses a single, global `QueryClient` initialized in `QueryProvider` to prevent "Shadow Cache" inconsistencies.
+    - **Zero-Lag Logout**: The `logout` function in `AuthProvider` explicitly calls `queryClient.clear()` to physically purge all cached data from the browser's memory, preventing cross-user data leakage.
+    - **Tiered Caching Strategy**:
+        - **Real-Time (staleTime: 0)**: Core RLS-filtered modules (Participants, Shift Notes, Roster) always perform a background fetch on visit to ensure immediate enforcement of permission changes.
+        - **Standard (staleTime: 30s - 5m)**: General operational data.
+        - **Static (staleTime: 1h+)**: Master lists and configuration.
 - **Access Levels**:
     - `full`: Global access to all records.
     - `context_read_write`: Domain-aware read/write access (locked to `assigned_houses` or `managed_staff_ids`).

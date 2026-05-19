@@ -11,7 +11,6 @@ import { useLocation } from 'react-router';
 import { Link } from 'react-router-dom';
 import { toAbsoluteUrl } from '@/lib/helpers';
 import { cn } from '@/lib/utils';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useScrollPosition } from '@/hooks/use-scroll-position';
 import { Button } from '@/components/ui/button';
@@ -24,6 +23,8 @@ import {
 } from '@/components/ui/sheet';
 import { Container } from '@/components/common/container';
 import { SidebarMenu } from './sidebar-menu';
+
+import { SecureAvatar } from '@/components/ui/secure-avatar';
 
 export function Header() {
   const [isSidebarSheetOpen, setIsSidebarSheetOpen] = useState(false);
@@ -118,10 +119,13 @@ export function Header() {
               />
               <UserDropdownMenu
                 trigger={
-                  <Avatar className="size-9 border-2 border-green-500 shrink-0 cursor-pointer">
-                    {user?.photo_url && <AvatarImage src={user.photo_url} alt="User Avatar" className="object-cover" />}
-                    <AvatarFallback className="text-xs font-semibold">{initials}</AvatarFallback>
-                  </Avatar>
+                  <div className="cursor-pointer">
+                    <SecureAvatar 
+                      src={user?.photo_url} 
+                      initials={initials} 
+                      className="size-9 border-2 border-green-500" 
+                    />
+                  </div>
                 }
               />
             </>

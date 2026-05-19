@@ -66,11 +66,16 @@ export function useHouseResources(houseId?: string) {
     fetchHouseResources();
   }, [houseId]);
 
-  const getFileUrl = (filePath: string) => {
-    const { data } = supabase.storage
+  const getFileUrl = async (filePath: string) => {
+    const { data, error } = await supabase.storage
       .from('house-resources')
-      .getPublicUrl(filePath);
-    return data.publicUrl;
+      .createSignedUrl(filePath, 3600);
+    
+    if (error) {
+      console.error('Error creating signed URL:', error);
+      return null;
+    }
+    return data.signedUrl;
   };
 
   return {

@@ -33,7 +33,7 @@ vi.mock('@/lib/supabase', () => ({
     from: vi.fn(() => mockSupabaseQuery),
     storage: {
       from: vi.fn(() => ({
-        getPublicUrl: vi.fn(() => ({ data: { publicUrl: 'http://test.com' } }))
+        createSignedUrl: vi.fn(() => Promise.resolve({ data: { signedUrl: 'http://test.com' }, error: null }))
       }))
     },
     functions: {
@@ -62,7 +62,11 @@ vi.mock('react-router', async () => {
 
 describe('Staff Detail Smoke Test', () => {
   it('renders the staff detail page without crashing', async () => {
-    renderWithProviders(<StaffDetailPage />);
+    renderWithProviders(
+      <MemoryRouter initialEntries={['/employees/staff-detail/staff-1']}>
+        <StaffDetailPage />
+      </MemoryRouter>
+    );
     
     // Check for core page elements
     await waitFor(() => {

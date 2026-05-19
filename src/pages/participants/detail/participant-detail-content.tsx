@@ -539,8 +539,10 @@ export function ParticipantDetailContent({
           .from('participant-documents')
           .upload(path, file, { upsert: true });
         if (uploadErr) throw uploadErr;
-        const { data: urlData } = supabase.storage.from('participant-documents').getPublicUrl(path);
-        const newPhotoUrl = urlData.publicUrl;
+
+        // Save the PATH to the database, not the temporary signed URL
+        const newPhotoUrl = path;
+
         const { error: photoErr } = await supabase
           .from('participants')
           .update({ photo_url: newPhotoUrl, updated_at: new Date().toISOString() })

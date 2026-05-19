@@ -125,8 +125,15 @@ export function StaffLeaveForm() {
     const path = `leave-attachments/${staffId}/${Date.now()}.${ext}`;
     const { error } = await supabase.storage.from('staff-documents').upload(path, attachmentFile);
     if (error) { toast.error('Failed to upload attachment'); return null; }
-    const { data } = supabase.storage.from('staff-documents').getPublicUrl(path);
-    return data.publicUrl;
+    const { data: urlData, error: urlError } = await supabase.storage
+      .from('staff-documents')
+      .createSignedUrl(path, 3600);
+    
+    if (urlError) {
+      console.error('Error creating signed URL:', urlError);
+      return null;
+    }
+    return urlData.signedUrl;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
