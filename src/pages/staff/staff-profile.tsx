@@ -141,7 +141,7 @@ export function StaffProfile() {
         const ext = photoFile.name.split('.').pop();
         const path = `${staffId}/profile/${Date.now()}.${ext}`;
         const { error: uploadErr } = await supabase.storage
-          .from('staff-documents')
+          .from('staff-photos')
           .upload(path, photoFile, { upsert: true });
         if (uploadErr) throw uploadErr;
         

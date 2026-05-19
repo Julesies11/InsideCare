@@ -287,8 +287,9 @@ const Participants = () => {
               src={row.original.photo_url} 
               initials={getInitials(row.original.name)} 
               className="size-9"
-              bucket="participant-documents" 
+              bucket="participant-photos" 
             />
+
             <div className="flex flex-col gap-0.5">
               <span className="leading-none font-medium text-sm text-mono hover:text-primary">
                 {row.original.name || '-'}

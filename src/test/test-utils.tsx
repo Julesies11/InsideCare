@@ -1,6 +1,6 @@
 import { render, RenderOptions } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { MemoryRouter } from 'react-router';
+import { MemoryRouter } from 'react-router-dom';
 import userEvent from '@testing-library/user-event';
 import { ReactElement, ReactNode } from 'react';
 import { SettingsProvider } from '@/providers/settings-provider';
@@ -41,32 +41,32 @@ export function renderWithProviders(
 ) {
   function Wrapper({ children }: { children: ReactNode }): ReactElement {
     return (
-      <QueryClientProvider client={queryClient}>
-        <SettingsProvider>
-          <AuthContext.Provider value={{
-            loading: false,
-            setLoading: () => {},
-            saveAuth: () => {},
-            user,
-            setUser: () => {},
-            login: async () => {},
-            register: async () => {},
-            requestPasswordReset: async () => {},
-            resetPassword: async () => {},
-            resendVerificationEmail: async () => {},
-            getUser: async () => user,
-            updateProfile: async () => user,
-            logout: () => {},
-            verify: async () => {},
-            isAdmin: true,
-            isStaff: true,
-          }}>
-            <MemoryRouter initialEntries={[route]}>
+      <MemoryRouter initialEntries={[route]}>
+        <QueryClientProvider client={queryClient}>
+          <SettingsProvider>
+            <AuthContext.Provider value={{
+              loading: false,
+              setLoading: () => {},
+              saveAuth: () => {},
+              user,
+              setUser: () => {},
+              login: async () => {},
+              register: async () => {},
+              requestPasswordReset: async () => {},
+              resetPassword: async () => {},
+              resendVerificationEmail: async () => {},
+              getUser: async () => user,
+              updateProfile: async () => user,
+              logout: () => {},
+              verify: async () => {},
+              isAdmin: true,
+              isStaff: true,
+            }}>
               {children}
-            </MemoryRouter>
-          </AuthContext.Provider>
-        </SettingsProvider>
-      </QueryClientProvider>
+            </AuthContext.Provider>
+          </SettingsProvider>
+        </QueryClientProvider>
+      </MemoryRouter>
     );
   }
 

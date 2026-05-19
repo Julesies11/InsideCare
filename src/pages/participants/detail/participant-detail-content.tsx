@@ -536,7 +536,7 @@ export function ParticipantDetailContent({
         const ext = file.name.split('.').pop();
         const path = `${id}/profile/${Date.now()}.${ext}`;
         const { error: uploadErr } = await supabase.storage
-          .from('participant-documents')
+          .from('participant-photos')
           .upload(path, file, { upsert: true });
         if (uploadErr) throw uploadErr;
 

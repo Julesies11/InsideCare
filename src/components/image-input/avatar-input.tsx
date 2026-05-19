@@ -23,7 +23,7 @@ const sizeClasses = {
   lg: 'size-20',
 };
 
-export function AvatarInput({ value, onChange, size = 'md', bucket = 'staff-documents' }: AvatarInputProps) {
+export function AvatarInput({ value, onChange, size = 'md', bucket = 'staff-photos' }: AvatarInputProps) {
   // Use useSignedUrl to resolve Supabase URLs or paths
   const { url: signedUrl } = useSignedUrl(bucket, value);
   

@@ -209,7 +209,7 @@ export function StaffDetailContent({
         const ext = file.name.split('.').pop();
         const path = `${staffId}/profile/${Date.now()}.${ext}`;
         const { error: uploadErr } = await supabase.storage
-          .from('staff-documents')
+          .from('staff-photos')
           .upload(path, file, { upsert: true });
         if (uploadErr) {
           toast.error('Failed to upload profile photo', { description: uploadErr.message });

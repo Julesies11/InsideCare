@@ -16,8 +16,9 @@ export function useSignedUrl(bucket: string, path: string | null | undefined, ex
       return;
     }
 
-    // 1. Handle Legacy Public URLs
+    // 1. Handle Full HTTP URLs (e.g. legacy public URLs)
     if (path.startsWith('http')) {
+      // If it's a supabase public URL, try to sign it anyway in case bucket is now private
       if (path.includes('.supabase.co/storage/v1/object/public/')) {
         const parts = path.split('/public/')[1].split('/');
         const extractedBucket = parts[0];
@@ -29,20 +30,8 @@ export function useSignedUrl(bucket: string, path: string | null | undefined, ex
       return;
     }
 
-    // 2. Handle Naked Paths
-    let targetBucket = bucket;
-    const targetPath = path;
-
-    // Detection logic for legacy paths that might be in different buckets
-    if (path.startsWith('participant-photos/')) {
-      // If the provided bucket is participant-documents but path looks legacy, 
-      // check the participants bucket instead.
-      targetBucket = 'participants';
-    } else if (path.startsWith('staff-photos/')) {
-      targetBucket = 'staff-documents';
-    }
-
-    fetchSignedUrl(targetBucket, targetPath);
+    // 2. Handle Naked Paths - No more legacy redirection
+    fetchSignedUrl(bucket, path);
   }, [bucket, path]);
 
   async function fetchSignedUrl(b: string, p: string) {
@@ -68,26 +57,21 @@ export function useSignedUrl(bucket: string, path: string | null | undefined, ex
 export async function getSignedUrl(bucket: string, path: string, expiresIn: number = 3600) {
   if (!path) return null;
   
-  // 1. Handle Legacy Public URLs
-  let b = bucket;
-  let p = path;
-  
-  if (path.startsWith('http') && path.includes('.supabase.co/storage/v1/object/public/')) {
-    const parts = path.split('/public/')[1].split('/');
-    b = parts[0];
-    p = parts.slice(1).join('/');
-  } else if (path.startsWith('http')) {
+  // Handle Full HTTP URLs
+  if (path.startsWith('http')) {
+    if (path.includes('.supabase.co/storage/v1/object/public/')) {
+      const parts = path.split('/public/')[1].split('/');
+      const b = parts[0];
+      const p = parts.slice(1).join('/');
+      const { data, error } = await supabase.storage.from(b).createSignedUrl(p, expiresIn);
+      if (error) return null;
+      return data.signedUrl;
+    }
     return path;
   }
 
-  // 2. Handle Naked Paths with Legacy Prefixes
-  if (path.startsWith('participant-photos/')) {
-    b = 'participants';
-  } else if (path.startsWith('staff-photos/')) {
-    b = 'staff-documents';
-  }
-
-  const { data, error } = await supabase.storage.from(b).createSignedUrl(p, expiresIn);
+  // Handle Naked Paths
+  const { data, error } = await supabase.storage.from(bucket).createSignedUrl(path, expiresIn);
   if (error) {
     console.error('Error creating signed URL:', error);
     return null;
