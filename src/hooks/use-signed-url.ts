@@ -1,54 +1,44 @@
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { SignedUrlBatcher } from '@/lib/signed-url-batcher';
 
 /**
  * Hook to get a signed URL for a private storage object.
- * Caches the URL for the duration of the hook's lifecycle.
+ * Caches the URL using TanStack Query to prevent duplicate requests
+ * for the same image across the application.
  */
 export function useSignedUrl(bucket: string, path: string | null | undefined, expiresIn: number = 3600) {
-  const [url, setUrl] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
+  const query = useQuery({
+    queryKey: ['signed-url', bucket, path, expiresIn],
+    queryFn: async () => {
+      if (!path) return null;
 
-  useEffect(() => {
-    if (!path) {
-      setUrl(null);
-      return;
-    }
-
-    // 1. Handle Full HTTP URLs (e.g. legacy public URLs)
-    if (path.startsWith('http')) {
-      // If it's a supabase public URL, try to sign it anyway in case bucket is now private
-      if (path.includes('.supabase.co/storage/v1/object/public/')) {
-        const parts = path.split('/public/')[1].split('/');
-        const extractedBucket = parts[0];
-        const extractedPath = parts.slice(1).join('/');
-        fetchSignedUrl(extractedBucket, extractedPath);
-        return;
+      // 1. Handle Full HTTP URLs (e.g. legacy public URLs)
+      if (path.startsWith('http')) {
+        // If it's a supabase public URL, try to sign it anyway in case bucket is now private
+        if (path.includes('.supabase.co/storage/v1/object/public/')) {
+          const parts = path.split('/public/')[1].split('/');
+          const extractedBucket = parts[0];
+          const extractedPath = parts.slice(1).join('/');
+          
+          return await SignedUrlBatcher.get(extractedBucket, extractedPath, expiresIn);
+        }
+        return path;
       }
-      setUrl(path);
-      return;
-    }
 
-    // 2. Handle Naked Paths - No more legacy redirection
-    fetchSignedUrl(bucket, path);
-  }, [bucket, path]);
+      // 2. Handle Naked Paths
+      return await SignedUrlBatcher.get(bucket, path, expiresIn);
+    },
+    // Cache the URL for slightly less than the expiration time, ensuring it doesn't drop below 0
+    staleTime: Math.max(0, (expiresIn - 60) * 1000), 
+    enabled: !!path,
+  });
 
-  async function fetchSignedUrl(b: string, p: string) {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase.storage.from(b).createSignedUrl(p, expiresIn);
-      if (error) throw error;
-      setUrl(data.signedUrl);
-    } catch (err) {
-      console.error('Error creating signed URL:', err);
-      setError(err as Error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  return { url, loading, error };
+  return { 
+    url: query.data || null, 
+    loading: !!path && query.isLoading, 
+    error: query.error as Error | null 
+  };
 }
 
 /**
@@ -63,18 +53,16 @@ export async function getSignedUrl(bucket: string, path: string, expiresIn: numb
       const parts = path.split('/public/')[1].split('/');
       const b = parts[0];
       const p = parts.slice(1).join('/');
-      const { data, error } = await supabase.storage.from(b).createSignedUrl(p, expiresIn);
-      if (error) return null;
-      return data.signedUrl;
+      return await SignedUrlBatcher.get(b, p, expiresIn);
     }
     return path;
   }
 
   // Handle Naked Paths
-  const { data, error } = await supabase.storage.from(bucket).createSignedUrl(path, expiresIn);
-  if (error) {
+  try {
+    return await SignedUrlBatcher.get(bucket, path, expiresIn);
+  } catch (error) {
     console.error('Error creating signed URL:', error);
     return null;
   }
-  return data.signedUrl;
 }

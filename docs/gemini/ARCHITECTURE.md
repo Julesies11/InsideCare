@@ -38,6 +38,7 @@ To maintain system integrity, any modifications to RLS policies or RBAC logic mu
         - **Real-Time (staleTime: 0)**: Core RLS-filtered modules (Participants, Shift Notes, Roster) always perform a background fetch on visit to ensure immediate enforcement of permission changes.
         - **Standard (staleTime: 30s - 5m)**: General operational data.
         - **Static (staleTime: 1h+)**: Master lists and configuration.
+    - **Avatar Signed URL Caching**: The `useSignedUrl` hook leverages TanStack Query to cache Supabase Storage signed URLs. This acts as a deduplication layer, ensuring that if a user's avatar appears multiple times on a single screen (e.g., the Roster Board), the frontend negotiates a signed URL from the backend exactly once, preventing network waterfalls.
 - **Access Levels**:
     - `full`: Global access to all records.
     - `context_read_write`: Domain-aware read/write access (locked to `assigned_houses` or `managed_staff_ids`).

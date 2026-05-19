@@ -48,21 +48,7 @@ export const MENU_SIDEBAR: MenuItemConfig[] = [
     permission: RBAC_MODULES.MY_TIMESHEETS,
   },
   {
-    heading: 'Participant Records',
-    permission: RBAC_MODULES.PARTICIPANTS,
-  },
-  {
-    title: 'Participants',
-    icon: Users,
-    permission: RBAC_MODULES.PARTICIPANTS,
-    children: [
-      { title: 'Participant Profiles', path: '/participants/profiles', permission: RBAC_MODULES.PARTICIPANTS },
-      { title: 'Shift Notes', path: '/participants/shift-notes', permission: RBAC_MODULES.SHIFT_NOTES },
-    ],
-  },
-  {
-    heading: 'Employees & HR',
-    permission: RBAC_MODULES.EMPLOYEES,
+    heading: 'People & Houses',
   },
   {
     title: 'Employees',
@@ -75,16 +61,6 @@ export const MENU_SIDEBAR: MenuItemConfig[] = [
     ],
   },
   {
-    title: 'Roster Board',
-    icon: Calendar,
-    path: '/roster-board',
-    permission: RBAC_MODULES.ROSTER_BOARD,
-  },
-  {
-    heading: 'Operations & Facilities',
-    permission: RBAC_MODULES.HOUSES,
-  },
-  {
     title: 'Houses',
     icon: Home,
     permission: RBAC_MODULES.HOUSES,
@@ -92,7 +68,22 @@ export const MENU_SIDEBAR: MenuItemConfig[] = [
       { title: 'House Profiles', path: '/houses/profiles', permission: RBAC_MODULES.HOUSES },
     ],
   },
-  { heading: 'System Administration', permission: RBAC_MODULES.ACCESS_CONTROL },
+  {
+    title: 'Participants',
+    icon: Users,
+    permission: RBAC_MODULES.PARTICIPANTS,
+    children: [
+      { title: 'Participant Profiles', path: '/participants/profiles', permission: RBAC_MODULES.PARTICIPANTS },
+      { title: 'Shift Notes', path: '/participants/shift-notes', permission: RBAC_MODULES.SHIFT_NOTES },
+    ],
+  },
+  {
+    title: 'Roster Board',
+    icon: Calendar,
+    path: '/roster-board',
+    permission: RBAC_MODULES.ROSTER_BOARD,
+  },
+  { heading: 'Administration', permission: RBAC_MODULES.ACCESS_CONTROL },
   {
     title: 'Access Control',
     icon: Settings,
