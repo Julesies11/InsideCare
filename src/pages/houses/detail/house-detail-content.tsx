@@ -979,11 +979,9 @@ export function HouseDetailContent({
           <div id="checklist_comms_section" className="flex flex-col gap-5 lg:gap-7.5">
             <HouseComms 
               houseId={id!} 
-              comms={formData.comms || []}
+              canEdit={canEdit}
               pendingChanges={pendingChanges}
               onPendingChangesChange={onPendingChangesChange}
-              canEdit={canEdit}
-              refreshKey={refreshKeys.comms}
             />
 
             <HouseChecklistSetup 
@@ -998,17 +996,16 @@ export function HouseDetailContent({
 
           <HouseResources 
             houseId={id!} 
-            resources={formData.resources || []}
+            canAdd={canEdit}
+            canDelete={canEdit}
             pendingChanges={pendingChanges}
             onPendingChangesChange={onPendingChangesChange}
-            canEdit={canEdit}
-            refreshKey={refreshKeys.resources}
           />
 
           <HouseStaff 
             houseId={id!} 
-            canAdd={true}
-            canDelete={true}
+            canAdd={canEdit}
+            canDelete={canEdit}
             pendingChanges={pendingChanges}
             onPendingChangesChange={onPendingChangesChange}
           />

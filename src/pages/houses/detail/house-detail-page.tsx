@@ -13,7 +13,7 @@ import {
 } from '@/partials/common/toolbar';
 import { useDirtyTracker } from '@/hooks/useDirtyTracker';
 import { useUpdateHouse } from '@/hooks/use-houses';
-import { HousePendingChanges, emptyHousePendingChanges, hasHousePendingChanges } from '@/models/house-pending-changes';
+import { HousePendingChanges, emptyHousePendingChanges } from '@/models/house-pending-changes';
 import { House } from '@/models/house';
 
 import { RBAC_MODULES } from '@/config/rbac-modules';
@@ -46,9 +46,9 @@ export function HouseDetailPage() {
   };
 
   const { isDirty } = useDirtyTracker({
-    formData,
-    originalData,
-    customDirtyCheck: () => hasHousePendingChanges(pendingChanges)
+    formData: formData || {},
+    originalData: originalData || {},
+    pendingChanges
   });
 
   return (

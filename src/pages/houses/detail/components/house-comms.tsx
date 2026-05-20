@@ -23,12 +23,14 @@ interface HouseCommEntry {
 
 interface HouseCommsProps {
   houseId: string;
+  canEdit: boolean;
   pendingChanges?: HousePendingChanges;
   onPendingChangesChange?: (changes: HousePendingChanges) => void;
 }
 
 export function HouseComms({ 
   houseId,
+  canEdit,
   pendingChanges,
   onPendingChangesChange
 }: HouseCommsProps) {
@@ -155,7 +157,7 @@ export function HouseComms({
             </Button>
           </div>
         </div>
-        <Button variant="secondary" size="sm" className="border border-gray-300" onClick={() => setShowAddForm(!showAddForm)}>
+        <Button variant="secondary" size="sm" className="border border-gray-300" onClick={() => setShowAddForm(!showAddForm)} disabled={!canEdit}>
           <Plus className="size-4 me-1.5" />
           Add Entry
         </Button>
@@ -192,7 +194,7 @@ export function HouseComms({
               <MessageSquare className="size-10 mx-auto mb-3 opacity-20" />
               <p className="text-sm text-muted-foreground italic">No communication entries for this date.</p>
               {!showAddForm && (
-                <Button variant="link" size="sm" className="mt-2" onClick={() => setShowAddForm(true)}>
+                <Button variant="link" size="sm" className="mt-2" onClick={() => setShowAddForm(true)} disabled={!canEdit}>
                   Start today's handover
                 </Button>
               )}

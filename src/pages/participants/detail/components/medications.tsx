@@ -270,12 +270,22 @@ export function Medications({
                             </Button>
                           )}
                           {isPendingUpdate && (
-                            <Button variant="ghost" size="sm" onClick={() => handleCancelPendingUpdate(med.id)}>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleCancelPendingUpdate(med.id)}
+                              disabled={!canAdd}
+                            >
                               Undo
                             </Button>
                           )}
                           {isPendingDelete && (
-                            <Button variant="ghost" size="sm" onClick={() => handleCancelPendingDelete(med.id)}>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleCancelPendingDelete(med.id)}
+                              disabled={!canDelete}
+                            >
                               Undo
                             </Button>
                           )}

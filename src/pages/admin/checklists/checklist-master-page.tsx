@@ -299,10 +299,16 @@ export function ChecklistMasterPage() {
                     key={template.id}
                     checklist={template}
                     onEdit={handleEditTemplate}
-                    onDelete={handleDeleteTemplate}
+                    onDelete={canEdit ? handleDeleteTemplate : undefined}
                     showTasksPreview={true}
                     footer={
-                      <Button variant="secondary" size="sm" className="w-full h-8 text-xs font-bold gap-1.5" onClick={() => handleEditTemplate(template)}>
+                      <Button 
+                        variant="secondary" 
+                        size="sm" 
+                        className="w-full h-8 text-xs font-bold gap-1.5" 
+                        onClick={() => handleEditTemplate(template)}
+                        disabled={!canEdit}
+                      >
                         <Edit className="size-3.5" />
                         Manage Master Checklist
                       </Button>
@@ -486,13 +492,14 @@ export function ChecklistMasterPage() {
                 id="itm-req-master"
                 checked={itemFormData.is_required}
                 onCheckedChange={(c) => setItemFormData({ ...itemFormData, is_required: !!c })}
+                disabled={!canEdit}
               />
-              <Label htmlFor="itm-req-master" className="cursor-pointer">Required Task</Label>
+              <Label htmlFor="itm-req-master" className={cn("cursor-pointer", !canEdit && "cursor-not-allowed opacity-50")}>Required Task</Label>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowItemDialog(false)}>Cancel</Button>
-            <Button variant="primary" onClick={handleSaveItem}>Confirm</Button>
+            <Button variant="primary" onClick={handleSaveItem} disabled={!canEdit}>Confirm</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

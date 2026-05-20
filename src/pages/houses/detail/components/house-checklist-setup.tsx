@@ -608,6 +608,7 @@ export function HouseChecklistSetup({
                           variant="ghost" 
                           size="icon" 
                           className="size-8 hover:bg-gray-100" 
+                          disabled={!canAdd}
                           onClick={(e) => {
                             e.stopPropagation();
                             handleEditChecklist(cl);

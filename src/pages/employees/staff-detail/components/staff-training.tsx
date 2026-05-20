@@ -17,6 +17,7 @@ import { supabase } from '@/lib/supabase';
 
 interface StaffTrainingSectionProps {
   staffId?: string;
+  canEdit: boolean;
   pendingChanges?: StaffPendingChanges;
   onPendingChangesChange?: (changes: StaffPendingChanges) => void;
   refreshKey?: number;
@@ -26,11 +27,11 @@ type TrainingStatus = 'Current' | 'Expiring Soon' | 'Expired';
 
 function calculateTrainingStatus(expiryDate?: string | null): TrainingStatus {
   if (!expiryDate) return 'Current';
-  
+
   const today = new Date();
   const expiry = parseISO(expiryDate);
   const daysUntilExpiry = differenceInDays(expiry, today);
-  
+
   if (daysUntilExpiry < 0) return 'Expired';
   if (daysUntilExpiry <= 30) return 'Expiring Soon';
   return 'Current';
@@ -49,11 +50,11 @@ function getStatusBadgeVariant(status: TrainingStatus): "success" | "warning" | 
 
 export function StaffTrainingSection({
   staffId,
+  canEdit,
   pendingChanges,
   onPendingChangesChange,
   refreshKey = 0
-}: StaffTrainingSectionProps) {
-  const [showDialog, setShowDialog] = useState(false);
+}: StaffTrainingSectionProps) {  const [showDialog, setShowDialog] = useState(false);
   const [editingItem, setEditingItem] = useState<StaffTraining | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
@@ -282,7 +283,7 @@ export function StaffTrainingSection({
       <Card className="pb-2.5" id="staff_training">
         <CardHeader>
           <CardTitle>Training</CardTitle>
-          <Button variant="secondary" size="sm" className="border border-gray-300" onClick={handleAdd}>
+          <Button variant="secondary" size="sm" className="border border-gray-300" onClick={handleAdd} disabled={!canEdit}>
             <Plus className="size-4 me-1.5" />
             Add Training
           </Button>
@@ -364,7 +365,7 @@ export function StaffTrainingSection({
                                   <Download className="size-4" />
                                 </Button>
                               )}
-                              <Button variant="ghost" size="sm" onClick={() => handleEdit(item)}>
+                              <Button variant="ghost" size="sm" onClick={() => handleEdit(item)} disabled={!canEdit}>
                                 <Edit className="size-4" />
                               </Button>
                               <Button
@@ -372,18 +373,19 @@ export function StaffTrainingSection({
                                 size="sm"
                                 className="text-destructive"
                                 onClick={() => handleDelete(item)}
+                                disabled={!canEdit}
                               >
                                 <Trash2 className="size-4" />
                               </Button>
                             </>
                           )}
                           {isPendingUpdate && item.id && (
-                            <Button variant="ghost" size="sm" onClick={() => handleUndoUpdate(item.id!)}>
+                            <Button variant="ghost" size="sm" onClick={() => handleUndoUpdate(item.id!)} disabled={!canEdit}>
                               Undo
                             </Button>
                           )}
                           {isPendingDelete && item.id && (
-                            <Button variant="ghost" size="sm" onClick={() => handleUndoDelete(item.id!)}>
+                            <Button variant="ghost" size="sm" onClick={() => handleUndoDelete(item.id!)} disabled={!canEdit}>
                               Undo
                             </Button>
                           )}

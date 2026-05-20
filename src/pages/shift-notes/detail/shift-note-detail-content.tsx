@@ -19,6 +19,7 @@ interface ShiftNoteDetailContentProps {
   onOriginalDataChange?: (data: Record<string, any>) => void;
   onSavingChange?: (saving: boolean) => void;
   saveHandlerRef?: MutableRefObject<(() => Promise<void>) | null>;
+  canEdit: boolean;
 }
 
 export function ShiftNoteDetailContent({
@@ -26,6 +27,7 @@ export function ShiftNoteDetailContent({
   onOriginalDataChange,
   onSavingChange,
   saveHandlerRef,
+  canEdit,
 }: ShiftNoteDetailContentProps) {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -101,12 +103,14 @@ export function ShiftNoteDetailContent({
   }, [id, isNewNote, fetchShiftNote, onFormDataChange, onOriginalDataChange]);
 
   const handleFormChange = (field: string, value: any) => {
+    if (!canEdit) return;
     const updatedData = { ...formData, [field]: value };
     setFormData(updatedData);
     if (onFormDataChange) onFormDataChange(updatedData);
   };
 
   const handleAddTag = () => {
+    if (!canEdit) return;
     if (tagInput.trim() && !formData.tags.includes(tagInput.trim())) {
       const newTags = [...formData.tags, tagInput.trim()];
       handleFormChange('tags', newTags);
@@ -115,11 +119,13 @@ export function ShiftNoteDetailContent({
   };
 
   const handleRemoveTag = (tagToRemove: string) => {
+    if (!canEdit) return;
     const newTags = formData.tags.filter(tag => tag !== tagToRemove);
     handleFormChange('tags', newTags);
   };
 
   const handleSave = useCallback(async () => {
+    if (!canEdit) return;
     try {
       if (onSavingChange) onSavingChange(true);
 
@@ -166,7 +172,7 @@ export function ShiftNoteDetailContent({
     } finally {
       if (onSavingChange) onSavingChange(false);
     }
-  }, [formData, isNewNote, id, navigate, shiftNote, onOriginalDataChange, onSavingChange]);
+  }, [canEdit, formData, isNewNote, id, navigate, shiftNote, onOriginalDataChange, onSavingChange]);
 
   // Expose save handler to parent
   useEffect(() => {
@@ -200,6 +206,7 @@ export function ShiftNoteDetailContent({
                 value={formData.start_date}
                 onChange={(e) => handleFormChange('start_date', e.target.value)}
                 required
+                disabled={!canEdit}
               />
             </div>
 
@@ -210,6 +217,7 @@ export function ShiftNoteDetailContent({
                 type="time"
                 value={formData.shift_time}
                 onChange={(e) => handleFormChange('shift_time', e.target.value)}
+                disabled={!canEdit}
               />
             </div>
           </div>
@@ -220,6 +228,7 @@ export function ShiftNoteDetailContent({
               <Select
                 value={formData.participant_id || 'none'}
                 onValueChange={(value) => handleFormChange('participant_id', value === 'none' ? '' : value)}
+                disabled={!canEdit}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select participant" />
@@ -240,6 +249,7 @@ export function ShiftNoteDetailContent({
               <Select
                 value={formData.staff_id || 'none'}
                 onValueChange={(value) => handleFormChange('staff_id', value === 'none' ? '' : value)}
+                disabled={!canEdit}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select staff" />
@@ -260,6 +270,7 @@ export function ShiftNoteDetailContent({
               <Select
                 value={formData.house_id || 'none'}
                 onValueChange={(value) => handleFormChange('house_id', value === 'none' ? '' : value)}
+                disabled={!canEdit}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select house" />
@@ -291,6 +302,7 @@ export function ShiftNoteDetailContent({
               value={formData.notes}
               onChange={(e) => handleFormChange('notes', e.target.value)}
               placeholder="Brief notes about the shift..."
+              disabled={!canEdit}
             />
           </div>
 
@@ -303,6 +315,7 @@ export function ShiftNoteDetailContent({
               placeholder="Detailed shift notes..."
               rows={10}
               required
+              disabled={!canEdit}
             />
           </div>
 
@@ -315,8 +328,9 @@ export function ShiftNoteDetailContent({
                 onChange={(e) => setTagInput(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
                 placeholder="Add a tag..."
+                disabled={!canEdit}
               />
-              <Button type="button" onClick={handleAddTag} variant="outline">
+              <Button type="button" onClick={handleAddTag} variant="outline" disabled={!canEdit}>
                 Add
               </Button>
             </div>
@@ -325,8 +339,8 @@ export function ShiftNoteDetailContent({
                 <Badge key={index} variant="secondary" className="gap-1">
                   {tag}
                   <X
-                    className="size-3 cursor-pointer"
-                    onClick={() => handleRemoveTag(tag)}
+                    className={cn("size-3 cursor-pointer", !canEdit && "cursor-not-allowed opacity-50")}
+                    onClick={() => canEdit && handleRemoveTag(tag)}
                   />
                 </Badge>
               ))}

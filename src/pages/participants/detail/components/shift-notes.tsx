@@ -174,7 +174,7 @@ export function ShiftNotes({
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Shift Notes</CardTitle>
         {canAdd && (
-          <Button size="sm" onClick={handleAdd} disabled={!participantId || !canEdit}>
+          <Button size="sm" onClick={handleAdd} disabled={!participantId || !canAdd}>
             <Plus className="size-4 me-1" />
             Add Note
           </Button>
@@ -224,7 +224,7 @@ export function ShiftNotes({
                     <div className="flex items-center gap-1">
                       {!isPendingDelete && !isPendingAdd && !isPendingUpdate && (
                         <>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(note)}>
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(note)} disabled={!canEdit}>
                             <Edit className="size-3.5" />
                           </Button>
                           {canDelete && (
@@ -240,12 +240,12 @@ export function ShiftNotes({
                         </Button>
                       )}
                       {isPendingUpdate && (
-                        <Button variant="ghost" size="sm" onClick={() => handleUndoUpdate(note.id)}>
+                        <Button variant="ghost" size="sm" onClick={() => handleUndoUpdate(note.id)} disabled={!canEdit}>
                           Undo
                         </Button>
                       )}
                       {isPendingDelete && (
-                        <Button variant="ghost" size="sm" onClick={() => handleUndoDelete(note.id)}>
+                        <Button variant="ghost" size="sm" onClick={() => handleUndoDelete(note.id)} disabled={!canEdit}>
                           Undo
                         </Button>
                       )}

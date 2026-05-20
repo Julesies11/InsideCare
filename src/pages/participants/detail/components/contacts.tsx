@@ -250,12 +250,22 @@ export function Contacts({
                             </Button>
                           )}
                           {isPendingUpdate && (
-                            <Button variant="ghost" size="sm" onClick={() => handleCancelPendingUpdate(contact.id)}>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleCancelPendingUpdate(contact.id)}
+                              disabled={!canAdd}
+                            >
                               Undo
                             </Button>
                           )}
                           {isPendingDelete && (
-                            <Button variant="ghost" size="sm" onClick={() => handleCancelPendingDelete(contact.id)}>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleCancelPendingDelete(contact.id)}
+                              disabled={!canDelete}
+                            >
                               Undo
                             </Button>
                           )}

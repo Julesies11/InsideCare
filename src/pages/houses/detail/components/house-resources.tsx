@@ -373,10 +373,9 @@ export function HouseResources({
                                   <Download className="size-4" />
                                 </Button>
                               )}
-                              <Button variant="ghost" size="sm" onClick={() => handleEdit(resource)}>
-                                <Edit className="size-4" />
-                              </Button>
-                              {canDelete && (
+                              <Button variant="ghost" size="sm" onClick={() => handleEdit(resource)} disabled={!canAdd}>
+                               <Edit className="size-4" />
+                              </Button>                              {canDelete && (
                                 <Button
                                   variant="ghost"
                                   size="sm"

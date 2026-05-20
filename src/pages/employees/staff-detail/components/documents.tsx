@@ -192,6 +192,7 @@ export function Documents({
                               variant="ghost"
                               size="sm"
                               onClick={() => handleCancelPendingDelete(doc.id)}
+                              disabled={!canDelete}
                             >
                               Undo
                             </Button>

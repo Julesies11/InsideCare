@@ -24,6 +24,10 @@ import {
   ToolbarPageTitle,
   ToolbarDescription,
 } from '@/partials/common/toolbar';
+import { NotificationService } from '@/lib/notification-service';
+import { RBAC_MODULES } from '@/config/rbac-modules';
+import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
+import { logActivity } from '@/lib/activity-logger';
 
 interface LeaveRequest {
   id: string;
@@ -50,31 +54,36 @@ interface AffectedShift {
   house: { name: string } | null;
 }
 
-const statusVariant: Record<string, 'secondary' | 'success' | 'destructive' | 'warning'> = {
-  pending: 'warning',
-  approved: 'success',
-  rejected: 'destructive',
-};
-
-const statusLabel: Record<string, string> = {
-  pending: 'Pending',
-  approved: 'Approved',
-  rejected: 'Rejected',
-};
-
-import { NotificationService } from '@/lib/notification-service';
-
 export function AdminLeaveRequestsPage() {
   const { user } = useAuth();
+  const { hasAccess } = useRBAC();
+  
+  const canEdit = hasAccess({ 
+    resource: RBAC_MODULES.LEAVE_REQUESTS, 
+    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE 
+  });
+
   const [requests, setRequests] = useState<LeaveRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<LeaveRequest | null>(null);
   const [action, setAction] = useState<'approve' | 'reject' | null>(null);
   const [adminNotes, setAdminNotes] = useState('');
   const [saving, setSaving] = useState(false);
-  const [affectedShifts, setAffectedShifts] = useState<AffectedShift[]>([]);
-  const [loadingShifts, setLoadingShifts] = useState(false);
   const [conflictCounts, setConflictCounts] = useState<Record<string, number>>({});
+  const [affectedShifts, setAffectedShifts] = useState<AffectedShift[]>([]);
+  const [shiftsLoading, setShiftsLoading] = useState(false);
+
+  const statusVariant: Record<string, 'secondary' | 'success' | 'destructive'> = {
+    pending: 'secondary',
+    approved: 'success',
+    rejected: 'destructive',
+  };
+
+  const statusLabel = {
+    pending: 'Pending',
+    approved: 'Approved',
+    rejected: 'Rejected',
+  };
 
   const dayCount = (req: LeaveRequest) => {
     const ms = new Date(req.end_date).getTime() - new Date(req.start_date).getTime();
@@ -119,172 +128,182 @@ export function AdminLeaveRequestsPage() {
     setLoading(false);
   }, []);
 
-  useEffect(() => { fetchRequests(); }, [fetchRequests]);
+  useEffect(() => {
+    fetchRequests();
+  }, [fetchRequests]);
 
-  const openAction = async (req: LeaveRequest, act: 'approve' | 'reject') => {
-    setSelected(req);
-    setAction(act);
-    setAdminNotes('');
-    setAffectedShifts([]);
-    setLoadingShifts(true);
-    const { data } = await supabase
-      .from('staff_shifts')
-      .select('id, start_date, start_time, end_time, status, house:houses(name)')
-      .eq('staff_id', req.staff_id)
-      .gte('start_date', req.start_date)
-      .lte('start_date', req.end_date)
-      .not('status', 'eq', 'Cancelled')
-      .order('start_date');
-    setAffectedShifts((data as AffectedShift[]) || []);
-    setLoadingShifts(false);
+  const fetchAffectedShifts = async (staffId: string, startDate: string, endDate: string) => {
+    setShiftsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('staff_shifts')
+        .select('id, start_date, start_time, end_time, status, house:house_id(name)')
+        .eq('staff_id', staffId)
+        .gte('start_date', startDate)
+        .lte('start_date', endDate)
+        .order('start_date', { ascending: true })
+        .order('start_time', { ascending: true });
+
+      if (error) throw error;
+      setAffectedShifts((data as AffectedShift[]) || []);
+    } catch (err) {
+      console.error('Error fetching affected shifts:', err);
+    } finally {
+      setShiftsLoading(false);
+    }
   };
 
-  const isSelf = selected?.staff_id === user?.staff_id;
-
-  const handleSubmit = async () => {
-    if (!selected || !action) return;
-    if (isSelf && action === 'approve') {
-      toast.error('You cannot approve your own leave request');
-      return;
+  const openAction = (req: LeaveRequest, type: 'approve' | 'reject') => {
+    setSelected(req);
+    setAction(type);
+    setAdminNotes('');
+    if (type === 'approve') {
+      fetchAffectedShifts(req.staff_id, req.start_date, req.end_date);
+    } else {
+      setAffectedShifts([]);
     }
+  };
+
+  const handleAction = async () => {
+    if (!selected || !action || !user) return;
     setSaving(true);
     const newStatus = action === 'approve' ? 'approved' : 'rejected';
+    
+    try {
+      // Update the leave request
+      const { error } = await supabase
+        .from('leave_requests')
+        .update({ 
+          status: newStatus, 
+          admin_notes: adminNotes || null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', selected.id);
 
-    const { error } = await supabase
-      .from('leave_requests')
-      .update({ status: newStatus, admin_notes: adminNotes || null, updated_at: new Date().toISOString() })
-      .eq('id', selected.id);
+      if (error) throw error;
 
-    if (error) {
-      toast.error('Failed to update leave request');
-      setSaving(false);
-      return;
-    }
+      // Log activity
+      await logActivity({
+        activityType: action === 'approve' ? 'approve' : 'reject',
+        entityType: 'leave_request',
+        entityId: selected.id,
+        entityName: `${selected.staff?.name || 'Staff'} Leave Request`,
+        userName: user.fullname || user.email || 'Admin',
+        customDescription: `${action === 'approve' ? 'Approved' : 'Rejected'} leave request for ${selected.staff?.name} from ${selected.start_date} to ${selected.end_date}.`
+      });
 
-    // On approval: mark conflicting shifts as 'Leave Cover Required'
-    if (action === 'approve' && affectedShifts.length > 0) {
-      const shiftIds = affectedShifts.map(s => s.id);
-      await supabase
-        .from('staff_shifts')
-        .update({ status: 'Leave Cover Required' })
-        .in('id', shiftIds);
-    }
+      // Handle shift removal if approved
+      if (newStatus === 'approved' && affectedShifts.length > 0) {
+        // Option 1: Mark shifts as 'open' (removing staff_id)
+        const shiftIds = affectedShifts.map(s => s.id);
+        const { error: shiftError } = await supabase
+          .from('staff_shifts')
+          .update({ 
+            staff_id: null,
+            notes: `Staff member approved for leave. Previously assigned to ${selected.staff?.name}.` 
+          })
+          .in('id', shiftIds);
 
-    toast.success(`Leave request ${newStatus}`);
-
-    if (selected.staff?.auth_user_id) {
-      const dateRangeStr = `${format(new Date(selected.start_date), 'dd MMM')} – ${format(new Date(selected.end_date), 'dd MMM yyyy')}`;
-      const leaveTypeName = selected.leave_type?.name ?? 'leave';
-      
-      if (newStatus === 'approved') {
-        await NotificationService.notifyLeaveApproved(
-          selected.staff.auth_user_id,
-          dateRangeStr,
-          leaveTypeName,
-          adminNotes
-        );
-      } else {
-        await NotificationService.notifyLeaveRejected(
-          selected.staff.auth_user_id,
-          dateRangeStr,
-          leaveTypeName,
-          adminNotes
-        );
+        if (shiftError) console.error('Error opening shifts:', shiftError);
+        else toast.success(`Leave approved and ${affectedShifts.length} shifts opened.`);
       }
-    }
 
-    setSelected(null);
-    setAction(null);
-    fetchRequests();
-    setSaving(false);
+      // Notify staff member via Edge Function or NotificationService
+      if (selected.staff?.auth_user_id) {
+        if (newStatus === 'approved') {
+          await NotificationService.notifyLeaveApproved(
+            selected.staff.auth_user_id,
+            selected.start_date,
+            selected.end_date
+          );
+        } else if (newStatus === 'rejected') {
+          await NotificationService.notifyLeaveRejected(
+            selected.staff.auth_user_id,
+            selected.start_date,
+            selected.end_date,
+            adminNotes || undefined
+          );
+        }
+      }
+
+      toast.success(`Leave request ${newStatus}`);
+      setSelected(null);
+      setAction(null);
+      fetchRequests();
+    } catch (err) {
+      console.error('Error handling leave action:', err);
+      toast.error(`Failed to ${action} request`);
+    } finally {
+      setSaving(false);
+    }
   };
 
-  // Same-day sick leave alert: flag pending sick leave where start_date is today
-  const sameDaySickLeave = requests.filter(
-    r => r.status === 'pending' &&
-      r.leave_type?.name?.toLowerCase().includes('sick') &&
-      isToday(parseISO(r.start_date))
-  );
-
   return (
-    <>
+    <Fragment>
       <Container>
         <Toolbar>
           <ToolbarHeading>
-            <ToolbarPageTitle text="Leave Requests" />
-            <ToolbarDescription>Review and action staff leave requests</ToolbarDescription>
+            <ToolbarPageTitle text="Leave Management" />
+            <ToolbarDescription>
+              Review and approve staff leave requests
+            </ToolbarDescription>
           </ToolbarHeading>
         </Toolbar>
       </Container>
 
       <Container>
         <div className="grid gap-5 lg:gap-7.5">
-
-          {/* Same-day sick leave alert banner */}
-          {sameDaySickLeave.length > 0 && (
-            <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 flex gap-3">
-              <AlertTriangle className="size-5 text-destructive mt-0.5 shrink-0" />
-              <div>
-                <p className="text-sm font-semibold text-destructive">
-                  {sameDaySickLeave.length} same-day sick leave{sameDaySickLeave.length !== 1 ? 's' : ''} require urgent attention
-                </p>
-                <div className="mt-1 space-y-0.5">
-                  {sameDaySickLeave.map(r => (
-                    <p key={r.id} className="text-sm">
-                      <span className="font-medium">{r.staff?.name}</span> — {r.leave_type?.name}
-                      {conflictCounts[r.id] ? ` · ${conflictCounts[r.id]} shift${conflictCounts[r.id] !== 1 ? 's' : ''} affected` : ''}
-                    </p>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
           {loading ? (
             <Card>
-              <CardContent className="py-10 text-center text-sm text-muted-foreground">Loading...</CardContent>
+              <CardContent className="py-10 text-center text-sm text-muted-foreground">
+                Loading requests...
+              </CardContent>
             </Card>
           ) : requests.length === 0 ? (
             <Card>
-              <CardContent className="py-16 text-center text-sm text-muted-foreground">
-                No leave requests submitted yet.
+              <CardContent className="py-16 text-center">
+                <div className="flex size-14 items-center justify-center rounded-full bg-muted mx-auto mb-4">
+                  <CalendarClock className="size-7 text-muted-foreground" />
+                </div>
+                <p className="text-gray-900 font-medium">No leave requests found</p>
+                <p className="text-sm text-gray-500 mt-1">There are no leave requests needing review.</p>
               </CardContent>
             </Card>
           ) : (
             <Card>
               <CardTable>
-                <table className="w-full text-sm">
+                <table className="w-full text-left">
                   <thead>
-                    <tr className="border-b bg-muted/40">
-                      <th className="text-left px-5 py-3 font-medium text-muted-foreground">Staff</th>
-                      <th className="text-left px-5 py-3 font-medium text-muted-foreground">Type</th>
-                      <th className="text-left px-5 py-3 font-medium text-muted-foreground hidden sm:table-cell">Dates</th>
-                      <th className="text-left px-5 py-3 font-medium text-muted-foreground hidden md:table-cell">Duration</th>
-                      <th className="text-left px-5 py-3 font-medium text-muted-foreground hidden lg:table-cell">Conflicts</th>
-                      <th className="text-left px-5 py-3 font-medium text-muted-foreground">Status</th>
-                      <th className="text-left px-5 py-3 font-medium text-muted-foreground hidden md:table-cell">Submitted</th>
-                      <th className="px-5 py-3"></th>
+                    <tr className="border-b border-gray-100 bg-gray-50/50">
+                      <th className="px-5 py-3 text-xs font-bold uppercase text-muted-foreground">Staff Member</th>
+                      <th className="px-5 py-3 text-xs font-bold uppercase text-muted-foreground">Type</th>
+                      <th className="px-5 py-3 text-xs font-bold uppercase text-muted-foreground hidden sm:table-cell">Dates</th>
+                      <th className="px-5 py-3 text-xs font-bold uppercase text-muted-foreground hidden md:table-cell">Duration</th>
+                      <th className="px-5 py-3 text-xs font-bold uppercase text-muted-foreground hidden lg:table-cell">Conflicts</th>
+                      <th className="px-5 py-3 text-xs font-bold uppercase text-muted-foreground">Status</th>
+                      <th className="px-5 py-3 text-xs font-bold uppercase text-muted-foreground hidden md:table-cell">Requested</th>
+                      <th className="px-5 py-3 text-xs font-bold uppercase text-muted-foreground">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y">
+                  <tbody>
                     {requests.map((req) => {
-                      const isSelfRow = req.staff_id === user?.staff_id;
+                      const isSelfRow = req.staff?.auth_user_id === user?.id;
                       return (
-                        <tr key={req.id} className="hover:bg-muted/30 transition-colors">
-                          <td className="px-5 py-3.5 font-medium">
-                            {req.staff?.name ?? 'Unknown'}
-                            {isSelfRow && (
-                              <span className="ml-1.5 text-xs text-muted-foreground">(you)</span>
-                            )}
+                        <tr key={req.id} className="border-b border-gray-50 group hover:bg-gray-50/50 transition-colors">
+                          <td className="px-5 py-3.5">
+                            <div className="flex flex-col">
+                              <span className="font-bold text-gray-900">{req.staff?.name ?? 'Unknown'}</span>
+                              <span className="text-[10px] text-muted-foreground truncate max-w-[150px]">{req.reason}</span>
+                            </div>
                           </td>
                           <td className="px-5 py-3.5">{req.leave_type?.name ?? 'Leave'}</td>
-                          <td className="px-5 py-3.5 text-muted-foreground hidden sm:table-cell">
+                          <td className="px-5 py-3.5 text-muted-foreground hidden sm:table-cell text-sm">
                             {format(new Date(req.start_date), 'dd MMM yyyy')}
                             {req.start_date !== req.end_date && (
                               <> – {format(new Date(req.end_date), 'dd MMM yyyy')}</>
                             )}
                           </td>
-                          <td className="px-5 py-3.5 text-muted-foreground hidden md:table-cell">
+                          <td className="px-5 py-3.5 text-muted-foreground hidden md:table-cell text-sm">
                             {dayCount(req)} day{dayCount(req) !== 1 ? 's' : ''}
                           </td>
                           <td className="px-5 py-3.5 hidden lg:table-cell">
@@ -301,7 +320,7 @@ export function AdminLeaveRequestsPage() {
                             )}
                           </td>
                           <td className="px-5 py-3.5">
-                            <Badge variant={statusVariant[req.status] ?? 'secondary'} appearance="light">
+                            <Badge variant={statusVariant[req.status] ?? 'secondary'} appearance="light" size="sm">
                               {statusLabel[req.status] ?? req.status}
                             </Badge>
                           </td>
@@ -315,8 +334,8 @@ export function AdminLeaveRequestsPage() {
                                   size="sm"
                                   className="h-7 px-2.5 text-xs"
                                   onClick={() => openAction(req, 'approve')}
-                                  disabled={isSelfRow}
-                                  title={isSelfRow ? 'Cannot approve your own leave' : 'Approve'}
+                                  disabled={isSelfRow || !canEdit}
+                                  title={isSelfRow ? 'Cannot approve your own leave' : !canEdit ? 'Insufficient permissions' : 'Approve'}
                                 >
                                   <Check className="size-3.5 me-1" /> Approve
                                 </Button>
@@ -325,6 +344,8 @@ export function AdminLeaveRequestsPage() {
                                   variant="destructive"
                                   className="h-7 px-2.5 text-xs"
                                   onClick={() => openAction(req, 'reject')}
+                                  disabled={!canEdit}
+                                  title={!canEdit ? 'Insufficient permissions' : 'Reject'}
                                 >
                                   <X className="size-3.5 me-1" /> Reject
                                 </Button>
@@ -343,108 +364,89 @@ export function AdminLeaveRequestsPage() {
       </Container>
 
       {/* Approve / Reject dialog */}
-      <Dialog open={!!selected} onOpenChange={() => { setSelected(null); setAction(null); }}>
+      <Dialog open={!!selected} onOpenChange={() => { if (!saving) { setSelected(null); setAction(null); } }}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>
-              {action === 'approve' ? 'Approve' : 'Reject'} Leave Request
+              {action === 'approve' ? 'Approve Leave Request' : 'Reject Leave Request'}
             </DialogTitle>
-            {selected && (
-              <DialogDescription>
-                {selected.staff?.name} · {selected.leave_type?.name} ·{' '}
-                {format(new Date(selected.start_date), 'dd MMM')} – {format(new Date(selected.end_date), 'dd MMM yyyy')}
-                {' '}({dayCount(selected)} day{dayCount(selected) !== 1 ? 's' : ''})
-              </DialogDescription>
-            )}
+            <DialogDescription>
+              {action === 'approve' 
+                ? `Approving ${selected?.staff?.name}'s request for ${dayCount(selected!)} days.`
+                : `Provide a reason for rejecting ${selected?.staff?.name}'s request.`}
+            </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
-            {/* Self-approval warning */}
-            {isSelf && action === 'approve' && (
-              <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 flex gap-2">
-                <AlertTriangle className="size-4 text-destructive mt-0.5 shrink-0" />
-                <p className="text-sm text-destructive font-medium">
-                  You cannot approve your own leave. Another supervisor must action this.
-                </p>
-              </div>
-            )}
-
-            {/* Reason / attachment */}
-            {selected?.reason && (
-              <div className="text-sm">
-                <span className="font-medium">Reason: </span>
-                <span className="text-muted-foreground">{selected.reason}</span>
-              </div>
-            )}
-            {selected?.attachment_url && (
-              <a
-                href={selected.attachment_url}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-1.5 text-sm text-primary underline"
-              >
-                <Paperclip className="size-3.5" /> View attachment
-              </a>
-            )}
-
-            {/* Affected shifts */}
+          <div className="space-y-4 py-4">
             {action === 'approve' && (
-              <div className="space-y-2">
-                <p className="text-sm font-medium flex items-center gap-1.5">
-                  <CalendarClock className="size-4 text-muted-foreground" />
-                  Affected shifts
-                  {loadingShifts && <span className="text-xs text-muted-foreground ml-1">(loading...)</span>}
-                </p>
-                {!loadingShifts && affectedShifts.length === 0 && (
-                  <p className="text-sm text-muted-foreground">No active shifts during this period.</p>
-                )}
-                {affectedShifts.length > 0 && (
-                  <>
-                    <div className="rounded-md border divide-y max-h-40 overflow-y-auto">
+              <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 space-y-3">
+                <div className="flex items-start gap-2.5">
+                  <AlertTriangle className="size-4 text-blue-600 mt-0.5" />
+                  <div className="space-y-1">
+                    <p className="text-sm font-bold text-blue-900">Important Note</p>
+                    <p className="text-xs text-blue-800 leading-relaxed">
+                      Approving this leave will automatically remove this staff member from any shifts they are assigned to during this period. Those shifts will become "Open" on the roster board.
+                    </p>
+                  </div>
+                </div>
+
+                {shiftsLoading ? (
+                  <div className="text-[10px] text-blue-600 animate-pulse">Checking for conflicts...</div>
+                ) : affectedShifts.length > 0 ? (
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-bold text-blue-900 uppercase tracking-wider">Affected Shifts ({affectedShifts.length})</p>
+                    <div className="max-h-[120px] overflow-y-auto space-y-1.5 pr-1">
                       {affectedShifts.map(s => (
-                        <div key={s.id} className="px-3 py-2 text-sm flex items-center justify-between">
-                          <span>{format(parseISO(s.start_date), 'EEE dd MMM')}</span>
-                          <span className="text-muted-foreground">
-                            {s.start_time?.slice(0,5)}–{s.end_time?.slice(0,5)}
-                            {s.house?.name ? ` · ${s.house.name}` : ''}
-                          </span>
+                        <div key={s.id} className="flex items-center justify-between text-[10px] bg-white/50 p-1.5 rounded border border-blue-100">
+                          <div className="font-medium text-gray-700">
+                            {format(new Date(s.start_date), 'dd MMM')} at {s.house?.name || 'Unknown'}
+                          </div>
+                          <div className="text-gray-500 italic">{s.start_time.slice(0, 5)} - {s.end_time.slice(0, 5)}</div>
                         </div>
                       ))}
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      These shifts will be marked as <strong>Leave Cover Required</strong> on approval.
-                    </p>
-                  </>
+                  </div>
+                ) : (
+                  <p className="text-[10px] text-blue-600 italic">No shifts assigned during this period.</p>
                 )}
               </div>
             )}
 
-            {/* Admin notes */}
-            <div className="space-y-1.5">
-              <Label>Admin Notes <span className="text-muted-foreground text-xs">(optional)</span></Label>
+            <div className="space-y-2">
+              <Label htmlFor="admin-notes">Notes to Staff member (Optional)</Label>
               <Textarea
+                id="admin-notes"
+                placeholder={action === 'reject' ? "Please explain why this request was rejected..." : "Optional message..."}
                 value={adminNotes}
                 onChange={(e) => setAdminNotes(e.target.value)}
-                placeholder="Add a note for the staff member..."
                 rows={3}
               />
             </div>
+
+            {selected?.attachment_url && (
+              <div className="flex items-center gap-2 text-sm text-primary">
+                <Paperclip className="size-4" />
+                <a href={selected.attachment_url} target="_blank" rel="noopener noreferrer" className="hover:underline font-medium">
+                  View Attachment
+                </a>
+              </div>
+            )}
           </div>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => { setSelected(null); setAction(null); }} disabled={saving}>
               Cancel
             </Button>
-            <Button
-              variant={action === 'approve' ? 'default' : 'destructive'}
-              onClick={handleSubmit}
-              disabled={saving || (isSelf && action === 'approve')}
+            <Button 
+              variant={action === 'approve' ? 'primary' : 'destructive'} 
+              onClick={handleAction} 
+              disabled={saving || !canEdit || (action === 'reject' && !adminNotes.trim())}
             >
               {saving ? 'Saving...' : action === 'approve' ? 'Approve' : 'Reject'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
+    </Fragment>
   );
 }

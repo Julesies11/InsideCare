@@ -350,10 +350,10 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
           <p className="text-sm text-muted-foreground">Define work periods and their default checklists.</p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => { setImportSourceId(''); setShowImportDialog(true); }} variant="outline" size="sm" className="gap-2 font-bold border-gray-300">
+          <Button onClick={() => { setImportSourceId(''); setShowImportDialog(true); }} disabled={!_canEdit} variant="outline" size="sm" className="gap-2 font-bold border-gray-300">
             <Download className="size-4" /> Import Templates
           </Button>
-          <Button onClick={() => handleOpenTypeDialog()} size="sm" className="gap-2 font-bold">
+          <Button onClick={() => handleOpenTypeDialog()} disabled={!_canEdit} size="sm" className="gap-2 font-bold">
             <Plus className="size-4" /> Add Template
           </Button>
         </div>
@@ -390,10 +390,10 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
                   </div>
                 </div>
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button variant="ghost" size="icon" className="size-8" onClick={() => handleOpenTypeDialog(st)}>
+                  <Button variant="ghost" size="icon" className="size-8" onClick={() => handleOpenTypeDialog(st)} disabled={!_canEdit}>
                     <Edit className="size-3.5" />
                   </Button>
-                  <Button variant="ghost" size="icon" className="size-8 text-destructive" onClick={() => handleDeleteType(st)}>
+                  <Button variant="ghost" size="icon" className="size-8 text-destructive" onClick={() => handleDeleteType(st)} disabled={!_canEdit}>
                     <Trash2 className="size-3.5" />
                   </Button>
                 </div>

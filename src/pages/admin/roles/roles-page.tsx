@@ -246,6 +246,7 @@ export function RolesPage() {
                                 size="icon"
                                 onClick={() => handleEdit(role)}
                                 title="Edit Role"
+                                disabled={!canEdit}
                               >
                                 <Edit className="size-4" />
                               </Button>
@@ -253,6 +254,7 @@ export function RolesPage() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleToggleStatus(role)}
+                                disabled={!canEdit}
                               >
                                 {role.is_active ? 'Deactivate' : 'Activate'}
                               </Button>

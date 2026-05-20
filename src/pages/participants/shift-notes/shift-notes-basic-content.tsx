@@ -45,10 +45,12 @@ export function ShiftNotesContent() {
             View and manage daily shift documentation
           </p>
         </div>
-        <Button onClick={handleAddShiftNote}>
-          <Plus className="size-4" />
-          Add Shift Note
-        </Button>
+        {canAdd && (
+          <Button onClick={handleAddShiftNote}>
+            <Plus className="size-4" />
+            Add Shift Note
+          </Button>
+        )}
       </div>
 
       {/* Shift Notes Banner */}

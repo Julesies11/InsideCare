@@ -88,6 +88,7 @@ export function StaffDetailForm({
       <StaffTrainingSection
         key={`training-${trainingRefreshKey}`}
         staffId={staffId}
+        canEdit={canEdit}
         pendingChanges={pendingChanges}
         onPendingChangesChange={onPendingChangesChange}
         refreshKey={trainingRefreshKey}

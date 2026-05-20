@@ -12,18 +12,31 @@ import {
   ToolbarPageTitle,
 } from '@/partials/common/toolbar';
 import { useSettings } from '@/providers/settings-provider';
+import { useDirtyTracker } from '@/hooks/useDirtyTracker';
+import { RBAC_MODULES } from '@/config/rbac-modules';
+import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
 
 export function ShiftNoteDetailPage() {
   const navigate = useNavigate();
   const { settings } = useSettings();
   const { id } = useParams();
+  const { hasAccess } = useRBAC();
+  
+  const canEdit = hasAccess({ 
+    resource: RBAC_MODULES.SHIFT_NOTES, 
+    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE 
+  });
+
   const [formData, setFormData] = useState<Record<string, any> | null>(null);
   const [originalData, setOriginalData] = useState<Record<string, any> | null>(null);
   const [saving, setSaving] = useState(false);
   const saveHandlerRef = useRef<(() => Promise<void>) | null>(null);
 
   // Check if form is dirty
-  const isDirty = formData && originalData && JSON.stringify(formData) !== JSON.stringify(originalData);
+  const { isDirty } = useDirtyTracker({
+    formData: formData || {},
+    originalData: originalData || {},
+  });
 
   // Warn user before leaving page with unsaved changes
   useEffect(() => {
@@ -77,7 +90,7 @@ export function ShiftNoteDetailPage() {
               <ToolbarActions>
                 <Button 
                   onClick={handleSave} 
-                  disabled={!isDirty || saving}
+                  disabled={!isDirty || saving || !canEdit}
                   variant={isDirty ? 'primary' : 'secondary'}
                 >
                   {saving ? 'Saving...' : isNewNote ? 'Create' : 'Save Changes'}
@@ -93,6 +106,7 @@ export function ShiftNoteDetailPage() {
           onOriginalDataChange={setOriginalData}
           onSavingChange={setSaving}
           saveHandlerRef={saveHandlerRef}
+          canEdit={canEdit}
         />
       </Container>
     </Fragment>

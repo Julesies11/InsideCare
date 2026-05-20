@@ -258,7 +258,7 @@ export function ServiceProviders({
                         <div className="flex justify-end gap-1">
                           {!isPendingDelete && (
                             <>
-                              <Button variant="ghost" size="sm" onClick={() => handleEdit(provider)}>
+                              <Button variant="ghost" size="sm" onClick={() => handleEdit(provider)} disabled={!canAdd}>
                                 <Edit className="size-4" />
                               </Button>
                               {canDelete && (

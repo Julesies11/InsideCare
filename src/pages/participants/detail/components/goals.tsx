@@ -449,7 +449,7 @@ export function Goals({
                         <div className="flex justify-end gap-1">
                           {!isPendingDelete && (
                             <>
-                              <Button variant="ghost" size="sm" onClick={() => handleEdit(goal)}>
+                              <Button variant="ghost" size="sm" onClick={() => handleEdit(goal)} disabled={!canAdd}>
                                 <Edit className="size-4" />
                               </Button>
                               {canDelete && (
@@ -478,6 +478,7 @@ export function Goals({
                               variant="ghost"
                               size="sm"
                               onClick={() => handleCancelPendingUpdate(goal.id)}
+                              disabled={!canAdd}
                             >
                               Undo
                             </Button>
@@ -487,6 +488,7 @@ export function Goals({
                               variant="ghost"
                               size="sm"
                               onClick={() => handleCancelPendingDelete(goal.id)}
+                              disabled={!canDelete}
                             >
                               Undo
                             </Button>

@@ -815,6 +815,11 @@ export function ParticipantDetailContent({
           participantId={id} 
           canAdd={canAdd} 
           canDelete={canDelete}
+          canEdit={canEdit}
+          pendingChanges={pendingChanges?.shiftNotes}
+          onPendingChangesChange={(notesChanges) => 
+            pendingChanges && onPendingChangesChange?.({ ...pendingChanges, shiftNotes: notesChanges })
+          }
         />
 
         <ActivityLog 

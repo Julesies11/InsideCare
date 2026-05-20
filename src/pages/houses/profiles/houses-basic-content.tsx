@@ -6,9 +6,17 @@ import { useNavigate } from 'react-router';
 import { supabase } from '@/lib/supabase';
 import { logActivity } from '@/lib/activity-logger';
 import { handleSupabaseError } from '@/errors/error-handler';
+import { RBAC_MODULES } from '@/config/rbac-modules';
+import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
 
 export function HousesProfilesContent() {
   const navigate = useNavigate();
+  const { hasAccess } = useRBAC();
+  
+  const canAdd = hasAccess({ 
+    resource: RBAC_MODULES.HOUSES, 
+    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE 
+  });
 
   const handleAddHouse = async () => {
     try {
@@ -55,10 +63,12 @@ export function HousesProfilesContent() {
             Manage house information and settings
           </p>
         </div>
-        <Button onClick={handleAddHouse}>
-          <HouseIcon className="size-4" />
-          Add House
-        </Button>
+        {canAdd && (
+          <Button onClick={handleAddHouse}>
+            <HouseIcon className="size-4" />
+            Add House
+          </Button>
+        )}
       </div>
 
       {/* Motivational Banner */}

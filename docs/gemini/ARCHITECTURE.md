@@ -170,6 +170,25 @@ The UI follows a **"Dumb Frontend, Smart Backend"** philosophy. The frontend onl
     - **Render Prop Pattern**: Passes an `isAllowed` boolean to its children. This is the **preferred pattern for forms**, allowing them to gracefully degrade into a "Read Only" state with disabled buttons and visual labels.
 - **Routing Guards**: The `RequirePermission` component ensures a user has at least `context_read_only` access before allowing them into a route section.
 
+### Standardized Form & Detail Page Pattern
+To ensure a consistent and secure user experience, all major entity detail pages (Houses, Participants, Staff, Shift Notes) must follow this pattern:
+
+1.  **Permission Computation**:
+    - Use `useRBAC` at the top level of the page or content component.
+    - Derive `canEdit`, `canAdd`, and `canDelete` flags based on the required `ACCESS_LEVEL` (usually `CONTEXT_READ_WRITE`).
+    - Pass these flags down to all nested sub-components.
+
+2.  **Field & Button Locking**:
+    - All input fields, selects, and textareas must use `disabled={!canEdit}`.
+    - All "Add", "Edit", and "Delete" action buttons must use `disabled={!canEdit}` (or `canAdd`/`canDelete` respectively).
+    - If a user has read-only access, the UI should remain visible but interactive elements must be locked.
+
+3.  **Comprehensive Dirty Tracking**:
+    - Use the `useDirtyTracker` hook to monitor the "unsaved" state.
+    - **Inputs**: Pass both the main `formData` and the entity-specific `pendingChanges` object.
+    - **Safety**: Provide fallback empty objects (`formData || {}`, `originalData || {}`) to ensure stable evaluation during initial loading.
+    - **Transitivity**: Any change in a sub-page (e.g. adding a staff member to a house) must update the shared `pendingChanges` state, which in turn triggers the `useDirtyTracker` to enable the "Save Changes" button.
+
 **Key Rule:** Never attempt to calculate "Am I assigned to this house?" in the frontend. Let the database filter the query results automatically via RLS.
 
 ## 7. Directory Structure

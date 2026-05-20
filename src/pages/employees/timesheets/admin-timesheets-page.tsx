@@ -36,6 +36,8 @@ import { DataGrid } from '@/components/ui/data-grid';
 import { DataGridTable } from '@/components/ui/data-grid-table';
 import { DataGridPagination } from '@/components/ui/data-grid-pagination';
 import { Checkbox } from '@/components/ui/checkbox';
+import { RBAC_MODULES } from '@/config/rbac-modules';
+import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
 
 interface Timesheet {
   id: string;
@@ -116,6 +118,13 @@ function ExceptionIcons({ ts }: { ts: Timesheet }) {
 
 export function AdminTimesheetsPage() {
   const { user } = useAuth();
+  const { hasAccess } = useRBAC();
+  
+  const canEdit = hasAccess({ 
+    resource: RBAC_MODULES.TIMESHEETS, 
+    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE 
+  });
+
   const [timesheets, setTimesheets]           = useState<Timesheet[]>([]);
   const [loading, setLoading]                 = useState(true);
   const [statusFilter, setStatusFilter]       = useState<StatusFilter>('pending');
@@ -355,10 +364,23 @@ export function AdminTimesheetsPage() {
           <div className="flex items-center gap-1.5 justify-end">
             {ts.status === 'pending' ? (
               <>
-                <Button size="sm" className="h-7 px-2.5 text-xs bg-green-600 hover:bg-green-700 text-white" onClick={() => openReview(ts, 'approve')}>
+                <Button 
+                  size="sm" 
+                  className="h-7 px-2.5 text-xs bg-green-600 hover:bg-green-700 text-white" 
+                  onClick={() => openReview(ts, 'approve')}
+                  disabled={!canEdit}
+                  title={!canEdit ? 'Insufficient permissions' : 'Approve'}
+                >
                   <Check className="size-3.5 mr-1" /> Approve
                 </Button>
-                <Button size="sm" variant="destructive" className="h-7 px-2.5 text-xs" onClick={() => openReview(ts, 'reject')}>
+                <Button 
+                  size="sm" 
+                  variant="destructive" 
+                  className="h-7 px-2.5 text-xs" 
+                  onClick={() => openReview(ts, 'reject')}
+                  disabled={!canEdit}
+                  title={!canEdit ? 'Insufficient permissions' : 'Reject'}
+                >
                   <X className="size-3.5 mr-1" /> Reject
                 </Button>
               </>
@@ -371,7 +393,7 @@ export function AdminTimesheetsPage() {
         );
       },
     },
-  ], [statusFilter]);
+  ], [statusFilter, canEdit]);
 
   const table = useReactTable({
     data: filtered,
@@ -457,7 +479,7 @@ export function AdminTimesheetsPage() {
               </SelectContent>
             </Select>
             {selectedItems.length > 0 && (
-              <Button size="sm" onClick={handleBulkApprove} disabled={saving} className="bg-green-600 hover:bg-green-700 text-white">
+              <Button size="sm" onClick={handleBulkApprove} disabled={saving || !canEdit} className="bg-green-600 hover:bg-green-700 text-white">
                 <Check className="size-4 mr-1.5" />
                 Approve {selectedItems.length} selected
               </Button>
@@ -513,7 +535,8 @@ export function AdminTimesheetsPage() {
           )}
         </div>
       </Container>
-            {/* Review / Detail slide-out */}
+
+      {/* Review / Detail slide-out */}
       <Sheet open={!!selected} onOpenChange={(open) => { if (!open) { setSelected(null); setAction(null); } }}>
         <SheetContent title="Timesheet Details" className="w-full sm:max-w-lg overflow-y-auto">
           {selected && (
@@ -674,7 +697,7 @@ export function AdminTimesheetsPage() {
                     <Button
                       variant={action === 'approve' ? 'default' : 'destructive'}
                       onClick={handleAction}
-                      disabled={saving || (action === 'reject' && !rejectionReason.trim())}
+                      disabled={saving || (action === 'reject' && !rejectionReason.trim()) || !canEdit}
                       className={action === 'approve' ? 'bg-green-600 hover:bg-green-700 text-white' : ''}
                     >
                       {saving
@@ -690,6 +713,7 @@ export function AdminTimesheetsPage() {
                       variant="destructive"
                       size="sm"
                       onClick={() => setAction('reject')}
+                      disabled={!canEdit}
                     >
                       <X className="size-4 mr-1.5" /> Reject
                     </Button>
@@ -697,6 +721,7 @@ export function AdminTimesheetsPage() {
                       size="sm"
                       className="bg-green-600 hover:bg-green-700 text-white"
                       onClick={() => setAction('approve')}
+                      disabled={!canEdit}
                     >
                       <Check className="size-4 mr-1.5" /> Approve
                     </Button>
