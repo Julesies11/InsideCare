@@ -24,13 +24,8 @@ export function PersonalDetails({
 
   const handlePhotoChange = (file: File | null, dataURL: string | null) => {
     // Store the file and dataURL locally, will upload when Save is clicked
-    if (dataURL) {
-      onFormChange('photo_url', dataURL);
-      onFormChange('photo_file', file);
-    } else {
-      onFormChange('photo_url', '');
-      onFormChange('photo_file', null);
-    }
+    onFormChange('photo_file', file);
+    onFormChange('photo_url_preview', dataURL);
   };
 
   return (
@@ -44,7 +39,7 @@ export function PersonalDetails({
           <Label className="flex w-full max-w-56">Photo</Label>
           <div className="flex items-center gap-4">
             <AvatarInput
-              value={formData.photo_url}
+              value={formData.photo_url_preview || formData.photo_url}
               onChange={handlePhotoChange}
               size="lg"
               bucket="participant-photos"

@@ -26,6 +26,7 @@ import { toast } from 'sonner';
 import { logActivity, detectChanges } from '@/lib/activity-logger';
 import { NotificationService } from '@/lib/notification-service';
 import { useFormValidation } from '@/hooks/use-form-validation';
+import { handleAvatarUpload } from '@/lib/api/profiles';
 import { RBAC_MODULES } from '@/config/rbac-modules';
 import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
 
@@ -532,16 +533,8 @@ export function ParticipantDetailContent({
 
       // Profile Photo handling
       if (photoFile) {
-        const file = photoFile;
-        const ext = file.name.split('.').pop();
-        const path = `${id}/profile/${Date.now()}.${ext}`;
-        const { error: uploadErr } = await supabase.storage
-          .from('participant-photos')
-          .upload(path, file, { upsert: true });
-        if (uploadErr) throw uploadErr;
-
-        // Save the PATH to the database, not the temporary signed URL
-        const newPhotoUrl = path;
+        // Use the new handleAvatarUpload utility for resizing and processing
+        const newPhotoUrl = await handleAvatarUpload(photoFile, 'participant-photos', id);
 
         const { error: photoErr } = await supabase
           .from('participants')
@@ -582,8 +575,15 @@ export function ParticipantDetailContent({
 
       // Step 4: Save main participant form data
       const normalizedFormData = { ...currentFormData };
+      // Exclude photo fields from main update to prevent accidental Base64 persistence
+      const excludeFields = ['photo_url', 'photo_file', 'photo_url_preview', 'updated_at', 'created_at'];
+      
       Object.keys(normalizedFormData).forEach(key => {
-        if (normalizedFormData[key] === '') normalizedFormData[key] = null;
+        if (excludeFields.includes(key)) {
+          delete (normalizedFormData as any)[key];
+        } else if (normalizedFormData[key] === '') {
+          normalizedFormData[key] = null;
+        }
       });
 
       const changedFields: Record<string, any> = {};
@@ -706,7 +706,7 @@ export function ParticipantDetailContent({
     } finally {
       if (onSavingChange) onSavingChange(false);
     }
-  }, [id, participant, user?.fullname, user?.email, updateParticipantFn, onSavingChange, onOriginalDataChange, onPendingChangesChange, onSaveSuccess, setFieldError, scrollToField, photoFile, photoPreview, originalPhotoUrl, queryClient, onFormDataChange]);
+  }, [id, participant, userName, updateParticipantFn, onSavingChange, onOriginalDataChange, onPendingChangesChange, onSaveSuccess, setFieldError, scrollToField, photoFile, photoPreview, originalPhotoUrl, queryClient, onFormDataChange]);
 
   useEffect(() => {
     if (saveHandlerRef) {

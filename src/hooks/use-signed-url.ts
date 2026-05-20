@@ -13,14 +13,14 @@ export function useSignedUrl(bucket: string, path: string | null | undefined, ex
     queryFn: async () => {
       if (!path) return null;
 
-      // 1. Handle Full HTTP URLs (e.g. legacy public URLs)
-      if (path.startsWith('http')) {
+      // 1. Handle Full HTTP URLs or DataURLs
+      if (path.startsWith('http') || path.startsWith('data:')) {
         // If it's a supabase public URL, try to sign it anyway in case bucket is now private
-        if (path.includes('.supabase.co/storage/v1/object/public/')) {
+        if (path.startsWith('http') && path.includes('.supabase.co/storage/v1/object/public/')) {
           const parts = path.split('/public/')[1].split('/');
           const extractedBucket = parts[0];
           const extractedPath = parts.slice(1).join('/');
-          
+
           return await SignedUrlBatcher.get(extractedBucket, extractedPath, expiresIn);
         }
         return path;
@@ -46,10 +46,10 @@ export function useSignedUrl(bucket: string, path: string | null | undefined, ex
  */
 export async function getSignedUrl(bucket: string, path: string, expiresIn: number = 3600) {
   if (!path) return null;
-  
-  // Handle Full HTTP URLs
-  if (path.startsWith('http')) {
-    if (path.includes('.supabase.co/storage/v1/object/public/')) {
+
+  // Handle Full HTTP URLs or DataURLs
+  if (path.startsWith('http') || path.startsWith('data:')) {
+    if (path.startsWith('http') && path.includes('.supabase.co/storage/v1/object/public/')) {
       const parts = path.split('/public/')[1].split('/');
       const b = parts[0];
       const p = parts.slice(1).join('/');

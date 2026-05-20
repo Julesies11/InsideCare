@@ -59,25 +59,36 @@ class SignedUrlBatcherClass {
     const uniquePaths = Array.from(new Set(currentQueue.map(item => item.path)));
 
     try {
-      // 4. Call Supabase plural method: createSignedUrls
-      const { data, error } = await supabase.storage
-        .from(bucket)
-        .createSignedUrls(uniquePaths, expiresIn);
-
-      if (error) {
-        throw error;
+      // 4. Chunk the paths to avoid "Request body is too large" (413) errors
+      const CHUNK_SIZE = 50;
+      const chunks: string[][] = [];
+      for (let i = 0; i < uniquePaths.length; i += CHUNK_SIZE) {
+        chunks.push(uniquePaths.slice(i, i + CHUNK_SIZE));
       }
 
-      // data is an array of objects: { path: string, signedUrl: string, error?: string }
-      // We create a map for fast lookup
+      // Process all chunks in parallel
       const resultsMap = new Map<string, { signedUrl: string, error?: string }>();
-      if (data) {
-        data.forEach(result => {
-          if (result.path && result.signedUrl) {
-            resultsMap.set(result.path, { signedUrl: result.signedUrl, error: result.error });
-          }
-        });
-      }
+      
+      const chunkPromises = chunks.map(async (chunk) => {
+        const { data, error } = await supabase.storage
+          .from(bucket)
+          .createSignedUrls(chunk, expiresIn);
+
+        if (error) {
+          console.error(`Failed to sign a chunk of ${chunk.length} URLs for bucket ${bucket}:`, error);
+          return; // Skip this chunk but allow others to proceed
+        }
+
+        if (data) {
+          data.forEach(result => {
+            if (result.path && result.signedUrl) {
+              resultsMap.set(result.path, { signedUrl: result.signedUrl, error: result.error });
+            }
+          });
+        }
+      });
+
+      await Promise.all(chunkPromises);
 
       // 5. Resolve or reject each promise in the queue
       currentQueue.forEach(item => {

@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { StaffPendingChanges, emptyStaffPendingChanges } from '@/models/staff-pending-changes';
 import { logActivity, detectChanges } from '@/lib/activity-logger';
 import { parseSupabaseError } from '@/lib/error-parser';
+import { handleAvatarUpload } from '@/lib/api/profiles';
 import { useFormValidation } from '@/hooks/use-form-validation';
 import { validators } from '@/lib/validation-rules';
 import { RBAC_MODULES } from '@/config/rbac-modules';
@@ -205,19 +206,8 @@ export function StaffDetailContent({
     try {
       // Step 0: Upload profile photo if a new file was selected, or clear if deleted
       if (photoFile) {
-        const file = photoFile;
-        const ext = file.name.split('.').pop();
-        const path = `${staffId}/profile/${Date.now()}.${ext}`;
-        const { error: uploadErr } = await supabase.storage
-          .from('staff-photos')
-          .upload(path, file, { upsert: true });
-        if (uploadErr) {
-          toast.error('Failed to upload profile photo', { description: uploadErr.message });
-          throw uploadErr;
-        }
-
-        // Save the PATH to the database, not the temporary signed URL
-        const newPhotoUrl = path;
+        // Use the new handleAvatarUpload utility for resizing and processing
+        const newPhotoUrl = await handleAvatarUpload(photoFile, 'staff-photos', staffId);
 
         const { error: photoErr } = await supabase
           .from('staff')

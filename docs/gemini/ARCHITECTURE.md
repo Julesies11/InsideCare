@@ -39,6 +39,7 @@ To maintain system integrity, any modifications to RLS policies or RBAC logic mu
         - **Standard (staleTime: 30s - 5m)**: General operational data.
         - **Static (staleTime: 1h+)**: Master lists and configuration.
     - **Avatar Signed URL Caching**: The `useSignedUrl` hook leverages TanStack Query to cache Supabase Storage signed URLs. This acts as a deduplication layer, ensuring that if a user's avatar appears multiple times on a single screen (e.g., the Roster Board), the frontend negotiates a signed URL from the backend exactly once, preventing network waterfalls.
+    - **Chunked Batching**: The `SignedUrlBatcher` implements an automatic chunking strategy (batches of 50) when requesting signed URLs from Supabase. This prevents `413 Request Entity Too Large` errors when rendering lists with many unique images (e.g., a full participant directory).
 - **Access Levels**:
     - `full`: Global access to all records.
     - `context_read_write`: Domain-aware read/write access (locked to `assigned_houses` or `managed_staff_ids`).
@@ -217,3 +218,22 @@ The project follows a rigorous testing strategy to ensure reliability of the cor
   - **Empirical Reproduction**: When fixing a bug, first create a test case that reproduces the failure.
   - **Hook Isolation**: Tests focus on verifying the state transitions and API calls triggered by custom hooks.
   - **MSW for Stability**: Avoid mocking the Supabase client directly; mock the network layer instead for more realistic integration tests.
+
+## 9. Image Processing & Storage
+The application implements a high-performance, client-side image optimization workflow to ensure visual consistency and minimize storage costs.
+
+### Client-Side Optimization
+- **Library**: `browser-image-compression`.
+- **Worker-Based Processing**: Image resizing and compression are performed in Web Workers to prevent UI thread blocking.
+- **Privacy & Metadata**: All EXIF data (GPS, camera info) is stripped before upload to protect privacy and reduce file size.
+- **Standardized Presets**:
+    - **`AVATAR`**: 256px max, ~50KB target, converted to JPEG.
+    - **`EVIDENCE`**: 1600px max, ~800KB target, converted to JPEG.
+
+### Centralized Storage API
+The `src/lib/api/storage.ts` module acts as the orchestrator for all storage operations.
+- **Validation**: Enforces a 10MB pre-compression hard limit and valid MIME types (JPG, PNG, WebP).
+- **Atomic Operations**: `uploadFile` handles validation -> compression -> upload in a single async operation.
+- **Path-Based Storage**: The system stores relative file paths in the database (e.g., `staffId/avatar.jpg`) instead of full URLs, ensuring compatibility across local/staging/production environments.
+- **Cleanup**: `deleteFile` removes objects from Supabase Storage when they are replaced or deleted in the UI.
+
