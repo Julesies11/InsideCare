@@ -4,9 +4,18 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ShiftNotes, EditShiftNoteDialog } from './components';
 import { useShiftNotes } from '@/hooks/use-shift-notes';
+import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
+import { RBAC_MODULES } from '@/config/rbac-modules';
 
 export function ShiftNotesContent() {
   const { createShiftNote, updateShiftNote, refetch } = useShiftNotes();
+  const { hasAccess } = useRBAC();
+
+  const canAdd = hasAccess({ 
+    resource: RBAC_MODULES.SHIFT_NOTES, 
+    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE 
+  });
+
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
   const handleAddShiftNote = () => {

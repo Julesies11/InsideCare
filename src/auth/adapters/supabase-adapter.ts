@@ -82,23 +82,24 @@ export const SupabaseAdapter = {
    * Get current user from the session
    */
   async getCurrentUser(): Promise<UserModel | null> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return null;
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error || !user) return null;
 
-    return this.getUserProfile();
+    return this.getUserProfile(user);
   },
 
   /**
    * Get user profile from user and app metadata
    */
-  async getUserProfile(): Promise<UserModel> {
-    const {
-      data: { user },
-      error,
-    } = await supabase.auth.getUser();
-
-    if (error || !user) {
-      throw new Error(error?.message || 'User not found');
+  async getUserProfile(passedUser?: any): Promise<UserModel> {
+    let user = passedUser;
+    
+    if (!user) {
+      const { data: { user: authUser }, error } = await supabase.auth.getUser();
+      if (error || !authUser) {
+        throw new Error(error?.message || 'User not found');
+      }
+      user = authUser;
     }
 
     // RBAC Source of Truth: app_metadata (verified by server)
@@ -106,12 +107,19 @@ export const SupabaseAdapter = {
     const appMetadata = user.app_metadata || {};
     const userMetadata = user.user_metadata || {};
 
-    // Look up linked staff record
-    const { data: staffRow } = await supabase
-      .from('staff')
-      .select('id, name, photo_url, role:roles(name)')
-      .eq('auth_user_id', user.id)
-      .maybeSingle();
+    // Look up linked staff record - wrap in try/catch to ensure RBAC from app_metadata 
+    // still works even if DB lookup fails (e.g. RLS issues or no staff record yet)
+    let staffRow = null;
+    try {
+      const { data } = await supabase
+        .from('staff')
+        .select('id, name, photo_url, role:roles(name)')
+        .eq('auth_user_id', user.id)
+        .maybeSingle();
+      staffRow = data;
+    } catch (err) {
+      console.warn('Failed to fetch staff record, falling back to metadata:', err);
+    }
       
     const staff_id = staffRow?.id ?? appMetadata.staff_id ?? undefined;
     const staff_name = staffRow?.name ?? undefined;

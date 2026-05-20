@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Fragment } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/auth/context/auth-context';
 import { toast } from 'sonner';
-import { format, isToday, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import { Check, X, AlertTriangle, Paperclip, CalendarClock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -401,7 +401,7 @@ export function AdminLeaveRequestsPage() {
                           <div className="font-medium text-gray-700">
                             {format(new Date(s.start_date), 'dd MMM')} at {s.house?.name || 'Unknown'}
                           </div>
-                          <div className="text-gray-500 italic">{s.start_time.slice(0, 5)} - {s.end_time.slice(0, 5)}</div>
+                          <div className="text-gray-500 italic">{(s.start_time || '').slice(0, 5)} - {(s.end_time || '').slice(0, 5)}</div>
                         </div>
                       ))}
                     </div>

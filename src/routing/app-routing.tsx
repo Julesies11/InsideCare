@@ -22,7 +22,6 @@ export function AppRouting() {
   useEffect(() => {
     if (firstLoad) {
       verify().finally(() => {
-        setLoading(false);
         setFirstLoad(false);
       });
     }
@@ -32,17 +31,11 @@ export function AppRouting() {
   useEffect(() => {
     if (!firstLoad) {
       start('static');
-      verify()
-        .catch(() => {
-          throw new Error('User verify request failed!');
-        })
-        .finally(() => {
-          setPreviousLocation(path);
-          complete();
-          if (path === previousLocation) {
-            setPreviousLocation('');
-          }
-        });
+      setPreviousLocation(path);
+      complete();
+      if (path === previousLocation) {
+        setPreviousLocation('');
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location]);

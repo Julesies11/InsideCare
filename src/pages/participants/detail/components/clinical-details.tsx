@@ -25,7 +25,7 @@ export function ClinicalDetails({
             <Label className="flex w-full max-w-56">Primary Diagnosis</Label>
             <Textarea
               id="primary_diagnosis"
-              value={formData.primary_diagnosis}
+              value={formData.primary_diagnosis || ''}
               onChange={(e) => onFormChange('primary_diagnosis', e.target.value)}
               rows={5}
               placeholder="Primary Diagnosis..."
@@ -39,7 +39,7 @@ export function ClinicalDetails({
             <Label className="flex w-full max-w-56">Secondary Diagnosis</Label>
             <Textarea
               id="secondary_diagnosis"
-              value={formData.secondary_diagnosis}
+              value={formData.secondary_diagnosis || ''}
               onChange={(e) => onFormChange('secondary_diagnosis', e.target.value)}
               rows={5}
               placeholder="Secondary Diagnosis..."
@@ -53,7 +53,7 @@ export function ClinicalDetails({
             <Label className="flex w-full max-w-56">Allergies</Label>
             <Textarea
               id="allergies"
-              value={formData.allergies}
+              value={formData.allergies || ''}
               onChange={(e) => onFormChange('allergies', e.target.value)}
               rows={5}
               placeholder="List any allergies..."

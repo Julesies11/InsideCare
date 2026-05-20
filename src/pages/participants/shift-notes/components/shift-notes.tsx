@@ -49,6 +49,8 @@ import { format } from 'date-fns';
 import { Alert } from '@/components/ui/alert';
 import { formatTime } from '@/components/roster/roster-utils';
 import { EditShiftNoteDialog } from './edit-shift-note-dialog';
+import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
+import { RBAC_MODULES } from '@/config/rbac-modules';
 
 interface ShiftNotesProps {
   participantId?: string;
@@ -57,6 +59,12 @@ interface ShiftNotesProps {
 const ShiftNotes = () => {
   const { shiftNotes, loading, error, updateShiftNote, createShiftNote, refetch } = useShiftNotes();
   const { houses } = useHouses();
+  const { hasAccess } = useRBAC();
+
+  const canEdit = hasAccess({ 
+    resource: RBAC_MODULES.SHIFT_NOTES, 
+    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE 
+  });
 
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
@@ -130,11 +138,11 @@ const ShiftNotes = () => {
           className="h-8"
         >
           <Edit className="size-4 me-1.5" />
-          Edit
+          {canEdit ? 'Edit' : 'View'}
         </Button>
       </div>
     );
-  }, []);
+  }, [canEdit]);
 
   const columns = useMemo<ColumnDef<ShiftNote>[]>(
     () => [

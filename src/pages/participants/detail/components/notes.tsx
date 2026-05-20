@@ -25,7 +25,7 @@ export function Notes({
             <Label className="flex w-full max-w-56">General Notes</Label>
             <Textarea
               id="general_notes"
-              value={formData.general_notes}
+              value={formData.general_notes || ''}
               onChange={(e) => onFormChange('general_notes', e.target.value)}
               rows={8}
               placeholder="Add any general notes or observations..."

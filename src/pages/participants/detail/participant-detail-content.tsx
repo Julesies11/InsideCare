@@ -185,7 +185,7 @@ export function ParticipantDetailContent({
   useEffect(() => {
     if (participantData && !hasInitialized) {
       setParticipant(participantData);
-      const initialData = {
+      const mappedData: ParticipantFormData = {
         name: participantData.name ?? '',
         email: participantData.email ?? '',
         house_phone: participantData.house_phone ?? '',
@@ -243,14 +243,14 @@ export function ParticipantDetailContent({
         photo_url: participantData.photo_url ?? '',
       };
       
-      setFormData(initialData);
-      setOriginalData(initialData);
-      latestFormData.current = initialData;
-      latestOriginalData.current = initialData;
+      setFormData(mappedData);
+      setOriginalData(mappedData);
+      latestFormData.current = mappedData;
+      latestOriginalData.current = mappedData;
 
       requestAnimationFrame(() => {
-        onOriginalDataChange?.(initialData);
-        onFormDataChange?.(initialData);
+        onOriginalDataChange?.(mappedData);
+        onFormDataChange?.(mappedData);
       });
       
       setOriginalPhotoUrl(participantData.photo_url ?? null);
@@ -748,10 +748,9 @@ export function ParticipantDetailContent({
       )}
 
       <div className="flex flex-col items-stretch grow gap-5 lg:gap-7.5">
-        <PersonalDetails 
-          formData={formData} 
-          onFormChange={handleFormChange} 
-          validationErrors={validationErrors}
+        <PersonalDetails
+          formData={{ ...formData, photo_url_preview: photoPreview }}
+          onFormChange={handleFormChange}          validationErrors={validationErrors}
           canEdit={canEdit}
           onSave={handleSave}
         />

@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 import { Info, ShieldAlert } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { RBAC_MODULES, RBACModule } from '@/config/rbac-modules';
-import { AccessLevel, ACCESS_LEVEL } from '@/hooks/useRBAC';
+import { AccessLevel, ACCESS_LEVEL, useRBAC } from '@/hooks/useRBAC';
 
 interface ModuleConfig {
   id: RBACModule;
@@ -129,6 +129,12 @@ export function RolePermissionsMatrix() {
   const { roles = [] } = useRoles();
   const { data: allPermissions = [], isLoading } = useAllRolePermissions();
   const { mutateAsync: updatePermissions } = useUpdateRolePermissions();
+  const { hasAccess } = useRBAC();
+
+  const canEdit = hasAccess({ 
+    resource: RBAC_MODULES.ACCESS_CONTROL, 
+    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE 
+  });
 
   const activeRoles = roles.filter(r => r.is_active);
   const [selectedRoleId, setSelectedRoleId] = useState<string>('');
@@ -154,7 +160,7 @@ export function RolePermissionsMatrix() {
   };
 
   const handleUpdate = async (moduleId: string, level: AccessLevel) => {
-    if (!selectedRoleId || isAdminRole) return;
+    if (!selectedRoleId || isAdminRole || !canEdit) return;
     try {
       await updatePermissions({
         role_id: selectedRoleId,
@@ -275,12 +281,12 @@ export function RolePermissionsMatrix() {
                               <Checkbox 
                                 checked={isChecked} 
                                 onCheckedChange={() => {
-                                  if (!isChecked) handleUpdate(module.id, level.value);
+                                  if (!isChecked && canEdit) handleUpdate(module.id, level.value);
                                 }}
-                                disabled={isAdminRole}
+                                disabled={isAdminRole || !canEdit}
                                 className={cn(
                                   "size-5 border-gray-300 data-[state=checked]:bg-primary data-[state=checked]:border-primary",
-                                  isAdminRole && "opacity-50 cursor-not-allowed"
+                                  (isAdminRole || !canEdit) && "opacity-50 cursor-not-allowed"
                                 )}
                               />
                             </div>

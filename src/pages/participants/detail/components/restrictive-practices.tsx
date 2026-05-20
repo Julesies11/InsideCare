@@ -25,7 +25,7 @@ export function RestrictivePractices({
             <Label className="flex w-full max-w-56">Restrictive Practices</Label>
             <Textarea
               id="restrictive_practices"
-              value={formData.restrictive_practices}
+              value={formData.restrictive_practices || ''}
               onChange={(e) => onFormChange('restrictive_practices', e.target.value)}
               rows={5}
               placeholder="Document any restrictive practices..."

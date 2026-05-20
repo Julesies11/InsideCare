@@ -1,9 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { RolesPage } from './roles-page';
+import { ChecklistMasterPage } from './checklist-master-page';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router';
-
 import { SettingsProvider } from '@/providers/settings-provider';
 
 const queryClient = new QueryClient({
@@ -14,22 +13,22 @@ const queryClient = new QueryClient({
   },
 });
 
-describe('RolesPage Smoke Test', () => {
-  it('renders the roles page without crashing', async () => {
+describe('ChecklistMasterPage Smoke Test', () => {
+  it('renders the checklist master page without crashing', async () => {
     render(
       <MemoryRouter>
         <SettingsProvider>
           <QueryClientProvider client={queryClient}>
-            <RolesPage />
+            <ChecklistMasterPage />
           </QueryClientProvider>
         </SettingsProvider>
       </MemoryRouter>
     );
 
     // Check for page title
-    expect(screen.getByText('Roles & Permissions')).toBeInTheDocument();
+    expect(screen.getByText('Checklist Templates')).toBeInTheDocument();
 
-    // Check for the Add Role button
-    expect(screen.getByRole('button', { name: /Add Role/i })).toBeInTheDocument();
-  }, 30000);
+    // Check for the New Master Checklist button
+    expect(screen.getByRole('button', { name: /new master checklist/i })).toBeInTheDocument();
+  });
 });

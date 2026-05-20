@@ -15,6 +15,7 @@ export function UpcomingShifts() {
   const [selectedShift, setSelectedShift] = useState<StaffShift | null>(null);
   const { user } = useAuth();
   
+  // Only fetch metadata (houses, staff, participants) if the dialog is open
   const { 
     houses, 
     participants, 
@@ -24,12 +25,12 @@ export function UpcomingShifts() {
     addShiftParticipant,
     removeShiftParticipant,
     loading: metaLoading
-  } = useRosterData();
+  } = useRosterData('all', { includeMetadata: showShiftDialog });
 
   const today = useMemo(() => format(new Date(), 'yyyy-MM-dd'), []);
   const tomorrow = useMemo(() => format(addDays(new Date(), 1), 'yyyy-MM-dd'), []);
 
-  const { shifts: allShifts = [], isLoading: shiftsLoading } = useShiftsQuery('all', today, tomorrow);
+  const { shifts: allShifts = [], isLoading: shiftsLoading } = useShiftsQuery('all', today, tomorrow, undefined, false, { includeMetadata: showShiftDialog });
 
   const upcomingShifts = useMemo(() => {
     const now = new Date();

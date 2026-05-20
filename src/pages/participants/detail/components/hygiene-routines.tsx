@@ -25,7 +25,7 @@ export function HygieneRoutines({
             <Label className="flex w-full max-w-56">Morning Routine</Label>
             <Textarea
               id="morning_routine"
-              value={formData.morning_routine}
+              value={formData.morning_routine || ''}
               onChange={(e) => onFormChange('morning_routine', e.target.value)}
               rows={5}
               placeholder="Describe the morning routine..."
@@ -39,7 +39,7 @@ export function HygieneRoutines({
             <Label className="flex w-full max-w-56">Shower Support</Label>
             <Textarea
               id="shower_support"
-              value={formData.shower_support}
+              value={formData.shower_support || ''}
               onChange={(e) => onFormChange('shower_support', e.target.value)}
               rows={5}
               placeholder="Describe shower support needs..."

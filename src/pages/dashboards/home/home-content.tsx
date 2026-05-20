@@ -1,19 +1,17 @@
 import { useNavigate } from 'react-router';
 import { Users, UserCheck, CheckSquare, ClipboardList } from 'lucide-react';
 import { WelcomeBanner, StatCard, MotivationalBanner, RecentActivity, UpcomingShifts } from './components';
-import { useParticipants } from '@/hooks/use-participants';
-import { useStaff } from '@/hooks/use-staff';
+import { useParticipantsCount } from '@/hooks/use-participants';
+import { useStaffCount } from '@/hooks/use-staff';
 import { useAuth } from '@/auth/context/auth-context';
 
 export function HomeContent() {
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
   
-  // Fetch active participants (large pageSize to get total count)
-  const { count: participantCount } = useParticipants(0, 1000, [], { statuses: ['active'] });
-  
-  // Fetch active staff (large pageSize to get total count)
-  const { count: staffCount } = useStaff(0, 1000, [], { statuses: ['active'] });
+  // Optimized count-only fetching
+  const { count: participantCount } = useParticipantsCount({ statuses: ['active'] });
+  const { count: staffCount } = useStaffCount({ statuses: ['active'] });
 
   return (
     <div className="grid gap-5 lg:gap-7.5">

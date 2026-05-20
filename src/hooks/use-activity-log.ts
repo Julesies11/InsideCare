@@ -9,14 +9,18 @@ interface UseActivityLogOptions {
 }
 
 const ACTIVITY_LOG_COLUMNS = 'id, activity_type, entity_type, entity_id, entity_name, description, user_name, metadata, created_at';
+const ACTIVITY_LOG_LIST_COLUMNS = 'id, activity_type, entity_type, entity_id, entity_name, description, user_name, created_at';
 
 export function useActivityLog({ entityId, entityType, limit = 50 }: UseActivityLogOptions = {}) {
   const query = useQuery({
     queryKey: ['activity-log', { entityId, entityType, limit }],
     queryFn: async () => {
+      // If we're fetching a list (limit > 1 and no specific entityId), use list columns to save payload size
+      const columns = (limit > 1 && !entityId) ? ACTIVITY_LOG_LIST_COLUMNS : ACTIVITY_LOG_COLUMNS;
+      
       let query = supabase
         .from('activity_log')
-        .select(ACTIVITY_LOG_COLUMNS)
+        .select(columns)
         .order('created_at', { ascending: false })
         .limit(limit);
 

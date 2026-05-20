@@ -14,8 +14,7 @@ export interface ParticipantsSort {
 }
 
 const PARTICIPANT_LIST_COLUMNS = `
-  id, name, photo_url, email, house_phone, personal_mobile, address, date_of_birth, move_in_date, 
-  ndis_number, house_id, status, support_level, created_at, updated_at,
+  id, name, photo_url, status, house_id, ndis_number, date_of_birth,
   houses!house_id (
     name
   )
@@ -93,6 +92,40 @@ export function useParticipants(
     ...query,
     participants: query.data?.data || [],
     count: query.data?.count || 0,
+    loading: query.isLoading,
+    error: query.error ? (query.error as any).message : null,
+  };
+}
+
+export function useParticipantsCount(filters: ParticipantsFilter = {}) {
+  const query = useQuery({
+    queryKey: ['participants-count', { filters }],
+    queryFn: async () => {
+      let query = supabase
+        .from('participants')
+        .select('*', { count: 'exact', head: true });
+
+      if (filters.houses && filters.houses.length > 0) {
+        query = query.in('house_id', filters.houses);
+      }
+
+      if (filters.statuses && filters.statuses.length > 0) {
+        query = query.in('status', filters.statuses);
+      }
+
+      if (filters.search) {
+        query = query.or(`name.ilike.%${filters.search}%,email.ilike.%${filters.search}%,ndis_number.ilike.%${filters.search}%`);
+      }
+
+      const { count, error } = await query;
+      if (error) throw error;
+      return count || 0;
+    },
+    staleTime: 1000 * 60, // Count can be cached longer (1 min)
+  });
+
+  return {
+    count: query.data ?? 0,
     loading: query.isLoading,
     error: query.error ? (query.error as any).message : null,
   };

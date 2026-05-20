@@ -45,7 +45,7 @@ describe('AdminLeaveRequestsPage', () => {
   it('renders the page and loads leave requests', async () => {
     renderWithProviders(<AdminLeaveRequestsPage />);
 
-    expect(screen.getByRole('heading', { name: /leave requests/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /leave management/i })).toBeInTheDocument();
     
     await waitFor(() => {
       expect(screen.getByText('Jane Smith')).toBeInTheDocument();

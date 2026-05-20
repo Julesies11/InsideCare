@@ -187,7 +187,7 @@ export function PersonalDetails({
           <Label className="flex w-full max-w-56">House</Label>
           <div className="grow">
             <Select
-              value={formData.house_id}
+              value={formData.house_id || ''}
               onValueChange={(value) => onFormChange('house_id', value)}
               disabled={!canEdit}
             >

@@ -296,7 +296,7 @@ export function ShiftNotes({
             <div className="space-y-2">
               <Label htmlFor="staff">Staff Member</Label>
               <Select
-                value={formData.staff_id}
+                value={formData.staff_id || ''}
                 onValueChange={(val) => setFormData({ ...formData, staff_id: val })}
               >
                 <SelectTrigger>

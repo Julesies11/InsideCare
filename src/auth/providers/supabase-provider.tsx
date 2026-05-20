@@ -87,15 +87,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, []);
 
   useEffect(() => {
-    // Initial session check
-    const bootstrap = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      await handleAuthStateChange('INITIAL_SESSION', session);
-    };
-
-    bootstrap();
-
-    // Subscribe to auth state changes
+    // Subscribe to auth state changes. This will also fire immediately 
+    // with the INITIAL_SESSION event.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         handleAuthStateChange(event, session);

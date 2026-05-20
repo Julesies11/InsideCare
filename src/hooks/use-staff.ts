@@ -458,3 +458,33 @@ export function useStaffTraining(staffId?: string) {
     refresh: query.refetch,
   };
 }
+
+export function useStaffCount(filters: StaffFilter = {}) {
+  const query = useQuery({
+    queryKey: ['staff-count', { filters }],
+    queryFn: async () => {
+      let query = supabase
+        .from('staff')
+        .select('*', { count: 'exact', head: true });
+
+      if (filters.statuses && filters.statuses.length > 0) {
+        query = query.in('status', filters.statuses);
+      }
+
+      if (filters.search) {
+        query = query.or(`name.ilike.%${filters.search}%,email.ilike.%${filters.search}%`);
+      }
+
+      const { count, error } = await query;
+      if (error) throw error;
+      return count || 0;
+    },
+    staleTime: 1000 * 60, // Count can be cached longer (1 min)
+  });
+
+  return {
+    count: query.data ?? 0,
+    loading: query.isLoading,
+    error: query.error ? (query.error as any).message : null,
+  };
+}

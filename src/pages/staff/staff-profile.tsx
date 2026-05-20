@@ -40,22 +40,9 @@ export function StaffProfile() {
   const { user, setUser } = useAuth();
   const { mutateAsync: updateStaff } = useUpdateStaff();
 
-  // Resolve staffId directly from DB — works for both admin and staff users
-  const [staffId, setStaffId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    supabase.auth.getUser().then(async ({ data: { user: authUser } }) => {
-      if (!authUser) { setLoading(false); return; }
-      const { data } = await supabase
-        .from('staff')
-        .select('id')
-        .eq('auth_user_id', authUser.id)
-        .maybeSingle();
-      setStaffId(data?.id ?? null);
-      setLoading(false);
-    });
-  }, []);
+  // Use staff_id directly from AuthContext user object
+  const staffId = user?.staff_id || null;
+  const loading = false; // Auth user already loaded
 
   // Photo state — kept separate so it doesn't affect dirty tracking
   const [photoFile, setPhotoFile] = useState<File | null>(null);

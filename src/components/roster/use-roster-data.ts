@@ -97,17 +97,19 @@ export function useLeaveRequestsQuery(staffId: string, startDate: string, endDat
   }), [query]);
 }
 
-export function useShiftsQuery(staffId: string, startDate: string, endDate: string, houseId?: string, includeEvents: boolean = false) {
-  const { houses, staff } = useRosterData();
+export function useShiftsQuery(staffId: string, startDate: string, endDate: string, houseId?: string, includeEvents: boolean = false, options: { includeMetadata?: boolean } = { includeMetadata: true }) {
+  const { houses, staff } = useRosterData('all', { includeMetadata: options.includeMetadata });
 
   const query = useQuery({
-    queryKey: ['roster-shifts', staffId, startDate, endDate, houseId, includeEvents],
+    queryKey: ['roster-shifts', staffId, startDate, endDate, houseId, includeEvents, options.includeMetadata],
     queryFn: async () => {
       // Fetch shifts
       let shiftQuery = supabase
         .from('staff_shifts')
         .select(`
           id, staff_id, start_date, end_date, start_time, end_time, house_id, shift_template, shift_template_id, notes,
+          staff_info:staff(id, name),
+          house_info:houses(id, name),
           type_details:house_shift_templates(color_theme, icon_name),
           participants:shift_participants(
             participant:participants(id, name)
@@ -195,13 +197,17 @@ export function useShiftsQuery(staffId: string, startDate: string, endDate: stri
       const colorTheme = item.type_details?.color_theme || item.type_color;
       const iconName = item.type_details?.icon_name;
 
+      // Use joined data if available (compact mode), otherwise fallback to global map (full mode)
+      const staffName = item.staff_info?.name || (item.staff_id ? staffMap.get(item.staff_id) : 'Unassigned') || 'Unassigned';
+      const houseData = item.house_info || (item.house_id ? houseMap.get(item.house_id) : undefined);
+
       // Flatten participants if they are in the nested shift_participants format
       const rawParticipants = item.participants || item.shift_participants;
       const participants = (rawParticipants || [])?.map((p: any) => {
         // Extract the actual participant data regardless of how Supabase structured the join
         const part = p.participant || p.participants || p;
         const actualPart = Array.isArray(part) ? part[0] : part;
-        
+
         return {
           id: actualPart?.id || p.id || p.participant_id,
           name: actualPart?.name || p.name
@@ -210,8 +216,8 @@ export function useShiftsQuery(staffId: string, startDate: string, endDate: stri
 
       return {
         ...item,
-        house: item.house || (item.house_id ? houseMap.get(item.house_id) : undefined),
-        staff_name: item.staff_id ? staffMap.get(item.staff_id) || 'Unassigned' : 'Unassigned',
+        house: item.house || houseData,
+        staff_name: staffName,
         participants,
         assigned_checklists: item.assigned_checklists?.map((cl: any) => ({
           ...cl,
@@ -227,16 +233,16 @@ export function useShiftsQuery(staffId: string, startDate: string, endDate: stri
       if (dateCompare !== 0) return dateCompare;
       return (a.start_time || '').localeCompare(b.start_time || '');
     });
-  }, [query.data, houses, staff]);
-
+    }, [query.data, houses, staff]);
   return useMemo(() => ({
     ...query,
     shifts,
   }), [query, shifts]);
 }
 
-export function useRosterData(staffId?: string) {
+export function useRosterData(staffId?: string, options: { includeMetadata?: boolean } = { includeMetadata: true }) {
   const queryClient = useQueryClient();
+  const { includeMetadata = true } = options;
 
   const housesQuery = useQuery({
     queryKey: ['houses', staffId],
@@ -270,6 +276,7 @@ export function useRosterData(staffId?: string) {
       if (error) throw error;
       return data;
     },
+    enabled: includeMetadata,
     staleTime: 1000 * 60 * 60, // 1 hour
   });
 
@@ -284,6 +291,7 @@ export function useRosterData(staffId?: string) {
       if (error) throw error;
       return data;
     },
+    enabled: includeMetadata,
     staleTime: 1000 * 60 * 60, // 1 hour
   });
 
@@ -321,6 +329,7 @@ export function useRosterData(staffId?: string) {
         };
       });
     },
+    enabled: includeMetadata,
     staleTime: 1000 * 60 * 60, // 1 hour
   });
 

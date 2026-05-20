@@ -17,9 +17,23 @@ import { handleSupabaseError } from '@/errors/error-handler';
 import { ChecklistCard } from '@/components/checklists/checklist-card';
 import { Container } from '@/components/common/container';
 import { cn, getPeriodTheme } from '@/lib/utils';
+import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
+import { RBAC_MODULES } from '@/config/rbac-modules';
 
 export function ChecklistMasterPage() {
   const { masterChecklists, loading, refresh } = useChecklistMaster();
+  const { hasAccess } = useRBAC();
+
+  const canEdit = hasAccess({ 
+    resource: RBAC_MODULES.MASTER_LISTS, 
+    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE 
+  });
+  
+  const canAdd = hasAccess({ 
+    resource: RBAC_MODULES.MASTER_LISTS, 
+    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE 
+  });
+
   const [searchTerm, setSearchTerm] = useState('');
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showItemDialog, setShowItemDialog] = useState(false);
@@ -39,8 +53,6 @@ export function ChecklistMasterPage() {
   });
   const [initialFormData, setInitialFormData] = useState<typeof formData | null>(null);
 
-  const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-
   const hasEdits = useMemo(() => {
     if (!initialFormData) return false;
     return JSON.stringify(formData) !== JSON.stringify(initialFormData);
@@ -54,15 +66,6 @@ export function ChecklistMasterPage() {
     is_required: true,
     sort_order: 0,
   });
-
-  const handleDayToggle = (day: string) => {
-    setFormData(prev => ({
-      ...prev,
-      days_of_week: prev.days_of_week.includes(day)
-        ? prev.days_of_week.filter(d => d !== day)
-        : [...prev.days_of_week, day]
-    }));
-  };
 
   const handleAddTemplate = () => {
     setSelectedTemplate(null);
@@ -114,22 +117,22 @@ export function ChecklistMasterPage() {
       let masterId = selectedTemplate?.id;
 
       if (masterId) {
-        const { error } = await supabase
+        await supabase
           .from('checklist_master')
           .update({
             name: formData.name,
             days_of_week: formData.days_of_week || null,
-            description: formData.description,
+            description: formData.description || null,
           })
-          .eq('id', masterId);
-        if (error) throw error;
-      } else {
+          .eq('id', selectedTemplate.id);
+        masterId = selectedTemplate.id;
+        } else {
         const { data, error } = await supabase
           .from('checklist_master')
           .insert({
             name: formData.name,
             days_of_week: formData.days_of_week || null,
-            description: formData.description,
+            description: formData.description || null,
           })
           .select()
           .maybeSingle();
@@ -163,7 +166,7 @@ export function ChecklistMasterPage() {
             id: item.id as string,
             master_id: masterId as string,
             title: item.title,
-            instructions: item.instructions || '',
+            instructions: item.instructions || null,
             group_title: item.group_title || 'Morning',
             priority: item.priority || 'medium',
             is_required: !!item.is_required,
@@ -175,7 +178,7 @@ export function ChecklistMasterPage() {
           .map((item) => ({
             master_id: masterId as string,
             title: item.title,
-            instructions: item.instructions || '',
+            instructions: item.instructions || null,
             group_title: item.group_title || 'Morning',
             priority: item.priority || 'medium',
             is_required: !!item.is_required,
@@ -245,7 +248,7 @@ export function ChecklistMasterPage() {
               Manage master checklists for all houses
             </p>
           </div>
-          <Button onClick={handleAddTemplate}>
+          <Button onClick={handleAddTemplate} disabled={!canAdd}>
             <Plus className="size-4 me-1.5" />
             New Master Checklist
           </Button>
@@ -358,7 +361,7 @@ export function ChecklistMasterPage() {
                   setSelectedItem(null);
                   setItemFormData({ title: '', instructions: '', priority: 'medium', is_required: true, sort_order: formData.items.length });
                   setShowItemDialog(true);
-                }}>
+                }} disabled={!canEdit}>
                   <Plus className="size-3.5 mr-1" />
                   Add Master Task
                 </Button>
@@ -413,12 +416,12 @@ export function ChecklistMasterPage() {
                         setSelectedItem(item);
                         setItemFormData({ ...item });
                         setShowItemDialog(true);
-                      }}>
+                      }} disabled={!canEdit}>
                         <Edit className="size-3.5" />
                       </Button>
                       <Button variant="ghost" size="icon" className="size-7 text-destructive" onClick={() => {
                         setFormData({ ...formData, items: formData.items.filter((i: any) => ( (i.id && i.id !== item.id) || (i.tempId && i.tempId !== item.tempId) )) });
-                      }}>
+                      }} disabled={!canEdit}>
                         <Trash2 className="size-3.5" />
                       </Button>
                     </div>
@@ -430,7 +433,7 @@ export function ChecklistMasterPage() {
 
           <DialogFooter className="p-6 pt-2 border-t">
             <Button variant="outline" onClick={() => setShowEditDialog(false)}>Cancel</Button>
-            <Button variant="primary" onClick={handleSaveTemplate} disabled={!hasEdits || !formData.name.trim()}>Save Master Checklist</Button>
+            <Button variant="primary" onClick={handleSaveTemplate} disabled={!canEdit || !hasEdits || !formData.name.trim()}>Save Master Checklist</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

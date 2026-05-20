@@ -31,7 +31,7 @@ export function BehaviourSupport({
             </Label>
             <Textarea
               id="behaviour_of_concern"
-              value={formData.behaviour_of_concern}
+              value={formData.behaviour_of_concern || ''}
               onChange={(e) =>
                 onFormChange('behaviour_of_concern', e.target.value)
               }
@@ -143,7 +143,7 @@ export function BehaviourSupport({
             </Label>
             <Textarea
               id="restrictive_practice_details"
-              value={formData.restrictive_practice_details}
+              value={formData.restrictive_practice_details || ''}
               onChange={(e) =>
                 onFormChange('restrictive_practice_details', e.target.value)
               }

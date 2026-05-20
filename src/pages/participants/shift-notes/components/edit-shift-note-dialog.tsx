@@ -37,6 +37,8 @@ import { useHouses } from '@/hooks/use-houses';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { formatTime } from '@/components/roster/roster-utils';
+import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
+import { RBAC_MODULES } from '@/config/rbac-modules';
 
 interface LinkedShiftInfo {
   id: string;
@@ -82,6 +84,19 @@ export function EditShiftNoteDialog({
   const { data: staffData } = useStaff();
   const staff = staffData?.data || [];
   const { houses } = useHouses();
+  const { hasAccess } = useRBAC();
+
+  const canEdit = hasAccess({ 
+    resource: RBAC_MODULES.SHIFT_NOTES, 
+    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE 
+  });
+
+  const canAdd = hasAccess({ 
+    resource: RBAC_MODULES.SHIFT_NOTES, 
+    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE 
+  });
+
+  const canSubmit = mode === 'create' ? canAdd : canEdit;
 
   const [formData, setFormData] = useState<ShiftNoteUpdateData>({
     participant_id: null,
@@ -225,9 +240,16 @@ export function EditShiftNoteDialog({
     }
 
     setSaving(true);
+    // Sanitize empty strings to null
+    const sanitizedData = {
+      ...formData,
+      notes: formData.notes || null,
+      full_note: formData.full_note || null,
+    };
+
     try {
       if (mode === 'create' && onCreate) {
-        const { error } = await onCreate(formData);
+        const { error } = await onCreate(sanitizedData);
         if (error) {
           toast.error(error);
         } else {
@@ -235,11 +257,8 @@ export function EditShiftNoteDialog({
           onOpenChange(false);
           onSuccess?.();
         }
-      } else if (shiftNote) {
-        if (!shiftNote.id) {
-          throw new Error('Missing shift note ID');
-        }
-        const { error } = await onSave(shiftNote.id, formData);
+      } else if (shiftNote?.id) {
+        const { error } = await onSave(shiftNote.id, sanitizedData);
         if (error) {
           toast.error(error);
         } else {
@@ -247,6 +266,8 @@ export function EditShiftNoteDialog({
           onOpenChange(false);
           onSuccess?.();
         }
+      } else {
+        throw new Error('Missing shift note ID');
       }
     } catch (err) {
       console.error('Error submitting shift note:', err);
@@ -493,7 +514,7 @@ export function EditShiftNoteDialog({
           >
             Cancel
           </Button>
-          <Button onClick={handleSubmit} disabled={saving}>
+          <Button onClick={handleSubmit} disabled={saving || !canSubmit}>
             {saving ? 'Saving...' : submitButtonText}
           </Button>
         </DialogFooter>

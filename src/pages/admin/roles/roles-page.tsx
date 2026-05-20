@@ -6,6 +6,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Plus, Edit, ArrowUpDown, ArrowUp, ArrowDown, Users, ShieldCheck, List } from 'lucide-react';
 import { useRoles, useAddRole, useUpdateRole, Role } from '@/hooks/use-roles';
+import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
+import { RBAC_MODULES } from '@/config/rbac-modules';
 import { RoleMasterQuickAdd } from '@/pages/employees/staff-detail/components/employment-components/role-master-quick-add';
 import { RolePermissionsMatrix } from './components/role-permissions-matrix';
 import { RoleStaffListDialog } from './components/role-staff-list-dialog';
@@ -20,6 +22,17 @@ export function RolesPage() {
   const { roles = [], refresh: refreshRoles } = useRoles();
   const { mutateAsync: addRole } = useAddRole();
   const { mutateAsync: updateRole } = useUpdateRole();
+  const { hasAccess } = useRBAC();
+
+  const canEdit = hasAccess({ 
+    resource: RBAC_MODULES.ACCESS_CONTROL, 
+    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE 
+  });
+  
+  const canAdd = hasAccess({ 
+    resource: RBAC_MODULES.ACCESS_CONTROL, 
+    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE 
+  });
   
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingRole, setEditingRole] = useState<Role | null>(null);
@@ -89,12 +102,20 @@ export function RolesPage() {
   };
 
   const handleSave = async (roleData: Partial<Role>) => {
+    // Sanitize empty strings to null for the database
+    const sanitizedData = { ...roleData };
+    Object.keys(sanitizedData).forEach((key) => {
+      if ((sanitizedData as any)[key] === '') {
+        (sanitizedData as any)[key] = null;
+      }
+    });
+
     try {
       if (editingRole) {
-        await updateRole({ id: editingRole.id, updates: roleData });
+        await updateRole({ id: editingRole.id, updates: sanitizedData });
         toast.success('Role updated successfully');
       } else {
-        await addRole(roleData as Omit<Role, 'id' | 'created_at' | 'updated_at'>);
+        await addRole(sanitizedData as Omit<Role, 'id' | 'created_at' | 'updated_at'>);
         toast.success('Role added successfully');
       }
       setShowAddDialog(false);
@@ -123,7 +144,7 @@ export function RolesPage() {
             </div>
           </div>
           <div className="flex items-center gap-2.5">
-            <Button onClick={handleAdd}>
+            <Button onClick={handleAdd} disabled={!canAdd}>
               <Plus className="size-4 me-2" />
               Add Role
             </Button>

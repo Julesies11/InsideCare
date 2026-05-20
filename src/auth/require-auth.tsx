@@ -7,7 +7,7 @@ import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
  * Protects routes based on granular permissions.
  */
 export const RequirePermission = ({ module }: { module: string }) => {
-  const { auth, loading } = useAuth();
+  const { auth, user, loading } = useAuth();
   const { hasAccess } = useRBAC();
 
   if (loading) return <ScreenLoader />;
@@ -15,6 +15,9 @@ export const RequirePermission = ({ module }: { module: string }) => {
   if (!auth?.access_token) {
     return <Navigate to="/auth/signin" replace />;
   }
+
+  // If auth exists but user profile isn't loaded yet, wait.
+  if (!user) return <ScreenLoader />;
 
   // Check if the user has any level of access to the module.
   // A user is allowed to enter a route section if their permission is not 'none'.

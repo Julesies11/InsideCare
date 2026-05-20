@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/auth/context/auth-context';
 
 export interface AssignedHouse {
   id: string;
@@ -12,24 +13,16 @@ export interface AssignedHouse {
 }
 
 export function useStaffAssignedHouses(staffId?: string) {
+  const { user } = useAuth();
+  
   return useQuery({
-    queryKey: ['staff-assigned-houses', staffId],
+    queryKey: ['staff-assigned-houses', staffId || user?.staff_id],
     queryFn: async () => {
-      // First, ensure we have a staff ID. If not passed, try to find it from current auth user
-      let effectiveStaffId = staffId;
+      // First, ensure we have a staff ID. If not passed, use the one from AuthContext
+      const effectiveStaffId = staffId || user?.staff_id;
       
       if (!effectiveStaffId) {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return [];
-        
-        const { data: staffData } = await supabase
-          .from('staff')
-          .select('id')
-          .eq('auth_user_id', user.id)
-          .maybeSingle();
-          
-        if (!staffData) return [];
-        effectiveStaffId = staffData.id;
+        return [];
       }
 
       console.log('Fetching assigned houses for staff:', effectiveStaffId);

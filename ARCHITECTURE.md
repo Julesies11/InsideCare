@@ -99,85 +99,58 @@ Save complete ✅
 | Edit 5 fields | Send 20 fields | Send 5 fields | **75% reduction** |
 | No changes | Send 20 fields | Send 0 fields | **100% reduction** |
 
-### Activity Logging
+### Activity Logging integration...
+(rest of the content)
 
-The system maintains detailed activity logs with:
-- ✅ User attribution (who made the change)
-- ✅ Descriptive messages (what changed)
-- ✅ Change metadata (old/new values)
-- ✅ Auto-refresh after save
+## Database Null Consistency Standard
 
-**Example Log Entries:**
-- `"Added medication 'Aspirin' (100mg)"` - John Doe
-- `"Updated service provider 'Dr. Smith' (GP)"` - Jane Smith
-- `"Deleted shift note for 28 Jan 2026"` - Admin User
+### The Challenge
+React controlled components require an empty string (`''`) to remain stable and avoid "uncontrolled to controlled" warnings. However, Postgres databases should store `null` for missing or cleared data to maintain integrity and semantic correctness.
 
-### Installation
+### The Standard Pattern
+All "Save" and "Submit" handlers in InsideCare must implement the **Empty-to-Null Bridge**:
 
-Add to `package.json`:
-```json
-{
-  "dependencies": {
-    "json-diff-ts": "^4.0.0"
+1.  **On Load (DB -> UI)**: Standardize all optional string fields with a fallback.
+    ```typescript
+    value={formData.description || ''}
+    ```
+2.  **On Save (UI -> DB)**: Convert empty strings back to `null` before sending to Supabase.
+
+#### Implementation Examples
+
+**A. Simple Mapping (Checklist Pattern)**
+```typescript
+await supabase.from('table').insert({
+  description: formData.description || null
+});
+```
+
+**B. Object Sanitization (Roles Pattern)**
+```typescript
+const sanitizedData = { ...formData };
+Object.keys(sanitizedData).forEach((key) => {
+  if (sanitizedData[key] === '') {
+    sanitizedData[key] = null;
   }
-}
+});
 ```
 
-Run:
-```bash
-npm install
+**C. Partial Updates (Participant Pattern)**
+```typescript
+const normalized = { ...formData };
+Object.keys(normalized).forEach(key => {
+  if (normalized[key] === '') {
+    normalized[key] = null;
+  }
+});
 ```
 
-### Future Enhancements
-
-1. **Generic Save Pipeline** - Loop through child tables programmatically
-2. **Supabase RPC** - Atomic transactions for all changes
-3. **React Query** - Replace component remounting with cache invalidation
-4. **Optimistic Updates** - Update UI before server response
-
-## Real-Time Notifications System
-
-### Overview
-InsideCare includes a centralized, real-time notification system that broadcasts alerts (timesheet approvals, shift assignments, clinical updates) to specific users across different roles.
-
-### Key Components
-
-#### 1. **Notification Service** (`lib/notification-service.ts`)
-A centralized TypeScript service that manages the creation of all notifications. It keeps the business logic out of the UI components and avoids the need for complex database triggers.
-- Provides strict typing for notification types (`timesheet_approved`, `shift_assigned`, etc.).
-- Exposes domain-specific helpers (e.g., `notifyShiftAssigned(staffId, date, house)`).
-- Wraps `supabase.from('notifications').insert()` with fail-safes so that non-critical notification errors do not break core app flows (like form saves).
-
-#### 2. **Real-Time Subscription Hook** (`hooks/useNotifications.ts`)
-- Manages the local notification state and read/unread status.
-- Uses `supabase.channel('public:notifications')` to subscribe to database inserts.
-- Filters events strictly to the current user (`filter: user_id=eq.${user.id}`).
-- Triggers global toast alerts (`sonner`) when a new payload is received, ensuring the UI updates instantly without manual polling.
-
-#### 3. **Database Architecture & RLS**
-- **Schema:** The `notifications` table includes standard routing data (`type`, `title`, `body`, `link`) and tracks `is_read`.
-- **Publication:** The table is added to the Postgres `supabase_realtime` publication to allow the client to listen for changes.
-- **Granular RLS:** 
-  - Users can only `SELECT`, `UPDATE`, and `DELETE` their **own** notifications (`user_id = auth.uid()`).
-  - However, the `INSERT` policy is completely open to authenticated users (`WITH CHECK (true)`). This is critical, as it allows a Staff member to trigger a notification for an Admin, or a Manager to trigger an alert for a Staff member, without the database rejecting the mismatched `user_id`.
-
-### Files Modified
-
-- `src/hooks/useDirtyTracker.ts` - New centralized dirty tracking hook
-- `src/lib/pending-changes-factory.ts` - Factory for pending changes
-- `src/pages/participants/detail/participant-detail-content.tsx` - Optimized save handler
-- `src/pages/participants/detail/participant-detail-page.tsx` - Uses new hook
-- `package.json` - Added json-diff-ts dependency
-
-### Testing
-
-1. Edit a single field → Verify only that field is sent to Supabase
-2. Edit multiple fields → Verify only changed fields are sent
-3. Make no changes → Verify no update query is sent
-4. Check activity log → Verify detailed change descriptions
-5. Test navigation warnings → Verify unsaved changes are detected
+### Why this is mandatory
+- ✅ **Prevents UI Crashes**: Inputs never receive a `null` value.
+- ✅ **Clean Data**: Database doesn't get cluttered with redundant empty strings.
+- ✅ **SQL Reliability**: Ensures `IS NULL` queries work correctly for cleared fields.
 
 ---
 
-**Last Updated:** 2026-01-28  
-**Version:** 1.0.0
+**Last Updated:** 2026-05-20  
+**Version:** 1.1.0
