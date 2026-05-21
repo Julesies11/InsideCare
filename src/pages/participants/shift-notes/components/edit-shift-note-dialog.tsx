@@ -121,7 +121,7 @@ export function EditShiftNoteDialog({
     setIsMatchingShift(true);
     try {
       const { data, error } = await supabase
-        .from('staff_shifts')
+        .from('ic_staff_shifts')
         .select('id, start_time, end_time, shift_template, status')
         .eq('staff_id', staffId)
         .eq('start_date', shiftDate)

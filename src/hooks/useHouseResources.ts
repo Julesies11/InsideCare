@@ -42,10 +42,10 @@ export function useHouseResources(houseId?: string) {
         setLoading(true);
         
         const { data, error } = await supabase
-          .from('house_resources')
+          .from('ic_house_resources')
           .select(`
             *,
-            creator:staff!created_by(id, name, email)
+            creator:ic_staff!created_by(id, name, email)
           `)
           .eq('house_id', houseId)
           .order('created_at', { ascending: false });

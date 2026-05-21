@@ -22,7 +22,7 @@ export interface ChecklistMaster {
 
 const CHECKLIST_MASTER_COLUMNS = `
   id, name, days_of_week, description,
-  items:checklist_item_master (id, master_id, title, instructions, group_title, priority, is_required, sort_order)
+  items:ic_checklist_item_master(id, master_id, title, instructions, group_title, priority, is_required, sort_order)
 `;
 
 export function useChecklistMaster() {
@@ -30,7 +30,7 @@ export function useChecklistMaster() {
     queryKey: ['checklist-master'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('checklist_master')
+        .from('ic_checklist_master')
         .select(CHECKLIST_MASTER_COLUMNS)
         .order('name', { ascending: true });
 

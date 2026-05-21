@@ -41,7 +41,7 @@ export interface HouseChecklist {
 
 const HOUSE_CHECKLIST_COLUMNS = `
   id, house_id, name, description, master_id, created_at, updated_at,
-  house_checklist_items (id, checklist_id, title, instructions, group_title, priority, is_required, sort_order, created_at, updated_at)
+  house_checklist_items:ic_house_checklist_items(id, checklist_id, title, instructions, group_title, priority, is_required, sort_order, created_at, updated_at)
 `;
 
 export function useHouseChecklists(houseId?: string, scheduledDate?: string) {
@@ -52,12 +52,12 @@ export function useHouseChecklists(houseId?: string, scheduledDate?: string) {
 
       // Fetch checklists with items
       const { data: checklists, error: clError } = await supabase
-        .from('house_checklists')
+        .from('ic_house_checklists')
         .select(`
           id, house_id, name, days_of_week, description, master_id, sort_order, created_at, updated_at,
-          house_checklist_items (
+          house_checklist_items:ic_house_checklist_items(
             id, checklist_id, title, instructions, group_id, group_title, priority, is_required, sort_order, created_at, updated_at,
-            group:house_shift_templates(id, name, short_name, color_theme)
+            group:ic_house_shift_templates(id, name, short_name, color_theme)
           )
         `)
         .eq('house_id', houseId)
@@ -68,7 +68,7 @@ export function useHouseChecklists(houseId?: string, scheduledDate?: string) {
       // Fetch latest in_progress submissions for these checklists in this house
       // If scheduledDate is provided, only fetch for that specific date
       let subQuery = supabase
-        .from('house_checklist_submissions')
+        .from('ic_house_checklist_submissions')
         .select('id, checklist_id, status, updated_at, scheduled_date')
         .eq('house_id', houseId);
         

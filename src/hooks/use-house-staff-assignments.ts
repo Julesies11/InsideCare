@@ -30,7 +30,7 @@ export interface HouseStaffAssignment {
 
 const HOUSE_STAFF_ASSIGNMENT_COLUMNS = `
   id, house_id, staff_id, is_primary, start_date, end_date, notes, created_at, updated_at,
-  staff:staff(id, name, email, phone, status, separation_date, role_id, photo_url, role:roles!staff_role_id_fkey(id, name, description))
+  staff:ic_staff(id, name, email, phone, status, separation_date, role_id, photo_url, role:ic_roles!staff_role_id_fkey(id, name, description))
 `;
 
 export function useHouseStaffAssignments(houseId?: string) {
@@ -38,7 +38,7 @@ export function useHouseStaffAssignments(houseId?: string) {
     queryKey: ['house-staff-assignments', { houseId }],
     queryFn: async () => {
       let query = supabase
-        .from('house_staff_assignments')
+        .from('ic_house_staff_assignments')
         .select(HOUSE_STAFF_ASSIGNMENT_COLUMNS)
         .order('created_at', { ascending: false });
 

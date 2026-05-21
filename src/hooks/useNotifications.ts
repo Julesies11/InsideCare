@@ -28,7 +28,7 @@ export function useNotifications() {
 
     setLoading(true);
     let query = supabase
-      .from('notifications')
+      .from('ic_notifications')
       .select('id, type, title, body, link, metadata, is_read, created_at', { count: 'exact' })
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
@@ -99,7 +99,7 @@ export function useNotifications() {
     if (!user?.id) return;
 
     await supabase
-      .from('notifications')
+      .from('ic_notifications')
       .update({ is_read: true })
       .eq('user_id', user.id)
       .eq('is_read', false);
@@ -109,7 +109,7 @@ export function useNotifications() {
 
   const markRead = useCallback(async (id: string) => {
     await supabase
-      .from('notifications')
+      .from('ic_notifications')
       .update({ is_read: true })
       .eq('id', id);
 
@@ -120,7 +120,7 @@ export function useNotifications() {
 
   const markUnread = useCallback(async (id: string) => {
     await supabase
-      .from('notifications')
+      .from('ic_notifications')
       .update({ is_read: false })
       .eq('id', id);
 
@@ -133,7 +133,7 @@ export function useNotifications() {
     if (!user?.id) return;
 
     await supabase
-      .from('notifications')
+      .from('ic_notifications')
       .delete()
       .eq('user_id', user.id);
 
@@ -144,7 +144,7 @@ export function useNotifications() {
 
   const clearNotification = useCallback(async (id: string) => {
     await supabase
-      .from('notifications')
+      .from('ic_notifications')
       .delete()
       .eq('id', id);
 

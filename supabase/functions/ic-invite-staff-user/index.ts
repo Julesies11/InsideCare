@@ -38,7 +38,7 @@ serve(async (req) => {
 
     // --- HARDENING: Server-Side Role Check ---
     const { data: callerProfile, error: callerError } = await supabaseAdmin
-      .from('staff')
+      .from('ic_staff')
       .select('id, role_id')
       .eq('auth_user_id', callingUser.id)
       .eq('status', 'active')
@@ -54,7 +54,7 @@ serve(async (req) => {
 
     // Determine admin status by checking permissions for 'access_control' module
     const { data: callerPerms, error: permsError } = await supabaseAdmin
-      .from('role_permissions')
+      .from('ic_role_permissions')
       .select(ACCESS_CONTROL_MODULE)
       .eq('role_id', callerProfile.role_id)
       .maybeSingle();
@@ -96,7 +96,7 @@ serve(async (req) => {
 
     // Link the auth user to the staff record
     const { error: updateError } = await supabaseAdmin
-      .from('staff')
+      .from('ic_staff')
       .update({ auth_user_id: authUserId })
       .eq('id', staffId);
 

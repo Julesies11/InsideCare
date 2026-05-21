@@ -28,11 +28,11 @@ export function useStaffAssignedHouses(staffId?: string) {
       console.log('Fetching assigned houses for staff:', effectiveStaffId);
       
       const { data, error } = await supabase
-        .from('house_staff_assignments')
+        .from('ic_house_staff_assignments')
         .select(`
           id, 
           house_id, 
-          house:houses(id, name, address)
+          house:ic_houses(id, name, address)
         `)
         .eq('staff_id', effectiveStaffId);
         

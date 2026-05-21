@@ -18,7 +18,7 @@ As of **May 18, 2026**, the system uses a high-performance RBAC model enforced v
 
 **Metadata-First SQL Generation:**
 To maintain system integrity, any modifications to RLS policies or RBAC logic must be preceded by an audit of `migrations/schema_metadata.json` and `migrations/current_database_rbac.json`.
-- **Application-Driven Claims**: Permission calculation is handled by a TypeScript Supabase Edge Function (`update-user-permissions`). This function aggregates a user's role, house assignments, and managed staff.
+- **Application-Driven Claims**: Permission calculation is handled by a TypeScript Supabase Edge Function (`ic-update-user-permissions`). This function aggregates a user's role, house assignments, and managed staff.
 - **JWT Metadata**: The calculated access profile is injected directly into the user's Supabase Auth `app_metadata`. This includes:
     - `permissions`: A JSON object of module-specific access levels (e.g., `{"participants": "context_read_write"}`).
     - `assigned_houses`: An array of House UUIDs the user is authorized to access.

@@ -20,7 +20,7 @@ export function useParticipantProviders(participantId?: string) {
     queryFn: async () => {
       if (!participantId) return [];
       const { data, error } = await supabase
-        .from('participant_providers')
+        .from('ic_provider_participants')
         .select(PROVIDER_COLUMNS)
         .eq('participant_id', participantId)
         .order('created_at', { ascending: false });
@@ -47,7 +47,7 @@ export function useAddParticipantProvider() {
   return useMutation({
     mutationFn: async (provider: Omit<ParticipantProvider, 'id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
-        .from('participant_providers')
+        .from('ic_provider_participants')
         .insert(provider)
         .select(PROVIDER_COLUMNS)
         .maybeSingle();
@@ -68,7 +68,7 @@ export function useUpdateParticipantProvider() {
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<ParticipantProvider> }) => {
       const { data, error } = await supabase
-        .from('participant_providers')
+        .from('ic_provider_participants')
         .update(updates)
         .eq('id', id)
         .select(PROVIDER_COLUMNS)
@@ -90,7 +90,7 @@ export function useDeleteParticipantProvider() {
   return useMutation({
     mutationFn: async ({ id, participantId }: { id: string; participantId: string }) => {
       const { error } = await supabase
-        .from('participant_providers')
+        .from('ic_provider_participants')
         .delete()
         .eq('id', id);
 

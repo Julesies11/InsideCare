@@ -2,7 +2,7 @@
   {
     "tables": [
       {
-        "name": "activity_log",
+        "name": "ic_activity_log",
         "columns": [
           {
             "pk": true,
@@ -73,7 +73,7 @@
         "policy_count": 3
       },
       {
-        "name": "branch_policies",
+        "name": "ic_branch_policies",
         "columns": [
           {
             "pk": true,
@@ -186,13 +186,13 @@
           {
             "col": "branch_id",
             "ref_col": "id",
-            "ref_table": "branches"
+            "ref_table": "ic_branches"
           }
         ],
         "policy_count": 2
       },
       {
-        "name": "branches",
+        "name": "ic_branches",
         "columns": [
           {
             "pk": true,
@@ -319,7 +319,7 @@
         "policy_count": 2
       },
       {
-        "name": "checklist_item_master",
+        "name": "ic_checklist_item_master",
         "columns": [
           {
             "pk": true,
@@ -404,18 +404,18 @@
           {
             "col": "group_id",
             "ref_col": "id",
-            "ref_table": "house_shift_templates"
+            "ref_table": "ic_house_shift_templates"
           },
           {
             "col": "master_id",
             "ref_col": "id",
-            "ref_table": "checklist_master"
+            "ref_table": "ic_checklist_master"
           }
         ],
         "policy_count": 2
       },
       {
-        "name": "checklist_master",
+        "name": "ic_checklist_master",
         "columns": [
           {
             "pk": true,
@@ -465,7 +465,7 @@
         "policy_count": 2
       },
       {
-        "name": "checklist_schedules",
+        "name": "ic_checklist_schedules",
         "columns": [
           {
             "pk": true,
@@ -534,7 +534,7 @@
             "pk": false,
             "name": "target_shift",
             "type": "USER-DEFINED",
-            "default": "'all'::shift_period_enum",
+            "default": "'all'::ic_shift_period_enum",
             "nullable": "NO"
           }
         ],
@@ -543,18 +543,18 @@
           {
             "col": "house_id",
             "ref_col": "id",
-            "ref_table": "houses"
+            "ref_table": "ic_houses"
           },
           {
             "col": "house_checklist_id",
             "ref_col": "id",
-            "ref_table": "house_checklists"
+            "ref_table": "ic_house_checklists"
           }
         ],
         "policy_count": 2
       },
       {
-        "name": "contact_types_master",
+        "name": "ic_contact_types_master",
         "columns": [
           {
             "pk": true,
@@ -611,7 +611,7 @@
         "policy_count": 2
       },
       {
-        "name": "departments",
+        "name": "ic_departments",
         "columns": [
           {
             "pk": true,
@@ -668,7 +668,7 @@
         "policy_count": 2
       },
       {
-        "name": "employment_types_master",
+        "name": "ic_employment_types_master",
         "columns": [
           {
             "pk": true,
@@ -718,7 +718,7 @@
         "policy_count": 2
       },
       {
-        "name": "error_logs",
+        "name": "ic_error_logs",
         "columns": [
           {
             "pk": true,
@@ -796,7 +796,7 @@
         "policy_count": 2
       },
       {
-        "name": "funding_sources_master",
+        "name": "ic_funding_sources_master",
         "columns": [
           {
             "pk": true,
@@ -853,7 +853,7 @@
         "policy_count": 2
       },
       {
-        "name": "funding_types_master",
+        "name": "ic_funding_types_master",
         "columns": [
           {
             "pk": true,
@@ -910,7 +910,7 @@
         "policy_count": 2
       },
       {
-        "name": "house_calendar_event_attachments",
+        "name": "ic_house_calendar_event_attachments",
         "columns": [
           {
             "pk": true,
@@ -974,13 +974,13 @@
           {
             "col": "event_id",
             "ref_col": "id",
-            "ref_table": "house_calendar_events"
+            "ref_table": "ic_house_calendar_events"
           }
         ],
         "policy_count": 2
       },
       {
-        "name": "house_calendar_event_participants",
+        "name": "ic_house_calendar_event_participants",
         "columns": [
           {
             "pk": true,
@@ -1016,18 +1016,18 @@
           {
             "col": "participant_id",
             "ref_col": "id",
-            "ref_table": "participants"
+            "ref_table": "ic_participants"
           },
           {
             "col": "event_id",
             "ref_col": "id",
-            "ref_table": "house_calendar_events"
+            "ref_table": "ic_house_calendar_events"
           }
         ],
         "policy_count": 2
       },
       {
-        "name": "house_calendar_event_staff",
+        "name": "ic_house_calendar_event_staff",
         "columns": [
           {
             "pk": true,
@@ -1063,18 +1063,18 @@
           {
             "col": "staff_id",
             "ref_col": "id",
-            "ref_table": "staff"
+            "ref_table": "ic_staff"
           },
           {
             "col": "event_id",
             "ref_col": "id",
-            "ref_table": "house_calendar_events"
+            "ref_table": "ic_house_calendar_events"
           }
         ],
         "policy_count": 2
       },
       {
-        "name": "house_calendar_event_types_master",
+        "name": "ic_house_calendar_event_types_master",
         "columns": [
           {
             "pk": true,
@@ -1131,7 +1131,7 @@
         "policy_count": 2
       },
       {
-        "name": "house_calendar_events",
+        "name": "ic_house_calendar_events",
         "columns": [
           {
             "pk": true,
@@ -1251,33 +1251,33 @@
           {
             "col": "house_id",
             "ref_col": "id",
-            "ref_table": "houses"
+            "ref_table": "ic_houses"
           },
           {
             "col": "event_type_id",
             "ref_col": "id",
-            "ref_table": "house_calendar_event_types_master"
+            "ref_table": "ic_house_calendar_event_types_master"
           },
           {
             "col": "checklist_schedule_id",
             "ref_col": "id",
-            "ref_table": "checklist_schedules"
+            "ref_table": "ic_checklist_schedules"
           },
           {
             "col": "created_by",
             "ref_col": "id",
-            "ref_table": "staff"
+            "ref_table": "ic_staff"
           },
           {
             "col": "house_checklist_id",
             "ref_col": "id",
-            "ref_table": "house_checklists"
+            "ref_table": "ic_house_checklists"
           }
         ],
         "policy_count": 2
       },
       {
-        "name": "house_checklist_item_attachments",
+        "name": "ic_house_checklist_item_attachments",
         "columns": [
           {
             "pk": true,
@@ -1355,23 +1355,23 @@
           {
             "col": "submission_id",
             "ref_col": "id",
-            "ref_table": "house_checklist_submissions"
+            "ref_table": "ic_house_checklist_submissions"
           },
           {
             "col": "item_id",
             "ref_col": "id",
-            "ref_table": "house_checklist_items"
+            "ref_table": "ic_house_checklist_items"
           },
           {
             "col": "uploaded_by",
             "ref_col": "id",
-            "ref_table": "staff"
+            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 2
       },
       {
-        "name": "house_checklist_items",
+        "name": "ic_house_checklist_items",
         "columns": [
           {
             "pk": true,
@@ -1463,23 +1463,23 @@
           {
             "col": "checklist_id",
             "ref_col": "id",
-            "ref_table": "house_checklists"
+            "ref_table": "ic_house_checklists"
           },
           {
             "col": "master_item_id",
             "ref_col": "id",
-            "ref_table": "checklist_item_master"
+            "ref_table": "ic_checklist_item_master"
           },
           {
             "col": "group_id",
             "ref_col": "id",
-            "ref_table": "house_shift_templates"
+            "ref_table": "ic_house_shift_templates"
           }
         ],
         "policy_count": 2
       },
       {
-        "name": "house_checklist_submission_items",
+        "name": "ic_house_checklist_submission_items",
         "columns": [
           {
             "pk": true,
@@ -1564,28 +1564,28 @@
           {
             "col": "item_id",
             "ref_col": "id",
-            "ref_table": "house_checklist_items"
+            "ref_table": "ic_house_checklist_items"
           },
           {
             "col": "submission_id",
             "ref_col": "id",
-            "ref_table": "house_checklist_submissions"
+            "ref_table": "ic_house_checklist_submissions"
           },
           {
             "col": "completed_by",
             "ref_col": "id",
-            "ref_table": "staff"
+            "ref_table": "ic_staff"
           },
           {
             "col": "master_item_id",
             "ref_col": "id",
-            "ref_table": "checklist_item_master"
+            "ref_table": "ic_checklist_item_master"
           }
         ],
         "policy_count": 2
       },
       {
-        "name": "house_checklist_submissions",
+        "name": "ic_house_checklist_submissions",
         "columns": [
           {
             "pk": true,
@@ -1698,48 +1698,48 @@
           {
             "col": "checklist_id",
             "ref_col": "id",
-            "ref_table": "house_checklists"
+            "ref_table": "ic_house_checklists"
           },
           {
             "col": "calendar_event_id",
             "ref_col": "id",
-            "ref_table": "house_calendar_events"
+            "ref_table": "ic_house_calendar_events"
           },
           {
             "col": "shift_assignment_id",
             "ref_col": "id",
-            "ref_table": "shift_assigned_checklists"
+            "ref_table": "ic_shift_assigned_checklists"
           },
           {
             "col": "master_id",
             "ref_col": "id",
-            "ref_table": "checklist_master"
+            "ref_table": "ic_checklist_master"
           },
           {
             "col": "submitted_by",
             "ref_col": "id",
-            "ref_table": "staff"
+            "ref_table": "ic_staff"
           },
           {
             "col": "house_id",
             "ref_col": "id",
-            "ref_table": "houses"
+            "ref_table": "ic_houses"
           },
           {
             "col": "shift_template_id",
             "ref_col": "id",
-            "ref_table": "house_shift_templates"
+            "ref_table": "ic_house_shift_templates"
           },
           {
             "col": "shift_id",
             "ref_col": "id",
-            "ref_table": "staff_shifts"
+            "ref_table": "ic_staff_shifts"
           }
         ],
         "policy_count": 4
       },
       {
-        "name": "house_checklists",
+        "name": "ic_house_checklists",
         "columns": [
           {
             "pk": true,
@@ -1817,18 +1817,18 @@
           {
             "col": "master_id",
             "ref_col": "id",
-            "ref_table": "checklist_master"
+            "ref_table": "ic_checklist_master"
           },
           {
             "col": "house_id",
             "ref_col": "id",
-            "ref_table": "houses"
+            "ref_table": "ic_houses"
           }
         ],
         "policy_count": 4
       },
       {
-        "name": "house_comms",
+        "name": "ic_house_comms",
         "columns": [
           {
             "pk": true,
@@ -1885,18 +1885,18 @@
           {
             "col": "house_id",
             "ref_col": "id",
-            "ref_table": "houses"
+            "ref_table": "ic_houses"
           },
           {
             "col": "created_by",
             "ref_col": "id",
-            "ref_table": "staff"
+            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 2
       },
       {
-        "name": "house_files",
+        "name": "ic_house_files",
         "columns": [
           {
             "pk": true,
@@ -1995,13 +1995,13 @@
           {
             "col": "house_id",
             "ref_col": "id",
-            "ref_table": "houses"
+            "ref_table": "ic_houses"
           }
         ],
         "policy_count": 2
       },
       {
-        "name": "house_form_assignments",
+        "name": "ic_house_form_assignments",
         "columns": [
           {
             "pk": true,
@@ -2093,33 +2093,33 @@
           {
             "col": "form_id",
             "ref_col": "id",
-            "ref_table": "house_forms"
+            "ref_table": "ic_house_forms"
           },
           {
             "col": "completed_by",
             "ref_col": "id",
-            "ref_table": "staff"
+            "ref_table": "ic_staff"
           },
           {
             "col": "assigned_by",
             "ref_col": "id",
-            "ref_table": "staff"
+            "ref_table": "ic_staff"
           },
           {
             "col": "staff_id",
             "ref_col": "id",
-            "ref_table": "staff"
+            "ref_table": "ic_staff"
           },
           {
             "col": "participant_id",
             "ref_col": "id",
-            "ref_table": "participants"
+            "ref_table": "ic_participants"
           }
         ],
         "policy_count": 2
       },
       {
-        "name": "house_form_submissions",
+        "name": "ic_house_form_submissions",
         "columns": [
           {
             "pk": true,
@@ -2197,28 +2197,28 @@
           {
             "col": "submitted_by",
             "ref_col": "id",
-            "ref_table": "staff"
+            "ref_table": "ic_staff"
           },
           {
             "col": "participant_id",
             "ref_col": "id",
-            "ref_table": "participants"
+            "ref_table": "ic_participants"
           },
           {
             "col": "form_id",
             "ref_col": "id",
-            "ref_table": "house_forms"
+            "ref_table": "ic_house_forms"
           },
           {
             "col": "assignment_id",
             "ref_col": "id",
-            "ref_table": "house_form_assignments"
+            "ref_table": "ic_house_form_assignments"
           }
         ],
         "policy_count": 2
       },
       {
-        "name": "house_forms",
+        "name": "ic_house_forms",
         "columns": [
           {
             "pk": true,
@@ -2303,18 +2303,18 @@
           {
             "col": "created_by",
             "ref_col": "id",
-            "ref_table": "staff"
+            "ref_table": "ic_staff"
           },
           {
             "col": "house_id",
             "ref_col": "id",
-            "ref_table": "houses"
+            "ref_table": "ic_houses"
           }
         ],
         "policy_count": 2
       },
       {
-        "name": "house_resources",
+        "name": "ic_house_resources",
         "columns": [
           {
             "pk": true,
@@ -2434,18 +2434,18 @@
           {
             "col": "house_id",
             "ref_col": "id",
-            "ref_table": "houses"
+            "ref_table": "ic_houses"
           },
           {
             "col": "created_by",
             "ref_col": "id",
-            "ref_table": "staff"
+            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 2
       },
       {
-        "name": "house_shift_templates",
+        "name": "ic_house_shift_templates",
         "columns": [
           {
             "pk": true,
@@ -2537,13 +2537,13 @@
           {
             "col": "house_id",
             "ref_col": "id",
-            "ref_table": "houses"
+            "ref_table": "ic_houses"
           }
         ],
         "policy_count": 2
       },
       {
-        "name": "house_staff_assignments",
+        "name": "ic_house_staff_assignments",
         "columns": [
           {
             "pk": true,
@@ -2614,18 +2614,18 @@
           {
             "col": "house_id",
             "ref_col": "id",
-            "ref_table": "houses"
+            "ref_table": "ic_houses"
           },
           {
             "col": "staff_id",
             "ref_col": "id",
-            "ref_table": "staff"
+            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 2
       },
       {
-        "name": "house_types_master",
+        "name": "ic_house_types_master",
         "columns": [
           {
             "pk": true,
@@ -2675,7 +2675,7 @@
         "policy_count": 2
       },
       {
-        "name": "houses",
+        "name": "ic_houses",
         "columns": [
           {
             "pk": true,
@@ -2816,18 +2816,18 @@
           {
             "col": "house_type_id",
             "ref_col": "id",
-            "ref_table": "house_types_master"
+            "ref_table": "ic_house_types_master"
           },
           {
             "col": "branch_id",
             "ref_col": "id",
-            "ref_table": "branches"
+            "ref_table": "ic_branches"
           }
         ],
         "policy_count": 2
       },
       {
-        "name": "leave_requests",
+        "name": "ic_leave_requests",
         "columns": [
           {
             "pk": true,
@@ -2912,18 +2912,18 @@
           {
             "col": "staff_id",
             "ref_col": "id",
-            "ref_table": "staff"
+            "ref_table": "ic_staff"
           },
           {
             "col": "leave_type_id",
             "ref_col": "id",
-            "ref_table": "leave_types"
+            "ref_table": "ic_leave_types"
           }
         ],
         "policy_count": 2
       },
       {
-        "name": "leave_types",
+        "name": "ic_leave_types",
         "columns": [
           {
             "pk": true,
@@ -2959,7 +2959,7 @@
         "policy_count": 2
       },
       {
-        "name": "medications_master",
+        "name": "ic_medications_master",
         "columns": [
           {
             "pk": true,
@@ -3044,7 +3044,7 @@
         "policy_count": 2
       },
       {
-        "name": "notifications",
+        "name": "ic_notifications",
         "columns": [
           {
             "pk": true,
@@ -3115,7 +3115,7 @@
         "policy_count": 1
       },
       {
-        "name": "participant_contacts",
+        "name": "ic_participant_contacts",
         "columns": [
           {
             "pk": true,
@@ -3200,18 +3200,18 @@
           {
             "col": "participant_id",
             "ref_col": "id",
-            "ref_table": "participants"
+            "ref_table": "ic_participants"
           },
           {
             "col": "contact_type_id",
             "ref_col": "id",
-            "ref_table": "contact_types_master"
+            "ref_table": "ic_contact_types_master"
           }
         ],
         "policy_count": 2
       },
       {
-        "name": "participant_documents",
+        "name": "ic_participant_documents",
         "columns": [
           {
             "pk": true,
@@ -3289,18 +3289,18 @@
           {
             "col": "participant_id",
             "ref_col": "id",
-            "ref_table": "participants"
+            "ref_table": "ic_participants"
           },
           {
             "col": "uploaded_by",
             "ref_col": "id",
-            "ref_table": "staff"
+            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 2
       },
       {
-        "name": "participant_forms",
+        "name": "ic_participant_forms",
         "columns": [
           {
             "pk": true,
@@ -3371,18 +3371,18 @@
           {
             "col": "participant_id",
             "ref_col": "id",
-            "ref_table": "participants"
+            "ref_table": "ic_participants"
           },
           {
             "col": "submitted_by",
             "ref_col": "id",
-            "ref_table": "staff"
+            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 2
       },
       {
-        "name": "participant_funding",
+        "name": "ic_participant_funding",
         "columns": [
           {
             "pk": true,
@@ -3495,28 +3495,28 @@
           {
             "col": "funding_type_id",
             "ref_col": "id",
-            "ref_table": "funding_types_master"
+            "ref_table": "ic_funding_types_master"
           },
           {
             "col": "participant_id",
             "ref_col": "id",
-            "ref_table": "participants"
+            "ref_table": "ic_participants"
           },
           {
             "col": "house_id",
             "ref_col": "id",
-            "ref_table": "houses"
+            "ref_table": "ic_houses"
           },
           {
             "col": "funding_source_id",
             "ref_col": "id",
-            "ref_table": "funding_sources_master"
+            "ref_table": "ic_funding_sources_master"
           }
         ],
         "policy_count": 2
       },
       {
-        "name": "participant_goal_progress",
+        "name": "ic_participant_goal_progress",
         "columns": [
           {
             "pk": true,
@@ -3559,13 +3559,13 @@
           {
             "col": "goal_id",
             "ref_col": "id",
-            "ref_table": "participant_goals"
+            "ref_table": "ic_participant_goals"
           }
         ],
-        "policy_count": 2
+        "policy_count": 1
       },
       {
-        "name": "participant_goals",
+        "name": "ic_participant_goals",
         "columns": [
           {
             "pk": true,
@@ -3622,13 +3622,13 @@
           {
             "col": "participant_id",
             "ref_col": "id",
-            "ref_table": "participants"
+            "ref_table": "ic_participants"
           }
         ],
         "policy_count": 2
       },
       {
-        "name": "participant_hygiene_routines",
+        "name": "ic_participant_hygiene_routines",
         "columns": [
           {
             "pk": true,
@@ -3720,13 +3720,13 @@
           {
             "col": "participant_id",
             "ref_col": "id",
-            "ref_table": "participants"
+            "ref_table": "ic_participants"
           }
         ],
         "policy_count": 2
       },
       {
-        "name": "participant_medications",
+        "name": "ic_participant_medications",
         "columns": [
           {
             "pk": true,
@@ -3790,18 +3790,18 @@
           {
             "col": "medication_id",
             "ref_col": "id",
-            "ref_table": "medications_master"
+            "ref_table": "ic_medications_master"
           },
           {
             "col": "participant_id",
             "ref_col": "id",
-            "ref_table": "participants"
+            "ref_table": "ic_participants"
           }
         ],
         "policy_count": 2
       },
       {
-        "name": "participant_notes",
+        "name": "ic_participant_notes",
         "columns": [
           {
             "pk": true,
@@ -3872,18 +3872,18 @@
           {
             "col": "created_by",
             "ref_col": "id",
-            "ref_table": "staff"
+            "ref_table": "ic_staff"
           },
           {
             "col": "participant_id",
             "ref_col": "id",
-            "ref_table": "participants"
+            "ref_table": "ic_participants"
           }
         ],
         "policy_count": 2
       },
       {
-        "name": "participant_restrictive_practices",
+        "name": "ic_participant_restrictive_practices",
         "columns": [
           {
             "pk": true,
@@ -4010,18 +4010,18 @@
           {
             "col": "participant_id",
             "ref_col": "id",
-            "ref_table": "participants"
+            "ref_table": "ic_participants"
           },
           {
             "col": "created_by",
             "ref_col": "id",
-            "ref_table": "staff"
+            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 2
       },
       {
-        "name": "participants",
+        "name": "ic_participants",
         "columns": [
           {
             "pk": true,
@@ -4167,7 +4167,7 @@
             "pk": false,
             "name": "status",
             "type": "USER-DEFINED",
-            "default": "'draft'::status_enum",
+            "default": "'draft'::ic_status_enum",
             "nullable": "NO"
           },
           {
@@ -4456,13 +4456,13 @@
           {
             "col": "house_id",
             "ref_col": "id",
-            "ref_table": "houses"
+            "ref_table": "ic_houses"
           }
         ],
-        "policy_count": 4
+        "policy_count": 2
       },
       {
-        "name": "permission_mappings",
+        "name": "ic_permission_mappings",
         "columns": [
           {
             "pk": true,
@@ -4530,10 +4530,10 @@
         ],
         "rls_enabled": true,
         "foreign_keys": [],
-        "policy_count": 2
+        "policy_count": 3
       },
       {
-        "name": "positions",
+        "name": "ic_positions",
         "columns": [
           {
             "pk": true,
@@ -4604,13 +4604,13 @@
           {
             "col": "department_id",
             "ref_col": "id",
-            "ref_table": "departments"
+            "ref_table": "ic_departments"
           }
         ],
-        "policy_count": 2
+        "policy_count": 3
       },
       {
-        "name": "provider_participants",
+        "name": "ic_provider_participants",
         "columns": [
           {
             "pk": true,
@@ -4646,13 +4646,13 @@
           {
             "col": "participant_id",
             "ref_col": "id",
-            "ref_table": "participants"
+            "ref_table": "ic_participants"
           }
         ],
-        "policy_count": 2
+        "policy_count": 3
       },
       {
-        "name": "providers",
+        "name": "ic_providers",
         "columns": [
           {
             "pk": true,
@@ -4734,10 +4734,10 @@
         ],
         "rls_enabled": true,
         "foreign_keys": [],
-        "policy_count": 2
+        "policy_count": 3
       },
       {
-        "name": "role_permissions",
+        "name": "ic_role_permissions",
         "columns": [
           {
             "pk": true,
@@ -4757,105 +4757,105 @@
             "pk": false,
             "name": "my_roster",
             "type": "USER-DEFINED",
-            "default": "'none'::access_level_enum",
+            "default": "'none'::ic_access_level_enum",
             "nullable": "NO"
           },
           {
             "pk": false,
             "name": "my_timesheets",
             "type": "USER-DEFINED",
-            "default": "'none'::access_level_enum",
+            "default": "'none'::ic_access_level_enum",
             "nullable": "NO"
           },
           {
             "pk": false,
             "name": "my_leave",
             "type": "USER-DEFINED",
-            "default": "'none'::access_level_enum",
+            "default": "'none'::ic_access_level_enum",
             "nullable": "NO"
           },
           {
             "pk": false,
             "name": "shift_routines",
             "type": "USER-DEFINED",
-            "default": "'none'::access_level_enum",
+            "default": "'none'::ic_access_level_enum",
             "nullable": "NO"
           },
           {
             "pk": false,
             "name": "participants",
             "type": "USER-DEFINED",
-            "default": "'none'::access_level_enum",
+            "default": "'none'::ic_access_level_enum",
             "nullable": "NO"
           },
           {
             "pk": false,
             "name": "shift_notes",
             "type": "USER-DEFINED",
-            "default": "'none'::access_level_enum",
+            "default": "'none'::ic_access_level_enum",
             "nullable": "NO"
           },
           {
             "pk": false,
             "name": "employees",
             "type": "USER-DEFINED",
-            "default": "'none'::access_level_enum",
+            "default": "'none'::ic_access_level_enum",
             "nullable": "NO"
           },
           {
             "pk": false,
             "name": "timesheets",
             "type": "USER-DEFINED",
-            "default": "'none'::access_level_enum",
+            "default": "'none'::ic_access_level_enum",
             "nullable": "NO"
           },
           {
             "pk": false,
             "name": "leave_requests",
             "type": "USER-DEFINED",
-            "default": "'none'::access_level_enum",
+            "default": "'none'::ic_access_level_enum",
             "nullable": "NO"
           },
           {
             "pk": false,
             "name": "roster_board",
             "type": "USER-DEFINED",
-            "default": "'none'::access_level_enum",
+            "default": "'none'::ic_access_level_enum",
             "nullable": "NO"
           },
           {
             "pk": false,
             "name": "houses",
             "type": "USER-DEFINED",
-            "default": "'none'::access_level_enum",
+            "default": "'none'::ic_access_level_enum",
             "nullable": "NO"
           },
           {
             "pk": false,
             "name": "house_checklists",
             "type": "USER-DEFINED",
-            "default": "'none'::access_level_enum",
+            "default": "'none'::ic_access_level_enum",
             "nullable": "NO"
           },
           {
             "pk": false,
             "name": "access_control",
             "type": "USER-DEFINED",
-            "default": "'none'::access_level_enum",
+            "default": "'none'::ic_access_level_enum",
             "nullable": "NO"
           },
           {
             "pk": false,
             "name": "master_lists",
             "type": "USER-DEFINED",
-            "default": "'none'::access_level_enum",
+            "default": "'none'::ic_access_level_enum",
             "nullable": "NO"
           },
           {
             "pk": false,
             "name": "activity_log",
             "type": "USER-DEFINED",
-            "default": "'none'::access_level_enum",
+            "default": "'none'::ic_access_level_enum",
             "nullable": "NO"
           },
           {
@@ -4878,13 +4878,13 @@
           {
             "col": "role_id",
             "ref_col": "id",
-            "ref_table": "roles"
+            "ref_table": "ic_roles"
           }
         ],
-        "policy_count": 2
+        "policy_count": 1
       },
       {
-        "name": "roles",
+        "name": "ic_roles",
         "columns": [
           {
             "pk": true,
@@ -4945,10 +4945,10 @@
         ],
         "rls_enabled": true,
         "foreign_keys": [],
-        "policy_count": 2
+        "policy_count": 1
       },
       {
-        "name": "service_participants",
+        "name": "ic_service_participants",
         "columns": [
           {
             "pk": true,
@@ -4984,18 +4984,18 @@
           {
             "col": "participant_id",
             "ref_col": "id",
-            "ref_table": "participants"
+            "ref_table": "ic_participants"
           },
           {
             "col": "service_id",
             "ref_col": "id",
-            "ref_table": "services"
+            "ref_table": "ic_services"
           }
         ],
-        "policy_count": 2
+        "policy_count": 3
       },
       {
-        "name": "service_staff",
+        "name": "ic_service_staff",
         "columns": [
           {
             "pk": true,
@@ -5031,18 +5031,18 @@
           {
             "col": "service_id",
             "ref_col": "id",
-            "ref_table": "services"
+            "ref_table": "ic_services"
           },
           {
             "col": "staff_id",
             "ref_col": "id",
-            "ref_table": "staff"
+            "ref_table": "ic_staff"
           }
         ],
-        "policy_count": 2
+        "policy_count": 3
       },
       {
-        "name": "services",
+        "name": "ic_services",
         "columns": [
           {
             "pk": true,
@@ -5096,10 +5096,10 @@
         ],
         "rls_enabled": true,
         "foreign_keys": [],
-        "policy_count": 2
+        "policy_count": 3
       },
       {
-        "name": "shift_assigned_checklists",
+        "name": "ic_shift_assigned_checklists",
         "columns": [
           {
             "pk": true,
@@ -5163,28 +5163,28 @@
           {
             "col": "house_id",
             "ref_col": "id",
-            "ref_table": "houses"
+            "ref_table": "ic_houses"
           },
           {
             "col": "shift_id",
             "ref_col": "id",
-            "ref_table": "staff_shifts"
+            "ref_table": "ic_staff_shifts"
           },
           {
             "col": "checklist_id",
             "ref_col": "id",
-            "ref_table": "house_checklists"
+            "ref_table": "ic_house_checklists"
           },
           {
             "col": "shift_template_id",
             "ref_col": "id",
-            "ref_table": "house_shift_templates"
+            "ref_table": "ic_house_shift_templates"
           }
         ],
-        "policy_count": 2
+        "policy_count": 1
       },
       {
-        "name": "shift_notes",
+        "name": "ic_shift_notes",
         "columns": [
           {
             "pk": true,
@@ -5269,28 +5269,28 @@
           {
             "col": "participant_id",
             "ref_col": "id",
-            "ref_table": "participants"
+            "ref_table": "ic_participants"
           },
           {
             "col": "house_id",
             "ref_col": "id",
-            "ref_table": "houses"
+            "ref_table": "ic_houses"
           },
           {
             "col": "staff_id",
             "ref_col": "id",
-            "ref_table": "staff"
+            "ref_table": "ic_staff"
           },
           {
             "col": "shift_id",
             "ref_col": "id",
-            "ref_table": "staff_shifts"
+            "ref_table": "ic_staff_shifts"
           }
         ],
-        "policy_count": 4
+        "policy_count": 1
       },
       {
-        "name": "shift_participants",
+        "name": "ic_shift_participants",
         "columns": [
           {
             "pk": true,
@@ -5326,18 +5326,18 @@
           {
             "col": "shift_id",
             "ref_col": "id",
-            "ref_table": "staff_shifts"
+            "ref_table": "ic_staff_shifts"
           },
           {
             "col": "participant_id",
             "ref_col": "id",
-            "ref_table": "participants"
+            "ref_table": "ic_participants"
           }
         ],
-        "policy_count": 2
+        "policy_count": 1
       },
       {
-        "name": "shift_template_checklists",
+        "name": "ic_shift_template_checklists",
         "columns": [
           {
             "pk": true,
@@ -5373,13 +5373,13 @@
           {
             "col": "checklist_id",
             "ref_col": "id",
-            "ref_table": "house_checklists"
+            "ref_table": "ic_house_checklists"
           }
         ],
-        "policy_count": 2
+        "policy_count": 3
       },
       {
-        "name": "shift_template_default_checklists",
+        "name": "ic_shift_template_default_checklists",
         "columns": [
           {
             "pk": true,
@@ -5415,18 +5415,18 @@
           {
             "col": "checklist_id",
             "ref_col": "id",
-            "ref_table": "house_checklists"
+            "ref_table": "ic_house_checklists"
           },
           {
             "col": "shift_template_id",
             "ref_col": "id",
-            "ref_table": "house_shift_templates"
+            "ref_table": "ic_house_shift_templates"
           }
         ],
-        "policy_count": 2
+        "policy_count": 3
       },
       {
-        "name": "staff",
+        "name": "ic_staff",
         "columns": [
           {
             "pk": true,
@@ -5530,7 +5530,7 @@
             "pk": false,
             "name": "status",
             "type": "USER-DEFINED",
-            "default": "'draft'::status_enum",
+            "default": "'draft'::ic_status_enum",
             "nullable": "NO"
           },
           {
@@ -5686,28 +5686,28 @@
           {
             "col": "role_id",
             "ref_col": "id",
-            "ref_table": "roles"
+            "ref_table": "ic_roles"
           },
           {
             "col": "employment_type_id",
             "ref_col": "id",
-            "ref_table": "employment_types_master"
+            "ref_table": "ic_employment_types_master"
           },
           {
             "col": "manager_id",
             "ref_col": "id",
-            "ref_table": "staff"
+            "ref_table": "ic_staff"
           },
           {
             "col": "department_id",
             "ref_col": "id",
-            "ref_table": "departments"
+            "ref_table": "ic_departments"
           }
         ],
         "policy_count": 2
       },
       {
-        "name": "staff_compliance",
+        "name": "ic_staff_compliance",
         "columns": [
           {
             "pk": true,
@@ -5771,13 +5771,13 @@
           {
             "col": "staff_id",
             "ref_col": "id",
-            "ref_table": "staff"
+            "ref_table": "ic_staff"
           }
         ],
-        "policy_count": 2
+        "policy_count": 1
       },
       {
-        "name": "staff_documents",
+        "name": "ic_staff_documents",
         "columns": [
           {
             "pk": true,
@@ -5855,13 +5855,13 @@
           {
             "col": "staff_id",
             "ref_col": "id",
-            "ref_table": "staff"
+            "ref_table": "ic_staff"
           }
         ],
-        "policy_count": 2
+        "policy_count": 1
       },
       {
-        "name": "staff_shifts",
+        "name": "ic_staff_shifts",
         "columns": [
           {
             "pk": true,
@@ -5960,23 +5960,23 @@
           {
             "col": "staff_id",
             "ref_col": "id",
-            "ref_table": "staff"
+            "ref_table": "ic_staff"
           },
           {
             "col": "shift_template_id",
             "ref_col": "id",
-            "ref_table": "house_shift_templates"
+            "ref_table": "ic_house_shift_templates"
           },
           {
             "col": "house_id",
             "ref_col": "id",
-            "ref_table": "houses"
+            "ref_table": "ic_houses"
           }
         ],
-        "policy_count": 2
+        "policy_count": 1
       },
       {
-        "name": "staff_training",
+        "name": "ic_staff_training",
         "columns": [
           {
             "pk": true,
@@ -6082,18 +6082,18 @@
           {
             "col": "created_by",
             "ref_col": "id",
-            "ref_table": "staff"
+            "ref_table": "ic_staff"
           },
           {
             "col": "staff_id",
             "ref_col": "id",
-            "ref_table": "staff"
+            "ref_table": "ic_staff"
           }
         ],
-        "policy_count": 2
+        "policy_count": 1
       },
       {
-        "name": "timesheets",
+        "name": "ic_timesheets",
         "columns": [
           {
             "pk": true,
@@ -6269,23 +6269,23 @@
           {
             "col": "approved_by",
             "ref_col": "id",
-            "ref_table": "staff"
+            "ref_table": "ic_staff"
           },
           {
             "col": "shift_id",
             "ref_col": "id",
-            "ref_table": "staff_shifts"
+            "ref_table": "ic_staff_shifts"
           },
           {
             "col": "staff_id",
             "ref_col": "id",
-            "ref_table": "staff"
+            "ref_table": "ic_staff"
           }
         ],
-        "policy_count": 2
+        "policy_count": 1
       },
       {
-        "name": "user_roles",
+        "name": "ic_user_roles",
         "columns": [
           {
             "pk": true,
@@ -6342,15 +6342,15 @@
           {
             "col": "staff_id",
             "ref_col": "id",
-            "ref_table": "staff"
+            "ref_table": "ic_staff"
           }
         ],
-        "policy_count": 2
+        "policy_count": 1
       }
     ],
     "enums": [
       {
-        "name": "access_level_enum",
+        "name": "ic_access_level_enum",
         "values": [
           "full",
           "context_read_write",
@@ -6360,7 +6360,7 @@
         ]
       },
       {
-        "name": "shift_period_enum",
+        "name": "ic_shift_period_enum",
         "values": [
           "morning",
           "day",
@@ -6369,7 +6369,7 @@
         ]
       },
       {
-        "name": "status_enum",
+        "name": "ic_status_enum",
         "values": [
           "draft",
           "active",
@@ -6381,277 +6381,277 @@
     "functions": [
       {
         "args": "",
-        "name": "handle_new_role_permissions",
+        "name": "ic_handle_new_role_permissions",
         "returns": "trigger",
-        "definition": "\nBEGIN\n    INSERT INTO public.role_permissions (role_id)\n    VALUES (NEW.id)\n    ON CONFLICT (role_id) DO NOTHING;\n    RETURN NEW;\nEND;\n"
+        "definition": "\nBEGIN\n    INSERT INTO public.ic_role_permissions (role_id)\n    VALUES (NEW.id)\n    ON CONFLICT (role_id) DO NOTHING;\n    RETURN NEW;\nEND;\n"
       },
       {
         "args": "",
-        "name": "handle_role_deletion_sync",
+        "name": "ic_handle_role_deletion_sync",
         "returns": "trigger",
-        "definition": "\nDECLARE\n  v_staff_id UUID;\nBEGIN\n  -- We don't delete staff, we just clear their metadata or re-sync\n  FOR v_staff_id IN SELECT id FROM public.staff WHERE role_id = OLD.id LOOP\n    -- Re-syncing will now find no role and thus no permissions\n    PERFORM public.sync_staff_role_to_metadata_for_staff(v_staff_id);\n  END LOOP;\n  RETURN OLD;\nEND;\n"
+        "definition": "\nDECLARE\n  v_staff_id UUID;\nBEGIN\n  FOR v_staff_id IN SELECT id FROM public.ic_staff WHERE role_id = OLD.id LOOP\n    PERFORM public.ic_sync_staff_role_to_metadata_for_staff(v_staff_id);\n  END LOOP;\n  RETURN OLD;\nEND;\n"
       },
       {
         "args": "p_module text",
-        "name": "jwt_get_perm",
+        "name": "ic_jwt_get_perm",
         "returns": "text",
-        "definition": "\nDECLARE\n  v_perm_text text;\nBEGIN\n  -- 1. DATABASE SOURCE OF TRUTH (Highest Priority)\n  -- We query the live table first to ensure instant enforcement of Admin changes.\n  SELECT \n    CASE p_module\n      WHEN 'my_roster' THEN my_roster::text\n      WHEN 'my_timesheets' THEN my_timesheets::text\n      WHEN 'my_leave' THEN my_leave::text\n      WHEN 'shift_routines' THEN shift_routines::text\n      WHEN 'participants' THEN participants::text\n      WHEN 'shift_notes' THEN shift_notes::text\n      WHEN 'employees' THEN employees::text\n      WHEN 'timesheets' THEN timesheets::text\n      WHEN 'leave_requests' THEN leave_requests::text\n      WHEN 'roster_board' THEN roster_board::text\n      WHEN 'houses' THEN houses::text\n      WHEN 'house_checklists' THEN house_checklists::text\n      WHEN 'access_control' THEN access_control::text\n      WHEN 'master_lists' THEN master_lists::text\n      WHEN 'activity_log' THEN activity_log::text\n      ELSE 'none'\n    END INTO v_perm_text\n  FROM public.role_permissions rp\n  JOIN public.staff s ON s.role_id = rp.role_id\n  WHERE s.auth_user_id = auth.uid()\n  LIMIT 1;\n\n  -- 2. RETURN DATABASE VALUE IF FOUND\n  IF v_perm_text IS NOT NULL THEN\n    RETURN v_perm_text;\n  END IF;\n\n  -- 3. JWT FALLBACK (Only used if the user record isn't fully set up yet)\n  RETURN COALESCE(auth.jwt() -> 'app_metadata' -> 'permissions' ->> p_module, 'none');\nEND;\n"
+        "definition": "\nDECLARE\n  v_perm_text text;\nBEGIN\n  SELECT \n    CASE p_module\n      WHEN 'my_roster' THEN my_roster::text\n      WHEN 'my_timesheets' THEN my_timesheets::text\n      WHEN 'my_leave' THEN my_leave::text\n      WHEN 'shift_routines' THEN shift_routines::text\n      WHEN 'participants' THEN participants::text\n      WHEN 'shift_notes' THEN shift_notes::text\n      WHEN 'employees' THEN employees::text\n      WHEN 'timesheets' THEN timesheets::text\n      WHEN 'leave_requests' THEN leave_requests::text\n      WHEN 'roster_board' THEN roster_board::text\n      WHEN 'houses' THEN houses::text\n      WHEN 'house_checklists' THEN house_checklists::text\n      WHEN 'access_control' THEN access_control::text\n      WHEN 'master_lists' THEN master_lists::text\n      WHEN 'activity_log' THEN activity_log::text\n      ELSE 'none'\n    END INTO v_perm_text\n  FROM public.ic_role_permissions rp\n  JOIN public.ic_staff s ON s.role_id = rp.role_id\n  WHERE s.auth_user_id = auth.uid()\n  LIMIT 1;\n\n  IF v_perm_text IS NOT NULL THEN\n    RETURN v_perm_text;\n  END IF;\n\n  RETURN COALESCE(auth.jwt() -> 'app_metadata' -> 'permissions' ->> p_module, 'none');\nEND;\n"
       },
       {
         "args": "",
-        "name": "jwt_get_staff_id",
+        "name": "ic_jwt_get_staff_id",
         "returns": "uuid",
-        "definition": "\nDECLARE\n  v_staff_id uuid;\nBEGIN\n  -- 1. Check JWT\n  v_staff_id := (auth.jwt() -> 'app_metadata' ->> 'staff_id')::uuid;\n  IF v_staff_id IS NOT NULL THEN\n    RETURN v_staff_id;\n  END IF;\n\n  -- 2. Fallback to Database\n  SELECT id INTO v_staff_id FROM public.staff WHERE auth_user_id = auth.uid() LIMIT 1;\n  RETURN v_staff_id;\nEND;\n"
+        "definition": "\nDECLARE\n  v_staff_id uuid;\nBEGIN\n  v_staff_id := (auth.jwt() -> 'app_metadata' ->> 'staff_id')::uuid;\n  IF v_staff_id IS NOT NULL THEN\n    RETURN v_staff_id;\n  END IF;\n  SELECT id INTO v_staff_id FROM public.ic_staff WHERE auth_user_id = auth.uid() LIMIT 1;\n  RETURN v_staff_id;\nEND;\n"
       },
       {
         "args": "p_house_id uuid",
-        "name": "jwt_has_house",
+        "name": "ic_jwt_has_house",
         "returns": "bool",
-        "definition": "\nBEGIN\n  -- 1. Check JWT (JSONB containment)\n  IF (auth.jwt() -> 'app_metadata' -> 'assigned_houses') @> jsonb_build_array(p_house_id::text) THEN\n    RETURN true;\n  END IF;\n\n  -- 2. Fallback to Database\n  IF EXISTS (\n    SELECT 1 FROM public.house_staff_assignments hsa\n    JOIN public.staff s ON s.id = hsa.staff_id\n    WHERE s.auth_user_id = auth.uid()\n    AND hsa.house_id = p_house_id\n    AND (hsa.end_date IS NULL OR hsa.end_date > now())\n  ) THEN\n    RETURN true;\n  END IF;\n\n  RETURN false;\nEND;\n"
+        "definition": "\nBEGIN\n  IF (auth.jwt() -> 'app_metadata' -> 'assigned_houses') @> jsonb_build_array(p_house_id::text) THEN\n    RETURN true;\n  END IF;\n  IF EXISTS (\n    SELECT 1 FROM public.ic_house_staff_assignments hsa\n    JOIN public.ic_staff s ON s.id = hsa.staff_id\n    WHERE s.auth_user_id = auth.uid()\n    AND hsa.house_id = p_house_id\n    AND (hsa.end_date IS NULL OR hsa.end_date > now())\n  ) THEN\n    RETURN true;\n  END IF;\n  RETURN false;\nEND;\n"
       },
       {
         "args": "",
-        "name": "jwt_is_admin",
+        "name": "ic_jwt_is_admin",
         "returns": "bool",
-        "definition": "\nBEGIN\n  RETURN (\n    (auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean = true OR\n    jwt_get_perm('access_control') = 'full'\n  );\nEND;\n"
+        "definition": "\nBEGIN\n  RETURN (\n    (auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean = true OR\n    ic_jwt_get_perm('access_control') = 'full'\n  );\nEND;\n"
       },
       {
         "args": "p_staff_id uuid",
-        "name": "jwt_manages_staff",
+        "name": "ic_jwt_manages_staff",
         "returns": "bool",
-        "definition": "\nBEGIN\n  -- 1. Check JWT\n  IF (auth.jwt() -> 'app_metadata' -> 'managed_staff_ids') @> jsonb_build_array(p_staff_id::text) THEN\n    RETURN true;\n  END IF;\n\n  -- 2. Fallback to Database\n  IF EXISTS (\n    SELECT 1 FROM public.staff s\n    WHERE s.auth_user_id = auth.uid()\n    AND s.id = (SELECT manager_id FROM public.staff WHERE id = p_staff_id)\n  ) THEN\n    RETURN true;\n  END IF;\n\n  RETURN false;\nEND;\n"
+        "definition": "\nBEGIN\n  IF (auth.jwt() -> 'app_metadata' -> 'managed_staff_ids') @> jsonb_build_array(p_staff_id::text) THEN\n    RETURN true;\n  END IF;\n  IF EXISTS (\n    SELECT 1 FROM public.ic_staff s\n    WHERE s.auth_user_id = auth.uid()\n    AND s.id = (SELECT manager_id FROM public.ic_staff WHERE id = p_staff_id)\n  ) THEN\n    RETURN true;\n  END IF;\n  RETURN false;\nEND;\n"
       },
       {
         "args": "",
-        "name": "propagate_role_permission_changes",
+        "name": "ic_propagate_role_permission_changes",
         "returns": "trigger",
-        "definition": "\nDECLARE\n  v_staff_record RECORD;\nBEGIN\n  FOR v_staff_record IN \n    SELECT id FROM public.staff WHERE role_id = NEW.role_id AND auth_user_id IS NOT NULL\n  LOOP\n    PERFORM public.sync_staff_role_to_metadata_for_staff(v_staff_record.id);\n  END LOOP;\n  RETURN NEW;\nEND;\n"
+        "definition": "\nDECLARE\n  v_staff_record RECORD;\nBEGIN\n  FOR v_staff_record IN \n    SELECT id FROM public.ic_staff WHERE role_id = NEW.role_id AND auth_user_id IS NOT NULL\n  LOOP\n    PERFORM public.ic_sync_staff_role_to_metadata_for_staff(v_staff_record.id);\n  END LOOP;\n  RETURN NEW;\nEND;\n"
       },
       {
         "args": "",
-        "name": "sync_staff_role_to_metadata",
+        "name": "ic_sync_staff_role_to_metadata",
         "returns": "trigger",
-        "definition": "\nBEGIN\n  IF NEW.auth_user_id IS NOT NULL THEN\n    UPDATE auth.users \n    SET raw_user_meta_data = '{}'::jsonb, \n        raw_app_meta_data = raw_app_meta_data || jsonb_build_object(\n          'staff_id', NEW.id,\n          'last_sync_trigger', now()\n        )\n    WHERE id = NEW.auth_user_id;\n  END IF;\n  RETURN NEW;\nEND;\n"
+        "definition": "\nBEGIN\n  IF NEW.auth_user_id IS NOT NULL THEN\n    UPDATE auth.users \n    SET raw_app_meta_data = raw_app_meta_data || jsonb_build_object(\n          'staff_id', NEW.id,\n          'last_sync_trigger', now()\n        )\n    WHERE id = NEW.auth_user_id;\n  END IF;\n  RETURN NEW;\nEND;\n"
       },
       {
         "args": "p_staff_id uuid",
-        "name": "sync_staff_role_to_metadata_for_staff",
+        "name": "ic_sync_staff_role_to_metadata_for_staff",
         "returns": "void",
-        "definition": "\nDECLARE\n  v_staff_record RECORD;\n  v_role_name TEXT;\n  v_permissions JSONB;\nBEGIN\n  SELECT * INTO v_staff_record FROM public.staff WHERE id = p_staff_id;\n  SELECT name INTO v_role_name FROM public.roles WHERE id = v_staff_record.role_id;\n  SELECT jsonb_build_object(\n    'my_roster', my_roster, 'my_timesheets', my_timesheets, 'my_leave', my_leave, 'shift_routines', shift_routines,\n    'participants', participants, 'shift_notes', shift_notes,\n    'employees', employees, 'timesheets', timesheets, 'leave_requests', leave_requests, 'roster_board', roster_board,\n    'houses', houses, 'house_checklists', house_checklists,\n    'access_control', access_control, 'master_lists', master_lists, 'activity_log', activity_log\n  ) INTO v_permissions FROM public.role_permissions WHERE role_id = v_staff_record.role_id;\n  \n  IF v_staff_record.auth_user_id IS NOT NULL THEN\n    UPDATE auth.users SET raw_user_meta_data = raw_user_meta_data || jsonb_build_object('role_name', v_role_name, 'permissions', COALESCE(v_permissions, '{}'::jsonb)) WHERE id = v_staff_record.auth_user_id;\n  END IF;\nEND;\n"
+        "definition": "\nDECLARE\n  v_staff_record RECORD;\n  v_role_name TEXT;\n  v_permissions JSONB;\nBEGIN\n  SELECT * INTO v_staff_record FROM public.ic_staff WHERE id = p_staff_id;\n  SELECT name INTO v_role_name FROM public.ic_roles WHERE id = v_staff_record.role_id;\n  SELECT jsonb_build_object(\n    'my_roster', my_roster, 'my_timesheets', my_timesheets, 'my_leave', my_leave, 'shift_routines', shift_routines,\n    'participants', participants, 'shift_notes', shift_notes,\n    'employees', employees, 'timesheets', timesheets, 'leave_requests', leave_requests, 'roster_board', roster_board,\n    'houses', houses, 'house_checklists', house_checklists,\n    'access_control', access_control, 'master_lists', master_lists, 'activity_log', activity_log\n  ) INTO v_permissions FROM public.ic_role_permissions WHERE role_id = v_staff_record.role_id;\n  \n  IF v_staff_record.auth_user_id IS NOT NULL THEN\n    UPDATE auth.users SET raw_user_meta_data = raw_user_meta_data || jsonb_build_object('role_name', v_role_name, 'permissions', COALESCE(v_permissions, '{}'::jsonb)) WHERE id = v_staff_record.auth_user_id;\n  END IF;\nEND;\n"
       },
       {
         "args": "",
-        "name": "update_compliance_status",
+        "name": "ic_update_compliance_status",
         "returns": "trigger",
-        "definition": "\r\nBEGIN\r\n  IF NEW.expiry_date IS NOT NULL THEN\r\n    IF NEW.expiry_date < CURRENT_DATE THEN\r\n      NEW.status := 'Expired';\r\n    ELSIF NEW.expiry_date <= CURRENT_DATE + INTERVAL '30 days' THEN\r\n      NEW.status := 'Expiring Soon';\r\n    ELSE\r\n      NEW.status := 'Complete';\r\n    END IF;\r\n  END IF;\r\n  \r\n  NEW.updated_at := NOW();\r\n  RETURN NEW;\r\nEND;\r\n"
+        "definition": "\nBEGIN\n  IF NEW.expiry_date IS NOT NULL THEN\n    IF NEW.expiry_date < CURRENT_DATE THEN\n      NEW.status := 'Expired';\n    ELSIF NEW.expiry_date <= CURRENT_DATE + INTERVAL '30 days' THEN\n      NEW.status := 'Expiring Soon';\n    ELSE\n      NEW.status := 'Complete';\n    END IF;\n  END IF;\n  NEW.updated_at := NOW();\n  RETURN NEW;\nEND;\n"
       },
       {
         "args": "",
-        "name": "update_house_checklist_items_updated_at",
+        "name": "ic_update_house_checklist_items_updated_at",
         "returns": "trigger",
-        "definition": "\r\nBEGIN\r\n  NEW.updated_at = NOW();\r\n  RETURN NEW;\r\nEND;\r\n"
+        "definition": "\nBEGIN\n  NEW.updated_at = NOW();\n  RETURN NEW;\nEND;\n"
       },
       {
         "args": "",
-        "name": "update_house_checklists_updated_at",
+        "name": "ic_update_house_checklists_updated_at",
         "returns": "trigger",
-        "definition": "\r\nBEGIN\r\n  NEW.updated_at = NOW();\r\n  RETURN NEW;\r\nEND;\r\n"
+        "definition": "\nBEGIN\n  NEW.updated_at = NOW();\n  RETURN NEW;\nEND;\n"
       },
       {
         "args": "",
-        "name": "update_house_files_updated_at",
+        "name": "ic_update_house_files_updated_at",
         "returns": "trigger",
-        "definition": "\r\nBEGIN\r\n  NEW.updated_at = NOW();\r\n  RETURN NEW;\r\nEND;\r\n"
+        "definition": "\nBEGIN\n  NEW.updated_at = NOW();\n  RETURN NEW;\nEND;\n"
       },
       {
         "args": "",
-        "name": "update_updated_at_column",
+        "name": "ic_update_updated_at_column",
         "returns": "trigger",
-        "definition": "\r\nBEGIN\r\n  NEW.updated_at = NOW();\r\n  RETURN NEW;\r\nEND;\r\n"
+        "definition": "\nBEGIN\n  NEW.updated_at = NOW();\n  RETURN NEW;\nEND;\n"
       }
     ],
     "triggers": [
       {
-        "name": "update_checklist_item_master_updated_at",
+        "name": "ic_update_checklist_item_master_updated_at",
         "event": "UPDATE",
-        "table": "checklist_item_master",
+        "table": "ic_checklist_item_master",
         "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION update_updated_at_column()"
+        "definition": "EXECUTE FUNCTION ic_update_updated_at_column()"
       },
       {
-        "name": "update_checklist_master_updated_at",
+        "name": "ic_update_checklist_master_updated_at",
         "event": "UPDATE",
-        "table": "checklist_master",
+        "table": "ic_checklist_master",
         "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION update_updated_at_column()"
+        "definition": "EXECUTE FUNCTION ic_update_updated_at_column()"
       },
       {
-        "name": "update_checklist_schedules_updated_at",
+        "name": "ic_update_checklist_schedules_updated_at",
         "event": "UPDATE",
-        "table": "checklist_schedules",
+        "table": "ic_checklist_schedules",
         "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION update_updated_at_column()"
+        "definition": "EXECUTE FUNCTION ic_update_updated_at_column()"
       },
       {
-        "name": "update_house_calendar_events_updated_at",
+        "name": "ic_update_house_calendar_events_updated_at",
         "event": "UPDATE",
-        "table": "house_calendar_events",
+        "table": "ic_house_calendar_events",
         "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION update_updated_at_column()"
+        "definition": "EXECUTE FUNCTION ic_update_updated_at_column()"
       },
       {
-        "name": "update_house_checklist_item_attachments_updated_at",
+        "name": "ic_update_house_checklist_item_attachments_updated_at",
         "event": "UPDATE",
-        "table": "house_checklist_item_attachments",
+        "table": "ic_house_checklist_item_attachments",
         "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION update_updated_at_column()"
+        "definition": "EXECUTE FUNCTION ic_update_updated_at_column()"
       },
       {
-        "name": "update_house_checklist_items_updated_at",
+        "name": "ic_update_house_checklist_items_updated_at",
         "event": "UPDATE",
-        "table": "house_checklist_items",
+        "table": "ic_house_checklist_items",
         "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION update_updated_at_column()"
+        "definition": "EXECUTE FUNCTION ic_update_updated_at_column()"
       },
       {
-        "name": "update_house_checklist_submission_items_updated_at",
+        "name": "ic_update_house_checklist_submission_items_updated_at",
         "event": "UPDATE",
-        "table": "house_checklist_submission_items",
+        "table": "ic_house_checklist_submission_items",
         "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION update_updated_at_column()"
+        "definition": "EXECUTE FUNCTION ic_update_updated_at_column()"
       },
       {
-        "name": "update_house_checklist_submissions_updated_at",
+        "name": "ic_update_house_checklist_submissions_updated_at",
         "event": "UPDATE",
-        "table": "house_checklist_submissions",
+        "table": "ic_house_checklist_submissions",
         "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION update_updated_at_column()"
+        "definition": "EXECUTE FUNCTION ic_update_updated_at_column()"
       },
       {
-        "name": "update_house_checklists_updated_at",
+        "name": "ic_update_house_checklists_updated_at",
         "event": "UPDATE",
-        "table": "house_checklists",
+        "table": "ic_house_checklists",
         "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION update_updated_at_column()"
+        "definition": "EXECUTE FUNCTION ic_update_updated_at_column()"
       },
       {
-        "name": "update_house_files_updated_at",
+        "name": "ic_update_house_files_updated_at",
         "event": "UPDATE",
-        "table": "house_files",
+        "table": "ic_house_files",
         "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION update_house_files_updated_at()"
+        "definition": "EXECUTE FUNCTION ic_update_house_files_updated_at()"
       },
       {
-        "name": "update_house_form_assignments_updated_at",
+        "name": "ic_update_house_form_assignments_updated_at",
         "event": "UPDATE",
-        "table": "house_form_assignments",
+        "table": "ic_house_form_assignments",
         "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION update_updated_at_column()"
+        "definition": "EXECUTE FUNCTION ic_update_updated_at_column()"
       },
       {
-        "name": "update_house_form_submissions_updated_at",
+        "name": "ic_update_house_form_submissions_updated_at",
         "event": "UPDATE",
-        "table": "house_form_submissions",
+        "table": "ic_house_form_submissions",
         "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION update_updated_at_column()"
+        "definition": "EXECUTE FUNCTION ic_update_updated_at_column()"
       },
       {
-        "name": "update_house_forms_updated_at",
+        "name": "ic_update_house_forms_updated_at",
         "event": "UPDATE",
-        "table": "house_forms",
+        "table": "ic_house_forms",
         "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION update_updated_at_column()"
+        "definition": "EXECUTE FUNCTION ic_update_updated_at_column()"
       },
       {
-        "name": "update_house_resources_updated_at",
+        "name": "ic_update_house_resources_updated_at",
         "event": "UPDATE",
-        "table": "house_resources",
+        "table": "ic_house_resources",
         "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION update_updated_at_column()"
+        "definition": "EXECUTE FUNCTION ic_update_updated_at_column()"
       },
       {
-        "name": "update_house_staff_assignments_updated_at",
+        "name": "ic_update_house_staff_assignments_updated_at",
         "event": "UPDATE",
-        "table": "house_staff_assignments",
+        "table": "ic_house_staff_assignments",
         "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION update_updated_at_column()"
+        "definition": "EXECUTE FUNCTION ic_update_updated_at_column()"
       },
       {
-        "name": "update_participant_documents_updated_at",
+        "name": "ic_update_participant_documents_updated_at",
         "event": "UPDATE",
-        "table": "participant_documents",
+        "table": "ic_participant_documents",
         "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION update_updated_at_column()"
+        "definition": "EXECUTE FUNCTION ic_update_updated_at_column()"
       },
       {
-        "name": "update_participant_forms_updated_at",
+        "name": "ic_update_participant_documents_updated_at_2",
         "event": "UPDATE",
-        "table": "participant_forms",
+        "table": "ic_participant_forms",
         "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION update_updated_at_column()"
+        "definition": "EXECUTE FUNCTION ic_update_updated_at_column()"
       },
       {
-        "name": "update_participant_hygiene_updated_at",
+        "name": "ic_update_participant_hygiene_updated_at",
         "event": "UPDATE",
-        "table": "participant_hygiene_routines",
+        "table": "ic_participant_hygiene_routines",
         "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION update_updated_at_column()"
+        "definition": "EXECUTE FUNCTION ic_update_updated_at_column()"
       },
       {
-        "name": "update_participant_notes_updated_at",
+        "name": "ic_update_participant_notes_updated_at",
         "event": "UPDATE",
-        "table": "participant_notes",
+        "table": "ic_participant_notes",
         "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION update_updated_at_column()"
+        "definition": "EXECUTE FUNCTION ic_update_updated_at_column()"
       },
       {
-        "name": "update_participant_restrictive_updated_at",
+        "name": "ic_update_participant_restrictive_practices_updated_at",
         "event": "UPDATE",
-        "table": "participant_restrictive_practices",
+        "table": "ic_participant_restrictive_practices",
         "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION update_updated_at_column()"
+        "definition": "EXECUTE FUNCTION ic_update_updated_at_column()"
       },
       {
-        "name": "trigger_handle_new_role_permissions",
+        "name": "ic_trigger_handle_new_role_permissions",
         "event": "INSERT",
-        "table": "roles",
+        "table": "ic_roles",
         "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION handle_new_role_permissions()"
+        "definition": "EXECUTE FUNCTION ic_handle_new_role_permissions()"
       },
       {
-        "name": "trigger_handle_role_deletion_sync",
+        "name": "ic_trigger_handle_role_deletion_sync",
         "event": "DELETE",
-        "table": "roles",
+        "table": "ic_roles",
         "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION handle_role_deletion_sync()"
+        "definition": "EXECUTE FUNCTION ic_handle_role_deletion_sync()"
       },
       {
-        "name": "trigger_sync_staff_role_to_metadata",
+        "name": "ic_trigger_sync_staff_role_to_metadata",
         "event": "INSERT",
-        "table": "staff",
+        "table": "ic_staff",
         "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION sync_staff_role_to_metadata()"
+        "definition": "EXECUTE FUNCTION ic_sync_staff_role_to_metadata()"
       },
       {
-        "name": "trigger_sync_staff_role_to_metadata",
+        "name": "ic_trigger_sync_staff_role_to_metadata_update",
         "event": "UPDATE",
-        "table": "staff",
+        "table": "ic_staff",
         "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION sync_staff_role_to_metadata()"
+        "definition": "EXECUTE FUNCTION ic_sync_staff_role_to_metadata()"
       },
       {
-        "name": "trigger_update_compliance_status",
-        "event": "UPDATE",
-        "table": "staff_compliance",
-        "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION update_compliance_status()"
-      },
-      {
-        "name": "trigger_update_compliance_status",
+        "name": "ic_trigger_update_compliance_status",
         "event": "INSERT",
-        "table": "staff_compliance",
+        "table": "ic_staff_compliance",
         "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION update_compliance_status()"
+        "definition": "EXECUTE FUNCTION ic_update_compliance_status()"
+      },
+      {
+        "name": "ic_trigger_update_compliance_status",
+        "event": "UPDATE",
+        "table": "ic_staff_compliance",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION ic_update_compliance_status()"
       }
     ],
     "extensions": [

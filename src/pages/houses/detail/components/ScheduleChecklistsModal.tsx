@@ -131,7 +131,7 @@ export function ScheduleChecklistsModal({ open, onOpenChange, houseId, houseName
 
       if (eventsToInsert.length > 0) {
         const { error } = await supabase
-          .from('house_calendar_events')
+          .from('ic_house_calendar_events')
           .insert(eventsToInsert);
 
         if (error) throw error;

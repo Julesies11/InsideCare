@@ -9,7 +9,7 @@ export function useHouseCalendarEventTypesMaster() {
     queryKey: ['house-calendar-event-types-master'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('house_calendar_event_types_master')
+        .from('ic_house_calendar_event_types_master')
         .select(EVENT_TYPE_COLUMNS)
         .order('name', { ascending: true });
 
@@ -26,7 +26,7 @@ export function useAddHouseCalendarEventTypeMaster() {
   return useMutation({
     mutationFn: async (eventTypeData: Omit<HouseCalendarEventType, 'id'>) => {
       const { data, error } = await supabase
-        .from('house_calendar_event_types_master')
+        .from('ic_house_calendar_event_types_master')
         .insert([eventTypeData])
         .select(EVENT_TYPE_COLUMNS)
         .maybeSingle();
@@ -49,7 +49,7 @@ export function useUpdateHouseCalendarEventTypeMaster() {
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<HouseCalendarEventType> }) => {
       const { data, error } = await supabase
-        .from('house_calendar_event_types_master')
+        .from('ic_house_calendar_event_types_master')
         .update(updates)
         .eq('id', id)
         .select(EVENT_TYPE_COLUMNS)

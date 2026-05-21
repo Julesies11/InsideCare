@@ -35,6 +35,9 @@ For detailed information on the project architecture, database, and features, re
 - **Source of Truth**: Before generating any SQL, migrations, or RLS policies, you **MUST** read:
     - `migrations/schema_metadata.json`: For exact table names, columns, and types.
     - `migrations/current_database_rbac.json`: For current RLS policies and RBAC state.
+- **Prefixing Requirement**: To support a shared database environment with multiple applications, ALL database objects (tables, enums, functions, triggers, and storage buckets) MUST be prefixed with `ic_`.
+    - Example: `ic_participants`, `ic_status_enum`, `ic_trigger_sync_staff`.
+    - Edge Functions must be prefixed with `ic-`.
 - **No Hard-coding Roles/Permissions**: 
     - NEVER hard-code role names (e.g., 'Admin', 'Staff') in Edge Functions or SQL. Roles are database-driven.
     - NEVER hard-code permission levels.

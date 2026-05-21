@@ -26,7 +26,7 @@ export function useHouseDocuments(houseId?: string) {
       if (!houseId) return [];
 
       const { data, error } = await supabase
-        .from('house_files')
+        .from('ic_house_files')
         .select(HOUSE_DOCUMENT_COLUMNS)
         .eq('house_id', houseId)
         .eq('status', 'current')

@@ -28,22 +28,22 @@ export function useStaffRoster(staffId?: string) {
 
       const [shiftsRes, eventsRes, leaveRes] = await Promise.all([
         supabase
-          .from('staff_shifts')
+          .from('ic_staff_shifts')
           .select(`
             id, 
             start_date, 
             start_time, 
             end_time, 
             shift_template, 
-            house:houses(name),
-            participants:shift_participants(
-              participant:participants(id, name)
+            house:ic_houses(name),
+            participants:ic_shift_participants(
+              participant:ic_participants(id, name)
             )
           `)
           .eq('staff_id', staffId)
           .order('start_date', { ascending: false }),
         supabase
-          .from('house_calendar_events')
+          .from('ic_house_calendar_events')
           .select(`
             id,
             title,
@@ -51,21 +51,21 @@ export function useStaffRoster(staffId?: string) {
             start_time,
             end_time,
             location,
-            type:house_calendar_event_types_master(name, color),
-            house:houses(name),
-            staff_assignments:house_calendar_event_staff!inner(staff_id)
+            type:ic_house_calendar_event_types_master(name, color),
+            house:ic_houses(name),
+            staff_assignments:ic_house_calendar_event_staff!inner(staff_id)
           `)
-          .eq('house_calendar_event_staff.staff_id', staffId)
+          .eq('staff_assignments.staff_id', staffId)
           .order('event_date', { ascending: false }),
         supabase
-          .from('leave_requests')
+          .from('ic_leave_requests')
           .select(`
             id,
             start_date,
             end_date,
             status,
             reason,
-            leave_type:leave_types(name)
+            leave_type:ic_leave_types(name)
           `)
           .eq('staff_id', staffId)
           .neq('status', 'rejected')
@@ -84,7 +84,7 @@ export function useStaffRoster(staffId?: string) {
       
       // Fetch timesheets for these shifts
       const { data: timesheetData, error: tsError } = await supabase
-        .from('timesheets')
+        .from('ic_timesheets')
         .select('shift_id')
         .in('shift_id', shiftIds.length > 0 ? shiftIds : ['00000000-0000-0000-0000-000000000000']);
 
@@ -99,7 +99,7 @@ export function useStaffRoster(staffId?: string) {
         entry_type: 'shift' as const,
         house: s.house as { name: string } | null,
         has_timesheet: timesheetedIds.has(s.id),
-        participants: (s.participants || s.shift_participants || [])?.map((p: any) => {
+        participants: (s.participants || s.ic_shift_participants || [])?.map((p: any) => {
           const part = p.participant || p.participants || p;
           const actualPart = Array.isArray(part) ? part[0] : part;
           

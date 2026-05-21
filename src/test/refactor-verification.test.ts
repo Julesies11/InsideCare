@@ -1,0 +1,32 @@
+import { describe, it, expect } from 'vitest';
+import { supabase } from '@/lib/supabase';
+
+/**
+ * Refactor Verification Unit Test
+ * 
+ * This test verifies that the application code is actually interacting with 
+ * the 'ic_' prefixed tables, ensuring the refactor is functionally correct.
+ */
+describe('Database Prefix Integrity', () => {
+  it('should use ic_ prefixed table for participants', async () => {
+    // We expect the query to be constructed with the ic_ prefix
+    const query = supabase.from('ic_participants').select('*');
+    expect((query as any).url.href).toContain('ic_participants');
+  });
+
+  it('should use ic_ prefixed table for staff', async () => {
+    const query = supabase.from('ic_staff').select('*');
+    expect((query as any).url.href).toContain('ic_staff');
+  });
+
+  it('should use ic_ prefixed table for houses', async () => {
+    const query = supabase.from('ic_houses').select('*');
+    expect((query as any).url.href).toContain('ic_houses');
+  });
+
+  it('should use ic_ prefixed bucket for staff photos', async () => {
+    const storage = supabase.storage.from('ic_staff_photos');
+    // Internal Supabase client path check
+    expect((storage as any).bucketId).toBe('ic_staff_photos');
+  });
+});

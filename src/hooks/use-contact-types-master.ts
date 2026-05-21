@@ -11,7 +11,7 @@ export function useContactTypesMaster(includeInactive = true) {
     queryKey: ['contact-types-master', { includeInactive }],
     queryFn: async () => {
       let query = supabase
-        .from('contact_types_master')
+        .from('ic_contact_types_master')
         .select(CONTACT_TYPE_MASTER_COLUMNS)
         .order('name', { ascending: true });
 
@@ -34,7 +34,7 @@ export function useAddContactTypeMaster() {
   return useMutation({
     mutationFn: async (contactType: Omit<ContactTypeMaster, 'id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
-        .from('contact_types_master')
+        .from('ic_contact_types_master')
         .insert({
           ...contactType,
           created_by: user?.id || null,
@@ -71,7 +71,7 @@ export function useUpdateContactTypeMaster() {
   return useMutation({
     mutationFn: async ({ id, updates, oldContactType }: { id: string; updates: Partial<ContactTypeMaster>; oldContactType?: ContactTypeMaster }) => {
       const { data, error } = await supabase
-        .from('contact_types_master')
+        .from('ic_contact_types_master')
         .update({
           ...updates,
           updated_by: user?.id || null,
@@ -116,7 +116,7 @@ export function useDeleteContactTypeMaster() {
     mutationFn: async ({ id, name }: { id: string; name: string }) => {
       // Soft delete - mark as inactive
       const { error } = await supabase
-        .from('contact_types_master')
+        .from('ic_contact_types_master')
         .update({
           is_active: false,
           updated_by: user?.id || null,

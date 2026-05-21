@@ -9,7 +9,7 @@ export function useHouseTypesMaster() {
     queryKey: ['house-types-master'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('house_types_master')
+        .from('ic_house_types_master')
         .select(HOUSE_TYPE_COLUMNS)
         .order('name', { ascending: true });
 
@@ -26,7 +26,7 @@ export function useAddHouseTypeMaster() {
   return useMutation({
     mutationFn: async (houseTypeData: Omit<HouseType, 'id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
-        .from('house_types_master')
+        .from('ic_house_types_master')
         .insert([houseTypeData])
         .select(HOUSE_TYPE_COLUMNS)
         .maybeSingle();
@@ -49,7 +49,7 @@ export function useUpdateHouseTypeMaster() {
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<HouseType> }) => {
       const { data, error } = await supabase
-        .from('house_types_master')
+        .from('ic_house_types_master')
         .update(updates)
         .eq('id', id)
         .select(HOUSE_TYPE_COLUMNS)

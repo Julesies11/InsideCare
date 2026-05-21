@@ -71,7 +71,7 @@ export function StaffShiftNoteDialog({
 
         try {
           const { data, error } = await supabase
-            .from('shift_notes')
+            .from('ic_shift_notes')
             .select('full_note, shift_time, participant_id')
             .eq('shift_id', shift.id)
             .eq('staff_id', user.staff_id)

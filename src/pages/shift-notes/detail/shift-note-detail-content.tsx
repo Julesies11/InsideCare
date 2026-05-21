@@ -57,8 +57,8 @@ export function ShiftNoteDetailContent({
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('shift_notes')
-        .select('id, participant_id, staff_id, start_date, shift_time, house_id, shift_id, notes, full_note, tags, created_at, updated_at, participant:participants(id, name), staff:staff(id, name), house:houses(id, name), shift:staff_shifts(id, start_time, end_time, shift_template)')
+        .from('ic_shift_notes')
+        .select('id, participant_id, staff_id, start_date, shift_time, house_id, shift_id, notes, full_note, tags, created_at, updated_at, participant:ic_participants(id, name), staff:ic_staff(id, name), house:ic_houses(id, name), shift:ic_staff_shifts(id, start_time, end_time, shift_template)')
         .eq('id', id)
         .maybeSingle();
 
@@ -142,7 +142,7 @@ export function ShiftNoteDetailContent({
 
       if (isNewNote) {
         const { data, error } = await supabase
-          .from('shift_notes')
+          .from('ic_shift_notes')
           .insert([dataToSave])
           .select()
           .maybeSingle();
@@ -154,7 +154,7 @@ export function ShiftNoteDetailContent({
         navigate(`/shift-notes/detail/${data.id}`);
       } else {
         const { error } = await supabase
-          .from('shift_notes')
+          .from('ic_shift_notes')
           .update(dataToSave)
           .eq('id', id);
 

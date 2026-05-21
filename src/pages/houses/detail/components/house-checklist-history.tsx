@@ -122,10 +122,10 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
         // If not in pre-loaded houseChecklists (maybe it's for another house), fetch it
         try {
           const { data: clData, error: clError } = await supabase
-            .from('house_checklists')
+            .from('ic_house_checklists')
             .select(`
               id, house_id, name, description, master_id, created_at, updated_at,
-              house_checklist_items (id, checklist_id, title, instructions, group_title, priority, is_required, sort_order, created_at, updated_at)
+              house_checklist_items:ic_house_checklist_items(id, checklist_id, title, instructions, group_title, priority, is_required, sort_order, created_at, updated_at)
             `)
             .eq('id', submission.checklist_id)
             .maybeSingle();
@@ -148,7 +148,7 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
 
       try {
         const { data: itemData } = await supabase
-          .from('house_checklist_submission_items')
+          .from('ic_house_checklist_submission_items')
           .select(`
             id, 
             submission_id, 
@@ -157,12 +157,12 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
             status,
             note, 
             completed_at,
-            completed_by_staff:staff!completed_by(id, name)
+            completed_by_staff:ic_staff!completed_by(id, name)
           `)
           .eq('submission_id', submission.id);
 
         const { data: attachmentData } = await supabase
-          .from('house_checklist_item_attachments')
+          .from('ic_house_checklist_item_attachments')
           .select('id, submission_id, item_id, file_name, file_path, file_size, mime_type, uploaded_by, created_at')
           .eq('submission_id', submission.id);
 
@@ -220,7 +220,7 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
 
       if (!submissionId) {
         const { data, error } = await supabase
-          .from('house_checklist_submissions')
+          .from('ic_house_checklist_submissions')
           .insert({
             checklist_id: results.checklist_id,
             house_id: targetHouseId,
@@ -237,7 +237,7 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
         submissionId = data.id;
       } else {
         const { error } = await supabase
-          .from('house_checklist_submissions')
+          .from('ic_house_checklist_submissions')
           .update({
             status: status,
             submitted_by: staffId || null,
@@ -261,15 +261,15 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
           completed_at: item.is_completed ? new Date().toISOString() : null
         };
       });
-      await supabase.from('house_checklist_submission_items').upsert(submissionItems, { onConflict: 'submission_id,item_id' });
+      await supabase.from('ic_house_checklist_submission_items').upsert(submissionItems, { onConflict: 'submission_id,item_id' });
 
       // Handle attachments...
       if (results.toDeleteAttachments?.length > 0) {
         for (const attId of results.toDeleteAttachments) {
-          const { data: att } = await supabase.from('house_checklist_item_attachments').select('file_path').eq('id', attId).maybeSingle();
+          const { data: att } = await supabase.from('ic_house_checklist_item_attachments').select('file_path').eq('id', attId).maybeSingle();
           if (!att) throw new Error("You do not have permission to perform this action");
-          if (att?.file_path) await supabase.storage.from('checklist-attachments').remove([att.file_path]);
-          await supabase.from('house_checklist_item_attachments').delete().eq('id', attId);
+          if (att?.file_path) await supabase.storage.from('ic_checklist_attachments').remove([att.file_path]);
+          await supabase.from('ic_house_checklist_item_attachments').delete().eq('id', attId);
         }
       }
 
@@ -277,8 +277,8 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
         for (const itemId in results.queuedAttachments) {
           for (const queued of results.queuedAttachments[itemId]) {
             const filePath = `${submissionId}/${itemId}/${Date.now()}-${queued.file.name}`;
-            await supabase.storage.from('checklist-attachments').upload(filePath, queued.file);
-            await supabase.from('house_checklist_item_attachments').insert({
+            await supabase.storage.from('ic_checklist_attachments').upload(filePath, queued.file);
+            await supabase.from('ic_house_checklist_item_attachments').insert({
               submission_id: submissionId,
               item_id: itemId,
               file_name: queued.file.name,

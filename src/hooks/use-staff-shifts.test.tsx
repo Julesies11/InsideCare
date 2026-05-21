@@ -40,7 +40,7 @@ describe('useStaffShifts', () => {
           },
         ]);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/shift_participants`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_shift_participants`, () => {
         return HttpResponse.json([
           {
             shift_id: 'shift-1',

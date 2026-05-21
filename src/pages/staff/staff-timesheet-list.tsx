@@ -111,23 +111,23 @@ export function StaffTimesheetList() {
 
     // 1. Fetch existing timesheets
     const { data: existingTs } = await supabase
-      .from('timesheets')
+      .from('ic_timesheets')
       .select(`
         id, shift_id, clock_in, clock_out, actual_start, actual_end,
         break_minutes, shift_notes_text, status, admin_notes,
         rejection_reason, submitted_at, incident_tag, sick_shift,
         overtime_hours, travel_km, created_at,
-        shift:staff_shifts(id, start_date, end_date, start_time, end_time, shift_template, house:houses(name))
+        shift:ic_staff_shifts(id, start_date, end_date, start_time, end_time, shift_template, house:ic_houses(name))
       `)
       .eq('staff_id', user.staff_id)
       .order('created_at', { ascending: false });
 
     // 2. Fetch shifts from the last 30 days
     const { data: pastShifts } = await supabase
-      .from('staff_shifts')
+      .from('ic_staff_shifts')
       .select(`
         id, start_date, end_date, start_time, end_time, shift_template,
-        house:houses(name)
+        house:ic_houses(name)
       `)
       .eq('staff_id', user.staff_id)
       .gte('end_date', thirtyDaysAgo)

@@ -22,7 +22,7 @@ export function StaffProfilesContent() {
     try {
       // Create a new staff member with minimal data (name can be NULL for drafts)
       const { data, error } = await supabase
-        .from('staff')
+        .from('ic_staff')
         .insert([
           {
             status: 'draft',

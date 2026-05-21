@@ -22,7 +22,7 @@ export function ParticipantsProfilesContent() {
     try {
       // Create a new participant with minimal data (name can be NULL for drafts)
       const { data, error } = await supabase
-        .from('participants')
+        .from('ic_participants')
         .insert([
           {
             status: 'draft',

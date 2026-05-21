@@ -38,7 +38,7 @@ export function useHouseChecklistEvents(houseId?: string, date?: string, shiftId
       // 1. If shiftId is provided, fetch the assigned checklists for that shift from junction table
       if (shiftId) {
         const { data: assignedData, error: shiftError } = await supabase
-          .from('shift_assigned_checklists')
+          .from('ic_shift_assigned_checklists')
           .select('checklist_id, assignment_title, shift_template_id')
           .eq('shift_id', shiftId)
           .order('sort_order', { ascending: true });
@@ -50,7 +50,7 @@ export function useHouseChecklistEvents(houseId?: string, date?: string, shiftId
 
       // 2. Fetch checklist events for the house on the specific date
       const { data: events, error: eventError } = await supabase
-        .from('house_calendar_events')
+        .from('ic_house_calendar_events')
         .select(`
           id, 
           house_id, 
@@ -59,7 +59,7 @@ export function useHouseChecklistEvents(houseId?: string, date?: string, shiftId
           is_checklist_event, 
           house_checklist_id, 
           status,
-          submissions:house_checklist_submissions(
+          submissions:ic_house_checklist_submissions(
             id, 
             status, 
             updated_at, 
@@ -91,7 +91,7 @@ export function useHouseChecklistEvents(houseId?: string, date?: string, shiftId
           if (!existingEvent) {
             // Check for existing submission for this specific shift
             const { data: shiftSubs } = await supabase
-              .from('house_checklist_submissions')
+              .from('ic_house_checklist_submissions')
               .select('id, status, updated_at, scheduled_date')
               .eq('checklist_id', ac.checklist_id)
               .eq('shift_id', shiftId)
@@ -125,12 +125,12 @@ export function useHouseChecklistEvents(houseId?: string, date?: string, shiftId
       // 4. Fetch the actual checklist details for all identified checklists
       const checklistIds = [...new Set(combinedEvents.map(e => e.house_checklist_id))];
       const { data: checklists, error: clError } = await supabase
-        .from('house_checklists')
+        .from('ic_house_checklists')
         .select(`
           id, 
           name, 
           description,
-          items:house_checklist_items(
+          items:ic_house_checklist_items(
             id, 
             checklist_id, 
             title, 
@@ -142,7 +142,7 @@ export function useHouseChecklistEvents(houseId?: string, date?: string, shiftId
             sort_order, 
             created_at, 
             updated_at,
-            group:house_shift_templates(id, name, short_name, color_theme)
+            group:ic_house_shift_templates(id, name, short_name, color_theme)
           )
         `)
         .in('id', checklistIds);

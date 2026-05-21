@@ -92,7 +92,7 @@ export function StaffProfile() {
 
     if (staffId) {
       supabase
-        .from('staff_training')
+        .from('ic_staff_training')
         .select('id, staff_id, title, category, description, provider, date_completed, expiry_date, file_path, file_name, file_size, created_by, created_at, updated_at')
         .eq('staff_id', staffId)
         .order('date_completed', { ascending: false })
@@ -135,7 +135,7 @@ export function StaffProfile() {
         // Save the PATH to the database, not the temporary signed URL
         const newPhotoUrl = path;
 
-        await supabase.from('staff').update({ photo_url: newPhotoUrl }).eq('id', staffId);
+        await supabase.from('ic_staff').update({ photo_url: newPhotoUrl }).eq('id', staffId);
         setOriginalPhotoUrl(newPhotoUrl);
 
         // Update header avatar immediately
@@ -144,7 +144,7 @@ export function StaffProfile() {
         setPhotoPreview(newPhotoUrl);
       } else if (photoPreview === null && originalPhotoUrl !== null) {
         // Photo was deleted — clear it in the DB
-        await supabase.from('staff').update({ photo_url: null }).eq('id', staffId);
+        await supabase.from('ic_staff').update({ photo_url: null }).eq('id', staffId);
         setOriginalPhotoUrl(null);
         if (setUser && user) setUser({ ...user, photo_url: null });
       }
@@ -177,7 +177,7 @@ export function StaffProfile() {
 
   const handleDownloadTraining = async (filePath: string) => {
     try {
-      const { data, error } = await supabase.storage.from('staff-documents').download(filePath);
+      const { data, error } = await supabase.storage.from('ic_staff_documents').download(filePath);
       if (error) throw error;
       const url = window.URL.createObjectURL(data);
       const a = document.createElement('a');

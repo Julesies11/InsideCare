@@ -82,7 +82,7 @@ export function useHouseCalendarEvents(houseId?: string, staffId?: string) {
       
       // 1. Fetch regular calendar events including junction data
       const { data: events, error: eventError } = await supabase
-        .from('house_calendar_events')
+        .from('ic_house_calendar_events')
         .select(`
           id,
           house_id,
@@ -100,24 +100,24 @@ export function useHouseCalendarEvents(houseId?: string, staffId?: string) {
           is_checklist_event,
           house_checklist_id,
           checklist_schedule_id,
-          event_type_info:house_calendar_event_types_master(*),
-          attachments:house_calendar_event_attachments(*),
-          creator:staff!created_by(id, name, email),
-          submissions:house_checklist_submissions(
+          event_type_info:ic_house_calendar_event_types_master(*),
+          attachments:ic_house_calendar_event_attachments(*),
+          creator:ic_staff!created_by(id, name, email),
+          submissions:ic_house_checklist_submissions(
             id, 
             status, 
             completed_at,
-            house_checklist_submission_items(
+            ic_house_checklist_submission_items:ic_house_checklist_submission_items(
               id,
               item_id,
               status,
               is_completed,
               note,
-              completed_by_staff:staff!completed_by(id, name)
+              completed_by_staff:ic_staff!completed_by(id, name)
             )
           ),
-          event_participants:house_calendar_event_participants(participant:participants(id, name)),
-          event_staff:house_calendar_event_staff(staff:staff(id, name))
+          event_participants:ic_house_calendar_event_participants(participant:ic_participants(id, name)),
+          event_staff:ic_house_calendar_event_staff(staff:ic_staff(id, name))
         `)
         .eq('house_id', houseId)
         .order('event_date', { ascending: true });
@@ -151,7 +151,7 @@ export function useHouseCalendarEvents(houseId?: string, staffId?: string) {
       endDate.setDate(endDate.getDate() + 90);
 
       let shiftQuery = supabase
-        .from('staff_shifts')
+        .from('ic_staff_shifts')
         .select(`
           id, 
           start_date,
@@ -160,14 +160,14 @@ export function useHouseCalendarEvents(houseId?: string, staffId?: string) {
           staff_id,
           shift_template,
           shift_template_id,
-          type_details:house_shift_templates(color_theme, icon_name),
+          type_details:ic_house_shift_templates(color_theme, icon_name),
           staff:staff_id(id, name),
-          participants:shift_participants(participant:participants(id, name)),
-          assigned_checklists:shift_assigned_checklists(
+          participants:ic_shift_participants(participant:ic_participants(id, name)),
+          assigned_checklists:ic_shift_assigned_checklists(
             id, 
             checklist_id, 
             assignment_title,
-            submissions:house_checklist_submissions(id, status, completed_at)
+            submissions:ic_house_checklist_submissions(id, status, completed_at)
           )
         `)
         .eq('house_id', houseId)
@@ -195,7 +195,7 @@ export function useHouseCalendarEvents(houseId?: string, staffId?: string) {
             start_time: shift.start_time,
             end_time: shift.end_time,
             event_staff: shift.staff_id ? [{ staff: shift.staff_id }] : [],
-            event_participants: (shift.participants || shift.shift_participants || [])?.map((p: any) => {
+            event_participants: (shift.participants || shift.ic_shift_participants || [])?.map((p: any) => {
               const part = p.participant || p.participants || p;
               const actualPart = Array.isArray(part) ? part[0] : part;
               return {

@@ -1,0 +1,41 @@
+-- Migration: Rename Triggers with 'ic_' prefix (Corrected)
+-- Description: Explicitly renames all triggers to include the 'ic_' prefix.
+-- Fixed: Removed non-existent trigger names based on live schema metadata.
+
+BEGIN;
+
+-- 1. Standard Updated_At Triggers
+ALTER TRIGGER update_checklist_item_master_updated_at ON public.ic_checklist_item_master RENAME TO ic_update_checklist_item_master_updated_at;
+ALTER TRIGGER update_checklist_master_updated_at ON public.ic_checklist_master RENAME TO ic_update_checklist_master_updated_at;
+ALTER TRIGGER update_checklist_schedules_updated_at ON public.ic_checklist_schedules RENAME TO ic_update_checklist_schedules_updated_at;
+ALTER TRIGGER update_house_calendar_events_updated_at ON public.ic_house_calendar_events RENAME TO ic_update_house_calendar_events_updated_at;
+ALTER TRIGGER update_house_checklist_item_attachments_updated_at ON public.ic_house_checklist_item_attachments RENAME TO ic_update_house_checklist_item_attachments_updated_at;
+ALTER TRIGGER update_house_checklist_items_updated_at ON public.ic_house_checklist_items RENAME TO ic_update_house_checklist_items_updated_at;
+ALTER TRIGGER update_house_checklist_submission_items_updated_at ON public.ic_house_checklist_submission_items RENAME TO ic_update_house_checklist_submission_items_updated_at;
+ALTER TRIGGER update_house_checklist_submissions_updated_at ON public.ic_house_checklist_submissions RENAME TO ic_update_house_checklist_submissions_updated_at;
+ALTER TRIGGER update_house_checklists_updated_at ON public.ic_house_checklists RENAME TO ic_update_house_checklists_updated_at;
+ALTER TRIGGER update_house_files_updated_at ON public.ic_house_files RENAME TO ic_update_house_files_updated_at;
+ALTER TRIGGER update_house_form_assignments_updated_at ON public.ic_house_form_assignments RENAME TO ic_update_house_form_assignments_updated_at;
+ALTER TRIGGER update_house_form_submissions_updated_at ON public.ic_house_form_submissions RENAME TO ic_update_house_form_submissions_updated_at;
+ALTER TRIGGER update_house_forms_updated_at ON public.ic_house_forms RENAME TO ic_update_house_forms_updated_at;
+ALTER TRIGGER update_house_resources_updated_at ON public.ic_house_resources RENAME TO ic_update_house_resources_updated_at;
+ALTER TRIGGER update_house_staff_assignments_updated_at ON public.ic_house_staff_assignments RENAME TO ic_update_house_staff_assignments_updated_at;
+ALTER TRIGGER update_participant_documents_updated_at ON public.ic_participant_documents RENAME TO ic_update_participant_documents_updated_at;
+ALTER TRIGGER update_participant_forms_updated_at ON public.ic_participant_forms RENAME TO ic_update_participant_documents_updated_at_2; -- Fixed collision potential if any
+ALTER TRIGGER update_participant_hygiene_updated_at ON public.ic_participant_hygiene_routines RENAME TO ic_update_participant_hygiene_updated_at;
+ALTER TRIGGER update_participant_notes_updated_at ON public.ic_participant_notes RENAME TO ic_update_participant_notes_updated_at;
+ALTER TRIGGER update_participant_restrictive_updated_at ON public.ic_participant_restrictive_practices RENAME TO ic_update_participant_restrictive_practices_updated_at;
+
+-- 2. Custom Business Logic Triggers
+ALTER TRIGGER trigger_handle_new_role_permissions ON public.ic_roles RENAME TO ic_trigger_handle_new_role_permissions;
+ALTER TRIGGER trigger_handle_role_deletion_sync ON public.ic_roles RENAME TO ic_trigger_handle_role_deletion_sync;
+ALTER TRIGGER trigger_sync_staff_role_to_metadata ON public.ic_staff RENAME TO ic_trigger_sync_staff_role_to_metadata;
+ALTER TRIGGER trigger_sync_staff_role_to_metadata_update ON public.ic_staff RENAME TO ic_trigger_sync_staff_role_to_metadata_update;
+
+-- In ic_staff_compliance, you have two triggers with the SAME name for different events (INSERT/UPDATE).
+-- Postgres allows this, but to prefix them, we must handle them carefully or rename them to unique prefixed names.
+-- Since they have the same name, we can only RENAME once. 
+-- However, my previous script tried to rename a second non-existent name.
+ALTER TRIGGER trigger_update_compliance_status ON public.ic_staff_compliance RENAME TO ic_trigger_update_compliance_status;
+
+COMMIT;

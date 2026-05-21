@@ -298,7 +298,7 @@ export function ParticipantDetailContent({
           is_active: goal.is_active,
         }));
         
-        const { error } = await supabase.from('participant_goals').insert(toInsert);
+        const { error } = await supabase.from('ic_participant_goals').insert(toInsert);
         if (error) throw new Error(`Failed to add goals: ${error.message}`);
         
         for (const goal of currentPending.goals.toAdd) {
@@ -316,7 +316,7 @@ export function ParticipantDetailContent({
       if (currentPending.goals.toUpdate.length > 0) {
         for (const goal of currentPending.goals.toUpdate) {
           const { error } = await supabase
-            .from('participant_goals')
+            .from('ic_participant_goals')
             .update({
               goal_type: goal.goal_type,
               description: goal.description || null,
@@ -337,12 +337,12 @@ export function ParticipantDetailContent({
 
       if (currentPending.goals.toDelete.length > 0) {
         const { data: goalRecords } = await supabase
-          .from('participant_goals')
+          .from('ic_participant_goals')
           .select('id, goal_type')
           .in('id', currentPending.goals.toDelete);
 
         const { error } = await supabase
-          .from('participant_goals')
+          .from('ic_participant_goals')
           .delete()
           .in('id', currentPending.goals.toDelete);
         
@@ -372,7 +372,7 @@ export function ParticipantDetailContent({
           is_active: med.is_active,
         }));
 
-        const { error } = await supabase.from('participant_medications').insert(toInsert);
+        const { error } = await supabase.from('ic_participant_medications').insert(toInsert);
         if (error) throw new Error(`Failed to add medications: ${error.message}`);
         
         if (participant?.house_id) {
@@ -383,7 +383,7 @@ export function ParticipantDetailContent({
       if (currentPending.medications.toUpdate.length > 0) {
         for (const med of currentPending.medications.toUpdate) {
           const { error } = await supabase
-            .from('participant_medications')
+            .from('ic_participant_medications')
             .update({
               medication_id: med.medication_id,
               dosage: med.dosage || null,
@@ -400,7 +400,7 @@ export function ParticipantDetailContent({
 
       if (currentPending.medications.toDelete.length > 0) {
         const { error } = await supabase
-          .from('participant_medications')
+          .from('ic_participant_medications')
           .delete()
           .in('id', currentPending.medications.toDelete);
         
@@ -420,7 +420,7 @@ export function ParticipantDetailContent({
           is_active: contact.is_active,
         }));
 
-        const { error } = await supabase.from('participant_contacts').insert(toInsert);
+        const { error } = await supabase.from('ic_participant_contacts').insert(toInsert);
         if (error) throw new Error(`Failed to add contacts: ${error.message}`);
         
         for (const contact of currentPending.contacts.toAdd) {
@@ -438,7 +438,7 @@ export function ParticipantDetailContent({
       if (currentPending.contacts.toUpdate.length > 0) {
         for (const contact of currentPending.contacts.toUpdate) {
           const { error } = await supabase
-            .from('participant_contacts')
+            .from('ic_participant_contacts')
             .update({
               contact_name: contact.contact_name,
               contact_type_id: contact.contact_type_id,
@@ -463,7 +463,7 @@ export function ParticipantDetailContent({
 
       if (currentPending.contacts.toDelete.length > 0) {
         const { error } = await supabase
-          .from('participant_contacts')
+          .from('ic_participant_contacts')
           .delete()
           .in('id', currentPending.contacts.toDelete);
         
@@ -495,7 +495,7 @@ export function ParticipantDetailContent({
           });
         }
 
-        const { error: dbError } = await supabase.from('participant_documents').insert(toInsert);
+        const { error: dbError } = await supabase.from('ic_participant_documents').insert(toInsert);
         if (dbError) throw new Error(`Failed to create document records: ${dbError.message}`);
 
         for (const doc of currentPending.documents.toAdd) {
@@ -514,9 +514,9 @@ export function ParticipantDetailContent({
         const ids = currentPending.documents.toDelete.map(d => d.id);
         const filePaths = currentPending.documents.toDelete.map(d => d.filePath);
 
-        await supabase.storage.from('participant-documents').remove(filePaths);
+        await supabase.storage.from('ic_participant_documents').remove(filePaths);
 
-        const { error: dbError } = await supabase.from('participant_documents').delete().in('id', ids);
+        const { error: dbError } = await supabase.from('ic_participant_documents').delete().in('id', ids);
         if (dbError) throw new Error(`Failed to delete document records: ${dbError.message}`);
 
         for (const doc of currentPending.documents.toDelete) {
@@ -537,7 +537,7 @@ export function ParticipantDetailContent({
         const newPhotoUrl = await handleAvatarUpload(photoFile, 'participant-photos', id);
 
         const { error: photoErr } = await supabase
-          .from('participants')
+          .from('ic_participants')
           .update({ photo_url: newPhotoUrl, updated_at: new Date().toISOString() })
           .eq('id', id);
         if (photoErr) throw photoErr;
@@ -556,7 +556,7 @@ export function ParticipantDetailContent({
         });
       } else if (photoPreview === null && originalPhotoUrl !== null) {
         const { error: photoErr } = await supabase
-          .from('participants')
+          .from('ic_participants')
           .update({ photo_url: null, updated_at: new Date().toISOString() })
           .eq('id', id);
         if (photoErr) throw photoErr;
@@ -634,7 +634,7 @@ export function ParticipantDetailContent({
           full_note: note.full_note,
         }));
         
-        const { error } = await supabase.from('shift_notes').insert(toInsert);
+        const { error } = await supabase.from('ic_shift_notes').insert(toInsert);
         if (error) throw new Error(`Failed to add shift notes: ${error.message}`);
         
         if (participant?.house_id) {
@@ -645,7 +645,7 @@ export function ParticipantDetailContent({
       if (currentPending.shiftNotes.toUpdate.length > 0) {
         for (const note of currentPending.shiftNotes.toUpdate) {
           const { error } = await supabase
-            .from('shift_notes')
+            .from('ic_shift_notes')
             .update({
               staff_id: note.staff_id,
               start_date: note.start_date,
@@ -663,7 +663,7 @@ export function ParticipantDetailContent({
 
       if (currentPending.shiftNotes.toDelete.length > 0) {
         const { error } = await supabase
-          .from('shift_notes')
+          .from('ic_shift_notes')
           .delete()
           .in('id', currentPending.shiftNotes.toDelete);
         if (error) throw new Error(`Failed to delete shift notes: ${error.message}`);

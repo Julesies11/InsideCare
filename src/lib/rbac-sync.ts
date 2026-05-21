@@ -10,7 +10,7 @@ export async function syncUserPermissions(userId: string) {
   if (!userId) return { error: 'userId is required' };
 
   try {
-    const { data, error } = await supabase.functions.invoke('update-user-permissions', {
+    const { data, error } = await supabase.functions.invoke('ic-update-user-permissions', {
       body: { userId },
     });
 
@@ -35,7 +35,7 @@ export async function syncUserPermissionsByStaffId(staffId: string) {
   if (!staffId) return { error: 'staffId is required' };
 
   const { data: staff, error: staffError } = await supabase
-    .from('staff')
+    .from('ic_staff')
     .select('auth_user_id')
     .eq('id', staffId)
     .single();
@@ -57,7 +57,7 @@ export async function syncAllUsersOfRole(roleId: string) {
   if (!roleId) return { error: 'roleId is required' };
 
   const { data: staffMembers, error: staffError } = await supabase
-    .from('staff')
+    .from('ic_staff')
     .select('auth_user_id')
     .eq('role_id', roleId)
     .not('auth_user_id', 'is', null)

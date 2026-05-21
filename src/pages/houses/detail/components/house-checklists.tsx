@@ -84,7 +84,7 @@ export function HouseChecklists({
       
       try {
         const { data } = await supabase
-          .from('house_checklists')
+          .from('ic_house_checklists')
           .select('house_id, id');
         
         if (!mounted) return;
@@ -241,17 +241,17 @@ export function HouseChecklists({
     try {
       // Check for existing in_progress submission for this checklist and house
       const { data, error } = await supabase
-        .from('house_checklist_submissions')
+        .from('ic_house_checklist_submissions')
         .select(`
           *,
-          house_checklist_submission_items (
+          ic_house_checklist_submission_items:ic_house_checklist_submission_items(
             id,
             submission_id,
             item_id,
             status,
             note,
             completed_at,
-            completed_by_staff:staff!completed_by(id, name)
+            completed_by_staff:ic_staff!completed_by(id, name)
           )
         `)        .eq('checklist_id', checklist.id)
         .eq('house_id', houseId)
@@ -266,7 +266,7 @@ export function HouseChecklists({
         const itemNotes: Record<string, string> = {};
         const completedBy: Record<string, { id: string; name: string }> = {};
         
-        data.house_checklist_submission_items.forEach((item: any) => {
+        data.ic_house_checklist_submission_items.forEach((item: any) => {
           const isDone = item.status === 'Completed' || item.is_completed;
           completedItems[item.item_id] = isDone;
           itemNotes[item.item_id] = item.note || '';
@@ -280,7 +280,7 @@ export function HouseChecklists({
 
         // Fetch existing attachments for this submission
         const { data: attachmentData } = await supabase
-          .from('house_checklist_item_attachments')
+          .from('ic_house_checklist_item_attachments')
           .select('id, submission_id, item_id, file_name, file_path, file_size, mime_type, uploaded_by, created_at')
           .eq('submission_id', data.id);
 
@@ -350,7 +350,7 @@ export function HouseChecklists({
       // Create new submission
       console.log('Creating new submission for checklist:', results.checklist_id);
       const { data, error } = await supabase
-        .from('house_checklist_submissions')
+        .from('ic_house_checklist_submissions')
         .insert({
           checklist_id: results.checklist_id,
           house_id: houseId,
@@ -373,7 +373,7 @@ export function HouseChecklists({
       // Update existing submission
       console.log('Updating existing submission:', submissionId);
       const { error } = await supabase
-        .from('house_checklist_submissions')
+        .from('ic_house_checklist_submissions')
         .update({
           status: status,
           submitted_by: staffId || null,
@@ -401,7 +401,7 @@ export function HouseChecklists({
     }));
 
     const { error: itemsError } = await supabase
-      .from('house_checklist_submission_items')
+      .from('ic_house_checklist_submission_items')
       .upsert(submissionItems, { onConflict: 'submission_id,item_id' });
 
     if (itemsError) {
@@ -415,7 +415,7 @@ export function HouseChecklists({
       for (const attachmentId of results.toDeleteAttachments) {
         // Get file path first
         const { data: attData } = await supabase
-          .from('house_checklist_item_attachments')
+          .from('ic_house_checklist_item_attachments')
           .select('file_path')
           .eq('id', attachmentId)
           .maybeSingle();
@@ -431,7 +431,7 @@ export function HouseChecklists({
 
         // Delete from DB
         await supabase
-          .from('house_checklist_item_attachments')
+          .from('ic_house_checklist_item_attachments')
           .delete()
           .eq('id', attachmentId);
       }
@@ -458,7 +458,7 @@ export function HouseChecklists({
 
           // Record attachment in database
           const { error: dbError } = await supabase
-            .from('house_checklist_item_attachments')
+            .from('ic_house_checklist_item_attachments')
             .insert({
               submission_id: submissionId,
               item_id: itemId,
@@ -630,7 +630,7 @@ export function HouseChecklists({
     setIsImporting(true);
     try {
       const { data: sourceChecklists, error: clError } = await supabase
-        .from('house_checklists')
+        .from('ic_house_checklists')
         .select('*')
         .eq('house_id', importSourceId);
       
@@ -639,7 +639,7 @@ export function HouseChecklists({
       const newToAdd = [];
       for (const cl of (sourceChecklists || [])) {
         const { data: sourceItems } = await supabase
-          .from('house_checklist_items')
+          .from('ic_house_checklist_items')
           .select('*')
           .eq('checklist_id', cl.id);
         

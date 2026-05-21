@@ -14,8 +14,11 @@ export const handlers = [
   }),
 
   // Database Mocks - Houses
-  http.get(`${SUPABASE_URL}/rest/v1/houses`, () => {
-    return HttpResponse.json([
+  http.get(`${SUPABASE_URL}/rest/v1/ic_houses`, ({ request }) => {
+    const url = new URL(request.url);
+    const idParam = url.searchParams.get('id');
+    
+    const houses = [
       {
         id: 'house-1',
         name: 'Test House 1',
@@ -30,11 +33,24 @@ export const handlers = [
         capacity: 3,
         address: '456 Mock Ave',
       },
-    ]);
+    ];
+
+    if (idParam && idParam.startsWith('eq.')) {
+      const id = idParam.replace('eq.', '');
+      const house = houses.find(h => h.id === id);
+      if (house) {
+        if (request.headers.get('Accept')?.includes('vnd.pgrst.object+json')) {
+          return HttpResponse.json(house);
+        }
+        return HttpResponse.json([house]);
+      }
+    }
+
+    return HttpResponse.json(houses);
   }),
 
   // Database Mocks - Participants
-  http.get(`${SUPABASE_URL}/rest/v1/participants`, ({ request }) => {
+  http.get(`${SUPABASE_URL}/rest/v1/ic_participants`, ({ request }) => {
     const url = new URL(request.url);
     const idParam = url.searchParams.get('id');
     
@@ -64,7 +80,7 @@ export const handlers = [
     return HttpResponse.json(participants);
   }),
 
-  http.patch(`${SUPABASE_URL}/rest/v1/participants`, async ({ request }) => {
+  http.patch(`${SUPABASE_URL}/rest/v1/ic_participants`, async ({ request }) => {
     const body = await request.json();
     return HttpResponse.json({ 
       id: 'participant-1',
@@ -74,7 +90,7 @@ export const handlers = [
   }),
 
   // Database Mocks - Activity Log
-  http.get(`${SUPABASE_URL}/rest/v1/activity_log`, () => {
+  http.get(`${SUPABASE_URL}/rest/v1/ic_activity_log`, () => {
     return HttpResponse.json([
       {
         id: 'log-1',
@@ -89,12 +105,12 @@ export const handlers = [
     ]);
   }),
 
-  http.post(`${SUPABASE_URL}/rest/v1/activity_log`, () => {
+  http.post(`${SUPABASE_URL}/rest/v1/ic_activity_log`, () => {
     return HttpResponse.json({ success: true }, { status: 201 });
   }),
 
   // Database Mocks - Staff
-  http.get(`${SUPABASE_URL}/rest/v1/staff`, ({ request }) => {
+  http.get(`${SUPABASE_URL}/rest/v1/ic_staff`, ({ request }) => {
     const url = new URL(request.url);
     const idParam = url.searchParams.get('id');
     
@@ -124,7 +140,7 @@ export const handlers = [
   }),
 
   // Database Mocks - Shift Notes
-  http.get(`${SUPABASE_URL}/rest/v1/shift_notes`, () => {
+  http.get(`${SUPABASE_URL}/rest/v1/ic_shift_notes`, () => {
     return HttpResponse.json([
       {
         id: 'note-1',
@@ -139,7 +155,7 @@ export const handlers = [
   }),
 
   // Database Mocks - Roles
-  http.get(`${SUPABASE_URL}/rest/v1/roles`, () => {
+  http.get(`${SUPABASE_URL}/rest/v1/ic_roles`, () => {
     return HttpResponse.json([
       { id: 'role-1', name: 'Admin', description: 'Admin role', is_active: true },
       { id: 'role-2', name: 'Support Worker', description: 'Staff role', is_active: true },
@@ -147,7 +163,7 @@ export const handlers = [
   }),
 
   // Database Mocks - Role Permissions
-  http.get(`${SUPABASE_URL}/rest/v1/role_permissions`, () => {
+  http.get(`${SUPABASE_URL}/rest/v1/ic_role_permissions`, () => {
     return HttpResponse.json([
       {
         role_id: 'role-1',
@@ -168,7 +184,7 @@ export const handlers = [
     ]);
   }),
 
-  http.post(`${SUPABASE_URL}/rest/v1/role_permissions`, () => {
+  http.post(`${SUPABASE_URL}/rest/v1/ic_role_permissions`, () => {
     return HttpResponse.json({ success: true }, { status: 201 });
   }),
 

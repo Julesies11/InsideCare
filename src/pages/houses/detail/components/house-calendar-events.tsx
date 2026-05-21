@@ -150,7 +150,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
       
       if (deleteShifts) {
         promises.push(
-          supabase.from('staff_shifts')
+          supabase.from('ic_staff_shifts')
             .delete()
             .eq('house_id', houseId)
             .gte('start_date', startDate)
@@ -160,7 +160,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
       
       if (deleteEvents) {
         promises.push(
-          supabase.from('house_calendar_events')
+          supabase.from('ic_house_calendar_events')
             .delete()
             .eq('house_id', houseId)
             .gte('event_date', startDate)
@@ -170,7 +170,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
       
       if (deleteChecklists) {
         promises.push(
-          supabase.from('house_checklist_submissions')
+          supabase.from('ic_house_checklist_submissions')
             .delete()
             .eq('house_id', houseId)
             .gte('created_at', `${startDate}T00:00:00.000Z`)
@@ -361,11 +361,11 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
         
         // Fetch full shift data with participants and checklists
         const { data: shift, error: shiftError } = await supabase
-          .from('staff_shifts')
+          .from('ic_staff_shifts')
           .select(`
             *,
-            participants:shift_participants(participant:participants(id, name)),
-            assigned_checklists:shift_assigned_checklists(id, checklist_id, assignment_title)
+            participants:ic_shift_participants(participant:ic_participants(id, name)),
+            assigned_checklists:ic_shift_assigned_checklists(id, checklist_id, assignment_title)
           `)
           .eq('id', shiftId)
           .maybeSingle();
@@ -394,8 +394,8 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
       try {
         // 1. Fetch the House Checklist and its items
         const { data: checklist, error: clError } = await supabase
-          .from('house_checklists')
-          .select('*, items:house_checklist_items(*)')
+          .from('ic_house_checklists')
+          .select('*, items:ic_house_checklist_items(*)')
           .eq('id', event.house_checklist_id)
           .maybeSingle();
 
@@ -410,7 +410,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
         if (!existingSubmission) {
           const isShiftRoutine = event.is_shift_routine || event.id?.startsWith('shift-cl-');
           const { data: directSubs } = await supabase
-            .from('house_checklist_submissions')
+            .from('ic_house_checklist_submissions')
             .select('id, status, updated_at, scheduled_date')
             .eq('checklist_id', event.house_checklist_id)
             .eq(isShiftRoutine ? 'shift_id' : 'calendar_event_id', isShiftRoutine ? event.shift_id : event.id)
@@ -427,10 +427,10 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
         if (existingSubmission) {
           // Fetch existing submission items to resume, including staff names
           const { data: subItems } = await supabase
-            .from('house_checklist_submission_items')
+            .from('ic_house_checklist_submission_items')
             .select(`
               *,
-              completed_by_staff:staff!completed_by(id, name)
+              completed_by_staff:ic_staff!completed_by(id, name)
             `)
             .eq('submission_id', existingSubmission.id);
 
@@ -511,7 +511,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
       const calendarEventId = (isShiftRoutine || selectedEvent.id?.startsWith('shift-cl-')) ? null : selectedEvent.id;
       
       const { data, error } = await supabase
-        .from('house_checklist_submissions')
+        .from('ic_house_checklist_submissions')
         .insert({
           checklist_id: executingChecklist.id,
           house_id: houseId,
@@ -538,7 +538,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
       // Update existing submission
       console.log('[ChecklistDebug] Updating existing submission:', submissionId);
       const { error } = await supabase
-        .from('house_checklist_submissions')
+        .from('ic_house_checklist_submissions')
         .update({
           status: status,
           submitted_by: staffId || null,
@@ -566,7 +566,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
     }));
 
     const { error: itemsError } = await supabase
-      .from('house_checklist_submission_items')
+      .from('ic_house_checklist_submission_items')
       .upsert(submissionItems, { onConflict: 'submission_id,item_id' });
 
     if (itemsError) {
@@ -581,8 +581,8 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
         for (const queued of results.queuedAttachments[itemId]) {
           const file = queued.file;
           const filePath = `${submissionId}/${itemId}/${Date.now()}-${file.name}`;
-          await supabase.storage.from('checklist-attachments').upload(filePath, file);
-          await supabase.from('house_checklist_item_attachments').insert({
+          await supabase.storage.from('ic_checklist_attachments').upload(filePath, file);
+          await supabase.from('ic_house_checklist_item_attachments').insert({
             submission_id: submissionId,
             item_id: itemId,
             file_name: file.name,
@@ -743,7 +743,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
           const { participant_ids, assigned_staff_ids, ...directTableData } = eventData;
 
           const { data: newEvent, error: insertError } = await supabase
-            .from('house_calendar_events')
+            .from('ic_house_calendar_events')
             .insert({
               ...directTableData,
               house_id: houseId,
@@ -758,12 +758,12 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
           // Also handle immediate junction inserts
           if (participant_ids?.length > 0) {
             await supabase
-              .from('house_calendar_event_participants')
+              .from('ic_house_calendar_event_participants')
               .insert(participant_ids.map(id => ({ event_id: finalEventId, participant_id: id })));
           }
           if (assigned_staff_ids?.length > 0) {
             await supabase
-              .from('house_calendar_event_staff')
+              .from('ic_house_calendar_event_staff')
               .insert(assigned_staff_ids.map(id => ({ event_id: finalEventId, staff_id: id })));
           }
 
@@ -791,8 +791,8 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
         if (formData.toDeleteAttachments.length > 0) {
           for (const attId of formData.toDeleteAttachments) {
             const att = formData.existingAttachments.find(a => a.id === attId);
-            if (att?.file_path) await supabase.storage.from('house-documents').remove([att.file_path]);
-            await supabase.from('house_calendar_event_attachments').delete().eq('id', attId);
+            if (att?.file_path) await supabase.storage.from('ic_house_documents').remove([att.file_path]);
+            await supabase.from('ic_house_calendar_event_attachments').delete().eq('id', attId);
           }
         }
 
@@ -808,7 +808,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
             
             if (uploadError) throw uploadError;
 
-            await supabase.from('house_calendar_event_attachments').insert({
+            await supabase.from('ic_house_calendar_event_attachments').insert({
               event_id: finalEventId,
               file_name: queued.file.name,
               file_path: filePath,

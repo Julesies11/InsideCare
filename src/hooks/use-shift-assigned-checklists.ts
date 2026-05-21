@@ -19,7 +19,7 @@ export function useShiftAssignedChecklists(houseId?: string) {
     queryFn: async () => {
       if (!houseId) return [];
       const { data, error } = await supabase
-        .from('shift_assigned_checklists')
+        .from('ic_shift_assigned_checklists')
         .select('*')
         .eq('house_id', houseId)
         .order('sort_order', { ascending: true });
@@ -36,7 +36,7 @@ export function useShiftAssignedChecklists(houseId?: string) {
 
       // 1. Delete existing for this house
       const { error: deleteError } = await supabase
-        .from('shift_assigned_checklists')
+        .from('ic_shift_assigned_checklists')
         .delete()
         .eq('house_id', houseId);
 
@@ -54,7 +54,7 @@ export function useShiftAssignedChecklists(houseId?: string) {
         }));
 
         const { error: insertError } = await supabase
-          .from('shift_assigned_checklists')
+          .from('ic_shift_assigned_checklists')
           .insert(toInsert);
 
         if (insertError) throw insertError;

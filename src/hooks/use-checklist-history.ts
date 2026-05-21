@@ -28,10 +28,10 @@ export interface ChecklistHistoryFilters {
 
 const CHECKLIST_SUBMISSION_COLUMNS = `
   id, checklist_id, house_id, submitted_by, status, scheduled_date, started_at, completed_at, created_at, updated_at,
-  house_checklists (name),
-  staff (name),
-  houses (name),
-  house_checklist_submission_items (is_completed)
+  house_checklists:ic_house_checklists(name),
+  staff:ic_staff(name),
+  houses:ic_houses(name),
+  ic_house_checklist_submission_items:ic_house_checklist_submission_items(is_completed)
 `;
 
 export function useChecklistHistory(
@@ -44,7 +44,7 @@ export function useChecklistHistory(
     queryKey: ['checklist-history', pageIndex, pageSize, sorting, filters],
     queryFn: async () => {
       let query = supabase
-        .from('house_checklist_submissions')
+        .from('ic_house_checklist_submissions')
         .select(CHECKLIST_SUBMISSION_COLUMNS, { count: 'exact' });
 
       // Apply House Filters
@@ -84,7 +84,7 @@ export function useChecklistHistory(
         const checklists = (sub as any).house_checklists as unknown as { name: string } | null;
         const staff = (sub as any).staff as unknown as { name: string } | null;
         const house = (sub as any).houses as unknown as { name: string } | null;
-        const items = ((sub as any).house_checklist_submission_items as unknown as Array<{ is_completed: boolean }>) || [];
+        const items = ((sub as any).ic_house_checklist_submission_items as unknown as Array<{ is_completed: boolean }>) || [];
         
         return {
           ...sub,

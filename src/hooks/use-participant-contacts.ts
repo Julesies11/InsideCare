@@ -31,7 +31,7 @@ const CONTACT_COLUMNS = `
   is_active,
   created_at,
   updated_at,
-  contact_type:contact_types_master(
+  contact_type:ic_contact_types_master(
     id,
     name
   )
@@ -43,7 +43,7 @@ export function useParticipantContacts(participantId?: string) {
     queryFn: async () => {
       if (!participantId) return [];
       const { data, error } = await supabase
-        .from('participant_contacts')
+        .from('ic_participant_contacts')
         .select(CONTACT_COLUMNS)
         .eq('participant_id', participantId)
         .order('created_at', { ascending: false });
@@ -66,7 +66,7 @@ export function useAddParticipantContact() {
   return useMutation({
     mutationFn: async (contact: Omit<ParticipantContact, 'id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
-        .from('participant_contacts')
+        .from('ic_participant_contacts')
         .insert(contact)
         .select(CONTACT_COLUMNS)
         .maybeSingle();
@@ -89,7 +89,7 @@ export function useUpdateParticipantContact() {
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<ParticipantContact> }) => {
       const { data, error } = await supabase
-        .from('participant_contacts')
+        .from('ic_participant_contacts')
         .update(updates)
         .eq('id', id)
         .select(CONTACT_COLUMNS)
@@ -113,7 +113,7 @@ export function useDeleteParticipantContact() {
   return useMutation({
     mutationFn: async ({ id, participantId }: { id: string; participantId: string }) => {
       const { error } = await supabase
-        .from('participant_contacts')
+        .from('ic_participant_contacts')
         .delete()
         .eq('id', id);
 

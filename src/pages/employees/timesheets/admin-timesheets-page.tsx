@@ -139,7 +139,7 @@ export function AdminTimesheetsPage() {
   const fetchTimesheets = useCallback(async () => {
     setLoading(true);
     let query = supabase
-      .from('timesheets')
+      .from('ic_timesheets')
       .select(`
         id, staff_id, shift_id, clock_in, clock_out, actual_start, actual_end,
         break_minutes, shift_notes_text, notes, status, admin_notes, rejection_reason,
@@ -200,7 +200,7 @@ export function AdminTimesheetsPage() {
     }
     if (action === 'reject') updatePayload.rejection_reason = rejectionReason || null;
 
-    const { error } = await supabase.from('timesheets').update(updatePayload).eq('id', selected.id);
+    const { error } = await supabase.from('ic_timesheets').update(updatePayload).eq('id', selected.id);
     if (error) { toast.error('Failed to update timesheet'); setSaving(false); return; }
 
     const userName = user.fullname || user.email || 'Admin';
@@ -248,7 +248,7 @@ export function AdminTimesheetsPage() {
     setSaving(true);
     const now = new Date().toISOString();
     const { error } = await supabase
-      .from('timesheets')
+      .from('ic_timesheets')
       .update({ status: 'approved', approved_at: now, approved_by: user?.staff_id ?? null, updated_at: now })
       .in('id', ids);
 
@@ -311,7 +311,7 @@ export function AdminTimesheetsPage() {
       enableHiding: false,
     },
     {
-      accessorKey: 'staff.name',
+      accessorKey: ic_staff.name',
       header: 'Staff',
       cell: ({ row }) => <span className="font-medium">{row.original.staff?.name ?? 'Unknown'}</span>,
     },

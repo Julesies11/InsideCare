@@ -19,7 +19,7 @@ export function useActivityLog({ entityId, entityType, limit = 50 }: UseActivity
       const columns = (limit > 1 && !entityId) ? ACTIVITY_LOG_LIST_COLUMNS : ACTIVITY_LOG_COLUMNS;
       
       let query = supabase
-        .from('activity_log')
+        .from('ic_activity_log')
         .select(columns)
         .order('created_at', { ascending: false })
         .limit(limit);
@@ -77,7 +77,7 @@ export function useLogActivity() {
       };
 
       const { data, error } = await supabase
-        .from('activity_log')
+        .from('ic_activity_log')
         .insert([{
           activity_type: activityType,
           entity_type: entityType,
@@ -204,7 +204,7 @@ export async function logActivity(params: LogActivityParams) {
   };
 
   const { data, error } = await supabase
-    .from('activity_log')
+    .from('ic_activity_log')
     .insert([{
       activity_type: params.activityType,
       entity_type: params.entityType,

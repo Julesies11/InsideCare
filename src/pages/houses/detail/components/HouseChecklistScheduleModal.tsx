@@ -67,7 +67,7 @@ export function HouseChecklistScheduleModal({
         // Save logic for shift_assigned_checklists
         // This will be a new mutation in useChecklistSchedules or a direct supabase call
         const { error } = await supabase
-          .from('shift_assigned_checklists')
+          .from('ic_shift_assigned_checklists')
           .insert(selectedShiftIds.map(stId => ({
             house_id: houseId,
             checklist_id: checklist.id,

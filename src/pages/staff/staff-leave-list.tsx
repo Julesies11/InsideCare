@@ -59,8 +59,8 @@ export function StaffLeaveList() {
   const fetchRequests = useCallback(async () => {
     if (!user?.staff_id) { setLoading(false); return; }
     const { data } = await supabase
-      .from('leave_requests')
-      .select('id, leave_type:leave_types(name), start_date, end_date, reason, status, admin_notes, created_at')
+      .from('ic_leave_requests')
+      .select('id, leave_type:ic_leave_types(name), start_date, end_date, reason, status, admin_notes, created_at')
       .eq('staff_id', user.staff_id)
       .order('created_at', { ascending: false });
     setRequests((data as LeaveRequest[]) || []);
@@ -76,7 +76,7 @@ export function StaffLeaveList() {
   const handleDelete = async () => {
     if (!deleteTarget) return;
     setDeleting(true);
-    const { error } = await supabase.from('leave_requests').delete().eq('id', deleteTarget.id);
+    const { error } = await supabase.from('ic_leave_requests').delete().eq('id', deleteTarget.id);
     if (error) {
       toast.error('Failed to delete leave request');
     } else {

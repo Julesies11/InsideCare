@@ -2,8 +2,14 @@
 
 This document provides an overview of the core database tables and their relationships in the InsideCare application.
 
+## Multi-App Isolation Standard (Prefixing)
+As of **May 21, 2026**, the database schema uses the `ic_` prefix for all objects to allow secure sharing of a single database instance with other applications. 
+- **Tables/Enums/Functions:** `ic_` prefix required (e.g., `ic_participants`).
+- **Storage Buckets:** `ic_` prefix required (e.g., `ic_staff_photos`).
+- **Edge Functions:** `ic-` prefix required (e.g., `ic-invite-user`).
+
 ## Database Source of Truth
-As of **May 19, 2026**, the database schema source of truth is maintained in:
+The schema source of truth is maintained in:
 - **Directory:** `docs/database_schema/`
 - **Schema Metadata:** `docs/database_schema/schema_metadata.json` (Tables, Columns, Enums, Logic).
 - **RBAC Policies:** `docs/database_schema/current_database_rbac.json` (Live RLS policy state).

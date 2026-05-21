@@ -64,7 +64,7 @@ export function StaffLeaveForm() {
   useEffect(() => {
     const fetchLeaveTypes = async () => {
       const { data } = await supabase
-        .from('leave_types')
+        .from('ic_leave_types')
         .select('id, name')
         .eq('is_active', true)
         .order('name');
@@ -78,7 +78,7 @@ export function StaffLeaveForm() {
     if (!isEdit || !id) return;
     const load = async () => {
       const { data } = await supabase
-        .from('leave_requests')
+        .from('ic_leave_requests')
         .select('leave_type_id, start_date, end_date, reason, attachment_url')
         .eq('id', id)
         .maybeSingle();
@@ -108,8 +108,8 @@ export function StaffLeaveForm() {
     const check = async () => {
       setCheckingConflicts(true);
       const { data } = await supabase
-        .from('staff_shifts')
-        .select('id, start_date, start_time, end_time, house:houses(name)')
+        .from('ic_staff_shifts')
+        .select('id, start_date, start_time, end_time, house:ic_houses(name)')
         .eq('staff_id', user.staff_id)
         .gte('start_date', startDate)
         .lte('start_date', endDate);
@@ -123,7 +123,7 @@ export function StaffLeaveForm() {
     if (!attachmentFile) return existingAttachmentUrl;
     const ext = attachmentFile.name.split('.').pop();
     const path = `leave-attachments/${staffId}/${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from('staff-documents').upload(path, attachmentFile);
+    const { error } = await supabase.storage.from('ic_staff_documents').upload(path, attachmentFile);
     if (error) { toast.error('Failed to upload attachment'); return null; }
     const { data: urlData, error: urlError } = await supabase.storage
       .from('staff-documents')
@@ -154,7 +154,7 @@ export function StaffLeaveForm() {
     const attachmentUrl = await uploadAttachment(user.staff_id);
 
     if (isEdit && id) {
-      const { error } = await supabase.from('leave_requests').update({
+      const { error } = await supabase.from('ic_leave_requests').update({
         leave_type_id: leaveTypeId,
         start_date: startDate,
         end_date: endDate,
@@ -165,7 +165,7 @@ export function StaffLeaveForm() {
       if (error) { toast.error('Failed to update leave request'); setSaving(false); return; }
       toast.success('Leave request updated');
     } else {
-      const { error } = await supabase.from('leave_requests').insert({
+      const { error } = await supabase.from('ic_leave_requests').insert({
         staff_id: user.staff_id,
         leave_type_id: leaveTypeId,
         start_date: startDate,

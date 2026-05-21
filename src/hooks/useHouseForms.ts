@@ -73,11 +73,11 @@ export function useHouseForms(houseId?: string) {
         setLoading(true);
         
         const { data, error } = await supabase
-          .from('house_forms')
+          .from('ic_house_forms')
           .select(`
             *,
-            creator:staff!created_by(id, name, email),
-            house_form_assignments (
+            creator:ic_staff!created_by(id, name, email),
+            house_form_assignments:ic_house_form_assignments(
               id,
               form_id,
               participant_id,
@@ -90,10 +90,10 @@ export function useHouseForms(houseId?: string) {
               notes,
               created_at,
               updated_at,
-              participant:participants(id, name, email),
-              staff:staff!staff_id(id, name, email),
-              assigned_by_staff:staff!assigned_by(id, name, email),
-              completed_by_staff:staff!completed_by(id, name, email)
+              participant:ic_participants(id, name, email),
+              staff:ic_staff!staff_id(id, name, email),
+              assigned_by_staff:ic_staff!assigned_by(id, name, email),
+              completed_by_staff:ic_staff!completed_by(id, name, email)
             )
           `)
           .eq('house_id', houseId)

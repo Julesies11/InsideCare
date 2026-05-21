@@ -63,10 +63,10 @@ const SHIFT_NOTE_COLUMNS = `
   full_note, 
   created_at, 
   updated_at,
-  participant:participants(id, name),
-  staff:staff(id, name),
-  house:houses(id, name),
-  shift:staff_shifts(id, start_time, end_time, shift_template)
+  participant:ic_participants(id, name),
+  staff:ic_staff(id, name),
+  house:ic_houses(id, name),
+  shift:ic_staff_shifts(id, start_time, end_time, shift_template)
 `;
 
 export function useShiftNotes() {
@@ -74,7 +74,7 @@ export function useShiftNotes() {
     queryKey: ['shift-notes'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('shift_notes')
+        .from('ic_shift_notes')
         .select(SHIFT_NOTE_COLUMNS)
         .order('start_date', { ascending: false });
 
@@ -97,7 +97,7 @@ export function useShiftNotes() {
 
   const fetchShiftNotesByShiftId = useCallback(async (shiftId: string) => {
     const { data, error } = await supabase
-      .from('shift_notes')
+      .from('ic_shift_notes')
       .select(SHIFT_NOTE_COLUMNS)
       .eq('shift_id', shiftId)
       .order('created_at', { ascending: true });
@@ -125,7 +125,7 @@ export function useShiftNotesByShiftId(shiftId?: string) {
     queryFn: async () => {
       if (!shiftId) return [];
       const { data, error } = await supabase
-        .from('shift_notes')
+        .from('ic_shift_notes')
         .select(SHIFT_NOTE_COLUMNS)
         .eq('shift_id', shiftId)
         .order('created_at', { ascending: true });
@@ -143,7 +143,7 @@ export function useShiftNotesByParticipantId(participantId?: string) {
     queryFn: async () => {
       if (!participantId) return [];
       const { data, error } = await supabase
-        .from('shift_notes')
+        .from('ic_shift_notes')
         .select(SHIFT_NOTE_COLUMNS)
         .eq('participant_id', participantId)
         .order('start_date', { ascending: false })
@@ -167,7 +167,7 @@ export function useCreateShiftNote() {
   return useMutation({
     mutationFn: async (noteData: ShiftNoteUpdateData) => {
       const { data, error } = await supabase
-        .from('shift_notes')
+        .from('ic_shift_notes')
         .upsert({
           ...noteData,
           created_at: new Date().toISOString(),
@@ -195,7 +195,7 @@ export function useUpdateShiftNote() {
         throw new Error('Shift note ID is required for update');
       }
       const { data, error } = await supabase
-        .from('shift_notes')
+        .from('ic_shift_notes')
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq('id', id)
         .select(SHIFT_NOTE_COLUMNS)
@@ -220,7 +220,7 @@ export function useDeleteShiftNote() {
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('shift_notes')
+        .from('ic_shift_notes')
         .delete()
         .eq('id', id);
 

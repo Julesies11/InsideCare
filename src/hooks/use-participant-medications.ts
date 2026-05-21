@@ -27,7 +27,7 @@ const PARTICIPANT_MEDICATION_COLUMNS = `
   is_active,
   created_at,
   updated_at,
-  medication:medications_master(
+  medication:ic_medications_master(
     id,
     name,
     category,
@@ -41,7 +41,7 @@ export function useParticipantMedications(participantId?: string) {
     queryFn: async () => {
       if (!participantId) return [];
       const { data, error } = await supabase
-        .from('participant_medications')
+        .from('ic_participant_medications')
         .select(PARTICIPANT_MEDICATION_COLUMNS)
         .eq('participant_id', participantId)
         .order('created_at', { ascending: false });
@@ -72,7 +72,7 @@ export function useAddParticipantMedication() {
   return useMutation({
     mutationFn: async (medication: Omit<ParticipantMedication, 'id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
-        .from('participant_medications')
+        .from('ic_participant_medications')
         .insert(medication)
         .select(PARTICIPANT_MEDICATION_COLUMNS)
         .maybeSingle();
@@ -93,7 +93,7 @@ export function useUpdateParticipantMedication() {
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<ParticipantMedication> }) => {
       const { data, error } = await supabase
-        .from('participant_medications')
+        .from('ic_participant_medications')
         .update(updates)
         .eq('id', id)
         .select(PARTICIPANT_MEDICATION_COLUMNS)
@@ -115,7 +115,7 @@ export function useDeleteParticipantMedication() {
   return useMutation({
     mutationFn: async ({ id, participantId }: { id: string; participantId: string }) => {
       const { error } = await supabase
-        .from('participant_medications')
+        .from('ic_participant_medications')
         .delete()
         .eq('id', id);
 

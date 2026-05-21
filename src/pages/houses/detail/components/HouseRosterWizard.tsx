@@ -46,7 +46,7 @@ export function HouseRosterWizard({ open, onOpenChange, houseId, houseName, pend
       
       try {
         await supabase
-          .from('houses')
+          .from('ic_houses')
           .update({ setup_step: nextStep })
           .eq('id', houseId);
       } catch (e) {
@@ -65,7 +65,7 @@ export function HouseRosterWizard({ open, onOpenChange, houseId, houseName, pend
     setIsSaving(true);
     try {
       const { error } = await supabase
-        .from('houses')
+        .from('ic_houses')
         .update({ 
           setup_step: 3,
           is_configured: true,

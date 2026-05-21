@@ -52,7 +52,7 @@ export async function syncOfflineErrors() {
     const errors: ErrorLogPayload[] = JSON.parse(existing);
     if (errors.length === 0) return;
 
-    const { error } = await supabase.from('error_logs').insert(errors);
+    const { error } = await supabase.from('ic_error_logs').insert(errors);
     
     if (!error) {
       localStorage.removeItem(OFFLINE_ERRORS_KEY);
@@ -142,7 +142,7 @@ export const handleError = (error: unknown, options: ErrorOptions = {}) => {
         return;
       }
 
-      supabase.from('error_logs').insert([payload]).then(({ error: insertError }) => {
+      supabase.from('ic_error_logs').insert([payload]).then(({ error: insertError }) => {
         if (insertError) {
           console.error('Failed to log error to database', insertError);
           saveErrorOffline(payload);

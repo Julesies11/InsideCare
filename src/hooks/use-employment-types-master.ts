@@ -17,7 +17,7 @@ export function useEmploymentTypesMaster() {
     queryKey: ['employment-types-master'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('employment_types_master')
+        .from('ic_employment_types_master')
         .select(EMPLOYMENT_TYPE_COLUMNS)
         .order('name', { ascending: true });
 
@@ -34,7 +34,7 @@ export function useAddEmploymentTypeMaster() {
   return useMutation({
     mutationFn: async (employmentTypeData: Omit<EmploymentType, 'id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
-        .from('employment_types_master')
+        .from('ic_employment_types_master')
         .insert([employmentTypeData])
         .select(EMPLOYMENT_TYPE_COLUMNS)
         .maybeSingle();
@@ -57,7 +57,7 @@ export function useUpdateEmploymentTypeMaster() {
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<EmploymentType> }) => {
       const { data, error } = await supabase
-        .from('employment_types_master')
+        .from('ic_employment_types_master')
         .update(updates)
         .eq('id', id)
         .select(EMPLOYMENT_TYPE_COLUMNS)

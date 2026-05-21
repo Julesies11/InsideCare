@@ -28,7 +28,7 @@ export function useParticipantGoals(participantId?: string) {
       if (!participantId) return { goals: [], progress: [] };
 
       const { data: goals, error: goalError } = await supabase
-        .from('participant_goals')
+        .from('ic_participant_goals')
         .select(GOAL_COLUMNS)
         .eq('participant_id', participantId)
         .order('created_at', { ascending: false });
@@ -39,7 +39,7 @@ export function useParticipantGoals(participantId?: string) {
       if (goalIds.length === 0) return { goals: [], progress: [] };
 
       const { data: progress, error: progressError } = await supabase
-        .from('participant_goal_progress')
+        .from('ic_participant_goal_progress')
         .select(PROGRESS_COLUMNS)
         .in('goal_id', goalIds)
         .order('created_at', { ascending: true });
@@ -62,7 +62,7 @@ export function useAddParticipantGoal() {
   return useMutation({
     mutationFn: async (goal: Omit<ParticipantGoal, 'id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
-        .from('participant_goals')
+        .from('ic_participant_goals')
         .insert(goal)
         .select(GOAL_COLUMNS)
         .maybeSingle();
@@ -83,7 +83,7 @@ export function useUpdateParticipantGoal() {
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<ParticipantGoal> }) => {
       const { data, error } = await supabase
-        .from('participant_goals')
+        .from('ic_participant_goals')
         .update(updates)
         .eq('id', id)
         .select(GOAL_COLUMNS)
@@ -105,7 +105,7 @@ export function useDeleteParticipantGoal() {
   return useMutation({
     mutationFn: async ({ id, participantId }: { id: string; participantId: string }) => {
       const { error } = await supabase
-        .from('participant_goals')
+        .from('ic_participant_goals')
         .delete()
         .eq('id', id);
 
@@ -123,7 +123,7 @@ export function useAddGoalProgress() {
   return useMutation({
     mutationFn: async ({ progress, participantId }: { progress: Omit<GoalProgress, 'id' | 'created_at' | 'updated_at'>; participantId: string }) => {
       const { data, error } = await supabase
-        .from('participant_goal_progress')
+        .from('ic_participant_goal_progress')
         .insert(progress)
         .select(PROGRESS_COLUMNS)
         .maybeSingle();
@@ -144,7 +144,7 @@ export function useUpdateGoalProgress() {
   return useMutation({
     mutationFn: async ({ id, progress_note, participantId }: { id: string; progress_note: string; participantId: string }) => {
       const { data, error } = await supabase
-        .from('participant_goal_progress')
+        .from('ic_participant_goal_progress')
         .update({ progress_note })
         .eq('id', id)
         .select(PROGRESS_COLUMNS)
@@ -166,7 +166,7 @@ export function useDeleteGoalProgress() {
   return useMutation({
     mutationFn: async ({ id, participantId }: { id: string; participantId: string }) => {
       const { error } = await supabase
-        .from('participant_goal_progress')
+        .from('ic_participant_goal_progress')
         .delete()
         .eq('id', id);
 

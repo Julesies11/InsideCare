@@ -114,7 +114,7 @@ export function HouseChecklistSetup({
           sort_order: index
         }));
 
-        const { error } = await supabase.from('house_checklists').upsert(toUpsert);
+        const { error } = await supabase.from('ic_house_checklists').upsert(toUpsert);
         if (error) throw error;
         refreshChecklists();
         return;
@@ -167,7 +167,7 @@ export function HouseChecklistSetup({
 
         if (savedChecklistId && !selectedChecklist.tempId) {
           const { error } = await supabase
-            .from('house_checklists')
+            .from('ic_house_checklists')
             .update({
               name: checklistFormData.name,
               description: checklistFormData.description,
@@ -178,7 +178,7 @@ export function HouseChecklistSetup({
           if (error) throw error;
         } else {
           const { data, error } = await supabase
-            .from('house_checklists')
+            .from('ic_house_checklists')
             .insert({
               house_id: houseId,
               name: checklistFormData.name,
@@ -201,7 +201,7 @@ export function HouseChecklistSetup({
             .map((i: any) => i.id);
           
           if (toDelete.length > 0) {
-            await supabase.from('house_checklist_items').delete().in('id', toDelete);
+            await supabase.from('ic_house_checklist_items').delete().in('id', toDelete);
           }
         }
 
@@ -216,7 +216,7 @@ export function HouseChecklistSetup({
           sort_order: i.sort_order
         }));
 
-        const { error: upsertErr } = await supabase.from('house_checklist_items').upsert(toUpsert);
+        const { error: upsertErr } = await supabase.from('ic_house_checklist_items').upsert(toUpsert);
         if (upsertErr) throw upsertErr;
 
         toast.success('Checklist saved to database');
@@ -395,10 +395,10 @@ export function HouseChecklistSetup({
     setIsFetchingSource(true);
     try {
       const { data, error } = await supabase
-        .from('house_checklists')
+        .from('ic_house_checklists')
         .select(`
           id, name, description, sort_order,
-          items:house_checklist_items(id, title, instructions, group_title, priority, is_required, sort_order)
+          items:ic_house_checklist_items(id, title, instructions, group_title, priority, is_required, sort_order)
         `)
         .eq('house_id', sourceId)
         .order('sort_order', { ascending: true });
@@ -452,7 +452,7 @@ export function HouseChecklistSetup({
 
         if (directSave) {
           const { data: newCl, error: clErr } = await supabase
-            .from('house_checklists')
+            .from('ic_house_checklists')
             .insert({
               house_id: houseId,
               name: checklistData.name,
@@ -475,7 +475,7 @@ export function HouseChecklistSetup({
             sort_order: i.sort_order
           }));
 
-          const { error: itemsErr } = await supabase.from('house_checklist_items').insert(toInsertItems);
+          const { error: itemsErr } = await supabase.from('ic_house_checklist_items').insert(toInsertItems);
           if (itemsErr) throw itemsErr;
         } else {
           checklistsToAdd.push(checklistData);

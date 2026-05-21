@@ -27,7 +27,7 @@ export function useChecklistSchedules(houseId?: string) {
 
       // 1. Insert the Schedule
       const { data: newSchedule, error: scheduleError } = await supabase
-        .from('checklist_schedules')
+        .from('ic_checklist_schedules')
         .insert(schedule)
         .select()
         .maybeSingle();
@@ -52,7 +52,7 @@ export function useChecklistSchedules(houseId?: string) {
       if (eventDates.length > 0) {
         // Fetch the house checklist info for the title
         const { data: houseChecklist } = await supabase
-          .from('house_checklists')
+          .from('ic_house_checklists')
           .select('name')
           .eq('id', schedule.house_checklist_id)
           .maybeSingle();
@@ -72,7 +72,7 @@ export function useChecklistSchedules(houseId?: string) {
         }));
 
         const { error: eventError } = await supabase
-          .from('house_calendar_events')
+          .from('ic_house_calendar_events')
           .insert(calendarEvents);
 
         if (eventError) throw eventError;
@@ -98,7 +98,7 @@ export function useChecklistSchedules(houseId?: string) {
       
       // Deleting the schedule will cascade delete calendar events (due to FK ON DELETE CASCADE)
       const { error } = await supabase
-        .from('checklist_schedules')
+        .from('ic_checklist_schedules')
         .delete()
         .eq('id', scheduleId);
 
@@ -119,7 +119,7 @@ export function useChecklistSchedules(houseId?: string) {
     try {
       setLoading(true);
       const { error } = await supabase
-        .from('house_calendar_events')
+        .from('ic_house_calendar_events')
         .delete()
         .eq('id', eventId);
 

@@ -298,7 +298,7 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
 
       const rolloutEndDate = format(addDays(parseISO(sourceShifts[0].start_date), (weeks * 7) + 7), 'yyyy-MM-dd');
       const { data: allLeave } = await supabase
-        .from('leave_requests')
+        .from('ic_leave_requests')
         .select('staff_id, start_date, end_date')
         .eq('status', 'approved')
         .gte('end_date', sourceShifts[0].start_date)
@@ -312,7 +312,7 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
           const targetEndDateStr = shift.end_date ? format(addDays(parseISO(shift.end_date), daysOffset), 'yyyy-MM-dd') : targetDateStr;
 
           const { data: existing } = await supabase
-            .from('staff_shifts')
+            .from('ic_staff_shifts')
             .select('id')
             .eq('house_id', houseFilter)
             .eq('start_date', targetDateStr)

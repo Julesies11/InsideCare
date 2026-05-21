@@ -17,10 +17,10 @@ export function useRoles() {
     queryKey: ['roles'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('roles')
+        .from('ic_roles')
         .select(`
           *,
-          staff(count)
+          staff:ic_staff(count)
         `)
         .order('name', { ascending: true });
 
@@ -51,7 +51,7 @@ export function useAddRole() {
     mutationFn: async (roleData: Omit<Role, 'id' | 'created_at' | 'updated_at'>) => {
       // Explicitly include is_active, but strip it if it causes issues (temporary workaround for schema cache)
       const { data, error } = await supabase
-        .from('roles')
+        .from('ic_roles')
         .insert([roleData])
         .select()
         .maybeSingle();
@@ -79,7 +79,7 @@ export function useUpdateRole() {
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<Role> }) => {
       const { data, error } = await supabase
-        .from('roles')
+        .from('ic_roles')
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq('id', id)
         .select()
@@ -108,7 +108,7 @@ export function useDeleteRole() {
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('roles')
+        .from('ic_roles')
         .delete()
         .eq('id', id);
 

@@ -121,13 +121,13 @@ export interface StaffSort {
 const STAFF_LIST_COLUMNS = `
   id, name, email, phone, status, branch_id, role_id, photo_url, 
   created_at, updated_at,
-  department_info:departments(id, name),
-  employment_type_info:employment_types_master(id, name),
-  role:roles!staff_role_id_fkey(id, name, description),
-  house_assignments:house_staff_assignments(
+  department_info:ic_departments(id, name),
+  employment_type_info:ic_employment_types_master(id, name),
+  role:ic_roles!staff_role_id_fkey(id, name, description),
+  house_assignments:ic_house_staff_assignments(
     id,
     house_id,
-    house:houses(id, name)
+    house:ic_houses(id, name)
   )
 `;
 
@@ -142,10 +142,10 @@ const STAFF_DETAIL_COLUMNS = `
   ndis_infection_control_training, ndis_infection_control_training_expiry, 
   drivers_license, drivers_license_expiry, comprehensive_car_insurance, 
   comprehensive_car_insurance_expiry, photo_url,
-  department_info:departments(id, name),
-  employment_type_info:employment_types_master(id, name),
-  role:roles!staff_role_id_fkey(id, name, description),
-  manager_info:staff!manager_id(id, name)
+  department_info:ic_departments(id, name),
+  employment_type_info:ic_employment_types_master(id, name),
+  role:ic_roles!staff_role_id_fkey(id, name, description),
+  manager_info:ic_staff!manager_id(id, name)
 `;
 
 export function useStaff(
@@ -158,7 +158,7 @@ export function useStaff(
     queryKey: ['staff', { pageIndex, pageSize, sort, filters }],
     queryFn: async () => {
       let query = supabase
-        .from('staff')
+        .from('ic_staff')
         .select(STAFF_LIST_COLUMNS, { count: 'exact' });
 
       if (filters.search) {
@@ -211,7 +211,7 @@ export function useStaff(
     // Backward compatibility
     getStaffById: async (id: string) => {
       const { data, error } = await supabase
-        .from('staff')
+        .from('ic_staff')
         .select(STAFF_DETAIL_COLUMNS)
         .eq('id', id)
         .maybeSingle();
@@ -224,7 +224,7 @@ export function useStaff(
     },
     updateStaff: async (id: string, updates: StaffUpdateData) => {
       const { data, error } = await supabase
-        .from('staff')
+        .from('ic_staff')
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq('id', id)
         .select(STAFF_DETAIL_COLUMNS)
@@ -238,14 +238,14 @@ export function useStaff(
     },
     deleteStaff: async (id: string) => {
       const { error } = await supabase
-        .from('staff')
+        .from('ic_staff')
         .delete()
         .eq('id', id);
       return { error: error ? error.message : null };
     },
     getStaffCompliance: async (staffId: string) => {
       const { data, error } = await supabase
-        .from('staff_compliance')
+        .from('ic_staff_compliance')
         .select('id, staff_id, compliance_name, completion_date, expiry_date, status, created_at, updated_at')
         .eq('staff_id', staffId)
         .order('expiry_date', { ascending: true });
@@ -253,7 +253,7 @@ export function useStaff(
     },
     getStaffTraining: async (staffId?: string) => {
       let query = supabase
-        .from('staff_training')
+        .from('ic_staff_training')
         .select('id, staff_id, title, category, description, provider, date_completed, expiry_date, file_path, file_name, file_size, created_by, created_at, updated_at')
         .order('created_at', { ascending: false });
 
@@ -273,7 +273,7 @@ export function useStaffMember(id?: string) {
     queryFn: async () => {
       if (!id) return null;
       const { data, error } = await supabase
-        .from('staff')
+        .from('ic_staff')
         .select(STAFF_DETAIL_COLUMNS)
         .eq('id', id)
         .maybeSingle();
@@ -310,7 +310,7 @@ export function useCreateStaff() {
   return useMutation({
     mutationFn: async (staffData: StaffUpdateData) => {
       const { data, error } = await supabase
-        .from('staff')
+        .from('ic_staff')
         .insert([{
           ...staffData,
           status: 'draft',
@@ -337,7 +337,7 @@ export function useUpdateStaff() {
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: StaffUpdateData }) => {
       const { data, error } = await supabase
-        .from('staff')
+        .from('ic_staff')
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq('id', id)
         .select(STAFF_DETAIL_COLUMNS)
@@ -363,7 +363,7 @@ export function useDeleteStaff() {
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('staff')
+        .from('ic_staff')
         .delete()
         .eq('id', id);
 
@@ -381,7 +381,7 @@ export function useStaffCompliance(staffId?: string) {
     queryFn: async () => {
       if (!staffId) return [];
       const { data, error } = await supabase
-        .from('staff_compliance')
+        .from('ic_staff_compliance')
         .select('id, staff_id, compliance_name, completion_date, expiry_date, status, created_at, updated_at')
         .eq('staff_id', staffId)
         .order('expiry_date', { ascending: true });
@@ -407,10 +407,10 @@ export function useStaffByRole(roleId?: string) {
     queryFn: async () => {
       if (!roleId) return [];
       const { data, error } = await supabase
-        .from('staff')
+        .from('ic_staff')
         .select(`
           id, name, email, status, photo_url,
-          department_info:departments(id, name)
+          department_info:ic_departments(id, name)
         `)
         .eq('role_id', roleId)
         .order('name', { ascending: true });
@@ -436,7 +436,7 @@ export function useStaffTraining(staffId?: string) {
     queryKey: ['staff-training', staffId],
     queryFn: async () => {
       let query = supabase
-        .from('staff_training')
+        .from('ic_staff_training')
         .select('id, staff_id, title, category, description, provider, date_completed, expiry_date, file_path, file_name, file_size, created_by, created_at, updated_at')
         .order('created_at', { ascending: false });
 
@@ -464,7 +464,7 @@ export function useStaffCount(filters: StaffFilter = {}) {
     queryKey: ['staff-count', { filters }],
     queryFn: async () => {
       let query = supabase
-        .from('staff')
+        .from('ic_staff')
         .select('*', { count: 'exact', head: true });
 
       if (filters.statuses && filters.statuses.length > 0) {

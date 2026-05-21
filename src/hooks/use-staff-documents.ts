@@ -22,7 +22,7 @@ export function useStaffDocuments(staffId?: string) {
     queryFn: async () => {
       if (!staffId) return [];
       const { data, error } = await supabase
-        .from('staff_documents')
+        .from('ic_staff_documents')
         .select(STAFF_DOCUMENT_COLUMNS)
         .eq('staff_id', staffId)
         .order('created_at', { ascending: false });
@@ -63,7 +63,7 @@ export function useUploadStaffDocument() {
       }
 
       const { data, error } = await supabase
-        .from('staff_documents')
+        .from('ic_staff_documents')
         .insert({
           staff_id: staffId,
           file_name: file.name,
@@ -104,7 +104,7 @@ export function useDeleteStaffDocument() {
       }
 
       const { error } = await supabase
-        .from('staff_documents')
+        .from('ic_staff_documents')
         .delete()
         .eq('id', id);
 

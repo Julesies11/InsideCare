@@ -40,7 +40,7 @@ serve(async (req) => {
 
     // --- HARDENING: Server-Side Role Check ---
     const { data: callerProfile, error: callerError } = await supabaseAdmin
-      .from('staff')
+      .from('ic_staff')
       .select('id, role_id')
       .eq('auth_user_id', callingUser.id)
       .eq('status', 'active')
@@ -56,7 +56,7 @@ serve(async (req) => {
 
     // Determine admin status by checking permissions for 'access_control' module
     const { data: callerPerms, error: permsError } = await supabaseAdmin
-      .from('role_permissions')
+      .from('ic_role_permissions')
       .select(ACCESS_CONTROL_MODULE)
       .eq('role_id', callerProfile.role_id)
       .maybeSingle();
@@ -91,13 +91,13 @@ serve(async (req) => {
 
     // 3. Fetch Target Staff Profile & Role
     const { data: staff, error: staffError } = await supabaseAdmin
-      .from('staff')
+      .from('ic_staff')
       .select(`
         id, 
         role_id, 
         manager_id, 
         auth_user_id,
-        role:roles(name)
+        role:ic_roles(name)
       `)
       .eq('auth_user_id', userId)
       .maybeSingle();
@@ -109,7 +109,7 @@ serve(async (req) => {
 
     // 4. Fetch Role Permissions
     const { data: permissions, error: permError } = await supabaseAdmin
-      .from('role_permissions')
+      .from('ic_role_permissions')
       .select('*')
       .eq('role_id', staff.role_id)
       .maybeSingle();
@@ -119,7 +119,7 @@ serve(async (req) => {
     // 5. Fetch House Assignments
     const today = new Date().toISOString().split('T')[0];
     const { data: assignments, error: assignError } = await supabaseAdmin
-      .from('house_staff_assignments')
+      .from('ic_house_staff_assignments')
       .select('house_id')
       .eq('staff_id', staff.id)
       .or(`end_date.is.null,end_date.gte.${today}`);
@@ -129,7 +129,7 @@ serve(async (req) => {
 
     // 6. Fetch Managed Staff IDs (Direct Reports)
     const { data: reports, error: reportsError } = await supabaseAdmin
-      .from('staff')
+      .from('ic_staff')
       .select('id')
       .eq('manager_id', staff.id);
 

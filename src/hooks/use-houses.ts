@@ -31,11 +31,11 @@ export function useHouses(
       // To get an accurate 'active' count without complex DB views, we fetch the basic assignment info 
       // and filter for active staff and non-expired assignments.
       let query = supabase
-        .from('houses')
+        .from('ic_houses')
         .select(`
           ${HOUSE_COLUMNS}, 
-          checklists:house_checklists(count), 
-          staff_assignments:house_staff_assignments(
+          checklists:ic_house_checklists(count), 
+          staff_assignments:ic_house_staff_assignments(
             id, 
             end_date,
             staff:staff_id(status)
@@ -106,7 +106,7 @@ export function useAddHouse() {
   return useMutation({
     mutationFn: async (house: Omit<House, 'id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
-        .from('houses')
+        .from('ic_houses')
         .insert([house])
         .select(HOUSE_COLUMNS)
         .maybeSingle();
@@ -140,7 +140,7 @@ export function useUpdateHouse() {
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<House> }) => {
       const { data, error } = await supabase
-        .from('houses')
+        .from('ic_houses')
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq('id', id)
         .select(HOUSE_COLUMNS)
@@ -176,7 +176,7 @@ export function useDeleteHouse() {
   return useMutation({
     mutationFn: async ({ id, name }: { id: string; name: string }) => {
       const { error } = await supabase
-        .from('houses')
+        .from('ic_houses')
         .delete()
         .eq('id', id);
 

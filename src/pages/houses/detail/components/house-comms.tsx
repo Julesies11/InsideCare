@@ -46,10 +46,10 @@ export function HouseComms({
     try {
       const dateStr = format(date, 'yyyy-MM-dd');
       const { data, error } = await supabase
-        .from('house_comms')
+        .from('ic_house_comms')
         .select(`
           *,
-          creator:staff!created_by(name)
+          creator:ic_staff!created_by(name)
         `)
         .eq('house_id', houseId)
         .eq('entry_date', dateStr)

@@ -22,7 +22,7 @@ export function HousesProfilesContent() {
     try {
       // Create a new house with minimal data
       const { data, error } = await supabase
-        .from('houses')
+        .from('ic_houses')
         .insert([
           {
             name: 'New House',

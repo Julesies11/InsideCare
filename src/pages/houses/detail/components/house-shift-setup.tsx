@@ -53,7 +53,7 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
       
       try {
         const { data } = await supabase
-          .from('house_shift_templates')
+          .from('ic_house_shift_templates')
           .select('house_id, id');
         
         if (!mounted) return;
@@ -176,23 +176,23 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
         };
 
         if (typeId) {
-          const { error } = await supabase.from('house_shift_templates').update(typePayload).eq('id', typeId);
+          const { error } = await supabase.from('ic_house_shift_templates').update(typePayload).eq('id', typeId);
           if (error) throw error;
         } else {
-          const { data, error } = await supabase.from('house_shift_templates').insert(typePayload).select().maybeSingle();
+          const { data, error } = await supabase.from('ic_house_shift_templates').insert(typePayload).select().maybeSingle();
           if (error) throw error;
           if (!data) throw new Error("You do not have permission to perform this action");
           typeId = data.id;
         }
 
         // Sync default checklists
-        await supabase.from('shift_template_default_checklists').delete().eq('shift_template_id', typeId);
+        await supabase.from('ic_shift_template_default_checklists').delete().eq('shift_template_id', typeId);
         if (typeFormData.default_checklists.length > 0) {
           const toInsert = typeFormData.default_checklists.map(clId => ({
             shift_template_id: typeId,
             checklist_id: clId
           }));
-          const { error: clErr } = await supabase.from('shift_template_default_checklists').insert(toInsert);
+          const { error: clErr } = await supabase.from('ic_shift_template_default_checklists').insert(toInsert);
           if (clErr) throw clErr;
         }
 
@@ -249,7 +249,7 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
     if (directSave) {
       if (confirm('Delete this shift template? This will also remove any template items linked to it.')) {
         try {
-          const { error } = await supabase.from('house_shift_templates').delete().eq('id', type.id);
+          const { error } = await supabase.from('ic_house_shift_templates').delete().eq('id', type.id);
           if (error) throw error;
           toast.success('Shift template removed');
           refreshShiftTemplates();
@@ -287,7 +287,7 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
     setIsImporting(true);
     try {
       const { data: sourceTypes, error: typesError } = await supabase
-        .from('house_shift_templates')
+        .from('ic_house_shift_templates')
         .select('*')
         .eq('house_id', importSourceId);
       
@@ -296,15 +296,15 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
       const newToAdd = [];
       for (const st of (sourceTypes || [])) {
         const { data: sourceDefaults } = await supabase
-          .from('shift_template_default_checklists')
-          .select('checklist:house_checklists(name)')
+          .from('ic_shift_template_default_checklists')
+          .select('checklist:ic_house_checklists(name)')
           .eq('shift_template_id', st.id);
         
         let localChecklistIds: string[] = [];
         if (sourceDefaults && sourceDefaults.length > 0) {
           const checklistNames = sourceDefaults.map((d: any) => d.checklist.name);
           const { data: localChecklists } = await supabase
-            .from('house_checklists')
+            .from('ic_house_checklists')
             .select('id, name')
             .eq('house_id', houseId)
             .in('name', checklistNames);

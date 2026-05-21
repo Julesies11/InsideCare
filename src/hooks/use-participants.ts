@@ -15,7 +15,7 @@ export interface ParticipantsSort {
 
 const PARTICIPANT_LIST_COLUMNS = `
   id, name, photo_url, status, house_id, ndis_number, date_of_birth,
-  houses!house_id (
+  houses:ic_houses!house_id (
     name
   )
 `;
@@ -33,7 +33,7 @@ const PARTICIPANT_DETAIL_COLUMNS = `
   pharmacy_contact, pharmacy_location, gp_name, gp_contact, gp_location, psychiatrist_name, 
   psychiatrist_contact, psychiatrist_location, medical_routine_other, medical_routine_general_process, 
   created_at, updated_at,
-  houses!house_id (
+  houses:ic_houses!house_id (
     name
   )
 `;
@@ -48,7 +48,7 @@ export function useParticipants(
     queryKey: ['participants', { pageIndex, pageSize, sort, filters }],
     queryFn: async () => {
       let query = supabase
-        .from('participants')
+        .from('ic_participants')
         .select(PARTICIPANT_LIST_COLUMNS, { count: 'exact' });
 
       if (filters.search) {
@@ -102,7 +102,7 @@ export function useParticipantsCount(filters: ParticipantsFilter = {}) {
     queryKey: ['participants-count', { filters }],
     queryFn: async () => {
       let query = supabase
-        .from('participants')
+        .from('ic_participants')
         .select('*', { count: 'exact', head: true });
 
       if (filters.houses && filters.houses.length > 0) {
@@ -137,7 +137,7 @@ export function useParticipant(id?: string) {
     queryFn: async () => {
       if (!id) return null;
       const { data, error } = await supabase
-        .from('participants')
+        .from('ic_participants')
         .select(PARTICIPANT_DETAIL_COLUMNS)
         .eq('id', id)
         .maybeSingle();
@@ -171,7 +171,7 @@ export function useAddParticipant() {
   return useMutation({
     mutationFn: async (participant: Omit<Participant, 'id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
-        .from('participants')
+        .from('ic_participants')
         .insert([participant])
         .select(PARTICIPANT_DETAIL_COLUMNS)
         .maybeSingle();
@@ -194,7 +194,7 @@ export function useUpdateParticipant() {
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<Participant> }) => {
       const { data, error } = await supabase
-        .from('participants')
+        .from('ic_participants')
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq('id', id)
         .select(PARTICIPANT_DETAIL_COLUMNS)
@@ -225,7 +225,7 @@ export function useDeleteParticipant() {
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('participants')
+        .from('ic_participants')
         .delete()
         .eq('id', id);
 

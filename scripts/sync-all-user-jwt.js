@@ -1,7 +1,7 @@
 /**
  * Migration Script: Sync all existing staff users' RBAC metadata
  * This script iterates through all staff records with an auth_user_id
- * and calls the update-user-permissions Edge Function for each.
+ * and calls the ic-update-user-permissions Edge Function for each.
  * 
  * Run with: node scripts/sync-all-user-jwt.js
  */
@@ -48,7 +48,7 @@ async function syncAllUsers() {
     try {
       process.stdout.write(`[${i + 1}/${staff.length}] Syncing ${member.name.padEnd(30)} (${member.auth_user_id})... `);
       
-      const { data, error } = await supabase.functions.invoke('update-user-permissions', {
+      const { data, error } = await supabase.functions.invoke('ic-update-user-permissions', {
         body: { userId: member.auth_user_id },
       });
 

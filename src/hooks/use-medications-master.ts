@@ -11,7 +11,7 @@ export function useMedicationsMaster(includeInactive = true) {
     queryKey: ['medications-master', { includeInactive }],
     queryFn: async () => {
       let query = supabase
-        .from('medications_master')
+        .from('ic_medications_master')
         .select(MEDICATION_MASTER_COLUMNS)
         .order('name', { ascending: true });
 
@@ -34,7 +34,7 @@ export function useAddMedicationMaster() {
   return useMutation({
     mutationFn: async (medication: Omit<MedicationMaster, 'id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
-        .from('medications_master')
+        .from('ic_medications_master')
         .insert({
           ...medication,
           created_by: user?.id || null,
@@ -77,7 +77,7 @@ export function useUpdateMedicationMaster() {
   return useMutation({
     mutationFn: async ({ id, updates, oldMedication }: { id: string; updates: Partial<MedicationMaster>; oldMedication?: MedicationMaster }) => {
       const { data, error } = await supabase
-        .from('medications_master')
+        .from('ic_medications_master')
         .update({
           ...updates,
           updated_by: user?.id || null,
@@ -128,7 +128,7 @@ export function useDeleteMedicationMaster() {
     mutationFn: async ({ id, name }: { id: string; name: string }) => {
       // Soft delete - mark as inactive
       const { error } = await supabase
-        .from('medications_master')
+        .from('ic_medications_master')
         .update({
           is_active: false,
           updated_by: user?.id || null,

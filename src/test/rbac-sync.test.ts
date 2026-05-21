@@ -35,7 +35,7 @@ describe('RBAC Sync Utility', () => {
       const userId = 'user-123';
       const result = await syncUserPermissions(userId);
 
-      expect(supabase.functions.invoke).toHaveBeenCalledWith('update-user-permissions', {
+      expect(supabase.functions.invoke).toHaveBeenCalledWith('ic-update-user-permissions', {
         body: { userId },
       });
       expect(result.data.success).toBe(true);
@@ -77,7 +77,7 @@ describe('RBAC Sync Utility', () => {
       expect(supabase.from).toHaveBeenCalledWith('staff');
       expect(mockSelect).toHaveBeenCalledWith('auth_user_id');
       expect(mockEq).toHaveBeenCalledWith('id', staffId);
-      expect(supabase.functions.invoke).toHaveBeenCalledWith('update-user-permissions', {
+      expect(supabase.functions.invoke).toHaveBeenCalledWith('ic-update-user-permissions', {
         body: { userId: authUserId },
       });
       expect(result.data.success).toBe(true);

@@ -35,7 +35,7 @@ describe('useChecklistHistory', () => {
             started_at: new Date().toISOString(),
             house_checklists: { name: 'Morning Routine' },
             staff: { name: 'John Staff' },
-            house_checklist_submission_items: [{ is_completed: true }, { is_completed: false }]
+            ic_house_checklist_submission_items: [{ is_completed: true }, { is_completed: false }]
           },
         ]);
       })

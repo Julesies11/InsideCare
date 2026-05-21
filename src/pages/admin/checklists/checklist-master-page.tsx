@@ -98,7 +98,7 @@ export function ChecklistMasterPage() {
 
     try {
       const { error } = await supabase
-        .from('checklist_master')
+        .from('ic_checklist_master')
         .delete()
         .eq('id', template.id);
 
@@ -118,7 +118,7 @@ export function ChecklistMasterPage() {
 
       if (masterId) {
         await supabase
-          .from('checklist_master')
+          .from('ic_checklist_master')
           .update({
             name: formData.name,
             days_of_week: formData.days_of_week || null,
@@ -128,7 +128,7 @@ export function ChecklistMasterPage() {
         masterId = selectedTemplate.id;
         } else {
         const { data, error } = await supabase
-          .from('checklist_master')
+          .from('ic_checklist_master')
           .insert({
             name: formData.name,
             days_of_week: formData.days_of_week || null,
@@ -155,7 +155,7 @@ export function ChecklistMasterPage() {
         .map(i => i.id);
       
       if (itemsToDelete.length > 0) {
-        await supabase.from('checklist_item_master').delete().in('id', itemsToDelete);
+        await supabase.from('ic_checklist_item_master').delete().in('id', itemsToDelete);
       }
 
       // Separate updates from inserts to avoid PostgREST bulk array null key issues
@@ -187,14 +187,14 @@ export function ChecklistMasterPage() {
 
         if (itemsToUpdate.length > 0) {
           const { error: updateError } = await supabase
-            .from('checklist_item_master')
+            .from('ic_checklist_item_master')
             .upsert(itemsToUpdate);
           if (updateError) throw updateError;
         }
 
         if (itemsToInsert.length > 0) {
           const { error: insertError } = await supabase
-            .from('checklist_item_master')
+            .from('ic_checklist_item_master')
             .insert(itemsToInsert);
           if (insertError) throw insertError;
         }

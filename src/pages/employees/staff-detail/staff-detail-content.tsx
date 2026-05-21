@@ -210,7 +210,7 @@ export function StaffDetailContent({
         const newPhotoUrl = await handleAvatarUpload(photoFile, 'staff-photos', staffId);
 
         const { error: photoErr } = await supabase
-          .from('staff')
+          .from('ic_staff')
           .update({ photo_url: newPhotoUrl, updated_at: new Date().toISOString() })
           .eq('id', staffId);
         if (photoErr) {
@@ -239,7 +239,7 @@ export function StaffDetailContent({
       } else if (photoPreview === null && originalPhotoUrl !== null) {
         // Photo was deleted — clear it in the DB
         const { error: photoErr } = await supabase
-          .from('staff')
+          .from('ic_staff')
           .update({ photo_url: null, updated_at: new Date().toISOString() })
           .eq('id', staffId);
         if (photoErr) {
@@ -274,7 +274,7 @@ export function StaffDetailContent({
           status: item.status || 'Complete',
         }));
 
-        const { error } = await supabase.from('staff_compliance').insert(toInsert);
+        const { error } = await supabase.from('ic_staff_compliance').insert(toInsert);
         if (error) {
           const parsedError = parseSupabaseError(error);
           toast.error(parsedError.title, { description: parsedError.description });
@@ -296,7 +296,7 @@ export function StaffDetailContent({
       if (currentPending.staffCompliance.toUpdate.length > 0) {
         for (const item of currentPending.staffCompliance.toUpdate) {
           const { error } = await supabase
-            .from('staff_compliance')
+            .from('ic_staff_compliance')
             .update({
               compliance_name: item.compliance_name,
               completion_date: item.completion_date || null,
@@ -324,12 +324,12 @@ export function StaffDetailContent({
       if (currentPending.staffCompliance.toDelete.length > 0) {
         // Get names before deleting for log
         const { data: compRecords } = await supabase
-          .from('staff_compliance')
+          .from('ic_staff_compliance')
           .select('id, compliance_name')
           .in('id', currentPending.staffCompliance.toDelete);
 
         const { error } = await supabase
-          .from('staff_compliance')
+          .from('ic_staff_compliance')
           .delete()
           .in('id', currentPending.staffCompliance.toDelete);
         
@@ -395,7 +395,7 @@ export function StaffDetailContent({
           });
         }
 
-        const { error } = await supabase.from('staff_training').insert(toInsert);
+        const { error } = await supabase.from('ic_staff_training').insert(toInsert);
         if (error) {
           const parsedError = parseSupabaseError(error);
           toast.error(parsedError.title, { description: parsedError.description });
@@ -422,7 +422,7 @@ export function StaffDetailContent({
 
           if (item.file) {
             if (item.filePath) {
-              await supabase.storage.from('staff-documents').remove([item.filePath]);
+              await supabase.storage.from('ic_staff_documents').remove([item.filePath]);
             }
 
             const fileExt = item.file.name.split('.').pop();
@@ -444,7 +444,7 @@ export function StaffDetailContent({
           }
 
           const { error } = await supabase
-            .from('staff_training')
+            .from('ic_staff_training')
             .update({
               title: item.title,
               category: item.category,
@@ -480,15 +480,15 @@ export function StaffDetailContent({
         const filePaths = currentPending.training.toDelete.map(i => i.filePath).filter(Boolean) as string[];
 
         const { data: trainingRecords } = await supabase
-          .from('staff_training')
+          .from('ic_staff_training')
           .select('id, title')
           .in('id', ids);
 
         if (filePaths.length > 0) {
-          await supabase.storage.from('staff-documents').remove(filePaths);
+          await supabase.storage.from('ic_staff_documents').remove(filePaths);
         }
 
-        const { error } = await supabase.from('staff_training').delete().in('id', ids);
+        const { error } = await supabase.from('ic_staff_training').delete().in('id', ids);
         if (error) {
           const parsedError = parseSupabaseError(error);
           toast.error(parsedError.title, { description: parsedError.description });
@@ -530,7 +530,7 @@ export function StaffDetailContent({
           });
         }
 
-        const { error: dbError } = await supabase.from('staff_documents').insert(toInsert);
+        const { error: dbError } = await supabase.from('ic_staff_documents').insert(toInsert);
         if (dbError) throw new Error(`Failed to create document records: ${dbError.message}`);
 
         for (const doc of currentPending.documents.toAdd) {
@@ -550,9 +550,9 @@ export function StaffDetailContent({
         const ids = currentPending.documents.toDelete.map(d => d.id);
         const filePaths = currentPending.documents.toDelete.map(d => d.filePath);
 
-        await supabase.storage.from('staff-documents').remove(filePaths);
+        await supabase.storage.from('ic_staff_documents').remove(filePaths);
 
-        const { error: dbError } = await supabase.from('staff_documents').delete().in('id', ids);
+        const { error: dbError } = await supabase.from('ic_staff_documents').delete().in('id', ids);
         if (dbError) throw new Error(`Failed to delete document records: ${dbError.message}`);
 
         for (const doc of currentPending.documents.toDelete) {

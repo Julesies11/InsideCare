@@ -227,7 +227,7 @@ const Participants = () => {
     }, {} as Record<string, number>);
   }, [participants]);
 
-  // Get active houses (houses with status 'active')
+  // Get active houses:ic_houses(houses with status 'active')
   const activeHouses = useMemo(() => {
     return houses.filter(h => h.status === 'active');
   }, [houses]);

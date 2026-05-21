@@ -134,7 +134,7 @@ export async function logActivity({
   try {
     const description = generateDescription(activityType, entityType, changes, customDescription);
 
-    await supabase.from('activity_log').insert({
+    await supabase.from('ic_activity_log').insert({
       activity_type: activityType,
       entity_type: entityType,
       entity_id: entityId,

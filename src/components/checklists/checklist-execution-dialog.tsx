@@ -48,10 +48,10 @@ export function ChecklistExecutionDialog({
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('house_checklist_submissions')
+        .from('ic_house_checklist_submissions')
         .select(`
           *,
-          house_checklist_submission_items (
+          ic_house_checklist_submission_items:ic_house_checklist_submission_items(
             id, 
             submission_id, 
             item_id, 
@@ -59,7 +59,7 @@ export function ChecklistExecutionDialog({
             is_completed, 
             note, 
             completed_at,
-            completed_by_staff:staff!completed_by(id, name)
+            completed_by_staff:ic_staff!completed_by(id, name)
           )
         `)
         .eq('checklist_id', checklist.id)
@@ -73,7 +73,7 @@ export function ChecklistExecutionDialog({
         const completedItems: Record<string, boolean> = {};
         const itemNotes: Record<string, string> = {};
         const completedBy: Record<string, { id: string; name: string }> = {};
-        data.house_checklist_submission_items.forEach((item: any) => {
+        data.ic_house_checklist_submission_items.forEach((item: any) => {
           const isDone = item.status === 'Completed' || item.is_completed;
           completedItems[item.item_id] = isDone;
           itemNotes[item.item_id] = item.note || '';
@@ -87,7 +87,7 @@ export function ChecklistExecutionDialog({
 
         // Fetch existing attachments
         const { data: attachmentData } = await supabase
-          .from('house_checklist_item_attachments')
+          .from('ic_house_checklist_item_attachments')
           .select('id, submission_id, item_id, file_name, file_path, file_size, mime_type, uploaded_by, created_at')
           .eq('submission_id', data.id);
 
@@ -140,7 +140,7 @@ export function ChecklistExecutionDialog({
 
     if (!submissionId) {
       const { data, error } = await supabase
-        .from('house_checklist_submissions')
+        .from('ic_house_checklist_submissions')
         .insert({
           checklist_id: results.checklist_id,
           house_id: houseId,
@@ -155,7 +155,7 @@ export function ChecklistExecutionDialog({
       submissionId = data.id;
     } else {
       const { error } = await supabase
-        .from('house_checklist_submissions')
+        .from('ic_house_checklist_submissions')
         .update({
           status: status,
           submitted_by: staffId || null,
@@ -179,14 +179,14 @@ export function ChecklistExecutionDialog({
         completed_at: item.is_completed ? new Date().toISOString() : null
       };
     });
-    await supabase.from('house_checklist_submission_items').upsert(submissionItems, { onConflict: 'submission_id,item_id' });
+    await supabase.from('ic_house_checklist_submission_items').upsert(submissionItems, { onConflict: 'submission_id,item_id' });
 
     if (results.toDeleteAttachments && results.toDeleteAttachments.length > 0) {
       for (const attId of results.toDeleteAttachments) {
-        const { data: att } = await supabase.from('house_checklist_item_attachments').select('file_path').eq('id', attId).maybeSingle();
+        const { data: att } = await supabase.from('ic_house_checklist_item_attachments').select('file_path').eq('id', attId).maybeSingle();
         if (!att) throw new Error("You do not have permission to perform this action");
-        if (att?.file_path) await supabase.storage.from('checklist-attachments').remove([att.file_path]);
-        await supabase.from('house_checklist_item_attachments').delete().eq('id', attId);
+        if (att?.file_path) await supabase.storage.from('ic_checklist_attachments').remove([att.file_path]);
+        await supabase.from('ic_house_checklist_item_attachments').delete().eq('id', attId);
       }
     }
 
@@ -194,8 +194,8 @@ export function ChecklistExecutionDialog({
       for (const itemId in results.queuedAttachments) {
         for (const queued of results.queuedAttachments[itemId]) {
           const filePath = `${submissionId}/${itemId}/${Date.now()}-${queued.file.name}`;
-          await supabase.storage.from('checklist-attachments').upload(filePath, queued.file);
-          await supabase.from('house_checklist_item_attachments').insert({
+          await supabase.storage.from('ic_checklist_attachments').upload(filePath, queued.file);
+          await supabase.from('ic_house_checklist_item_attachments').insert({
             submission_id: submissionId,
             item_id: itemId,
             file_name: queued.file.name,

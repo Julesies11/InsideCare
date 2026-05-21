@@ -111,7 +111,7 @@ export function HouseDetailContent({
       try {
         setLoading(true);
         const { data, error } = await supabase
-          .from('houses')
+          .from('ic_houses')
           .select('id, name, branch_id, address, phone, house_type_id, capacity, current_occupancy, house_manager, status, notes, individuals_breakdown, participant_dynamics, observations, general_house_details, is_configured, setup_step, created_at, updated_at')
           .eq('id', id)
           .maybeSingle();
@@ -154,7 +154,7 @@ export function HouseDetailContent({
 
       // Step 1: Save basic house details
       const { data: houseData, error: houseError } = await supabase
-        .from('houses')
+        .from('ic_houses')
         .update({
           name: currentFormData.name,
           address: currentFormData.address || null,
@@ -197,7 +197,7 @@ export function HouseDetailContent({
       let currentStaffId = null;
       if (user?.id) {
         const { data: staffData } = await supabase
-          .from('staff')
+          .from('ic_staff')
           .select('id')
           .eq('auth_user_id', user.id)
           .maybeSingle();
@@ -211,7 +211,7 @@ export function HouseDetailContent({
       if (currentPending.participants.toAdd.length > 0) {
         const ids = currentPending.participants.toAdd.map(p => p.participant_id);
         const { error } = await supabase
-          .from('participants')
+          .from('ic_participants')
           .update({ house_id: id, status: 'active' })
           .in('id', ids);
         if (error) throw new Error(`Failed to link participants: ${error.message}`);
@@ -235,7 +235,7 @@ export function HouseDetailContent({
           if (p.is_active !== undefined) updates.status = p.is_active ? 'active' : 'inactive';
 
           const { error } = await supabase
-            .from('participants')
+            .from('ic_participants')
             .update(updates)
             .eq('id', p.id);
           if (error) throw new Error(`Failed to update participant: ${error.message}`);
@@ -254,12 +254,12 @@ export function HouseDetailContent({
       if (currentPending.participants.toDelete.length > 0) {
         // Fetch participant names before unlinking for the activity log
         const { data: participantsToDelete } = await supabase
-          .from('participants')
+          .from('ic_participants')
           .select('id, name')
           .in('id', currentPending.participants.toDelete);
 
         const { error } = await supabase
-          .from('participants')
+          .from('ic_participants')
           .update({ house_id: null })
           .in('id', currentPending.participants.toDelete);
         if (error) throw new Error(`Failed to unlink participants: ${error.message}`);
@@ -287,7 +287,7 @@ export function HouseDetailContent({
           end_date: s.end_date || null,
           notes: s.notes || null,
         }));
-        const { error } = await supabase.from('house_staff_assignments').insert(toInsert);
+        const { error } = await supabase.from('ic_house_staff_assignments').insert(toInsert);
         if (error) throw new Error(`Failed to add staff assignments: ${error.message}`);
 
         for (const _s of currentPending.staff.toAdd) {
@@ -305,7 +305,7 @@ export function HouseDetailContent({
       if (currentPending.staff.toUpdate.length > 0) {
         for (const s of currentPending.staff.toUpdate) {
           const { error } = await supabase
-            .from('house_staff_assignments')
+            .from('ic_house_staff_assignments')
             .update({
               staff_id: s.staff_id,
               is_primary: s.is_primary,
@@ -320,7 +320,7 @@ export function HouseDetailContent({
 
       if (currentPending.staff.toDelete.length > 0) {
         const { error } = await supabase
-          .from('house_staff_assignments')
+          .from('ic_house_staff_assignments')
           .delete()
           .in('id', currentPending.staff.toDelete);
         if (error) throw new Error(`Failed to delete staff assignments: ${error.message}`);
@@ -330,7 +330,7 @@ export function HouseDetailContent({
       if (currentPending.calendarEvents.toAdd.length > 0) {
         for (const event of currentPending.calendarEvents.toAdd) {
           const { data: newEvent, error: eventError } = await supabase
-            .from('house_calendar_events')
+            .from('ic_house_calendar_events')
             .insert({
               house_id: id,
               title: event.title,
@@ -355,14 +355,14 @@ export function HouseDetailContent({
           // Insert into junction tables
           if (event.participant_ids?.length > 0) {
             const { error: pError } = await supabase
-              .from('house_calendar_event_participants')
+              .from('ic_house_calendar_event_participants')
               .insert(event.participant_ids.map((pId: string) => ({ event_id: newEvent.id, participant_id: pId })));
             if (pError) throw new Error(`Failed to link participants: ${pError.message}`);
           }
 
           if (event.assigned_staff_ids?.length > 0) {
             const { error: sError } = await supabase
-              .from('house_calendar_event_staff')
+              .from('ic_house_calendar_event_staff')
               .insert(event.assigned_staff_ids.map((sId: string) => ({ event_id: newEvent.id, staff_id: sId })));
             if (sError) throw new Error(`Failed to link staff: ${sError.message}`);
           }
@@ -372,7 +372,7 @@ export function HouseDetailContent({
       if (currentPending.calendarEvents.toUpdate.length > 0) {
         for (const event of currentPending.calendarEvents.toUpdate) {
           const { error: eventError } = await supabase
-            .from('house_calendar_events')
+            .from('ic_house_calendar_events')
             .update({
               title: event.title,
               event_type_id: event.event_type_id || null,
@@ -391,18 +391,18 @@ export function HouseDetailContent({
           if (eventError) throw new Error(`Failed to update calendar event: ${eventError.message}`);
 
           // Sync junction tables: delete all and re-insert
-          await supabase.from('house_calendar_event_participants').delete().eq('event_id', event.id);
+          await supabase.from('ic_house_calendar_event_participants').delete().eq('event_id', event.id);
           if (event.participant_ids?.length > 0) {
             const { error: pError } = await supabase
-              .from('house_calendar_event_participants')
+              .from('ic_house_calendar_event_participants')
               .insert(event.participant_ids.map((pId: string) => ({ event_id: event.id, participant_id: pId })));
             if (pError) throw new Error(`Failed to link participants: ${pError.message}`);
           }
 
-          await supabase.from('house_calendar_event_staff').delete().eq('event_id', event.id);
+          await supabase.from('ic_house_calendar_event_staff').delete().eq('event_id', event.id);
           if (event.assigned_staff_ids?.length > 0) {
             const { error: sError } = await supabase
-              .from('house_calendar_event_staff')
+              .from('ic_house_calendar_event_staff')
               .insert(event.assigned_staff_ids.map((sId: string) => ({ event_id: event.id, staff_id: sId })));
             if (sError) throw new Error(`Failed to link staff: ${sError.message}`);
           }
@@ -411,7 +411,7 @@ export function HouseDetailContent({
 
       if (currentPending.calendarEvents.toDelete.length > 0) {
         const { error } = await supabase
-          .from('house_calendar_events')
+          .from('ic_house_calendar_events')
           .delete()
           .in('id', currentPending.calendarEvents.toDelete);
         if (error) throw new Error(`Failed to delete calendar events: ${error.message}`);
@@ -431,7 +431,7 @@ export function HouseDetailContent({
           if (uploadError) throw new Error(`Failed to upload document: ${uploadError.message}`);
 
           const { error } = await supabase
-            .from('house_files')
+            .from('ic_house_files')
             .insert({
               house_id: id,
               file_name: doc.fileName,
@@ -456,7 +456,7 @@ export function HouseDetailContent({
         if (storageError) console.warn('Failed to delete files from storage:', storageError);
 
         const { error } = await supabase
-          .from('house_files')
+          .from('ic_house_files')
           .delete()
           .in('id', recordIds);
         if (error) throw new Error(`Failed to delete document records: ${error.message}`);
@@ -466,7 +466,7 @@ export function HouseDetailContent({
       if (currentPending.checklists.toAdd.length > 0) {
         for (const checklist of currentPending.checklists.toAdd) {
           const { data: checklistData, error: checklistError } = await supabase
-            .from('house_checklists')
+            .from('ic_house_checklists')
             .insert({
               house_id: id,
               name: checklist.name,
@@ -493,7 +493,7 @@ export function HouseDetailContent({
               master_item_id: item.master_item_id || null,
             }));
 
-            const { error: itemsError } = await supabase.from('house_checklist_items').insert(itemsToInsert);
+            const { error: itemsError } = await supabase.from('ic_house_checklist_items').insert(itemsToInsert);
             if (itemsError) throw new Error(`Failed to add checklist items: ${itemsError.message}`);
           }
         }
@@ -503,7 +503,7 @@ export function HouseDetailContent({
         for (const checklist of currentPending.checklists.toUpdate) {
           if (!checklist.id) continue;
           const { error } = await supabase
-            .from('house_checklists')
+            .from('ic_house_checklists')
             .update({
               name: checklist.name,
               days_of_week: checklist.days_of_week || null,
@@ -517,7 +517,7 @@ export function HouseDetailContent({
 
       if (currentPending.checklists.toDelete.length > 0) {
         const { error } = await supabase
-          .from('house_checklists')
+          .from('ic_house_checklists')
           .delete()
           .in('id', currentPending.checklists.toDelete.filter(Boolean));
         if (error) throw new Error(`Failed to delete checklists: ${error.message}`);
@@ -535,14 +535,14 @@ export function HouseDetailContent({
           sort_order: item.sort_order || 0,
           master_item_id: item.master_item_id || null,
         }));
-        const { error } = await supabase.from('house_checklist_items').insert(itemsToInsert);
+        const { error } = await supabase.from('ic_house_checklist_items').insert(itemsToInsert);
         if (error) throw new Error(`Failed to add checklist items: ${error.message}`);
       }
 
       if (currentPending.checklists.checklistItems.toUpdate.length > 0) {
         for (const item of currentPending.checklists.checklistItems.toUpdate) {
           const { error } = await supabase
-            .from('house_checklist_items')
+            .from('ic_house_checklist_items')
             .update({
               title: item.title,
               instructions: item.instructions || null,
@@ -559,7 +559,7 @@ export function HouseDetailContent({
 
       if (currentPending.checklists.checklistItems.toDelete.length > 0) {
         const { error } = await supabase
-          .from('house_checklist_items')
+          .from('ic_house_checklist_items')
           .delete()
           .in('id', currentPending.checklists.checklistItems.toDelete);
         if (error) throw new Error(`Failed to delete checklist items: ${error.message}`);
@@ -576,14 +576,14 @@ export function HouseDetailContent({
           status: form.status || 'active',
           created_by: currentStaffId,
         }));
-        const { error } = await supabase.from('house_forms').insert(toInsert);
+        const { error } = await supabase.from('ic_house_forms').insert(toInsert);
         if (error) throw new Error(`Failed to add forms: ${error.message}`);
       }
 
       if (currentPending.forms.toUpdate.length > 0) {
         for (const form of currentPending.forms.toUpdate) {
           const { error } = await supabase
-            .from('house_forms')
+            .from('ic_house_forms')
             .update({
               name: form.name,
               type: form.type,
@@ -598,7 +598,7 @@ export function HouseDetailContent({
 
       if (currentPending.forms.toDelete.length > 0) {
         const { error } = await supabase
-          .from('house_forms')
+          .from('ic_house_forms')
           .delete()
           .in('id', currentPending.forms.toDelete);
         if (error) throw new Error(`Failed to delete forms: ${error.message}`);
@@ -615,14 +615,14 @@ export function HouseDetailContent({
           notes: assignment.notes || null,
           assigned_by: currentStaffId,
         }));
-        const { error } = await supabase.from('house_form_assignments').insert(toInsert);
+        const { error } = await supabase.from('ic_house_form_assignments').insert(toInsert);
         if (error) throw new Error(`Failed to add form assignments: ${error.message}`);
       }
 
       if (currentPending.formAssignments.toUpdate.length > 0) {
         for (const assignment of currentPending.formAssignments.toUpdate) {
           const { error } = await supabase
-            .from('house_form_assignments')
+            .from('ic_house_form_assignments')
             .update({
               participant_id: assignment.participant_id || null,
               staff_id: assignment.staff_id || null,
@@ -637,7 +637,7 @@ export function HouseDetailContent({
 
       if (currentPending.formAssignments.toDelete.length > 0) {
         const { error } = await supabase
-          .from('house_form_assignments')
+          .from('ic_house_form_assignments')
           .delete()
           .in('id', currentPending.formAssignments.toDelete);
         if (error) throw new Error(`Failed to delete form assignments: ${error.message}`);
@@ -660,14 +660,14 @@ export function HouseDetailContent({
           notes: resource.notes || null,
           created_by: currentStaffId,
         }));
-        const { error } = await supabase.from('house_resources').insert(toInsert);
+        const { error } = await supabase.from('ic_house_resources').insert(toInsert);
         if (error) throw new Error(`Failed to add resources: ${error.message}`);
       }
 
       if (currentPending.resources.toUpdate.length > 0) {
         for (const resource of currentPending.resources.toUpdate) {
           const { error } = await supabase
-            .from('house_resources')
+            .from('ic_house_resources')
             .update({
               title: resource.title,
               category: resource.category,
@@ -688,7 +688,7 @@ export function HouseDetailContent({
 
       if (currentPending.resources.toDelete.length > 0) {
         const { error } = await supabase
-          .from('house_resources')
+          .from('ic_house_resources')
           .delete()
           .in('id', currentPending.resources.toDelete);
         if (error) throw new Error(`Failed to delete resources: ${error.message}`);
@@ -702,7 +702,7 @@ export function HouseDetailContent({
           content: entry.content,
           created_by: currentStaffId || entry.created_by,
         }));
-        const { error } = await supabase.from('house_comms').insert(toInsert);
+        const { error } = await supabase.from('ic_house_comms').insert(toInsert);
         if (error) throw new Error(`Failed to add communication entries: ${error.message}`);
       }
 
@@ -714,7 +714,7 @@ export function HouseDetailContent({
         if (currentPending.shiftTemplates.toAdd.length > 0) {
           for (const st of currentPending.shiftTemplates.toAdd) {
             const { data: newType, error: typeError } = await supabase
-              .from('house_shift_templates')
+              .from('ic_house_shift_templates')
               .insert({
                 house_id: id,
                 name: st.name,
@@ -738,7 +738,7 @@ export function HouseDetailContent({
                 shift_template_id: newType.id,
                 checklist_id: clId
               }));
-              await supabase.from('shift_template_default_checklists').insert(toInsert);
+              await supabase.from('ic_shift_template_default_checklists').insert(toInsert);
             }
           }
         }
@@ -746,7 +746,7 @@ export function HouseDetailContent({
         if (currentPending.shiftTemplates.toUpdate.length > 0) {
           for (const st of currentPending.shiftTemplates.toUpdate) {
             const { data: updatedType, error: typeError } = await supabase
-              .from('house_shift_templates')
+              .from('ic_house_shift_templates')
               .update({
                 name: st.name,
                 short_name: st.short_name,
@@ -765,20 +765,20 @@ export function HouseDetailContent({
             if (updatedType) updatedTypes = updatedTypes.map(t => t.id === st.id ? updatedType : t);
 
             if (st.default_checklists !== undefined) {
-              await supabase.from('shift_template_default_checklists').delete().eq('shift_template_id', st.id);
+              await supabase.from('ic_shift_template_default_checklists').delete().eq('shift_template_id', st.id);
               if (st.default_checklists.length > 0) {
                 const toInsert = st.default_checklists.map(clId => ({
                   shift_template_id: st.id,
                   checklist_id: clId
                 }));
-                await supabase.from('shift_template_default_checklists').insert(toInsert);
+                await supabase.from('ic_shift_template_default_checklists').insert(toInsert);
               }
             }
           }
         }
 
         if (currentPending.shiftTemplates.toDelete.length > 0) {
-          const { error } = await supabase.from('house_shift_templates').delete().in('id', currentPending.shiftTemplates.toDelete);
+          const { error } = await supabase.from('ic_house_shift_templates').delete().in('id', currentPending.shiftTemplates.toDelete);
           if (error) throw new Error(`Failed to delete shift templates: ${error.message}`);
           updatedTypes = updatedTypes.filter(t => !currentPending.shiftTemplates.toDelete.includes(t.id));
         }
@@ -835,7 +835,7 @@ export function HouseDetailContent({
 
         if (currentPending.staff.toDelete.length > 0) {
           const { data: deletedAssignments } = await supabase
-            .from('house_staff_assignments')
+            .from('ic_house_staff_assignments')
             .select('staff_id')
             .in('id', currentPending.staff.toDelete);
           deletedAssignments?.forEach(a => staffIdsToSync.add(a.staff_id));

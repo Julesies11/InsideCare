@@ -96,13 +96,13 @@ export function StaffTimesheetForm() {
     const load = async () => {
       const [shiftRes, tsRes, shiftNoteRes, checklistsRes] = await Promise.all([
         supabase
-          .from('staff_shifts')
-          .select('id, house_id, start_date, end_date, start_time, end_time, shift_template, house:houses(name)')
+          .from('ic_staff_shifts')
+          .select('id, house_id, start_date, end_date, start_time, end_time, shift_template, house:ic_houses(name)')
           .eq('id', shiftId)
           .maybeSingle(),
         user?.staff_id
           ? supabase
-              .from('timesheets')
+              .from('ic_timesheets')
               .select('id, actual_start, actual_end, break_minutes, shift_notes_text, overtime_explanation, travel_km, incident_tag, sick_shift, notes, status')
               .eq('shift_id', shiftId)
               .eq('staff_id', user.staff_id)
@@ -110,18 +110,18 @@ export function StaffTimesheetForm() {
           : Promise.resolve({ data: null }),
         user?.staff_id
           ? supabase
-              .from('shift_notes')
+              .from('ic_shift_notes')
               .select('id, full_note, participant_id')
               .eq('shift_id', shiftId)
               .eq('staff_id', user.staff_id)
               .maybeSingle()
           : Promise.resolve({ data: null }),
         supabase
-          .from('shift_assigned_checklists')
+          .from('ic_shift_assigned_checklists')
           .select(`
             checklist_id,
             assignment_title,
-            submissions:house_checklist_submissions(id, status, shift_id)
+            submissions:ic_house_checklist_submissions(id, status, shift_id)
           `)
           .eq('shift_id', shiftId)
       ]);
@@ -253,12 +253,12 @@ export function StaffTimesheetForm() {
     try {
       if (existingId) {
         console.log('Timesheet: Updating existing record:', existingId);
-        const { error } = await supabase.from('timesheets').update(payload).eq('id', existingId);
+        const { error } = await supabase.from('ic_timesheets').update(payload).eq('id', existingId);
         if (error) throw error;
       } else {
         console.log('Timesheet: Inserting new record (upsert)');
         const { data, error } = await supabase
-          .from('timesheets')
+          .from('ic_timesheets')
           .upsert({ ...payload, created_at: now }, { onConflict: 'shift_id,staff_id' })
           .select('id')
           .maybeSingle();
@@ -268,7 +268,7 @@ export function StaffTimesheetForm() {
       }
 
       console.log('Timesheet: DB update successful, updating shift notes...');
-      await supabase.from('shift_notes').upsert({
+      await supabase.from('ic_shift_notes').upsert({
         staff_id:   user.staff_id,
         shift_id:   shiftId,
         start_date: shift.start_date,
@@ -289,7 +289,7 @@ export function StaffTimesheetForm() {
 
       console.log('Timesheet: Notifying admins...');
       const { data: admins } = await supabase
-        .from('staff')
+        .from('ic_staff')
         .select('auth_user_id')
         .not('auth_user_id', 'is', null);
 

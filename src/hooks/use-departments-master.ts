@@ -18,7 +18,7 @@ export function useDepartmentsMaster() {
     queryKey: ['departments-master'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('departments')
+        .from('ic_departments')
         .select(DEPARTMENT_COLUMNS)
         .order('name', { ascending: true });
 
@@ -43,7 +43,7 @@ export function useAddDepartmentMaster() {
   return useMutation({
     mutationFn: async (departmentData: Omit<Department, 'id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
-        .from('departments')
+        .from('ic_departments')
         .insert([departmentData])
         .select(DEPARTMENT_COLUMNS)
         .maybeSingle();
@@ -66,7 +66,7 @@ export function useUpdateDepartmentMaster() {
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<Department> }) => {
       const { data, error } = await supabase
-        .from('departments')
+        .from('ic_departments')
         .update(updates)
         .eq('id', id)
         .select(DEPARTMENT_COLUMNS)

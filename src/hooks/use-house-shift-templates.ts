@@ -39,14 +39,14 @@ export function useHouseShiftTemplates(houseId?: string) {
       
       const [typesRes, defaultsRes] = await Promise.all([
         supabase
-          .from('house_shift_templates')
+          .from('ic_house_shift_templates')
           .select('*')
           .eq('house_id', houseId)
           .order('sort_order', { ascending: true }),
         supabase
-          .from('shift_template_default_checklists')
-          .select('*, checklist:house_checklists(id, name, description, items:house_checklist_items(id, title, sort_order))')
-          .in('shift_template_id', (await supabase.from('house_shift_templates').select('id').eq('house_id', houseId)).data?.map(t => t.id) || [])
+          .from('ic_shift_template_default_checklists')
+          .select('*, checklist:ic_house_checklists(id, name, description, items:ic_house_checklist_items(id, title, sort_order))')
+          .in('shift_template_id', (await supabase.from('ic_house_shift_templates').select('id').eq('house_id', houseId)).data?.map(t => t.id) || [])
       ]);
 
       if (typesRes.error) throw typesRes.error;
@@ -65,7 +65,7 @@ export function useHouseShiftTemplates(houseId?: string) {
     mutationFn: async (shiftTemplate: Partial<HouseShiftTemplate> & { default_checklists?: string[] }) => {
       const { default_checklists, ...typeData } = shiftTemplate;
       const { data, error } = await supabase
-        .from('house_shift_templates')
+        .from('ic_house_shift_templates')
         .insert({ ...typeData, house_id: houseId })
         .select()
         .maybeSingle();
@@ -80,7 +80,7 @@ export function useHouseShiftTemplates(houseId?: string) {
           shift_template_id: data.id,
           checklist_id: clId
         }));
-        await supabase.from('shift_template_default_checklists').insert(links);
+        await supabase.from('ic_shift_template_default_checklists').insert(links);
       }
 
       return data;
@@ -98,7 +98,7 @@ export function useHouseShiftTemplates(houseId?: string) {
     mutationFn: async (shiftTemplate: Partial<HouseShiftTemplate> & { id: string, default_checklists?: string[] }) => {
       const { default_checklists, ...typeData } = shiftTemplate;
       const { data, error } = await supabase
-        .from('house_shift_templates')
+        .from('ic_house_shift_templates')
         .update(typeData)
         .eq('id', typeData.id)
         .select()
@@ -110,13 +110,13 @@ export function useHouseShiftTemplates(houseId?: string) {
       }
 
       if (default_checklists) {
-        await supabase.from('shift_template_default_checklists').delete().eq('shift_template_id', typeData.id);
+        await supabase.from('ic_shift_template_default_checklists').delete().eq('shift_template_id', typeData.id);
         if (default_checklists.length > 0) {
           const links = default_checklists.map(clId => ({
             shift_template_id: typeData.id,
             checklist_id: clId
           }));
-          await supabase.from('shift_template_default_checklists').insert(links);
+          await supabase.from('ic_shift_template_default_checklists').insert(links);
         }
       }
 
@@ -134,7 +134,7 @@ export function useHouseShiftTemplates(houseId?: string) {
   const deleteShiftTemplate = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('house_shift_templates')
+        .from('ic_house_shift_templates')
         .delete()
         .eq('id', id);
 

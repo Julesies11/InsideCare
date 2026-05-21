@@ -40,7 +40,7 @@ export function StaffDetailPage() {
     }
     setInviting(true);
     try {
-      const { error } = await supabase.functions.invoke('invite-staff-user', {
+      const { error } = await supabase.functions.invoke('ic-invite-staff-user', {
         body: { staffId: id, email: formData.email },
       });
       if (error) throw new Error(error.message || 'Invite failed');

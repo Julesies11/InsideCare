@@ -14,7 +14,7 @@ export function useStaffDashboardData(staffId?: string) {
 
       const [shiftsRes, eventsRes, leaveRes, timesheetsRes, allTimesheetsRes, pastShiftsRes] = await Promise.all([
         supabase
-          .from('staff_shifts')
+          .from('ic_staff_shifts')
           .select(`
             id, 
             start_date, 
@@ -22,12 +22,12 @@ export function useStaffDashboardData(staffId?: string) {
             start_time, 
             end_time, 
             shift_template,
-            type_details:house_shift_templates(color_theme, icon_name),
-            house:houses(id, name),
-            assigned_checklists:shift_assigned_checklists(
+            type_details:ic_house_shift_templates(color_theme, icon_name),
+            house:ic_houses(id, name),
+            assigned_checklists:ic_shift_assigned_checklists(
               checklist_id,
               assignment_title,
-              submissions:house_checklist_submissions(id, status, shift_id)
+              submissions:ic_house_checklist_submissions(id, status, shift_id)
             )
           `)
           .eq('staff_id', staffId)
@@ -36,7 +36,7 @@ export function useStaffDashboardData(staffId?: string) {
           .order('start_time', { ascending: true })
           .limit(5),
         supabase
-          .from('house_calendar_events')
+          .from('ic_house_calendar_events')
           .select(`
             id,
             title,
@@ -44,37 +44,37 @@ export function useStaffDashboardData(staffId?: string) {
             start_time,
             end_time,
             location,
-            type:house_calendar_event_types_master(name, color),
-            house:houses(name),
-            staff_assignments:house_calendar_event_staff!inner(staff_id)
+            type:ic_house_calendar_event_types_master(name, color),
+            house:ic_houses(name),
+            staff_assignments:ic_house_calendar_event_staff!inner(staff_id)
           `)
-          .eq('house_calendar_event_staff.staff_id', staffId)
+          .eq('staff_assignments.staff_id', staffId)
           .gte('event_date', today)
           .order('event_date', { ascending: true })
           .limit(5),
         supabase
-          .from('leave_requests')
-          .select('id, leave_type:leave_types(name), start_date, end_date, status, updated_at')
+          .from('ic_leave_requests')
+          .select('id, leave_type:ic_leave_types(name), start_date, end_date, status, updated_at')
           .eq('staff_id', staffId)
           .or(`status.eq.pending,and(status.eq.approved,updated_at.gte.${lastWeek})`)
           .order('start_date', { ascending: true })
           .limit(3),
         supabase
-          .from('timesheets')
-          .select('id, status, clock_in, shift:staff_shifts(start_date)')
+          .from('ic_timesheets')
+          .select('id, status, clock_in, shift:ic_staff_shifts(start_date)')
           .eq('staff_id', staffId)
           .in('status', ['pending'])
           .order('clock_in', { ascending: false })
           .limit(5),
         // All recent timesheet IDs
         supabase
-          .from('timesheets')
+          .from('ic_timesheets')
           .select('shift_id')
           .eq('staff_id', staffId)
           .not('shift_id', 'is', null),
         // Past shifts to cross-reference
         supabase
-          .from('staff_shifts')
+          .from('ic_staff_shifts')
           .select('id, end_date, end_time')
           .eq('staff_id', staffId)
           .gte('end_date', thirtyDaysAgo)

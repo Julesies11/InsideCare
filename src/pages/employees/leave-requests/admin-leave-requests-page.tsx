@@ -93,8 +93,8 @@ export function AdminLeaveRequestsPage() {
   const fetchRequests = useCallback(async () => {
     setLoading(true);
     const { data, error } = await supabase
-      .from('leave_requests')
-      .select('*, staff:staff(id, name, auth_user_id), leave_type:leave_types(name)')
+      .from('ic_leave_requests')
+      .select('*, staff:ic_staff(id, name, auth_user_id), leave_type:ic_leave_types(name)')
       .order('created_at', { ascending: false });
     if (error) { toast.error('Failed to load leave requests'); setLoading(false); return; }
     const rows = (data as LeaveRequest[]) || [];
@@ -108,7 +108,7 @@ export function AdminLeaveRequestsPage() {
       const maxDate = pending.reduce((max, r) => r.end_date > max ? r.end_date : max, pending[0].end_date);
 
       const { data: allShifts } = await supabase
-        .from('staff_shifts')
+        .from('ic_staff_shifts')
         .select('id, staff_id, start_date')
         .in('staff_id', staffIds)
         .gte('start_date', minDate)
@@ -136,7 +136,7 @@ export function AdminLeaveRequestsPage() {
     setShiftsLoading(true);
     try {
       const { data, error } = await supabase
-        .from('staff_shifts')
+        .from('ic_staff_shifts')
         .select('id, start_date, start_time, end_time, status, house:house_id(name)')
         .eq('staff_id', staffId)
         .gte('start_date', startDate)
@@ -172,7 +172,7 @@ export function AdminLeaveRequestsPage() {
     try {
       // Update the leave request
       const { error } = await supabase
-        .from('leave_requests')
+        .from('ic_leave_requests')
         .update({ 
           status: newStatus, 
           admin_notes: adminNotes || null,
@@ -197,7 +197,7 @@ export function AdminLeaveRequestsPage() {
         // Option 1: Mark shifts as 'open' (removing staff_id)
         const shiftIds = affectedShifts.map(s => s.id);
         const { error: shiftError } = await supabase
-          .from('staff_shifts')
+          .from('ic_staff_shifts')
           .update({ 
             staff_id: null,
             notes: `Staff member approved for leave. Previously assigned to ${selected.staff?.name}.` 

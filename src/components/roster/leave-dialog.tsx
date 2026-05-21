@@ -67,7 +67,7 @@ export function LeaveDialog({ open, onOpenChange, leaveId, onSuccess, initialDat
     if (open) {
       const fetchLeaveTypes = async () => {
         const { data } = await supabase
-          .from('leave_types')
+          .from('ic_leave_types')
           .select('id, name')
           .eq('is_active', true)
           .order('name');
@@ -79,7 +79,7 @@ export function LeaveDialog({ open, onOpenChange, leaveId, onSuccess, initialDat
         const load = async () => {
           setLoading(true);
           const { data } = await supabase
-            .from('leave_requests')
+            .from('ic_leave_requests')
             .select('leave_type_id, start_date, end_date, reason, attachment_url')
             .eq('id', leaveId)
             .maybeSingle();
@@ -116,8 +116,8 @@ export function LeaveDialog({ open, onOpenChange, leaveId, onSuccess, initialDat
 
     const check = async () => {
       const { data } = await supabase
-        .from('staff_shifts')
-        .select('id, start_date, start_time, end_time, house:houses(name)')
+        .from('ic_staff_shifts')
+        .select('id, start_date, start_time, end_time, house:ic_houses(name)')
         .eq('staff_id', user.staff_id)
         .gte('start_date', startDate)
         .lte('start_date', endDate)
@@ -180,11 +180,11 @@ export function LeaveDialog({ open, onOpenChange, leaveId, onSuccess, initialDat
         ...(attachmentUrl !== undefined ? { attachment_url: attachmentUrl } : {}),
         updated_at: new Date().toISOString(),
       };
-      const { error } = await supabase.from('leave_requests').update(updates).eq('id', leaveId);
+      const { error } = await supabase.from('ic_leave_requests').update(updates).eq('id', leaveId);
       if (error) { toast.error('Failed to update leave request'); setSaving(false); return; }
       toast.success('Leave request updated');
     } else {
-      const { error } = await supabase.from('leave_requests').insert({
+      const { error } = await supabase.from('ic_leave_requests').insert({
         staff_id: user.staff_id,
         leave_type_id: leaveTypeId,
         start_date: startDate,

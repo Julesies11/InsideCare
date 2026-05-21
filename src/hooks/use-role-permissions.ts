@@ -28,7 +28,7 @@ export function useAllRolePermissions() {
     queryKey: ['role-permissions'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('role_permissions')
+        .from('ic_role_permissions')
         .select('*');
 
       if (error) throw error;
@@ -44,7 +44,7 @@ export function useUpdateRolePermissions() {
   return useMutation({
     mutationFn: async ({ role_id, updates }: { role_id: string; updates: Partial<RolePermissions> }) => {
       const { data, error } = await supabase
-        .from('role_permissions')
+        .from('ic_role_permissions')
         .upsert(
           { role_id, ...updates, updated_at: new Date().toISOString() },
           { onConflict: 'role_id' }

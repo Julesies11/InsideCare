@@ -22,7 +22,7 @@ export function useParticipantDocuments(participantId?: string) {
     queryFn: async () => {
       if (!participantId) return [];
       const { data, error } = await supabase
-        .from('participant_documents')
+        .from('ic_participant_documents')
         .select(PARTICIPANT_DOCUMENT_COLUMNS)
         .eq('participant_id', participantId)
         .order('created_at', { ascending: false });
@@ -55,7 +55,7 @@ export function useUploadParticipantDocument() {
       }
 
       const { data, error } = await supabase
-        .from('participant_documents')
+        .from('ic_participant_documents')
         .insert({
           participant_id: participantId,
           file_name: file.name,
@@ -96,7 +96,7 @@ export function useDeleteParticipantDocument() {
       }
 
       const { error } = await supabase
-        .from('participant_documents')
+        .from('ic_participant_documents')
         .delete()
         .eq('id', id);
 

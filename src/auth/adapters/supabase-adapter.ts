@@ -112,8 +112,8 @@ export const SupabaseAdapter = {
     let staffRow = null;
     try {
       const { data } = await supabase
-        .from('staff')
-        .select('id, name, photo_url, role:roles(name)')
+        .from('ic_staff')
+        .select('id, name, photo_url, role:ic_roles(name)')
         .eq('auth_user_id', user.id)
         .maybeSingle();
       staffRow = data;
@@ -202,7 +202,7 @@ export const SupabaseAdapter = {
     updates: { isAdmin?: boolean; permissions?: Record<string, string> },
   ): Promise<void> {
     const { data, error } = await supabase.functions.invoke(
-      'update-user-roles',
+      'ic-update-user-roles',
       {
         body: {
           userId,

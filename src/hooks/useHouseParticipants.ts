@@ -21,7 +21,7 @@ export function useHouseParticipants(houseId?: string) {
       if (!houseId) return [];
       
       const { data, error } = await supabase
-        .from('participants')
+        .from('ic_participants')
         .select(`
           id,
           name,
