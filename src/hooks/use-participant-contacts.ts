@@ -8,7 +8,7 @@ export interface ParticipantContact {
   contact_type_id?: string;
   contact_type?: {
     id: string;
-    name: string;
+    contact_type_name: string;
   };
   phone?: string;
   email?: string;
@@ -33,7 +33,7 @@ const CONTACT_COLUMNS = `
   updated_at,
   contact_type:ic_contact_types_master(
     id,
-    name
+    contact_type_name
   )
 `;
 

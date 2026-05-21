@@ -147,7 +147,7 @@ export type Database = {
           id: string
           last_audit_date: string | null
           manager_name: string | null
-          name: string
+          branch_name: string
           next_review_date: string | null
           notes: string | null
           number_of_houses: number | null
@@ -260,7 +260,7 @@ export type Database = {
           days_of_week: string[] | null
           description: string | null
           id: string
-          name: string
+          checklist_name: string
           updated_at: string | null
         }
         Insert: {
@@ -341,7 +341,7 @@ export type Database = {
           created_by: string | null
           id: string
           is_active: boolean | null
-          name: string
+          contact_type_name: string
           updated_at: string | null
           updated_by: string | null
         }
@@ -371,7 +371,7 @@ export type Database = {
           created_at: string | null
           description: string | null
           id: string
-          name: string
+          department_name: string
           status: string | null
           updated_at: string | null
         }
@@ -400,7 +400,7 @@ export type Database = {
           created_at: string | null
           description: string | null
           id: string
-          name: string
+          employment_type_name: string
           status: string | null
           updated_at: string | null
         }
@@ -467,7 +467,7 @@ export type Database = {
           created_by: string | null
           id: string
           is_active: boolean | null
-          name: string
+          funding_source_name: string
           updated_at: string | null
           updated_by: string | null
         }
@@ -497,7 +497,7 @@ export type Database = {
           created_by: string | null
           id: string
           is_active: boolean | null
-          name: string
+          funding_type_name: string
           updated_at: string | null
           updated_by: string | null
         }
@@ -640,7 +640,7 @@ export type Database = {
           created_at: string | null
           description: string | null
           id: string
-          name: string
+          event_type_name: string
           status: string
           updated_at: string | null
         }
@@ -1076,7 +1076,7 @@ export type Database = {
           id: string
           is_global: boolean | null
           master_id: string | null
-          name: string
+          house_checklist_name: string
           sort_order: number
           updated_at: string | null
         }
@@ -1380,7 +1380,7 @@ export type Database = {
           house_id: string | null
           id: string
           is_global: boolean | null
-          name: string
+          house_form_name: string
           status: string | null
           type: string
           updated_at: string | null
@@ -1510,7 +1510,7 @@ export type Database = {
           icon_name: string | null
           id: string
           is_active: boolean
-          name: string
+          shift_template_name: string
           short_name: string | null
           sort_order: number
           updated_at: string | null
@@ -1609,7 +1609,7 @@ export type Database = {
           created_at: string | null
           description: string | null
           id: string
-          name: string
+          house_type_name: string
           status: string
           updated_at: string | null
         }
@@ -1644,7 +1644,7 @@ export type Database = {
           id: string
           individuals_breakdown: string | null
           is_configured: boolean
-          name: string
+          house_name: string
           notes: string | null
           observations: string | null
           participant_dynamics: string | null
@@ -1774,7 +1774,7 @@ export type Database = {
           created_at: string
           id: string
           is_active: boolean
-          name: string
+          leave_type_name: string
         }
         Insert: {
           created_at?: string
@@ -1799,7 +1799,7 @@ export type Database = {
           id: string
           interactions: string | null
           is_active: boolean | null
-          name: string
+          medication_name: string
           side_effects: string | null
           updated_at: string | null
           updated_by: string | null
@@ -2445,7 +2445,7 @@ export type Database = {
           move_in_date: string | null
           mtmp_details: string | null
           mtmp_required: boolean | null
-          name: string | null
+          participant_name: string | null
           natural_disaster_plan: string | null
           ndis_number: string | null
           other_support: string | null
@@ -2725,7 +2725,7 @@ export type Database = {
           created_at: string | null
           email: string | null
           id: string
-          name: string
+          provider_name: string
           notes: string | null
           phone: string | null
           specialties: string | null
@@ -2842,7 +2842,7 @@ export type Database = {
           description: string | null
           id: string
           is_active: boolean
-          name: string
+          role_name: string
           permissions: string[] | null
           updated_at: string | null
         }
@@ -2945,7 +2945,7 @@ export type Database = {
           created_at: string | null
           description: string | null
           id: string
-          name: string
+          service_name: string
           status: string | null
           type: string
           updated_at: string | null
@@ -3226,7 +3226,7 @@ export type Database = {
           hobbies: string | null
           id: string
           manager_id: string | null
-          name: string | null
+          staff_name: string | null
           ndis_code_of_conduct: boolean | null
           ndis_code_of_conduct_expiry: string | null
           ndis_infection_control_training: boolean | null

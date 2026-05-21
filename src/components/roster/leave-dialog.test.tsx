@@ -46,7 +46,8 @@ describe('LeaveDialog Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     
-    // Default mock for leave_types:ic_leave_types(supabase.from as any).mockImplementation((table: string) => {
+    // Default mock for leave_types
+    (supabase.from as any).mockImplementation((table: string) => {
       if (table === 'leave_types') {
         return createMockQuery([{ id: 'lt1', name: 'Annual Leave' }]);
       }

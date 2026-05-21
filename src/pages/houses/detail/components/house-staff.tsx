@@ -189,10 +189,10 @@ export function HouseStaff({
 
   // Helper function to get staff name
   const getStaffName = (staffAssignment: any) => {
-    if (staffAssignment.staff?.name) return staffAssignment.staff.name;
+    if (staffAssignment.staff?.staff_name) return staffAssignment.staff.staff_name;
     if (staffAssignment.staff_id) {
       const member = staff.find(s => s.id === staffAssignment.staff_id);
-      return member?.name || 'Unknown Staff';
+      return member?.staff_name || 'Unknown Staff';
     }
     return 'Unknown Staff';
   };
@@ -234,13 +234,13 @@ export function HouseStaff({
   // Helper function to get staff role
   const getStaffRole = (staffAssignment: any) => {
     // If staff assignment has staff object with role (from database join), use it
-    if (staffAssignment.staff?.role?.name) {
-      return staffAssignment.staff.role.name;
+    if (staffAssignment.staff?.role?.role_name) {
+      return staffAssignment.staff.role.role_name;
     }
     // Otherwise, look up by staff_id (for pending assignments)
     if (staffAssignment.staff_id) {
       const staffMember = staff.find(s => s.id === staffAssignment.staff_id);
-      return staffMember?.role?.name || 'No Role';
+      return staffMember?.role?.role_name || 'No Role';
     }
     return 'No Role';
   };
@@ -487,7 +487,7 @@ export function HouseStaff({
                   <div className="flex flex-col items-start">
                     <span className="text-[7px] font-black uppercase tracking-widest text-muted-foreground leading-none mb-0.5">Role</span>
                     <span className="text-[9px] font-bold text-gray-700 leading-none">
-                      {staff.find(s => s.id === formData.staff_id)?.role?.name || 'None'}
+                      {staff.find(s => s.id === formData.staff_id)?.role?.role_name || 'None'}
                     </span>
                   </div>
                 </div>

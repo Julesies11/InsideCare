@@ -39,7 +39,7 @@ export function ParticipantsProfilesContent() {
         activityType: 'create',
         entityType: 'participant',
         entityId: data.id,
-        entityName: data.name || 'Draft Participant',
+        entityName: data.participant_name || 'Draft Participant',
         userName: 'Current User', // TODO: Get from auth context
       });
 

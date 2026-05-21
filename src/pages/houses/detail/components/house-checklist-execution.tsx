@@ -330,7 +330,7 @@ export function HouseChecklistExecution({
           </thead>
           <tbody className="divide-y divide-gray-100">
             {items.map((item, index) => {
-              const periodName = item.group?.name || item.group_title;
+              const periodName = item.group?.shift_template_name || item.group_title;
               const theme = getPeriodTheme(periodName, item.group?.color_theme);
               const PeriodIcon = theme.icon;
               

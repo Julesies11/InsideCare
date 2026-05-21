@@ -17,7 +17,7 @@ interface HouseCommEntry {
   created_at: string;
   created_by: string;
   creator?: {
-    name: string;
+    staff_name: string;
   };
 }
 
@@ -49,7 +49,7 @@ export function HouseComms({
         .from('ic_house_comms')
         .select(`
           *,
-          creator:ic_staff!created_by(name)
+          creator:ic_staff!created_by(staff_name)
         `)
         .eq('house_id', houseId)
         .eq('entry_date', dateStr)
@@ -87,7 +87,6 @@ export function HouseComms({
             tempId,
             content: newEntryContent.trim(),
             entry_date: dateStr,
-            created_by: user?.staff_id,
             creator_name: user?.name || 'Staff Member',
           },
         ],
@@ -242,7 +241,7 @@ export function HouseComms({
                   <div className="flex-1 ml-12 bg-white rounded-xl border border-gray-100 p-4 shadow-sm hover:border-primary/20 transition-colors">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold text-gray-900">{entry.creator?.name || 'Staff Member'}</span>
+                        <span className="text-sm font-bold text-gray-900">{entry.creator?.staff_name || 'Staff Member'}</span>
                         <span className="size-1 rounded-full bg-gray-300" />
                         <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
                           <Clock className="size-3" />

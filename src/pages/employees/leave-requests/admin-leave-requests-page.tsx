@@ -94,7 +94,7 @@ export function AdminLeaveRequestsPage() {
     setLoading(true);
     const { data, error } = await supabase
       .from('ic_leave_requests')
-      .select('*, staff:ic_staff(id, name, auth_user_id), leave_type:ic_leave_types(name)')
+      .select('*, staff:ic_staff(id, staff_name, auth_user_id), leave_type:ic_leave_types(leave_type_name)')
       .order('created_at', { ascending: false });
     if (error) { toast.error('Failed to load leave requests'); setLoading(false); return; }
     const rows = (data as LeaveRequest[]) || [];
@@ -137,7 +137,7 @@ export function AdminLeaveRequestsPage() {
     try {
       const { data, error } = await supabase
         .from('ic_staff_shifts')
-        .select('id, start_date, start_time, end_time, status, house:house_id(name)')
+        .select('id, start_date, start_time, end_time, status, house:house_id(house_name)')
         .eq('staff_id', staffId)
         .gte('start_date', startDate)
         .lte('start_date', endDate)
@@ -176,7 +176,6 @@ export function AdminLeaveRequestsPage() {
         .update({ 
           status: newStatus, 
           admin_notes: adminNotes || null,
-          updated_at: new Date().toISOString()
         })
         .eq('id', selected.id);
 
@@ -187,9 +186,9 @@ export function AdminLeaveRequestsPage() {
         activityType: action === 'approve' ? 'approve' : 'reject',
         entityType: 'leave_request',
         entityId: selected.id,
-        entityName: `${selected.staff?.name || 'Staff'} Leave Request`,
+        entityName: `${selected.staff?.staff_name || 'Staff'} Leave Request`,
         userName: user.fullname || user.email || 'Admin',
-        customDescription: `${action === 'approve' ? 'Approved' : 'Rejected'} leave request for ${selected.staff?.name} from ${selected.start_date} to ${selected.end_date}.`
+        customDescription: `${action === 'approve' ? 'Approved' : 'Rejected'} leave request for ${selected.staff?.staff_name} from ${selected.start_date} to ${selected.end_date}.`
       });
 
       // Handle shift removal if approved
@@ -200,7 +199,7 @@ export function AdminLeaveRequestsPage() {
           .from('ic_staff_shifts')
           .update({ 
             staff_id: null,
-            notes: `Staff member approved for leave. Previously assigned to ${selected.staff?.name}.` 
+            notes: `Staff member approved for leave. Previously assigned to ${selected.staff?.staff_name}.` 
           })
           .in('id', shiftIds);
 
@@ -292,11 +291,11 @@ export function AdminLeaveRequestsPage() {
                         <tr key={req.id} className="border-b border-gray-50 group hover:bg-gray-50/50 transition-colors">
                           <td className="px-5 py-3.5">
                             <div className="flex flex-col">
-                              <span className="font-bold text-gray-900">{req.staff?.name ?? 'Unknown'}</span>
+                              <span className="font-bold text-gray-900">{req.staff?.staff_name ?? 'Unknown'}</span>
                               <span className="text-[10px] text-muted-foreground truncate max-w-[150px]">{req.reason}</span>
                             </div>
                           </td>
-                          <td className="px-5 py-3.5">{req.leave_type?.name ?? 'Leave'}</td>
+                          <td className="px-5 py-3.5">{req.leave_type?.leave_type_name ?? 'Leave'}</td>
                           <td className="px-5 py-3.5 text-muted-foreground hidden sm:table-cell text-sm">
                             {format(new Date(req.start_date), 'dd MMM yyyy')}
                             {req.start_date !== req.end_date && (
@@ -372,8 +371,8 @@ export function AdminLeaveRequestsPage() {
             </DialogTitle>
             <DialogDescription>
               {action === 'approve' 
-                ? `Approving ${selected?.staff?.name}'s request for ${dayCount(selected!)} days.`
-                : `Provide a reason for rejecting ${selected?.staff?.name}'s request.`}
+                ? `Approving ${selected?.staff?.staff_name}'s request for ${dayCount(selected!)} days.`
+                : `Provide a reason for rejecting ${selected?.staff?.staff_name}'s request.`}
             </DialogDescription>
           </DialogHeader>
 
@@ -399,7 +398,7 @@ export function AdminLeaveRequestsPage() {
                       {affectedShifts.map(s => (
                         <div key={s.id} className="flex items-center justify-between text-[10px] bg-white/50 p-1.5 rounded border border-blue-100">
                           <div className="font-medium text-gray-700">
-                            {format(new Date(s.start_date), 'dd MMM')} at {s.house?.name || 'Unknown'}
+                            {format(new Date(s.start_date), 'dd MMM')} at {s.house?.house_name || 'Unknown'}
                           </div>
                           <div className="text-gray-500 italic">{(s.start_time || '').slice(0, 5)} - {(s.end_time || '').slice(0, 5)}</div>
                         </div>

@@ -16,22 +16,22 @@ export interface HouseFormAssignment {
   updated_at: string;
   participant?: {
     id: string;
-    name: string;
+    house_form_name?: string; staff_name?: string; participant_name?: string;
     email?: string;
   };
   staff?: {
     id: string;
-    name: string;
+    house_form_name?: string; staff_name?: string; participant_name?: string;
     email?: string;
   };
   assigned_by_staff?: {
     id: string;
-    name: string;
+    house_form_name?: string; staff_name?: string; participant_name?: string;
     email?: string;
   };
   completed_by_staff?: {
     id: string;
-    name: string;
+    house_form_name?: string; staff_name?: string; participant_name?: string;
     email?: string;
   };
 }
@@ -39,7 +39,7 @@ export interface HouseFormAssignment {
 export interface HouseForm {
   id: string;
   house_id: string;
-  name: string;
+  house_form_name?: string; staff_name?: string; participant_name?: string;
   type: string;
   description?: string;
   frequency: string;
@@ -50,7 +50,7 @@ export interface HouseForm {
   updated_at: string;
   creator?: {
     id: string;
-    name: string;
+    house_form_name?: string; staff_name?: string; participant_name?: string;
     email?: string;
   };
   assignments?: HouseFormAssignment[];
@@ -76,7 +76,7 @@ export function useHouseForms(houseId?: string) {
           .from('ic_house_forms')
           .select(`
             *,
-            creator:ic_staff!created_by(id, name, email),
+            creator:ic_staff!created_by(id, staff_name, email),
             house_form_assignments:ic_house_form_assignments(
               id,
               form_id,
@@ -90,10 +90,10 @@ export function useHouseForms(houseId?: string) {
               notes,
               created_at,
               updated_at,
-              participant:ic_participants(id, name, email),
-              staff:ic_staff!staff_id(id, name, email),
-              assigned_by_staff:ic_staff!assigned_by(id, name, email),
-              completed_by_staff:ic_staff!completed_by(id, name, email)
+              participant:ic_participants(id, participant_name, email),
+              staff:ic_staff!staff_id(id, staff_name, email),
+              assigned_by_staff:ic_staff!assigned_by(id, staff_name, email),
+              completed_by_staff:ic_staff!completed_by(id, staff_name, email)
             )
           `)
           .eq('house_id', houseId)

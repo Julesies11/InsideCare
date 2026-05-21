@@ -15,7 +15,7 @@ export interface HouseChecklistEvent {
   status: string;
   checklist?: {
     id: string;
-    name: string;
+    house_checklist_name: string;
     description: string;
     items: HouseChecklistItem[];
   };
@@ -128,7 +128,7 @@ export function useHouseChecklistEvents(houseId?: string, date?: string, shiftId
         .from('ic_house_checklists')
         .select(`
           id, 
-          name, 
+          house_checklist_name, 
           description,
           items:ic_house_checklist_items(
             id, 
@@ -142,7 +142,7 @@ export function useHouseChecklistEvents(houseId?: string, date?: string, shiftId
             sort_order, 
             created_at, 
             updated_at,
-            group:ic_house_shift_templates(id, name, short_name, color_theme)
+            group:ic_house_shift_templates(id, shift_template_name, short_name, color_theme)
           )
         `)
         .in('id', checklistIds);

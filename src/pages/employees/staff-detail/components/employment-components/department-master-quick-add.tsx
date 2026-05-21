@@ -21,7 +21,7 @@ export function DepartmentMasterQuickAdd({
   department,
 }: DepartmentMasterQuickAddProps) {
   const [formData, setFormData] = useState({
-    name: '',
+    department_name: '',
     description: '',
     access_level: 'Limited',
     status: 'Active',
@@ -30,14 +30,14 @@ export function DepartmentMasterQuickAdd({
   useEffect(() => {
     if (department) {
       setFormData({
-        name: department.name,
+        department_name: department.department_name,
         description: department.description || '',
         access_level: department.access_level || 'Limited',
         status: department.status,
       });
     } else {
       setFormData({
-        name: '',
+        department_name: '',
         description: '',
         access_level: 'Limited',
         status: 'Active',
@@ -47,7 +47,7 @@ export function DepartmentMasterQuickAdd({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name.trim()) return;
+    if (!formData.department_name.trim()) return;
     onSave(formData);
   };
 
@@ -63,8 +63,8 @@ export function DepartmentMasterQuickAdd({
               <Label htmlFor="name">Name *</Label>
               <Input
                 id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                value={formData.department_name}
+                onChange={(e) => setFormData({ ...formData, department_name: e.target.value })}
                 placeholder="Department name"
                 required
               />

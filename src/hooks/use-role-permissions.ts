@@ -46,7 +46,7 @@ export function useUpdateRolePermissions() {
       const { data, error } = await supabase
         .from('ic_role_permissions')
         .upsert(
-          { role_id, ...updates, updated_at: new Date().toISOString() },
+          { role_id, ...updates },
           { onConflict: 'role_id' }
         )
         .select()

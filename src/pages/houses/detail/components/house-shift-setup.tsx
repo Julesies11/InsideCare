@@ -73,7 +73,7 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
   }, [showImportDialog, allHouses.length]);
 
   const [typeFormData, setTypeFormData] = useState({
-    name: '',
+    shift_template_name: '',
     short_name: '',
     icon_name: 'Clock',
     color_theme: 'morning',
@@ -131,7 +131,7 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
       setEditingType(type);
       const checklists = getVisibleDefaults(type.id || type.tempId);
       setTypeFormData({
-        name: type.name,
+        name: type.shift_template_name,
         short_name: type.short_name || '',
         icon_name: type.icon_name || 'Clock',
         color_theme: type.color_theme || 'morning',
@@ -144,7 +144,7 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
     } else {
       setEditingType(null);
       setTypeFormData({ 
-        name: '', 
+        shift_template_name: '', 
         short_name: '', 
         icon_name: 'Clock',
         color_theme: 'morning', 
@@ -164,7 +164,7 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
         let typeId = editingType?.id;
         const typePayload = {
           house_id: houseId,
-          name: typeFormData.name,
+          shift_template_name: typeFormData.shift_template_name,
           short_name: typeFormData.short_name,
           icon_name: typeFormData.icon_name,
           color_theme: typeFormData.color_theme,
@@ -172,7 +172,6 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
           default_end_time: typeFormData.default_end_time,
           sort_order: typeFormData.sort_order,
           is_active: typeFormData.is_active,
-          updated_at: new Date().toISOString()
         };
 
         if (typeId) {
@@ -297,24 +296,24 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
       for (const st of (sourceTypes || [])) {
         const { data: sourceDefaults } = await supabase
           .from('ic_shift_template_default_checklists')
-          .select('checklist:ic_house_checklists(name)')
+          .select('checklist:ic_house_checklists(house_checklist_name)')
           .eq('shift_template_id', st.id);
         
         let localChecklistIds: string[] = [];
         if (sourceDefaults && sourceDefaults.length > 0) {
-          const checklistNames = sourceDefaults.map((d: any) => d.checklist.name);
+          const checklistNames = sourceDefaults.map((d: any) => d.checklist.house_checklist_name);
           const { data: localChecklists } = await supabase
             .from('ic_house_checklists')
-            .select('id, name')
+            .select('id, house_checklist_name')
             .eq('house_id', houseId)
-            .in('name', checklistNames);
+            .in('house_checklist_name', checklistNames);
           
           localChecklistIds = (localChecklists || []).map(lc => lc.id);
         }
 
         newToAdd.push({
           tempId: `temp-st-import-${Date.now()}-${Math.random()}`,
-          name: st.name,
+          shift_template_name: st.shift_template_name,
           short_name: st.short_name,
           color_theme: st.color_theme,
           default_start_time: st.default_start_time,
@@ -361,7 +360,7 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {visibleShiftTemplates.map(st => {
-          const theme = getPeriodTheme(st.name, st.color_theme, st.icon_name);
+          const theme = getPeriodTheme(st.shift_template_name, st.color_theme, st.icon_name);
           const typeDefaults = getVisibleDefaults(st.id || st.tempId);
           const isPendingAdd = !!st.tempId;
           const isPendingUpdate = pendingChanges?.shiftTemplates.toUpdate.some(u => u.id === st.id);
@@ -379,7 +378,7 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h4 className="font-bold text-gray-900">{st.name}</h4>
+                      <h4 className="font-bold text-gray-900">{st.shift_template_name}</h4>
                       {(isPendingAdd || isPendingUpdate) && (
                         <Badge variant="outline" className="text-[8px] h-4 bg-primary/5 text-primary border-primary/20">PENDING</Badge>
                       )}
@@ -415,7 +414,7 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
                         <div key={clId} className="bg-gray-50/50 border border-gray-100 rounded-lg p-3 group/cl relative">
                           <div className="flex items-start justify-between mb-2">
                             <div className="flex-1 min-w-0">
-                              <h5 className="font-bold text-[11px] text-gray-900 truncate">{cl?.name || 'Unknown Checklist'}</h5>
+                              <h5 className="font-bold text-[11px] text-gray-900 truncate">{cl?.house_checklist_name || 'Unknown Checklist'}</h5>
                             </div>
                           </div>
 
@@ -476,7 +475,7 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
               <div className="sm:col-span-2 space-y-1.5">
                 <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">Template Name</Label>
                 <Input 
-                  value={typeFormData.name} 
+                  value={typeFormData.shift_template_name} 
                   onChange={e => setTypeFormData({...typeFormData, name: e.target.value})} 
                   placeholder="e.g. Morning" 
                   className="h-9 text-sm bg-white" 
@@ -637,7 +636,7 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <h5 className="font-bold text-xs text-gray-900 truncate mb-1">{cl.name}</h5>
+                        <h5 className="font-bold text-xs text-gray-900 truncate mb-1">{cl.house_checklist_name}</h5>
                         <div className="space-y-0.5">
                           {topItems.length > 0 ? (
                             <>
@@ -693,7 +692,7 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
                   {(allHouses || []).filter(h => h.id !== houseId).map(h => (
                     <SelectItem key={h.id} value={h.id}>
                       <div className="flex items-center justify-between w-full min-w-[200px]">
-                        <span>{h.name}</span>
+                        <span>{h.house_name}</span>
                         <Badge variant="outline" className="ml-2 text-[10px] py-0 h-4 bg-primary/5 text-primary border-primary/10">
                           {houseShiftCounts[h.id] || 0} Shift Templates
                         </Badge>

@@ -88,9 +88,9 @@ const ShiftNotes = () => {
       const searchLower = searchQuery.toLowerCase();
       const matchesSearch =
         !searchQuery ||
-        (item.participant?.name && item.participant.name.toLowerCase().includes(searchLower)) ||
-        (item.staff?.name && item.staff.name.toLowerCase().includes(searchLower)) ||
-        (item.house?.name && item.house.name.toLowerCase().includes(searchLower)) ||
+        (item.participant?.participant_name && item.participant.participant_name.toLowerCase().includes(searchLower)) ||
+        (item.staff?.staff_name && item.staff.staff_name.toLowerCase().includes(searchLower)) ||
+        (item.house?.house_name && item.house.house_name.toLowerCase().includes(searchLower)) ||
         (item.notes && item.notes.toLowerCase().includes(searchLower));
 
       return matchesHouse && matchesSearch;
@@ -169,13 +169,13 @@ const ShiftNotes = () => {
       },
       {
         id: 'participant',
-        accessorFn: (row) => row.participant?.name,
+        accessorFn: (row) => row.participant?.participant_name,
         header: ({ column }) => (
           <DataGridColumnHeader title="Participant" column={column} />
         ),
         cell: ({ row }) => (
           <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-            {row.original.participant?.name || '-'}
+            {row.original.participant?.participant_name || '-'}
           </span>
         ),
         enableSorting: true,
@@ -183,13 +183,13 @@ const ShiftNotes = () => {
       },
       {
         id: 'staff',
-        accessorFn: (row) => row.staff?.name,
+        accessorFn: (row) => row.staff?.staff_name,
         header: ({ column }) => (
           <DataGridColumnHeader title="Staff Member" column={column} />
         ),
         cell: ({ row }) => (
           <span className="text-sm text-gray-700 dark:text-gray-300">
-            {row.original.staff?.name || '-'}
+            {row.original.staff?.staff_name || '-'}
           </span>
         ),
         enableSorting: true,
@@ -197,13 +197,13 @@ const ShiftNotes = () => {
       },
       {
         id: 'house',
-        accessorFn: (row) => row.house?.name,
+        accessorFn: (row) => row.house?.house_name,
         header: ({ column }) => (
           <DataGridColumnHeader title="House" column={column} />
         ),
         cell: ({ row }) => (
           <span className="text-sm text-gray-700 dark:text-gray-300">
-            {row.original.house?.name || '-'}
+            {row.original.house?.house_name || '-'}
           </span>
         ),
         enableSorting: true,
@@ -350,7 +350,7 @@ const ShiftNotes = () => {
                             htmlFor={house.id}
                             className="grow flex items-center justify-between font-normal gap-1.5"
                           >
-                            {house.name}
+                            {house.house_name}
                             <span className="text-muted-foreground">
                               {houseCounts[house.id] || 0}
                             </span>

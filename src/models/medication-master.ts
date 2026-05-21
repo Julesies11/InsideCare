@@ -1,6 +1,6 @@
 export interface MedicationMaster {
   id: string;
-  name: string;
+  medication_name: string;
   category: string | null;
   common_dosages: string | null;
   side_effects: string | null;

@@ -102,7 +102,7 @@ export function EmploymentDetails({
               <SelectContent>
                 {managerOptions.map(s => (
                   <SelectItem key={s.id} value={s.id}>
-                    {s.name}
+                    {s.staff_name}
                   </SelectItem>
                 ))}
               </SelectContent>

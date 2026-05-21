@@ -162,7 +162,7 @@ export function ShiftCalendar({
                             <span className="text-gray-500 font-medium">{(conf.start_time || '').slice(0, 5)} - {(conf.end_time || '').slice(0, 5)}</span>
                           </div>
                           <div className="text-gray-600 italic">
-                            {conf.entry_type === 'event' ? (conf.location || 'No location') : `at ${conf.house?.name || 'Unknown House'}`}
+                            {conf.entry_type === 'event' ? (conf.location || 'No location') : `at ${conf.house?.house_name || 'Unknown House'}`}
                           </div>
                         </li>
                       ))}
@@ -252,7 +252,7 @@ export function ShiftCalendar({
                     const shiftsByHouse: Record<string, { name: string, shifts: ShiftCardData[] }> = {};
                     dayShifts.forEach(s => {
                       const houseId = s.house?.id || 'unassigned';
-                      const houseName = s.house?.name || 'Unassigned';
+                      const houseName = s.house?.house_name || 'Unassigned';
                       if (!shiftsByHouse[houseId]) {
                         shiftsByHouse[houseId] = { name: houseName, shifts: [] };
                       }
@@ -413,7 +413,7 @@ export function ShiftCalendar({
               return (
                 <div key={house.id} className={cn("grid gap-2 border-b border-gray-50 hover:bg-gray-50/30 transition-all rounded-xl p-1 group/row", gridColsClass)}>
                   <div className="font-black text-xs p-4 bg-muted/20 flex flex-col gap-3 justify-center rounded-xl border border-transparent group-hover/row:border-gray-100 transition-all">
-                    <span className="truncate text-gray-900 uppercase tracking-tight">{house.name}</span>
+                    <span className="truncate text-gray-900 uppercase tracking-tight">{house.house_name}</span>
                     <div className="flex flex-col gap-1.5">
                       {canEdit && house.id !== 'unassigned' && onPopulateRoster && (
                         <Button 

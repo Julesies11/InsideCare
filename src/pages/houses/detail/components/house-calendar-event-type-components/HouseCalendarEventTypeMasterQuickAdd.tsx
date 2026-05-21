@@ -21,7 +21,7 @@ export function HouseCalendarEventTypeMasterQuickAdd({
   eventType,
 }: HouseCalendarEventTypeMasterQuickAddProps) {
   const [formData, setFormData] = useState({
-    name: '',
+    event_type_name: '',
     description: '',
     status: 'Active' as 'Active' | 'Inactive',
     color: 'blue',
@@ -30,14 +30,14 @@ export function HouseCalendarEventTypeMasterQuickAdd({
   useEffect(() => {
     if (eventType) {
       setFormData({
-        name: eventType.name,
+        event_type_name: eventType.event_type_name,
         description: eventType.description || '',
         status: eventType.status,
         color: eventType.color || 'blue',
       });
     } else {
       setFormData({
-        name: '',
+        event_type_name: '',
         description: '',
         status: 'Active',
         color: 'blue',
@@ -47,7 +47,7 @@ export function HouseCalendarEventTypeMasterQuickAdd({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name.trim()) return;
+    if (!formData.event_type_name.trim()) return;
     onSave(formData);
   };
 
@@ -66,8 +66,8 @@ export function HouseCalendarEventTypeMasterQuickAdd({
               <Label htmlFor="name">Name *</Label>
               <Input
                 id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                value={formData.event_type_name}
+                onChange={(e) => setFormData({ ...formData, event_type_name: e.target.value })}
                 placeholder="Event type name"
                 required
               />

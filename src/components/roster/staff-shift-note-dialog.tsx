@@ -147,7 +147,7 @@ export function StaffShiftNoteDialog({
             </span>
             <span className="flex items-center gap-1">
               <Home className="size-3 text-primary/60" />
-              {shift.house?.name}
+              {shift.house?.house_name}
             </span>
             <span className="flex items-center gap-1">
               <User className="size-3 text-primary/60" />

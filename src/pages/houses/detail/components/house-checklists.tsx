@@ -47,18 +47,18 @@ export function HouseChecklists({
   const [showItemDialog, setShowItemDialog] = useState(false);
   const [showExecutionDialog, setShowExecutionDialog] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
-  const [selectedForSchedule, setSelectedForSchedule] = useState<{ id: string; name: string } | null>(null);
-  const [selectedChecklist, setSelectedChecklist] = useState<{ id?: string; tempId?: string; name: string; frequency: string; description?: string; master_id?: string; items?: any[] } | null>(null);
-  const [executingChecklist, setExecutingChecklist] = useState<{ id: string; name: string; items: any[] } | null>(null);
+  const [selectedForSchedule, setSelectedForSchedule] = useState<{ id: string; house_checklist_name: string } | null>(null);
+  const [selectedChecklist, setSelectedChecklist] = useState<{ id?: string; tempId?: string; house_checklist_name: string; frequency: string; description?: string; master_id?: string; items?: any[] } | null>(null);
+  const [executingChecklist, setExecutingChecklist] = useState<{ id: string; house_checklist_name: string; items: any[] } | null>(null);
   const [activeSubmission, setActiveSubmission] = useState<{ id: string; completedItems: Record<string, boolean>; itemNotes: Record<string, string>; attachments?: any } | null>(null);
   const [selectedItem, setSelectedItem] = useState<{ id?: string; tempId?: string; title: string; instructions?: string; priority?: string; is_required?: boolean; sort_order?: number } | null>(null);
   const [checklistFormData, setChecklistFormData] = useState<{
-    name: string;
+    house_checklist_name: string;
     description: string;
     master_id?: string;
     items: Array<{ id?: string; tempId?: string; title: string; instructions?: string; priority?: string; is_required?: boolean; sort_order?: number }>;
   }>({
-    name: '',
+    house_checklist_name: '',
     description: '',
     master_id: undefined,
     items: [],
@@ -106,18 +106,18 @@ export function HouseChecklists({
   const handleAddChecklist = () => {
     setSelectedChecklist(null);
     setChecklistFormData({
-      name: '',
-      description: '',
+      house_checklist_name: '',
+    description: '',
       master_id: undefined,
       items: [],
     });
     setShowChecklistDialog(true);
   };
 
-  const handleEditChecklist = (checklist: { id?: string; tempId?: string; name: string; description?: string; master_id?: string; items?: any[] }) => {
+  const handleEditChecklist = (checklist: { id?: string; tempId?: string; house_checklist_name: string; description?: string; master_id?: string; items?: any[] }) => {
     setSelectedChecklist(checklist);
     setChecklistFormData({
-      name: checklist.name,
+      house_checklist_name: checklist.house_checklist_name,
       description: checklist.description || '',
       master_id: checklist.master_id,
       items: checklist.items || [],
@@ -126,7 +126,7 @@ export function HouseChecklists({
   };
 
   const handleSaveChecklist = () => {
-    if (!checklistFormData.name.trim() || !pendingChanges || !onPendingChangesChange) return;
+    if (!checklistFormData.house_checklist_name.trim() || !pendingChanges || !onPendingChangesChange) return;
 
     // Correct sort orders based on current sequence in checklistFormData
     const itemsWithUpdatedSortOrder = checklistFormData.items.map((item: any, index: number) => ({
@@ -251,7 +251,7 @@ export function HouseChecklists({
             status,
             note,
             completed_at,
-            completed_by_staff:ic_staff!completed_by(id, name)
+            completed_by_staff:ic_staff!completed_by(id, staff_name)
           )
         `)        .eq('checklist_id', checklist.id)
         .eq('house_id', houseId)
@@ -273,7 +273,7 @@ export function HouseChecklists({
           if (isDone && item.completed_by_staff) {
             completedBy[item.item_id] = {
               id: item.completed_by_staff.id,
-              name: item.completed_by_staff.name
+              name: item.completed_by_staff.staff_name
             };
           }
         });
@@ -378,7 +378,6 @@ export function HouseChecklists({
           status: status,
           submitted_by: staffId || null,
           completed_at: status === 'completed' ? new Date().toISOString() : null,
-          updated_at: new Date().toISOString()
         })
         .eq('id', submissionId);
 
@@ -550,7 +549,7 @@ export function HouseChecklists({
       tempId,
       house_id: houseId,
       master_id: template.id,
-      name: template.name,
+      house_checklist_name: template.checklist_name,
       description: template.description,
       items: (template.items || []).map((item: any) => ({
         tempId: `temp-item-${Date.now()}-${Math.random()}`,
@@ -572,7 +571,7 @@ export function HouseChecklists({
 
     onPendingChangesChange(newPending);
     setShowTemplateDialog(false);
-    toast.success(`Checklist created from template: ${template.name}`);
+    toast.success(`Checklist created from template: ${template.checklist_name}`);
   };
 
   const handleSaveItem = () => {
@@ -646,7 +645,7 @@ export function HouseChecklists({
         newToAdd.push({
           tempId: `temp-cl-import-${Date.now()}-${Math.random()}`,
           house_id: houseId,
-          name: cl.name,
+          house_checklist_name: cl.house_checklist_name,
           description: cl.description,
           master_id: cl.master_id,
           items: (sourceItems || []).map((item: any) => ({
@@ -771,7 +770,7 @@ export function HouseChecklists({
                     <div className="flex flex-col gap-1 min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <h3 className={`text-base font-bold text-gray-900 break-words whitespace-normal ${isPendingDelete ? 'line-through' : ''}`}>
-                          {checklist.name}
+                          {checklist.house_checklist_name}
                         </h3>
                         {isPendingAdd && (
                           <Badge variant="outline" className="text-[10px] h-4 border-primary-200 text-primary bg-primary/10 px-1 flex items-center gap-1">
@@ -807,7 +806,7 @@ export function HouseChecklists({
                         title="Schedule on Calendar"
                         onClick={() => {
                           if (checklist.id) {
-                            setSelectedForSchedule({ id: checklist.id, name: checklist.name });
+                            setSelectedForSchedule({ id: checklist.id, house_checklist_name: checklist.house_checklist_name });
                             setShowScheduleModal(true);
                           } else {
                             toast.error('Please save changes before scheduling.');
@@ -895,8 +894,8 @@ export function HouseChecklists({
                 <Label htmlFor="name">Checklist Name *</Label>
                 <Input
                   id="name"
-                  value={checklistFormData.name}
-                  onChange={(e) => setChecklistFormData({ ...checklistFormData, name: e.target.value })}
+                  value={checklistFormData.house_checklist_name}
+                  onChange={(e) => setChecklistFormData({ ...checklistFormData, house_checklist_name: e.target.value })}
                   placeholder="Enter checklist name"
                 />
               </div>
@@ -1118,7 +1117,7 @@ export function HouseChecklists({
                   >
                     <div className="flex items-center justify-between w-full mb-1">
                       <span className="font-bold text-gray-900 group-hover:text-primary transition-colors">
-                        {template.name}
+                        {template.checklist_name}
                       </span>
                     </div>
                     {template.description && (
@@ -1148,7 +1147,7 @@ export function HouseChecklists({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <PlayCircle className="size-5 text-primary" />
-              {executingChecklist?.name}
+              {executingChecklist?.house_checklist_name}
             </DialogTitle>
             <DialogDescription>
               Complete the following items one by one. Required items must be checked to proceed.
@@ -1196,7 +1195,7 @@ export function HouseChecklists({
                   {(allHouses || []).filter(h => h.id !== houseId).map(h => (
                     <SelectItem key={h.id} value={h.id}>
                       <div className="flex items-center justify-between w-full min-w-[200px]">
-                        <span>{h.name}</span>
+                        <span>{h.house_name}</span>
                         <Badge variant="outline" className="ml-2 text-[10px] py-0 h-4 bg-primary/5 text-primary border-primary/10">
                           {houseChecklistCounts[h.id] || 0} Checklists
                         </Badge>

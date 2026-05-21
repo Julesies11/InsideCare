@@ -24,7 +24,7 @@ export function useHouseParticipants(houseId?: string) {
         .from('ic_participants')
         .select(`
           id,
-          name,
+          participant_name,
           email,
           status,
           house_id,

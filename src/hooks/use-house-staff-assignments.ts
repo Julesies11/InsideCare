@@ -13,7 +13,7 @@ export interface HouseStaffAssignment {
   updated_at: string;
   staff?: {
     id: string;
-    name: string;
+    staff_name?: string; role_name?: string;
     email?: string;
     phone?: string;
     status?: string;
@@ -22,7 +22,7 @@ export interface HouseStaffAssignment {
     photo_url?: string;
     role?: {
       id: string;
-      name: string;
+      staff_name?: string; role_name?: string;
       description?: string;
     };
   };
@@ -30,7 +30,7 @@ export interface HouseStaffAssignment {
 
 const HOUSE_STAFF_ASSIGNMENT_COLUMNS = `
   id, house_id, staff_id, is_primary, start_date, end_date, notes, created_at, updated_at,
-  staff:ic_staff(id, name, email, phone, status, separation_date, role_id, photo_url, role:ic_roles!staff_role_id_fkey(id, name, description))
+  staff:ic_staff(id, staff_name, email, phone, status, separation_date, role_id, photo_url, role:ic_roles!staff_role_id_fkey(id, role_name, description))
 `;
 
 export function useHouseStaffAssignments(houseId?: string) {

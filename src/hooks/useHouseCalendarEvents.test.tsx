@@ -98,7 +98,7 @@ describe('useHouseCalendarEvents Integration', () => {
     const shiftEvent = result.current.houseCalendarEvents.find(e => e.id === 'shift-shift-1');
     expect(shiftEvent).toBeDefined();
     expect(shiftEvent?.event_participants).toHaveLength(2);
-    expect(shiftEvent?.event_participants?.[0].participant.name).toBe('John Doe');
+    expect(shiftEvent?.event_participants?.[0].participant.participant_name).toBe('John Doe');
     expect(shiftEvent?.event_participants?.[1].participant.id).toBe('p2');
   });
 });

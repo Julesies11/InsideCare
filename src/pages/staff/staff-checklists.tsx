@@ -213,7 +213,7 @@ function HouseChecklistGroup({
           <div className={`p-1.5 rounded-lg ${isCurrentShift ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
             <House className="size-4" />
           </div>
-          <h3 className="text-lg font-bold text-gray-900">{house.name}</h3>
+          <h3 className="text-lg font-bold text-gray-900">{house.house_name}</h3>
           {isCurrentShift && (
             <Badge className="bg-green-50 text-green-700 border-green-100 font-bold text-[9px] uppercase h-4 px-1.5">
               Current Shift
@@ -293,7 +293,7 @@ export function StaffChecklists() {
 
       if (aIsActive && !bIsActive) return -1;
       if (bIsActive && !aIsActive) return 1;
-      return a.house.name.localeCompare(b.house.name);
+      return a.house.house_name.localeCompare(b.house.house_name);
     });
   }, [activeHouses, activeShift]);
 

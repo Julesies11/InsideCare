@@ -78,7 +78,7 @@ describe('Roster Query Hooks', () => {
       const shift = result.current.shifts[0];
       
       // Verify Frontend Joining worked
-      expect(shift.house?.name).toBe('Alpha House');
+      expect(shift.house?.house_name).toBe('Alpha House');
       expect(shift.staff_name).toBe('John Caregiver');
       
       // Verify Mapping

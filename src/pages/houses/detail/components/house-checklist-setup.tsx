@@ -172,7 +172,6 @@ export function HouseChecklistSetup({
               name: checklistFormData.name,
               description: checklistFormData.description,
               days_of_week: checklistFormData.days_of_week,
-              updated_at: new Date().toISOString()
             })
             .eq('id', savedChecklistId);
           if (error) throw error;

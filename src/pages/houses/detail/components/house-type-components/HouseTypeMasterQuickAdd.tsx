@@ -21,7 +21,7 @@ export function HouseTypeMasterQuickAdd({
   houseType,
 }: HouseTypeMasterQuickAddProps) {
   const [formData, setFormData] = useState({
-    name: '',
+    house_type_name: '',
     description: '',
     status: 'Active' as 'Active' | 'Inactive',
   });
@@ -29,13 +29,13 @@ export function HouseTypeMasterQuickAdd({
   useEffect(() => {
     if (houseType) {
       setFormData({
-        name: houseType.name,
+        house_type_name: houseType.house_type_name,
         description: houseType.description || '',
         status: houseType.status,
       });
     } else {
       setFormData({
-        name: '',
+        house_type_name: '',
         description: '',
         status: 'Active',
       });
@@ -44,7 +44,7 @@ export function HouseTypeMasterQuickAdd({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name.trim()) return;
+    if (!formData.house_type_name.trim()) return;
     onSave(formData);
   };
 
@@ -63,8 +63,8 @@ export function HouseTypeMasterQuickAdd({
               <Label htmlFor="name">Name *</Label>
               <Input
                 id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                value={formData.house_type_name}
+                onChange={(e) => setFormData({ ...formData, house_type_name: e.target.value })}
                 placeholder="House type name"
                 required
               />

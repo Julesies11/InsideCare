@@ -14,8 +14,8 @@ export function useHandoverIssues(houseIds: string[]) {
         .from('ic_house_checklist_submissions')
         .select(`
           id, status, scheduled_date, house_id,
-          houses:ic_houses(name),
-          house_checklists:ic_house_checklists(name),
+          houses:ic_houses(house_name),
+          house_checklists:ic_house_checklists(house_checklist_name),
          ic_house_checklist_submission_items:ic_house_checklist_submission_items(id, is_completed, house_checklist_items:ic_house_checklist_items(title, is_required))
         `)
         .in('house_id', houseIds)

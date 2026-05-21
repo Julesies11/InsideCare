@@ -16,8 +16,8 @@ export interface StaffShift {
   notes: string | null;
   created_at?: string;
   updated_at?: string;
-  house?: { id: string; name: string };
-  participants?: Array<{ id: string; name: string; house_id?: string | null }>;
+  house?: { id: string; house_name: string };
+  participants?: Array<{ id: string; participant_name: string; house_id?: string | null }>;
   assigned_checklists?: Array<{ 
     id: string; 
     checklist_id: string; 
@@ -49,12 +49,12 @@ export function useGlobalShiftTemplatesQuery() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('ic_house_shift_templates')
-        .select('name')
+        .select('shift_template_name')
         .eq('is_active', true)
-        .order('name');
+        .order('shift_template_name');
       
       if (error) throw error;
-      const uniqueNames = Array.from(new Set(data.map(t => t.name)));
+      const uniqueNames = Array.from(new Set(data.map(t => t.shift_template_name)));
       return uniqueNames.map(name => ({ id: name, name }));
     },
     staleTime: 1000 * 60 * 30, // 30 minutes
@@ -67,7 +67,7 @@ export function useLeaveRequestsQuery(staffId: string, startDate: string, endDat
     queryFn: async () => {
       let query = supabase
         .from('ic_leave_requests')
-        .select('id, start_date, end_date, status, leave_type:ic_leave_types(name), staff_id, reason')
+        .select('id, start_date, end_date, status, leave_type:ic_leave_types(leave_type_name), staff_id, reason')
         .neq('status', 'rejected')
         .lte('start_date', endDate)
         .gte('end_date', startDate);
@@ -82,7 +82,7 @@ export function useLeaveRequestsQuery(staffId: string, startDate: string, endDat
         start_date: r.start_date,
         end_date: r.end_date,
         status: r.status,
-        leave_type_name: r.leave_type?.name ?? 'Leave',
+        leave_type_name: r.leave_type?.leave_type_name ?? 'Leave',
         staff_id: r.staff_id,
         reason: r.reason,
       }));
@@ -108,16 +108,17 @@ export function useShiftsQuery(staffId: string, startDate: string, endDate: stri
         .from('ic_staff_shifts')
         .select(`
           id, staff_id, start_date, end_date, start_time, end_time, house_id, shift_template, shift_template_id, notes,
-          staff_info:ic_staff(id, name),
-          house_info:ic_houses(id, name),
+          staff_info:ic_staff(id, staff_name),
+          house_info:ic_houses(id, house_name),
           type_details:ic_house_shift_templates(color_theme, icon_name),
           participants:ic_shift_participants(
-            participant:ic_participants(id, name)
+            participant:ic_participants(id, participant_name)
           ),
           assigned_checklists:ic_shift_assigned_checklists(
             id, checklist_id, assignment_title,
             submissions:ic_house_checklist_submissions(status),
             checklist:ic_house_checklists(
+              house_checklist_name,
               items:ic_house_checklist_items(id, title, sort_order)
             )
           ),
@@ -146,9 +147,9 @@ export function useShiftsQuery(staffId: string, startDate: string, endDate: stri
             start_time,
             end_time,
             location,
-            type:ic_house_calendar_event_types_master(name, color),
+            type:ic_house_calendar_event_types_master(event_type_name, color),
             house_id,
-            house:ic_houses(name),
+            house:ic_houses(house_name),
             staff_assignments:ic_house_calendar_event_staff!inner(staff_id)
           `)
           .eq('staff_assignments.staff_id', staffId)
@@ -176,7 +177,7 @@ export function useShiftsQuery(staffId: string, startDate: string, endDate: stri
         shift_template: 'Event',
         title: e.title,
         location: e.location,
-        type_name: e.type?.name,
+        type_name: e.type?.event_type_name,
         type_color: e.type?.color,
         entry_type: 'event' as const,
         house: e.house,
@@ -190,15 +191,15 @@ export function useShiftsQuery(staffId: string, startDate: string, endDate: stri
   const shifts = useMemo(() => {
     if (!query.data) return [];
     
-    const houseMap = new Map(houses.map(h => [h.id, { id: h.id, name: h.name }]));
-    const staffMap = new Map(staff.map(s => [s.id, s.name]));
+    const houseMap = new Map(houses.map(h => [h.id, { id: h.id, house_name: h.house_name }]));
+    const staffMap = new Map(staff.map(s => [s.id, s.staff_name]));
 
     return query.data.map((item: any): StaffShift => {
       const colorTheme = item.type_details?.color_theme || item.type_color;
       const iconName = item.type_details?.icon_name;
 
       // Use joined data if available (compact mode), otherwise fallback to global map (full mode)
-      const staffName = item.staff_info?.name || (item.staff_id ? staffMap.get(item.staff_id) : 'Unassigned') || 'Unassigned';
+      const staffName = item.staff_info?.staff_name || (item.staff_id ? staffMap.get(item.staff_id) : 'Unassigned') || 'Unassigned';
       const houseData = item.house_info || (item.house_id ? houseMap.get(item.house_id) : undefined);
 
       // Flatten participants if they are in the nested ic_shift_participants format
@@ -210,9 +211,9 @@ export function useShiftsQuery(staffId: string, startDate: string, endDate: stri
 
         return {
           id: actualPart?.id || p.id || p.participant_id,
-          name: actualPart?.name || p.name
+          participant_name: actualPart?.participant_name || p.participant_name
         };
-      }).filter((p: any) => p.id && p.name) || [];
+      }).filter((p: any) => p.id && p.participant_name) || [];
 
       return {
         ...item,
@@ -252,7 +253,7 @@ export function useRosterData(staffId?: string, options: { includeMetadata?: boo
       if (staffId && staffId !== 'all') {
         const { data, error } = await supabase
           .from('ic_house_staff_assignments')
-          .select('house:ic_houses(id, name, status, branch_id)')
+          .select('house:ic_houses(id, house_name, status, branch_id)')
           .eq('staff_id', staffId)
           .or(`end_date.is.null,end_date.gte.${today}`);
         
@@ -265,14 +266,14 @@ export function useRosterData(staffId?: string, options: { includeMetadata?: boo
         // Deduplicate by ID
         const uniqueHouses = Array.from(new Map(houses.map(h => [h.id, h])).values());
         
-        return uniqueHouses.sort((a, b) => a.name.localeCompare(b.name));
+        return uniqueHouses.sort((a, b) => a.house_name.localeCompare(b.house_name));
       }
 
       const { data, error } = await supabase
         .from('ic_houses')
-        .select('id, name, status, branch_id')
+        .select('id, house_name, status, branch_id')
         .eq('status', 'active')
-        .order('name');
+        .order('house_name');
       if (error) throw error;
       return data;
     },
@@ -285,9 +286,9 @@ export function useRosterData(staffId?: string, options: { includeMetadata?: boo
     queryFn: async () => {
       const { data, error } = await supabase
         .from('ic_participants')
-        .select('id, name, status, house_id')
+        .select('id, participant_name, status, house_id')
         .eq('status', 'active')
-        .order('name');
+        .order('participant_name');
       if (error) throw error;
       return data;
     },
@@ -302,16 +303,16 @@ export function useRosterData(staffId?: string, options: { includeMetadata?: boo
       const { data, error } = await supabase
         .from('ic_staff')
         .select(`
-          id, name, status, email,
+          id, staff_name, status, email,
           house_assignments:ic_house_staff_assignments(
             id,
             house_id,
             end_date,
-            house:ic_houses(id, name)
+            house:ic_houses(id, house_name)
           )
         `)
         .eq('status', 'active')
-        .order('name');
+        .order('staff_name');
       if (error) throw error;
       
       // Normalize and Filter house assignments (only active ones)
@@ -580,7 +581,7 @@ export function useRosterData(staffId?: string, options: { includeMetadata?: boo
               end_date: targetDateStr,
               start_time: type.default_start_time,
               end_time: type.default_end_time,
-              shift_template: type.name,
+              shift_template: type.shift_template_name,
               shift_template_id: type.id,
               notes: null
             });
@@ -614,7 +615,7 @@ export function useRosterData(staffId?: string, options: { includeMetadata?: boo
           checklistInserts.push({
             shift_id: shift.id,
             checklist_id: d.checklist_id,
-            assignment_title: d.checklist?.name || 'Routine Checklist',
+            assignment_title: d.checklist?.house_checklist_name || 'Routine Checklist',
             house_id: houseId,
             shift_template_id: shift.shift_template_id
           });
@@ -730,4 +731,3 @@ export function useRosterData(staffId?: string, options: { includeMetadata?: boo
     syncShiftChecklists
   ]);
 }
-

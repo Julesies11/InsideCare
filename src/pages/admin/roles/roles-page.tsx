@@ -52,7 +52,7 @@ export function RolesPage() {
 
   const sortedAndFilteredRoles = useMemo(() => {
     const filtered = roles.filter((role) =>
-      role.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      role.role_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (role.description && role.description.toLowerCase().includes(searchQuery.toLowerCase()))
     );
 
@@ -240,11 +240,11 @@ export function RolesPage() {
                     {sortedAndFilteredRoles.length > 0 ? (
                       sortedAndFilteredRoles.map((role) => (
                         <TableRow key={role.id}>
-                          <TableCell className="font-medium">{role.name}</TableCell>
+                          <TableCell className="font-medium">{role.role_name}</TableCell>
                           <TableCell>{role.description || '-'}</TableCell>
                           <TableCell>
                             <button 
-                              onClick={() => setViewingStaffRole({ id: role.id, name: role.name })}
+                              onClick={() => setViewingStaffRole({ id: role.id, role_name: role.role_name })}
                               className="group"
                             >
                               <Badge 
@@ -307,7 +307,7 @@ export function RolesPage() {
 
       <RoleStaffListDialog
         roleId={viewingStaffRole?.id || null}
-        roleName={viewingStaffRole?.name || null}
+        roleName={viewingStaffRole?.role_name || null}
         onClose={() => setViewingStaffRole(null)}
       />
     </Container>

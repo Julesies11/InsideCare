@@ -15,7 +15,7 @@ interface RoleMasterDialogProps {
   onUpdate: () => void;
 }
 
-type SortField = 'name' | 'description' | 'is_active';
+type SortField = 'role_name' | 'description' | 'is_active';
 type SortDirection = 'asc' | 'desc';
 
 export function RoleMasterDialog({
@@ -44,7 +44,7 @@ export function RoleMasterDialog({
 
   const sortedAndFilteredRoles = useMemo(() => {
     const filtered = roles.filter((role) =>
-      role.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      role.role_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (role.description && role.description.toLowerCase().includes(searchQuery.toLowerCase()))
     );
 
@@ -141,11 +141,11 @@ export function RoleMasterDialog({
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleSort('name')}
+                      onClick={() => handleSort('role_name')}
                       className="h-8 px-2"
                     >
                       Name
-                      {getSortIcon('name')}
+                      {getSortIcon('role_name')}
                     </Button>
                   </TableHead>
                   <TableHead>
@@ -176,7 +176,7 @@ export function RoleMasterDialog({
               <TableBody>
                 {sortedAndFilteredRoles.map((role) => (
                   <TableRow key={role.id}>
-                    <TableCell className="font-medium">{role.name}</TableCell>
+                    <TableCell className="font-medium">{role.role_name}</TableCell>
                     <TableCell>{role.description || '-'}</TableCell>
                     <TableCell>
                       <Badge variant={role.is_active ? 'success' : 'secondary'}>

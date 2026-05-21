@@ -112,7 +112,7 @@ export function HouseDetailContent({
         setLoading(true);
         const { data, error } = await supabase
           .from('ic_houses')
-          .select('id, name, branch_id, address, phone, house_type_id, capacity, current_occupancy, house_manager, status, notes, individuals_breakdown, participant_dynamics, observations, general_house_details, is_configured, setup_step, created_at, updated_at')
+          .select('id, house_name, branch_id, address, phone, house_type_id, capacity, current_occupancy, house_manager, status, notes, individuals_breakdown, participant_dynamics, observations, general_house_details, is_configured, setup_step, created_at, updated_at')
           .eq('id', id)
           .maybeSingle();
 
@@ -156,7 +156,7 @@ export function HouseDetailContent({
       const { data: houseData, error: houseError } = await supabase
         .from('ic_houses')
         .update({
-          name: currentFormData.name,
+          name: currentFormData.house_name,
           address: currentFormData.address || null,
           phone: currentFormData.phone || null,
           house_type_id: currentFormData.house_type_id || null,
@@ -187,24 +187,10 @@ export function HouseDetailContent({
           activityType: 'update',
           entityType: 'house',
           entityId: id!,
-          entityName: currentFormData.name,
+          entityName: currentFormData.house_name,
           changes: detailChanges,
           userName,
         });
-      }
-
-      // Get the staff record ID for the current authenticated user
-      let currentStaffId = null;
-      if (user?.id) {
-        const { data: staffData } = await supabase
-          .from('ic_staff')
-          .select('id')
-          .eq('auth_user_id', user.id)
-          .maybeSingle();
-        
-        if (staffData) {
-          currentStaffId = staffData.id;
-        }
       }
 
       // Step 2: Process pending participants
@@ -221,9 +207,9 @@ export function HouseDetailContent({
             activityType: 'update',
             entityType: 'house',
             entityId: id!,
-            entityName: currentFormData.name,
+            entityName: currentFormData.house_name,
             userName,
-            customDescription: `Linked participant "${p.name || p.participant_id}" to house`,
+            customDescription: `Linked participant "${p.participant_name || p.participant_id}" to house`,
           });
         }
       }
@@ -244,9 +230,9 @@ export function HouseDetailContent({
             activityType: 'update',
             entityType: 'house',
             entityId: id!,
-            entityName: currentFormData.name,
+            entityName: currentFormData.house_name,
             userName,
-            customDescription: `Updated participant "${p.name || p.id}" house settings`,
+            customDescription: `Updated participant "${p.participant_name || p.id}" house settings`,
           });
         }
       }
@@ -255,7 +241,7 @@ export function HouseDetailContent({
         // Fetch participant names before unlinking for the activity log
         const { data: participantsToDelete } = await supabase
           .from('ic_participants')
-          .select('id, name')
+          .select('id, participant_name')
           .in('id', currentPending.participants.toDelete);
 
         const { error } = await supabase
@@ -265,12 +251,12 @@ export function HouseDetailContent({
         if (error) throw new Error(`Failed to unlink participants: ${error.message}`);
 
         for (const pid of currentPending.participants.toDelete) {
-          const participantName = participantsToDelete?.find(p => p.id === pid)?.name || pid;
+          const participantName = participantsToDelete?.find(p => p.id === pid)?.participant_name || pid;
           await logActivity({
             activityType: 'update',
             entityType: 'house',
             entityId: id!,
-            entityName: currentFormData.name,
+            entityName: currentFormData.house_name,
             userName,
             customDescription: `Unlinked participant "${participantName}" from house`,
           });
@@ -295,7 +281,7 @@ export function HouseDetailContent({
             activityType: 'update',
             entityType: 'house',
             entityId: id!,
-            entityName: currentFormData.name,
+            entityName: currentFormData.house_name,
             userName,
             customDescription: `Assigned staff member "${_s.staff_name || _s.staff_id}" to house`,
           });
@@ -341,7 +327,6 @@ export function HouseDetailContent({
               end_time: event.end_time || null,
               status: event.status || 'scheduled',
               location: event.location || null,
-              created_by: currentStaffId,
               is_checklist_event: !!event.is_checklist_event,
               house_checklist_id: event.house_checklist_id || null,
               checklist_schedule_id: event.checklist_schedule_id || null,
@@ -438,7 +423,6 @@ export function HouseDetailContent({
               file_path: filePath,
               file_size: doc.file.size,
               file_type: doc.file.type,
-              uploaded_by: currentStaffId,
             });
 
           if (error) throw new Error(`Failed to save document record: ${error.message}`);
@@ -574,7 +558,6 @@ export function HouseDetailContent({
           description: form.description || null,
           frequency: form.frequency,
           status: form.status || 'active',
-          created_by: currentStaffId,
         }));
         const { error } = await supabase.from('ic_house_forms').insert(toInsert);
         if (error) throw new Error(`Failed to add forms: ${error.message}`);
@@ -613,7 +596,6 @@ export function HouseDetailContent({
           due_date: assignment.due_date || null,
           status: assignment.status || 'pending',
           notes: assignment.notes || null,
-          assigned_by: currentStaffId,
         }));
         const { error } = await supabase.from('ic_house_form_assignments').insert(toInsert);
         if (error) throw new Error(`Failed to add form assignments: ${error.message}`);
@@ -658,7 +640,6 @@ export function HouseDetailContent({
           file_name: resource.file_name || null,
           file_size: resource.file_size || null,
           notes: resource.notes || null,
-          created_by: currentStaffId,
         }));
         const { error } = await supabase.from('ic_house_resources').insert(toInsert);
         if (error) throw new Error(`Failed to add resources: ${error.message}`);
@@ -700,7 +681,6 @@ export function HouseDetailContent({
           house_id: id,
           entry_date: entry.entry_date,
           content: entry.content,
-          created_by: currentStaffId || entry.created_by,
         }));
         const { error } = await supabase.from('ic_house_comms').insert(toInsert);
         if (error) throw new Error(`Failed to add communication entries: ${error.message}`);
@@ -717,7 +697,7 @@ export function HouseDetailContent({
               .from('ic_house_shift_templates')
               .insert({
                 house_id: id,
-                name: st.name,
+                shift_template_shift_template_name: st.shift_template_name,
                 short_name: st.short_name || null,
                 icon_name: st.icon_name || null,
                 color_theme: st.color_theme || null,
@@ -748,7 +728,7 @@ export function HouseDetailContent({
             const { data: updatedType, error: typeError } = await supabase
               .from('ic_house_shift_templates')
               .update({
-                name: st.name,
+                shift_template_shift_template_name: st.shift_template_name,
                 short_name: st.short_name,
                 icon_name: st.icon_name,
                 color_theme: st.color_theme,

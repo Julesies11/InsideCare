@@ -50,12 +50,12 @@ export function RoleStaffListDialog({
                     <TableRow key={member.id} className="hover:bg-gray-50/30">
                       <TableCell className="py-3">
                         <div className="flex flex-col">
-                          <span className="font-semibold text-gray-900">{member.name}</span>
+                          <span className="font-semibold text-gray-900">{member.staff_name}</span>
                           <span className="text-xs text-gray-500">{member.email}</span>
                         </div>
                       </TableCell>
                       <TableCell className="py-3">
-                        {member.department_info?.name || '-'}
+                        {member.department_info?.department_name || '-'}
                       </TableCell>
                       <TableCell className="py-3">
                         <Badge variant={member.status === 'active' ? 'success' : 'secondary'} className="capitalize">

@@ -97,7 +97,7 @@ serve(async (req) => {
         role_id, 
         manager_id, 
         auth_user_id,
-        role:ic_roles(name)
+        role:ic_roles(role_name)
       `)
       .eq('auth_user_id', userId)
       .maybeSingle();
@@ -146,7 +146,7 @@ serve(async (req) => {
       ...modulePermissions 
     } = permissions || {};
 
-    const targetRoleName = staff.role?.name || '';
+    const targetRoleName = staff.role?.role_name || '';
     const isTargetAdmin = modulePermissions?.[ACCESS_CONTROL_MODULE] === 'full';
 
     const app_metadata = {

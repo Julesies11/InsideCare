@@ -2,7 +2,7 @@ export type ParticipantStatus = 'draft' | 'active' | 'inactive';
 
 export interface Participant {
   id: string;
-  name: string | null;
+  participant_name: string | null;
   photo_url?: string | null;
   email?: string | null;
   house_phone?: string | null;
@@ -59,6 +59,8 @@ export interface Participant {
   psychiatrist_location?: string | null;
   medical_routine_other?: string | null;
   medical_routine_general_process?: string | null;
+  created_by?: string;
+  updated_by?: string;
   created_at?: string;
   updated_at?: string;
 }

@@ -16,7 +16,7 @@ interface MedicationMasterDialogProps {
   onUpdate: () => void;
 }
 
-type SortField = 'name' | 'category' | 'is_active';
+type SortField = 'medication_name' | 'category' | 'is_active';
 type SortDirection = 'asc' | 'desc';
 
 export function MedicationMasterDialog({
@@ -30,7 +30,7 @@ export function MedicationMasterDialog({
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingMedication, setEditingMedication] = useState<MedicationMaster | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortField, setSortField] = useState<SortField>('name');
+  const [sortField, setSortField] = useState<SortField>('medication_name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
   const handleSort = (field: SortField) => {
@@ -44,7 +44,7 @@ export function MedicationMasterDialog({
 
   const sortedAndFilteredMedications = useMemo(() => {
     const filtered = medications.filter((med) =>
-      med.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      med.medication_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (med.category && med.category.toLowerCase().includes(searchQuery.toLowerCase()))
     );
 
@@ -97,14 +97,12 @@ export function MedicationMasterDialog({
         toast.success('Medication updated successfully');
       } else {
         await addMedication({
-          name: medicationData.name!,
+          medication_name: medicationData.medication_name!,
           category: medicationData.category || null,
           common_dosages: medicationData.common_dosages || null,
           side_effects: medicationData.side_effects || null,
           interactions: medicationData.interactions || null,
           is_active: medicationData.is_active ?? true,
-          created_by: null,
-          updated_by: null,
         });
         toast.success('Medication added successfully');
       }
@@ -165,10 +163,10 @@ export function MedicationMasterDialog({
                   <TableRow>
                     <TableHead 
                       className="cursor-pointer select-none"
-                      onClick={() => handleSort('name')}
+                      onClick={() => handleSort('medication_name')}
                     >
                       Medication Name
-                      <SortIcon field="name" />
+                      <SortIcon field="medication_name" />
                     </TableHead>
                     <TableHead 
                       className="cursor-pointer select-none"
@@ -193,7 +191,7 @@ export function MedicationMasterDialog({
                 <TableBody>
                   {sortedAndFilteredMedications.map((medication) => (
                     <TableRow key={medication.id}>
-                      <TableCell className="font-medium">{medication.name}</TableCell>
+                      <TableCell className="font-medium">{medication.medication_name}</TableCell>
                       <TableCell>
                         {medication.category ? (
                           <Badge variant="secondary">{medication.category}</Badge>

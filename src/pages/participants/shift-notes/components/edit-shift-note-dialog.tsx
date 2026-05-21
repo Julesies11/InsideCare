@@ -367,7 +367,7 @@ export function EditShiftNoteDialog({
                   <SelectItem value="none">No house selected</SelectItem>
                   {activeHouses.map((house) => (
                     <SelectItem key={house.id} value={house.id}>
-                      {house.name}
+                      {house.house_name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -392,7 +392,7 @@ export function EditShiftNoteDialog({
                   <SelectItem value="none">General / All</SelectItem>
                   {participants.map((participant) => (
                     <SelectItem key={participant.id} value={participant.id}>
-                      {participant.name}
+                      {participant.participant_name}
                     </SelectItem>
                   ))}
                 </SelectContent>

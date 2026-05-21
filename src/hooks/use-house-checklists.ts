@@ -9,7 +9,7 @@ export interface HouseChecklistItem {
   group_id?: string;
   group?: {
     id: string;
-    name: string;
+    shift_template_name: string;
     short_name?: string;
     color_theme?: string;
   };
@@ -24,7 +24,7 @@ export interface HouseChecklistItem {
 export interface HouseChecklist {
   id: string;
   house_id: string;
-  name: string;
+  house_checklist_name: string;
   days_of_week?: string[];
   description?: string;
   master_id?: string;
@@ -40,7 +40,7 @@ export interface HouseChecklist {
 }
 
 const HOUSE_CHECKLIST_COLUMNS = `
-  id, house_id, name, description, master_id, created_at, updated_at,
+  id, house_id, house_checklist_name, description, master_id, created_at, updated_at,
   house_checklist_items:ic_house_checklist_items(id, checklist_id, title, instructions, group_title, priority, is_required, sort_order, created_at, updated_at)
 `;
 
@@ -54,10 +54,10 @@ export function useHouseChecklists(houseId?: string, scheduledDate?: string) {
       const { data: checklists, error: clError } = await supabase
         .from('ic_house_checklists')
         .select(`
-          id, house_id, name, days_of_week, description, master_id, sort_order, created_at, updated_at,
+          id, house_id, house_checklist_name, days_of_week, description, master_id, sort_order, created_at, updated_at,
           house_checklist_items:ic_house_checklist_items(
             id, checklist_id, title, instructions, group_id, group_title, priority, is_required, sort_order, created_at, updated_at,
-            group:ic_house_shift_templates(id, name, short_name, color_theme)
+            group:ic_house_shift_templates(id, shift_template_name, short_name, color_theme)
           )
         `)
         .eq('house_id', houseId)

@@ -4,7 +4,7 @@ import { ContactTypeMaster } from '@/models/contact-type-master';
 import { useAuth } from '@/auth/context/auth-context';
 import { logActivity, detectChanges } from '@/lib/activity-logger';
 
-const CONTACT_TYPE_MASTER_COLUMNS = 'id, name, is_active, created_by, updated_by, created_at, updated_at';
+const CONTACT_TYPE_MASTER_COLUMNS = 'id, contact_type_name, is_active, created_by, updated_by, created_at, updated_at';
 
 export function useContactTypesMaster(includeInactive = true) {
   return useQuery({
@@ -13,7 +13,7 @@ export function useContactTypesMaster(includeInactive = true) {
       let query = supabase
         .from('ic_contact_types_master')
         .select(CONTACT_TYPE_MASTER_COLUMNS)
-        .order('name', { ascending: true });
+        .order('contact_type_name', { ascending: true });
 
       if (!includeInactive) {
         query = query.eq('is_active', true);
@@ -35,11 +35,7 @@ export function useAddContactTypeMaster() {
     mutationFn: async (contactType: Omit<ContactTypeMaster, 'id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
         .from('ic_contact_types_master')
-        .insert({
-          ...contactType,
-          created_by: user?.id || null,
-          updated_by: user?.id || null,
-        })
+        .insert(contactType)
         .select(CONTACT_TYPE_MASTER_COLUMNS)
         .maybeSingle();
 
@@ -52,7 +48,7 @@ export function useAddContactTypeMaster() {
         activityType: 'create',
         entityType: 'contact_type_master',
         entityId: data.id,
-        entityName: data.name,
+        entityName: data.contact_type_name,
         userName: user?.email || undefined,
       });
 
@@ -72,11 +68,7 @@ export function useUpdateContactTypeMaster() {
     mutationFn: async ({ id, updates, oldContactType }: { id: string; updates: Partial<ContactTypeMaster>; oldContactType?: ContactTypeMaster }) => {
       const { data, error } = await supabase
         .from('ic_contact_types_master')
-        .update({
-          ...updates,
-          updated_by: user?.id || null,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updates)
         .eq('id', id)
         .select(CONTACT_TYPE_MASTER_COLUMNS)
         .maybeSingle();
@@ -93,7 +85,7 @@ export function useUpdateContactTypeMaster() {
             activityType: 'update',
             entityType: 'contact_type_master',
             entityId: data.id,
-            entityName: data.name,
+            entityName: data.contact_type_name,
             changes,
             userName: user?.email || undefined,
           });
@@ -113,14 +105,12 @@ export function useDeleteContactTypeMaster() {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ id, name }: { id: string; name: string }) => {
+    mutationFn: async ({ id, contact_type_name }: { id: string; contact_type_name: string }) => {
       // Soft delete - mark as inactive
       const { error } = await supabase
         .from('ic_contact_types_master')
         .update({
           is_active: false,
-          updated_by: user?.id || null,
-          updated_at: new Date().toISOString(),
         })
         .eq('id', id);
 
@@ -130,7 +120,7 @@ export function useDeleteContactTypeMaster() {
         activityType: 'delete',
         entityType: 'contact_type_master',
         entityId: id,
-        entityName: name,
+        entityName: contact_type_name,
         userName: user?.email || undefined,
       });
     },

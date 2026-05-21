@@ -190,7 +190,7 @@ export function RolePermissionsMatrix() {
           <ShieldAlert className="size-4 text-amber-600" />
           <AlertTitle className="text-amber-800 font-bold">Admin Privileges Locked</AlertTitle>
           <AlertDescription className="text-amber-700">
-            The {selectedRole?.name} role has system-wide override access. These permissions are locked and cannot be reduced. 
+            The {selectedRole?.role_name} role has system-wide override access. These permissions are locked and cannot be reduced. 
             Certain personal modules (like Rosters and Timesheets) may not apply to full-time administrators.
           </AlertDescription>
         </Alert>
@@ -214,7 +214,7 @@ export function RolePermissionsMatrix() {
             <SelectContent>
               {activeRoles.map(role => (
                 <SelectItem key={role.id} value={role.id}>
-                  {role.name}
+                  {role.role_name}
                 </SelectItem>
               ))}
             </SelectContent>

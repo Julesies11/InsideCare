@@ -145,8 +145,8 @@ export function AdminTimesheetsPage() {
         break_minutes, shift_notes_text, notes, status, admin_notes, rejection_reason,
         submitted_at, incident_tag, sick_shift, overtime_hours, travel_km,
         overtime_explanation, created_at,
-        staff:staff_id(id, name, auth_user_id),
-        shift:shift_id(start_date, end_date, start_time, end_time, shift_template, house:house_id(name))
+        staff:staff_id(id, staff_name, auth_user_id),
+        shift:shift_id(start_date, end_date, start_time, end_time, shift_template, house:house_id(house_name))
       `)
       .order('submitted_at', { ascending: false, nullsFirst: false });
 
@@ -170,8 +170,8 @@ export function AdminTimesheetsPage() {
       if (!search.trim()) return true;
       const q = search.toLowerCase();
       return (
-        ts.staff?.name?.toLowerCase().includes(q) ||
-        ts.shift?.house?.name?.toLowerCase().includes(q) ||
+        ts.staff?.staff_name?.toLowerCase().includes(q) ||
+        ts.shift?.house?.house_name?.toLowerCase().includes(q) ||
         ts.shift?.start_date?.includes(q)
       );
     });
@@ -212,9 +212,9 @@ export function AdminTimesheetsPage() {
       activityType:      action === 'approve' ? 'approve' : 'reject',
       entityType:        'timesheet',
       entityId:          selected.id,
-      entityName:        `Timesheet – ${shiftDate} (${selected.staff?.name ?? 'Unknown'})`,
+      entityName:        `Timesheet – ${shiftDate} (${selected.staff?.staff_name ?? 'Unknown'})`,
       userName,
-      customDescription: `${action === 'approve' ? 'Approved' : 'Rejected'} timesheet for ${selected.staff?.name ?? 'staff'} on ${shiftDate}${action === 'reject' && rejectionReason ? `: ${rejectionReason}` : ''}`,
+      customDescription: `${action === 'approve' ? 'Approved' : 'Rejected'} timesheet for ${selected.staff?.staff_name ?? 'staff'} on ${shiftDate}${action === 'reject' && rejectionReason ? `: ${rejectionReason}` : ''}`,
     });
 
     if (selected.staff?.auth_user_id) {
@@ -249,7 +249,7 @@ export function AdminTimesheetsPage() {
     const now = new Date().toISOString();
     const { error } = await supabase
       .from('ic_timesheets')
-      .update({ status: 'approved', approved_at: now, approved_by: user?.staff_id ?? null, updated_at: now })
+      .update({ status: 'approved', approved_at: now, approved_by: user?.staff_id ?? null })
       .in('id', ids);
 
     if (error) { toast.error('Bulk approve failed'); setSaving(false); return; }
@@ -263,9 +263,9 @@ export function AdminTimesheetsPage() {
         activityType:      'approve',
         entityType:        'timesheet',
         entityId:          ts.id,
-        entityName:        `Timesheet – ${shiftDate} (${ts.staff?.name ?? 'Unknown'})`,
+        entityName:        `Timesheet – ${shiftDate} (${ts.staff?.staff_name ?? 'Unknown'})`,
         userName,
-        customDescription: `Bulk approved timesheet for ${ts.staff?.name ?? 'staff'} on ${shiftDate}`,
+        customDescription: `Bulk approved timesheet for ${ts.staff?.staff_name ?? 'staff'} on ${shiftDate}`,
       });
       if (ts.staff?.auth_user_id) {
         await NotificationService.notifyTimesheetApproved(
@@ -311,9 +311,9 @@ export function AdminTimesheetsPage() {
       enableHiding: false,
     },
     {
-      accessorKey: ic_staff.name',
+      accessorKey: 'staff_name',
       header: 'Staff',
-      cell: ({ row }) => <span className="font-medium">{row.original.staff?.name ?? 'Unknown'}</span>,
+      cell: ({ row }) => <span className="font-medium">{row.original.staff?.staff_name ?? 'Unknown'}</span>,
     },
     {
       accessorKey: 'date',
@@ -332,7 +332,7 @@ export function AdminTimesheetsPage() {
     {
       accessorKey: 'location',
       header: 'Location',
-      cell: ({ row }) => row.original.shift?.house?.name ?? '—',
+      cell: ({ row }) => row.original.shift?.house?.house_name ?? '—',
       meta: { className: 'hidden md:table-cell' },
     },
     {
@@ -560,7 +560,7 @@ export function AdminTimesheetsPage() {
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Staff</p>
-                    <p className="font-medium">{selected.staff?.name ?? 'Unknown'}</p>
+                    <p className="font-medium">{selected.staff?.staff_name ?? 'Unknown'}</p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Date</p>
@@ -575,7 +575,7 @@ export function AdminTimesheetsPage() {
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Location</p>
-                    <p className="font-medium">{selected.shift?.house?.name ?? '—'}</p>
+                    <p className="font-medium">{selected.shift?.house?.house_name ?? '—'}</p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Shift Template</p>

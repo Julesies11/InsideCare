@@ -16,7 +16,7 @@ interface ContactTypeMasterDialogProps {
   onUpdate: () => void;
 }
 
-type SortField = 'name' | 'is_active';
+type SortField = 'contact_type_name' | 'is_active';
 type SortDirection = 'asc' | 'desc';
 
 export function ContactTypeMasterDialog({
@@ -30,7 +30,7 @@ export function ContactTypeMasterDialog({
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingContactType, setEditingContactType] = useState<ContactTypeMaster | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortField, setSortField] = useState<SortField>('name');
+  const [sortField, setSortField] = useState<SortField>('contact_type_name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
   const handleSort = (field: SortField) => {
@@ -44,7 +44,7 @@ export function ContactTypeMasterDialog({
 
   const sortedAndFilteredContactTypes = useMemo(() => {
     const filtered = contactTypes.filter((ct) =>
-      ct.name.toLowerCase().includes(searchQuery.toLowerCase())
+      ct.contact_type_name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     filtered.sort((a, b) => {
@@ -96,10 +96,8 @@ export function ContactTypeMasterDialog({
         toast.success('Contact type updated successfully');
       } else {
         await addContactType({
-          name: contactTypeData.name!,
+          contact_type_name: contactTypeData.contact_type_name!,
           is_active: contactTypeData.is_active ?? true,
-          created_by: null,
-          updated_by: null,
         });
         toast.success('Contact type added successfully');
       }
@@ -152,10 +150,10 @@ export function ContactTypeMasterDialog({
                   <TableRow>
                     <TableHead 
                       className="cursor-pointer select-none"
-                      onClick={() => handleSort('name')}
+                      onClick={() => handleSort('contact_type_name')}
                     >
                       Contact Type Name
-                      <SortIcon field="name" />
+                      <SortIcon field="contact_type_name" />
                     </TableHead>
                     <TableHead 
                       className="cursor-pointer select-none"
@@ -170,7 +168,7 @@ export function ContactTypeMasterDialog({
                 <TableBody>
                   {sortedAndFilteredContactTypes.map((contactType) => (
                     <TableRow key={contactType.id}>
-                      <TableCell className="font-medium">{contactType.name}</TableCell>
+                      <TableCell className="font-medium">{contactType.contact_type_name}</TableCell>
                       <TableCell>
                         <Badge variant={contactType.is_active ? 'success' : 'secondary'}>
                           {contactType.is_active ? 'Active' : 'Inactive'}

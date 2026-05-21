@@ -3,14 +3,14 @@ import { supabase } from '@/lib/supabase';
 
 export interface EmploymentType {
   id: string;
-  name: string;
+  employment_type_name: string;
   description?: string | null;
   status: string;
   created_at?: string;
   updated_at?: string;
 }
 
-const EMPLOYMENT_TYPE_COLUMNS = 'id, name, description, status, created_at, updated_at';
+const EMPLOYMENT_TYPE_COLUMNS = 'id, employment_type_name, description, status, created_at, updated_at';
 
 export function useEmploymentTypesMaster() {
   return useQuery({
@@ -19,7 +19,7 @@ export function useEmploymentTypesMaster() {
       const { data, error } = await supabase
         .from('ic_employment_types_master')
         .select(EMPLOYMENT_TYPE_COLUMNS)
-        .order('name', { ascending: true });
+        .order('employment_type_name', { ascending: true });
 
       if (error) throw error;
       return data as EmploymentType[];

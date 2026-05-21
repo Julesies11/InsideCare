@@ -166,7 +166,7 @@ export function ShiftNotes({
   ].sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime());
 
   const getStaffName = (id: string) => {
-    return staff.find(s => s.id === id)?.name || 'Unknown Staff';
+    return staff.find(s => s.id === id)?.staff_name || 'Unknown Staff';
   };
 
   return (
@@ -215,7 +215,7 @@ export function ShiftNotes({
                         </div>
                       )}
                       <Badge variant="secondary" appearance="light" className="text-[10px]">
-                        By: {note.staff?.name || getStaffName(note.staff_id)}
+                        By: {note.staff?.staff_name || getStaffName(note.staff_id)}
                       </Badge>
                       {isPendingAdd && <Badge variant="outline" className="text-[10px] uppercase">New</Badge>}
                       {isPendingUpdate && <Badge variant="outline" className="text-[10px] uppercase border-warning text-warning">Pending Update</Badge>}
@@ -304,7 +304,7 @@ export function ShiftNotes({
                 </SelectTrigger>
                 <SelectContent>
                   {staff.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                    <SelectItem key={s.id} value={s.id}>{s.staff_name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

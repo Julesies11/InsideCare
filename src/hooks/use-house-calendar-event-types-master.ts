@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { HouseCalendarEventType } from './useHouseCalendarEvents';
 
-const EVENT_TYPE_COLUMNS = 'id, name, description, status, color, created_at, updated_at';
+const EVENT_TYPE_COLUMNS = 'id, event_type_name, description, status, color, created_at, updated_at';
 
 export function useHouseCalendarEventTypesMaster() {
   return useQuery({
@@ -11,7 +11,7 @@ export function useHouseCalendarEventTypesMaster() {
       const { data, error } = await supabase
         .from('ic_house_calendar_event_types_master')
         .select(EVENT_TYPE_COLUMNS)
-        .order('name', { ascending: true });
+        .order('event_type_name', { ascending: true });
 
       if (error) throw error;
       return data as HouseCalendarEventType[];

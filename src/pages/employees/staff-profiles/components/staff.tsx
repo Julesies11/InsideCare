@@ -141,12 +141,12 @@ const StaffTable = () => {
   const columns: ColumnDef<Staff>[] = [
     {
       id: 'name',
-      accessorKey: 'name',
+      accessorKey: 'staff_name',
       header: ({ column }) => (
         <DataGridColumnHeader title="Name" column={column} />
       ),
       cell: ({ row }) => {
-        const name = row.original.name;
+        const name = row.original.staff_name;
         const initials = name
           ? name.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2)
           : '??';
@@ -191,7 +191,7 @@ const StaffTable = () => {
                 key={assignment.id} 
                 className="text-sm font-medium text-gray-700 dark:text-gray-300"
               >
-                {assignment.house?.name || 'Unknown House'}
+                {assignment.house?.house_name || 'Unknown House'}
               </span>
             ))}
           </div>
@@ -215,7 +215,7 @@ const StaffTable = () => {
       ),
       cell: ({ row }) => (
         <span className="text-sm text-gray-700 dark:text-gray-300">
-          {row.original.role?.name || '-'}
+          {row.original.role?.role_name || '-'}
         </span>
       ),
       meta: {
@@ -232,7 +232,7 @@ const StaffTable = () => {
       ),
       cell: ({ row }) => (
         <Badge variant="secondary" className="text-xs">
-          {row.original.employment_type_info?.name || 'Not Specified'}
+          {row.original.employment_type_info?.employment_type_name || 'Not Specified'}
         </Badge>
       ),
       meta: {

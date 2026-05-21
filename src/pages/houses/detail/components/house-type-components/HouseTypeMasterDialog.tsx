@@ -16,7 +16,7 @@ interface HouseTypeMasterDialogProps {
   onUpdate: () => void;
 }
 
-type SortField = 'name' | 'description' | 'status';
+type SortField = 'house_type_name' | 'description' | 'status';
 type SortDirection = 'asc' | 'desc';
 
 export function HouseTypeMasterDialog({
@@ -30,7 +30,7 @@ export function HouseTypeMasterDialog({
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingHouseType, setEditingHouseType] = useState<HouseType | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortField, setSortField] = useState<SortField>('name');
+  const [sortField, setSortField] = useState<SortField>('house_type_name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
   const handleSort = (field: SortField) => {
@@ -44,7 +44,7 @@ export function HouseTypeMasterDialog({
 
   const sortedAndFilteredHouseTypes = useMemo(() => {
     const filtered = houseTypes.filter((type) =>
-      type.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      type.house_type_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (type.description && type.description.toLowerCase().includes(searchQuery.toLowerCase()))
     );
 
@@ -97,7 +97,7 @@ export function HouseTypeMasterDialog({
         toast.success('House type updated successfully');
       } else {
         await addHouseType({
-          name: houseTypeData.name!,
+          house_type_name: houseTypeData.house_type_name!,
           description: houseTypeData.description || null,
           status: houseTypeData.status || 'Active',
         });
@@ -148,11 +148,11 @@ export function HouseTypeMasterDialog({
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleSort('name')}
+                      onClick={() => handleSort('house_type_name')}
                       className="h-8 px-2"
                     >
                       Name
-                      {getSortIcon('name')}
+                      {getSortIcon('house_type_name')}
                     </Button>
                   </TableHead>
                   <TableHead>
@@ -183,7 +183,7 @@ export function HouseTypeMasterDialog({
               <TableBody>
                 {sortedAndFilteredHouseTypes.map((houseType) => (
                   <TableRow key={houseType.id}>
-                    <TableCell className="font-medium">{houseType.name}</TableCell>
+                    <TableCell className="font-medium">{houseType.house_type_name}</TableCell>
                     <TableCell>{houseType.description || '-'}</TableCell>
                     <TableCell>
                       <Badge variant={houseType.status === 'Active' ? 'success' : 'secondary'}>

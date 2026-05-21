@@ -113,7 +113,7 @@ export const SupabaseAdapter = {
     try {
       const { data } = await supabase
         .from('ic_staff')
-        .select('id, name, photo_url, role:ic_roles(name)')
+        .select('id, staff_name, photo_url, role:ic_roles(role_name)')
         .eq('auth_user_id', user.id)
         .maybeSingle();
       staffRow = data;
@@ -124,10 +124,11 @@ export const SupabaseAdapter = {
     const staff_id = staffRow?.id ?? appMetadata.staff_id ?? undefined;
     const staff_name = staffRow?.name ?? undefined;
     const photo_url = staffRow?.photo_url ?? null;
-    const role_name = (staffRow as any)?.role?.name ?? appMetadata.role_name ?? undefined;
+    const role_name = (staffRow as any)?.role?.role_name ?? appMetadata.role_name ?? undefined;
     
     // Format data to maintain compatibility with existing UI
     return {
+      id: user.id,
       email: user.email || '',
       email_verified: user.email_confirmed_at !== null,
       username: userMetadata.username || '',

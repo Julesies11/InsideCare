@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 export interface HouseShiftTemplate {
   id: string;
   house_id: string;
-  name: string;
+  shift_template_name: string;
   short_name?: string;
   icon_name?: string;
   color_theme?: string;
@@ -23,7 +23,7 @@ export interface ShiftTemplateDefaultChecklist {
   checklist_id: string;
   checklist?: {
     id: string;
-    name: string;
+    house_checklist_name: string;
     description: string;
     items?: Array<{ id: string; title: string; sort_order: number }>;
   };
@@ -45,7 +45,7 @@ export function useHouseShiftTemplates(houseId?: string) {
           .order('sort_order', { ascending: true }),
         supabase
           .from('ic_shift_template_default_checklists')
-          .select('*, checklist:ic_house_checklists(id, name, description, items:ic_house_checklist_items(id, title, sort_order))')
+          .select('*, checklist:ic_house_checklists(id, house_checklist_name, description, items:ic_house_checklist_items(id, title, sort_order))')
           .in('shift_template_id', (await supabase.from('ic_house_shift_templates').select('id').eq('house_id', houseId)).data?.map(t => t.id) || [])
       ]);
 

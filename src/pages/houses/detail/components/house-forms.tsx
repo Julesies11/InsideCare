@@ -147,7 +147,6 @@ export function HouseForms({
     const formData = {
       ...data,
       house_id: houseId,
-      created_by: user?.id,
     };
 
     if (editingForm) {
@@ -526,7 +525,7 @@ export function HouseForms({
                                 const isAssignmentPendingAdd = 'tempId' in assignment;
                                 const isAssignmentPendingUpdate = pendingChanges?.formAssignments.toUpdate.some(a => a.id === assignment.id);
                                 const isAssignmentPendingDelete = pendingChanges?.formAssignments.toDelete.includes(assignment.id);
-                                const assignedTo = assignment.participant?.name || assignment.staff?.name || 'Unknown';
+                                const assignedTo = assignment.participant?.participant_name || assignment.staff?.staff_name || 'Unknown';
                                 const assignedType = assignment.participant ? 'Participant' : 'Staff';
 
                                 return (
@@ -813,7 +812,7 @@ export function HouseForms({
                           <SelectItem value="">None</SelectItem>
                           {participants.map((participant) => (
                             <SelectItem key={participant.id} value={participant.id}>
-                              {participant.name}
+                              {participant.participant_name}
                             </SelectItem>
                           ))}
                         </SelectContent>

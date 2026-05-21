@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase';
 
 export interface HouseCalendarEventType {
   id: string;
-  name: string;
+  event_type_name: string;
   description: string | null;
   status: 'Active' | 'Inactive';
   color: string;
@@ -40,8 +40,8 @@ export interface HouseCalendarEvent {
   created_at: string;
   updated_at: string;
   // Relationship data from junction tables
-  event_participants?: Array<{ participant: { id: string; name: string } }>;
-  event_staff?: Array<{ staff: { id: string; name: string } }>;
+  event_participants?: Array<{ participant: { id: string; participant_name: string } }>;
+  event_staff?: Array<{ staff: { id: string; staff_name: string } }>;
   // Checklist-specific fields
   is_checklist_event?: boolean;
   house_checklist_id?: string;
@@ -60,7 +60,7 @@ export interface HouseCalendarEvent {
   }>;
   creator?: {
     id: string;
-    name: string;
+    staff_name: string;
     email?: string;
   };
 }
@@ -102,7 +102,7 @@ export function useHouseCalendarEvents(houseId?: string, staffId?: string) {
           checklist_schedule_id,
           event_type_info:ic_house_calendar_event_types_master(*),
           attachments:ic_house_calendar_event_attachments(*),
-          creator:ic_staff!created_by(id, name, email),
+          creator:ic_staff!created_by(id, staff_name, email),
           submissions:ic_house_checklist_submissions(
             id, 
             status, 
@@ -113,11 +113,11 @@ export function useHouseCalendarEvents(houseId?: string, staffId?: string) {
               status,
               is_completed,
               note,
-              completed_by_staff:ic_staff!completed_by(id, name)
+              completed_by_staff:ic_staff!completed_by(id, staff_name)
             )
           ),
-          event_participants:ic_house_calendar_event_participants(participant:ic_participants(id, name)),
-          event_staff:ic_house_calendar_event_staff(staff:ic_staff(id, name))
+          event_participants:ic_house_calendar_event_participants(participant:ic_participants(id, participant_name)),
+          event_staff:ic_house_calendar_event_staff(staff:ic_staff(id, staff_name))
         `)
         .eq('house_id', houseId)
         .order('event_date', { ascending: true });
@@ -128,8 +128,8 @@ export function useHouseCalendarEvents(houseId?: string, staffId?: string) {
         let type = 'other';
         if (e.is_checklist_event) {
           type = 'checklist';
-        } else if (e.event_type_info?.name) {
-          const name = e.event_type_info.name.toLowerCase();
+        } else if (e.event_type_info?.event_type_name) {
+          const name = e.event_type_info.event_type_name.toLowerCase();
           if (name.includes('meeting')) type = 'meeting';
           else if (name.includes('appointment')) type = 'appointment';
           else if (name.includes('clinical')) type = 'clinical';
@@ -161,8 +161,8 @@ export function useHouseCalendarEvents(houseId?: string, staffId?: string) {
           shift_template,
           shift_template_id,
           type_details:ic_house_shift_templates(color_theme, icon_name),
-          staff:staff_id(id, name),
-          participants:ic_shift_participants(participant:ic_participants(id, name)),
+          staff:staff_id(id, staff_name),
+          participants:ic_shift_participants(participant:ic_participants(id, participant_name)),
           assigned_checklists:ic_shift_assigned_checklists(
             id, 
             checklist_id, 
@@ -186,7 +186,7 @@ export function useHouseCalendarEvents(houseId?: string, staffId?: string) {
           combinedEvents.push({
             id: `shift-${shift.id}`,
             house_id: houseId,
-            title: `${shift.shift_template || 'Shift'} - ${shift.staff?.name || 'Unassigned'}`,
+            title: `${shift.shift_template || 'Shift'} - ${shift.staff?.staff_name || 'Unassigned'}`,
             type: 'shift',
             shift_template: shift.shift_template,
             shift_template_id: shift.shift_template_id,
@@ -201,10 +201,10 @@ export function useHouseCalendarEvents(houseId?: string, staffId?: string) {
               return {
                 participant: {
                   id: actualPart?.id || p.id || p.participant_id,
-                  name: actualPart?.name || p.name
+                  participant_name: actualPart?.participant_name || p.participant_name
                 }
               };
-            }).filter((p: any) => p.participant.id && p.participant.name) || [],
+            }).filter((p: any) => p.participant.id && p.participant.participant_name) || [],
             assigned_checklists: shift.assigned_checklists,
             status: 'scheduled'
           } as any);

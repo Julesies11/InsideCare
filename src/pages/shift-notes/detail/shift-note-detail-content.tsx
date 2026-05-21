@@ -58,7 +58,7 @@ export function ShiftNoteDetailContent({
       setLoading(true);
       const { data, error } = await supabase
         .from('ic_shift_notes')
-        .select('id, participant_id, staff_id, start_date, shift_time, house_id, shift_id, notes, full_note, tags, created_at, updated_at, participant:ic_participants(id, name), staff:ic_staff(id, name), house:ic_houses(id, name), shift:ic_staff_shifts(id, start_time, end_time, shift_template)')
+        .select('id, participant_id, staff_id, start_date, shift_time, house_id, shift_id, notes, full_note, tags, created_at, updated_at, participant:ic_participants(id, participant_name), staff:ic_staff(id, staff_name), house:ic_houses(id, house_name), shift:ic_staff_shifts(id, start_time, end_time, shift_template)')
         .eq('id', id)
         .maybeSingle();
 

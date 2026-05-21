@@ -64,14 +64,16 @@ export function useNotifications() {
     fetchNotifications(50, 0);
 
     // Subscribe to real-time inserts for this user
+    // Use a globally unique channel name per hook instance to avoid collisions across multiple components
+    const channelName = `ic_notifications_${user.id}_${Math.random().toString(36).substring(7)}`;
     const channel = supabase
-      .channel('public:notifications')
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'notifications',
+          table: 'ic_notifications',
           filter: `user_id=eq.${user.id}`,
         },
         (payload) => {

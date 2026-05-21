@@ -30,7 +30,7 @@ export function useCurrentStaffShift(staffId?: string) {
       // This handles overnight shifts (start_date=yesterday, end_date=today)
       const { data: activeShifts, error: activeError } = await supabase
         .from('ic_staff_shifts')
-        .select('id, staff_id, house_id, start_date, start_time, end_date, end_time, house:ic_houses(id, name)')
+        .select('id, staff_id, house_id, start_date, start_time, end_date, end_time, house:ic_houses(id, house_name)')
         .eq('staff_id', staffId)
         .gte('end_date', today)
         .lte('start_date', today);
@@ -55,7 +55,7 @@ export function useCurrentStaffShift(staffId?: string) {
       // 2. If no active shift, find the NEXT shift for today
       const { data: nextShift, error: nextError } = await supabase
         .from('ic_staff_shifts')
-        .select('id, staff_id, house_id, start_date, start_time, end_date, end_time, house:ic_houses(id, name)')
+        .select('id, staff_id, house_id, start_date, start_time, end_date, end_time, house:ic_houses(id, house_name)')
         .eq('staff_id', staffId)
         .eq('start_date', today)
         .gt('start_time', nowTime)
@@ -68,7 +68,7 @@ export function useCurrentStaffShift(staffId?: string) {
       // 3. If still nothing, check for the most RECENT shift today (in case they just finished)
       const { data: pastShift } = await supabase
         .from('ic_staff_shifts')
-        .select('id, staff_id, house_id, start_date, start_time, end_date, end_time, house:ic_houses(id, name)')
+        .select('id, staff_id, house_id, start_date, start_time, end_date, end_time, house:ic_houses(id, house_name)')
         .eq('staff_id', staffId)
         .eq('start_date', today)
         .lt('end_time', nowTime)

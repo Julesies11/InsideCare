@@ -16,7 +16,7 @@ interface HouseCalendarEventTypeMasterDialogProps {
   onUpdate: () => void;
 }
 
-type SortField = 'name' | 'description' | 'status';
+type SortField = 'event_type_name' | 'description' | 'status';
 type SortDirection = 'asc' | 'desc';
 
 export function HouseCalendarEventTypeMasterDialog({
@@ -44,7 +44,7 @@ export function HouseCalendarEventTypeMasterDialog({
 
   const sortedAndFilteredEventTypes = useMemo(() => {
     const filtered = eventTypes.filter((type) =>
-      type.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      type.event_type_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (type.description && type.description.toLowerCase().includes(searchQuery.toLowerCase()))
     );
 
@@ -97,7 +97,7 @@ export function HouseCalendarEventTypeMasterDialog({
         toast.success('Event type updated successfully');
       } else {
         await addEventType({
-          name: eventTypeData.name!,
+          event_type_name: eventTypeData.event_type_name!,
           description: eventTypeData.description || null,
           status: eventTypeData.status || 'Active',
           color: (eventTypeData as any).color || 'blue',
@@ -149,11 +149,11 @@ export function HouseCalendarEventTypeMasterDialog({
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleSort('name')}
+                      onClick={() => handleSort('event_type_name')}
                       className="h-8 px-2"
                     >
                       Name
-                      {getSortIcon('name')}
+                      {getSortIcon('event_type_name')}
                     </Button>
                   </TableHead>
                   <TableHead>
@@ -185,7 +185,7 @@ export function HouseCalendarEventTypeMasterDialog({
               <TableBody>
                 {sortedAndFilteredEventTypes.map((eventType) => (
                   <TableRow key={eventType.id}>
-                    <TableCell className="font-medium">{eventType.name}</TableCell>
+                    <TableCell className="font-medium">{eventType.event_type_name}</TableCell>
                     <TableCell>{eventType.description || '-'}</TableCell>
                     <TableCell>
                       <Badge variant={eventType.status === 'Active' ? 'success' : 'secondary'}>

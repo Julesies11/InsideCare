@@ -82,10 +82,10 @@ export function RoleCombobox({
                     activeRoles.map((role) => (
                       <CommandItem
                         key={role.id}
-                        value={role.name}
+                        value={role.role_name}
                         onSelect={() => handleSelect(role.id)}
                       >
-                        <span className="truncate flex-1">{role.name}</span>
+                        <span className="truncate flex-1">{role.role_name}</span>
                         {value === role.id && <CommandCheck />}
                       </CommandItem>
                     ))

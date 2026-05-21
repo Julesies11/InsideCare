@@ -85,7 +85,7 @@ export function StaffDashboard() {
                       {currentShift.checklist_stats?.all_done ? <CheckCircle2 className="size-6" /> : <PlayCircle className="size-6" />}
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-lg font-bold text-gray-900">Active Shift: {currentShift.house?.name}</h3>
+                      <h3 className="text-lg font-bold text-gray-900">Active Shift: {currentShift.house?.house_name}</h3>
                       <p className="text-sm text-muted-foreground">
                         Started at {currentShift.start_time.slice(0, 5)} · Scheduled until {currentShift.end_time.slice(0, 5)}
                       </p>
@@ -170,7 +170,7 @@ export function StaffDashboard() {
                         <div className="flex items-center gap-2 mt-0.5">
                           <p className="text-xs text-muted-foreground">
                             {item.start_time?.slice(0, 5)} – {item.end_time?.slice(0, 5)}
-                            {item.house ? ` · ${item.house.name}` : ''}
+                            {item.house ? ` · ${item.house.house_name}` : ''}
                             {item.entry_type === 'event' && item.location ? ` · ${item.location}` : ''}
                           </p>
                         </div>
@@ -208,7 +208,7 @@ export function StaffDashboard() {
                   {pendingLeave.map((req: any) => (
                     <div key={req.id} className="flex items-center justify-between py-2.5">
                       <div>
-                        <p className="text-sm font-medium">{req.leave_type?.name ?? 'Leave'}</p>
+                        <p className="text-sm font-medium">{req.leave_type?.leave_type_name ?? 'Leave'}</p>
                         <p className="text-xs text-muted-foreground">
                           {format(new Date(req.start_date), 'dd MMM')} – {format(new Date(req.end_date), 'dd MMM yyyy')}
                         </p>

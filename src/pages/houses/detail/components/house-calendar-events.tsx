@@ -221,7 +221,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
         const assignmentHouseId = (a.house_id || a.house?.id || '').toLowerCase();
         return assignmentHouseId === targetHouseId;
       });
-    }).map(s => ({ id: s.id, name: s.name }));
+    }).map(s => ({ id: s.id, staff_name: s.staff_name }));
   }, [allRosterStaff, houseId]);
 
   const houseLeaveBlocks = useMemo(() => {
@@ -240,9 +240,9 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
     shift_template: event.shift_template,
     color_theme: event.type_details?.color_theme,
     icon_name: event.type_details?.icon_name,
-    staff_name: event.event_staff?.[0]?.staff?.name,
+    staff_name: event.event_staff?.[0]?.staff?.staff_name,
     staff_id: event.event_staff?.[0]?.staff?.id,
-    participants: event.event_participants?.map((p: any) => ({ id: p.participant.id, name: p.participant.name })) || event.participants,
+    participants: event.event_participants?.map((p: any) => ({ id: p.participant.id, participant_name: p.participant.participant_name })) || event.participants,
     assigned_checklists: event.assigned_checklists?.map((ac: any) => ({
       id: ac.id,
       checklist_id: ac.checklist_id,
@@ -364,7 +364,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
           .from('ic_staff_shifts')
           .select(`
             *,
-            participants:ic_shift_participants(participant:ic_participants(id, name)),
+            participants:ic_shift_participants(participant:ic_participants(id, participant_name)),
             assigned_checklists:ic_shift_assigned_checklists(id, checklist_id, assignment_title)
           `)
           .eq('id', shiftId)
@@ -430,7 +430,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
             .from('ic_house_checklist_submission_items')
             .select(`
               *,
-              completed_by_staff:ic_staff!completed_by(id, name)
+              completed_by_staff:ic_staff!completed_by(id, staff_name)
             `)
             .eq('submission_id', existingSubmission.id);
 
@@ -445,7 +445,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
             if (isDone && si.completed_by_staff) {
               completedBy[si.item_id] = {
                 id: si.completed_by_staff.id,
-                name: si.completed_by_staff.name
+                name: si.completed_by_staff.staff_name
               };
             }
           });
@@ -696,7 +696,6 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
         assigned_staff_ids: formData.assigned_staff_ids || [],
         status: formData.status || 'scheduled',
         location: formData.location || null,
-        created_by: user?.id,
         is_checklist_event: !!formData.house_checklist_id,
         house_checklist_id: formData.house_checklist_id || null,
       };
@@ -962,7 +961,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
   // Helper function to get participant name
   const getParticipantName = (event: any) => {
     if (event.event_participants?.length > 0) {
-      const names = event.event_participants.map((ep: any) => ep.participant?.name).filter(Boolean);
+      const names = event.event_participants.map((ep: any) => ep.participant?.participant_name).filter(Boolean);
       if (names.length > 0) return names.join(', ');
     }
     return null;
@@ -971,7 +970,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
   // Helper function to get staff name
   const getStaffName = (event: any) => {
     if (event.event_staff?.length > 0) {
-      const names = event.event_staff.map((es: any) => es.staff?.name).filter(Boolean);
+      const names = event.event_staff.map((es: any) => es.staff?.staff_name).filter(Boolean);
       if (names.length > 0) return names.join(', ');
     }
     return null;
@@ -1200,9 +1199,9 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
                                     ? 'bg-yellow-100 text-yellow-800 border-yellow-300' 
                                     : 'bg-gray-100 text-gray-600 border-gray-300'
                                 )}
-                                title={`${staffList.find(s => s.id === leave.staff_id)?.name}: ${leave.leave_type_name}${leave.reason ? ` - ${leave.reason}` : ''}`}
+                                title={`${staffList.find(s => s.id === leave.staff_id)?.staff_name}: ${leave.leave_type_name}${leave.reason ? ` - ${leave.reason}` : ''}`}
                               >
-                                🏖 {staffList.find(s => s.id === leave.staff_id)?.name}: {leave.leave_type_name}
+                                🏖 {staffList.find(s => s.id === leave.staff_id)?.staff_name}: {leave.leave_type_name}
                                 {leave.reason && <div className="font-normal opacity-70 mt-0.5">{leave.reason.length > 50 ? `${leave.reason.slice(0, 50)}...` : leave.reason}</div>}
                               </div>
                             ))}
@@ -1248,7 +1247,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
                                     <div className="flex flex-col gap-1">
                                       <div className="text-[9px] text-gray-500 font-bold uppercase tracking-tighter flex items-center gap-1.5">
                                         {event.is_checklist_event && <CheckSquare className={`size-2.5 text-${getTypeColor(event)}-600`} />}
-                                        {event.is_checklist_event ? 'CHECKLIST' : (event.event_type_info?.name || event.type)}
+                                        {event.is_checklist_event ? 'CHECKLIST' : (event.event_type_info?.event_type_name || event.type)}
                                       </div>
                                       
                                       <div className="flex items-start gap-1.5">
@@ -1312,7 +1311,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
                                 <div className="flex items-center gap-2 mb-1">
                                   {event.is_checklist_event && <CheckSquare className={`size-4 text-${getTypeColor(event)}-600`} />}
                                   <h4 className="font-bold text-gray-900">{event.title}</h4>                                <Badge variant="outline" className={`text-[10px] border-${getTypeColor(event)}-200 text-${getTypeColor(event)}-700 bg-${getTypeColor(event)}-50 uppercase font-bold`}>
-                                    {(event.event_type_info?.name || event.type)}
+                                    {(event.event_type_info?.event_type_name || event.type)}
                                   </Badge>
                                 </div>
                                 <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
@@ -1411,9 +1410,9 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
                                       ? 'bg-yellow-100 text-yellow-800 border-yellow-300' 
                                       : 'bg-gray-100 text-gray-600 border-gray-300'
                                   )}
-                                  title={`${staffList.find(s => s.id === leave.staff_id)?.name}: ${leave.leave_type_name}${leave.reason ? ` - ${leave.reason}` : ''}`}
+                                  title={`${staffList.find(s => s.id === leave.staff_id)?.staff_name}: ${leave.leave_type_name}${leave.reason ? ` - ${leave.reason}` : ''}`}
                                 >
-                                  🏖 {staffList.find(s => s.id === leave.staff_id)?.name}: {leave.leave_type_name}
+                                  🏖 {staffList.find(s => s.id === leave.staff_id)?.staff_name}: {leave.leave_type_name}
                                 </div>
                               ))}
 
@@ -1462,7 +1461,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
                                     <div className="flex items-center justify-between gap-1">
                                       <span className="uppercase font-bold text-[8px] opacity-70 truncate flex items-center gap-1">
                                         {Icon && <Icon className="size-2 shrink-0" />}
-                                        {event.is_checklist_event ? 'CHECKLIST' : (event.event_type_info?.name || event.type)}
+                                        {event.is_checklist_event ? 'CHECKLIST' : (event.event_type_info?.event_type_name || event.type)}
                                       </span>
                                       <span className={cn(
                                         "size-1.5 rounded-full shrink-0",
@@ -1615,7 +1614,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
                           }));
                         }}
                       />
-                      <span className="text-sm">{participant.name}</span>
+                      <span className="text-sm">{participant.participant_name}</span>
                     </label>
                   ))}
                   {participants.length === 0 && (
@@ -1655,9 +1654,9 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
                       <div className="flex items-center gap-2">
                         <Avatar className="size-5">
                           <AvatarImage src={(staffMember as any).photo_url} />
-                          <AvatarFallback className="text-[8px]">{staffMember.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                          <AvatarFallback className="text-[8px]">{staffMember.staff_name?.substring(0, 2).toUpperCase()}</AvatarFallback>
                         </Avatar>
-                        <span className="text-sm">{staffMember.name}</span>
+                        <span className="text-sm">{staffMember.staff_name}</span>
                       </div>
                     </label>
                   ))}
@@ -1711,7 +1710,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
               <div className="flex flex-col gap-1">
                 <DialogTitle className="flex items-center gap-2">
                   <CheckSquare className="size-5 text-primary" />
-                  {executingChecklist?.name}
+                  {executingChecklist?.house_checklist_name}
                 </DialogTitle>
                 <DialogDescription>
                   Date: {selectedEvent && format(new Date(selectedEvent.event_date), 'EEEE, MMMM d, yyyy')}

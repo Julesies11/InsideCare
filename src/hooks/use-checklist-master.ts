@@ -14,14 +14,14 @@ export interface ChecklistMasterItem {
 
 export interface ChecklistMaster {
   id: string;
-  name: string;
+  checklist_name: string;
   days_of_week?: string[];
   description?: string;
   items?: ChecklistMasterItem[];
 }
 
 const CHECKLIST_MASTER_COLUMNS = `
-  id, name, days_of_week, description,
+  id, checklist_name, days_of_week, description,
   items:ic_checklist_item_master(id, master_id, title, instructions, group_title, priority, is_required, sort_order)
 `;
 
@@ -32,7 +32,7 @@ export function useChecklistMaster() {
       const { data, error } = await supabase
         .from('ic_checklist_master')
         .select(CHECKLIST_MASTER_COLUMNS)
-        .order('name', { ascending: true });
+        .order('checklist_name', { ascending: true });
 
       if (error) throw error;
 

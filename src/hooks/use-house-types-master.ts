@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { HouseType } from '@/models/house';
 
-const HOUSE_TYPE_COLUMNS = 'id, name, description, status, created_at, updated_at';
+const HOUSE_TYPE_COLUMNS = 'id, house_type_name, description, status, created_at, updated_at';
 
 export function useHouseTypesMaster() {
   return useQuery({
@@ -11,7 +11,7 @@ export function useHouseTypesMaster() {
       const { data, error } = await supabase
         .from('ic_house_types_master')
         .select(HOUSE_TYPE_COLUMNS)
-        .order('name', { ascending: true });
+        .order('house_type_name', { ascending: true });
 
       if (error) throw error;
       return data as HouseType[];

@@ -59,7 +59,7 @@ export function ChecklistExecutionDialog({
             is_completed, 
             note, 
             completed_at,
-            completed_by_staff:ic_staff!completed_by(id, name)
+            completed_by_staff:ic_staff!completed_by(id, staff_name)
           )
         `)
         .eq('checklist_id', checklist.id)
@@ -80,7 +80,7 @@ export function ChecklistExecutionDialog({
           if (isDone && item.completed_by_staff) {
             completedBy[item.item_id] = {
               id: item.completed_by_staff.id,
-              name: item.completed_by_staff.name
+              name: item.completed_by_staff.staff_name
             };
           }
         });
@@ -160,7 +160,6 @@ export function ChecklistExecutionDialog({
           status: status,
           submitted_by: staffId || null,
           completed_at: status === 'completed' ? new Date().toISOString() : null,
-          updated_at: new Date().toISOString()
         })
         .eq('id', submissionId);
       if (error) throw error;

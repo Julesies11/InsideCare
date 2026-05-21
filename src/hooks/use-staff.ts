@@ -6,7 +6,7 @@ export type StaffStatus = 'draft' | 'active' | 'inactive' | 'archived';
 
 export interface Staff {
   id: string;
-  name: string | null;
+  staff_name: string | null;
   email?: string | null;
   phone?: string | null;
   date_of_birth?: string | null;
@@ -27,19 +27,19 @@ export interface Staff {
   status: StaffStatus;
   created_at?: string;
   updated_at?: string;
-  department_info?: { id: string; name: string; } | null;
-  employment_type_info?: { id: string; name: string; } | null;
-  manager_info?: { id: string; name: string; } | null;
+  department_info?: { id: string; department_name: string; } | null;
+  employment_type_info?: { id: string; employment_type_name: string; } | null;
+  manager_info?: { id: string; staff_name: string; } | null;
   role?: {
     id: string;
-    name: string;
+    role_name: string;
     description?: string;
   } | null;
   house_assignments?: Array<{
     id: string;
     house: {
       id: string;
-      name: string;
+      house_name: string;
     };
   }>;
   // Compliance checklist fields
@@ -56,6 +56,10 @@ export interface Staff {
   comprehensive_car_insurance?: boolean | null;
   comprehensive_car_insurance_expiry?: string | null;
   photo_url?: string | null;
+  created_by?: string;
+  updated_by?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface StaffCompliance {
@@ -65,6 +69,8 @@ export interface StaffCompliance {
   completion_date?: string | null;
   expiry_date?: string | null;
   status?: 'Complete' | 'Expiring Soon' | 'Expired' | 'Incomplete' | 'Not Required' | null;
+  created_by?: string;
+  updated_by?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -82,6 +88,7 @@ export interface StaffTraining {
   file_name?: string | null;
   file_size?: number | null;
   created_by?: string | null;
+  updated_by?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -119,33 +126,33 @@ export interface StaffSort {
 }
 
 const STAFF_LIST_COLUMNS = `
-  id, name, email, phone, status, branch_id, role_id, photo_url, 
+  id, staff_name, email, phone, status, branch_id, role_id, photo_url, 
   created_at, updated_at,
-  department_info:ic_departments(id, name),
-  employment_type_info:ic_employment_types_master(id, name),
-  role:ic_roles!staff_role_id_fkey(id, name, description),
+  department_info:ic_departments(id, department_name),
+  employment_type_info:ic_employment_types_master(id, employment_type_name),
+  role:ic_roles!staff_role_id_fkey(id, role_name, description),
   house_assignments:ic_house_staff_assignments(
     id,
     house_id,
-    house:ic_houses(id, name)
+    house:ic_houses(id, house_name)
   )
 `;
 
 const STAFF_DETAIL_COLUMNS = `
-  id, name, email, phone, date_of_birth, address, hobbies, allergies, 
+  id, staff_name, email, phone, date_of_birth, address, hobbies, allergies, 
   emergency_contact_name, emergency_contact_phone, department_id, 
   employment_type_id, manager_id, hire_date, separation_date, 
-  availability, notes, branch_id, role_id, status, created_at, updated_at, 
+  availability, notes, branch_id, role_id, status, created_by, updated_by, created_at, updated_at, 
   ndis_worker_screening_check, ndis_worker_screening_check_expiry, 
   ndis_orientation_module, ndis_orientation_module_expiry, 
   ndis_code_of_conduct, ndis_code_of_conduct_expiry, 
   ndis_infection_control_training, ndis_infection_control_training_expiry, 
   drivers_license, drivers_license_expiry, comprehensive_car_insurance, 
   comprehensive_car_insurance_expiry, photo_url,
-  department_info:ic_departments(id, name),
-  employment_type_info:ic_employment_types_master(id, name),
-  role:ic_roles!staff_role_id_fkey(id, name, description),
-  manager_info:ic_staff!manager_id(id, name)
+  department_info:ic_departments(id, department_name),
+  employment_type_info:ic_employment_types_master(id, employment_type_name),
+  role:ic_roles!staff_role_id_fkey(id, role_name, description),
+  manager_info:ic_staff!manager_id(id, staff_name)
 `;
 
 export function useStaff(
@@ -162,7 +169,7 @@ export function useStaff(
         .select(STAFF_LIST_COLUMNS, { count: 'exact' });
 
       if (filters.search) {
-        query = query.or(`name.ilike.%${filters.search}%,email.ilike.%${filters.search}%`);
+        query = query.or(`staff_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%`);
       }
 
       if (filters.statuses && filters.statuses.length > 0) {
@@ -175,7 +182,7 @@ export function useStaff(
           query = query.order(column, { ascending: !s.desc });
         });
       } else {
-        query = query.order('name', { ascending: true });
+        query = query.order('staff_name', { ascending: true });
       }
 
       const from = pageIndex * pageSize;
@@ -225,7 +232,7 @@ export function useStaff(
     updateStaff: async (id: string, updates: StaffUpdateData) => {
       const { data, error } = await supabase
         .from('ic_staff')
-        .update({ ...updates, updated_at: new Date().toISOString() })
+        .update(updates)
         .eq('id', id)
         .select(STAFF_DETAIL_COLUMNS)
         .maybeSingle();
@@ -314,9 +321,7 @@ export function useCreateStaff() {
         .insert([{
           ...staffData,
           status: 'draft',
-          name: staffData.name ?? null,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
+          staff_name: staffData.name ?? null,
         }])
         .select(STAFF_DETAIL_COLUMNS)
         .maybeSingle();
@@ -338,7 +343,7 @@ export function useUpdateStaff() {
     mutationFn: async ({ id, updates }: { id: string; updates: StaffUpdateData }) => {
       const { data, error } = await supabase
         .from('ic_staff')
-        .update({ ...updates, updated_at: new Date().toISOString() })
+        .update(updates)
         .eq('id', id)
         .select(STAFF_DETAIL_COLUMNS)
         .maybeSingle();
@@ -409,11 +414,11 @@ export function useStaffByRole(roleId?: string) {
       const { data, error } = await supabase
         .from('ic_staff')
         .select(`
-          id, name, email, status, photo_url,
-          department_info:ic_departments(id, name)
+          id, staff_name, email, status, photo_url,
+          department_info:ic_departments(id, department_name)
         `)
         .eq('role_id', roleId)
-        .order('name', { ascending: true });
+        .order('staff_name', { ascending: true });
 
       if (error) throw error;
       return (data || []).map(item => ({
@@ -472,7 +477,7 @@ export function useStaffCount(filters: StaffFilter = {}) {
       }
 
       if (filters.search) {
-        query = query.or(`name.ilike.%${filters.search}%,email.ilike.%${filters.search}%`);
+        query = query.or(`staff_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%`);
       }
 
       const { count, error } = await query;

@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase';
 
 export interface Role {
   id: string;
-  name: string;
+  role_name: string;
   description?: string;
   permissions?: string[];
   assigned_count?: number;
@@ -22,7 +22,7 @@ export function useRoles() {
           *,
           staff:ic_staff(count)
         `)
-        .order('name', { ascending: true });
+        .order('role_name', { ascending: true });
 
       if (error) throw error;
       
@@ -80,7 +80,7 @@ export function useUpdateRole() {
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<Role> }) => {
       const { data, error } = await supabase
         .from('ic_roles')
-        .update({ ...updates, updated_at: new Date().toISOString() })
+        .update(updates)
         .eq('id', id)
         .select()
         .maybeSingle();

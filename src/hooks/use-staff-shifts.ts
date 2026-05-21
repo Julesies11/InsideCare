@@ -12,15 +12,17 @@ export interface StaffShift {
   shift_template: string;
   shift_template_id?: string | null;
   notes?: string;
+  created_by?: string;
+  updated_by?: string;
   created_at?: string;
   updated_at?: string;
   house?: {
     id: string;
-    name: string;
+    house_name: string;
   };
   participants?: Array<{
     id: string;
-    name: string;
+    participant_name: string;
   }>;
   duration_hours?: number;
 }
@@ -29,7 +31,10 @@ export interface ShiftParticipant {
   id: string;
   shift_id: string;
   participant_id: string;
+  created_by?: string;
+  updated_by?: string;
   created_at?: string;
+  updated_at?: string;
 }
 
 const SHIFT_COLUMNS = `
@@ -43,9 +48,11 @@ const SHIFT_COLUMNS = `
   shift_template,
   shift_template_id,
   notes,
+  created_by,
+  updated_by,
   created_at,
   updated_at,
-  house:ic_houses(id, name)
+  house:ic_houses(id, house_name)
 `;
 
 export const calculateDuration = (startTime: string, endTime: string): number => {
@@ -95,7 +102,7 @@ export function useStaffShifts(staffId?: string, startDate?: string, endDate?: s
         .from('ic_shift_participants')
         .select(`
           shift_id,
-          participant:ic_participants(id, name)
+          participant:ic_participants(id, participant_name)
         `)
         .in('shift_id', shiftIds);
 
@@ -108,7 +115,7 @@ export function useStaffShifts(staffId?: string, startDate?: string, endDate?: s
           ?.filter((p) => p.shift_id === shift.id)
           .map((p) => p.participant ? {
             id: p.participant.id,
-            name: p.participant.name
+            participant_name: p.participant.participant_name
           } : null)
           .filter((p) => p !== null) || [];
 
@@ -136,7 +143,7 @@ export function useCreateShift() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (shiftData: Omit<StaffShift, 'id' | 'created_at' | 'updated_at' | 'house' | 'participants' | 'duration_hours'>) => {
+    mutationFn: async (shiftData: Omit<StaffShift, 'id' | 'created_at' | 'updated_at' | 'house' | 'participants' | 'duration_hours' | 'created_by' | 'updated_by'>) => {
       const { data, error } = await supabase
         .from('ic_staff_shifts')
         .insert([shiftData])
@@ -160,7 +167,7 @@ export function useUpdateShift() {
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<StaffShift> }) => {
       const { data, error } = await supabase
         .from('ic_staff_shifts')
-        .update({ ...updates, updated_at: new Date().toISOString() })
+        .update(updates)
         .eq('id', id)
         .select(SHIFT_COLUMNS)
         .maybeSingle();
@@ -204,7 +211,7 @@ export function useShiftParticipants(shiftId?: string) {
           id,
           shift_id,
           participant_id,
-          participant:ic_participants(id, name)
+          participant:ic_participants(id, participant_name)
         `)
         .eq('shift_id', shiftId);
 

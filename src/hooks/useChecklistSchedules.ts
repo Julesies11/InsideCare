@@ -53,7 +53,7 @@ export function useChecklistSchedules(houseId?: string) {
         // Fetch the house checklist info for the title
         const { data: houseChecklist } = await supabase
           .from('ic_house_checklists')
-          .select('name')
+          .select('house_checklist_name')
           .eq('id', schedule.house_checklist_id)
           .maybeSingle();
 
@@ -63,7 +63,7 @@ export function useChecklistSchedules(houseId?: string) {
 
         const calendarEvents = eventDates.map(date => ({
           house_id: schedule.house_id,
-          title: houseChecklist?.name || 'Scheduled Checklist',
+          title: houseChecklist?.house_checklist_name || 'Scheduled Checklist',
           event_date: format(date, 'yyyy-MM-dd'),
           checklist_schedule_id: newSchedule.id,
           house_checklist_id: schedule.house_checklist_id,

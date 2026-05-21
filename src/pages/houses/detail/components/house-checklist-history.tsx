@@ -124,7 +124,7 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
           const { data: clData, error: clError } = await supabase
             .from('ic_house_checklists')
             .select(`
-              id, house_id, name, description, master_id, created_at, updated_at,
+              id, house_id, house_checklist_name, description, master_id, created_at, updated_at,
               house_checklist_items:ic_house_checklist_items(id, checklist_id, title, instructions, group_title, priority, is_required, sort_order, created_at, updated_at)
             `)
             .eq('id', submission.checklist_id)
@@ -157,7 +157,7 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
             status,
             note, 
             completed_at,
-            completed_by_staff:ic_staff!completed_by(id, name)
+            completed_by_staff:ic_staff!completed_by(id, staff_name)
           `)
           .eq('submission_id', submission.id);
 
@@ -177,7 +177,7 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
           if (isDone && item.completed_by_staff) {
             completedBy[item.item_id] = {
               id: item.completed_by_staff.id,
-              name: item.completed_by_staff.name
+              name: item.completed_by_staff.staff_name
             };
           }
         });
@@ -242,7 +242,6 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
             status: status,
             submitted_by: staffId || null,
             completed_at: status === 'completed' ? new Date().toISOString() : null,
-            updated_at: new Date().toISOString()
           })
           .eq('id', submissionId);
         if (error) throw error;
@@ -518,7 +517,7 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
                         houseChecklists.map(cl => (
                           <DropdownMenuItem key={cl.id} className="cursor-pointer" onClick={() => handleStartNew(cl)}>
                             <div className="flex flex-col">
-                              <span className="font-semibold text-sm">{cl.name}</span>
+                              <span className="font-semibold text-sm">{cl.house_checklist_name}</span>
                               {cl.description && <span className="text-[9px] text-muted-foreground line-clamp-1">{cl.description}</span>}
                             </div>
                           </DropdownMenuItem>
@@ -556,7 +555,7 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
             <DialogHeader className="p-6 pb-2">
               <DialogTitle className="flex items-center gap-2 text-xl">
                 <PlayCircle className="size-5 text-primary" />
-                {executingChecklist?.name}
+                {executingChecklist?.house_checklist_name}
               </DialogTitle>
               <DialogDescription>
                 Complete the required items and save your progress.

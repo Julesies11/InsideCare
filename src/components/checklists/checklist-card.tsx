@@ -8,7 +8,9 @@ interface ChecklistCardProps {
   checklist: {
     id?: string;
     tempId?: string;
-    name: string;
+    name?: string;
+    house_checklist_name?: string;
+    checklist_name?: string;
     description?: string;
     items?: Array<{
       id?: string;
@@ -44,6 +46,7 @@ export function ChecklistCard({
   maxTasksPreview = 2
 }: ChecklistCardProps) {
   const checklistItems = checklist.items || [];
+  const displayName = checklist.house_checklist_name || checklist.checklist_name || checklist.name || 'Untitled Checklist';
 
   return (
     <Card 
@@ -63,7 +66,7 @@ export function ChecklistCard({
           <div className="flex flex-col gap-1 min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
               <h3 className={`text-base font-bold text-gray-900 break-words whitespace-normal ${isPendingDelete ? 'line-through' : ''}`}>
-                {checklist.name}
+                {displayName}
               </h3>
               {isPendingAdd && <Badge variant="outline" className="text-[9px] h-4 border-primary-200 text-primary bg-primary/10 px-1">PENDING ADD</Badge>}
               {isPendingUpdate && <Badge variant="outline" className="text-[9px] h-4 border-warning-200 text-warning bg-warning/10 px-1">PENDING UPDATE</Badge>}

@@ -4,7 +4,7 @@ import { MedicationMaster } from '@/models/medication-master';
 import { useAuth } from '@/auth/context/auth-context';
 import { logActivity, detectChanges } from '@/lib/activity-logger';
 
-const MEDICATION_MASTER_COLUMNS = 'id, name, category, common_dosages, side_effects, interactions, is_active, created_by, updated_by, created_at, updated_at';
+const MEDICATION_MASTER_COLUMNS = 'id, medication_name, category, common_dosages, side_effects, interactions, is_active, created_by, updated_by, created_at, updated_at';
 
 export function useMedicationsMaster(includeInactive = true) {
   return useQuery({
@@ -13,7 +13,7 @@ export function useMedicationsMaster(includeInactive = true) {
       let query = supabase
         .from('ic_medications_master')
         .select(MEDICATION_MASTER_COLUMNS)
-        .order('name', { ascending: true });
+        .order('medication_name', { ascending: true });
 
       if (!includeInactive) {
         query = query.eq('is_active', true);
@@ -35,16 +35,12 @@ export function useAddMedicationMaster() {
     mutationFn: async (medication: Omit<MedicationMaster, 'id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
         .from('ic_medications_master')
-        .insert({
-          ...medication,
-          created_by: user?.id || null,
-          updated_by: user?.id || null,
-        })
+        .insert(medication)
         .select(MEDICATION_MASTER_COLUMNS)
         .maybeSingle();
 
       if (error) {
-        if (error.code === '23505' && error.message.includes('medications_master_name_key')) {
+        if (error.code === '23505' && error.message.includes('medications_master_medication_name_key')) {
           throw new Error('DUPLICATE_NAME');
         }
         throw error;
@@ -58,7 +54,7 @@ export function useAddMedicationMaster() {
         activityType: 'create',
         entityType: 'medication_master',
         entityId: data.id,
-        entityName: data.name,
+        entityName: data.medication_name,
         userName: user?.email || undefined,
       });
 
@@ -78,17 +74,13 @@ export function useUpdateMedicationMaster() {
     mutationFn: async ({ id, updates, oldMedication }: { id: string; updates: Partial<MedicationMaster>; oldMedication?: MedicationMaster }) => {
       const { data, error } = await supabase
         .from('ic_medications_master')
-        .update({
-          ...updates,
-          updated_by: user?.id || null,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updates)
         .eq('id', id)
         .select(MEDICATION_MASTER_COLUMNS)
         .maybeSingle();
 
       if (error) {
-        if (error.code === '23505' && error.message.includes('medications_master_name_key')) {
+        if (error.code === '23505' && error.message.includes('medications_master_medication_name_key')) {
           throw new Error('DUPLICATE_NAME');
         }
         throw error;
@@ -105,7 +97,7 @@ export function useUpdateMedicationMaster() {
             activityType: 'update',
             entityType: 'medication_master',
             entityId: data.id,
-            entityName: data.name,
+            entityName: data.medication_name,
             changes,
             userName: user?.email || undefined,
           });
@@ -125,14 +117,12 @@ export function useDeleteMedicationMaster() {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ id, name }: { id: string; name: string }) => {
+    mutationFn: async ({ id, medication_name }: { id: string; medication_name: string }) => {
       // Soft delete - mark as inactive
       const { error } = await supabase
         .from('ic_medications_master')
         .update({
           is_active: false,
-          updated_by: user?.id || null,
-          updated_at: new Date().toISOString(),
         })
         .eq('id', id);
 
@@ -142,7 +132,7 @@ export function useDeleteMedicationMaster() {
         activityType: 'delete',
         entityType: 'medication_master',
         entityId: id,
-        entityName: name,
+        entityName: medication_name,
         userName: user?.email || undefined,
       });
     },

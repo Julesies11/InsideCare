@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase';
 
 export interface Department {
   id: string;
-  name: string;
+  department_name: string;
   description?: string | null;
   access_level?: string | null;
   status: string;
@@ -11,7 +11,7 @@ export interface Department {
   updated_at?: string;
 }
 
-const DEPARTMENT_COLUMNS = 'id, name, description, access_level, status, created_at, updated_at';
+const DEPARTMENT_COLUMNS = 'id, department_name, description, access_level, status, created_at, updated_at';
 
 export function useDepartmentsMaster() {
   const query = useQuery({
@@ -20,7 +20,7 @@ export function useDepartmentsMaster() {
       const { data, error } = await supabase
         .from('ic_departments')
         .select(DEPARTMENT_COLUMNS)
-        .order('name', { ascending: true });
+        .order('department_name', { ascending: true });
 
       if (error) throw error;
       return data as Department[];

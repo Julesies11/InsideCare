@@ -124,4 +124,10 @@ The care facilities/locations.
 - **Logic in TS**: No complex triggers or procedures in the database. Transformations and joins are handled in the React application.
 - **Master Tables**: Heavy use of "Master" tables (e.g., `medications_master`, `contact_types_master`) to maintain consistent options across the system.
 - **Soft Delete/Status**: Most entities use a `status` field or `is_active` flag rather than hard deletion.
-- **Activity Logging**: Most `INSERT`/`UPDATE`/`DELETE` operations should be accompanied by an entry in the `activity_log`.
+- **Activity Logging**: Most `INSERT`/`UPDATE`/`DELETE` operations are accompanied by an entry in the `activity_log`.
+- **Automated Audit Columns**: All tables use automated triggers (`ic_trigger_set_audit_columns`) and column defaults to manage standard audit fields:
+    - `created_at`: Set automatically via column default `now()`.
+    - `updated_at`: Set automatically on every update via `ic_update_updated_at_column` trigger.
+    - `created_by`: Set automatically on insert via `ic_set_audit_columns` trigger using `auth.uid()`.
+    - `updated_by`: Set automatically on every insert or update via `ic_set_audit_columns` trigger using `auth.uid()`.
+    - **Note:** Because these are handled at the database level, application code **MUST NOT** manually assign these fields in Supabase mutation calls. This ensures 100% audit coverage and prevents client-side spoofing.

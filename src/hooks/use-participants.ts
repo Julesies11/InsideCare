@@ -14,14 +14,14 @@ export interface ParticipantsSort {
 }
 
 const PARTICIPANT_LIST_COLUMNS = `
-  id, name, photo_url, status, house_id, ndis_number, date_of_birth,
+  id, participant_name, photo_url, status, house_id, ndis_number, date_of_birth,
   houses:ic_houses!house_id (
-    name
+    house_name
   )
 `;
 
 const PARTICIPANT_DETAIL_COLUMNS = `
-  id, name, photo_url, email, house_phone, personal_mobile, address, date_of_birth, move_in_date, 
+  id, participant_name, photo_url, email, house_phone, personal_mobile, address, date_of_birth, move_in_date, 
   ndis_number, house_id, status, support_level, support_coordinator, primary_diagnosis, 
   secondary_diagnosis, allergies, routine, hygiene_support, current_goals, current_medications, 
   restrictive_practices, service_providers, behaviour_of_concern, pbsp_engaged, bsp_available, 
@@ -32,9 +32,9 @@ const PARTICIPANT_DETAIL_COLUMNS = `
   other_support, mental_health_plan, medical_plan, natural_disaster_plan, pharmacy_name, 
   pharmacy_contact, pharmacy_location, gp_name, gp_contact, gp_location, psychiatrist_name, 
   psychiatrist_contact, psychiatrist_location, medical_routine_other, medical_routine_general_process, 
-  created_at, updated_at,
+  created_by, updated_by, created_at, updated_at,
   houses:ic_houses!house_id (
-    name
+    house_name
   )
 `;
 
@@ -52,7 +52,7 @@ export function useParticipants(
         .select(PARTICIPANT_LIST_COLUMNS, { count: 'exact' });
 
       if (filters.search) {
-        query = query.or(`name.ilike.%${filters.search}%,email.ilike.%${filters.search}%,ndis_number.ilike.%${filters.search}%,address.ilike.%${filters.search}%`);
+        query = query.or(`participant_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%,ndis_number.ilike.%${filters.search}%,address.ilike.%${filters.search}%`);
       }
 
       if (filters.houses && filters.houses.length > 0) {
@@ -65,10 +65,11 @@ export function useParticipants(
 
       if (sort.length > 0) {
         sort.forEach(s => {
-          query = query.order(s.id, { ascending: !s.desc });
+          const column = s.id === 'house' ? 'house_id' : (s.id === 'name' || s.id === 'participant' ? 'participant_name' : s.id);
+          query = query.order(column, { ascending: !s.desc });
         });
       } else {
-        query = query.order('name', { ascending: true });
+        query = query.order('participant_name', { ascending: true });
       }
 
       const from = pageIndex * pageSize;
@@ -80,7 +81,7 @@ export function useParticipants(
 
       const participantsWithHouse = (data || []).map((p: any) => ({
         ...p,
-        house_name: p.houses?.name || null,
+        house_name: p.houses?.house_name || null,
       })) as ParticipantWithHouse[];
 
       return { data: participantsWithHouse, count: count || 0 };
@@ -114,7 +115,7 @@ export function useParticipantsCount(filters: ParticipantsFilter = {}) {
       }
 
       if (filters.search) {
-        query = query.or(`name.ilike.%${filters.search}%,email.ilike.%${filters.search}%,ndis_number.ilike.%${filters.search}%`);
+        query = query.or(`participant_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%,ndis_number.ilike.%${filters.search}%`);
       }
 
       const { count, error } = await query;
@@ -149,7 +150,7 @@ export function useParticipant(id?: string) {
 
       const participantWithHouse = {
         ...data,
-        house_name: (data as any).houses?.name || null,
+        house_name: (data as any).houses?.house_name || null,
       };
 
       return participantWithHouse as ParticipantWithHouse;
@@ -169,7 +170,7 @@ export function useAddParticipant() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (participant: Omit<Participant, 'id' | 'created_at' | 'updated_at'>) => {
+    mutationFn: async (participant: Omit<Participant, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'updated_by'>) => {
       const { data, error } = await supabase
         .from('ic_participants')
         .insert([participant])
@@ -195,7 +196,7 @@ export function useUpdateParticipant() {
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<Participant> }) => {
       const { data, error } = await supabase
         .from('ic_participants')
-        .update({ ...updates, updated_at: new Date().toISOString() })
+        .update(updates)
         .eq('id', id)
         .select(PARTICIPANT_DETAIL_COLUMNS)
         .maybeSingle();
@@ -207,7 +208,7 @@ export function useUpdateParticipant() {
 
       const participantWithHouse = {
         ...data,
-        house_name: (data as any).houses?.name || null,
+        house_name: (data as any).houses?.house_name || null,
       };
 
       return participantWithHouse as ParticipantWithHouse;

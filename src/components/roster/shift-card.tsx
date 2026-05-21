@@ -101,7 +101,7 @@ export function ShiftCard({ shift, compact, showStaffName, showHouseName = true,
             {isUnassigned && onQuickAssign && staffList ? (
               <DropdownMenu onOpenChange={(open) => {
                 if (open) {
-                  console.log(`[QuickAssign Debug] Control: Compact Shift Card | Shift ID: ${shift.id} | House: ${shift.house?.name || 'Unassigned'} | Available Staff Count: ${staffList.length}`, {
+                  console.log(`[QuickAssign Debug] Control: Compact Shift Card | Shift ID: ${shift.id} | House: ${shift.house?.house_name || 'Unassigned'} | Available Staff Count: ${staffList.length}`, {
                     staffList: staffList.map(s => ({ id: s.id, name: s.name, assignments: (s as { house_assignments?: any[] }).house_assignments }))
                   });
                 }
@@ -142,7 +142,7 @@ export function ShiftCard({ shift, compact, showStaffName, showHouseName = true,
         {showHouseName && shift.house && (
           <div className="flex items-center gap-1 mb-0.5">
             <MapPin className="h-2.5 w-2.5 text-muted-foreground shrink-0" />
-            <span className="text-[10px] text-muted-foreground truncate font-normal">{shift.house.name}</span>
+            <span className="text-[10px] text-muted-foreground truncate font-normal">{shift.house.house_name}</span>
           </div>
         )}
 
@@ -249,7 +249,7 @@ export function ShiftCard({ shift, compact, showStaffName, showHouseName = true,
               {isUnassigned && !isEvent && onQuickAssign && staffList ? (
                 <DropdownMenu onOpenChange={(open) => {
                   if (open) {
-                    console.log(`[QuickAssign Debug] Control: Expanded Shift Card | Shift ID: ${shift.id} | House: ${shift.house?.name || 'Unassigned'} | Available Staff Count: ${staffList.length}`, {
+                    console.log(`[QuickAssign Debug] Control: Expanded Shift Card | Shift ID: ${shift.id} | House: ${shift.house?.house_name || 'Unassigned'} | Available Staff Count: ${staffList.length}`, {
                       staffList: staffList.map(s => ({ id: s.id, name: s.name, assignments: (s as { house_assignments?: any[] }).house_assignments }))
                     });
                   }
@@ -291,7 +291,7 @@ export function ShiftCard({ shift, compact, showStaffName, showHouseName = true,
             <div className="flex items-center gap-2">
               <MapPin className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
               <span className="text-xs truncate font-normal text-gray-600">
-                {shift.house?.name || shift.location}
+                {shift.house?.house_name || shift.location}
               </span>
             </div>
           )}

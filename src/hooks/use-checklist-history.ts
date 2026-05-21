@@ -28,9 +28,9 @@ export interface ChecklistHistoryFilters {
 
 const CHECKLIST_SUBMISSION_COLUMNS = `
   id, checklist_id, house_id, submitted_by, status, scheduled_date, started_at, completed_at, created_at, updated_at,
-  house_checklists:ic_house_checklists(name),
-  staff:ic_staff(name),
-  houses:ic_houses(name),
+  house_checklists:ic_house_checklists(house_checklist_name),
+  staff:ic_staff(staff_name),
+  houses:ic_houses(house_name),
   ic_house_checklist_submission_items:ic_house_checklist_submission_items(is_completed)
 `;
 
@@ -81,16 +81,16 @@ export function useChecklistHistory(
       if (error) throw error;
 
       const submissions = (data || []).map(sub => {
-        const checklists = (sub as any).house_checklists as unknown as { name: string } | null;
-        const staff = (sub as any).staff as unknown as { name: string } | null;
-        const house = (sub as any).houses as unknown as { name: string } | null;
+        const checklists = (sub as any).house_checklists as unknown as { house_checklist_name?: string, staff_name?: string, house_name?: string } | null;
+        const staff = (sub as any).staff as unknown as { house_checklist_name?: string, staff_name?: string, house_name?: string } | null;
+        const house = (sub as any).houses as unknown as { house_checklist_name?: string, staff_name?: string, house_name?: string } | null;
         const items = ((sub as any).ic_house_checklist_submission_items as unknown as Array<{ is_completed: boolean }>) || [];
         
         return {
           ...sub,
-          checklist_name: checklists?.name || 'Deleted Checklist',
-          staff_name: staff?.name || 'Unknown Staff',
-          house_name: house?.name || 'Unknown House',
+          checklist_name: checklists?.house_checklist_name || 'Deleted Checklist',
+          staff_name: staff?.staff_name || 'Unknown Staff',
+          house_name: house?.house_name || 'Unknown House',
           item_count: items.length || 0,
           completed_item_count: items.filter((i) => i.is_completed).length || 0
         };

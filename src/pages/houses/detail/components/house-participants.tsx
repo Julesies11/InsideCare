@@ -57,17 +57,17 @@ export function HouseParticipants({
   // Helper function to get participant name
   const getParticipantName = (participant: any) => {
     // If it has a direct name (from useHouseParticipants), use it
-    if (participant.name) {
-      return participant.name;
+    if (participant.participant_name) {
+      return participant.participant_name;
     }
     // If it has the joined participant object, use that
-    if (participant.participant?.name) {
-      return participant.participant.name;
+    if (participant.participant?.participant_name) {
+      return participant.participant.participant_name;
     }
     // For pending participants, look up the name from participants list
     if (participant.participant_id) {
       const participantData = participants.find(p => p.id === participant.participant_id);
-      return participantData?.name || 'Unknown Participant';
+      return participantData?.participant_name || 'Unknown Participant';
     }
     return 'Unknown Participant';
   };
@@ -113,7 +113,7 @@ export function HouseParticipants({
     const participantMember = participants.find(p => p.id === data.participant_id);
     const payload = {
       ...data,
-      participant_name: participantMember?.name || undefined,
+      participant_name: participantMember?.participant_name || undefined,
     };
 
     if (editingParticipant) {

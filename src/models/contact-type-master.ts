@@ -1,6 +1,6 @@
 export interface ContactTypeMaster {
   id: string;
-  name: string;
+  contact_type_name: string;
   is_active: boolean;
   created_at: string;
   updated_at: string;

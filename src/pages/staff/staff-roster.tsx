@@ -229,7 +229,7 @@ export function StaffRoster() {
                             {entry.start_time?.slice(0, 5)} – {entry.end_time?.slice(0, 5)}
                           </td>
                           <td className="px-5 py-3.5 text-muted-foreground hidden md:table-cell">
-                            {entry.house?.name ?? entry.location ?? '—'}
+                            {entry.house?.house_name ?? entry.location ?? '—'}
                           </td>
                           <td className="px-5 py-3.5">
                             {entry.entry_type === 'shift' ? (

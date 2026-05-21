@@ -83,7 +83,6 @@ export function HouseResources({
     const resourceData = {
       ...formData,
       house_id: houseId,
-      created_by: user?.id,
     };
 
     if (editingResource) {

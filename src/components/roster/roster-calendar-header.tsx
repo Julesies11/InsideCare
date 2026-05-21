@@ -162,7 +162,7 @@ export function RosterCalendarHeader({
             <SelectItem value="all">All Houses</SelectItem>
             {houseList.map(house => (
               <SelectItem key={house.id} value={house.id}>
-                {house.name}
+                {house.house_name}
               </SelectItem>
             ))}
           </SelectContent>
@@ -177,7 +177,7 @@ export function RosterCalendarHeader({
               <SelectItem value="all">All Participants</SelectItem>
               {participantList.map(participant => (
                 <SelectItem key={participant.id} value={participant.id}>
-                  {participant.name}
+                  {participant.participant_name}
                 </SelectItem>
               ))}
             </SelectContent>

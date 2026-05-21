@@ -7,7 +7,7 @@ export interface ParticipantMedication {
   medication_id: string;
   medication?: {
     id: string;
-    name: string;
+    medication_name: string;
     category?: string;
     common_dosages?: string;
   };
@@ -29,7 +29,7 @@ const PARTICIPANT_MEDICATION_COLUMNS = `
   updated_at,
   medication:ic_medications_master(
     id,
-    name,
+    medication_name,
     category,
     common_dosages
   )

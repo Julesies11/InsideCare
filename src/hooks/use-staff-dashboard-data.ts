@@ -23,7 +23,7 @@ export function useStaffDashboardData(staffId?: string) {
             end_time, 
             shift_template,
             type_details:ic_house_shift_templates(color_theme, icon_name),
-            house:ic_houses(id, name),
+            house:ic_houses(id, house_name),
             assigned_checklists:ic_shift_assigned_checklists(
               checklist_id,
               assignment_title,
@@ -44,8 +44,8 @@ export function useStaffDashboardData(staffId?: string) {
             start_time,
             end_time,
             location,
-            type:ic_house_calendar_event_types_master(name, color),
-            house:ic_houses(name),
+            type:ic_house_calendar_event_types_master(event_type_name, color),
+            house:ic_houses(house_name),
             staff_assignments:ic_house_calendar_event_staff!inner(staff_id)
           `)
           .eq('staff_assignments.staff_id', staffId)
@@ -54,7 +54,7 @@ export function useStaffDashboardData(staffId?: string) {
           .limit(5),
         supabase
           .from('ic_leave_requests')
-          .select('id, leave_type:ic_leave_types(name), start_date, end_date, status, updated_at')
+          .select('id, leave_type:ic_leave_types(leave_type_name), start_date, end_date, status, updated_at')
           .eq('staff_id', staffId)
           .or(`status.eq.pending,and(status.eq.approved,updated_at.gte.${lastWeek})`)
           .order('start_date', { ascending: true })
@@ -120,7 +120,7 @@ export function useStaffDashboardData(staffId?: string) {
         ...event,
         entry_type: 'event' as const,
         start_date: event.event_date,
-        type_name: event.type?.name || 'Meeting',
+        type_name: event.type?.event_type_name || 'Meeting',
         type_color: event.type?.color || 'blue',
       }));
 

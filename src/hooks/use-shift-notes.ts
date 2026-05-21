@@ -17,15 +17,15 @@ export interface ShiftNote {
   // Joined data
   participant?: {
     id: string;
-    name: string;
+    participant_name: string;
   } | null;
   staff?: {
     id: string;
-    name: string;
+    staff_name: string;
   } | null;
   house?: {
     id: string;
-    name: string;
+    house_name: string;
   } | null;
   shift?: {
     id: string;
@@ -63,9 +63,9 @@ const SHIFT_NOTE_COLUMNS = `
   full_note, 
   created_at, 
   updated_at,
-  participant:ic_participants(id, name),
-  staff:ic_staff(id, name),
-  house:ic_houses(id, name),
+  participant:ic_participants(id, participant_name),
+  staff:ic_staff(id, staff_name),
+  house:ic_houses(id, house_name),
   shift:ic_staff_shifts(id, start_time, end_time, shift_template)
 `;
 
@@ -83,9 +83,9 @@ export function useShiftNotes() {
       // Map for legacy support if needed
       return (data || []).map((note: any) => ({
         ...note,
-        participant_name: note.participant?.name,
-        staff_name: note.staff?.name,
-        house_name: note.house?.name,
+        participant_name: note.participant?.participant_name,
+        staff_name: note.staff?.staff_name,
+        house_name: note.house?.house_name,
       })) as ShiftNote[];
     },
     staleTime: 0, // Ensure real-time RLS enforcement
@@ -152,9 +152,9 @@ export function useShiftNotesByParticipantId(participantId?: string) {
       if (error) throw error;
       return (data || []).map((note: any) => ({
         ...note,
-        participant_name: note.participant?.name,
-        staff_name: note.staff?.name,
-        house_name: note.house?.name,
+        participant_name: note.participant?.participant_name,
+        staff_name: note.staff?.staff_name,
+        house_name: note.house?.house_name,
       })) as ShiftNote[];
     },
     enabled: !!participantId,
@@ -168,11 +168,7 @@ export function useCreateShiftNote() {
     mutationFn: async (noteData: ShiftNoteUpdateData) => {
       const { data, error } = await supabase
         .from('ic_shift_notes')
-        .upsert({
-          ...noteData,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        }, { onConflict: 'shift_id,staff_id' })
+        .upsert(noteData, { onConflict: 'shift_id,staff_id' })
         .select(SHIFT_NOTE_COLUMNS)
         .maybeSingle();
 
@@ -196,7 +192,7 @@ export function useUpdateShiftNote() {
       }
       const { data, error } = await supabase
         .from('ic_shift_notes')
-        .update({ ...updates, updated_at: new Date().toISOString() })
+        .update(updates)
         .eq('id', id)
         .select(SHIFT_NOTE_COLUMNS)
         .maybeSingle();

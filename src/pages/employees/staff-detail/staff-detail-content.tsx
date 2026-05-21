@@ -211,7 +211,7 @@ export function StaffDetailContent({
 
         const { error: photoErr } = await supabase
           .from('ic_staff')
-          .update({ photo_url: newPhotoUrl, updated_at: new Date().toISOString() })
+          .update({ photo_url: newPhotoUrl })
           .eq('id', staffId);
         if (photoErr) {
           toast.error('Failed to save profile photo', { description: photoErr.message });
@@ -240,7 +240,7 @@ export function StaffDetailContent({
         // Photo was deleted — clear it in the DB
         const { error: photoErr } = await supabase
           .from('ic_staff')
-          .update({ photo_url: null, updated_at: new Date().toISOString() })
+          .update({ photo_url: null })
           .eq('id', staffId);
         if (photoErr) {
           toast.error('Failed to remove profile photo', { description: photoErr.message });

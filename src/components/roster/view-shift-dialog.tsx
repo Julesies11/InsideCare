@@ -70,7 +70,7 @@ export function ViewShiftDialog({
             </DialogTitle>
             
             <DialogDescription className="sr-only">
-              Shift details for {shift.shift_template} at {shift.house?.name}
+              Shift details for {shift.shift_template} at {shift.house?.house_name}
             </DialogDescription>
             
             <p className="text-white/80 font-medium flex items-center gap-1.5 text-sm sm:text-base">
@@ -89,7 +89,7 @@ export function ViewShiftDialog({
             <div>
               <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Location</p>
               <p className="text-base font-semibold text-foreground">
-                {shift.house?.name || 'Assigned House'}
+                {shift.house?.house_name || 'Assigned House'}
               </p>
             </div>
           </div>

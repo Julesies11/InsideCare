@@ -97,7 +97,7 @@ export function StaffTimesheetForm() {
       const [shiftRes, tsRes, shiftNoteRes, checklistsRes] = await Promise.all([
         supabase
           .from('ic_staff_shifts')
-          .select('id, house_id, start_date, end_date, start_time, end_time, shift_template, house:ic_houses(name)')
+          .select('id, house_id, start_date, end_date, start_time, end_time, shift_template, house:ic_houses(house_name)')
           .eq('id', shiftId)
           .maybeSingle(),
         user?.staff_id
@@ -259,7 +259,7 @@ export function StaffTimesheetForm() {
         console.log('Timesheet: Inserting new record (upsert)');
         const { data, error } = await supabase
           .from('ic_timesheets')
-          .upsert({ ...payload, created_at: now }, { onConflict: 'shift_id,staff_id' })
+          .upsert(payload, { onConflict: 'shift_id,staff_id' })
           .select('id')
           .maybeSingle();
         if (error) throw error;
@@ -347,7 +347,7 @@ export function StaffTimesheetForm() {
                 <ToolbarPageTitle text={isReadOnly ? 'View Timesheet' : 'Submit Timesheet'} />
                 <ToolbarDescription>
                   {format(parseISO(shift.start_date), 'EEEE, dd MMM yyyy')}
-                  {shift.house ? ` · ${shift.house.name}` : ''}
+                  {shift.house ? ` · ${shift.house.house_name}` : ''}
                 </ToolbarDescription>
               </div>
             </div>

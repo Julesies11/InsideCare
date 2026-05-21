@@ -21,7 +21,7 @@ export function RoleMasterQuickAdd({
   role,
 }: RoleMasterQuickAddProps) {
   const [formData, setFormData] = useState({
-    name: '',
+    role_name: '',
     description: '',
     is_active: true,
   });
@@ -29,13 +29,13 @@ export function RoleMasterQuickAdd({
   useEffect(() => {
     if (role) {
       setFormData({
-        name: role.name,
+        role_name: role.role_name,
         description: role.description || '',
         is_active: role.is_active,
       });
     } else {
       setFormData({
-        name: '',
+        role_name: '',
         description: '',
         is_active: true,
       });
@@ -44,7 +44,7 @@ export function RoleMasterQuickAdd({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name.trim()) return;
+    if (!formData.role_name.trim()) return;
     onSave(formData);
   };
 
@@ -60,8 +60,8 @@ export function RoleMasterQuickAdd({
               <Label htmlFor="name">Name *</Label>
               <Input
                 id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                value={formData.role_name}
+                onChange={(e) => setFormData({ ...formData, role_name: e.target.value })}
                 placeholder="Role name"
                 required
               />

@@ -13,7 +13,7 @@ export interface HousesSort {
   desc: boolean;
 }
 
-const HOUSE_COLUMNS = 'id, name, branch_id, address, phone, capacity, current_occupancy, house_manager, status, notes, created_at, updated_at';
+const HOUSE_COLUMNS = 'id, house_name, branch_id, address, phone, capacity, current_occupancy, house_manager, status, notes, created_by, updated_by, created_at, updated_at';
 
 export function useHouses(
   pageIndex: number = 0,
@@ -47,7 +47,7 @@ export function useHouses(
       }
 
       if (filters.search) {
-        query = query.or(`name.ilike.%${filters.search}%,address.ilike.%${filters.search}%,phone.ilike.%${filters.search}%,house_manager.ilike.%${filters.search}%`);
+        query = query.or(`house_name.ilike.%${filters.search}%,address.ilike.%${filters.search}%,phone.ilike.%${filters.search}%,house_manager.ilike.%${filters.search}%`);
       }
 
       if (filters.statuses && filters.statuses.length > 0) {
@@ -56,10 +56,10 @@ export function useHouses(
 
       if (sort.length > 0) {
         sort.forEach(s => {
-          query = query.order(s.id, { ascending: !s.desc });
+          query = query.order(s.id === 'name' ? 'house_name' : s.id, { ascending: !s.desc });
         });
       } else {
-        query = query.order('name', { ascending: true });
+        query = query.order('house_name', { ascending: true });
       }
 
       const from = pageIndex * pageSize;
@@ -104,7 +104,7 @@ export function useAddHouse() {
   const { mutateAsync: logActivity } = useLogActivity();
 
   return useMutation({
-    mutationFn: async (house: Omit<House, 'id' | 'created_at' | 'updated_at'>) => {
+    mutationFn: async (house: Omit<House, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'updated_by'>) => {
       const { data, error } = await supabase
         .from('ic_houses')
         .insert([house])
@@ -121,8 +121,8 @@ export function useAddHouse() {
         activityType: 'create',
         entityType: 'house',
         entityId: data.id,
-        entityName: data.name,
-        customDescription: `New house added: ${data.name}`
+        entityName: data.house_name,
+        customDescription: `New house added: ${data.house_name}`
       });
 
       return data as House;
@@ -141,7 +141,7 @@ export function useUpdateHouse() {
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<House> }) => {
       const { data, error } = await supabase
         .from('ic_houses')
-        .update({ ...updates, updated_at: new Date().toISOString() })
+        .update(updates)
         .eq('id', id)
         .select(HOUSE_COLUMNS)
         .maybeSingle();
@@ -156,8 +156,8 @@ export function useUpdateHouse() {
         activityType: 'update',
         entityType: 'house',
         entityId: data.id,
-        entityName: data.name,
-        customDescription: `House updated: ${data.name}`
+        entityName: data.house_name,
+        customDescription: `House updated: ${data.house_name}`
       });
 
       return data as House;
@@ -174,7 +174,7 @@ export function useDeleteHouse() {
   const { mutateAsync: logActivity } = useLogActivity();
 
   return useMutation({
-    mutationFn: async ({ id, name }: { id: string; name: string }) => {
+    mutationFn: async ({ id, house_name }: { id: string; house_name: string }) => {
       const { error } = await supabase
         .from('ic_houses')
         .delete()
@@ -186,8 +186,8 @@ export function useDeleteHouse() {
         activityType: 'delete',
         entityType: 'house',
         entityId: id,
-        entityName: name,
-        customDescription: `House deleted: ${name}`
+        entityName: house_name,
+        customDescription: `House deleted: ${house_name}`
       });
     },
     onSuccess: () => {

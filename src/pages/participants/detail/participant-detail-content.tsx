@@ -186,7 +186,7 @@ export function ParticipantDetailContent({
     if (participantData && !hasInitialized) {
       setParticipant(participantData);
       const mappedData: ParticipantFormData = {
-        name: participantData.name ?? '',
+        name: participantData.participant_name ?? '',
         email: participantData.email ?? '',
         house_phone: participantData.house_phone ?? '',
         personal_mobile: participantData.personal_mobile ?? '',
@@ -256,7 +256,7 @@ export function ParticipantDetailContent({
       setOriginalPhotoUrl(participantData.photo_url ?? null);
       if (participantData.photo_url) setPhotoPreview(participantData.photo_url);
       setHasInitialized(true);
-      (window as any).entityName = participantData.name;
+      (window as any).entityName = participantData.participant_name;
     }
   }, [participantData, hasInitialized, onFormDataChange, onOriginalDataChange]);
 
@@ -306,7 +306,7 @@ export function ParticipantDetailContent({
             activityType: 'create',
             entityType: 'participant',
             entityId: id,
-            entityName: participant?.name,
+            entityName: participant?.participant_name,
             userName,
             customDescription: `Added goal "${goal.goal_type}"${goal.description ? ` (${goal.description})` : ''}`,
           });
@@ -328,7 +328,7 @@ export function ParticipantDetailContent({
             activityType: 'update',
             entityType: 'participant',
             entityId: id,
-            entityName: participant?.name,
+            entityName: participant?.participant_name,
             userName,
             customDescription: `Updated goal "${goal.goal_type}"${goal.description ? ` (${goal.description})` : ''}`,
           });
@@ -354,7 +354,7 @@ export function ParticipantDetailContent({
               activityType: 'delete',
               entityType: 'participant',
               entityId: id,
-              entityName: participant?.name,
+              entityName: participant?.participant_name,
               userName,
               customDescription: `Deleted goal "${record.goal_type || 'Unknown goal'}"`,
             });
@@ -376,7 +376,7 @@ export function ParticipantDetailContent({
         if (error) throw new Error(`Failed to add medications: ${error.message}`);
         
         if (participant?.house_id) {
-          await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.name || 'Participant', 'medication');
+          await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.participant_name || 'Participant', 'medication');
         }
       }
 
@@ -394,7 +394,7 @@ export function ParticipantDetailContent({
           if (error) throw new Error(`Failed to update medication: ${error.message}`);
         }
         if (participant?.house_id) {
-          await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.name || 'Participant', 'medication');
+          await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.participant_name || 'Participant', 'medication');
         }
       }
 
@@ -428,7 +428,7 @@ export function ParticipantDetailContent({
             activityType: 'create',
             entityType: 'participant',
             entityId: id,
-            entityName: participant?.name,
+            entityName: participant?.participant_name,
             userName,
             customDescription: `Added contact "${contact.contact_name}"`,
           });
@@ -454,7 +454,7 @@ export function ParticipantDetailContent({
             activityType: 'update',
             entityType: 'participant',
             entityId: id,
-            entityName: participant?.name,
+            entityName: participant?.participant_name,
             userName,
             customDescription: `Updated contact "${contact.contact_name}"`,
           });
@@ -503,7 +503,7 @@ export function ParticipantDetailContent({
             activityType: 'create',
             entityType: 'participant',
             entityId: id,
-            entityName: participant?.name,
+            entityName: participant?.participant_name,
             userName,
             customDescription: `Uploaded document "${doc.file.name}"`,
           });
@@ -524,7 +524,7 @@ export function ParticipantDetailContent({
             activityType: 'delete',
             entityType: 'participant',
             entityId: id,
-            entityName: participant?.name,
+            entityName: participant?.participant_name,
             userName,
             customDescription: `Deleted document "${doc.fileName}"`,
           });
@@ -538,7 +538,7 @@ export function ParticipantDetailContent({
 
         const { error: photoErr } = await supabase
           .from('ic_participants')
-          .update({ photo_url: newPhotoUrl, updated_at: new Date().toISOString() })
+          .update({ photo_url: newPhotoUrl })
           .eq('id', id);
         if (photoErr) throw photoErr;
         setOriginalPhotoUrl(newPhotoUrl);
@@ -550,7 +550,7 @@ export function ParticipantDetailContent({
           activityType: 'update',
           entityType: 'participant',
           entityId: id,
-          entityName: currentFormData.name,
+          entityName: currentFormData.participant_name,
           userName,
           customDescription: 'Updated profile photo',
         });
@@ -567,9 +567,9 @@ export function ParticipantDetailContent({
           activityType: 'update',
           entityType: 'participant',
           entityId: id,
-          entityName: currentFormData.name,
+          entityName: currentFormData.participant_name,
           userName,
-          customDescription: `Removed profile photo for ${currentFormData.name || 'participant'}`,
+          customDescription: `Removed profile photo for ${currentFormData.participant_name || 'participant'}`,
         });
       }
 
@@ -594,7 +594,7 @@ export function ParticipantDetailContent({
       });
 
       if (Object.keys(changedFields).length > 0) {
-        if (!currentFormData.name) {
+        if (!currentFormData.participant_name) {
           setFieldError('name', 'Name is required');
           scrollToField('name');
           toast.error('Validation Error', { description: 'Name is required' });
@@ -606,7 +606,7 @@ export function ParticipantDetailContent({
           const routineFields = ['routine', 'medical_routine_general_process', 'behaviour_of_concern', 'restrictive_practices'];
           const hasRoutineChange = routineFields.some(field => Object.keys(changedFields).includes(field));
           if (hasRoutineChange) {
-            await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.name || 'Participant', 'routine');
+            await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.participant_name || 'Participant', 'routine');
           }
         }
       }
@@ -618,7 +618,7 @@ export function ParticipantDetailContent({
           activityType: 'update',
           entityType: 'participant',
           entityId: id,
-          entityName: currentFormData.name,
+          entityName: currentFormData.participant_name,
           changes,
           userName,
         });
@@ -638,7 +638,7 @@ export function ParticipantDetailContent({
         if (error) throw new Error(`Failed to add shift notes: ${error.message}`);
         
         if (participant?.house_id) {
-          await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.name || 'Participant', 'note');
+          await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.participant_name || 'Participant', 'note');
         }
       }
 
@@ -651,13 +651,12 @@ export function ParticipantDetailContent({
               start_date: note.start_date,
               shift_time: note.shift_time || null,
               full_note: note.full_note,
-              updated_at: new Date().toISOString(),
             })
             .eq('id', note.id);
           if (error) throw new Error(`Failed to update shift note: ${error.message}`);
         }
         if (participant?.house_id) {
-          await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.name || 'Participant', 'note');
+          await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.participant_name || 'Participant', 'note');
         }
       }
 

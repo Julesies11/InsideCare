@@ -15,7 +15,7 @@ interface DepartmentMasterDialogProps {
   onUpdate: () => void;
 }
 
-type SortField = 'name' | 'description' | 'status';
+type SortField = 'department_name' | 'description' | 'status';
 type SortDirection = 'asc' | 'desc';
 
 export function DepartmentMasterDialog({
@@ -43,7 +43,7 @@ export function DepartmentMasterDialog({
 
   const sortedAndFilteredDepartments = useMemo(() => {
     const filtered = departments.filter((dept) =>
-      dept.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      dept.department_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (dept.description && dept.description.toLowerCase().includes(searchQuery.toLowerCase()))
     );
 
@@ -140,11 +140,11 @@ export function DepartmentMasterDialog({
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleSort('name')}
+                      onClick={() => handleSort('department_name')}
                       className="h-8 px-2"
                     >
                       Name
-                      {getSortIcon('name')}
+                      {getSortIcon('department_name')}
                     </Button>
                   </TableHead>
                   <TableHead>
@@ -175,7 +175,7 @@ export function DepartmentMasterDialog({
               <TableBody>
                 {sortedAndFilteredDepartments.map((department) => (
                   <TableRow key={department.id}>
-                    <TableCell className="font-medium">{department.name}</TableCell>
+                    <TableCell className="font-medium">{department.department_name}</TableCell>
                     <TableCell>{department.description || '-'}</TableCell>
                     <TableCell>
                       <Badge variant={department.status === 'Active' ? 'success' : 'secondary'}>

@@ -10,7 +10,7 @@ import * as z from 'zod';
 import { ContactTypeMaster } from '@/models/contact-type-master';
 
 const contactTypeSchema = z.object({
-  name: z.string().min(1, 'Contact type name is required'),
+  contact_type_name: z.string().min(1, 'Contact type name is required'),
   is_active: z.boolean().default(true),
 });
 
@@ -32,7 +32,7 @@ export function ContactTypeMasterQuickAdd({
   const form = useForm<ContactTypeFormValues>({
     resolver: zodResolver(contactTypeSchema),
     defaultValues: {
-      name: '',
+      contact_type_name: '',
       is_active: true,
     },
   });
@@ -40,12 +40,12 @@ export function ContactTypeMasterQuickAdd({
   useEffect(() => {
     if (open && editingContactType) {
       form.reset({
-        name: editingContactType.name,
+        name: editingContactType.contact_type_name,
         is_active: editingContactType.is_active,
       });
     } else if (open) {
       form.reset({
-        name: '',
+        contact_type_name: '',
         is_active: true,
       });
     }
@@ -70,7 +70,7 @@ export function ContactTypeMasterQuickAdd({
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 py-4">
             <FormField
               control={form.control}
-              name="name"
+              name="contact_type_name"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Contact Type Name *</FormLabel>

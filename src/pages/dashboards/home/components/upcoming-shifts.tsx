@@ -81,7 +81,7 @@ export function UpcomingShifts() {
           activityType: 'update',
           entityType: 'shift_note', // Using shift_note as proxy for roster activity
           entityId: selectedShift.id,
-          entityName: `Shift for ${staffMember?.name || 'Unknown'}`,
+          entityName: `Shift for ${staffMember?.staff_name || 'Unknown'}`,
           userName: user?.email || 'Unknown',
           customDescription: `Updated shift on ${formData.start_date}`,
         });
@@ -107,7 +107,7 @@ export function UpcomingShifts() {
         entityType: 'shift_note',
         entityId: shiftId,
         userName: user?.email || 'Unknown',
-        customDescription: `Deleted shift for ${staffMember?.name || 'staff'} on ${selectedShift?.start_date || 'an unknown date'}`,
+        customDescription: `Deleted shift for ${staffMember?.staff_name || 'staff'} on ${selectedShift?.start_date || 'an unknown date'}`,
       });
 
       toast.success('Shift deleted successfully');
@@ -172,13 +172,13 @@ export function UpcomingShifts() {
                       </Badge>
                     </div>
                     <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
-                      {shift.staff_name} with {shift.participants?.map(p => p.name).join(', ') || 'No Participants'}
+                      {shift.staff_name} with {shift.participants?.map(p => p.participant_name).join(', ') || 'No Participants'}
                     </p>
                     <div className="flex items-center gap-3 mt-1">
-                      {shift.house?.name && (
+                      {shift.house?.house_name && (
                         <div className="flex items-center gap-1 text-xs text-muted-foreground">
                           <MapPin className="size-3" />
-                          {shift.house.name}
+                          {shift.house.house_name}
                         </div>
                       )}
                       <div className="flex items-center gap-1 text-xs text-muted-foreground">

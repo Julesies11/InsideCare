@@ -11,7 +11,7 @@ import * as z from 'zod';
 import { MedicationMaster } from '@/models/medication-master';
 
 const medicationSchema = z.object({
-  name: z.string().min(1, 'Medication name is required'),
+  medication_name: z.string().min(1, 'Medication name is required'),
   category: z.string().optional(),
   common_dosages: z.string().optional(),
   side_effects: z.string().optional(),
@@ -37,7 +37,7 @@ export function MedicationMasterQuickAdd({
   const form = useForm<MedicationFormValues>({
     resolver: zodResolver(medicationSchema),
     defaultValues: {
-      name: '',
+      medication_name: '',
       category: '',
       common_dosages: '',
       side_effects: '',
@@ -49,7 +49,7 @@ export function MedicationMasterQuickAdd({
   useEffect(() => {
     if (open && editingMedication) {
       form.reset({
-        name: editingMedication.name,
+        name: editingMedication.medication_name,
         category: editingMedication.category || '',
         common_dosages: editingMedication.common_dosages || '',
         side_effects: editingMedication.side_effects || '',
@@ -58,7 +58,7 @@ export function MedicationMasterQuickAdd({
       });
     } else if (open) {
       form.reset({
-        name: '',
+        medication_name: '',
         category: '',
         common_dosages: '',
         side_effects: '',
@@ -91,7 +91,7 @@ export function MedicationMasterQuickAdd({
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 py-4">
             <FormField
               control={form.control}
-              name="name"
+              name="medication_name"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Medication Name *</FormLabel>

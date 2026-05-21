@@ -55,13 +55,13 @@ export function PersonalDetails({
             <div className="grow">
               <Input
                 id="name"
-                value={formData.name || ''}
+                value={formData.participant_name || ''}
                 onChange={(e) => onFormChange('name', e.target.value)}
                 disabled={!canEdit}
-                className={validationErrors.name ? 'border-red-500 focus-visible:ring-red-500' : ''}
+                className={validationErrors.participant_name ? 'border-red-500 focus-visible:ring-red-500' : ''}
               />
-              {validationErrors.name && (
-                <p className="text-red-500 text-sm mt-1">{validationErrors.name}</p>
+              {validationErrors.participant_name && (
+                <p className="text-red-500 text-sm mt-1">{validationErrors.participant_name}</p>
               )}
             </div>
           </div>
@@ -197,7 +197,7 @@ export function PersonalDetails({
               <SelectContent>
                 {houses?.map((house) => (
                   <SelectItem key={house.id} value={house.id}>
-                    {house.name}
+                    {house.house_name}
                   </SelectItem>
                 ))}
               </SelectContent>

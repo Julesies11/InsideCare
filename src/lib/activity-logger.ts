@@ -14,6 +14,14 @@ interface LogActivityParams {
 // Field labels for better descriptions
 const fieldLabels: Record<string, string> = {
   name: 'name',
+  participant_name: 'name',
+  staff_name: 'name',
+  house_name: 'name',
+  role_name: 'name',
+  branch_name: 'name',
+  department_name: 'name',
+  checklist_name: 'name',
+  medication_name: 'name',
   email: 'email address',
   phone: 'phone number',
   address: 'address',

@@ -20,7 +20,7 @@ export interface HouseResource {
   updated_at: string;
   creator?: {
     id: string;
-    name: string;
+    staff_name: string;
     email?: string;
   };
 }
@@ -45,7 +45,7 @@ export function useHouseResources(houseId?: string) {
           .from('ic_house_resources')
           .select(`
             *,
-            creator:ic_staff!created_by(id, name, email)
+            creator:ic_staff!created_by(id, staff_name, email)
           `)
           .eq('house_id', houseId)
           .order('created_at', { ascending: false });

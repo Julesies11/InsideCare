@@ -15,7 +15,7 @@ interface EmploymentTypeMasterDialogProps {
   onUpdate: () => void;
 }
 
-type SortField = 'name' | 'description' | 'status';
+type SortField = 'employment_type_name' | 'description' | 'status';
 type SortDirection = 'asc' | 'desc';
 
 export function EmploymentTypeMasterDialog({
@@ -43,7 +43,7 @@ export function EmploymentTypeMasterDialog({
 
   const sortedAndFilteredEmploymentTypes = useMemo(() => {
     const filtered = employmentTypes.filter((type) =>
-      type.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      type.employment_type_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (type.description && type.description.toLowerCase().includes(searchQuery.toLowerCase()))
     );
 
@@ -96,7 +96,7 @@ export function EmploymentTypeMasterDialog({
         toast.success('Employment type updated successfully');
       } else {
         await addEmploymentType({
-          name: employmentTypeData.name!,
+          employment_type_name: employmentTypeData.employment_type_name!,
           description: employmentTypeData.description || null,
           status: employmentTypeData.status || 'Active',
         });
@@ -144,11 +144,11 @@ export function EmploymentTypeMasterDialog({
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleSort('name')}
+                      onClick={() => handleSort('employment_type_name')}
                       className="h-8 px-2"
                     >
                       Name
-                      {getSortIcon('name')}
+                      {getSortIcon('employment_type_name')}
                     </Button>
                   </TableHead>
                   <TableHead>
@@ -179,7 +179,7 @@ export function EmploymentTypeMasterDialog({
               <TableBody>
                 {sortedAndFilteredEmploymentTypes.map((employmentType) => (
                   <TableRow key={employmentType.id}>
-                    <TableCell className="font-medium">{employmentType.name}</TableCell>
+                    <TableCell className="font-medium">{employmentType.employment_type_name}</TableCell>
                     <TableCell>{employmentType.description || '-'}</TableCell>
                     <TableCell>
                       <Badge variant={employmentType.status === 'Active' ? 'success' : 'secondary'}>

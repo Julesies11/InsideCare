@@ -68,9 +68,9 @@ export function LeaveDialog({ open, onOpenChange, leaveId, onSuccess, initialDat
       const fetchLeaveTypes = async () => {
         const { data } = await supabase
           .from('ic_leave_types')
-          .select('id, name')
+          .select('id, leave_type_name')
           .eq('is_active', true)
-          .order('name');
+          .order('leave_type_name');
         setLeaveTypes((data as LeaveType[]) || []);
       };
       fetchLeaveTypes();
@@ -117,7 +117,7 @@ export function LeaveDialog({ open, onOpenChange, leaveId, onSuccess, initialDat
     const check = async () => {
       const { data } = await supabase
         .from('ic_staff_shifts')
-        .select('id, start_date, start_time, end_time, house:ic_houses(name)')
+        .select('id, start_date, start_time, end_time, house:ic_houses(house_name)')
         .eq('staff_id', user.staff_id)
         .gte('start_date', startDate)
         .lte('start_date', endDate)
@@ -171,14 +171,12 @@ export function LeaveDialog({ open, onOpenChange, leaveId, onSuccess, initialDat
         end_date: string;
         reason: string | null;
         attachment_url?: string;
-        updated_at: string;
       } = {
         leave_type_id: leaveTypeId,
         start_date: startDate,
         end_date: endDate,
         reason: reason || null,
         ...(attachmentUrl !== undefined ? { attachment_url: attachmentUrl } : {}),
-        updated_at: new Date().toISOString(),
       };
       const { error } = await supabase.from('ic_leave_requests').update(updates).eq('id', leaveId);
       if (error) { toast.error('Failed to update leave request'); setSaving(false); return; }

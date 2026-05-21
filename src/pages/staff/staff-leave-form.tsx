@@ -65,9 +65,9 @@ export function StaffLeaveForm() {
     const fetchLeaveTypes = async () => {
       const { data } = await supabase
         .from('ic_leave_types')
-        .select('id, name')
+        .select('id, leave_type_name')
         .eq('is_active', true)
-        .order('name');
+        .order('leave_type_name');
       setLeaveTypes((data as LeaveType[]) || []);
     };
     fetchLeaveTypes();
@@ -109,7 +109,7 @@ export function StaffLeaveForm() {
       setCheckingConflicts(true);
       const { data } = await supabase
         .from('ic_staff_shifts')
-        .select('id, start_date, start_time, end_time, house:ic_houses(name)')
+        .select('id, start_date, start_time, end_time, house:ic_houses(house_name)')
         .eq('staff_id', user.staff_id)
         .gte('start_date', startDate)
         .lte('start_date', endDate);
@@ -160,7 +160,6 @@ export function StaffLeaveForm() {
         end_date: endDate,
         reason: reason || null,
         ...(attachmentUrl !== undefined ? { attachment_url: attachmentUrl } : {}),
-        updated_at: new Date().toISOString(),
       }).eq('id', id);
       if (error) { toast.error('Failed to update leave request'); setSaving(false); return; }
       toast.success('Leave request updated');
@@ -234,7 +233,7 @@ export function StaffLeaveForm() {
                     <Badge key={s.id} variant="warning" appearance="light" className="text-xs">
                       {format(parseISO(s.start_date), 'EEE dd MMM')}
                       {' '}{s.start_time?.slice(0,5)}–{s.end_time?.slice(0,5)}
-                      {s.house?.name ? ` · ${s.house.name}` : ''}
+                      {s.house?.house_name ? ` · ${s.house.house_name}` : ''}
                     </Badge>
                   ))}
                 </div>

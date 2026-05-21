@@ -1,6 +1,6 @@
 export interface HouseType {
   id: string;
-  name: string;
+  house_type_name: string;
   description: string | null;
   status: 'Active' | 'Inactive';
   created_at?: string;
@@ -9,7 +9,7 @@ export interface HouseType {
 
 export interface House extends Record<string, any> {
   id: string;
-  name: string;
+  house_name: string;
   branch_id: string | null;
   address: string | null;
   phone: string | null;
@@ -26,6 +26,8 @@ export interface House extends Record<string, any> {
   participant_dynamics: string | null;
   observations: string | null;
   general_house_details: string | null;
+  created_by?: string;
+  updated_by?: string;
   created_at: string;
   updated_at: string;
 }

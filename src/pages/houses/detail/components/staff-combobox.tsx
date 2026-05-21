@@ -72,7 +72,7 @@ export function StaffCombobox({ value, onChange, placeholder = "Select staff..."
                     <div className="flex flex-col">
                       <span className="font-bold text-sm text-gray-900">{staffMember.name}</span>
                       <span className="text-[10px] text-primary font-black uppercase tracking-widest leading-none mt-0.5">
-                        {staffMember.role?.name || 'No Role'}
+                        {staffMember.role?.role_name || 'No Role'}
                       </span>
                     </div>
                   </div>

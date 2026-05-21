@@ -12,6 +12,7 @@ export interface AuthModel {
 
 // User model representing the user profile
 export interface UserModel {
+  id: string;
   username: string;
   password?: string; // Optional as we don't always retrieve passwords
   email: string;

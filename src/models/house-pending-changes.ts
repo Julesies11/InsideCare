@@ -90,7 +90,7 @@ export interface HousePendingChanges {
   checklists: {
     toAdd: Array<{
       tempId: string;
-      name: string;
+      house_checklist_name: string;
       days_of_week?: string[];
       description?: string;
       master_id?: string;
@@ -106,7 +106,7 @@ export interface HousePendingChanges {
     }>;
     toUpdate: Array<{
       id: string;
-      name?: string;
+      house_checklist_name?: string;
       days_of_week?: string[];
       description?: string;
       master_id?: string;
@@ -137,7 +137,7 @@ export interface HousePendingChanges {
   shiftTemplates: {
     toAdd: Array<{
       tempId: string;
-      name: string;
+      shift_template_name: string;
       short_name?: string;
       color_theme?: string;
       default_start_time?: string;
@@ -148,7 +148,7 @@ export interface HousePendingChanges {
     }>;
     toUpdate: Array<{
       id: string;
-      name?: string;
+      shift_template_name?: string;
       short_name?: string;
       color_theme?: string;
       default_start_time?: string;
@@ -162,7 +162,7 @@ export interface HousePendingChanges {
   forms: {
     toAdd: Array<{
       tempId: string;
-      name: string;
+      house_form_name: string;
       type: string;
       description?: string;
       frequency: string;
@@ -171,7 +171,7 @@ export interface HousePendingChanges {
     }>;
     toUpdate: Array<{
       id: string;
-      name?: string;
+      house_form_name?: string;
       type?: string;
       description?: string;
       frequency?: string;

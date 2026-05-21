@@ -12,10 +12,10 @@ export interface RosterEntry {
   shift_template?: string;
   type_name?: string;
   type_color?: string;
-  house: { name: string } | null;
+  house: { house_name: string } | null;
   has_timesheet?: boolean;
   location?: string;
-  participants?: Array<{ id: string; name: string }>;
+  participants?: Array<{ id: string; participant_name: string }>;
   status?: string;
   reason?: string | null;
 }
@@ -35,9 +35,9 @@ export function useStaffRoster(staffId?: string) {
             start_time, 
             end_time, 
             shift_template, 
-            house:ic_houses(name),
+            house:ic_houses(house_name),
             participants:ic_shift_participants(
-              participant:ic_participants(id, name)
+              participant:ic_participants(id, participant_name)
             )
           `)
           .eq('staff_id', staffId)
@@ -51,8 +51,8 @@ export function useStaffRoster(staffId?: string) {
             start_time,
             end_time,
             location,
-            type:ic_house_calendar_event_types_master(name, color),
-            house:ic_houses(name),
+            type:ic_house_calendar_event_types_master(event_type_name, color),
+            house:ic_houses(house_name),
             staff_assignments:ic_house_calendar_event_staff!inner(staff_id)
           `)
           .eq('staff_assignments.staff_id', staffId)
@@ -65,7 +65,7 @@ export function useStaffRoster(staffId?: string) {
             end_date,
             status,
             reason,
-            leave_type:ic_leave_types(name)
+            leave_type:ic_leave_types(leave_type_name)
           `)
           .eq('staff_id', staffId)
           .neq('status', 'rejected')
@@ -97,7 +97,7 @@ export function useStaffRoster(staffId?: string) {
       const shifts = shiftsData.map((s) => ({
         ...s,
         entry_type: 'shift' as const,
-        house: s.house as { name: string } | null,
+        house: s.house as { house_name: string } | null,
         has_timesheet: timesheetedIds.has(s.id),
         participants: (s.participants || s.ic_shift_participants || [])?.map((p: any) => {
           const part = p.participant || p.participants || p;
@@ -105,9 +105,9 @@ export function useStaffRoster(staffId?: string) {
           
           return {
             id: actualPart?.id || p.id || p.participant_id,
-            name: actualPart?.name || p.name
+            participant_name: actualPart?.participant_name || p.participant_name
           };
-        }).filter((p: any) => p.id && p.name) || []
+        }).filter((p: any) => p.id && p.participant_name) || []
       }));
 
       const events = eventsData.map((e) => ({
@@ -118,9 +118,9 @@ export function useStaffRoster(staffId?: string) {
         entry_type: 'event' as const,
         title: e.title,
         location: e.location,
-        type_name: e.type?.name || 'Meeting',
+        type_name: e.type?.event_type_name || 'Meeting',
         type_color: e.type?.color || 'blue',
-        house: e.house as { name: string } | null,
+        house: e.house as { house_name: string } | null,
         has_timesheet: false,
       }));
 
@@ -131,7 +131,7 @@ export function useStaffRoster(staffId?: string) {
         start_time: '00:00:00',
         end_time: '23:59:59',
         entry_type: 'leave' as const,
-        title: l.leave_type?.name || 'Leave',
+        title: l.leave_type?.leave_type_name || 'Leave',
         reason: l.reason,
         status: l.status,
         house: null,

@@ -60,7 +60,7 @@ export function StaffLeaveList() {
     if (!user?.staff_id) { setLoading(false); return; }
     const { data } = await supabase
       .from('ic_leave_requests')
-      .select('id, leave_type:ic_leave_types(name), start_date, end_date, reason, status, admin_notes, created_at')
+      .select('id, leave_type:ic_leave_types(leave_type_name), start_date, end_date, reason, status, admin_notes, created_at')
       .eq('staff_id', user.staff_id)
       .order('created_at', { ascending: false });
     setRequests((data as LeaveRequest[]) || []);
@@ -148,7 +148,7 @@ export function StaffLeaveList() {
                   <tbody className="divide-y">
                     {requests.map((req) => (
                       <tr key={req.id} className="hover:bg-muted/30 transition-colors">
-                        <td className="px-5 py-3.5 font-medium">{req.leave_type?.name ?? 'Leave'}</td>
+                        <td className="px-5 py-3.5 font-medium">{req.leave_type?.leave_type_name ?? 'Leave'}</td>
                         <td className="px-5 py-3.5 text-muted-foreground">
                           {format(new Date(req.start_date), 'dd MMM yyyy')}
                           {req.start_date !== req.end_date && (
@@ -211,7 +211,7 @@ export function StaffLeaveList() {
           <DialogHeader>
             <DialogTitle>Delete Leave Request</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this {deleteTarget?.leave_type?.name ?? 'leave'} request
+              Are you sure you want to delete this {deleteTarget?.leave_type?.leave_type_name ?? 'leave'} request
               ({deleteTarget ? format(new Date(deleteTarget.start_date), 'dd MMM') : ''}
               {deleteTarget && deleteTarget.start_date !== deleteTarget.end_date
                 ? ` – ${format(new Date(deleteTarget.end_date), 'dd MMM yyyy')}`

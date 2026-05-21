@@ -32,7 +32,7 @@ export function useStaffAssignedHouses(staffId?: string) {
         .select(`
           id, 
           house_id, 
-          house:ic_houses(id, name, address)
+          house:ic_houses(id, house_name, address)
         `)
         .eq('staff_id', effectiveStaffId);
         

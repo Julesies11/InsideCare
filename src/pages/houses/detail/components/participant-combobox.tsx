@@ -34,7 +34,7 @@ export function ParticipantCombobox({
           className="w-full justify-between"
           disabled={disabled}
         >
-          {selectedParticipant ? selectedParticipant.name : placeholder}
+          {selectedParticipant ? selectedParticipant.participant_name : placeholder}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -58,7 +58,7 @@ export function ParticipantCombobox({
                     value === participant.id ? "opacity-100" : "opacity-0"
                   )}
                 />
-                {participant.name}
+                {participant.participant_name}
               </CommandItem>
             ))}
           </CommandGroup>

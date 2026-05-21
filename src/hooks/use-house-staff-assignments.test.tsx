@@ -43,6 +43,6 @@ describe('useHouseStaffAssignments', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(result.current.data).toHaveLength(1);
-    expect(result.current.data?.[0].staff?.name).toBe('John Staff');
+    expect(result.current.data?.[0].staff?.staff_name).toBe('John Staff');
   });
 });

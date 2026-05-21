@@ -56,7 +56,7 @@ interface Timesheet {
     start_time: string;
     end_time: string;
     shift_template: string;
-    house: { name: string } | null;
+    house: { house_name: string } | null;
   } | null;
 }
 
@@ -117,7 +117,7 @@ export function StaffTimesheetList() {
         break_minutes, shift_notes_text, status, admin_notes,
         rejection_reason, submitted_at, incident_tag, sick_shift,
         overtime_hours, travel_km, created_at,
-        shift:ic_staff_shifts(id, start_date, end_date, start_time, end_time, shift_template, house:ic_houses(name))
+        shift:ic_staff_shifts(id, start_date, end_date, start_time, end_time, shift_template, house:ic_houses(house_name))
       `)
       .eq('staff_id', user.staff_id)
       .order('created_at', { ascending: false });
@@ -127,7 +127,7 @@ export function StaffTimesheetList() {
       .from('ic_staff_shifts')
       .select(`
         id, start_date, end_date, start_time, end_time, shift_template,
-        house:ic_houses(name)
+        house:ic_houses(house_name)
       `)
       .eq('staff_id', user.staff_id)
       .gte('end_date', thirtyDaysAgo)
@@ -210,7 +210,7 @@ export function StaffTimesheetList() {
     {
       accessorKey: 'location',
       header: 'Location',
-      cell: ({ row }) => row.original.shift?.house?.name ?? '—',
+      cell: ({ row }) => row.original.shift?.house?.house_name ?? '—',
       meta: { className: 'hidden sm:table-cell' },
     },
     {

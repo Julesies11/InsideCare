@@ -65,7 +65,7 @@ const HOUSE_STATUS_OPTIONS: StatusOption[] = [
 function getHouseParticipants(houseId: string, allParticipants: Array<{ id: string; name: string; house_id?: string; status: string }>) {
   return allParticipants
     .filter(participant => participant.house_id === houseId && participant.status === 'active')
-    .map(participant => participant.name)
+    .map(participant => participant.participant_name)
     .filter(name => name);
 }
 
@@ -101,9 +101,9 @@ function ActionsCell({ row, updateHouse }: { row: Row<House>; updateHouse: (para
         activityType: 'update',
         entityType: 'house',
         entityId: row.original.id,
-        entityName: row.original.name,
+        entityName: row.original.house_name,
         userName: user?.email || 'Unknown user',
-        customDescription: `Archived house "${row.original.name}"`,
+        customDescription: `Archived house "${row.original.house_name}"`,
       });
 
       toast.success('House archived successfully');
@@ -266,7 +266,7 @@ export function Houses() {
   const columns: ColumnDef<House>[] = useMemo(
     () => [
       {
-        accessorKey: 'name',
+        accessorKey: 'house_name',
         header: ({ column }) => (
           <DataGridColumnHeader
             column={column}
@@ -281,7 +281,7 @@ export function Houses() {
             </div>
             <div className="flex flex-col">
               <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                {row.getValue('name') || 'Unnamed House'}
+                {row.getValue('house_name') || 'Unnamed House'}
               </span>
               {row.original.address && (
                 <a

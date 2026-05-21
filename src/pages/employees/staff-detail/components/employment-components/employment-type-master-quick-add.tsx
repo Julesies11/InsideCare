@@ -21,7 +21,7 @@ export function EmploymentTypeMasterQuickAdd({
   employmentType,
 }: EmploymentTypeMasterQuickAddProps) {
   const [formData, setFormData] = useState({
-    name: '',
+    employment_type_name: '',
     description: '',
     status: 'Active',
   });
@@ -29,13 +29,13 @@ export function EmploymentTypeMasterQuickAdd({
   useEffect(() => {
     if (employmentType) {
       setFormData({
-        name: employmentType.name,
+        employment_type_name: employmentType.employment_type_name,
         description: employmentType.description || '',
         status: employmentType.status,
       });
     } else {
       setFormData({
-        name: '',
+        employment_type_name: '',
         description: '',
         status: 'Active',
       });
@@ -44,7 +44,7 @@ export function EmploymentTypeMasterQuickAdd({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name.trim()) return;
+    if (!formData.employment_type_name.trim()) return;
     onSave(formData);
   };
 
@@ -60,8 +60,8 @@ export function EmploymentTypeMasterQuickAdd({
               <Label htmlFor="name">Name *</Label>
               <Input
                 id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                value={formData.employment_type_name}
+                onChange={(e) => setFormData({ ...formData, employment_type_name: e.target.value })}
                 placeholder="Employment type name"
                 required
               />

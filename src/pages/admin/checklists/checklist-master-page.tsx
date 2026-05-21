@@ -83,7 +83,7 @@ export function ChecklistMasterPage() {
   const handleEditTemplate = (template: ChecklistMaster) => {
     setSelectedTemplate(template);
     const initialData: typeof formData = {
-      name: template.name,
+      name: template.checklist_name,
       days_of_week: template.days_of_week || [],
       description: template.description || '',
       items: template.items || [],
@@ -120,7 +120,7 @@ export function ChecklistMasterPage() {
         await supabase
           .from('ic_checklist_master')
           .update({
-            name: formData.name,
+            checklist_name: formData.name,
             days_of_week: formData.days_of_week || null,
             description: formData.description || null,
           })
@@ -130,7 +130,7 @@ export function ChecklistMasterPage() {
         const { data, error } = await supabase
           .from('ic_checklist_master')
           .insert({
-            name: formData.name,
+            checklist_name: formData.name,
             days_of_week: formData.days_of_week || null,
             description: formData.description || null,
           })
@@ -231,7 +231,7 @@ export function ChecklistMasterPage() {
   };
 
   const filteredTemplates = masterChecklists.filter(t => 
-    t.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    t.checklist_name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     t.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 

@@ -39,7 +39,7 @@ export function StaffProfilesContent() {
         activityType: 'create',
         entityType: 'staff',
         entityId: data.id,
-        entityName: data.name || 'Draft Staff Member',
+        entityName: data.staff_name || 'Draft Staff Member',
         userName: 'Current User', // TODO: Get from auth context
       });
 

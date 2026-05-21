@@ -95,9 +95,9 @@ function ActionsCell({ row, updateParticipant }: { row: Row<ParticipantWithHouse
         activityType: 'update',
         entityType: 'participant',
         entityId: row.original.id,
-        entityName: row.original.name,
+        entityName: row.original.participant_name,
         userName: user?.email || 'Unknown user',
-        customDescription: `Archived participant "${row.original.name}"`,
+        customDescription: `Archived participant "${row.original.participant_name}"`,
       });
 
       toast.success('Participant archived successfully');
@@ -277,7 +277,7 @@ const Participants = () => {
     () => [
       {
         id: 'participant',
-        accessorFn: (row) => row.name,
+        accessorFn: (row) => row.participant_name,
         header: ({ column }) => (
           <DataGridColumnHeader title="Participant" column={column} />
         ),
@@ -285,14 +285,14 @@ const Participants = () => {
           <div className="flex items-center gap-2.5">
             <SecureAvatar 
               src={row.original.photo_url} 
-              initials={getInitials(row.original.name)} 
+              initials={getInitials(row.original.participant_name)} 
               className="size-9"
               bucket="participant-photos" 
             />
 
             <div className="flex flex-col gap-0.5">
               <span className="leading-none font-medium text-sm text-mono hover:text-primary">
-                {row.original.name || '-'}
+                {row.original.participant_name || '-'}
               </span>
               {row.original.date_of_birth && (
                 <span className="text-sm text-secondary-foreground font-normal">
@@ -539,7 +539,7 @@ const Participants = () => {
                           htmlFor={house.id}
                           className="grow flex items-center justify-between font-normal gap-1.5"
                         >
-                          {house.name}
+                          {house.house_name}
                           <span className="text-muted-foreground">
                             {houseCounts[house.id] || 0}
                           </span>
