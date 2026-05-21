@@ -21,14 +21,14 @@ export const handlers = [
     const houses = [
       {
         id: 'house-1',
-        name: 'Test House 1',
+        house_name: 'Test House 1',
         status: 'active',
         capacity: 5,
         address: '123 Test St',
       },
       {
         id: 'house-2',
-        name: 'Test House 2',
+        house_name: 'Test House 2',
         status: 'inactive',
         capacity: 3,
         address: '456 Mock Ave',
@@ -57,11 +57,11 @@ export const handlers = [
     const participants = [
       {
         id: 'participant-1',
-        name: 'John Doe',
+        participant_name: 'John Doe',
         email: 'john@example.com',
         status: 'active',
         house_id: 'house-1',
-        houses: { name: 'Test House 1' },
+        houses: { house_name: 'Test House 1' },
         ndis_number: 'NDIS123',
       },
     ];
@@ -84,7 +84,7 @@ export const handlers = [
     const body = await request.json();
     return HttpResponse.json({ 
       id: 'participant-1',
-      name: 'John Doe',
+      participant_name: 'John Doe',
       ...body 
     });
   }),
@@ -117,11 +117,11 @@ export const handlers = [
     const staff = [
       {
         id: 'staff-1',
-        name: 'John Staff',
+        staff_name: 'John Staff',
         email: 'john.staff@example.com',
         status: 'active',
         auth_user_id: 'test-user-id',
-        role: { name: 'Administrator' }
+        role: { role_name: 'Administrator' }
       },
     ];
 
@@ -148,18 +148,40 @@ export const handlers = [
         staff_id: 'staff-1',
         start_date: new Date().toISOString().split('T')[0],
         notes: 'Everything went well.',
-        participant: { id: 'participant-1', name: 'John Doe' },
-        staff: { id: 'staff-1', name: 'Admin User' },
+        participant: { id: 'participant-1', participant_name: 'John Doe' },
+        staff: { id: 'staff-1', staff_name: 'Admin User' },
       },
     ]);
   }),
 
-  // Database Mocks - Roles
-  http.get(`${SUPABASE_URL}/rest/v1/ic_roles`, () => {
-    return HttpResponse.json([
-      { id: 'role-1', name: 'Admin', description: 'Admin role', is_active: true },
-      { id: 'role-2', name: 'Support Worker', description: 'Staff role', is_active: true },
-    ]);
+  // Database Mocks - Leave Requests
+  http.get(`${SUPABASE_URL}/rest/v1/ic_leave_requests`, ({ request }) => {
+    const url = new URL(request.url);
+    const idParam = url.searchParams.get('id');
+    
+    const requests = [
+      {
+        id: 'leave-1',
+        staff_id: 'staff-1',
+        leave_type_id: 'leave-type-1',
+        start_date: '2026-06-01',
+        end_date: '2026-06-05',
+        status: 'pending',
+        created_at: new Date().toISOString(),
+      },
+    ];
+
+    if (idParam && idParam.startsWith('eq.')) {
+      const id = idParam.replace('eq.', '');
+      const req = requests.find(r => r.id === id);
+      if (req) {
+        if (request.headers.get('Accept')?.includes('vnd.pgrst.object+json')) {
+          return HttpResponse.json(req);
+        }
+        return HttpResponse.json([req]);
+      }
+    }
+    return HttpResponse.json(requests);
   }),
 
   // Database Mocks - Role Permissions
