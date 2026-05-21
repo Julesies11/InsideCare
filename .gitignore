@@ -19,3 +19,8 @@ pnpm-debug.log*
 .env.*.local
 .vercel
 .env*.local
+.env.dev
+.env.prod
+.env.test
+.env.staging
+

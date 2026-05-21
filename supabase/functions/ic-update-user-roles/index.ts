@@ -17,7 +17,7 @@ serve(async (req) => {
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+    const supabaseServiceKey = Deno.env.get('SERVICE_ROLE_KEY') ?? '';
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
 
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
@@ -27,44 +27,52 @@ serve(async (req) => {
       throw new Error('Missing Authorization header');
     }
 
-    const supabaseUser = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
+    const isServiceRole = authHeader === `Bearer ${supabaseServiceKey}`;
+    let isCallerAdmin = false;
 
-    const { data: { user: callingUser }, error: userError } = await supabaseUser.auth.getUser();
-    if (userError || !callingUser) {
-      throw new Error('Unauthorized');
-    }
+    if (!isServiceRole) {
+      const supabaseUser = createClient(supabaseUrl, supabaseAnonKey, {
+        global: { headers: { Authorization: authHeader } },
+      });
 
-    // --- HARDENING: Server-Side Role Check ---
-    const { data: callerProfile, error: callerError } = await supabaseAdmin
-      .from('ic_staff')
-      .select('id, role_id')
-      .eq('auth_user_id', callingUser.id)
-      .eq('status', 'active')
-      .maybeSingle();
+      const { data: { user: callingUser }, error: userError } = await supabaseUser.auth.getUser();
+      if (userError || !callingUser) {
+        throw new Error('Unauthorized');
+      }
 
-    if (callerError || !callerProfile) {
-      console.error(`Unauthorized access attempt by user ${callingUser.id}`);
-      throw new Error('Forbidden: Active staff profile required');
-    }
+      // --- HARDENING: Server-Side Role Check ---
+      const { data: callerProfile, error: callerError } = await supabaseAdmin
+        .from('ic_staff')
+        .select('id, role_id')
+        .eq('auth_user_id', callingUser.id)
+        .eq('status', 'active')
+        .maybeSingle();
 
-    // Module constants (Must match RBAC_MODULES in frontend)
-    const ACCESS_CONTROL_MODULE = 'access_control';
+      if (callerError || !callerProfile) {
+        console.error(`Unauthorized access attempt by user ${callingUser.id}`);
+        throw new Error('Forbidden: Active staff profile required');
+      }
 
-    // Determine admin status by checking permissions for 'access_control' module
-    const { data: callerPerms, error: permsError } = await supabaseAdmin
-      .from('ic_role_permissions')
-      .select(ACCESS_CONTROL_MODULE)
-      .eq('role_id', callerProfile.role_id)
-      .maybeSingle();
+      // Module constants (Must match RBAC_MODULES in frontend)
+      const ACCESS_CONTROL_MODULE = 'access_control';
 
-    if (permsError) throw permsError;
-    const isCallerAdmin = callerPerms?.[ACCESS_CONTROL_MODULE] === 'full';
+      // Determine admin status by checking permissions for 'access_control' module
+      const { data: callerPerms, error: permsError } = await supabaseAdmin
+        .from('ic_role_permissions')
+        .select(ACCESS_CONTROL_MODULE)
+        .eq('role_id', callerProfile.role_id)
+        .maybeSingle();
 
-    if (!isCallerAdmin) {
-      console.error(`User ${callingUser.id} attempted to update roles without admin rights.`);
-      throw new Error('Forbidden: Admin access (full access_control) required');
+      if (permsError) throw permsError;
+      isCallerAdmin = callerPerms?.[ACCESS_CONTROL_MODULE] === 'full';
+
+      if (!isCallerAdmin) {
+        console.error(`User ${callingUser.id} attempted to update roles without admin rights.`);
+        throw new Error('Forbidden: Admin access (full access_control) required');
+      }
+    } else {
+      isCallerAdmin = true;
+      console.log('Authorized via Service Role');
     }
     // --- END HARDENING ---
 

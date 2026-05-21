@@ -18,51 +18,68 @@ serve(async (req) => {
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+    const supabaseServiceKey = Deno.env.get('SERVICE_ROLE_KEY') ?? '';
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+
+    console.log('Diagnostic: SUPABASE_URL present:', !!supabaseUrl);
+    console.log('Diagnostic: SERVICE_ROLE_KEY present:', !!supabaseServiceKey);
+    console.log('Diagnostic: SUPABASE_ANON_KEY present:', !!supabaseAnonKey);
 
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
     // 1. Authenticate caller
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
+      console.error('Diagnostic: Missing Authorization header');
       throw new Error('Missing Authorization header');
     }
 
-    const supabaseUser = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-
-    const { data: { user: callingUser }, error: userError } = await supabaseUser.auth.getUser();
-    if (userError || !callingUser) {
-      throw new Error('Unauthorized');
-    }
-
-    // --- HARDENING: Server-Side Role Check ---
-    const { data: callerProfile, error: callerError } = await supabaseAdmin
-      .from('ic_staff')
-      .select('id, role_id')
-      .eq('auth_user_id', callingUser.id)
-      .eq('status', 'active')
-      .maybeSingle();
-
-    if (callerError || !callerProfile) {
-      console.error(`Unauthorized access attempt by user ${callingUser.id}`);
-      throw new Error('Forbidden: Active staff profile required');
-    }
+    const isServiceRole = authHeader === `Bearer ${supabaseServiceKey}`;
+    console.log('Diagnostic: isServiceRole:', isServiceRole);
+    console.log('Diagnostic: authHeader start:', authHeader.substring(0, 15) + '...');
+    let isCallerAdmin = false;
+    let callingUserId = '';
 
     // Module constants (Must match RBAC_MODULES in frontend)
     const ACCESS_CONTROL_MODULE = 'access_control';
 
-    // Determine admin status by checking permissions for 'access_control' module
-    const { data: callerPerms, error: permsError } = await supabaseAdmin
-      .from('ic_role_permissions')
-      .select(ACCESS_CONTROL_MODULE)
-      .eq('role_id', callerProfile.role_id)
-      .maybeSingle();
+    if (!isServiceRole) {
+      const supabaseUser = createClient(supabaseUrl, supabaseAnonKey, {
+        global: { headers: { Authorization: authHeader } },
+      });
 
-    if (permsError) throw permsError;
-    const isCallerAdmin = callerPerms?.[ACCESS_CONTROL_MODULE] === 'full';
+      const { data: { user: callingUser }, error: userError } = await supabaseUser.auth.getUser();
+      if (userError || !callingUser) {
+        throw new Error('Unauthorized');
+      }
+      callingUserId = callingUser.id;
+
+      // --- HARDENING: Server-Side Role Check ---
+      const { data: callerProfile, error: callerError } = await supabaseAdmin
+        .from('ic_staff')
+        .select('id, role_id')
+        .eq('auth_user_id', callingUser.id)
+        .eq('status', 'active')
+        .maybeSingle();
+
+      if (callerError || !callerProfile) {
+        console.error(`Unauthorized access attempt by user ${callingUser.id}`);
+        throw new Error('Forbidden: Active staff profile required');
+      }
+
+      // Determine admin status by checking permissions for 'access_control' module
+      const { data: callerPerms, error: permsError } = await supabaseAdmin
+        .from('ic_role_permissions')
+        .select(ACCESS_CONTROL_MODULE)
+        .eq('role_id', callerProfile.role_id)
+        .maybeSingle();
+
+      if (permsError) throw permsError;
+      isCallerAdmin = callerPerms?.[ACCESS_CONTROL_MODULE] === 'full';
+    } else {
+      isCallerAdmin = true;
+      console.log('Authorized via Service Role');
+    }
     // --- END HARDENING ---
 
     // 2. Get target userId from request
@@ -79,10 +96,10 @@ serve(async (req) => {
     }
 
     // --- HARDENING: Self-Sync or Admin Sync ---
-    const isSelfSync = callingUser.id === userId;
+    const isSelfSync = !isServiceRole && callingUserId === userId;
 
-    if (!isSelfSync && !isCallerAdmin) {
-      console.error(`User ${callingUser.id} attempted to sync permissions for ${userId} without admin rights.`);
+    if (!isServiceRole && !isSelfSync && !isCallerAdmin) {
+      console.error(`User ${callingUserId} attempted to sync permissions for ${userId} without admin rights.`);
       throw new Error('Forbidden: Admin access (full access_control) required for cross-user sync');
     }
     // --- END HARDENING ---
