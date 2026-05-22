@@ -194,7 +194,7 @@ export function ShiftDialog({
         if (preSelectedShiftTemplateId) {
           const type = shiftTemplates.find(t => t.id === preSelectedShiftTemplateId);
           if (type) {
-            baseData.shift_template = type.name;
+            baseData.shift_template = type.shift_template_name;
             baseData.shift_template_id = type.id;
             baseData.start_time = type.default_start_time?.substring(0, 5) || '09:00';
             baseData.end_time = type.default_end_time?.substring(0, 5) || '17:00';
@@ -250,11 +250,11 @@ export function ShiftDialog({
   };
 
   const handleShiftTemplateChange = async (val: string) => {
-    const dynamicType = shiftTemplates?.find(st => st.id === val || st.name === val);
+    const dynamicType = shiftTemplates?.find(st => st.id === val || st.shift_template_name === val);
     const updatedData = {
       ...formData,
       shift_template_id: dynamicType?.id || null,
-      shift_template: dynamicType?.name || val
+      shift_template: dynamicType?.shift_template_name || val
     };
 
     if (dynamicType?.default_start_time) {
@@ -298,7 +298,7 @@ export function ShiftDialog({
                   : (isEdit ? `Editing shift for ${formData.start_date}` : 'Define the schedule and assignments')}
                 {currentHouse && (
                   <span className="ml-1 text-primary font-bold">
-                    • {currentHouse.name}
+                    • {currentHouse.house_name}
                   </span>
                 )}
               </DialogDescription>
@@ -338,12 +338,12 @@ export function ShiftDialog({
                       <div className="flex items-center gap-2">
                         <SecureAvatar 
                           src={s.photo_url || undefined} 
-                          initials={s.name?.substring(0, 2).toUpperCase() ?? '?'} 
+                          initials={s.staff_name?.substring(0, 2).toUpperCase() ?? '?'} 
                           className="size-5 sm:size-6"
                           bucket="ic_staff-photos"
  
                         />
-                        <span className="text-sm">{s.name}</span>
+                        <span className="text-sm">{s.staff_name}</span>
                       </div>
                     </SelectItem>
                   ))}
@@ -369,7 +369,7 @@ export function ShiftDialog({
                           <SelectItem key={st.id} value={st.id}>
                             <div className="flex items-center gap-2">
                               <Icon className={cn("size-3.5", iconColor)} />
-                              <span>{st.name}</span>
+                              <span>{st.shift_template_name}</span>
                             </div>
                           </SelectItem>
                         );
@@ -408,7 +408,7 @@ export function ShiftDialog({
                 <SelectContent>
                   <SelectItem value="none">Standalone / No House</SelectItem>
                   {houses.map(h => (
-                    <SelectItem key={h.id} value={h.id}>{h.name}</SelectItem>
+                    <SelectItem key={h.id} value={h.id}>{h.house_name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -464,7 +464,7 @@ export function ShiftDialog({
                       className="size-3.5 sm:size-4" 
                     />
                     <div className="min-w-0 pointer-events-none">
-                      <p className="text-[10px] sm:text-xs font-bold truncate m-0">{p.name}</p>
+                      <p className="text-[10px] sm:text-xs font-bold truncate m-0">{p.participant_name}</p>
                     </div>
                   </Label>
                 ))}

@@ -60,7 +60,7 @@ export function EmploymentTypeCombobox({
             disabled={!canEdit}
           >
             {selectedEmploymentType ? (
-              <span className="truncate">{selectedEmploymentType.name}</span>
+              <span className="truncate">{selectedEmploymentType.employment_type_name}</span>
             ) : (
               <span>Select employment type...</span>
             )}
@@ -82,10 +82,10 @@ export function EmploymentTypeCombobox({
                     activeEmploymentTypes.map((employmentType) => (
                       <CommandItem
                         key={employmentType.id}
-                        value={employmentType.name}
+                        value={employmentType.employment_type_name}
                         onSelect={() => handleSelect(employmentType.id)}
                       >
-                        <span className="truncate flex-1">{employmentType.name}</span>
+                        <span className="truncate flex-1">{employmentType.employment_type_name}</span>
                         {value === employmentType.id && <CommandCheck />}
                       </CommandItem>
                     ))

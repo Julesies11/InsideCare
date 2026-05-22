@@ -232,9 +232,9 @@ export function StaffDetailContent({
           activityType: 'update',
           entityType: 'staff',
           entityId: staffId,
-          entityName: staffMember?.name,
+          entityName: staffMember?.staff_name,
           userName,
-          customDescription: `Updated profile photo for ${staffMember?.name || 'staff'}`,
+          customDescription: `Updated profile photo for ${staffMember?.staff_name || 'staff'}`,
         });
       } else if (photoPreview === null && originalPhotoUrl !== null) {
         // Photo was deleted — clear it in the DB
@@ -258,7 +258,7 @@ export function StaffDetailContent({
           activityType: 'update',
           entityType: 'staff',
           entityId: staffId,
-          entityName: staffMember?.name,
+          entityName: staffMember?.staff_name,
           userName,
           customDescription: 'Removed profile photo',
         });
@@ -286,7 +286,7 @@ export function StaffDetailContent({
             activityType: 'create',
             entityType: 'staff',
             entityId: staffId,
-            entityName: staffMember?.name,
+            entityName: staffMember?.staff_name,
             userName,
             customDescription: `Added compliance requirement "${item.compliance_name}"`,
           });
@@ -314,7 +314,7 @@ export function StaffDetailContent({
             activityType: 'update',
             entityType: 'staff',
             entityId: staffId,
-            entityName: staffMember?.name,
+            entityName: staffMember?.staff_name,
             userName,
             customDescription: `Updated compliance requirement "${item.compliance_name}"`,
           });
@@ -345,7 +345,7 @@ export function StaffDetailContent({
               activityType: 'delete',
               entityType: 'staff',
               entityId: staffId,
-              entityName: staffMember?.name,
+              entityName: staffMember?.staff_name,
               userName,
               customDescription: `Deleted compliance requirement "${record.compliance_name || 'Unknown requirement'}"`,
             });
@@ -407,7 +407,7 @@ export function StaffDetailContent({
             activityType: 'create',
             entityType: 'staff',
             entityId: staffId,
-            entityName: staffMember?.name,
+            entityName: staffMember?.staff_name,
             userName,
             customDescription: `Added training record "${item.title}"`,
           });
@@ -468,7 +468,7 @@ export function StaffDetailContent({
             activityType: 'update',
             entityType: 'staff',
             entityId: staffId,
-            entityName: staffMember?.name,
+            entityName: staffMember?.staff_name,
             userName,
             customDescription: `Updated training record "${item.title}"`,
           });
@@ -501,7 +501,7 @@ export function StaffDetailContent({
               activityType: 'delete',
               entityType: 'staff',
               entityId: staffId,
-              entityName: staffMember?.name,
+              entityName: staffMember?.staff_name,
               userName,
               customDescription: `Deleted training record "${record.title || 'Unknown training'}"`,
             });
@@ -537,7 +537,7 @@ export function StaffDetailContent({
             activityType: 'create',
             entityType: 'staff',
             entityId: staffId,
-            entityName: staffMember?.name,
+            entityName: staffMember?.staff_name,
             userName,
             customDescription: `Uploaded document "${doc.file.name}"`,
           });
@@ -559,7 +559,7 @@ export function StaffDetailContent({
             activityType: 'delete',
             entityType: 'staff',
             entityId: staffId,
-            entityName: staffMember?.name,
+            entityName: staffMember?.staff_name,
             userName,
             customDescription: `Deleted document "${doc.fileName}"`,
           });
@@ -689,7 +689,7 @@ export function StaffDetailContent({
           activityType: 'update',
           entityType: 'staff',
           entityId: staffId,
-          entityName: currentFormData.name,
+          entityName: currentFormData.staff_name,
           changes,
           userName,
         });
@@ -789,9 +789,8 @@ export function StaffDetailContent({
           onPendingChangesChange={onPendingChangesChange}
           activityRefreshTrigger={refreshKeys.activityLog}
           validationErrors={validationErrors}
-          staffName={staffMember!.name}
-          documentsRefreshKey={refreshKeys.resources}
-          trainingRefreshKey={refreshKeys.training}
+          staffName={staffMember!.staff_name}
+          documentsRefreshKey={refreshKeys.resources}          trainingRefreshKey={refreshKeys.training}
         />
       </div>
     </div>

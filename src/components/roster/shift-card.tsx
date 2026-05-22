@@ -14,10 +14,10 @@ export interface ShiftCardData {
   shift_template: string;
   color_theme?: string;
   icon_name?: string;
-  house?: { id: string; name: string };
+  house?: { id: string; house_name: string };
   staff_name?: string;
   staff_id?: string;
-  participants?: Array<{ id: string; name: string }>;
+  participants?: Array<{ id: string; participant_name: string }>;
   assigned_checklists?: Array<{ id: string; checklist_id: string; assignment_title: string; is_completed?: boolean }>;
   notesCount?: number;
   // Event fields
@@ -102,7 +102,7 @@ export function ShiftCard({ shift, compact, showStaffName, showHouseName = true,
               <DropdownMenu onOpenChange={(open) => {
                 if (open) {
                   console.log(`[QuickAssign Debug] Control: Compact Shift Card | Shift ID: ${shift.id} | House: ${shift.house?.house_name || 'Unassigned'} | Available Staff Count: ${staffList.length}`, {
-                    staffList: staffList.map(s => ({ id: s.id, name: s.name, assignments: (s as { house_assignments?: any[] }).house_assignments }))
+                    staffList: staffList.map(s => ({ id: s.id, staff_name: s.staff_name, assignments: (s as { house_assignments?: any[] }).house_assignments }))
                   });
                 }
               }}>
@@ -123,7 +123,7 @@ export function ShiftCard({ shift, compact, showStaffName, showHouseName = true,
                         }}
                         className="text-xs cursor-pointer"
                       >
-                        {s.name}
+                        {s.staff_name}
                       </DropdownMenuItem>
                     ))
                   ) : (
@@ -250,7 +250,7 @@ export function ShiftCard({ shift, compact, showStaffName, showHouseName = true,
                 <DropdownMenu onOpenChange={(open) => {
                   if (open) {
                     console.log(`[QuickAssign Debug] Control: Expanded Shift Card | Shift ID: ${shift.id} | House: ${shift.house?.house_name || 'Unassigned'} | Available Staff Count: ${staffList.length}`, {
-                      staffList: staffList.map(s => ({ id: s.id, name: s.name, assignments: (s as { house_assignments?: any[] }).house_assignments }))
+                      staffList: staffList.map(s => ({ id: s.id, staff_name: s.staff_name, assignments: (s as { house_assignments?: any[] }).house_assignments }))
                     });
                   }
                 }}>
@@ -271,7 +271,7 @@ export function ShiftCard({ shift, compact, showStaffName, showHouseName = true,
                           }}
                           className="text-sm cursor-pointer"
                         >
-                          {s.name}
+                          {s.staff_name}
                         </DropdownMenuItem>
                       ))
                     ) : (

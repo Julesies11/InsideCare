@@ -34,11 +34,11 @@ export function StaffCombobox({ value, onChange, placeholder = "Select staff..."
             <div className="flex items-center gap-2">
               <SecureAvatar 
                 src={selectedStaff.photo_url || undefined} 
-                initials={selectedStaff.name?.substring(0, 2).toUpperCase() ?? '?'} 
+                initials={selectedStaff.staff_name?.substring(0, 2).toUpperCase() ?? '?'} 
                 className="size-6"
                 bucket="ic_staff-photos" 
               />
-              <span className="font-bold">{selectedStaff.name}</span>
+              <span className="font-bold">{selectedStaff.staff_name}</span>
             </div>
           ) : (
             <span className="text-muted-foreground">{placeholder}</span>
@@ -65,12 +65,12 @@ export function StaffCombobox({ value, onChange, placeholder = "Select staff..."
                   <div className="flex items-center flex-1 gap-3">
                     <SecureAvatar 
                       src={staffMember.photo_url || undefined} 
-                      initials={staffMember.name?.substring(0, 2).toUpperCase() ?? '?'} 
+                      initials={staffMember.staff_name?.substring(0, 2).toUpperCase() ?? '?'} 
                       className="size-8"
                       bucket="ic_staff-photos" 
                     />
                     <div className="flex flex-col">
-                      <span className="font-bold text-sm text-gray-900">{staffMember.name}</span>
+                      <span className="font-bold text-sm text-gray-900">{staffMember.staff_name}</span>
                       <span className="text-[10px] text-primary font-black uppercase tracking-widest leading-none mt-0.5">
                         {staffMember.role?.role_name || 'No Role'}
                       </span>

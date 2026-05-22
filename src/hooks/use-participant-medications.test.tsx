@@ -36,7 +36,7 @@ describe('useParticipantMedications', () => {
             is_active: true,
             medication: {
               id: 'master-med-1',
-              name: 'Paracetamol',
+              medication_name: 'Paracetamol',
               category: 'Pain Relief'
             }
           },
@@ -49,6 +49,6 @@ describe('useParticipantMedications', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(result.current.data).toHaveLength(1);
-    expect(result.current.data?.[0].medication?.name).toBe('Paracetamol');
+    expect(result.current.data?.[0].medication?.medication_name).toBe('Paracetamol');
   });
 });

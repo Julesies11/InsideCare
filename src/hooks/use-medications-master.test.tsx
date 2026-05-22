@@ -27,8 +27,8 @@ describe('useMedicationsMaster', () => {
     server.use(
       http.get(`${SUPABASE_URL}/rest/v1/medications_master`, () => {
         return HttpResponse.json([
-          { id: 'med-1', name: 'Paracetamol', category: 'Pain Relief', is_active: true },
-          { id: 'med-2', name: 'Ibuprofen', category: 'Pain Relief', is_active: true },
+          { id: 'med-1', medication_name: 'Paracetamol', category: 'Pain Relief', is_active: true },
+          { id: 'med-2', medication_name: 'Ibuprofen', category: 'Pain Relief', is_active: true },
         ]);
       })
     );
@@ -38,6 +38,6 @@ describe('useMedicationsMaster', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(result.current.data).toHaveLength(2);
-    expect(result.current.data?.[0].name).toBe('Paracetamol');
+    expect(result.current.data?.[0].medication_name).toBe('Paracetamol');
   });
 });

@@ -57,7 +57,7 @@ export function MedicationCombobox({
             disabled={!canEdit}
           >
             {selectedMedication ? (
-              <span className="truncate">{selectedMedication.name}</span>
+              <span className="truncate">{selectedMedication.medication_name}</span>
             ) : (
               <span>Select medication...</span>
             )}
@@ -79,12 +79,12 @@ export function MedicationCombobox({
                     activeMedications.map((medication) => (
                       <CommandItem
                         key={medication.id}
-                        value={medication.name}
+                        value={medication.medication_name}
                         onSelect={() => handleSelect(medication.id)}
                       >
                         <span className="flex flex-col gap-0.5 flex-1">
                           <span className="flex items-center gap-2">
-                            <span className="truncate font-medium">{medication.name}</span>
+                            <span className="truncate font-medium">{medication.medication_name}</span>
                             {medication.category && (
                               <span className="text-xs text-muted-foreground">
                                 ({medication.category})

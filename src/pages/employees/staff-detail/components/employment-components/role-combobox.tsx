@@ -60,7 +60,7 @@ export function RoleCombobox({
             disabled={!canEdit}
           >
             {selectedRole ? (
-              <span className="truncate">{selectedRole.name}</span>
+              <span className="truncate">{selectedRole.role_name}</span>
             ) : (
               <span>Select role...</span>
             )}

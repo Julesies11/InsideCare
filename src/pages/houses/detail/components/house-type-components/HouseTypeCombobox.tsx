@@ -60,7 +60,7 @@ export function HouseTypeCombobox({
             disabled={!canEdit}
           >
             {selectedHouseType ? (
-              <span className="truncate">{selectedHouseType.name}</span>
+              <span className="truncate">{selectedHouseType.house_type_name}</span>
             ) : (
               <span>Select house type...</span>
             )}
@@ -82,10 +82,10 @@ export function HouseTypeCombobox({
                     activeHouseTypes.map((houseType) => (
                       <CommandItem
                         key={houseType.id}
-                        value={houseType.name}
+                        value={houseType.house_type_name}
                         onSelect={() => handleSelect(houseType.id)}
                       >
-                        <span className="truncate flex-1">{houseType.name}</span>
+                        <span className="truncate flex-1">{houseType.house_type_name}</span>
                         {value === houseType.id && <CommandCheck />}
                       </CommandItem>
                     ))

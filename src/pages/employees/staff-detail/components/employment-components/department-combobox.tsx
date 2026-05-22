@@ -60,7 +60,7 @@ export function DepartmentCombobox({
             disabled={!canEdit}
           >
             {selectedDepartment ? (
-              <span className="truncate">{selectedDepartment.name}</span>
+              <span className="truncate">{selectedDepartment.department_name}</span>
             ) : (
               <span>Select department...</span>
             )}
@@ -82,10 +82,10 @@ export function DepartmentCombobox({
                     activeDepartments.map((department) => (
                       <CommandItem
                         key={department.id}
-                        value={department.name}
+                        value={department.department_name}
                         onSelect={() => handleSelect(department.id)}
                       >
-                        <span className="truncate flex-1">{department.name}</span>
+                        <span className="truncate flex-1">{department.department_name}</span>
                         {value === department.id && <CommandCheck />}
                       </CommandItem>
                     ))

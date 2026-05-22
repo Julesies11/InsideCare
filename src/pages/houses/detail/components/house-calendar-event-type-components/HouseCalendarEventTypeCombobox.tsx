@@ -59,7 +59,7 @@ export function HouseCalendarEventTypeCombobox({
             {selectedEventType ? (
               <div className="flex items-center gap-2 truncate">
                 <div className={`size-2.5 rounded-full bg-${selectedEventType.color || 'blue'}-500 shrink-0`} />
-                <span className="truncate">{selectedEventType.name}</span>
+                <span className="truncate">{selectedEventType.event_type_name}</span>
               </div>
             ) : (
               <span>Select event type...</span>
@@ -82,11 +82,11 @@ export function HouseCalendarEventTypeCombobox({
                     activeEventTypes.map((eventType) => (
                       <CommandItem
                         key={eventType.id}
-                        value={eventType.name}
+                        value={eventType.event_type_name}
                         onSelect={() => handleSelect(eventType.id)}
                       >
                         <div className={`size-2 rounded-full bg-${eventType.color || 'blue'}-500 shrink-0`} />
-                        <span className="truncate flex-1">{eventType.name}</span>
+                        <span className="truncate flex-1">{eventType.event_type_name}</span>
                         {value === eventType.id && <CommandCheck />}
                       </CommandItem>
                     ))
