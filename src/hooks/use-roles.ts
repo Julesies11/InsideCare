@@ -1,15 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { Database } from '@/models/database.types';
 
-export interface Role {
-  id: string;
-  role_name: string;
-  description?: string;
-  permissions?: string[];
+export type RoleRow = Database['public']['Tables']['ic_roles']['Row'];
+
+export interface Role extends RoleRow {
   assigned_count?: number;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
 }
 
 export function useRoles() {
@@ -30,7 +26,7 @@ export function useRoles() {
       return (data || []).map(role => ({
         ...role,
         assigned_count: (role as any).staff?.[0]?.count || 0
-      })) as Role[];
+      })) as unknown as Role[];
     },
     staleTime: 1000 * 60 * 60, // 1 hour
   });
@@ -48,8 +44,7 @@ export function useAddRole() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (roleData: Omit<Role, 'id' | 'created_at' | 'updated_at'>) => {
-      // Explicitly include is_active, but strip it if it causes issues (temporary workaround for schema cache)
+    mutationFn: async (roleData: Database['public']['Tables']['ic_roles']['Insert']) => {
       const { data, error } = await supabase
         .from('ic_roles')
         .insert([roleData])
@@ -65,7 +60,7 @@ export function useAddRole() {
         throw new Error('You do not have permission to perform this action');
       }
 
-      return data as Role;
+      return data as unknown as Role;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['roles'] });
@@ -77,7 +72,7 @@ export function useUpdateRole() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: Partial<Role> }) => {
+    mutationFn: async ({ id, updates }: { id: string; updates: Database['public']['Tables']['ic_roles']['Update'] }) => {
       const { data, error } = await supabase
         .from('ic_roles')
         .update(updates)
@@ -94,7 +89,7 @@ export function useUpdateRole() {
         throw new Error('You do not have permission to perform this action');
       }
 
-      return data as Role;
+      return data as unknown as Role;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['roles'] });

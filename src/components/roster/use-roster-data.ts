@@ -2,6 +2,9 @@ import { useMemo, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { format, addDays, parseISO, startOfWeek } from 'date-fns';
+import { TABLES } from '@/config/db-tables';
+import { QUERY_KEYS } from '@/config/query-keys';
+import { STATUS, CHECKLIST_STATUS, LEAVE_STATUS } from '@/config/enums';
 
 export interface StaffShift {
   id: string;
@@ -48,7 +51,7 @@ export function useGlobalShiftTemplatesQuery() {
     queryKey: ['global-shift-templates'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('ic_house_shift_templates')
+        .from(TABLES.HOUSE_SHIFT_TEMPLATES)
         .select('shift_template_name')
         .eq('is_active', true)
         .order('shift_template_name');
@@ -63,12 +66,12 @@ export function useGlobalShiftTemplatesQuery() {
 
 export function useLeaveRequestsQuery(staffId: string, startDate: string, endDate: string) {
   const query = useQuery({
-    queryKey: ['leave-requests', staffId, startDate, endDate],
+    queryKey: [QUERY_KEYS.LEAVE_REQUESTS, staffId, startDate, endDate],
     queryFn: async () => {
       let query = supabase
-        .from('ic_leave_requests')
-        .select('id, start_date, end_date, status, leave_type:ic_leave_types(leave_type_name), staff_id, reason')
-        .neq('status', 'rejected')
+        .from(TABLES.LEAVE_REQUESTS)
+        .select(`id, start_date, end_date, status, leave_type:ic_leave_types(leave_type_name), staff_id, reason`)
+        .neq('status', LEAVE_STATUS.REJECTED)
         .lte('start_date', endDate)
         .gte('end_date', startDate);
         
@@ -105,24 +108,24 @@ export function useShiftsQuery(staffId: string, startDate: string, endDate: stri
     queryFn: async () => {
       // Fetch shifts
       let shiftQuery = supabase
-        .from('ic_staff_shifts')
+        .from(TABLES.STAFF_SHIFTS)
         .select(`
           id, staff_id, start_date, end_date, start_time, end_time, house_id, shift_template, shift_template_id, notes,
-          staff_info:ic_staff(id, staff_name),
-          house_info:ic_houses(id, house_name),
-          type_details:ic_house_shift_templates(color_theme, icon_name),
-          participants:ic_shift_participants(
-            participant:ic_participants(id, participant_name)
+          staff_info:${TABLES.STAFF}(id, staff_name),
+          house_info:${TABLES.HOUSES}(id, house_name),
+          type_details:${TABLES.HOUSE_SHIFT_TEMPLATES}(color_theme, icon_name),
+          participants:${TABLES.SHIFT_PARTICIPANTS}(
+            participant:${TABLES.PARTICIPANTS}(id, participant_name)
           ),
-          assigned_checklists:ic_shift_assigned_checklists(
+          assigned_checklists:${TABLES.SHIFT_ASSIGNED_CHECKLISTS}(
             id, checklist_id, assignment_title,
-            submissions:ic_house_checklist_submissions(status),
-            checklist:ic_house_checklists(
+            submissions:${TABLES.HOUSE_CHECKLIST_SUBMISSIONS}(status),
+            checklist:${TABLES.HOUSE_CHECKLISTS}(
               house_checklist_name,
-              items:ic_house_checklist_items(id, title, sort_order)
+              items:${TABLES.HOUSE_CHECKLIST_ITEMS}(id, title, sort_order)
             )
           ),
-          notes_count:ic_shift_notes(count)
+          notes_count:${TABLES.SHIFT_NOTES}(count)
         `)
         .order('start_date', { ascending: true })
         .order('start_time', { ascending: true });
@@ -139,7 +142,7 @@ export function useShiftsQuery(staffId: string, startDate: string, endDate: stri
       let eventQuery: any = null;
       if (includeEvents && staffId && staffId !== 'all') {
         eventQuery = supabase
-          .from('ic_house_calendar_events')
+          .from(TABLES.HOUSE_CALENDAR_EVENTS)
           .select(`
             id,
             title,
@@ -147,10 +150,10 @@ export function useShiftsQuery(staffId: string, startDate: string, endDate: stri
             start_time,
             end_time,
             location,
-            type:ic_house_calendar_event_types_master(event_type_name, color),
+            type:${TABLES.HOUSE_CALENDAR_EVENT_TYPES_MASTER}(event_type_name, color),
             house_id,
-            house:ic_houses(house_name),
-            staff_assignments:ic_house_calendar_event_staff!inner(staff_id)
+            house:${TABLES.HOUSES}(house_name),
+            staff_assignments:${TABLES.HOUSE_CALENDAR_EVENT_STAFF}!inner(staff_id)
           `)
           .eq('staff_assignments.staff_id', staffId)
           .gte('event_date', startDate)
@@ -222,7 +225,7 @@ export function useShiftsQuery(staffId: string, startDate: string, endDate: stri
         participants,
         assigned_checklists: item.assigned_checklists?.map((cl: any) => ({
           ...cl,
-          is_completed: cl.submissions?.some((s: any) => s.status === 'completed') || false,
+          is_completed: cl.submissions?.some((s: any) => s.status === CHECKLIST_STATUS.completed) || false,
           items: (cl.checklist?.items || []).sort((a: any, b: any) => a.sort_order - b.sort_order)
         })) || [],
         notesCount: item.notes_count?.[0]?.count || 0,
@@ -246,14 +249,14 @@ export function useRosterData(staffId?: string, options: { includeMetadata?: boo
   const { includeMetadata = true } = options;
 
   const housesQuery = useQuery({
-    queryKey: ['houses', staffId],
+    queryKey: [QUERY_KEYS.HOUSES, staffId],
     queryFn: async () => {
       const today = new Date().toISOString().split('T')[0];
 
       if (staffId && staffId !== 'all') {
         const { data, error } = await supabase
-          .from('ic_house_staff_assignments')
-          .select('house:ic_houses(id, house_name, status, branch_id)')
+          .from(TABLES.HOUSE_STAFF_ASSIGNMENTS)
+          .select(`house:${TABLES.HOUSES}(id, house_name, status, branch_id)`)
           .eq('staff_id', staffId)
           .or(`end_date.is.null,end_date.gte.${today}`);
         
@@ -261,57 +264,57 @@ export function useRosterData(staffId?: string, options: { includeMetadata?: boo
         
         const houses = (data || [])
           .map((a: any) => a.house)
-          .filter((h: any) => h && h.status === 'active');
+          .filter((h: any) => h && h.status === STATUS.active);
         
         // Deduplicate by ID
         const uniqueHouses = Array.from(new Map(houses.map(h => [h.id, h])).values());
         
-        return uniqueHouses.sort((a, b) => a.house_name.localeCompare(b.house_name));
+        return uniqueHouses.map((h: any) => ({ ...h, name: h.house_name })).sort((a, b) => a.house_name.localeCompare(b.house_name));
       }
 
       const { data, error } = await supabase
-        .from('ic_houses')
+        .from(TABLES.HOUSES)
         .select('id, house_name, status, branch_id')
-        .eq('status', 'active')
+        .eq('status', STATUS.active)
         .order('house_name');
       if (error) throw error;
-      return data;
+      return (data || []).map((h: any) => ({ ...h, name: h.house_name }));
     },
     enabled: includeMetadata,
     staleTime: 1000 * 60 * 60, // 1 hour
   });
 
   const participantsQuery = useQuery({
-    queryKey: ['participants'],
+    queryKey: [QUERY_KEYS.PARTICIPANTS],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('ic_participants')
+        .from(TABLES.PARTICIPANTS)
         .select('id, participant_name, status, house_id')
-        .eq('status', 'active')
+        .eq('status', STATUS.active)
         .order('participant_name');
       if (error) throw error;
-      return data;
+      return (data || []).map((p: any) => ({ ...p, name: p.participant_name }));
     },
     enabled: includeMetadata,
     staleTime: 1000 * 60 * 60, // 1 hour
   });
 
   const staffQuery = useQuery({
-    queryKey: ['staff'],
+    queryKey: [QUERY_KEYS.STAFF],
     queryFn: async () => {
       const today = new Date().toISOString().split('T')[0];
       const { data, error } = await supabase
-        .from('ic_staff')
+        .from(TABLES.STAFF)
         .select(`
           id, staff_name, status, email,
-          house_assignments:ic_house_staff_assignments(
+          house_assignments:${TABLES.HOUSE_STAFF_ASSIGNMENTS}(
             id,
             house_id,
             end_date,
-            house:ic_houses(id, house_name)
+            house:${TABLES.HOUSES}(id, house_name)
           )
         `)
-        .eq('status', 'active')
+        .eq('status', STATUS.active)
         .order('staff_name');
       if (error) throw error;
       
@@ -326,6 +329,7 @@ export function useRosterData(staffId?: string, options: { includeMetadata?: boo
 
         return {
           ...s,
+          name: s.staff_name,
           house_assignments: activeAssignments
         };
       });
@@ -348,7 +352,7 @@ export function useRosterData(staffId?: string, options: { includeMetadata?: boo
       } = shift;
 
       const { data, error } = await supabase
-        .from('ic_staff_shifts')
+        .from(TABLES.STAFF_SHIFTS)
         .insert([dbPayload])
         .select()
         .maybeSingle();
@@ -387,7 +391,7 @@ export function useRosterData(staffId?: string, options: { includeMetadata?: boo
       } = updates;
 
       const { data, error } = await supabase
-        .from('ic_staff_shifts')
+        .from(TABLES.STAFF_SHIFTS)
         .update(dbPayload)
         .eq('id', id)
         .select()
@@ -416,7 +420,7 @@ export function useRosterData(staffId?: string, options: { includeMetadata?: boo
   const deleteShiftMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('ic_staff_shifts')
+        .from(TABLES.STAFF_SHIFTS)
         .delete()
         .eq('id', id);
       if (error) throw error;
@@ -428,7 +432,7 @@ export function useRosterData(staffId?: string, options: { includeMetadata?: boo
 
   const bulkUpdateShiftsMutation = useMutation({
     mutationFn: async ({ params, updates }: { params: string[] | any, updates: any }) => {
-      let query = supabase.from('ic_staff_shifts').update(updates);
+      let query = supabase.from(TABLES.STAFF_SHIFTS).update(updates);
       
       if (Array.isArray(params)) {
         query = query.in('id', params);
@@ -459,7 +463,7 @@ export function useRosterData(staffId?: string, options: { includeMetadata?: boo
 
   const bulkDeleteShiftsMutation = useMutation({
     mutationFn: async (params: string[] | any) => {
-      let query = supabase.from('ic_staff_shifts').delete();
+      let query = supabase.from(TABLES.STAFF_SHIFTS).delete();
       
       if (Array.isArray(params)) {
         query = query.in('id', params);
@@ -490,7 +494,7 @@ export function useRosterData(staffId?: string, options: { includeMetadata?: boo
   const addShiftParticipantMutation = useMutation({
     mutationFn: async ({ shift_id, participant_id }: { shift_id: string, participant_id: string }) => {
       const { data, error } = await supabase
-        .from('ic_shift_participants')
+        .from(TABLES.SHIFT_PARTICIPANTS)
         .insert([{ shift_id, participant_id }])
         .select()
         .maybeSingle();
@@ -506,7 +510,7 @@ export function useRosterData(staffId?: string, options: { includeMetadata?: boo
   const removeShiftParticipantMutation = useMutation({
     mutationFn: async ({ shift_id, participant_id }: { shift_id: string, participant_id: string }) => {
       const { error } = await supabase
-        .from('ic_shift_participants')
+        .from(TABLES.SHIFT_PARTICIPANTS)
         .delete()
         .eq('shift_id', shift_id)
         .eq('participant_id', participant_id);
@@ -521,14 +525,14 @@ export function useRosterData(staffId?: string, options: { includeMetadata?: boo
     mutationFn: async ({ shift_id, participant_ids }: { shift_id: string, participant_ids: string[] }) => {
       // Delete existing
       await supabase
-        .from('ic_shift_participants')
+        .from(TABLES.SHIFT_PARTICIPANTS)
         .delete()
         .eq('shift_id', shift_id);
       
       // Insert new
       if (participant_ids.length > 0) {
         const { error } = await supabase
-          .from('ic_shift_participants')
+          .from(TABLES.SHIFT_PARTICIPANTS)
           .insert(participant_ids.map(pid => ({ shift_id, participant_id: pid })));
         if (error) throw error;
       }
@@ -593,7 +597,7 @@ export function useRosterData(staffId?: string, options: { includeMetadata?: boo
 
       // Bulk create shifts
       const { data: createdShifts, error: shiftError } = await supabase
-        .from('ic_staff_shifts')
+        .from(TABLES.STAFF_SHIFTS)
         .insert(shiftsToCreate)
         .select('id, shift_template_id');
 
@@ -624,11 +628,11 @@ export function useRosterData(staffId?: string, options: { includeMetadata?: boo
       });
 
       if (participantInserts.length > 0) {
-        await supabase.from('ic_shift_participants').insert(participantInserts);
+        await supabase.from(TABLES.SHIFT_PARTICIPANTS).insert(participantInserts);
       }
 
       if (checklistInserts.length > 0) {
-        await supabase.from('ic_shift_assigned_checklists').insert(checklistInserts);
+        await supabase.from(TABLES.SHIFT_ASSIGNED_CHECKLISTS).insert(checklistInserts);
       }
 
       return {
@@ -646,7 +650,7 @@ export function useRosterData(staffId?: string, options: { includeMetadata?: boo
     mutationFn: async ({ shift_id, checklists }: { shift_id: string, checklists: AssignedChecklist[] }) => {
       // Get current shift info to get house_id and shift_template_id
       const { data: shift } = await supabase
-        .from('ic_staff_shifts')
+        .from(TABLES.STAFF_SHIFTS)
         .select('house_id, shift_template_id')
         .eq('id', shift_id)
         .maybeSingle();
@@ -655,14 +659,14 @@ export function useRosterData(staffId?: string, options: { includeMetadata?: boo
 
       // Delete existing
       await supabase
-        .from('ic_shift_assigned_checklists')
+        .from(TABLES.SHIFT_ASSIGNED_CHECKLISTS)
         .delete()
         .eq('shift_id', shift_id);
       
       // Insert new
       if (checklists.length > 0) {
         const { error } = await supabase
-          .from('ic_shift_assigned_checklists')
+          .from(TABLES.SHIFT_ASSIGNED_CHECKLISTS)
           .insert(checklists.map(cl => ({ 
             shift_id, 
             checklist_id: cl.checklist_id,

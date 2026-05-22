@@ -12,31 +12,6 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "13.0.5"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       ic_activity_log: {
@@ -140,14 +115,15 @@ export type Database = {
       ic_branches: {
         Row: {
           address: string | null
+          branch_name: string
           company_name: string | null
           compliance_status: string | null
           created_at: string | null
+          created_by: string | null
           email: string | null
           id: string
           last_audit_date: string | null
           manager_name: string | null
-          branch_name: string
           next_review_date: string | null
           notes: string | null
           number_of_houses: number | null
@@ -156,17 +132,19 @@ export type Database = {
           phone: string | null
           service_areas: string | null
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           address?: string | null
+          branch_name: string
           company_name?: string | null
           compliance_status?: string | null
           created_at?: string | null
+          created_by?: string | null
           email?: string | null
           id?: string
           last_audit_date?: string | null
           manager_name?: string | null
-          name: string
           next_review_date?: string | null
           notes?: string | null
           number_of_houses?: number | null
@@ -175,17 +153,19 @@ export type Database = {
           phone?: string | null
           service_areas?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           address?: string | null
+          branch_name?: string
           company_name?: string | null
           compliance_status?: string | null
           created_at?: string | null
+          created_by?: string | null
           email?: string | null
           id?: string
           last_audit_date?: string | null
           manager_name?: string | null
-          name?: string
           next_review_date?: string | null
           notes?: string | null
           number_of_houses?: number | null
@@ -194,12 +174,14 @@ export type Database = {
           phone?: string | null
           service_areas?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
       ic_checklist_item_master: {
         Row: {
           created_at: string | null
+          created_by: string | null
           group_id: string | null
           group_title: string
           id: string
@@ -210,9 +192,11 @@ export type Database = {
           sort_order: number | null
           title: string
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           created_at?: string | null
+          created_by?: string | null
           group_id?: string | null
           group_title: string
           id?: string
@@ -223,9 +207,11 @@ export type Database = {
           sort_order?: number | null
           title: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           created_at?: string | null
+          created_by?: string | null
           group_id?: string | null
           group_title?: string
           id?: string
@@ -236,6 +222,7 @@ export type Database = {
           sort_order?: number | null
           title?: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -256,34 +243,41 @@ export type Database = {
       }
       ic_checklist_master: {
         Row: {
+          checklist_name: string
           created_at: string | null
+          created_by: string | null
           days_of_week: string[] | null
           description: string | null
           id: string
-          checklist_name: string
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
+          checklist_name: string
           created_at?: string | null
+          created_by?: string | null
           days_of_week?: string[] | null
           description?: string | null
           id?: string
-          name: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
+          checklist_name?: string
           created_at?: string | null
+          created_by?: string | null
           days_of_week?: string[] | null
           description?: string | null
           id?: string
-          name?: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
       ic_checklist_schedules: {
         Row: {
           created_at: string | null
+          created_by: string | null
           end_date: string | null
           house_checklist_id: string
           house_id: string
@@ -293,9 +287,11 @@ export type Database = {
           start_date: string
           target_shift: Database["public"]["Enums"]["ic_shift_period_enum"]
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           created_at?: string | null
+          created_by?: string | null
           end_date?: string | null
           house_checklist_id: string
           house_id: string
@@ -305,9 +301,11 @@ export type Database = {
           start_date: string
           target_shift?: Database["public"]["Enums"]["ic_shift_period_enum"]
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           created_at?: string | null
+          created_by?: string | null
           end_date?: string | null
           house_checklist_id?: string
           house_id?: string
@@ -317,6 +315,7 @@ export type Database = {
           start_date?: string
           target_shift?: Database["public"]["Enums"]["ic_shift_period_enum"]
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -337,29 +336,29 @@ export type Database = {
       }
       ic_contact_types_master: {
         Row: {
+          contact_type_name: string
           created_at: string | null
           created_by: string | null
           id: string
           is_active: boolean | null
-          contact_type_name: string
           updated_at: string | null
           updated_by: string | null
         }
         Insert: {
+          contact_type_name: string
           created_at?: string | null
           created_by?: string | null
           id?: string
           is_active?: boolean | null
-          name: string
           updated_at?: string | null
           updated_by?: string | null
         }
         Update: {
+          contact_type_name?: string
           created_at?: string | null
           created_by?: string | null
           id?: string
           is_active?: boolean | null
-          name?: string
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -369,56 +368,68 @@ export type Database = {
         Row: {
           access_level: string | null
           created_at: string | null
+          created_by: string | null
+          department_name: string
           description: string | null
           id: string
-          department_name: string
           status: string | null
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           access_level?: string | null
           created_at?: string | null
+          created_by?: string | null
+          department_name: string
           description?: string | null
           id?: string
-          name: string
           status?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           access_level?: string | null
           created_at?: string | null
+          created_by?: string | null
+          department_name?: string
           description?: string | null
           id?: string
-          name?: string
           status?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
       ic_employment_types_master: {
         Row: {
           created_at: string | null
+          created_by: string | null
           description: string | null
-          id: string
           employment_type_name: string
+          id: string
           status: string | null
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
+          employment_type_name: string
           id?: string
-          name: string
           status?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
+          employment_type_name?: string
           id?: string
-          name?: string
           status?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -465,27 +476,27 @@ export type Database = {
         Row: {
           created_at: string | null
           created_by: string | null
+          funding_source_name: string
           id: string
           is_active: boolean | null
-          funding_source_name: string
           updated_at: string | null
           updated_by: string | null
         }
         Insert: {
           created_at?: string | null
           created_by?: string | null
+          funding_source_name: string
           id?: string
           is_active?: boolean | null
-          name: string
           updated_at?: string | null
           updated_by?: string | null
         }
         Update: {
           created_at?: string | null
           created_by?: string | null
+          funding_source_name?: string
           id?: string
           is_active?: boolean | null
-          name?: string
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -495,27 +506,27 @@ export type Database = {
         Row: {
           created_at: string | null
           created_by: string | null
+          funding_type_name: string
           id: string
           is_active: boolean | null
-          funding_type_name: string
           updated_at: string | null
           updated_by: string | null
         }
         Insert: {
           created_at?: string | null
           created_by?: string | null
+          funding_type_name: string
           id?: string
           is_active?: boolean | null
-          name: string
           updated_at?: string | null
           updated_by?: string | null
         }
         Update: {
           created_at?: string | null
           created_by?: string | null
+          funding_type_name?: string
           id?: string
           is_active?: boolean | null
-          name?: string
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -524,32 +535,38 @@ export type Database = {
       ic_house_calendar_event_attachments: {
         Row: {
           created_at: string | null
+          created_by: string | null
           event_id: string
           file_name: string
           file_path: string
           file_size: number | null
           id: string
           mime_type: string | null
+          updated_by: string | null
           uploaded_by: string | null
         }
         Insert: {
           created_at?: string | null
+          created_by?: string | null
           event_id: string
           file_name: string
           file_path: string
           file_size?: number | null
           id?: string
           mime_type?: string | null
+          updated_by?: string | null
           uploaded_by?: string | null
         }
         Update: {
           created_at?: string | null
+          created_by?: string | null
           event_id?: string
           file_name?: string
           file_path?: string
           file_size?: number | null
           id?: string
           mime_type?: string | null
+          updated_by?: string | null
           uploaded_by?: string | null
         }
         Relationships: [
@@ -565,21 +582,27 @@ export type Database = {
       ic_house_calendar_event_participants: {
         Row: {
           created_at: string | null
+          created_by: string | null
           event_id: string
           id: string
           participant_id: string
+          updated_by: string | null
         }
         Insert: {
           created_at?: string | null
+          created_by?: string | null
           event_id: string
           id?: string
           participant_id: string
+          updated_by?: string | null
         }
         Update: {
           created_at?: string | null
+          created_by?: string | null
           event_id?: string
           id?: string
           participant_id?: string
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -601,21 +624,27 @@ export type Database = {
       ic_house_calendar_event_staff: {
         Row: {
           created_at: string | null
+          created_by: string | null
           event_id: string
           id: string
           staff_id: string
+          updated_by: string | null
         }
         Insert: {
           created_at?: string | null
+          created_by?: string | null
           event_id: string
           id?: string
           staff_id: string
+          updated_by?: string | null
         }
         Update: {
           created_at?: string | null
+          created_by?: string | null
           event_id?: string
           id?: string
           staff_id?: string
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -638,29 +667,35 @@ export type Database = {
         Row: {
           color: string
           created_at: string | null
+          created_by: string | null
           description: string | null
-          id: string
           event_type_name: string
+          id: string
           status: string
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           color?: string
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
+          event_type_name: string
           id?: string
-          name: string
           status?: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           color?: string
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
+          event_type_name?: string
           id?: string
-          name?: string
           status?: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -682,6 +717,7 @@ export type Database = {
           status: string | null
           title: string
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           checklist_schedule_id?: string | null
@@ -700,6 +736,7 @@ export type Database = {
           status?: string | null
           title: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           checklist_schedule_id?: string | null
@@ -718,6 +755,7 @@ export type Database = {
           status?: string | null
           title?: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -760,6 +798,7 @@ export type Database = {
       ic_house_checklist_item_attachments: {
         Row: {
           created_at: string | null
+          created_by: string | null
           file_name: string
           file_path: string
           file_size: number | null
@@ -768,10 +807,12 @@ export type Database = {
           mime_type: string | null
           submission_id: string
           updated_at: string | null
+          updated_by: string | null
           uploaded_by: string | null
         }
         Insert: {
           created_at?: string | null
+          created_by?: string | null
           file_name: string
           file_path: string
           file_size?: number | null
@@ -780,10 +821,12 @@ export type Database = {
           mime_type?: string | null
           submission_id: string
           updated_at?: string | null
+          updated_by?: string | null
           uploaded_by?: string | null
         }
         Update: {
           created_at?: string | null
+          created_by?: string | null
           file_name?: string
           file_path?: string
           file_size?: number | null
@@ -792,6 +835,7 @@ export type Database = {
           mime_type?: string | null
           submission_id?: string
           updated_at?: string | null
+          updated_by?: string | null
           uploaded_by?: string | null
         }
         Relationships: [
@@ -822,6 +866,7 @@ export type Database = {
         Row: {
           checklist_id: string | null
           created_at: string | null
+          created_by: string | null
           group_id: string | null
           group_title: string | null
           id: string
@@ -832,10 +877,12 @@ export type Database = {
           sort_order: number | null
           title: string
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           checklist_id?: string | null
           created_at?: string | null
+          created_by?: string | null
           group_id?: string | null
           group_title?: string | null
           id?: string
@@ -846,10 +893,12 @@ export type Database = {
           sort_order?: number | null
           title: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           checklist_id?: string | null
           created_at?: string | null
+          created_by?: string | null
           group_id?: string | null
           group_title?: string | null
           id?: string
@@ -860,6 +909,7 @@ export type Database = {
           sort_order?: number | null
           title?: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -890,6 +940,7 @@ export type Database = {
           completed_at: string | null
           completed_by: string | null
           created_at: string | null
+          created_by: string | null
           id: string
           is_completed: boolean
           item_id: string
@@ -898,11 +949,13 @@ export type Database = {
           status: string | null
           submission_id: string
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           completed_at?: string | null
           completed_by?: string | null
           created_at?: string | null
+          created_by?: string | null
           id?: string
           is_completed?: boolean
           item_id: string
@@ -911,11 +964,13 @@ export type Database = {
           status?: string | null
           submission_id: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           completed_at?: string | null
           completed_by?: string | null
           created_at?: string | null
+          created_by?: string | null
           id?: string
           is_completed?: boolean
           item_id?: string
@@ -924,6 +979,7 @@ export type Database = {
           status?: string | null
           submission_id?: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -962,6 +1018,7 @@ export type Database = {
           checklist_id: string
           completed_at: string | null
           created_at: string | null
+          created_by: string | null
           house_id: string
           id: string
           master_id: string | null
@@ -973,12 +1030,14 @@ export type Database = {
           status: string
           submitted_by: string | null
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           calendar_event_id?: string | null
           checklist_id: string
           completed_at?: string | null
           created_at?: string | null
+          created_by?: string | null
           house_id: string
           id?: string
           master_id?: string | null
@@ -990,12 +1049,14 @@ export type Database = {
           status?: string
           submitted_by?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           calendar_event_id?: string | null
           checklist_id?: string
           completed_at?: string | null
           created_at?: string | null
+          created_by?: string | null
           house_id?: string
           id?: string
           master_id?: string | null
@@ -1007,6 +1068,7 @@ export type Database = {
           status?: string
           submitted_by?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -1070,39 +1132,45 @@ export type Database = {
       ic_house_checklists: {
         Row: {
           created_at: string | null
+          created_by: string | null
           days_of_week: string[] | null
           description: string | null
+          house_checklist_name: string
           house_id: string | null
           id: string
           is_global: boolean | null
           master_id: string | null
-          house_checklist_name: string
           sort_order: number
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           created_at?: string | null
+          created_by?: string | null
           days_of_week?: string[] | null
           description?: string | null
+          house_checklist_name: string
           house_id?: string | null
           id?: string
           is_global?: boolean | null
           master_id?: string | null
-          name: string
           sort_order?: number
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           created_at?: string | null
+          created_by?: string | null
           days_of_week?: string[] | null
           description?: string | null
+          house_checklist_name?: string
           house_id?: string | null
           id?: string
           is_global?: boolean | null
           master_id?: string | null
-          name?: string
           sort_order?: number
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -1130,6 +1198,7 @@ export type Database = {
           house_id: string
           id: string
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           content: string
@@ -1139,6 +1208,7 @@ export type Database = {
           house_id: string
           id?: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           content?: string
@@ -1148,6 +1218,7 @@ export type Database = {
           house_id?: string
           id?: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -1170,6 +1241,7 @@ export type Database = {
         Row: {
           category: string | null
           created_at: string | null
+          created_by: string | null
           file_name: string
           file_path: string
           file_size: number | null
@@ -1179,12 +1251,14 @@ export type Database = {
           notes: string | null
           status: string | null
           updated_at: string | null
+          updated_by: string | null
           uploaded_by: string | null
           version: string | null
         }
         Insert: {
           category?: string | null
           created_at?: string | null
+          created_by?: string | null
           file_name: string
           file_path: string
           file_size?: number | null
@@ -1194,12 +1268,14 @@ export type Database = {
           notes?: string | null
           status?: string | null
           updated_at?: string | null
+          updated_by?: string | null
           uploaded_by?: string | null
           version?: string | null
         }
         Update: {
           category?: string | null
           created_at?: string | null
+          created_by?: string | null
           file_name?: string
           file_path?: string
           file_size?: number | null
@@ -1209,6 +1285,7 @@ export type Database = {
           notes?: string | null
           status?: string | null
           updated_at?: string | null
+          updated_by?: string | null
           uploaded_by?: string | null
           version?: string | null
         }
@@ -1228,6 +1305,7 @@ export type Database = {
           completed_at: string | null
           completed_by: string | null
           created_at: string | null
+          created_by: string | null
           due_date: string | null
           form_id: string | null
           id: string
@@ -1236,12 +1314,14 @@ export type Database = {
           staff_id: string | null
           status: string | null
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           assigned_by?: string | null
           completed_at?: string | null
           completed_by?: string | null
           created_at?: string | null
+          created_by?: string | null
           due_date?: string | null
           form_id?: string | null
           id?: string
@@ -1250,12 +1330,14 @@ export type Database = {
           staff_id?: string | null
           status?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           assigned_by?: string | null
           completed_at?: string | null
           completed_by?: string | null
           created_at?: string | null
+          created_by?: string | null
           due_date?: string | null
           form_id?: string | null
           id?: string
@@ -1264,6 +1346,7 @@ export type Database = {
           staff_id?: string | null
           status?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -1307,6 +1390,7 @@ export type Database = {
         Row: {
           assignment_id: string | null
           created_at: string | null
+          created_by: string | null
           form_id: string | null
           id: string
           participant_id: string | null
@@ -1315,10 +1399,12 @@ export type Database = {
           submitted_at: string | null
           submitted_by: string | null
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           assignment_id?: string | null
           created_at?: string | null
+          created_by?: string | null
           form_id?: string | null
           id?: string
           participant_id?: string | null
@@ -1327,10 +1413,12 @@ export type Database = {
           submitted_at?: string | null
           submitted_by?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           assignment_id?: string | null
           created_at?: string | null
+          created_by?: string | null
           form_id?: string | null
           id?: string
           participant_id?: string | null
@@ -1339,6 +1427,7 @@ export type Database = {
           submitted_at?: string | null
           submitted_by?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -1377,39 +1466,42 @@ export type Database = {
           created_by: string | null
           description: string | null
           frequency: string
+          house_form_name: string
           house_id: string | null
           id: string
           is_global: boolean | null
-          house_form_name: string
           status: string | null
           type: string
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           created_at?: string | null
           created_by?: string | null
           description?: string | null
           frequency: string
+          house_form_name: string
           house_id?: string | null
           id?: string
           is_global?: boolean | null
-          name: string
           status?: string | null
           type: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           created_at?: string | null
           created_by?: string | null
           description?: string | null
           frequency?: string
+          house_form_name?: string
           house_id?: string | null
           id?: string
           is_global?: boolean | null
-          name?: string
           status?: string | null
           type?: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -1446,6 +1538,7 @@ export type Database = {
           title: string
           type: string
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           address?: string | null
@@ -1464,6 +1557,7 @@ export type Database = {
           title: string
           type: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           address?: string | null
@@ -1482,6 +1576,7 @@ export type Database = {
           title?: string
           type?: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -1504,6 +1599,7 @@ export type Database = {
         Row: {
           color_theme: string | null
           created_at: string | null
+          created_by: string | null
           default_end_time: string | null
           default_start_time: string | null
           house_id: string
@@ -1514,34 +1610,39 @@ export type Database = {
           short_name: string | null
           sort_order: number
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           color_theme?: string | null
           created_at?: string | null
+          created_by?: string | null
           default_end_time?: string | null
           default_start_time?: string | null
           house_id: string
           icon_name?: string | null
           id?: string
           is_active?: boolean
-          name: string
+          shift_template_name: string
           short_name?: string | null
           sort_order?: number
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           color_theme?: string | null
           created_at?: string | null
+          created_by?: string | null
           default_end_time?: string | null
           default_start_time?: string | null
           house_id?: string
           icon_name?: string | null
           id?: string
           is_active?: boolean
-          name?: string
+          shift_template_name?: string
           short_name?: string | null
           sort_order?: number
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -1556,6 +1657,7 @@ export type Database = {
       ic_house_staff_assignments: {
         Row: {
           created_at: string | null
+          created_by: string | null
           end_date: string | null
           house_id: string
           id: string
@@ -1564,9 +1666,11 @@ export type Database = {
           staff_id: string
           start_date: string | null
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           created_at?: string | null
+          created_by?: string | null
           end_date?: string | null
           house_id: string
           id?: string
@@ -1575,9 +1679,11 @@ export type Database = {
           staff_id: string
           start_date?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           created_at?: string | null
+          created_by?: string | null
           end_date?: string | null
           house_id?: string
           id?: string
@@ -1586,6 +1692,7 @@ export type Database = {
           staff_id?: string
           start_date?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -1607,27 +1714,33 @@ export type Database = {
       ic_house_types_master: {
         Row: {
           created_at: string | null
+          created_by: string | null
           description: string | null
-          id: string
           house_type_name: string
+          id: string
           status: string
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
+          house_type_name: string
           id?: string
-          name: string
           status?: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
+          house_type_name?: string
           id?: string
-          name?: string
           status?: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -1637,14 +1750,15 @@ export type Database = {
           branch_id: string | null
           capacity: number | null
           created_at: string | null
+          created_by: string | null
           current_occupancy: number | null
           general_house_details: string | null
           house_manager: string | null
+          house_name: string
           house_type_id: string | null
           id: string
           individuals_breakdown: string | null
           is_configured: boolean
-          house_name: string
           notes: string | null
           observations: string | null
           participant_dynamics: string | null
@@ -1652,20 +1766,22 @@ export type Database = {
           setup_step: number
           status: string | null
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           address?: string | null
           branch_id?: string | null
           capacity?: number | null
           created_at?: string | null
+          created_by?: string | null
           current_occupancy?: number | null
           general_house_details?: string | null
           house_manager?: string | null
+          house_name: string
           house_type_id?: string | null
           id?: string
           individuals_breakdown?: string | null
           is_configured?: boolean
-          name: string
           notes?: string | null
           observations?: string | null
           participant_dynamics?: string | null
@@ -1673,20 +1789,22 @@ export type Database = {
           setup_step?: number
           status?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           address?: string | null
           branch_id?: string | null
           capacity?: number | null
           created_at?: string | null
+          created_by?: string | null
           current_occupancy?: number | null
           general_house_details?: string | null
           house_manager?: string | null
+          house_name?: string
           house_type_id?: string | null
           id?: string
           individuals_breakdown?: string | null
           is_configured?: boolean
-          name?: string
           notes?: string | null
           observations?: string | null
           participant_dynamics?: string | null
@@ -1694,6 +1812,7 @@ export type Database = {
           setup_step?: number
           status?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -1717,6 +1836,7 @@ export type Database = {
           admin_notes: string | null
           attachment_url: string | null
           created_at: string
+          created_by: string | null
           end_date: string
           id: string
           leave_type_id: string
@@ -1725,11 +1845,13 @@ export type Database = {
           start_date: string
           status: string
           updated_at: string
+          updated_by: string | null
         }
         Insert: {
           admin_notes?: string | null
           attachment_url?: string | null
           created_at?: string
+          created_by?: string | null
           end_date: string
           id?: string
           leave_type_id: string
@@ -1738,11 +1860,13 @@ export type Database = {
           start_date: string
           status?: string
           updated_at?: string
+          updated_by?: string | null
         }
         Update: {
           admin_notes?: string | null
           attachment_url?: string | null
           created_at?: string
+          created_by?: string | null
           end_date?: string
           id?: string
           leave_type_id?: string
@@ -1751,6 +1875,7 @@ export type Database = {
           start_date?: string
           status?: string
           updated_at?: string
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -1772,21 +1897,27 @@ export type Database = {
       ic_leave_types: {
         Row: {
           created_at: string
+          created_by: string | null
           id: string
           is_active: boolean
           leave_type_name: string
+          updated_by: string | null
         }
         Insert: {
           created_at?: string
+          created_by?: string | null
           id?: string
           is_active?: boolean
-          name: string
+          leave_type_name: string
+          updated_by?: string | null
         }
         Update: {
           created_at?: string
+          created_by?: string | null
           id?: string
           is_active?: boolean
-          name?: string
+          leave_type_name?: string
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -1812,7 +1943,7 @@ export type Database = {
           id?: string
           interactions?: string | null
           is_active?: boolean | null
-          name: string
+          medication_name: string
           side_effects?: string | null
           updated_at?: string | null
           updated_by?: string | null
@@ -1825,7 +1956,7 @@ export type Database = {
           id?: string
           interactions?: string | null
           is_active?: boolean | null
-          name?: string
+          medication_name?: string
           side_effects?: string | null
           updated_at?: string | null
           updated_by?: string | null
@@ -1836,34 +1967,40 @@ export type Database = {
         Row: {
           body: string | null
           created_at: string
+          created_by: string | null
           id: string
           is_read: boolean
           link: string | null
           metadata: Json | null
           title: string
           type: string
+          updated_by: string | null
           user_id: string
         }
         Insert: {
           body?: string | null
           created_at?: string
+          created_by?: string | null
           id?: string
           is_read?: boolean
           link?: string | null
           metadata?: Json | null
           title: string
           type: string
+          updated_by?: string | null
           user_id: string
         }
         Update: {
           body?: string | null
           created_at?: string
+          created_by?: string | null
           id?: string
           is_read?: boolean
           link?: string | null
           metadata?: Json | null
           title?: string
           type?: string
+          updated_by?: string | null
           user_id?: string
         }
         Relationships: []
@@ -1874,6 +2011,7 @@ export type Database = {
           contact_name: string
           contact_type_id: string | null
           created_at: string | null
+          created_by: string | null
           email: string | null
           id: string
           is_active: boolean | null
@@ -1881,12 +2019,14 @@ export type Database = {
           participant_id: string
           phone: string | null
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           address?: string | null
           contact_name: string
           contact_type_id?: string | null
           created_at?: string | null
+          created_by?: string | null
           email?: string | null
           id?: string
           is_active?: boolean | null
@@ -1894,12 +2034,14 @@ export type Database = {
           participant_id: string
           phone?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           address?: string | null
           contact_name?: string
           contact_type_id?: string | null
           created_at?: string | null
+          created_by?: string | null
           email?: string | null
           id?: string
           is_active?: boolean | null
@@ -1907,6 +2049,7 @@ export type Database = {
           participant_id?: string
           phone?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -1917,7 +2060,7 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "ic_provider_participants_participant_id_fkey"
+            foreignKeyName: "participant_providers_participant_id_fkey"
             columns: ["participant_id"]
             isOneToOne: false
             referencedRelation: "ic_participants"
@@ -1928,6 +2071,7 @@ export type Database = {
       ic_participant_documents: {
         Row: {
           created_at: string | null
+          created_by: string | null
           file_name: string
           file_path: string
           file_size: number | null
@@ -1936,10 +2080,12 @@ export type Database = {
           mime_type: string | null
           participant_id: string
           updated_at: string | null
+          updated_by: string | null
           uploaded_by: string | null
         }
         Insert: {
           created_at?: string | null
+          created_by?: string | null
           file_name: string
           file_path: string
           file_size?: number | null
@@ -1948,10 +2094,12 @@ export type Database = {
           mime_type?: string | null
           participant_id: string
           updated_at?: string | null
+          updated_by?: string | null
           uploaded_by?: string | null
         }
         Update: {
           created_at?: string | null
+          created_by?: string | null
           file_name?: string
           file_path?: string
           file_size?: number | null
@@ -1960,6 +2108,7 @@ export type Database = {
           mime_type?: string | null
           participant_id?: string
           updated_at?: string | null
+          updated_by?: string | null
           uploaded_by?: string | null
         }
         Relationships: [
@@ -1982,6 +2131,7 @@ export type Database = {
       ic_participant_forms: {
         Row: {
           created_at: string | null
+          created_by: string | null
           form_data: Json | null
           form_title: string
           form_type: string
@@ -1990,9 +2140,11 @@ export type Database = {
           submission_date: string | null
           submitted_by: string | null
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           created_at?: string | null
+          created_by?: string | null
           form_data?: Json | null
           form_title: string
           form_type: string
@@ -2001,9 +2153,11 @@ export type Database = {
           submission_date?: string | null
           submitted_by?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           created_at?: string | null
+          created_by?: string | null
           form_data?: Json | null
           form_title?: string
           form_type?: string
@@ -2012,6 +2166,7 @@ export type Database = {
           submission_date?: string | null
           submitted_by?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -2035,6 +2190,7 @@ export type Database = {
           allocated_amount: number
           code: string | null
           created_at: string | null
+          created_by: string | null
           end_date: string | null
           funding_source_id: string | null
           funding_type_id: string | null
@@ -2046,12 +2202,14 @@ export type Database = {
           remaining_amount: number | null
           status: string | null
           updated_at: string | null
+          updated_by: string | null
           used_amount: number | null
         }
         Insert: {
           allocated_amount: number
           code?: string | null
           created_at?: string | null
+          created_by?: string | null
           end_date?: string | null
           funding_source_id?: string | null
           funding_type_id?: string | null
@@ -2063,12 +2221,14 @@ export type Database = {
           remaining_amount?: number | null
           status?: string | null
           updated_at?: string | null
+          updated_by?: string | null
           used_amount?: number | null
         }
         Update: {
           allocated_amount?: number
           code?: string | null
           created_at?: string | null
+          created_by?: string | null
           end_date?: string | null
           funding_source_id?: string | null
           funding_type_id?: string | null
@@ -2080,6 +2240,7 @@ export type Database = {
           remaining_amount?: number | null
           status?: string | null
           updated_at?: string | null
+          updated_by?: string | null
           used_amount?: number | null
         }
         Relationships: [
@@ -2116,24 +2277,30 @@ export type Database = {
       ic_participant_goal_progress: {
         Row: {
           created_at: string | null
+          created_by: string | null
           goal_id: string
           id: string
           progress_note: string
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           created_at?: string | null
+          created_by?: string | null
           goal_id: string
           id?: string
           progress_note: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           created_at?: string | null
+          created_by?: string | null
           goal_id?: string
           id?: string
           progress_note?: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -2148,30 +2315,36 @@ export type Database = {
       ic_participant_goals: {
         Row: {
           created_at: string | null
+          created_by: string | null
           description: string
           goal_type: string
           id: string
           is_active: boolean | null
           participant_id: string
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           created_at?: string | null
+          created_by?: string | null
           description: string
           goal_type: string
           id?: string
           is_active?: boolean | null
           participant_id: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           created_at?: string | null
+          created_by?: string | null
           description?: string
           goal_type?: string
           id?: string
           is_active?: boolean | null
           participant_id?: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -2186,6 +2359,7 @@ export type Database = {
       ic_participant_hygiene_routines: {
         Row: {
           created_at: string | null
+          created_by: string | null
           duration_minutes: number | null
           equipment_needed: string | null
           frequency: string | null
@@ -2197,9 +2371,11 @@ export type Database = {
           support_level: string
           time_of_day: string | null
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           created_at?: string | null
+          created_by?: string | null
           duration_minutes?: number | null
           equipment_needed?: string | null
           frequency?: string | null
@@ -2211,9 +2387,11 @@ export type Database = {
           support_level: string
           time_of_day?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           created_at?: string | null
+          created_by?: string | null
           duration_minutes?: number | null
           equipment_needed?: string | null
           frequency?: string | null
@@ -2225,6 +2403,7 @@ export type Database = {
           support_level?: string
           time_of_day?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -2239,6 +2418,7 @@ export type Database = {
       ic_participant_medications: {
         Row: {
           created_at: string | null
+          created_by: string | null
           dosage: string | null
           frequency: string | null
           id: string
@@ -2246,9 +2426,11 @@ export type Database = {
           medication_id: string | null
           participant_id: string
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           created_at?: string | null
+          created_by?: string | null
           dosage?: string | null
           frequency?: string | null
           id?: string
@@ -2256,9 +2438,11 @@ export type Database = {
           medication_id?: string | null
           participant_id: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           created_at?: string | null
+          created_by?: string | null
           dosage?: string | null
           frequency?: string | null
           id?: string
@@ -2266,6 +2450,7 @@ export type Database = {
           medication_id?: string | null
           participant_id?: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -2295,6 +2480,7 @@ export type Database = {
           note_type: string | null
           participant_id: string
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           content: string
@@ -2306,6 +2492,7 @@ export type Database = {
           note_type?: string | null
           participant_id: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           content?: string
@@ -2317,6 +2504,7 @@ export type Database = {
           note_type?: string | null
           participant_id?: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -2354,6 +2542,7 @@ export type Database = {
           review_date: string
           status: string | null
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           alternatives_considered?: string | null
@@ -2373,6 +2562,7 @@ export type Database = {
           review_date: string
           status?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           alternatives_considered?: string | null
@@ -2392,6 +2582,7 @@ export type Database = {
           review_date?: string
           status?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -2420,6 +2611,7 @@ export type Database = {
           communication_notes: string | null
           communication_type: string | null
           created_at: string | null
+          created_by: string | null
           cultural_religious_support: string | null
           current_goals: string | null
           current_medications: string | null
@@ -2445,10 +2637,10 @@ export type Database = {
           move_in_date: string | null
           mtmp_details: string | null
           mtmp_required: boolean | null
-          participant_name: string | null
           natural_disaster_plan: string | null
           ndis_number: string | null
           other_support: string | null
+          participant_name: string | null
           pbsp_engaged: boolean | null
           personal_mobile: string | null
           pharmacy_contact: string | null
@@ -2473,6 +2665,7 @@ export type Database = {
           support_coordinator: string | null
           support_level: string | null
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           address?: string | null
@@ -2483,6 +2676,7 @@ export type Database = {
           communication_notes?: string | null
           communication_type?: string | null
           created_at?: string | null
+          created_by?: string | null
           cultural_religious_support?: string | null
           current_goals?: string | null
           current_medications?: string | null
@@ -2508,10 +2702,10 @@ export type Database = {
           move_in_date?: string | null
           mtmp_details?: string | null
           mtmp_required?: boolean | null
-          name?: string | null
           natural_disaster_plan?: string | null
           ndis_number?: string | null
           other_support?: string | null
+          participant_name?: string | null
           pbsp_engaged?: boolean | null
           personal_mobile?: string | null
           pharmacy_contact?: string | null
@@ -2536,6 +2730,7 @@ export type Database = {
           support_coordinator?: string | null
           support_level?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           address?: string | null
@@ -2546,6 +2741,7 @@ export type Database = {
           communication_notes?: string | null
           communication_type?: string | null
           created_at?: string | null
+          created_by?: string | null
           cultural_religious_support?: string | null
           current_goals?: string | null
           current_medications?: string | null
@@ -2571,10 +2767,10 @@ export type Database = {
           move_in_date?: string | null
           mtmp_details?: string | null
           mtmp_required?: boolean | null
-          name?: string | null
           natural_disaster_plan?: string | null
           ndis_number?: string | null
           other_support?: string | null
+          participant_name?: string | null
           pbsp_engaged?: boolean | null
           personal_mobile?: string | null
           pharmacy_contact?: string | null
@@ -2599,6 +2795,7 @@ export type Database = {
           support_coordinator?: string | null
           support_level?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -2613,6 +2810,7 @@ export type Database = {
       ic_permission_mappings: {
         Row: {
           created_at: string | null
+          created_by: string | null
           description: string | null
           display_order: number | null
           icon_name: string | null
@@ -2621,9 +2819,11 @@ export type Database = {
           parent_group: string | null
           permission_name: string
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
           display_order?: number | null
           icon_name?: string | null
@@ -2632,9 +2832,11 @@ export type Database = {
           parent_group?: string | null
           permission_name: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
           display_order?: number | null
           icon_name?: string | null
@@ -2643,6 +2845,7 @@ export type Database = {
           parent_group?: string | null
           permission_name?: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -2651,34 +2854,40 @@ export type Database = {
           access_level: string | null
           compliance_requirements: string[] | null
           created_at: string | null
+          created_by: string | null
           department_id: string | null
           description: string | null
           id: string
           status: string | null
           title: string
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           access_level?: string | null
           compliance_requirements?: string[] | null
           created_at?: string | null
+          created_by?: string | null
           department_id?: string | null
           description?: string | null
           id?: string
           status?: string | null
           title: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           access_level?: string | null
           compliance_requirements?: string[] | null
           created_at?: string | null
+          created_by?: string | null
           department_id?: string | null
           description?: string | null
           id?: string
           status?: string | null
           title?: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -2693,21 +2902,27 @@ export type Database = {
       ic_provider_participants: {
         Row: {
           created_at: string | null
+          created_by: string | null
           id: string
           participant_id: string
           provider_id: string
+          updated_by: string | null
         }
         Insert: {
           created_at?: string | null
+          created_by?: string | null
           id?: string
           participant_id: string
           provider_id: string
+          updated_by?: string | null
         }
         Update: {
           created_at?: string | null
+          created_by?: string | null
           id?: string
           participant_id?: string
           provider_id?: string
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -2723,41 +2938,47 @@ export type Database = {
         Row: {
           company: string | null
           created_at: string | null
+          created_by: string | null
           email: string | null
           id: string
-          provider_name: string
           notes: string | null
           phone: string | null
+          provider_name: string
           specialties: string | null
           status: string | null
           type: string | null
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           company?: string | null
           created_at?: string | null
+          created_by?: string | null
           email?: string | null
           id?: string
-          name: string
           notes?: string | null
           phone?: string | null
+          provider_name: string
           specialties?: string | null
           status?: string | null
           type?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           company?: string | null
           created_at?: string | null
+          created_by?: string | null
           email?: string | null
           id?: string
-          name?: string
           notes?: string | null
           phone?: string | null
+          provider_name?: string
           specialties?: string | null
           status?: string | null
           type?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -2766,6 +2987,7 @@ export type Database = {
           access_control: Database["public"]["Enums"]["ic_access_level_enum"]
           activity_log: Database["public"]["Enums"]["ic_access_level_enum"]
           created_at: string | null
+          created_by: string | null
           employees: Database["public"]["Enums"]["ic_access_level_enum"]
           house_checklists: Database["public"]["Enums"]["ic_access_level_enum"]
           houses: Database["public"]["Enums"]["ic_access_level_enum"]
@@ -2782,11 +3004,13 @@ export type Database = {
           shift_routines: Database["public"]["Enums"]["ic_access_level_enum"]
           timesheets: Database["public"]["Enums"]["ic_access_level_enum"]
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           access_control?: Database["public"]["Enums"]["ic_access_level_enum"]
           activity_log?: Database["public"]["Enums"]["ic_access_level_enum"]
           created_at?: string | null
+          created_by?: string | null
           employees?: Database["public"]["Enums"]["ic_access_level_enum"]
           house_checklists?: Database["public"]["Enums"]["ic_access_level_enum"]
           houses?: Database["public"]["Enums"]["ic_access_level_enum"]
@@ -2803,11 +3027,13 @@ export type Database = {
           shift_routines?: Database["public"]["Enums"]["ic_access_level_enum"]
           timesheets?: Database["public"]["Enums"]["ic_access_level_enum"]
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           access_control?: Database["public"]["Enums"]["ic_access_level_enum"]
           activity_log?: Database["public"]["Enums"]["ic_access_level_enum"]
           created_at?: string | null
+          created_by?: string | null
           employees?: Database["public"]["Enums"]["ic_access_level_enum"]
           house_checklists?: Database["public"]["Enums"]["ic_access_level_enum"]
           houses?: Database["public"]["Enums"]["ic_access_level_enum"]
@@ -2824,6 +3050,7 @@ export type Database = {
           shift_routines?: Database["public"]["Enums"]["ic_access_level_enum"]
           timesheets?: Database["public"]["Enums"]["ic_access_level_enum"]
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -2839,53 +3066,65 @@ export type Database = {
         Row: {
           assigned_count: number | null
           created_at: string | null
+          created_by: string | null
           description: string | null
           id: string
           is_active: boolean
-          role_name: string
           permissions: string[] | null
+          role_name: string
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           assigned_count?: number | null
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
           id?: string
           is_active?: boolean
-          name: string
           permissions?: string[] | null
+          role_name: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           assigned_count?: number | null
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
           id?: string
           is_active?: boolean
-          name?: string
           permissions?: string[] | null
+          role_name?: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
       ic_service_participants: {
         Row: {
           created_at: string | null
+          created_by: string | null
           id: string
           participant_id: string
           service_id: string
+          updated_by: string | null
         }
         Insert: {
           created_at?: string | null
+          created_by?: string | null
           id?: string
           participant_id: string
           service_id: string
+          updated_by?: string | null
         }
         Update: {
           created_at?: string | null
+          created_by?: string | null
           id?: string
           participant_id?: string
           service_id?: string
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -2907,21 +3146,27 @@ export type Database = {
       ic_service_staff: {
         Row: {
           created_at: string | null
+          created_by: string | null
           id: string
           service_id: string
           staff_id: string
+          updated_by: string | null
         }
         Insert: {
           created_at?: string | null
+          created_by?: string | null
           id?: string
           service_id: string
           staff_id: string
+          updated_by?: string | null
         }
         Update: {
           created_at?: string | null
+          created_by?: string | null
           id?: string
           service_id?: string
           staff_id?: string
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -2943,30 +3188,36 @@ export type Database = {
       ic_services: {
         Row: {
           created_at: string | null
+          created_by: string | null
           description: string | null
           id: string
           service_name: string
           status: string | null
           type: string
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
           id?: string
-          name: string
+          service_name: string
           status?: string | null
           type: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
           id?: string
-          name?: string
+          service_name?: string
           status?: string | null
           type?: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -2975,31 +3226,37 @@ export type Database = {
           assignment_title: string
           checklist_id: string
           created_at: string | null
+          created_by: string | null
           house_id: string | null
           id: string
           shift_id: string | null
           shift_template_id: string | null
           sort_order: number
+          updated_by: string | null
         }
         Insert: {
           assignment_title: string
           checklist_id: string
           created_at?: string | null
+          created_by?: string | null
           house_id?: string | null
           id?: string
           shift_id?: string | null
           shift_template_id?: string | null
           sort_order?: number
+          updated_by?: string | null
         }
         Update: {
           assignment_title?: string
           checklist_id?: string
           created_at?: string | null
+          created_by?: string | null
           house_id?: string | null
           id?: string
           shift_id?: string | null
           shift_template_id?: string | null
           sort_order?: number
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -3035,6 +3292,7 @@ export type Database = {
       ic_shift_notes: {
         Row: {
           created_at: string | null
+          created_by: string | null
           full_note: string | null
           house_id: string | null
           id: string
@@ -3045,9 +3303,11 @@ export type Database = {
           staff_id: string | null
           start_date: string
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           created_at?: string | null
+          created_by?: string | null
           full_note?: string | null
           house_id?: string | null
           id?: string
@@ -3058,9 +3318,11 @@ export type Database = {
           staff_id?: string | null
           start_date: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           created_at?: string | null
+          created_by?: string | null
           full_note?: string | null
           house_id?: string | null
           id?: string
@@ -3071,6 +3333,7 @@ export type Database = {
           staff_id?: string | null
           start_date?: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -3106,21 +3369,27 @@ export type Database = {
       ic_shift_participants: {
         Row: {
           created_at: string | null
+          created_by: string | null
           id: string
           participant_id: string
           shift_id: string
+          updated_by: string | null
         }
         Insert: {
           created_at?: string | null
+          created_by?: string | null
           id?: string
           participant_id: string
           shift_id: string
+          updated_by?: string | null
         }
         Update: {
           created_at?: string | null
+          created_by?: string | null
           id?: string
           participant_id?: string
           shift_id?: string
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -3143,20 +3412,26 @@ export type Database = {
         Row: {
           checklist_id: string
           created_at: string | null
+          created_by: string | null
           id: string
           shift_template_id: string
+          updated_by: string | null
         }
         Insert: {
           checklist_id: string
           created_at?: string | null
+          created_by?: string | null
           id?: string
           shift_template_id: string
+          updated_by?: string | null
         }
         Update: {
           checklist_id?: string
           created_at?: string | null
+          created_by?: string | null
           id?: string
           shift_template_id?: string
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -3172,20 +3447,26 @@ export type Database = {
         Row: {
           checklist_id: string
           created_at: string | null
+          created_by: string | null
           id: string
           shift_template_id: string
+          updated_by: string | null
         }
         Insert: {
           checklist_id: string
           created_at?: string | null
+          created_by?: string | null
           id?: string
           shift_template_id: string
+          updated_by?: string | null
         }
         Update: {
           checklist_id?: string
           created_at?: string | null
+          created_by?: string | null
           id?: string
           shift_template_id?: string
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -3214,6 +3495,7 @@ export type Database = {
           comprehensive_car_insurance: boolean | null
           comprehensive_car_insurance_expiry: string | null
           created_at: string | null
+          created_by: string | null
           date_of_birth: string | null
           department_id: string | null
           drivers_license: boolean | null
@@ -3226,7 +3508,6 @@ export type Database = {
           hobbies: string | null
           id: string
           manager_id: string | null
-          staff_name: string | null
           ndis_code_of_conduct: boolean | null
           ndis_code_of_conduct_expiry: string | null
           ndis_infection_control_training: boolean | null
@@ -3240,8 +3521,10 @@ export type Database = {
           photo_url: string | null
           role_id: string | null
           separation_date: string | null
+          staff_name: string | null
           status: Database["public"]["Enums"]["ic_status_enum"]
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           address?: string | null
@@ -3252,6 +3535,7 @@ export type Database = {
           comprehensive_car_insurance?: boolean | null
           comprehensive_car_insurance_expiry?: string | null
           created_at?: string | null
+          created_by?: string | null
           date_of_birth?: string | null
           department_id?: string | null
           drivers_license?: boolean | null
@@ -3264,7 +3548,6 @@ export type Database = {
           hobbies?: string | null
           id?: string
           manager_id?: string | null
-          name?: string | null
           ndis_code_of_conduct?: boolean | null
           ndis_code_of_conduct_expiry?: string | null
           ndis_infection_control_training?: boolean | null
@@ -3278,8 +3561,10 @@ export type Database = {
           photo_url?: string | null
           role_id?: string | null
           separation_date?: string | null
+          staff_name?: string | null
           status?: Database["public"]["Enums"]["ic_status_enum"]
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           address?: string | null
@@ -3290,6 +3575,7 @@ export type Database = {
           comprehensive_car_insurance?: boolean | null
           comprehensive_car_insurance_expiry?: string | null
           created_at?: string | null
+          created_by?: string | null
           date_of_birth?: string | null
           department_id?: string | null
           drivers_license?: boolean | null
@@ -3302,7 +3588,6 @@ export type Database = {
           hobbies?: string | null
           id?: string
           manager_id?: string | null
-          name?: string | null
           ndis_code_of_conduct?: boolean | null
           ndis_code_of_conduct_expiry?: string | null
           ndis_infection_control_training?: boolean | null
@@ -3316,8 +3601,10 @@ export type Database = {
           photo_url?: string | null
           role_id?: string | null
           separation_date?: string | null
+          staff_name?: string | null
           status?: Database["public"]["Enums"]["ic_status_enum"]
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -3355,31 +3642,37 @@ export type Database = {
           completion_date: string | null
           compliance_name: string
           created_at: string | null
+          created_by: string | null
           expiry_date: string | null
           id: string
           staff_id: string
           status: string | null
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           completion_date?: string | null
           compliance_name: string
           created_at?: string | null
+          created_by?: string | null
           expiry_date?: string | null
           id?: string
           staff_id: string
           status?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           completion_date?: string | null
           compliance_name?: string
           created_at?: string | null
+          created_by?: string | null
           expiry_date?: string | null
           id?: string
           staff_id?: string
           status?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -3394,6 +3687,7 @@ export type Database = {
       ic_staff_documents: {
         Row: {
           created_at: string | null
+          created_by: string | null
           file_name: string
           file_path: string
           file_size: number | null
@@ -3402,10 +3696,12 @@ export type Database = {
           mime_type: string | null
           staff_id: string
           updated_at: string | null
+          updated_by: string | null
           uploaded_by: string | null
         }
         Insert: {
           created_at?: string | null
+          created_by?: string | null
           file_name: string
           file_path: string
           file_size?: number | null
@@ -3414,10 +3710,12 @@ export type Database = {
           mime_type?: string | null
           staff_id: string
           updated_at?: string | null
+          updated_by?: string | null
           uploaded_by?: string | null
         }
         Update: {
           created_at?: string | null
+          created_by?: string | null
           file_name?: string
           file_path?: string
           file_size?: number | null
@@ -3426,6 +3724,7 @@ export type Database = {
           mime_type?: string | null
           staff_id?: string
           updated_at?: string | null
+          updated_by?: string | null
           uploaded_by?: string | null
         }
         Relationships: [
@@ -3441,6 +3740,7 @@ export type Database = {
       ic_staff_shifts: {
         Row: {
           created_at: string | null
+          created_by: string | null
           end_date: string
           end_time: string
           house_id: string | null
@@ -3453,9 +3753,11 @@ export type Database = {
           start_time: string
           template_item_id: string | null
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           created_at?: string | null
+          created_by?: string | null
           end_date?: string
           end_time: string
           house_id?: string | null
@@ -3468,9 +3770,11 @@ export type Database = {
           start_time: string
           template_item_id?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           created_at?: string | null
+          created_by?: string | null
           end_date?: string
           end_time?: string
           house_id?: string | null
@@ -3483,6 +3787,7 @@ export type Database = {
           start_time?: string
           template_item_id?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -3524,6 +3829,7 @@ export type Database = {
           staff_id: string | null
           title: string
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           category: string
@@ -3540,6 +3846,7 @@ export type Database = {
           staff_id?: string | null
           title: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           category?: string
@@ -3556,6 +3863,7 @@ export type Database = {
           staff_id?: string | null
           title?: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -3585,6 +3893,7 @@ export type Database = {
           clock_in: string
           clock_out: string
           created_at: string
+          created_by: string | null
           id: string
           incident_tag: boolean
           late_submission: boolean
@@ -3600,6 +3909,7 @@ export type Database = {
           submitted_at: string | null
           travel_km: number
           updated_at: string
+          updated_by: string | null
         }
         Insert: {
           actual_end?: string | null
@@ -3611,6 +3921,7 @@ export type Database = {
           clock_in: string
           clock_out: string
           created_at?: string
+          created_by?: string | null
           id?: string
           incident_tag?: boolean
           late_submission?: boolean
@@ -3626,6 +3937,7 @@ export type Database = {
           submitted_at?: string | null
           travel_km?: number
           updated_at?: string
+          updated_by?: string | null
         }
         Update: {
           actual_end?: string | null
@@ -3637,6 +3949,7 @@ export type Database = {
           clock_in?: string
           clock_out?: string
           created_at?: string
+          created_by?: string | null
           id?: string
           incident_tag?: boolean
           late_submission?: boolean
@@ -3652,6 +3965,7 @@ export type Database = {
           submitted_at?: string | null
           travel_km?: number
           updated_at?: string
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -3681,29 +3995,35 @@ export type Database = {
         Row: {
           assigned_date: string | null
           created_at: string | null
+          created_by: string | null
           id: string
           permissions: Json | null
           role_name: string
           staff_id: string
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           assigned_date?: string | null
           created_at?: string | null
+          created_by?: string | null
           id?: string
           permissions?: Json | null
           role_name: string
           staff_id: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           assigned_date?: string | null
           created_at?: string | null
+          created_by?: string | null
           id?: string
           permissions?: Json | null
           role_name?: string
           staff_id?: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -3864,9 +4184,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
       ic_access_level_enum: [

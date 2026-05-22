@@ -1,22 +1,23 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { Database } from '@/models/database.types';
 
 export interface RosterEntry {
   id: string;
   start_date: string;
-  end_date?: string;
+  end_date?: string | null;
   start_time: string;
   end_time: string;
   entry_type: 'shift' | 'event' | 'leave';
-  title?: string;
-  shift_template?: string;
-  type_name?: string;
-  type_color?: string;
+  title?: string | null;
+  shift_template?: string | null;
+  type_name?: string | null;
+  type_color?: string | null;
   house: { house_name: string } | null;
   has_timesheet?: boolean;
-  location?: string;
+  location?: string | null;
   participants?: Array<{ id: string; participant_name: string }>;
-  status?: string;
+  status?: string | null;
   reason?: string | null;
 }
 
@@ -97,10 +98,10 @@ export function useStaffRoster(staffId?: string) {
       const shifts = shiftsData.map((s) => ({
         ...s,
         entry_type: 'shift' as const,
-        house: s.house as { house_name: string } | null,
+        house: (Array.isArray(s.house) ? s.house[0] : s.house) as { house_name: string } | null,
         has_timesheet: timesheetedIds.has(s.id),
-        participants: (s.participants || s.ic_shift_participants || [])?.map((p: any) => {
-          const part = p.participant || p.participants || p;
+        participants: (s.participants || [])?.map((p: any) => {
+          const part = p.participant;
           const actualPart = Array.isArray(part) ? part[0] : part;
           
           return {
@@ -118,9 +119,9 @@ export function useStaffRoster(staffId?: string) {
         entry_type: 'event' as const,
         title: e.title,
         location: e.location,
-        type_name: e.type?.event_type_name || 'Meeting',
-        type_color: e.type?.color || 'blue',
-        house: e.house as { house_name: string } | null,
+        type_name: (Array.isArray(e.type) ? e.type[0] : e.type)?.event_type_name || 'Meeting',
+        type_color: (Array.isArray(e.type) ? e.type[0] : e.type)?.color || 'blue',
+        house: (Array.isArray(e.house) ? e.house[0] : e.house) as { house_name: string } | null,
         has_timesheet: false,
       }));
 
@@ -131,7 +132,7 @@ export function useStaffRoster(staffId?: string) {
         start_time: '00:00:00',
         end_time: '23:59:59',
         entry_type: 'leave' as const,
-        title: l.leave_type?.leave_type_name || 'Leave',
+        title: (Array.isArray(l.leave_type) ? l.leave_type[0] : l.leave_type)?.leave_type_name || 'Leave',
         reason: l.reason,
         status: l.status,
         house: null,
@@ -143,7 +144,7 @@ export function useStaffRoster(staffId?: string) {
         const dateCompare = b.start_date.localeCompare(a.start_date);
         if (dateCompare !== 0) return dateCompare;
         return (b.start_time || '').localeCompare(a.start_time || '');
-      }) as RosterEntry[];
+      }) as unknown as RosterEntry[];
     },
     enabled: !!staffId,
     staleTime: 0, // Real-time RLS enforcement

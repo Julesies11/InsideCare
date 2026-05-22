@@ -8,6 +8,8 @@ import { logActivity } from '@/lib/activity-logger';
 import { handleSupabaseError } from '@/errors/error-handler';
 import { RBAC_MODULES } from '@/config/rbac-modules';
 import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
+import { TABLES } from '@/config/db-tables';
+import { STATUS } from '@/config/enums';
 
 export function StaffProfilesContent() {
   const navigate = useNavigate();
@@ -22,10 +24,10 @@ export function StaffProfilesContent() {
     try {
       // Create a new staff member with minimal data (name can be NULL for drafts)
       const { data, error } = await supabase
-        .from('ic_staff')
+        .from(TABLES.STAFF)
         .insert([
           {
-            status: 'draft',
+            status: STATUS.draft,
           },
         ])
         .select()

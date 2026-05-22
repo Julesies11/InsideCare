@@ -1,35 +1,20 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 
-export interface HouseChecklistItem {
-  id: string;
-  checklist_id: string;
-  title: string;
-  instructions?: string;
-  group_id?: string;
-  group?: {
-    id: string;
-    shift_template_name: string;
-    short_name?: string;
-    color_theme?: string;
-  };
-  group_title?: string;
-  priority: string;
-  is_required: boolean;
-  sort_order: number;
-  created_at: string;
-  updated_at: string;
-}
+const getHouseChecklistsQuery = () => supabase
+  .from('ic_house_checklists')
+  .select(`
+    id, house_id, house_checklist_name, days_of_week, description, master_id, sort_order, created_at, updated_at,
+    house_checklist_items:ic_house_checklist_items(
+      id, checklist_id, title, instructions, group_id, group_title, priority, is_required, sort_order, created_at, updated_at,
+      group:ic_house_shift_templates(id, shift_template_name, short_name, color_theme)
+    )
+  `);
 
-export interface HouseChecklist {
-  id: string;
-  house_id: string;
-  house_checklist_name: string;
-  days_of_week?: string[];
-  description?: string;
-  master_id?: string;
-  created_at: string;
-  updated_at: string;
+export type HouseChecklistWithRelations = Awaited<ReturnType<typeof getHouseChecklistsQuery>>['data'] extends (infer U)[] ? U : never;
+export type HouseChecklistItem = HouseChecklistWithRelations['house_checklist_items'] extends (infer U)[] ? U : never;
+
+export interface HouseChecklist extends Omit<HouseChecklistWithRelations, 'house_checklist_items'> {
   items?: HouseChecklistItem[];
   latest_submission?: {
     id: string;
@@ -38,11 +23,6 @@ export interface HouseChecklist {
     scheduled_date: string;
   };
 }
-
-const HOUSE_CHECKLIST_COLUMNS = `
-  id, house_id, house_checklist_name, description, master_id, created_at, updated_at,
-  house_checklist_items:ic_house_checklist_items(id, checklist_id, title, instructions, group_title, priority, is_required, sort_order, created_at, updated_at)
-`;
 
 export function useHouseChecklists(houseId?: string, scheduledDate?: string) {
   const query = useQuery({
@@ -87,7 +67,7 @@ export function useHouseChecklists(houseId?: string, scheduledDate?: string) {
         ...cl,
         items: ((cl.house_checklist_items as HouseChecklistItem[]) || []).sort((a, b) => a.sort_order - b.sort_order),
         latest_submission: submissions?.find(s => s.checklist_id === cl.id)
-      })) as HouseChecklist[];
+      })) as unknown as HouseChecklist[];
     },
     enabled: !!houseId,
     staleTime: 0, // Real-time RLS enforcement

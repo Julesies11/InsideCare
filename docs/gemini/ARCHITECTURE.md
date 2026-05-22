@@ -235,5 +235,34 @@ The `src/lib/api/storage.ts` module acts as the orchestrator for all storage ope
 - **Validation**: Enforces a 10MB pre-compression hard limit and valid MIME types (JPG, PNG, WebP).
 - **Atomic Operations**: `uploadFile` handles validation -> compression -> upload in a single async operation.
 - **Path-Based Storage**: The system stores relative file paths in the database (e.g., `staffId/avatar.jpg`) instead of full URLs, ensuring compatibility across local/staging/production environments.
-- **Cleanup**: `deleteFile` removes objects from Supabase Storage when they are replaced or deleted in the UI.
+## 8. Centralized Maintainability (Constants)
+To ensure long-term maintainability and enforce project standards (like the `ic_` prefixing requirement), the application uses centralized constants located in `src/config/`:
+
+- **`TABLES`** (`src/config/db-tables.ts`): All database table names. MUST be used for all Supabase queries to ensure consistent prefixing.
+- **`STORAGE_BUCKETS`** (`src/config/storage-buckets.ts`): All Supabase storage bucket names.
+- **`QUERY_KEYS`** (`src/config/query-keys.ts`): Standardized TanStack Query keys to ensure cache invalidation works reliably across the app.
+- **`STATUS` / `CHECKLIST_STATUS`** (`src/config/enums.ts`): Centralized enum values for database-driven statuses.
+
+**Rule**: Never use hard-coded strings for database objects or query keys. Always import from the corresponding config file.
+
+## 10. End-to-End Type Safety
+The application implements a strict end-to-end type safety model where the database schema is the single source of truth for the entire frontend.
+
+### 1. Database-Derived Types
+Manual TypeScript interfaces for database records are forbidden. All core data models (e.g., `Staff`, `House`, `Participant`) are derived directly from the auto-generated Supabase schema types.
+- **Workflow**: Whenever the database schema changes, the types must be regenerated using `supabase gen types typescript`.
+- **Derived Rows**: Use `Database['public']['Tables']['ic_table_name']['Row']` to ensure frontend properties exactly match the API response.
+
+### 2. Strictly Typed Client
+The Supabase client is initialized with the `Database` generic: `createBrowserClient<Database>(...)`. This enables:
+- **Query Validation**: The `.from()`, `.select()`, `.eq()`, and `.update()` methods are strictly typed, flagging typos in table or column names at build time.
+- **Return Type Inference**: TypeScript automatically knows the shape of the data returned by any query, eliminating the need for manual type casting (e.g. `as Staff[]`).
+
+### 3. Automatic Relational Inference
+For queries involving joins, the application uses TypeScript's `Awaited<ReturnType<...>>` patterns to automatically infer nested object shapes from the query itself.
+- **Pattern**: Extract the return type of the query builder to ensure frontend types exactly match the data fetching logic.
+- **Benefits**: This prevents "Shadow Types" where manual interfaces for joined data get out of sync with actual SQL queries.
+
+### 4. Build-Time Enforcement
+The application uses `tsc --noEmit` during the build process to ensure that all data access patterns are consistent with the current database schema. Runtime errors caused by property renames are effectively eliminated by this build-time guarantee.
 

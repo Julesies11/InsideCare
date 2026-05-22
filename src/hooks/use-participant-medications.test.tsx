@@ -25,7 +25,7 @@ const wrapper = ({ children }: { children: ReactNode }): ReactElement => (
 describe('useParticipantMedications', () => {
   it('should fetch participant medications successfully', async () => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/participant_medications`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_participant_medications`, () => {
         return HttpResponse.json([
           {
             id: 'med-1',

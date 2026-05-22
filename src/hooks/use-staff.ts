@@ -1,123 +1,23 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { syncUserPermissionsByStaffId } from '@/lib/rbac-sync';
+import { Database } from '@/models/database.types';
+import { TABLES } from '@/config/db-tables';
+import { QUERY_KEYS } from '@/config/query-keys';
+import { STATUS } from '@/config/enums';
 
-export type StaffStatus = 'draft' | 'active' | 'inactive' | 'archived';
+export type StaffStatus = Database['public']['Enums']['ic_status_enum'];
 
-export interface Staff {
-  id: string;
-  staff_name: string | null;
-  email?: string | null;
-  phone?: string | null;
-  date_of_birth?: string | null;
-  address?: string | null;
-  hobbies?: string | null;
-  allergies?: string | null;
-  emergency_contact_name?: string | null;
-  emergency_contact_phone?: string | null;
-  department_id?: string | null;
-  employment_type_id?: string | null;
-  manager_id?: string | null;
-  hire_date?: string | null;
-  separation_date?: string | null;
-  availability?: string | null;
-  notes?: string | null;
-  branch_id?: string | null;
-  role_id?: string | null;
-  status: StaffStatus;
-  created_at?: string;
-  updated_at?: string;
-  department_info?: { id: string; department_name: string; } | null;
-  employment_type_info?: { id: string; employment_type_name: string; } | null;
-  manager_info?: { id: string; staff_name: string; } | null;
-  role?: {
-    id: string;
-    role_name: string;
-    description?: string;
-  } | null;
-  house_assignments?: Array<{
-    id: string;
-    house: {
-      id: string;
-      house_name: string;
-    };
-  }>;
-  // Compliance checklist fields
-  ndis_worker_screening_check?: boolean | null;
-  ndis_worker_screening_check_expiry?: string | null;
-  ndis_orientation_module?: boolean | null;
-  ndis_orientation_module_expiry?: string | null;
-  ndis_code_of_conduct?: boolean | null;
-  ndis_code_of_conduct_expiry?: string | null;
-  ndis_infection_control_training?: boolean | null;
-  ndis_infection_control_training_expiry?: string | null;
-  drivers_license?: boolean | null;
-  drivers_license_expiry?: string | null;
-  comprehensive_car_insurance?: boolean | null;
-  comprehensive_car_insurance_expiry?: string | null;
-  photo_url?: string | null;
-  created_by?: string;
-  updated_by?: string;
-  created_at?: string;
-  updated_at?: string;
-}
+export type StaffCompliance = Database['public']['Tables']['ic_staff_compliance']['Row'];
+export type StaffTraining = Database['public']['Tables']['ic_staff_training']['Row'];
 
-export interface StaffCompliance {
-  id: string;
-  staff_id: string;
-  compliance_name: string;
-  completion_date?: string | null;
-  expiry_date?: string | null;
-  status?: 'Complete' | 'Expiring Soon' | 'Expired' | 'Incomplete' | 'Not Required' | null;
-  created_by?: string;
-  updated_by?: string;
-  created_at?: string;
-  updated_at?: string;
-}
-
-export interface StaffTraining {
-  id: string;
-  staff_id?: string;
-  title: string;
-  category: string;
-  description?: string | null;
-  provider?: string | null;
-  date_completed?: string | null;
-  expiry_date?: string | null;
-  file_path?: string | null;
-  file_name?: string | null;
-  file_size?: number | null;
-  created_by?: string | null;
-  updated_by?: string;
-  created_at?: string;
-  updated_at?: string;
-}
-
-export interface StaffUpdateData {
-  name?: string;
-  email?: string;
-  phone?: string | null;
-  date_of_birth?: string | null;
-  address?: string | null;
-  hobbies?: string | null;
-  allergies?: string | null;
-  emergency_contact_name?: string | null;
-  emergency_contact_phone?: string | null;
-  department_id?: string | null;
-  employment_type_id?: string | null;
-  manager_id?: string | null;
-  hire_date?: string | null;
-  separation_date?: string | null;
-  availability?: string | null;
-  notes?: string | null;
-  branch_id?: string | null;
-  role_id?: string | null;
-  status?: StaffStatus;
+export interface StaffUpdateData extends Partial<Omit<Database['public']['Tables']['ic_staff']['Update'], 'id' | 'created_at' | 'updated_at' | 'created_by' | 'updated_by'>> {
+  name?: string; // Kept for backward compatibility in forms, maps to staff_name
 }
 
 export interface StaffFilter {
   search?: string;
-  statuses?: string[];
+  statuses?: StaffStatus[];
 }
 
 export interface StaffSort {
@@ -128,13 +28,13 @@ export interface StaffSort {
 const STAFF_LIST_COLUMNS = `
   id, staff_name, email, phone, status, branch_id, role_id, photo_url, 
   created_at, updated_at,
-  department_info:ic_departments(id, department_name),
-  employment_type_info:ic_employment_types_master(id, employment_type_name),
-  role:ic_roles!staff_role_id_fkey(id, role_name, description),
-  house_assignments:ic_house_staff_assignments(
+  department_info:${TABLES.DEPARTMENTS}(id, department_name),
+  employment_type_info:${TABLES.EMPLOYMENT_TYPES_MASTER}(id, employment_type_name),
+  role:${TABLES.ROLES}!staff_role_id_fkey(id, role_name, description),
+  house_assignments:${TABLES.HOUSE_STAFF_ASSIGNMENTS}(
     id,
     house_id,
-    house:ic_houses(id, house_name)
+    house:${TABLES.HOUSES}(id, house_name)
   )
 `;
 
@@ -149,11 +49,28 @@ const STAFF_DETAIL_COLUMNS = `
   ndis_infection_control_training, ndis_infection_control_training_expiry, 
   drivers_license, drivers_license_expiry, comprehensive_car_insurance, 
   comprehensive_car_insurance_expiry, photo_url,
-  department_info:ic_departments(id, department_name),
-  employment_type_info:ic_employment_types_master(id, employment_type_name),
-  role:ic_roles!staff_role_id_fkey(id, role_name, description),
-  manager_info:ic_staff!manager_id(id, staff_name)
+  department_info:${TABLES.DEPARTMENTS}(id, department_name),
+  employment_type_info:${TABLES.EMPLOYMENT_TYPES_MASTER}(id, employment_type_name),
+  role:${TABLES.ROLES}!staff_role_id_fkey(id, role_name, description),
+  manager_info:${TABLES.STAFF}!manager_id(id, staff_name)
 `;
+
+const getStaffListQuery = () => supabase.from(TABLES.STAFF).select(STAFF_LIST_COLUMNS);
+const getStaffDetailQuery = () => supabase.from(TABLES.STAFF).select(STAFF_DETAIL_COLUMNS).single();
+
+export type StaffListRow = Awaited<ReturnType<typeof getStaffListQuery>>['data'] extends (infer U)[] ? U : never;
+export type StaffDetailRow = Awaited<ReturnType<typeof getStaffDetailQuery>>['data'];
+
+// UI Expects mapped relations (objects instead of arrays) and backward compat name property
+export type Staff = Omit<StaffDetailRow, 'department_info' | 'employment_type_info' | 'manager_info' | 'role'> & {
+  name?: string | null;
+  department_info?: { id: string; department_name: string; } | null;
+  employment_type_info?: { id: string; employment_type_name: string; } | null;
+  manager_info?: { id: string; staff_name: string; } | null;
+  role?: { id: string; role_name: string; description?: string | null; } | null;
+  house_assignments?: Array<{ id: string; house: { id: string; house_name: string; }; }>;
+};
+
 
 export function useStaff(
   pageIndex: number = 0,
@@ -162,10 +79,10 @@ export function useStaff(
   filters: StaffFilter = {}
 ) {
   const query = useQuery({
-    queryKey: ['staff', { pageIndex, pageSize, sort, filters }],
+    queryKey: [QUERY_KEYS.STAFF, { pageIndex, pageSize, sort, filters }],
     queryFn: async () => {
       let query = supabase
-        .from('ic_staff')
+        .from(TABLES.STAFF)
         .select(STAFF_LIST_COLUMNS, { count: 'exact' });
 
       if (filters.search) {
@@ -179,7 +96,7 @@ export function useStaff(
       if (sort.length > 0) {
         sort.forEach(s => {
           const column = s.id === 'department' ? 'department_id' : s.id;
-          query = query.order(column, { ascending: !s.desc });
+          query = query.order(column as any, { ascending: !s.desc });
         });
       } else {
         query = query.order('staff_name', { ascending: true });
@@ -192,8 +109,9 @@ export function useStaff(
       const { data, error, count } = await query;
       if (error) throw error;
 
-      const formatted = (data || []).map((item: any) => ({
+      const formatted = (data || []).map((item) => ({
         ...item,
+        name: item.staff_name, // Map for backward compat
         department_info: Array.isArray(item.department_info) ? item.department_info[0] : item.department_info,
         employment_type_info: Array.isArray(item.employment_type_info) ? item.employment_type_info[0] : item.employment_type_info,
         role: Array.isArray(item.role) ? item.role[0] : item.role,
@@ -203,7 +121,7 @@ export function useStaff(
         }))
       }));
 
-      return { data: formatted as Staff[], count: count || 0 };
+      return { data: formatted as unknown as Staff[], count: count || 0 };
     },
     staleTime: 1000 * 30, // 30 seconds
   });
@@ -215,10 +133,10 @@ export function useStaff(
     loading: query.isLoading,
     error: query.error ? (query.error as any).message : null,
     refresh: query.refetch,
-    // Backward compatibility
+    // Backward compatibility methods
     getStaffById: async (id: string) => {
       const { data, error } = await supabase
-        .from('ic_staff')
+        .from(TABLES.STAFF)
         .select(STAFF_DETAIL_COLUMNS)
         .eq('id', id)
         .maybeSingle();
@@ -227,41 +145,55 @@ export function useStaff(
         return { data: null, error: "Staff member not found or you do not have permission to view them" };
       }
       
-      return { data, error: error ? error.message : null };
+      if (data) {
+        (data as any).name = data.staff_name;
+      }
+      
+      return { data: data as unknown as Staff, error: error ? error.message : null };
     },
     updateStaff: async (id: string, updates: StaffUpdateData) => {
+      // Map 'name' to 'staff_name' for database insertion
+      if (updates.name && !updates.staff_name) {
+        updates.staff_name = updates.name;
+        delete updates.name;
+      }
+      
       const { data, error } = await supabase
-        .from('ic_staff')
-        .update(updates)
+        .from(TABLES.STAFF)
+        .update(updates as any)
         .eq('id', id)
         .select(STAFF_DETAIL_COLUMNS)
         .maybeSingle();
 
       if (!data && !error) {
-        return { data: null, error: `You do not have permission to edit staff member: ${updates.name || id}` };
+        return { data: null, error: `You do not have permission to edit staff member: ${updates.staff_name || id}` };
       }
 
-      return { data, error: error ? error.message : null };
+      if (data) {
+        (data as any).name = data.staff_name;
+      }
+
+      return { data: data as unknown as Staff, error: error ? error.message : null };
     },
     deleteStaff: async (id: string) => {
       const { error } = await supabase
-        .from('ic_staff')
+        .from(TABLES.STAFF)
         .delete()
         .eq('id', id);
       return { error: error ? error.message : null };
     },
     getStaffCompliance: async (staffId: string) => {
       const { data, error } = await supabase
-        .from('ic_staff_compliance')
-        .select('id, staff_id, compliance_name, completion_date, expiry_date, status, created_at, updated_at')
+        .from(TABLES.STAFF_COMPLIANCE)
+        .select('*')
         .eq('staff_id', staffId)
         .order('expiry_date', { ascending: true });
       return { data, error: error ? error.message : null };
     },
     getStaffTraining: async (staffId?: string) => {
       let query = supabase
-        .from('ic_staff_training')
-        .select('id, staff_id, title, category, description, provider, date_completed, expiry_date, file_path, file_name, file_size, created_by, created_at, updated_at')
+        .from(TABLES.STAFF_TRAINING)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (staffId) {
@@ -276,11 +208,11 @@ export function useStaff(
 
 export function useStaffMember(id?: string) {
   const query = useQuery({
-    queryKey: ['staff', id],
+    queryKey: [QUERY_KEYS.STAFF, id],
     queryFn: async () => {
       if (!id) return null;
       const { data, error } = await supabase
-        .from('ic_staff')
+        .from(TABLES.STAFF)
         .select(STAFF_DETAIL_COLUMNS)
         .eq('id', id)
         .maybeSingle();
@@ -291,13 +223,14 @@ export function useStaffMember(id?: string) {
       // Format joined data (Supabase might return arrays for some relations depending on schema)
       const formattedData = {
         ...data,
+        name: data.staff_name, // Map for backward compat
         department_info: Array.isArray(data.department_info) ? data.department_info[0] : data.department_info,
         employment_type_info: Array.isArray(data.employment_type_info) ? data.employment_type_info[0] : data.employment_type_info,
         manager_info: Array.isArray(data.manager_info) ? data.manager_info[0] : data.manager_info,
         role: Array.isArray(data.role) ? data.role[0] : data.role,
       };
 
-      return formattedData as Staff;
+      return formattedData as unknown as Staff;
     },
     enabled: !!id,
   });
@@ -316,22 +249,29 @@ export function useCreateStaff() {
 
   return useMutation({
     mutationFn: async (staffData: StaffUpdateData) => {
+      // Map 'name' to 'staff_name' for database insertion
+      if (staffData.name && !staffData.staff_name) {
+        staffData.staff_name = staffData.name;
+        delete staffData.name;
+      }
+      
       const { data, error } = await supabase
-        .from('ic_staff')
+        .from(TABLES.STAFF)
         .insert([{
           ...staffData,
-          status: 'draft',
-          staff_name: staffData.name ?? null,
-        }])
+          status: STATUS.draft,
+        } as any])
         .select(STAFF_DETAIL_COLUMNS)
         .maybeSingle();
 
       if (error) throw error;
-      if (!data) throw new Error(`You do not have permission to create staff member: ${staffData.name || 'New Staff'}`);
-      return data as Staff;
+      if (!data) throw new Error(`You do not have permission to create staff member: ${staffData.staff_name || 'New Staff'}`);
+      
+      (data as any).name = data.staff_name;
+      return data as unknown as Staff;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['staff'] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF] });
     },
   });
 }
@@ -341,20 +281,28 @@ export function useUpdateStaff() {
 
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: StaffUpdateData }) => {
+      // Map 'name' to 'staff_name' for database insertion
+      if (updates.name && !updates.staff_name) {
+        updates.staff_name = updates.name;
+        delete updates.name;
+      }
+      
       const { data, error } = await supabase
-        .from('ic_staff')
-        .update(updates)
+        .from(TABLES.STAFF)
+        .update(updates as any)
         .eq('id', id)
         .select(STAFF_DETAIL_COLUMNS)
         .maybeSingle();
 
       if (error) throw error;
-      if (!data) throw new Error(`You do not have permission to edit staff member: ${updates.name || id}`);
-      return data as Staff;
+      if (!data) throw new Error(`You do not have permission to edit staff member: ${updates.staff_name || id}`);
+      
+      (data as any).name = data.staff_name;
+      return data as unknown as Staff;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['staff'] });
-      queryClient.invalidateQueries({ queryKey: ['staff', data.id] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF, data.id] });
       
       // Sync RBAC permissions to Auth metadata
       syncUserPermissionsByStaffId(data.id);
@@ -368,14 +316,14 @@ export function useDeleteStaff() {
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('ic_staff')
+        .from(TABLES.STAFF)
         .delete()
         .eq('id', id);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['staff'] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF] });
     },
   });
 }
@@ -386,13 +334,13 @@ export function useStaffCompliance(staffId?: string) {
     queryFn: async () => {
       if (!staffId) return [];
       const { data, error } = await supabase
-        .from('ic_staff_compliance')
-        .select('id, staff_id, compliance_name, completion_date, expiry_date, status, created_at, updated_at')
+        .from(TABLES.STAFF_COMPLIANCE)
+        .select('*')
         .eq('staff_id', staffId)
         .order('expiry_date', { ascending: true });
 
       if (error) throw error;
-      return data as StaffCompliance[];
+      return data;
     },
     enabled: !!staffId,
   });
@@ -408,21 +356,22 @@ export function useStaffCompliance(staffId?: string) {
 
 export function useStaffByRole(roleId?: string) {
   const query = useQuery({
-    queryKey: ['staff', 'by-role', roleId],
+    queryKey: [QUERY_KEYS.STAFF, 'by-role', roleId],
     queryFn: async () => {
       if (!roleId) return [];
       const { data, error } = await supabase
-        .from('ic_staff')
+        .from(TABLES.STAFF)
         .select(`
           id, staff_name, email, status, photo_url,
-          department_info:ic_departments(id, department_name)
+          department_info:${TABLES.DEPARTMENTS}(id, department_name)
         `)
         .eq('role_id', roleId)
         .order('staff_name', { ascending: true });
 
       if (error) throw error;
-      return (data || []).map(item => ({
+      return (data || []).map((item: any) => ({
         ...item,
+        name: item.staff_name, // compat
         department_info: Array.isArray(item.department_info) ? item.department_info[0] : item.department_info,
       })) as any[];
     },
@@ -441,8 +390,8 @@ export function useStaffTraining(staffId?: string) {
     queryKey: ['staff-training', staffId],
     queryFn: async () => {
       let query = supabase
-        .from('ic_staff_training')
-        .select('id, staff_id, title, category, description, provider, date_completed, expiry_date, file_path, file_name, file_size, created_by, created_at, updated_at')
+        .from(TABLES.STAFF_TRAINING)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (staffId) {
@@ -451,7 +400,7 @@ export function useStaffTraining(staffId?: string) {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as StaffTraining[];
+      return data;
     },
   });
 
@@ -469,7 +418,7 @@ export function useStaffCount(filters: StaffFilter = {}) {
     queryKey: ['staff-count', { filters }],
     queryFn: async () => {
       let query = supabase
-        .from('ic_staff')
+        .from(TABLES.STAFF)
         .select('*', { count: 'exact', head: true });
 
       if (filters.statuses && filters.statuses.length > 0) {

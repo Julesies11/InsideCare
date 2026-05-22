@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import { House } from '@/models/house';
 import { useLogActivity } from '@/hooks/use-activity-log';
+import { Database } from '@/models/database.types';
 
 export interface HousesFilter {
   search?: string;
@@ -15,6 +15,23 @@ export interface HousesSort {
 
 const HOUSE_COLUMNS = 'id, house_name, branch_id, address, phone, capacity, current_occupancy, house_manager, status, notes, created_by, updated_by, created_at, updated_at';
 
+// Define the query so we can extract its return type
+const getHousesQuery = () => supabase
+  .from('ic_houses')
+  .select(`
+    ${HOUSE_COLUMNS}, 
+    checklists:ic_house_checklists(count), 
+    staff_assignments:ic_house_staff_assignments(
+      id, 
+      end_date,
+      staff:staff_id(status)
+    )
+  `);
+
+export type HouseWithRelations = Awaited<ReturnType<typeof getHousesQuery>>['data'] extends (infer U)[] ? U : never;
+// The UI expects staff_assignments to be an array with a count object after mapping
+export type HouseUIData = Omit<HouseWithRelations, 'staff_assignments'> & { staff_assignments?: Array<{ count: number }> };
+
 export function useHouses(
   pageIndex: number = 0,
   pageSize: number = 10,
@@ -27,9 +44,6 @@ export function useHouses(
     queryFn: async () => {
       const today = new Date().toISOString().split('T')[0];
       
-      // We fetch the houses with their checklists count and staff assignments.
-      // To get an accurate 'active' count without complex DB views, we fetch the basic assignment info 
-      // and filter for active staff and non-expired assignments.
       let query = supabase
         .from('ic_houses')
         .select(`
@@ -51,13 +65,14 @@ export function useHouses(
       }
 
       if (filters.statuses && filters.statuses.length > 0) {
-        query = query.in('status', filters.statuses);
+        // Must assert status to the expected Enum type or use any for 'in' filter if not strict
+        query = query.in('status', filters.statuses as any);
       }
 
       if (sort.length > 0) {
         sort.forEach(s => {
           const column = s.id === 'name' || s.id === 'house_name' ? 'house_name' : s.id;
-          query = query.order(column, { ascending: !s.desc });
+          query = query.order(column as any, { ascending: !s.desc });
         });
       } else {
         query = query.order('house_name', { ascending: true });
@@ -71,22 +86,22 @@ export function useHouses(
       if (error) throw error;
 
       // Calculate active staff count on the client side for each house
-      const formattedData = (data || []).map((house: any) => {
+      const formattedData = (data || []).map((house) => {
         const activeStaffCount = (house.staff_assignments || []).filter((assignment: any) => {
-          const isStaffActive = assignment.staff?.status === 'active';
+          // staff could be an array or single object depending on relation
+          const staffObj = Array.isArray(assignment.staff) ? assignment.staff[0] : assignment.staff;
+          const isStaffActive = staffObj?.status === 'active';
           const isAssignmentActive = !assignment.end_date || assignment.end_date >= today;
           return isStaffActive && isAssignmentActive;
         }).length;
 
         return {
           ...house,
-          // Replace the original staff_assignments with the calculated count
-          // This keeps the UI component (which expects { count: X } or just X) simple
           staff_assignments: [{ count: activeStaffCount }]
         };
       });
 
-      return { data: formattedData as House[], count: count || 0 };
+      return { data: formattedData as HouseUIData[], count: count || 0 };
     },
     staleTime: 1000 * 30, // 30 seconds
   });
@@ -105,7 +120,7 @@ export function useAddHouse() {
   const { mutateAsync: logActivity } = useLogActivity();
 
   return useMutation({
-    mutationFn: async (house: Omit<House, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'updated_by'>) => {
+    mutationFn: async (house: Database['public']['Tables']['ic_houses']['Insert']) => {
       const { data, error } = await supabase
         .from('ic_houses')
         .insert([house])
@@ -126,7 +141,7 @@ export function useAddHouse() {
         customDescription: `New house added: ${data.house_name}`
       });
 
-      return data as House;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['houses'] });
@@ -139,7 +154,7 @@ export function useUpdateHouse() {
   const { mutateAsync: logActivity } = useLogActivity();
 
   return useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: Partial<House> }) => {
+    mutationFn: async ({ id, updates }: { id: string; updates: Database['public']['Tables']['ic_houses']['Update'] }) => {
       const { data, error } = await supabase
         .from('ic_houses')
         .update(updates)
@@ -161,7 +176,7 @@ export function useUpdateHouse() {
         customDescription: `House updated: ${data.house_name}`
       });
 
-      return data as House;
+      return data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['houses'] });

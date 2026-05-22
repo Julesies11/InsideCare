@@ -25,7 +25,7 @@ const wrapper = ({ children }: { children: ReactNode }): ReactElement => (
 describe('useMedicationsMaster', () => {
   it('should fetch medications successfully', async () => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/medications_master`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_medications_master`, () => {
         return HttpResponse.json([
           { id: 'med-1', medication_name: 'Paracetamol', category: 'Pain Relief', is_active: true },
           { id: 'med-2', medication_name: 'Ibuprofen', category: 'Pain Relief', is_active: true },

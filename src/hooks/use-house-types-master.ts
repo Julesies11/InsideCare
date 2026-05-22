@@ -1,8 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import { HouseType } from '@/models/house';
+import { Database } from '@/models/database.types';
 
-const HOUSE_TYPE_COLUMNS = 'id, house_type_name, description, status, created_at, updated_at';
+export type HouseType = Database['public']['Tables']['ic_house_types_master']['Row'];
 
 export function useHouseTypesMaster() {
   return useQuery({
@@ -10,11 +10,11 @@ export function useHouseTypesMaster() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('ic_house_types_master')
-        .select(HOUSE_TYPE_COLUMNS)
+        .select('*')
         .order('house_type_name', { ascending: true });
 
       if (error) throw error;
-      return data as HouseType[];
+      return data;
     },
     staleTime: 1000 * 60 * 60, // 1 hour
   });
@@ -24,18 +24,18 @@ export function useAddHouseTypeMaster() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (houseTypeData: Omit<HouseType, 'id' | 'created_at' | 'updated_at'>) => {
+    mutationFn: async (houseTypeData: Database['public']['Tables']['ic_house_types_master']['Insert']) => {
       const { data, error } = await supabase
         .from('ic_house_types_master')
         .insert([houseTypeData])
-        .select(HOUSE_TYPE_COLUMNS)
+        .select('*')
         .maybeSingle();
 
       if (error) throw error;
       if (!data) {
         throw new Error('You do not have permission to add this house type, or it does not exist.');
       }
-      return data as HouseType;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['house-types-master'] });
@@ -47,19 +47,19 @@ export function useUpdateHouseTypeMaster() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: Partial<HouseType> }) => {
+    mutationFn: async ({ id, updates }: { id: string; updates: Database['public']['Tables']['ic_house_types_master']['Update'] }) => {
       const { data, error } = await supabase
         .from('ic_house_types_master')
         .update(updates)
         .eq('id', id)
-        .select(HOUSE_TYPE_COLUMNS)
+        .select('*')
         .maybeSingle();
 
       if (error) throw error;
       if (!data) {
         throw new Error('You do not have permission to edit this house type, or it does not exist.');
       }
-      return data as HouseType;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['house-types-master'] });

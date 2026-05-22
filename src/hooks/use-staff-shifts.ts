@@ -1,25 +1,35 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { Database } from '@/models/database.types';
 
-export interface StaffShift {
-  id: string;
-  staff_id: string;
-  start_date: string;
-  end_date: string;
-  start_time: string;
-  end_time: string;
-  house_id: string | null;
-  shift_template: string;
-  shift_template_id?: string | null;
-  notes?: string;
-  created_by?: string;
-  updated_by?: string;
-  created_at?: string;
-  updated_at?: string;
+const getShiftsQuery = () => supabase
+  .from('ic_staff_shifts')
+  .select(`
+    id,
+    staff_id,
+    start_date,
+    end_date,
+    start_time,
+    end_time,
+    house_id,
+    shift_template,
+    shift_template_id,
+    notes,
+    created_by,
+    updated_by,
+    created_at,
+    updated_at,
+    house:ic_houses(id, house_name)
+  `);
+
+export type StaffShiftRow = Awaited<ReturnType<typeof getShiftsQuery>>['data'] extends (infer U)[] ? U : never;
+export type ShiftParticipantRow = Database['public']['Tables']['ic_shift_participants']['Row'];
+
+export interface StaffShift extends Omit<StaffShiftRow, 'house'> {
   house?: {
     id: string;
     house_name: string;
-  };
+  } | null;
   participants?: Array<{
     id: string;
     participant_name: string;
@@ -27,15 +37,7 @@ export interface StaffShift {
   duration_hours?: number;
 }
 
-export interface ShiftParticipant {
-  id: string;
-  shift_id: string;
-  participant_id: string;
-  created_by?: string;
-  updated_by?: string;
-  created_at?: string;
-  updated_at?: string;
-}
+export type ShiftParticipant = ShiftParticipantRow;
 
 const SHIFT_COLUMNS = `
   id,
@@ -76,7 +78,7 @@ export const calculateDuration = (startTime: string, endTime: string): number =>
 };
 
 export function useStaffShifts(staffId?: string, startDate?: string, endDate?: string) {
-  return useQuery({
+  const query = useQuery({
     queryKey: ['staff-shifts', { staffId, startDate, endDate }],
     queryFn: async () => {
       if (!staffId) return [];
@@ -110,21 +112,22 @@ export function useStaffShifts(staffId?: string, startDate?: string, endDate?: s
         console.error('Error fetching participants:', participantsError);
       }
 
-      return shifts.map((shift) => {
+      return (shifts || []).map((shift) => {
         const shiftParticipants = participants
           ?.filter((p) => p.shift_id === shift.id)
           .map((p) => p.participant ? {
-            id: p.participant.id,
-            participant_name: p.participant.participant_name
+            id: (Array.isArray(p.participant) ? p.participant[0] : p.participant).id,
+            participant_name: (Array.isArray(p.participant) ? p.participant[0] : p.participant).participant_name
           } : null)
           .filter((p) => p !== null) || [];
 
         return {
           ...shift,
-          participants: shiftParticipants,
+          house: Array.isArray(shift.house) ? shift.house[0] : shift.house,
+          participants: shiftParticipants as Array<{ id: string; participant_name: string }>,
           duration_hours: calculateDuration(shift.start_time, shift.end_time),
         };
-      }) as StaffShift[];
+      }) as unknown as StaffShift[];
     },
     enabled: !!staffId,
     staleTime: 1000 * 60 * 5,
@@ -143,7 +146,7 @@ export function useCreateShift() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (shiftData: Omit<StaffShift, 'id' | 'created_at' | 'updated_at' | 'house' | 'participants' | 'duration_hours' | 'created_by' | 'updated_by'>) => {
+    mutationFn: async (shiftData: Database['public']['Tables']['ic_staff_shifts']['Insert']) => {
       const { data, error } = await supabase
         .from('ic_staff_shifts')
         .insert([shiftData])
@@ -152,7 +155,7 @@ export function useCreateShift() {
 
       if (error) throw error;
       if (!data) throw new Error("You do not have permission to create this shift");
-      return data as StaffShift;
+      return data as unknown as StaffShift;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staff-shifts'] });
@@ -164,7 +167,7 @@ export function useUpdateShift() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: Partial<StaffShift> }) => {
+    mutationFn: async ({ id, updates }: { id: string; updates: Database['public']['Tables']['ic_staff_shifts']['Update'] }) => {
       const { data, error } = await supabase
         .from('ic_staff_shifts')
         .update(updates)
@@ -174,7 +177,7 @@ export function useUpdateShift() {
 
       if (error) throw error;
       if (!data) throw new Error("You do not have permission to edit this shift");
-      return data as StaffShift;
+      return data as unknown as StaffShift;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staff-shifts'] });
@@ -201,7 +204,7 @@ export function useDeleteShift() {
 }
 
 export function useShiftParticipants(shiftId?: string) {
-  return useQuery({
+  const query = useQuery({
     queryKey: ['shift-participants', shiftId],
     queryFn: async () => {
       if (!shiftId) return [];
@@ -216,7 +219,10 @@ export function useShiftParticipants(shiftId?: string) {
         .eq('shift_id', shiftId);
 
       if (error) throw error;
-      return data;
+      return (data || []).map(p => ({
+        ...p,
+        participant: Array.isArray(p.participant) ? p.participant[0] : p.participant
+      }));
     },
     enabled: !!shiftId,
   });

@@ -1,14 +1,8 @@
-export type ActivityType = 'create' | 'update' | 'delete' | 'submit' | 'approve' | 'reject' | 'archive' | 'activate';
-export type EntityType = 'participant' | 'staff' | 'incident' | 'compliance' | 'shift_note' | 'branch' | 'medication' | 'medication_master' | 'document' | 'contact' | 'contact_type_master' | 'timesheet' | 'house';
+import { Database } from './database.types';
 
-export interface ActivityLog {
-  id: string;
-  activity_type: ActivityType;
-  entity_type: EntityType;
-  entity_id: string;
-  entity_name: string | null;
-  description: string;
-  user_name: string | null;
-  metadata: Record<string, any> | null;
-  created_at: string;
-}
+export type ActivityType = Database['public']['Enums']['ic_activity_type_enum'];
+export type EntityType = string; // No specific enum for entity types in schema yet, keep flexible
+
+export type ActivityLogRow = Database['public']['Tables']['ic_activity_log']['Row'];
+
+export type ActivityLog = ActivityLogRow;

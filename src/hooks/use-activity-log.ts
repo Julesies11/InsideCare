@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import { ActivityLog } from '@/models/activity-log';
+import { ActivityLog, ActivityType } from '@/models/activity-log';
+import { Database } from '@/models/database.types';
 
 interface UseActivityLogOptions {
   entityId?: string;
@@ -20,7 +21,7 @@ export function useActivityLog({ entityId, entityType, limit = 50 }: UseActivity
       
       let query = supabase
         .from('ic_activity_log')
-        .select(columns)
+        .select(columns as any)
         .order('created_at', { ascending: false })
         .limit(limit);
 
@@ -34,7 +35,7 @@ export function useActivityLog({ entityId, entityType, limit = 50 }: UseActivity
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as ActivityLog[];
+      return data as unknown as ActivityLog[];
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
@@ -48,8 +49,8 @@ export function useActivityLog({ entityId, entityType, limit = 50 }: UseActivity
 }
 
 interface LogActivityParams {
-  activityType: 'create' | 'update' | 'delete';
-  entityType: ActivityLog['entity_type'];
+  activityType: ActivityType;
+  entityType: string;
   entityId: string;
   entityName?: string;
   userName?: string;
@@ -70,7 +71,7 @@ export function useLogActivity() {
       customDescription,
       metadata
     }: LogActivityParams) => {
-      const descriptions = {
+      const descriptions: Record<string, string> = {
         create: `New ${entityType} created: ${entityName || entityId}`,
         update: `${entityType} updated: ${entityName || entityId}`,
         delete: `${entityType} deleted: ${entityName || entityId}`
@@ -83,18 +84,18 @@ export function useLogActivity() {
           entity_type: entityType,
           entity_id: entityId,
           entity_name: entityName,
-          description: customDescription || descriptions[activityType],
+          description: customDescription || (descriptions[activityType as string] || `${entityType} ${activityType}`),
           user_name: userName,
-          metadata: metadata
+          metadata: metadata as any
         }])
-        .select(ACTIVITY_LOG_COLUMNS)
+        .select(ACTIVITY_LOG_COLUMNS as any)
         .maybeSingle();
 
       if (error) throw error;
       if (!data) {
         throw new Error('You do not have permission to log this activity.');
       }
-      return data as ActivityLog;
+      return data as unknown as ActivityLog;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['activity-log'] });
@@ -106,7 +107,7 @@ export function useActivityLogHelpers() {
   const { mutateAsync: logActivity } = useLogActivity();
 
   const logParticipantActivity = (
-    type: 'create' | 'update' | 'delete',
+    type: ActivityType,
     participantId: string,
     participantName: string,
     userName?: string
@@ -119,7 +120,7 @@ export function useActivityLogHelpers() {
   });
 
   const logStaffActivity = (
-    type: 'create' | 'update' | 'delete',
+    type: ActivityType,
     staffId: string,
     staffName: string,
     userName?: string
@@ -132,7 +133,7 @@ export function useActivityLogHelpers() {
   });
 
   const logIncidentActivity = (
-    type: 'create' | 'update' | 'delete',
+    type: ActivityType,
     incidentId: string,
     incidentType: string,
     userName?: string
@@ -145,7 +146,7 @@ export function useActivityLogHelpers() {
   });
 
   const logComplianceActivity = (
-    type: 'create' | 'update' | 'delete',
+    type: ActivityType,
     complianceId: string,
     complianceName: string,
     staffName: string,
@@ -160,7 +161,7 @@ export function useActivityLogHelpers() {
   });
 
   const logShiftNoteActivity = (
-    type: 'create' | 'update' | 'delete',
+    type: ActivityType,
     noteId: string,
     summary: string,
     userName?: string
@@ -173,7 +174,7 @@ export function useActivityLogHelpers() {
   });
 
   const logBranchActivity = (
-    type: 'create' | 'update' | 'delete',
+    type: ActivityType,
     branchId: string,
     branchName: string,
     userName?: string
@@ -197,7 +198,7 @@ export function useActivityLogHelpers() {
 
 // Keeping a non-hook version for places where hooks can't be used
 export async function logActivity(params: LogActivityParams) {
-  const descriptions = {
+  const descriptions: Record<string, string> = {
     create: `New ${params.entityType} created: ${params.entityName || params.entityId}`,
     update: `${params.entityType} updated: ${params.entityName || params.entityId}`,
     delete: `${params.entityType} deleted: ${params.entityName || params.entityId}`
@@ -210,11 +211,11 @@ export async function logActivity(params: LogActivityParams) {
       entity_type: params.entityType,
       entity_id: params.entityId,
       entity_name: params.entityName,
-      description: params.customDescription || descriptions[params.activityType],
+      description: params.customDescription || (descriptions[params.activityType as string] || `${params.entityType} ${params.activityType}`),
       user_name: params.userName,
-      metadata: params.metadata
+      metadata: params.metadata as any
     }])
-    .select(ACTIVITY_LOG_COLUMNS)
+    .select(ACTIVITY_LOG_COLUMNS as any)
     .maybeSingle();
 
   if (error) throw error;

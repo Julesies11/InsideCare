@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import { ActivityType, EntityType } from '@/models/activity-log';
+import { TABLES } from '@/config/db-tables';
 
 interface LogActivityParams {
   activityType: ActivityType;
@@ -142,7 +143,7 @@ export async function logActivity({
   try {
     const description = generateDescription(activityType, entityType, changes, customDescription);
 
-    await supabase.from('ic_activity_log').insert({
+    await supabase.from(TABLES.ACTIVITY_LOG).insert({
       activity_type: activityType,
       entity_type: entityType,
       entity_id: entityId,

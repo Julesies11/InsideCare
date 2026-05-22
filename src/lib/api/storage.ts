@@ -1,9 +1,10 @@
 import { supabase } from '@/lib/supabase';
 import { validateImage, compressImage, COMPRESSION_PRESETS } from '@/lib/utils/image';
 import { logError } from '@/lib/logger';
+import { STORAGE_BUCKETS, StorageBucket } from '@/config/storage-buckets';
 
 export interface UploadOptions {
-  bucket: string;
+  bucket: StorageBucket | string;
   folder?: string;
   fileName?: string;
   compressionPreset?: keyof typeof COMPRESSION_PRESETS;

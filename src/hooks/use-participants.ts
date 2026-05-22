@@ -1,11 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import { Participant, ParticipantWithHouse } from '@/models/participant';
+import { Participant, ParticipantWithHouse, ParticipantStatus } from '@/models/participant';
+import { Database } from '@/models/database.types';
 
 export interface ParticipantsFilter {
   search?: string;
   houses?: string[];
-  statuses?: string[];
+  statuses?: ParticipantStatus[];
 }
 
 export interface ParticipantsSort {
@@ -66,7 +67,7 @@ export function useParticipants(
       if (sort.length > 0) {
         sort.forEach(s => {
           const column = s.id === 'house' ? 'house_id' : (s.id === 'name' || s.id === 'participant' ? 'participant_name' : s.id);
-          query = query.order(column, { ascending: !s.desc });
+          query = query.order(column as any, { ascending: !s.desc });
         });
       } else {
         query = query.order('participant_name', { ascending: true });
@@ -82,7 +83,7 @@ export function useParticipants(
       const participantsWithHouse = (data || []).map((p: any) => ({
         ...p,
         house_name: p.houses?.house_name || null,
-      })) as ParticipantWithHouse[];
+      })) as unknown as ParticipantWithHouse[];
 
       return { data: participantsWithHouse, count: count || 0 };
     },
@@ -153,7 +154,7 @@ export function useParticipant(id?: string) {
         house_name: (data as any).houses?.house_name || null,
       };
 
-      return participantWithHouse as ParticipantWithHouse;
+      return participantWithHouse as unknown as ParticipantWithHouse;
     },
     enabled: !!id,
   });
@@ -170,7 +171,7 @@ export function useAddParticipant() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (participant: Omit<Participant, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'updated_by'>) => {
+    mutationFn: async (participant: Database['public']['Tables']['ic_participants']['Insert']) => {
       const { data, error } = await supabase
         .from('ic_participants')
         .insert([participant])
@@ -181,7 +182,7 @@ export function useAddParticipant() {
       if (!data) {
         throw new Error('You do not have permission to add this participant.');
       }
-      return data as Participant;
+      return data as unknown as Participant;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['participants'] });
@@ -193,7 +194,7 @@ export function useUpdateParticipant() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: Partial<Participant> }) => {
+    mutationFn: async ({ id, updates }: { id: string; updates: Database['public']['Tables']['ic_participants']['Update'] }) => {
       const { data, error } = await supabase
         .from('ic_participants')
         .update(updates)
@@ -211,7 +212,7 @@ export function useUpdateParticipant() {
         house_name: (data as any).houses?.house_name || null,
       };
 
-      return participantWithHouse as ParticipantWithHouse;
+      return participantWithHouse as unknown as ParticipantWithHouse;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['participants'] });
@@ -237,3 +238,4 @@ export function useDeleteParticipant() {
     },
   });
 }
+

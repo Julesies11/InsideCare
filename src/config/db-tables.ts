@@ -1,0 +1,74 @@
+/**
+ * Centralized database table names.
+ * All tables are prefixed with 'ic_' as per project standards.
+ */
+export const TABLES = {
+  // Core Entities
+  PARTICIPANTS: 'ic_participants',
+  STAFF: 'ic_staff',
+  HOUSES: 'ic_houses',
+  BRANCHES: 'ic_branches',
+  DEPARTMENTS: 'ic_departments',
+  ROLES: 'ic_roles',
+
+  // Participant Child Entities
+  PARTICIPANT_MEDICATIONS: 'ic_participant_medications',
+  PARTICIPANT_GOALS: 'ic_participant_goals',
+  PARTICIPANT_GOAL_PROGRESS: 'ic_participant_goal_progress',
+  PARTICIPANT_NOTES: 'ic_participant_notes',
+  PARTICIPANT_DOCUMENTS: 'ic_participant_documents',
+  PARTICIPANT_CONTACTS: 'ic_participant_contacts',
+  PARTICIPANT_FUNDING: 'ic_participant_funding',
+  PARTICIPANT_HYGIENE_ROUTINES: 'ic_participant_hygiene_routines',
+  PARTICIPANT_RESTRICTIVE_PRACTICES: 'ic_participant_restrictive_practices',
+
+  // House Child Entities
+  HOUSE_STAFF_ASSIGNMENTS: 'ic_house_staff_assignments',
+  HOUSE_CALENDAR_EVENTS: 'ic_house_calendar_events',
+  HOUSE_CALENDAR_EVENT_STAFF: 'ic_house_calendar_event_staff',
+  HOUSE_CALENDAR_EVENT_PARTICIPANTS: 'ic_house_calendar_event_participants',
+  HOUSE_CALENDAR_EVENT_ATTACHMENTS: 'ic_house_calendar_event_attachments',
+  HOUSE_CHECKLISTS: 'ic_house_checklists',
+  HOUSE_CHECKLIST_ITEMS: 'ic_house_checklist_items',
+  HOUSE_CHECKLIST_SUBMISSIONS: 'ic_house_checklist_submissions',
+  HOUSE_CHECKLIST_SUBMISSION_ITEMS: 'ic_house_checklist_submission_items',
+  HOUSE_CHECKLIST_ITEM_ATTACHMENTS: 'ic_house_checklist_item_attachments',
+  HOUSE_FORMS: 'ic_house_forms',
+  HOUSE_FORM_ASSIGNMENTS: 'ic_house_form_assignments',
+  HOUSE_RESOURCES: 'ic_house_resources',
+  HOUSE_COMMS: 'ic_house_comms',
+  HOUSE_SHIFT_TEMPLATES: 'ic_house_shift_templates',
+
+  // Staff Child Entities
+  STAFF_COMPLIANCE: 'ic_staff_compliance',
+  STAFF_TRAINING: 'ic_staff_training',
+  STAFF_DOCUMENTS: 'ic_staff_documents',
+  STAFF_SHIFTS: 'ic_staff_shifts',
+
+  // Operations
+  SHIFT_PARTICIPANTS: 'ic_shift_participants',
+  SHIFT_NOTES: 'ic_shift_notes',
+  SHIFT_ASSIGNED_CHECKLISTS: 'ic_shift_assigned_checklists',
+  SHIFT_TEMPLATE_DEFAULT_CHECKLISTS: 'ic_shift_template_default_checklists',
+  TIMESHEETS: 'ic_timesheets',
+  LEAVE_REQUESTS: 'ic_leave_requests',
+  
+  // Master Lists
+  MEDICATIONS_MASTER: 'ic_medications_master',
+  CONTACT_TYPES_MASTER: 'ic_contact_types_master',
+  CHECKLIST_MASTER: 'ic_checklist_master',
+  CHECKLIST_ITEM_MASTER: 'ic_checklist_item_master',
+  EMPLOYMENT_TYPES_MASTER: 'ic_employment_types_master',
+  HOUSE_CALENDAR_EVENT_TYPES_MASTER: 'ic_house_calendar_event_types_master',
+  HOUSE_TYPES_MASTER: 'ic_house_types_master',
+  FUNDING_SOURCES_MASTER: 'ic_funding_sources_master',
+  FUNDING_TYPES_MASTER: 'ic_funding_types_master',
+
+  // System
+  ACTIVITY_LOG: 'ic_activity_log',
+  NOTIFICATIONS: 'ic_notifications',
+  ERROR_LOGS: 'ic_error_logs',
+  ROLE_PERMISSIONS: 'ic_role_permissions',
+} as const;
+
+export type TableName = typeof TABLES[keyof typeof TABLES];

@@ -1,33 +1,9 @@
-export interface HouseType {
-  id: string;
-  house_type_name: string;
-  description: string | null;
-  status: 'Active' | 'Inactive';
-  created_at?: string;
-  updated_at?: string;
-}
+import { Database } from './database.types';
 
-export interface House extends Record<string, any> {
-  id: string;
-  house_name: string;
-  branch_id: string | null;
-  address: string | null;
-  phone: string | null;
-  capacity: number | null;
-  current_occupancy: number | null;
-  house_manager: string | null;
-  house_type_id: string | null;
+export type HouseType = Database['public']['Tables']['ic_house_types_master']['Row'];
+export type HouseRow = Database['public']['Tables']['ic_houses']['Row'];
+
+export interface House extends HouseRow {
   house_type_info?: HouseType;
-  status: 'active' | 'inactive' | 'maintenance';
-  setup_step: number;
-  is_configured: boolean;
-  notes: string | null;
-  individuals_breakdown: string | null;
-  participant_dynamics: string | null;
-  observations: string | null;
-  general_house_details: string | null;
-  created_by?: string;
-  updated_by?: string;
-  created_at: string;
-  updated_at: string;
+  staff_assignments?: Array<{ count: number }>;
 }

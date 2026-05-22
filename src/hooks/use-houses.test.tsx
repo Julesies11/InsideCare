@@ -25,7 +25,7 @@ describe('useHouses', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(result.current.data?.data).toHaveLength(2);
-    expect(result.current.data?.data[0].name).toBe('Test House 1');
-    expect(result.current.data?.data[1].name).toBe('Test House 2');
+    expect(result.current.data?.data[0].house_name).toBe('Test House 1');
+    expect(result.current.data?.data[1].house_name).toBe('Test House 2');
   });
 });

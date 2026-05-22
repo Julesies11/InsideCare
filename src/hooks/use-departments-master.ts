@@ -1,17 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { Database } from '@/models/database.types';
 
-export interface Department {
-  id: string;
-  department_name: string;
-  description?: string | null;
-  access_level?: string | null;
-  status: string;
-  created_at?: string;
-  updated_at?: string;
-}
-
-const DEPARTMENT_COLUMNS = 'id, department_name, description, access_level, status, created_at, updated_at';
+export type Department = Database['public']['Tables']['ic_departments']['Row'];
 
 export function useDepartmentsMaster() {
   const query = useQuery({
@@ -19,11 +10,11 @@ export function useDepartmentsMaster() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('ic_departments')
-        .select(DEPARTMENT_COLUMNS)
+        .select('*')
         .order('department_name', { ascending: true });
 
       if (error) throw error;
-      return data as Department[];
+      return data;
     },
     staleTime: 1000 * 60 * 60, // 1 hour
   });
@@ -41,18 +32,18 @@ export function useAddDepartmentMaster() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (departmentData: Omit<Department, 'id' | 'created_at' | 'updated_at'>) => {
+    mutationFn: async (departmentData: Database['public']['Tables']['ic_departments']['Insert']) => {
       const { data, error } = await supabase
         .from('ic_departments')
         .insert([departmentData])
-        .select(DEPARTMENT_COLUMNS)
+        .select('*')
         .maybeSingle();
 
       if (error) throw error;
       if (!data) {
         throw new Error('You do not have permission to perform this action');
       }
-      return data as Department;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['departments-master'] });
@@ -64,19 +55,19 @@ export function useUpdateDepartmentMaster() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: Partial<Department> }) => {
+    mutationFn: async ({ id, updates }: { id: string; updates: Database['public']['Tables']['ic_departments']['Update'] }) => {
       const { data, error } = await supabase
         .from('ic_departments')
         .update(updates)
         .eq('id', id)
-        .select(DEPARTMENT_COLUMNS)
+        .select('*')
         .maybeSingle();
 
       if (error) throw error;
       if (!data) {
         throw new Error('You do not have permission to edit this department, or it does not exist.');
       }
-      return data as Department;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['departments-master'] });

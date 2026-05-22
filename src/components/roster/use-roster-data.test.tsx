@@ -5,8 +5,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode, ReactElement } from 'react';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
+import { TABLES } from '@/config/db-tables';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://jxxpufmygwbfzzpioryu.supabase.co';
 
 const createTestQueryClient = () => new QueryClient({
   defaultOptions: {
@@ -36,20 +37,20 @@ describe('Roster Query Hooks', () => {
     it('should fetch and map shifts with frontend joining', async () => {
       // Mock Houses and Staff for Frontend Joining
       server.use(
-        http.get(`${SUPABASE_URL}/rest/v1/houses`, () => {
+        http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSES}`, () => {
           return HttpResponse.json([
-            { id: 'house-1', name: 'Alpha House', status: 'active' }
+            { id: 'house-1', house_name: 'Alpha House', status: 'active' }
           ]);
         }),
-        http.get(`${SUPABASE_URL}/rest/v1/staff`, () => {
+        http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF}`, () => {
           return HttpResponse.json([
-            { id: 'staff-1', name: 'John Caregiver', status: 'active' }
+            { id: 'staff-1', staff_name: 'John Caregiver', status: 'active' }
           ]);
         }),
-        http.get(`${SUPABASE_URL}/rest/v1/participants`, () => {
+        http.get(`${SUPABASE_URL}/rest/v1/${TABLES.PARTICIPANTS}`, () => {
           return HttpResponse.json([]);
         }),
-        http.get(`${SUPABASE_URL}/rest/v1/staff_shifts`, () => {
+        http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF_SHIFTS}`, () => {
           return HttpResponse.json([
             {
               id: 'shift-1',
@@ -90,14 +91,14 @@ describe('Roster Query Hooks', () => {
   describe('useRosterData', () => {
     it('should provide metadata from TanStack Query', async () => {
       server.use(
-        http.get(`${SUPABASE_URL}/rest/v1/houses`, () => {
-          return HttpResponse.json([{ id: 'h1', name: 'House 1', status: 'active' }]);
+        http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSES}`, () => {
+          return HttpResponse.json([{ id: 'h1', house_name: 'House 1', status: 'active' }]);
         }),
-        http.get(`${SUPABASE_URL}/rest/v1/participants`, () => {
-          return HttpResponse.json([{ id: 'p1', name: 'Part 1', status: 'active' }]);
+        http.get(`${SUPABASE_URL}/rest/v1/${TABLES.PARTICIPANTS}`, () => {
+          return HttpResponse.json([{ id: 'p1', participant_name: 'Part 1', status: 'active' }]);
         }),
-        http.get(`${SUPABASE_URL}/rest/v1/staff`, () => {
-          return HttpResponse.json([{ id: 's1', name: 'Staff 1', status: 'active' }]);
+        http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF}`, () => {
+          return HttpResponse.json([{ id: 's1', staff_name: 'Staff 1', status: 'active' }]);
         })
       );
 
@@ -106,7 +107,7 @@ describe('Roster Query Hooks', () => {
       await waitFor(() => expect(result.current.loading).toBe(false));
 
       expect(result.current.houses).toHaveLength(1);
-      expect(result.current.houses[0].name).toBe('House 1');
+      expect(result.current.houses[0].house_name).toBe('House 1');
       expect(result.current.participants).toHaveLength(1);
       expect(result.current.staff).toHaveLength(1);
     });

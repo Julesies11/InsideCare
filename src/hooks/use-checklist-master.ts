@@ -1,29 +1,19 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 
-export interface ChecklistMasterItem {
-  id: string;
-  master_id: string;
-  title: string;
-  instructions?: string;
-  group_title?: string;
-  priority: string;
-  is_required: boolean;
-  sort_order: number;
-}
+const getChecklistMasterQuery = () => supabase
+  .from('ic_checklist_master')
+  .select(`
+    id, checklist_name, days_of_week, description,
+    items:ic_checklist_item_master(id, master_id, title, instructions, group_title, priority, is_required, sort_order)
+  `);
 
-export interface ChecklistMaster {
-  id: string;
-  checklist_name: string;
-  days_of_week?: string[];
-  description?: string;
+export type ChecklistMasterWithRelations = Awaited<ReturnType<typeof getChecklistMasterQuery>>['data'] extends (infer U)[] ? U : never;
+export type ChecklistMasterItem = ChecklistMasterWithRelations['items'] extends (infer U)[] ? U : never;
+
+export interface ChecklistMaster extends Omit<ChecklistMasterWithRelations, 'items'> {
   items?: ChecklistMasterItem[];
 }
-
-const CHECKLIST_MASTER_COLUMNS = `
-  id, checklist_name, days_of_week, description,
-  items:ic_checklist_item_master(id, master_id, title, instructions, group_title, priority, is_required, sort_order)
-`;
 
 export function useChecklistMaster() {
   const query = useQuery({
@@ -31,7 +21,10 @@ export function useChecklistMaster() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('ic_checklist_master')
-        .select(CHECKLIST_MASTER_COLUMNS)
+        .select(`
+          id, checklist_name, days_of_week, description,
+          items:ic_checklist_item_master(id, master_id, title, instructions, group_title, priority, is_required, sort_order)
+        `)
         .order('checklist_name', { ascending: true });
 
       if (error) throw error;
@@ -39,7 +32,7 @@ export function useChecklistMaster() {
       return (data || []).map(checklist => ({
         ...checklist,
         items: ((checklist.items as ChecklistMasterItem[]) || []).sort((a, b) => a.sort_order - b.sort_order)
-      })) as ChecklistMaster[];
+      })) as unknown as ChecklistMaster[];
     },
     staleTime: 1000 * 60 * 60, // 1 hour
   });
