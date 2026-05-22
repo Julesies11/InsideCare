@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode, ReactElement } from 'react';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
+import { TABLES } from '@/config/db-tables';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
@@ -25,7 +26,7 @@ const wrapper = ({ children }: { children: ReactNode }): ReactElement => (
 describe('useStaffDocuments', () => {
   it('should fetch staff documents successfully', async () => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/ic_staff_documents`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF_DOCUMENTS}`, () => {
         return HttpResponse.json([
           { id: 'doc-1', staff_id: 'staff-1', file_name: 'resume.pdf', file_path: 'staff-1/resume.pdf' },
         ]);

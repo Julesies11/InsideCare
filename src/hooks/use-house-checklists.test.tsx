@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode, ReactElement } from 'react';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
+import { TABLES } from '@/config/db-tables';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
@@ -25,7 +26,7 @@ const wrapper = ({ children }: { children: ReactNode }): ReactElement => (
 describe('useHouseChecklists', () => {
   it('should fetch house checklists sorted by sort_order', async () => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/ic_house_checklists`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSE_CHECKLISTS}`, () => {
         return HttpResponse.json([
           { 
             id: 'cl-1', 
@@ -46,7 +47,7 @@ describe('useHouseChecklists', () => {
           },
         ]);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/ic_house_checklist_submissions`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSE_CHECKLIST_SUBMISSIONS}`, () => {
         return HttpResponse.json([]);
       })
     );

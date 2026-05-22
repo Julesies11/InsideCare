@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { supabase } from '@/lib/supabase';
+import { TABLES } from '@/config/db-tables';
 
 /**
  * Refactor Verification Unit Test
@@ -10,18 +11,18 @@ import { supabase } from '@/lib/supabase';
 describe('Database Prefix Integrity', () => {
   it('should use ic_ prefixed table for participants', async () => {
     // We expect the query to be constructed with the ic_ prefix
-    const query = supabase.from('ic_participants').select('*');
-    expect((query as any).url.href).toContain('ic_participants');
+    const query = supabase.from(TABLES.PARTICIPANTS).select('*');
+    expect((query as any).url.href).toContain(TABLES.PARTICIPANTS);
   });
 
   it('should use ic_ prefixed table for staff', async () => {
-    const query = supabase.from('ic_staff').select('*');
-    expect((query as any).url.href).toContain('ic_staff');
+    const query = supabase.from(TABLES.STAFF).select('*');
+    expect((query as any).url.href).toContain(TABLES.STAFF);
   });
 
   it('should use ic_ prefixed table for houses', async () => {
-    const query = supabase.from('ic_houses').select('*');
-    expect((query as any).url.href).toContain('ic_houses');
+    const query = supabase.from(TABLES.HOUSES).select('*');
+    expect((query as any).url.href).toContain(TABLES.HOUSES);
   });
 
   it('should use ic_ prefixed bucket for staff photos', async () => {

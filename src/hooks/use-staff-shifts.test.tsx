@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode, ReactElement } from 'react';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
+import { TABLES } from '@/config/db-tables';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
@@ -25,7 +26,7 @@ const wrapper = ({ children }: { children: ReactNode }): ReactElement => (
 describe('useStaffShifts', () => {
   it('should fetch shifts and participants successfully', async () => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/ic_staff_shifts`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF_SHIFTS}`, () => {
         return HttpResponse.json([
           {
             id: 'shift-1',
@@ -40,7 +41,7 @@ describe('useStaffShifts', () => {
           },
         ]);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/ic_shift_participants`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.SHIFT_PARTICIPANTS}`, () => {
         return HttpResponse.json([
           {
             shift_id: 'shift-1',

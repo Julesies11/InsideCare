@@ -1,4 +1,16 @@
 import { http, HttpResponse } from 'msw';
+import { TABLES } from '@/config/db-tables';
+import { 
+  HouseRow, 
+  ParticipantRow, 
+  StaffRow, 
+  ActivityLogRow, 
+  ShiftRow, 
+  LeaveRequestRow,
+  NotificationRow,
+  TimesheetRow,
+  Row
+} from '../type-helpers';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://rdnaqrzqpcicskylmsyl.supabase.co';
 
@@ -14,11 +26,11 @@ export const handlers = [
   }),
 
   // Database Mocks - Houses
-  http.get(`${SUPABASE_URL}/rest/v1/ic_houses`, ({ request }) => {
+  http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSES}`, ({ request }) => {
     const url = new URL(request.url);
     const idParam = url.searchParams.get('id');
     
-    const houses = [
+    const houses: Partial<HouseRow>[] = [
       {
         id: 'house-1',
         house_name: 'Test House 1',
@@ -50,11 +62,11 @@ export const handlers = [
   }),
 
   // Database Mocks - Participants
-  http.get(`${SUPABASE_URL}/rest/v1/ic_participants`, ({ request }) => {
+  http.get(`${SUPABASE_URL}/rest/v1/${TABLES.PARTICIPANTS}`, ({ request }) => {
     const url = new URL(request.url);
     const idParam = url.searchParams.get('id');
     
-    const participants = [
+    const participants: (Partial<ParticipantRow> & { houses?: Partial<HouseRow> })[] = [
       {
         id: 'participant-1',
         participant_name: 'John Doe',
@@ -80,7 +92,7 @@ export const handlers = [
     return HttpResponse.json(participants);
   }),
 
-  http.patch(`${SUPABASE_URL}/rest/v1/ic_participants`, async ({ request }) => {
+  http.patch(`${SUPABASE_URL}/rest/v1/${TABLES.PARTICIPANTS}`, async ({ request }) => {
     const body = await request.json();
     return HttpResponse.json({ 
       id: 'participant-1',
@@ -90,8 +102,8 @@ export const handlers = [
   }),
 
   // Database Mocks - Activity Log
-  http.get(`${SUPABASE_URL}/rest/v1/ic_activity_log`, () => {
-    return HttpResponse.json([
+  http.get(`${SUPABASE_URL}/rest/v1/${TABLES.ACTIVITY_LOG}`, () => {
+    const logs: Partial<ActivityLogRow>[] = [
       {
         id: 'log-1',
         activity_type: 'create',
@@ -102,19 +114,20 @@ export const handlers = [
         user_name: 'admin@example.com',
         created_at: new Date().toISOString(),
       },
-    ]);
+    ];
+    return HttpResponse.json(logs);
   }),
 
-  http.post(`${SUPABASE_URL}/rest/v1/ic_activity_log`, () => {
+  http.post(`${SUPABASE_URL}/rest/v1/${TABLES.ACTIVITY_LOG}`, () => {
     return HttpResponse.json({ success: true }, { status: 201 });
   }),
 
   // Database Mocks - Staff
-  http.get(`${SUPABASE_URL}/rest/v1/ic_staff`, ({ request }) => {
+  http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF}`, ({ request }) => {
     const url = new URL(request.url);
     const idParam = url.searchParams.get('id');
     
-    const staff = [
+    const staff: (Partial<StaffRow> & { role?: { role_name: string } })[] = [
       {
         id: 'staff-1',
         staff_name: 'John Staff',
@@ -140,8 +153,8 @@ export const handlers = [
   }),
 
   // Database Mocks - Shift Notes
-  http.get(`${SUPABASE_URL}/rest/v1/ic_shift_notes`, () => {
-    return HttpResponse.json([
+  http.get(`${SUPABASE_URL}/rest/v1/${TABLES.SHIFT_NOTES}`, () => {
+    const notes: (Partial<Row<'ic_shift_notes'>> & { participant?: Partial<ParticipantRow>, staff?: Partial<StaffRow> })[] = [
       {
         id: 'note-1',
         participant_id: 'participant-1',
@@ -151,15 +164,16 @@ export const handlers = [
         participant: { id: 'participant-1', participant_name: 'John Doe' },
         staff: { id: 'staff-1', staff_name: 'Admin User' },
       },
-    ]);
+    ];
+    return HttpResponse.json(notes);
   }),
 
   // Database Mocks - Staff Shifts
-  http.get(`${SUPABASE_URL}/rest/v1/ic_staff_shifts`, ({ request }) => {
+  http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF_SHIFTS}`, ({ request }) => {
     const url = new URL(request.url);
     const idParam = url.searchParams.get('id');
     
-    const shifts = [
+    const shifts: (Partial<ShiftRow> & { house?: Partial<HouseRow> })[] = [
       {
         id: 'shift-1',
         staff_id: 'staff-1',
@@ -188,33 +202,34 @@ export const handlers = [
   }),
 
   // Database Mocks - Timesheets
-  http.get(`${SUPABASE_URL}/rest/v1/ic_timesheets`, () => {
+  http.get(`${SUPABASE_URL}/rest/v1/${TABLES.TIMESHEETS}`, () => {
     return HttpResponse.json([]);
   }),
 
-  http.post(`${SUPABASE_URL}/rest/v1/ic_timesheets`, () => {
+  http.post(`${SUPABASE_URL}/rest/v1/${TABLES.TIMESHEETS}`, () => {
     return HttpResponse.json({ success: true }, { status: 201 });
   }),
 
   // Database Mocks - Shift Assigned Checklists
-  http.get(`${SUPABASE_URL}/rest/v1/ic_shift_assigned_checklists`, () => {
+  http.get(`${SUPABASE_URL}/rest/v1/${TABLES.SHIFT_ASSIGNED_CHECKLISTS}`, () => {
     return HttpResponse.json([]);
   }),
 
   // Database Mocks - Leave Types
-  http.get(`${SUPABASE_URL}/rest/v1/ic_leave_types`, () => {
-    return HttpResponse.json([
+  http.get(`${SUPABASE_URL}/rest/v1/${TABLES.LEAVE_TYPES}`, () => {
+    const leaveTypes: Partial<Row<'ic_leave_types'>>[] = [
       { id: 'leave-type-1', leave_type_name: 'Annual Leave', is_active: true },
       { id: 'leave-type-2', leave_type_name: 'Sick Leave', is_active: true },
-    ]);
+    ];
+    return HttpResponse.json(leaveTypes);
   }),
 
   // Database Mocks - Leave Requests
-  http.get(`${SUPABASE_URL}/rest/v1/ic_leave_requests`, ({ request }) => {
+  http.get(`${SUPABASE_URL}/rest/v1/${TABLES.LEAVE_REQUESTS}`, ({ request }) => {
     const url = new URL(request.url);
     const idParam = url.searchParams.get('id');
     
-    const requests = [
+    const requests: Partial<LeaveRequestRow>[] = [
       {
         id: 'leave-1',
         staff_id: 'staff-1',
@@ -240,8 +255,8 @@ export const handlers = [
   }),
 
   // Database Mocks - Role Permissions
-  http.get(`${SUPABASE_URL}/rest/v1/ic_role_permissions`, () => {
-    return HttpResponse.json([
+  http.get(`${SUPABASE_URL}/rest/v1/${TABLES.ROLE_PERMISSIONS}`, () => {
+    const perms: Partial<Row<'ic_role_permissions'>>[] = [
       {
         role_id: 'role-1',
         participants: 'full',
@@ -258,10 +273,11 @@ export const handlers = [
         roster_board: 'read_only',
         employees: 'read_only',
       },
-    ]);
+    ];
+    return HttpResponse.json(perms);
   }),
 
-  http.post(`${SUPABASE_URL}/rest/v1/ic_role_permissions`, () => {
+  http.post(`${SUPABASE_URL}/rest/v1/${TABLES.ROLE_PERMISSIONS}`, () => {
     return HttpResponse.json({ success: true }, { status: 201 });
   }),
 
@@ -269,5 +285,9 @@ export const handlers = [
   // This MUST be last
   http.get(`${SUPABASE_URL}/rest/v1/:table`, () => {
     return HttpResponse.json([]);
+  }),
+
+  http.patch(`${SUPABASE_URL}/rest/v1/:table`, () => {
+    return HttpResponse.json({ success: true });
   }),
 ];

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NotificationService } from './notification-service';
 import { supabase } from '@/lib/supabase';
+import { TABLES } from '@/config/db-tables';
 
 // Mock Supabase client
 vi.mock('@/lib/supabase', () => ({
@@ -32,7 +33,7 @@ describe('NotificationService', () => {
         metadata: { key: 'value' }
       });
 
-      expect(supabase.from).toHaveBeenCalledWith('ic_notifications');
+      expect(supabase.from).toHaveBeenCalledWith(TABLES.NOTIFICATIONS);
       expect(mockInsert).toHaveBeenCalledWith({
         user_id: 'user-1',
         type: 'system_alert',
@@ -53,7 +54,7 @@ describe('NotificationService', () => {
         title: 'Test Alert',
       });
 
-      expect(supabase.from).toHaveBeenCalledWith('ic_notifications');
+      expect(supabase.from).toHaveBeenCalledWith(TABLES.NOTIFICATIONS);
       expect(mockInsert).toHaveBeenCalledWith({
         user_id: 'user-1',
         type: 'system_alert',
@@ -111,7 +112,7 @@ describe('NotificationService', () => {
 
       await NotificationService.notifyAssignedStaff('house-1', 'part-1', 'John Doe', 'note');
 
-      expect(supabase.from).toHaveBeenCalledWith('ic_house_staff_assignments');
+      expect(supabase.from).toHaveBeenCalledWith(TABLES.HOUSE_STAFF_ASSIGNMENTS);
       expect(mockSelect).toHaveBeenCalledWith('staff:staff_id(auth_user_id)');
       expect(mockEq).toHaveBeenCalledWith('house_id', 'house-1');
 

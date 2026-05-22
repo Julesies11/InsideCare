@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode, ReactElement } from 'react';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
+import { TABLES } from '@/config/db-tables';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
@@ -25,7 +26,7 @@ const wrapper = ({ children }: { children: ReactNode }): ReactElement => (
 describe('useParticipantDocuments', () => {
   it('should fetch participant documents successfully', async () => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/ic_participant_documents`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.PARTICIPANT_DOCUMENTS}`, () => {
         return HttpResponse.json([
           { id: 'doc-1', participant_id: 'participant-1', file_name: 'care-plan.pdf' },
         ]);

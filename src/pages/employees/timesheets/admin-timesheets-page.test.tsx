@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import { AdminTimesheetsPage } from './admin-timesheets-page';
 import { renderWithProviders } from '@/test/test-utils';
+import { TABLES } from '@/config/db-tables';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
 
@@ -46,13 +47,13 @@ vi.mock('@/lib/activity-logger', () => ({
 describe('AdminTimesheetsPage', () => {
   beforeEach(() => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/ic_timesheets`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.TIMESHEETS}`, () => {
         return HttpResponse.json([mockTimesheet]);
       }),
-      http.patch(`${SUPABASE_URL}/rest/v1/ic_timesheets`, () => {
+      http.patch(`${SUPABASE_URL}/rest/v1/${TABLES.TIMESHEETS}`, () => {
         return HttpResponse.json({ ...mockTimesheet, status: 'approved' });
       }),
-      http.post(`${SUPABASE_URL}/rest/v1/ic_notifications`, () => {
+      http.post(`${SUPABASE_URL}/rest/v1/${TABLES.NOTIFICATIONS}`, () => {
         return HttpResponse.json({});
       })
     );

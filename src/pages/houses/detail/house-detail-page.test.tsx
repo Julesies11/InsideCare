@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import { HouseDetailPage } from './house-detail-page';
 import { renderWithProviders } from '@/test/test-utils';
+import { TABLES } from '@/config/db-tables';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
 
@@ -36,7 +37,7 @@ vi.mock('@/hooks/use-scroll-position', () => ({
 describe('HouseDetailPage', () => {
   beforeEach(() => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/ic_houses`, ({ request }) => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSES}`, ({ request }) => {
         const url = new URL(request.url);
         const idParam = url.searchParams.get('id');
         if (idParam || request.headers.get('Accept')?.includes('vnd.pgrst.object+json')) {
@@ -44,7 +45,7 @@ describe('HouseDetailPage', () => {
         }
         return HttpResponse.json([mockHouse]);
       }),
-      http.patch(`${SUPABASE_URL}/rest/v1/ic_houses`, () => {
+      http.patch(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSES}`, () => {
         return HttpResponse.json(mockHouse);
       })
     );

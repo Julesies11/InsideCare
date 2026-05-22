@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode, ReactElement } from 'react';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
+import { TABLES } from '@/config/db-tables';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
@@ -25,7 +26,7 @@ const wrapper = ({ children }: { children: ReactNode }): ReactElement => (
 describe('useHouseDocuments', () => {
   it('should fetch house documents successfully', async () => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/ic_house_files`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSE_FILES}`, () => {
         return HttpResponse.json([
           { id: 'doc-1', house_id: 'house-1', file_name: 'safety-plan.pdf', status: 'current' },
         ]);

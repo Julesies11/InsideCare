@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { SupabaseAdapter } from './supabase-adapter';
 import { supabase } from '@/lib/supabase';
+import { TABLES } from '@/config/db-tables';
 
 // Mock the supabase client
 vi.mock('@/lib/supabase', () => ({
@@ -80,7 +81,7 @@ describe('SupabaseAdapter', () => {
         permissions: {},
       });
 
-      expect(supabase.from).toHaveBeenCalledWith('ic_staff');
+      expect(supabase.from).toHaveBeenCalledWith(TABLES.STAFF);
       expect(mockEq).toHaveBeenCalledWith('auth_user_id', 'user-123');
     });
 

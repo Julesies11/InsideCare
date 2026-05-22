@@ -2,12 +2,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import { ChecklistMasterPage } from './checklist-master-page';
 import { renderWithProviders } from '@/test/test-utils';
+import { TABLES } from '@/config/db-tables';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
+import { ChecklistMasterRow, Row } from '@/test/type-helpers';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
-const mockChecklistMaster = {
+const mockChecklistMaster: Partial<ChecklistMasterRow> & { items: Partial<Row<'ic_checklist_item_master'>>[] } = {
   id: 'master-1',
   checklist_name: 'Weekly Safety Audit',
   frequency: 'weekly',
@@ -33,10 +35,10 @@ vi.mock('@/hooks/use-mobile', () => ({
 describe('ChecklistMasterPage', () => {
   beforeEach(() => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/ic_checklist_master`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.CHECKLIST_MASTER}`, () => {
         return HttpResponse.json([mockChecklistMaster]);
       }),
-      http.post(`${SUPABASE_URL}/rest/v1/ic_checklist_master`, () => {
+      http.post(`${SUPABASE_URL}/rest/v1/${TABLES.CHECKLIST_MASTER}`, () => {
         return HttpResponse.json({ ...mockChecklistMaster, id: 'new-id' });
       })
     );

@@ -4,6 +4,7 @@ import { useStaffRoster } from './use-staff-roster';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
+import { TABLES } from '@/config/db-tables';
 import { ReactNode } from 'react';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -57,9 +58,9 @@ describe('useStaffRoster', () => {
     ];
 
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/ic_staff_shifts`, () => HttpResponse.json(mockShifts)),
-      http.get(`${SUPABASE_URL}/rest/v1/ic_house_calendar_events`, () => HttpResponse.json(mockEvents)),
-      http.get(`${SUPABASE_URL}/rest/v1/ic_timesheets`, () => HttpResponse.json([]))
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF_SHIFTS}`, () => HttpResponse.json(mockShifts)),
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSE_CALENDAR_EVENTS}`, () => HttpResponse.json(mockEvents)),
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.TIMESHEETS}`, () => HttpResponse.json([]))
     );
 
     const { result } = renderHook(() => useStaffRoster(staffId), { wrapper });

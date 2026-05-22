@@ -4,6 +4,7 @@ import { useStaffDashboardData } from './use-staff-dashboard-data';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
+import { TABLES } from '@/config/db-tables';
 import { format, subDays } from 'date-fns';
 import { ReactNode } from 'react';
 
@@ -60,10 +61,10 @@ describe('useStaffDashboardData', () => {
     ];
 
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/ic_staff_shifts`, () => HttpResponse.json(mockShifts)),
-      http.get(`${SUPABASE_URL}/rest/v1/ic_house_calendar_events`, () => HttpResponse.json(mockEvents)),
-      http.get(`${SUPABASE_URL}/rest/v1/ic_leave_requests`, () => HttpResponse.json([])),
-      http.get(`${SUPABASE_URL}/rest/v1/ic_timesheets`, () => HttpResponse.json([]))
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF_SHIFTS}`, () => HttpResponse.json(mockShifts)),
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSE_CALENDAR_EVENTS}`, () => HttpResponse.json(mockEvents)),
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.LEAVE_REQUESTS}`, () => HttpResponse.json([])),
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.TIMESHEETS}`, () => HttpResponse.json([]))
     );
 
     const { result } = renderHook(() => useStaffDashboardData(staffId), { wrapper });
@@ -82,10 +83,10 @@ describe('useStaffDashboardData', () => {
 
   it('handles empty results gracefully', async () => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/ic_staff_shifts`, () => HttpResponse.json([])),
-      http.get(`${SUPABASE_URL}/rest/v1/ic_house_calendar_events`, () => HttpResponse.json([])),
-      http.get(`${SUPABASE_URL}/rest/v1/ic_leave_requests`, () => HttpResponse.json([])),
-      http.get(`${SUPABASE_URL}/rest/v1/ic_timesheets`, () => HttpResponse.json([]))
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF_SHIFTS}`, () => HttpResponse.json([])),
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSE_CALENDAR_EVENTS}`, () => HttpResponse.json([])),
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.LEAVE_REQUESTS}`, () => HttpResponse.json([])),
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.TIMESHEETS}`, () => HttpResponse.json([]))
     );
 
     const { result } = renderHook(() => useStaffDashboardData(staffId), { wrapper });

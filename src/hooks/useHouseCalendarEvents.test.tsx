@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode, ReactElement } from 'react';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
+import { TABLES } from '@/config/db-tables';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
@@ -25,7 +26,7 @@ const wrapper = ({ children }: { children: ReactNode }): ReactElement => (
 describe('useHouseCalendarEvents Integration', () => {
   it('should intelligently map event types based on title and checklist flag', async () => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/ic_house_calendar_events`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSE_CALENDAR_EVENTS}`, () => {
         return HttpResponse.json([
           { 
             id: 'evt-1', 
@@ -46,7 +47,7 @@ describe('useHouseCalendarEvents Integration', () => {
           },
         ]);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/ic_staff_shifts`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF_SHIFTS}`, () => {
         return HttpResponse.json([]);
       })
     );
@@ -73,10 +74,10 @@ describe('useHouseCalendarEvents Integration', () => {
     ];
 
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/ic_house_calendar_events`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSE_CALENDAR_EVENTS}`, () => {
         return HttpResponse.json([]);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/ic_staff_shifts`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF_SHIFTS}`, () => {
         return HttpResponse.json([
           {
             id: 'shift-1',

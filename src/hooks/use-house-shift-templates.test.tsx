@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode, ReactElement } from 'react';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
+import { TABLES } from '@/config/db-tables';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
@@ -32,10 +33,10 @@ describe('useHouseShiftTemplates', () => {
     ];
 
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/ic_house_shift_templates`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSE_SHIFT_TEMPLATES}`, () => {
         return HttpResponse.json(mockShiftTemplates);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/ic_shift_template_default_checklists`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.SHIFT_TEMPLATE_DEFAULT_CHECKLISTS}`, () => {
         return HttpResponse.json(mockDefaults);
       })
     );
@@ -53,7 +54,7 @@ describe('useHouseShiftTemplates', () => {
     const newType = { name: 'Night', short_name: 'N' };
     
     server.use(
-      http.post(`${SUPABASE_URL}/rest/v1/ic_house_shift_templates`, () => {
+      http.post(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSE_SHIFT_TEMPLATES}`, () => {
         return HttpResponse.json({ id: 'st-3', ...newType, house_id: 'house-1' });
       })
     );

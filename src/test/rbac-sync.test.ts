@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { syncUserPermissions, syncUserPermissionsByStaffId } from '../lib/rbac-sync';
 import { supabase } from '../lib/supabase';
+import { TABLES } from '@/config/db-tables';
 
 // Mock supabase client
 vi.mock('../lib/supabase', () => ({
@@ -74,7 +75,7 @@ describe('RBAC Sync Utility', () => {
 
       const result = await syncUserPermissionsByStaffId(staffId);
 
-      expect(supabase.from).toHaveBeenCalledWith('ic_staff');
+      expect(supabase.from).toHaveBeenCalledWith(TABLES.STAFF);
       expect(mockSelect).toHaveBeenCalledWith('auth_user_id');
       expect(mockEq).toHaveBeenCalledWith('id', staffId);
       expect(supabase.functions.invoke).toHaveBeenCalledWith('ic-update-user-permissions', {

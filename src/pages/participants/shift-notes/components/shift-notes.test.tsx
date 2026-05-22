@@ -2,12 +2,19 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, waitFor, fireEvent } from '@testing-library/react';
 import { ShiftNotes } from './shift-notes';
 import { renderWithProviders } from '@/test/test-utils';
+import { TABLES } from '@/config/db-tables';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
+import { Row, ParticipantRow, StaffRow, HouseRow, ShiftRow } from '@/test/type-helpers';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
-const mockShiftNotes = [
+const mockShiftNotes: (Partial<Row<'ic_shift_notes'>> & { 
+  participant: Partial<ParticipantRow>, 
+  staff: Partial<StaffRow>, 
+  house: Partial<HouseRow>,
+  shift: Partial<ShiftRow>
+})[] = [
   {
     id: 'note-1',
     start_date: '2026-03-05',
@@ -27,16 +34,16 @@ const mockShiftNotes = [
   },
 ];
 
-const mockHouses = [
+const mockHouses: Partial<HouseRow>[] = [
   { id: 'h-1', house_name: 'House A', status: 'active' },
   { id: 'h-2', house_name: 'House B', status: 'active' },
 ];
 
-const mockParticipants = [
+const mockParticipants: Partial<ParticipantRow>[] = [
     { id: 'p-1', participant_name: 'John Doe' }
 ];
 
-const mockStaff = [
+const mockStaff: Partial<StaffRow>[] = [
     { id: 's-1', staff_name: 'Staff Member' }
 ];
 
@@ -44,16 +51,16 @@ describe('ShiftNotes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/ic_shift_notes`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.SHIFT_NOTES}`, () => {
         return HttpResponse.json(mockShiftNotes);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/ic_houses`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSES}`, () => {
         return HttpResponse.json(mockHouses);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/ic_participants`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.PARTICIPANTS}`, () => {
         return HttpResponse.json(mockParticipants);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/ic_staff`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF}`, () => {
         return HttpResponse.json(mockStaff);
       })
     );

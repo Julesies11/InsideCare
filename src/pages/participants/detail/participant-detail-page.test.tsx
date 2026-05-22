@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, waitFor, fireEvent } from '@testing-library/react';
 import { ParticipantDetailPage } from './participant-detail-page';
 import { renderWithProviders } from '@/test/test-utils';
+import { TABLES } from '@/config/db-tables';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
 
@@ -38,16 +39,16 @@ vi.setConfig({ testTimeout: 15000 });
 describe('ParticipantDetailPage', () => {
   beforeEach(() => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/ic_participants`, ({ request }) => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.PARTICIPANTS}`, ({ request }) => {
         if (request.headers.get('Accept')?.includes('vnd.pgrst.object+json')) {
           return HttpResponse.json(mockParticipant);
         }
         return HttpResponse.json([mockParticipant]);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/ic_houses`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSES}`, () => {
         return HttpResponse.json([]);
       }),
-      http.patch(`${SUPABASE_URL}/rest/v1/ic_participants`, () => {
+      http.patch(`${SUPABASE_URL}/rest/v1/${TABLES.PARTICIPANTS}`, () => {
         return HttpResponse.json([mockParticipant]);
       })
     );
@@ -82,7 +83,7 @@ describe('ParticipantDetailPage', () => {
   it('calls update mutation when save is clicked', async () => {
     const updateSpy = vi.fn();
     server.use(
-      http.patch(`${SUPABASE_URL}/rest/v1/ic_participants`, async ({ request }) => {
+      http.patch(`${SUPABASE_URL}/rest/v1/${TABLES.PARTICIPANTS}`, async ({ request }) => {
         const body = await request.json();
         console.log('PATCH body received by MSW:', body);
         updateSpy(body);

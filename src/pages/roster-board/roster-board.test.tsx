@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import RosterBoard from './index';
 import { renderWithProviders } from '@/test/test-utils';
+import { TABLES } from '@/config/db-tables';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
 
@@ -36,28 +37,28 @@ vi.mock('@/hooks/use-house-shift-templates', () => ({
 describe('RosterBoard', () => {
   beforeEach(() => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/ic_staff`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF}`, () => {
         return HttpResponse.json(mockStaff);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/ic_houses`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSES}`, () => {
         return HttpResponse.json(mockHouses);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/ic_participants`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.PARTICIPANTS}`, () => {
         return HttpResponse.json(mockParticipants);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/ic_staff_shifts`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF_SHIFTS}`, () => {
         return HttpResponse.json([]);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/ic_leave_requests`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.LEAVE_REQUESTS}`, () => {
         return HttpResponse.json([]);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/ic_shift_notes`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.SHIFT_NOTES}`, () => {
         return HttpResponse.json([]);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/ic_house_checklists`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSE_CHECKLISTS}`, () => {
         return HttpResponse.json([]);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/ic_shift_template_default_checklists`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.SHIFT_TEMPLATE_DEFAULT_CHECKLISTS}`, () => {
         return HttpResponse.json([]);
       })
     );

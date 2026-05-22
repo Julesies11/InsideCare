@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import { AdminLeaveRequestsPage } from './admin-leave-requests-page';
 import { renderWithProviders } from '@/test/test-utils';
+import { TABLES } from '@/config/db-tables';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
 
@@ -25,18 +26,18 @@ const mockLeaveRequest = {
 describe('AdminLeaveRequestsPage', () => {
   beforeEach(() => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/ic_leave_requests`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.LEAVE_REQUESTS}`, () => {
         return HttpResponse.json([mockLeaveRequest]);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/ic_staff_shifts`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF_SHIFTS}`, () => {
         return HttpResponse.json([
           { id: 'shift-1', staff_id: 'staff-2', start_date: '2024-02-02' }
         ]);
       }),
-      http.patch(`${SUPABASE_URL}/rest/v1/ic_leave_requests`, () => {
+      http.patch(`${SUPABASE_URL}/rest/v1/${TABLES.LEAVE_REQUESTS}`, () => {
         return HttpResponse.json({ ...mockLeaveRequest, status: 'approved' });
       }),
-      http.post(`${SUPABASE_URL}/rest/v1/ic_notifications`, () => {
+      http.post(`${SUPABASE_URL}/rest/v1/${TABLES.NOTIFICATIONS}`, () => {
         return HttpResponse.json({});
       })
     );

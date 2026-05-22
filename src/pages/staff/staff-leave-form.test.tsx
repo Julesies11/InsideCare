@@ -2,17 +2,19 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, waitFor, fireEvent } from '@testing-library/react';
 import { StaffLeaveForm } from './staff-leave-form';
 import { renderWithProviders } from '@/test/test-utils';
+import { TABLES } from '@/config/db-tables';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
+import { ShiftRow, HouseRow, LeaveRequestRow, Row } from '@/test/type-helpers';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
-const mockLeaveTypes = [
-  { id: 'type-1', name: 'Annual Leave' },
-  { id: 'type-2', name: 'Sick Leave' },
+const mockLeaveTypes: Partial<Row<'ic_leave_types'>>[] = [
+  { id: 'type-1', leave_type_name: 'Annual Leave' },
+  { id: 'type-2', leave_type_name: 'Sick Leave' },
 ];
 
-const mockConflictingShifts = [
+const mockConflictingShifts: (Partial<ShiftRow> & { house: Partial<HouseRow> })[] = [
   {
     id: 'shift-1',
     start_date: '2026-03-10',
@@ -42,13 +44,13 @@ describe('StaffLeaveForm', () => {
     vi.clearAllMocks();
     vi.mocked(useParams).mockReturnValue({ id: undefined });
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/ic_leave_types`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.LEAVE_TYPES}`, () => {
         return HttpResponse.json(mockLeaveTypes);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/ic_staff_shifts`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF_SHIFTS}`, () => {
         return HttpResponse.json([]);
       }),
-      http.post(`${SUPABASE_URL}/rest/v1/ic_leave_requests`, () => {
+      http.post(`${SUPABASE_URL}/rest/v1/${TABLES.LEAVE_REQUESTS}`, () => {
         return HttpResponse.json([{ id: 'new-leave-id' }]);
       })
     );
@@ -64,7 +66,7 @@ describe('StaffLeaveForm', () => {
 
   it('shows conflict warning when shifts overlap', async () => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/ic_staff_shifts`, ({ request }) => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF_SHIFTS}`, ({ request }) => {
         const url = new URL(request.url);
         if (url.searchParams.get('start_date') === 'gte.2026-03-10') {
            return HttpResponse.json(mockConflictingShifts);
@@ -118,7 +120,7 @@ describe('StaffLeaveForm', () => {
     vi.mocked(useParams).mockReturnValue({ id: 'leave-1' });
 
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/ic_leave_requests`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.LEAVE_REQUESTS}`, () => {
         return HttpResponse.json({
           leave_type_id: 'type-1',
           start_date: '2026-04-01',
@@ -127,7 +129,7 @@ describe('StaffLeaveForm', () => {
           attachment_url: null,
         });
       }),
-      http.patch(`${SUPABASE_URL}/rest/v1/ic_leave_requests`, () => {
+      http.patch(`${SUPABASE_URL}/rest/v1/${TABLES.LEAVE_REQUESTS}`, () => {
         return HttpResponse.json({});
       })
     );

@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode, ReactElement } from 'react';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
+import { TABLES } from '@/config/db-tables';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
@@ -25,7 +26,7 @@ const wrapper = ({ children }: { children: ReactNode }): ReactElement => (
 describe('useMedicationsMaster', () => {
   it('should fetch medications successfully', async () => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/ic_medications_master`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.MEDICATIONS_MASTER}`, () => {
         return HttpResponse.json([
           { id: 'med-1', medication_name: 'Paracetamol', category: 'Pain Relief', is_active: true },
           { id: 'med-2', medication_name: 'Ibuprofen', category: 'Pain Relief', is_active: true },

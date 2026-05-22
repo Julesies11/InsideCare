@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { useRosterData } from '@/components/roster/use-roster-data';
+import { TABLES } from '@/config/db-tables';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode, ReactElement } from 'react';
 import { http, HttpResponse } from 'msw';
@@ -28,13 +29,13 @@ describe('useRosterData Active Staff Filtering', () => {
     const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
 
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/ic_houses`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSES}`, () => {
         return HttpResponse.json([{ id: 'h1', name: 'House 1', status: 'active' }]);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/ic_participants`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.PARTICIPANTS}`, () => {
         return HttpResponse.json([]);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/ic_staff`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF}`, () => {
         return HttpResponse.json([
           {
             id: 's1',

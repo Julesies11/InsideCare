@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import { StaffRoster } from './staff-roster';
 import { renderWithProviders } from '@/test/test-utils';
+import { TABLES } from '@/config/db-tables';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
 
@@ -51,10 +52,10 @@ describe('StaffRoster', () => {
     vi.clearAllMocks();
     
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/ic_staff_shifts`, () => HttpResponse.json([mockEntries[0]])),
-      http.get(`${SUPABASE_URL}/rest/v1/ic_house_calendar_events`, () => HttpResponse.json([mockEntries[1]])),
-      http.get(`${SUPABASE_URL}/rest/v1/ic_leave_requests`, () => HttpResponse.json([mockEntries[2]])),
-      http.get(`${SUPABASE_URL}/rest/v1/ic_timesheets`, () => HttpResponse.json([]))
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF_SHIFTS}`, () => HttpResponse.json([mockEntries[0]])),
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSE_CALENDAR_EVENTS}`, () => HttpResponse.json([mockEntries[1]])),
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.LEAVE_REQUESTS}`, () => HttpResponse.json([mockEntries[2]])),
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.TIMESHEETS}`, () => HttpResponse.json([]))
     );
   });
 
@@ -85,10 +86,10 @@ describe('StaffRoster', () => {
 
   it('renders empty state when no data is returned in list view', async () => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/ic_staff_shifts`, () => HttpResponse.json([])),
-      http.get(`${SUPABASE_URL}/rest/v1/ic_house_calendar_events`, () => HttpResponse.json([])),
-      http.get(`${SUPABASE_URL}/rest/v1/ic_leave_requests`, () => HttpResponse.json([])),
-      http.get(`${SUPABASE_URL}/rest/v1/ic_timesheets`, () => HttpResponse.json([]))
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF_SHIFTS}`, () => HttpResponse.json([])),
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSE_CALENDAR_EVENTS}`, () => HttpResponse.json([])),
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.LEAVE_REQUESTS}`, () => HttpResponse.json([])),
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.TIMESHEETS}`, () => HttpResponse.json([]))
     );
 
     const { user } = renderWithProviders(<StaffRoster />);

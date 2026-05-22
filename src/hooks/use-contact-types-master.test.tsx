@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode, ReactElement } from 'react';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
+import { TABLES } from '@/config/db-tables';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
@@ -25,7 +26,7 @@ const wrapper = ({ children }: { children: ReactNode }): ReactElement => (
 describe('useContactTypesMaster', () => {
   it('should fetch contact types successfully', async () => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/ic_contact_types_master`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.CONTACT_TYPES_MASTER}`, () => {
         return HttpResponse.json([
           { id: 'ct-1', name: 'Family', is_active: true },
           { id: 'ct-2', name: 'Doctor', is_active: true },

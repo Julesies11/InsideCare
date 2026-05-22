@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode, ReactElement } from 'react';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
+import { TABLES } from '@/config/db-tables';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
@@ -25,7 +26,7 @@ const wrapper = ({ children }: { children: ReactNode }): ReactElement => (
 describe('useChecklistHistory', () => {
   it('should fetch checklist history successfully', async () => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/ic_house_checklist_submissions`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSE_CHECKLIST_SUBMISSIONS}`, () => {
         return HttpResponse.json([
           { 
             id: 'sub-1', 

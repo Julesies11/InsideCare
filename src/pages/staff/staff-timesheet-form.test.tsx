@@ -2,12 +2,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, waitFor, fireEvent } from '@testing-library/react';
 import { StaffTimesheetForm } from './staff-timesheet-form';
 import { renderWithProviders } from '@/test/test-utils';
+import { TABLES } from '@/config/db-tables';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
+import { ShiftRow, HouseRow, StaffRow } from '@/test/type-helpers';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
-const mockShift = {
+const mockShift: Partial<ShiftRow> & { house: Partial<HouseRow> } = {
   id: 'shift-1',
   start_date: '2026-03-05',
   end_date: '2026-03-05',
@@ -17,7 +19,7 @@ const mockShift = {
   house: { house_name: 'Test House' },
 };
 
-const mockAdmins = [
+const mockAdmins: Partial<StaffRow>[] = [
   { auth_user_id: 'admin-1' }
 ];
 
@@ -45,25 +47,25 @@ describe('StaffTimesheetForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/ic_staff_shifts`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF_SHIFTS}`, () => {
         return HttpResponse.json([mockShift]);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/ic_timesheets`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.TIMESHEETS}`, () => {
         return HttpResponse.json([]);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/ic_staff`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF}`, () => {
         return HttpResponse.json(mockAdmins);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/ic_shift_assigned_checklists`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.SHIFT_ASSIGNED_CHECKLISTS}`, () => {
         return HttpResponse.json([]);
       }),
-      http.post(`${SUPABASE_URL}/rest/v1/ic_timesheets`, () => {
+      http.post(`${SUPABASE_URL}/rest/v1/${TABLES.TIMESHEETS}`, () => {
         return HttpResponse.json({ id: 'ts-1' });
       }),
-      http.post(`${SUPABASE_URL}/rest/v1/ic_shift_notes`, () => {
+      http.post(`${SUPABASE_URL}/rest/v1/${TABLES.SHIFT_NOTES}`, () => {
         return HttpResponse.json({});
       }),
-      http.post(`${SUPABASE_URL}/rest/v1/ic_notifications`, () => {
+      http.post(`${SUPABASE_URL}/rest/v1/${TABLES.NOTIFICATIONS}`, () => {
         return HttpResponse.json({});
       })
     );
@@ -154,7 +156,7 @@ describe('StaffTimesheetForm', () => {
   it('blocks submission if checklists are incomplete', async () => {
     // Override checklist mock to return an incomplete routine
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/ic_shift_assigned_checklists`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.SHIFT_ASSIGNED_CHECKLISTS}`, () => {
         return HttpResponse.json([
           { 
             checklist_id: 'cl-1', 

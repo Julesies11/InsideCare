@@ -2,15 +2,17 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import { StaffDashboard } from './staff-dashboard';
 import { renderWithProviders } from '@/test/test-utils';
+import { TABLES } from '@/config/db-tables';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
 import { format } from 'date-fns';
+import { ShiftRow, HouseRow, LeaveRequestRow, TimesheetRow } from '@/test/type-helpers';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
 const today = format(new Date(), 'yyyy-MM-dd');
 
-const mockShifts = [
+const mockShifts: (Partial<ShiftRow> & { house: Partial<HouseRow>, assigned_checklists: any[] })[] = [
   {
     id: 'shift-1',
     start_date: today,
@@ -34,7 +36,7 @@ const mockShifts = [
   },
 ];
 
-const mockLeave = [
+const mockLeave: (Partial<LeaveRequestRow> & { leave_type: { leave_type_name: string } })[] = [
   {
     id: 'leave-1',
     leave_type: { leave_type_name: 'Annual Leave' },
@@ -44,7 +46,7 @@ const mockLeave = [
   },
 ];
 
-const mockTimesheets = [
+const mockTimesheets: (Partial<TimesheetRow> & { shift: Partial<ShiftRow> })[] = [
   {
     id: 'ts-1',
     status: 'pending',
@@ -76,13 +78,13 @@ describe('StaffDashboard', () => {
     }];
 
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/ic_staff_shifts`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF_SHIFTS}`, () => {
         return HttpResponse.json(mockShiftsWithCurrentDate);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/ic_leave_requests`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.LEAVE_REQUESTS}`, () => {
         return HttpResponse.json(mockLeave);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/ic_timesheets`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.TIMESHEETS}`, () => {
         return HttpResponse.json(mockTimesheets);
       })
     );
@@ -121,9 +123,9 @@ describe('StaffDashboard', () => {
 
   it('renders empty states when no data is returned', async () => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/ic_staff_shifts`, () => HttpResponse.json([])),
-      http.get(`${SUPABASE_URL}/rest/v1/ic_leave_requests`, () => HttpResponse.json([])),
-      http.get(`${SUPABASE_URL}/rest/v1/ic_timesheets`, () => HttpResponse.json([]))
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF_SHIFTS}`, () => HttpResponse.json([])),
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.LEAVE_REQUESTS}`, () => HttpResponse.json([])),
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.TIMESHEETS}`, () => HttpResponse.json([]))
     );
 
     renderWithProviders(<StaffDashboard />);

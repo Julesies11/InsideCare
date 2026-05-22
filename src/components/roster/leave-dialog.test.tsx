@@ -1,4 +1,5 @@
 import { renderWithProviders, screen, waitFor } from '@/test/test-utils';
+import { TABLES } from '@/config/db-tables';
 import { LeaveDialog } from './leave-dialog';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { supabase } from '@/lib/supabase';
@@ -48,7 +49,7 @@ describe('LeaveDialog Component', () => {
     
     // Default mock for leave_types
     (supabase.from as any).mockImplementation((table: string) => {
-      if (table === 'ic_leave_types') {
+      if (table === TABLES.LEAVE_TYPES) {
         return createMockQuery([{ id: 'lt1', name: 'Annual Leave' }]);
       }
       return createMockQuery([]);
@@ -64,7 +65,7 @@ describe('LeaveDialog Component', () => {
 
   it('renders "Edit Leave Request" title when leaveId is provided', async () => {
     (supabase.from as any).mockImplementation((table: string) => {
-      if (table === 'ic_leave_requests') {
+      if (table === TABLES.LEAVE_REQUESTS) {
         return createMockQuery({
           leave_type_id: 'lt1',
           start_date: '2026-05-01',
@@ -73,7 +74,7 @@ describe('LeaveDialog Component', () => {
           attachment_url: null,
         });
       }
-      if (table === 'ic_leave_types') {
+      if (table === TABLES.LEAVE_TYPES) {
         return createMockQuery([{ id: 'lt1', name: 'Annual Leave' }]);
       }
       return createMockQuery([]);
@@ -90,10 +91,10 @@ describe('LeaveDialog Component', () => {
 
   it('displays conflict warning when rostered shifts exist in the date range', async () => {
     (supabase.from as any).mockImplementation((table: string) => {
-      if (table === 'ic_staff_shifts') {
+      if (table === TABLES.STAFF_SHIFTS) {
         return createMockQuery([{ id: 's1', start_date: '2026-04-15', house: { house_name: 'Test House' } }]);
       }
-      if (table === 'ic_leave_types') {
+      if (table === TABLES.LEAVE_TYPES) {
         return createMockQuery([{ id: 'lt1', name: 'Annual Leave' }]);
       }
       return createMockQuery([]);

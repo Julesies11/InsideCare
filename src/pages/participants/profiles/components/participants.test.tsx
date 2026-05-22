@@ -1,13 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import { renderWithProviders } from '@/test/test-utils';
+import { TABLES } from '@/config/db-tables';
 import { Participants } from './participants';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
+import { ParticipantRow, HouseRow } from '@/test/type-helpers';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
-const mockParticipants = [
+const mockParticipants: (Partial<ParticipantRow> & { houses: Partial<HouseRow> })[] = [
   {
     id: '1',
     participant_name: 'John Doe',
@@ -28,7 +30,7 @@ const mockParticipants = [
   },
 ];
 
-const mockHouses = [
+const mockHouses: Partial<HouseRow>[] = [
   {
     id: 'house-1',
     house_name: 'Main House',
@@ -44,10 +46,10 @@ const mockHouses = [
 describe('Participants Component', () => {
   beforeEach(() => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/ic_participants`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.PARTICIPANTS}`, () => {
         return HttpResponse.json(mockParticipants);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/ic_houses`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSES}`, () => {
         return HttpResponse.json(mockHouses);
       })
     );

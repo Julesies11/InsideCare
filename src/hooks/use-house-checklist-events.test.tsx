@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode, ReactElement } from 'react';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
+import { TABLES } from '@/config/db-tables';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
@@ -26,7 +27,7 @@ describe('useHouseChecklistEvents', () => {
   it('should combine calendar events and shift-assigned checklists', async () => {
     server.use(
       // 1. Mock junction table fetch for shift-assigned checklists
-      http.get(`${SUPABASE_URL}/rest/v1/ic_shift_assigned_checklists`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.SHIFT_ASSIGNED_CHECKLISTS}`, () => {
         return HttpResponse.json([
           { 
             checklist_id: 'cl-shift-1', 
@@ -36,7 +37,7 @@ describe('useHouseChecklistEvents', () => {
         ]);
       }),
       // 2. Mock calendar events fetch
-      http.get(`${SUPABASE_URL}/rest/v1/ic_house_calendar_events`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSE_CALENDAR_EVENTS}`, () => {
         return HttpResponse.json([
           { 
             id: 'evt-cal-1', 
@@ -51,11 +52,11 @@ describe('useHouseChecklistEvents', () => {
         ]);
       }),
       // 3. Mock submission check for shift checklist
-      http.get(`${SUPABASE_URL}/rest/v1/ic_house_checklist_submissions`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSE_CHECKLIST_SUBMISSIONS}`, () => {
         return HttpResponse.json([]);
       }),
       // 4. Mock checklist templates fetch
-      http.get(`${SUPABASE_URL}/rest/v1/ic_house_checklists`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSE_CHECKLISTS}`, () => {
         return HttpResponse.json([
           { 
             id: 'cl-shift-1', 

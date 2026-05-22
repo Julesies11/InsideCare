@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useChecklistSchedules } from './useChecklistSchedules';
 import { supabase } from '@/lib/supabase';
+import { TABLES } from '@/config/db-tables';
 
 // Mock Supabase
 const mockInsert = vi.fn().mockImplementation(() => ({
@@ -24,10 +25,10 @@ const mockFrom = vi.fn((table) => {
   if (table === 'ic_checklist_schedules') {
     return { insert: mockInsert, delete: mockDelete };
   }
-  if (table === 'ic_house_checklists') {
+  if (table === TABLES.HOUSE_CHECKLISTS) {
     return { select: mockSelect };
   }
-  if (table === 'ic_house_calendar_events') {
+  if (table === TABLES.HOUSE_CALENDAR_EVENTS) {
     return { insert: vi.fn().mockResolvedValue({ error: null }), delete: mockDelete };
   }
   return { select: mockSelect, insert: mockInsert, delete: mockDelete };
@@ -63,8 +64,8 @@ describe('useChecklistSchedules', () => {
     // Check if mockFrom was called for 'ic_checklist_schedules'
     expect(mockFrom).toHaveBeenCalledWith('ic_checklist_schedules');
     
-    // Check if mockFrom was called for 'ic_house_calendar_events' (materialization)
-    expect(mockFrom).toHaveBeenCalledWith('ic_house_calendar_events');
+    // Check if mockFrom was called for TABLES.HOUSE_CALENDAR_EVENTS (materialization)
+    expect(mockFrom).toHaveBeenCalledWith(TABLES.HOUSE_CALENDAR_EVENTS);
   });
 
   it('should delete a schedule', async () => {
