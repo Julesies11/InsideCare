@@ -1,5 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { TABLES } from '@/config/db-tables';
+import { QUERY_KEYS } from '@/config/query-keys';
 
 export interface ParticipantMedication {
   id: string;
@@ -37,11 +39,11 @@ const PARTICIPANT_MEDICATION_COLUMNS = `
 
 export function useParticipantMedications(participantId?: string) {
   const query = useQuery({
-    queryKey: ['participant-medications', participantId],
+    queryKey: [QUERY_KEYS.PARTICIPANT_MEDICATIONS, participantId],
     queryFn: async () => {
       if (!participantId) return [];
       const { data, error } = await supabase
-        .from('ic_participant_medications')
+        .from(TABLES.PARTICIPANT_MEDICATIONS)
         .select(PARTICIPANT_MEDICATION_COLUMNS)
         .eq('participant_id', participantId)
         .order('created_at', { ascending: false });
@@ -72,7 +74,7 @@ export function useAddParticipantMedication() {
   return useMutation({
     mutationFn: async (medication: Omit<ParticipantMedication, 'id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
-        .from('ic_participant_medications')
+        .from(TABLES.PARTICIPANT_MEDICATIONS)
         .insert(medication)
         .select(PARTICIPANT_MEDICATION_COLUMNS)
         .maybeSingle();
@@ -82,7 +84,7 @@ export function useAddParticipantMedication() {
       return data as ParticipantMedication;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['participant-medications', data.participant_id] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PARTICIPANT_MEDICATIONS, data.participant_id] });
     },
   });
 }
@@ -93,7 +95,7 @@ export function useUpdateParticipantMedication() {
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<ParticipantMedication> }) => {
       const { data, error } = await supabase
-        .from('ic_participant_medications')
+        .from(TABLES.PARTICIPANT_MEDICATIONS)
         .update(updates)
         .eq('id', id)
         .select(PARTICIPANT_MEDICATION_COLUMNS)
@@ -104,7 +106,7 @@ export function useUpdateParticipantMedication() {
       return data as ParticipantMedication;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['participant-medications', data.participant_id] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PARTICIPANT_MEDICATIONS, data.participant_id] });
     },
   });
 }
@@ -115,14 +117,14 @@ export function useDeleteParticipantMedication() {
   return useMutation({
     mutationFn: async ({ id, participantId }: { id: string; participantId: string }) => {
       const { error } = await supabase
-        .from('ic_participant_medications')
+        .from(TABLES.PARTICIPANT_MEDICATIONS)
         .delete()
         .eq('id', id);
 
       if (error) throw error;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['participant-medications', variables.participantId] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PARTICIPANT_MEDICATIONS, variables.participantId] });
     },
   });
 }

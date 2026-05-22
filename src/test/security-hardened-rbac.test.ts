@@ -25,8 +25,8 @@ describe('Security Hardened RBAC - usePermissions', () => {
 
     const { result } = renderHook(() => usePermissions());
 
-    expect(result.current.hasFullAccess('ic_participants')).toBe(true);
-    expect(result.current.canEdit('ic_participants')).toBe(true);
+    expect(result.current.hasFullAccess('participants')).toBe(true);
+    expect(result.current.canEdit('participants')).toBe(true);
   });
 
   it('should deny edit access to read_only users', () => {
@@ -44,9 +44,9 @@ describe('Security Hardened RBAC - usePermissions', () => {
 
     const { result } = renderHook(() => usePermissions());
 
-    expect(result.current.canView('ic_participants')).toBe(true);
-    expect(result.current.canEdit('ic_participants')).toBe(false);
-    expect(result.current.hasFullAccess('ic_participants')).toBe(false);
+    expect(result.current.canView('participants')).toBe(true);
+    expect(result.current.canEdit('participants')).toBe(false);
+    expect(result.current.hasFullAccess('participants')).toBe(false);
   });
 
   it('should grant view access to context_read_only users correctly', () => {
@@ -65,8 +65,8 @@ describe('Security Hardened RBAC - usePermissions', () => {
 
     const { result } = renderHook(() => usePermissions());
 
-    expect(result.current.canView('ic_participants')).toBe(true);
-    expect(result.current.isContextAware('ic_participants')).toBe(true);
+    expect(result.current.canView('participants')).toBe(true);
+    expect(result.current.isContextAware('participants')).toBe(true);
   });
 
   it('should identify permissions from the permissions object correctly', () => {
@@ -83,7 +83,7 @@ describe('Security Hardened RBAC - usePermissions', () => {
     } as any);
 
     const { result } = renderHook(() => usePermissions());
-    expect(result.current.hasFullAccess('ic_participants')).toBe(false);
+    expect(result.current.hasFullAccess('participants')).toBe(false);
     expect(result.current.permissions.participants).toBe(ACCESS_LEVEL.CONTEXT_READ_ONLY);
   });
 });

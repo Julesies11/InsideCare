@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { HouseChecklistItem } from './use-house-checklists';
+import { TABLES } from '@/config/db-tables';
 
 export interface HouseChecklistEvent {
   id: string;
@@ -38,7 +39,7 @@ export function useHouseChecklistEvents(houseId?: string, date?: string, shiftId
       // 1. If shiftId is provided, fetch the assigned checklists for that shift from junction table
       if (shiftId) {
         const { data: assignedData, error: shiftError } = await supabase
-          .from('ic_shift_assigned_checklists')
+          .from(TABLES.SHIFT_ASSIGNED_CHECKLISTS)
           .select('checklist_id, assignment_title, shift_template_id')
           .eq('shift_id', shiftId)
           .order('sort_order', { ascending: true });
@@ -50,7 +51,7 @@ export function useHouseChecklistEvents(houseId?: string, date?: string, shiftId
 
       // 2. Fetch checklist events for the house on the specific date
       const { data: events, error: eventError } = await supabase
-        .from('ic_house_calendar_events')
+        .from(TABLES.HOUSE_CALENDAR_EVENTS)
         .select(`
           id, 
           house_id, 
@@ -91,7 +92,7 @@ export function useHouseChecklistEvents(houseId?: string, date?: string, shiftId
           if (!existingEvent) {
             // Check for existing submission for this specific shift
             const { data: shiftSubs } = await supabase
-              .from('ic_house_checklist_submissions')
+              .from(TABLES.HOUSE_CHECKLIST_SUBMISSIONS)
               .select('id, status, updated_at, scheduled_date')
               .eq('checklist_id', ac.checklist_id)
               .eq('shift_id', shiftId)
@@ -125,7 +126,7 @@ export function useHouseChecklistEvents(houseId?: string, date?: string, shiftId
       // 4. Fetch the actual checklist details for all identified checklists
       const checklistIds = [...new Set(combinedEvents.map(e => e.house_checklist_id))];
       const { data: checklists, error: clError } = await supabase
-        .from('ic_house_checklists')
+        .from(TABLES.HOUSE_CHECKLISTS)
         .select(`
           id, 
           house_checklist_name, 

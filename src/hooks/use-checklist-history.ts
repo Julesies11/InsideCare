@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { SortingState } from '@tanstack/react-table';
+import { TABLES } from '@/config/db-tables';
+import { QUERY_KEYS } from '@/config/query-keys';
 
 export interface ChecklistSubmission {
   id: string;
@@ -41,10 +43,10 @@ export function useChecklistHistory(
   filters: ChecklistHistoryFilters = {}
 ) {
   return useQuery({
-    queryKey: ['checklist-history', pageIndex, pageSize, sorting, filters],
+    queryKey: [QUERY_KEYS.CHECKLIST_HISTORY, pageIndex, pageSize, sorting, filters],
     queryFn: async () => {
       let query = supabase
-        .from('ic_house_checklist_submissions')
+        .from(TABLES.HOUSE_CHECKLIST_SUBMISSIONS)
         .select(CHECKLIST_SUBMISSION_COLUMNS, { count: 'exact' });
 
       // Apply House Filters

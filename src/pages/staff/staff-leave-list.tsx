@@ -15,6 +15,10 @@ import {
   ToolbarPageTitle,
   ToolbarDescription,
 } from '@/partials/common/toolbar';
+import { TABLES } from '@/config/db-tables';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
+import { QUERY_KEYS } from '@/config/query-keys';
+import { LEAVE_STATUS } from '@/config/enums';
 import {
   Dialog,
   DialogContent,
@@ -59,8 +63,8 @@ export function StaffLeaveList() {
   const fetchRequests = useCallback(async () => {
     if (!user?.staff_id) { setLoading(false); return; }
     const { data } = await supabase
-      .from('ic_leave_requests')
-      .select('id, leave_type:ic_leave_types(leave_type_name), start_date, end_date, reason, status, admin_notes, created_at')
+      .from(TABLES.LEAVE_REQUESTS)
+      .select(`id, leave_type:${TABLES.LEAVE_TYPES}(leave_type_name), start_date, end_date, reason, status, admin_notes, created_at`)
       .eq('staff_id', user.staff_id)
       .order('created_at', { ascending: false });
     setRequests((data as LeaveRequest[]) || []);
@@ -76,7 +80,7 @@ export function StaffLeaveList() {
   const handleDelete = async () => {
     if (!deleteTarget) return;
     setDeleting(true);
-    const { error } = await supabase.from('ic_leave_requests').delete().eq('id', deleteTarget.id);
+    const { error } = await supabase.from(TABLES.LEAVE_REQUESTS).delete().eq('id', deleteTarget.id);
     if (error) {
       toast.error('Failed to delete leave request');
     } else {

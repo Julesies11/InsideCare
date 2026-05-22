@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useCallback } from 'react';
+import { TABLES } from '@/config/db-tables';
+import { QUERY_KEYS } from '@/config/query-keys';
 
 export interface ShiftNote {
   id: string;
@@ -71,10 +73,10 @@ const SHIFT_NOTE_COLUMNS = `
 
 export function useShiftNotes() {
   const query = useQuery({
-    queryKey: ['shift-notes'],
+    queryKey: [QUERY_KEYS.SHIFT_NOTES],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('ic_shift_notes')
+        .from(TABLES.SHIFT_NOTES)
         .select(SHIFT_NOTE_COLUMNS)
         .order('start_date', { ascending: false });
 
@@ -97,7 +99,7 @@ export function useShiftNotes() {
 
   const fetchShiftNotesByShiftId = useCallback(async (shiftId: string) => {
     const { data, error } = await supabase
-      .from('ic_shift_notes')
+      .from(TABLES.SHIFT_NOTES)
       .select(SHIFT_NOTE_COLUMNS)
       .eq('shift_id', shiftId)
       .order('created_at', { ascending: true });
@@ -121,11 +123,11 @@ export function useShiftNotes() {
 
 export function useShiftNotesByShiftId(shiftId?: string) {
   return useQuery({
-    queryKey: ['shift-notes', { shiftId }],
+    queryKey: [QUERY_KEYS.SHIFT_NOTES, { shiftId }],
     queryFn: async () => {
       if (!shiftId) return [];
       const { data, error } = await supabase
-        .from('ic_shift_notes')
+        .from(TABLES.SHIFT_NOTES)
         .select(SHIFT_NOTE_COLUMNS)
         .eq('shift_id', shiftId)
         .order('created_at', { ascending: true });
@@ -139,11 +141,11 @@ export function useShiftNotesByShiftId(shiftId?: string) {
 
 export function useShiftNotesByParticipantId(participantId?: string) {
   return useQuery({
-    queryKey: ['shift-notes', { participantId }],
+    queryKey: [QUERY_KEYS.SHIFT_NOTES, { participantId }],
     queryFn: async () => {
       if (!participantId) return [];
       const { data, error } = await supabase
-        .from('ic_shift_notes')
+        .from(TABLES.SHIFT_NOTES)
         .select(SHIFT_NOTE_COLUMNS)
         .eq('participant_id', participantId)
         .order('start_date', { ascending: false })
@@ -167,7 +169,7 @@ export function useCreateShiftNote() {
   return useMutation({
     mutationFn: async (noteData: ShiftNoteUpdateData) => {
       const { data, error } = await supabase
-        .from('ic_shift_notes')
+        .from(TABLES.SHIFT_NOTES)
         .upsert(noteData, { onConflict: 'shift_id,staff_id' })
         .select(SHIFT_NOTE_COLUMNS)
         .maybeSingle();
@@ -177,7 +179,7 @@ export function useCreateShiftNote() {
       return data as ShiftNote;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['shift-notes'] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SHIFT_NOTES] });
     },
   });
 }
@@ -191,7 +193,7 @@ export function useUpdateShiftNote() {
         throw new Error('Shift note ID is required for update');
       }
       const { data, error } = await supabase
-        .from('ic_shift_notes')
+        .from(TABLES.SHIFT_NOTES)
         .update(updates)
         .eq('id', id)
         .select(SHIFT_NOTE_COLUMNS)
@@ -202,9 +204,9 @@ export function useUpdateShiftNote() {
       return data as ShiftNote;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['shift-notes'] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SHIFT_NOTES] });
       if (data.shift_id) {
-        queryClient.invalidateQueries({ queryKey: ['shift-notes', { shiftId: data.shift_id }] });
+        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SHIFT_NOTES, { shiftId: data.shift_id }] });
       }
     },
   });
@@ -216,14 +218,14 @@ export function useDeleteShiftNote() {
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('ic_shift_notes')
+        .from(TABLES.SHIFT_NOTES)
         .delete()
         .eq('id', id);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['shift-notes'] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SHIFT_NOTES] });
     },
   });
 }

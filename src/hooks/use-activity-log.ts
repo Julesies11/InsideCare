@@ -2,6 +2,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { ActivityLog, ActivityType } from '@/models/activity-log';
 import { Database } from '@/models/database.types';
+import { TABLES } from '@/config/db-tables';
+import { QUERY_KEYS } from '@/config/query-keys';
 
 interface UseActivityLogOptions {
   entityId?: string;
@@ -14,13 +16,13 @@ const ACTIVITY_LOG_LIST_COLUMNS = 'id, activity_type, entity_type, entity_id, en
 
 export function useActivityLog({ entityId, entityType, limit = 50 }: UseActivityLogOptions = {}) {
   const query = useQuery({
-    queryKey: ['activity-log', { entityId, entityType, limit }],
+    queryKey: [QUERY_KEYS.ACTIVITY_LOG, { entityId, entityType, limit }],
     queryFn: async () => {
       // If we're fetching a list (limit > 1 and no specific entityId), use list columns to save payload size
       const columns = (limit > 1 && !entityId) ? ACTIVITY_LOG_LIST_COLUMNS : ACTIVITY_LOG_COLUMNS;
       
       let query = supabase
-        .from('ic_activity_log')
+        .from(TABLES.ACTIVITY_LOG)
         .select(columns as any)
         .order('created_at', { ascending: false })
         .limit(limit);
@@ -78,7 +80,7 @@ export function useLogActivity() {
       };
 
       const { data, error } = await supabase
-        .from('ic_activity_log')
+        .from(TABLES.ACTIVITY_LOG)
         .insert([{
           activity_type: activityType,
           entity_type: entityType,
@@ -98,7 +100,7 @@ export function useLogActivity() {
       return data as unknown as ActivityLog;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['activity-log'] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ACTIVITY_LOG] });
     },
   });
 }
@@ -205,7 +207,7 @@ export async function logActivity(params: LogActivityParams) {
   };
 
   const { data, error } = await supabase
-    .from('ic_activity_log')
+    .from(TABLES.ACTIVITY_LOG)
     .insert([{
       activity_type: params.activityType,
       entity_type: params.entityType,

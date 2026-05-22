@@ -9,11 +9,25 @@ const mockSupabaseQuery = {
   in: vi.fn().mockReturnThis(),
   order: vi.fn().mockReturnThis(),
   single: vi.fn().mockImplementation(() => Promise.resolve({ 
-    data: { id: 'staff-1', staff_name: 'John Staff', status: 'active', email: 'john@example.com' }, 
+    data: { 
+      id: 'staff-1', 
+      staff_name: 'John Staff', 
+      status: 'active', 
+      email: 'john@example.com',
+      role: { id: 'role-1', role_name: 'Staff' },
+      department_info: { id: 'dept-1', department_name: 'Care' }
+    }, 
     error: null 
   })),
   maybeSingle: vi.fn().mockImplementation(() => Promise.resolve({ 
-    data: { id: 'staff-1', staff_name: 'John Staff', status: 'active', email: 'john@example.com' }, 
+    data: { 
+      id: 'staff-1', 
+      staff_name: 'John Staff', 
+      status: 'active', 
+      email: 'john@example.com',
+      role: { id: 'role-1', role_name: 'Staff' },
+      department_info: { id: 'dept-1', department_name: 'Care' }
+    }, 
     error: null 
   })),
   then: vi.fn().mockImplementation(function(this: any, onSuccess) {
@@ -65,8 +79,8 @@ describe('Staff Detail Smoke Test', () => {
     }, { timeout: 2000 });
     
     await waitFor(() => {
-      // The name should appear in the header or form
-      expect(screen.getAllByText(/John Staff/i).length).toBeGreaterThan(0);
+      // The name should appear in the form input
+      expect(screen.getByDisplayValue('John Staff')).toBeInTheDocument();
     }, { timeout: 5000 });
   });
 });

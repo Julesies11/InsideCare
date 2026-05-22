@@ -21,13 +21,13 @@ const mockDelete = vi.fn().mockImplementation(() => ({
 }));
 
 const mockFrom = vi.fn((table) => {
-  if (table === 'checklist_schedules') {
+  if (table === 'ic_checklist_schedules') {
     return { insert: mockInsert, delete: mockDelete };
   }
-  if (table === 'house_checklists') {
+  if (table === 'ic_house_checklists') {
     return { select: mockSelect };
   }
-  if (table === 'house_calendar_events') {
+  if (table === 'ic_house_calendar_events') {
     return { insert: vi.fn().mockResolvedValue({ error: null }), delete: mockDelete };
   }
   return { select: mockSelect, insert: mockInsert, delete: mockDelete };
@@ -60,11 +60,11 @@ describe('useChecklistSchedules', () => {
     expect(newSchedule).toBeDefined();
     expect(newSchedule.id).toBe('schedule-1');
     
-    // Check if mockFrom was called for 'checklist_schedules'
-    expect(mockFrom).toHaveBeenCalledWith('checklist_schedules');
+    // Check if mockFrom was called for 'ic_checklist_schedules'
+    expect(mockFrom).toHaveBeenCalledWith('ic_checklist_schedules');
     
-    // Check if mockFrom was called for 'house_calendar_events' (materialization)
-    expect(mockFrom).toHaveBeenCalledWith('house_calendar_events');
+    // Check if mockFrom was called for 'ic_house_calendar_events' (materialization)
+    expect(mockFrom).toHaveBeenCalledWith('ic_house_calendar_events');
   });
 
   it('should delete a schedule', async () => {
@@ -74,6 +74,6 @@ describe('useChecklistSchedules', () => {
       await result.current.deleteSchedule('schedule-1');
     });
     
-    expect(mockFrom).toHaveBeenCalledWith('checklist_schedules');
+    expect(mockFrom).toHaveBeenCalledWith('ic_checklist_schedules');
   });
 });

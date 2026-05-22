@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { SignedUrlBatcher } from '@/lib/signed-url-batcher';
+import { QUERY_KEYS } from '@/config/query-keys';
 
 /**
  * Hook to get a signed URL for a private storage object.
@@ -9,7 +10,7 @@ import { SignedUrlBatcher } from '@/lib/signed-url-batcher';
  */
 export function useSignedUrl(bucket: string, path: string | null | undefined, expiresIn: number = 3600) {
   const query = useQuery({
-    queryKey: ['signed-url', bucket, path, expiresIn],
+    queryKey: [QUERY_KEYS.SIGNED_URL, bucket, path, expiresIn],
     queryFn: async () => {
       if (!path) return null;
 

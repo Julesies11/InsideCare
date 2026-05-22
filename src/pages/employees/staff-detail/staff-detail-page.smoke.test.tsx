@@ -10,11 +10,23 @@ const mockSupabaseQuery = {
   in: vi.fn().mockReturnThis(),
   order: vi.fn().mockReturnThis(),
   single: vi.fn().mockImplementation(() => Promise.resolve({ 
-    data: { id: 'staff-1', name: 'John Staff', email: 'john@example.com' }, 
+    data: { 
+      id: 'staff-1', 
+      staff_name: 'John Staff', 
+      email: 'john@example.com',
+      role: { id: 'role-1', role_name: 'Staff' },
+      department_info: { id: 'dept-1', department_name: 'Care' }
+    }, 
     error: null 
   })),
   maybeSingle: vi.fn().mockImplementation(() => Promise.resolve({ 
-    data: { id: 'staff-1', name: 'John Staff', email: 'john@example.com' }, 
+    data: { 
+      id: 'staff-1', 
+      staff_name: 'John Staff', 
+      email: 'john@example.com',
+      role: { id: 'role-1', role_name: 'Staff' },
+      department_info: { id: 'dept-1', department_name: 'Care' }
+    }, 
     error: null 
   })),
   gte: vi.fn().mockReturnThis(),

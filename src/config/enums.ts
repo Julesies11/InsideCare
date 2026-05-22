@@ -31,6 +31,13 @@ export const COMPLIANCE_STATUS = {
   EXPIRED: 'Expired',
 } as const;
 
+export const TIMESHEET_STATUS = {
+  DRAFT: 'draft',
+  PENDING: 'pending',
+  APPROVED: 'approved',
+  REJECTED: 'rejected',
+} as const;
+
 export const LEAVE_STATUS = {
   PENDING: 'pending',
   APPROVED: 'approved',

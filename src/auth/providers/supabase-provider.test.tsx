@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, waitFor, screen } from '@testing-library/react';
+import { render, waitFor, screen, act } from '@testing-library/react';
 import { AuthProvider } from './supabase-provider';
 import { useAuth } from '@/auth/context/auth-context';
 import { supabase } from '@/lib/supabase';
@@ -58,11 +58,19 @@ const TestConsumer = () => {
 };
 
 describe('AuthProvider', () => {
+  let authCallback: any;
+
   beforeEach(() => {
     vi.clearAllMocks();
-    // Default mock for onAuthStateChange to return a subscription
-    (supabase.auth.onAuthStateChange as any).mockReturnValue({
-      data: { subscription: { unsubscribe: vi.fn() } },
+    authCallback = null;
+
+    // Default mock for onAuthStateChange
+    (supabase.auth.onAuthStateChange as any).mockImplementation((cb: any) => {
+      authCallback = cb;
+      // Trigger INITIAL_SESSION with null by default to simulate mount
+      // We wrap in setTimeout to ensure it happens after the caller has a chance to set up
+      setTimeout(() => cb('INITIAL_SESSION', null), 0);
+      return { data: { subscription: { unsubscribe: vi.fn() } } };
     });
   });
 
@@ -90,6 +98,13 @@ describe('AuthProvider', () => {
     (supabase.auth.getSession as any).mockResolvedValue({ data: { session: mockSession }, error: null });
     (SupabaseAdapter.getCurrentUser as any).mockResolvedValue(mockProfile);
 
+    // Override the mock to provide the session immediately
+    (supabase.auth.onAuthStateChange as any).mockImplementation((cb: any) => {
+      authCallback = cb;
+      setTimeout(() => cb('INITIAL_SESSION', mockSession), 0);
+      return { data: { subscription: { unsubscribe: vi.fn() } } };
+    });
+
     render(
       <AuthProvider>
         <TestConsumer />
@@ -99,18 +114,12 @@ describe('AuthProvider', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('user-email')).toHaveTextContent('test@example.com');
-    });
+    }, { timeout: 5000 });
 
     expect(screen.getByTestId('is-admin')).toHaveTextContent('admin');
   });
 
   it('should handle SIGNED_IN event', async () => {
-    let authCallback: any;
-    (supabase.auth.onAuthStateChange as any).mockImplementation((cb: any) => {
-      authCallback = cb;
-      return { data: { subscription: { unsubscribe: vi.fn() } } };
-    });
-
     (supabase.auth.getSession as any).mockResolvedValue({ data: { session: null }, error: null });
 
     render(
@@ -128,7 +137,7 @@ describe('AuthProvider', () => {
     const mockProfile = { email: 'new@example.com' };
     (SupabaseAdapter.getCurrentUser as any).mockResolvedValue(mockProfile);
 
-    await waitFor(async () => {
+    await act(async () => {
       await authCallback('SIGNED_IN', mockSession);
     });
 
@@ -138,15 +147,18 @@ describe('AuthProvider', () => {
   });
 
   it('should handle SIGNED_OUT event', async () => {
-    let authCallback: any;
+    const mockProfile = { email: 'initial@example.com' };
+    const mockSession = { access_token: 't', user: { id: '1' } };
+    
+    (supabase.auth.getSession as any).mockResolvedValue({ data: { session: mockSession }, error: null });
+    (SupabaseAdapter.getCurrentUser as any).mockResolvedValue(mockProfile);
+
+    // Initial state with session
     (supabase.auth.onAuthStateChange as any).mockImplementation((cb: any) => {
       authCallback = cb;
+      setTimeout(() => cb('INITIAL_SESSION', mockSession), 0);
       return { data: { subscription: { unsubscribe: vi.fn() } } };
     });
-
-    const mockProfile = { email: 'initial@example.com' };
-    (supabase.auth.getSession as any).mockResolvedValue({ data: { session: { access_token: 't' } }, error: null });
-    (SupabaseAdapter.getCurrentUser as any).mockResolvedValue(mockProfile);
 
     render(
       <AuthProvider>
@@ -158,7 +170,7 @@ describe('AuthProvider', () => {
     await waitFor(() => expect(screen.getByTestId('user-email')).toHaveTextContent('initial@example.com'));
 
     // Trigger SIGNED_OUT
-    await waitFor(async () => {
+    await act(async () => {
       await authCallback('SIGNED_OUT', null);
     });
 

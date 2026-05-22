@@ -1,5 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { TABLES } from '@/config/db-tables';
+import { QUERY_KEYS } from '@/config/query-keys';
 
 export interface ParticipantGoal {
   id: string;
@@ -23,12 +25,12 @@ const PROGRESS_COLUMNS = 'id, goal_id, progress_note, created_at, updated_at';
 
 export function useParticipantGoals(participantId?: string) {
   return useQuery({
-    queryKey: ['participant-goals', participantId],
+    queryKey: [QUERY_KEYS.PARTICIPANT_GOALS, participantId],
     queryFn: async () => {
       if (!participantId) return { goals: [], progress: [] };
 
       const { data: goals, error: goalError } = await supabase
-        .from('ic_participant_goals')
+        .from(TABLES.PARTICIPANT_GOALS)
         .select(GOAL_COLUMNS)
         .eq('participant_id', participantId)
         .order('created_at', { ascending: false });
@@ -39,7 +41,7 @@ export function useParticipantGoals(participantId?: string) {
       if (goalIds.length === 0) return { goals: [], progress: [] };
 
       const { data: progress, error: progressError } = await supabase
-        .from('ic_participant_goal_progress')
+        .from(TABLES.PARTICIPANT_GOAL_PROGRESS)
         .select(PROGRESS_COLUMNS)
         .in('goal_id', goalIds)
         .order('created_at', { ascending: true });
@@ -62,7 +64,7 @@ export function useAddParticipantGoal() {
   return useMutation({
     mutationFn: async (goal: Omit<ParticipantGoal, 'id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
-        .from('ic_participant_goals')
+        .from(TABLES.PARTICIPANT_GOALS)
         .insert(goal)
         .select(GOAL_COLUMNS)
         .maybeSingle();
@@ -72,7 +74,7 @@ export function useAddParticipantGoal() {
       return data as ParticipantGoal;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['participant-goals', data.participant_id] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PARTICIPANT_GOALS, data.participant_id] });
     },
   });
 }
@@ -83,7 +85,7 @@ export function useUpdateParticipantGoal() {
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<ParticipantGoal> }) => {
       const { data, error } = await supabase
-        .from('ic_participant_goals')
+        .from(TABLES.PARTICIPANT_GOALS)
         .update(updates)
         .eq('id', id)
         .select(GOAL_COLUMNS)
@@ -94,7 +96,7 @@ export function useUpdateParticipantGoal() {
       return data as ParticipantGoal;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['participant-goals', data.participant_id] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PARTICIPANT_GOALS, data.participant_id] });
     },
   });
 }
@@ -105,14 +107,14 @@ export function useDeleteParticipantGoal() {
   return useMutation({
     mutationFn: async ({ id, participantId }: { id: string; participantId: string }) => {
       const { error } = await supabase
-        .from('ic_participant_goals')
+        .from(TABLES.PARTICIPANT_GOALS)
         .delete()
         .eq('id', id);
 
       if (error) throw error;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['participant-goals', variables.participantId] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PARTICIPANT_GOALS, variables.participantId] });
     },
   });
 }
@@ -123,7 +125,7 @@ export function useAddGoalProgress() {
   return useMutation({
     mutationFn: async ({ progress, participantId }: { progress: Omit<GoalProgress, 'id' | 'created_at' | 'updated_at'>; participantId: string }) => {
       const { data, error } = await supabase
-        .from('ic_participant_goal_progress')
+        .from(TABLES.PARTICIPANT_GOAL_PROGRESS)
         .insert(progress)
         .select(PROGRESS_COLUMNS)
         .maybeSingle();
@@ -133,7 +135,7 @@ export function useAddGoalProgress() {
       return { data: data as GoalProgress, participantId };
     },
     onSuccess: (result) => {
-      queryClient.invalidateQueries({ queryKey: ['participant-goals', result.participantId] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PARTICIPANT_GOALS, result.participantId] });
     },
   });
 }
@@ -144,7 +146,7 @@ export function useUpdateGoalProgress() {
   return useMutation({
     mutationFn: async ({ id, progress_note, participantId }: { id: string; progress_note: string; participantId: string }) => {
       const { data, error } = await supabase
-        .from('ic_participant_goal_progress')
+        .from(TABLES.PARTICIPANT_GOAL_PROGRESS)
         .update({ progress_note })
         .eq('id', id)
         .select(PROGRESS_COLUMNS)
@@ -155,7 +157,7 @@ export function useUpdateGoalProgress() {
       return { data: data as GoalProgress, participantId };
     },
     onSuccess: (result) => {
-      queryClient.invalidateQueries({ queryKey: ['participant-goals', result.participantId] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PARTICIPANT_GOALS, result.participantId] });
     },
   });
 }
@@ -166,14 +168,14 @@ export function useDeleteGoalProgress() {
   return useMutation({
     mutationFn: async ({ id, participantId }: { id: string; participantId: string }) => {
       const { error } = await supabase
-        .from('ic_participant_goal_progress')
+        .from(TABLES.PARTICIPANT_GOAL_PROGRESS)
         .delete()
         .eq('id', id);
 
       if (error) throw error;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['participant-goals', variables.participantId] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PARTICIPANT_GOALS, variables.participantId] });
     },
   });
 }

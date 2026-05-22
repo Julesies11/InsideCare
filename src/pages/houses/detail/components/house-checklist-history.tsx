@@ -32,6 +32,10 @@ import { format, subDays } from 'date-fns';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/auth/context/auth-context';
 import { toast } from 'sonner';
+import { TABLES } from '@/config/db-tables';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
+import { QUERY_KEYS } from '@/config/query-keys';
+import { CHECKLIST_STATUS } from '@/config/enums';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { DataGrid } from '@/components/ui/data-grid';
@@ -98,12 +102,12 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
       // In a real app, you might want a separate count query for this.
       return submissions.filter(s => 
         s.scheduled_date === yesterdayStr && 
-        s.status === 'in_progress'
+        s.status === CHECKLIST_STATUS.in_progress
       ).length;
     }, [submissions, yesterdayStr]);
 
     const handleStartNew = async (checklist: any, shiftId?: string) => {
-      const existing = (submissions || []).find(s => s.checklist_id === checklist.id && s.status === 'in_progress');
+      const existing = (submissions || []).find(s => s.checklist_id === checklist.id && s.status === CHECKLIST_STATUS.in_progress);
       if (existing) {
         handleResume(existing as any);
         return;
@@ -122,10 +126,10 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
         // If not in pre-loaded houseChecklists (maybe it's for another house), fetch it
         try {
           const { data: clData, error: clError } = await supabase
-            .from('ic_house_checklists')
+            .from(TABLES.HOUSE_CHECKLISTS)
             .select(`
               id, house_id, house_checklist_name, description, master_id, created_at, updated_at,
-              house_checklist_items:ic_house_checklist_items(id, checklist_id, title, instructions, group_title, priority, is_required, sort_order, created_at, updated_at)
+              house_checklist_items:${TABLES.HOUSE_CHECKLIST_ITEMS}(id, checklist_id, title, instructions, group_title, priority, is_required, sort_order, created_at, updated_at)
             `)
             .eq('id', submission.checklist_id)
             .maybeSingle();
@@ -148,7 +152,7 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
 
       try {
         const { data: itemData } = await supabase
-          .from('ic_house_checklist_submission_items')
+          .from(TABLES.HOUSE_CHECKLIST_SUBMISSION_ITEMS)
           .select(`
             id, 
             submission_id, 
@@ -157,12 +161,12 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
             status,
             note, 
             completed_at,
-            completed_by_staff:ic_staff!completed_by(id, staff_name)
+            completed_by_staff:${TABLES.STAFF}!completed_by(id, staff_name)
           `)
           .eq('submission_id', submission.id);
 
         const { data: attachmentData } = await supabase
-          .from('ic_house_checklist_item_attachments')
+          .from(TABLES.HOUSE_CHECKLIST_ITEM_ATTACHMENTS)
           .select('id, submission_id, item_id, file_name, file_path, file_size, mime_type, uploaded_by, created_at')
           .eq('submission_id', submission.id);
 
@@ -171,7 +175,7 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
         const completedBy: Record<string, { id: string; name: string }> = {};
         
         itemData?.forEach((item: any) => {
-          const isDone = item.status === 'Completed' || item.is_completed;
+          const isDone = item.status === CHECKLIST_STATUS.COMPLETED || item.is_completed;
           completedItems[item.item_id] = isDone;
           itemNotes[item.item_id] = item.note || '';
           if (isDone && item.completed_by_staff) {
@@ -187,7 +191,7 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
           for (const att of attachmentData) {
             if (!attachments[att.item_id]) attachments[att.item_id] = [];
             const { data: urlData, error: urlError } = await supabase.storage
-              .from('ic_checklist-attachments')
+              .from(STORAGE_BUCKETS.CHECKLIST_ATTACHMENTS)
               .createSignedUrl(att.file_path, 3600);
             
             if (urlError) {
@@ -207,7 +211,7 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
       }
     };
 
-    const persistExecution = async (results: any, status: 'in_progress' | 'completed') => {
+    const persistExecution = async (results: any, status: CHECKLIST_STATUS.in_progress | CHECKLIST_STATUS.completed) => {
       // Use the house_id from the checklist if not provided in props
       const targetHouseId = houseId || executingChecklist?.house_id;
       if (!targetHouseId) {
@@ -220,7 +224,7 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
 
       if (!submissionId) {
         const { data, error } = await supabase
-          .from('ic_house_checklist_submissions')
+          .from(TABLES.HOUSE_CHECKLIST_SUBMISSIONS)
           .insert({
             checklist_id: results.checklist_id,
             house_id: targetHouseId,
@@ -229,7 +233,7 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
             shift_id: executingShiftId || null,
             status: status,
             scheduled_date: format(new Date(), 'yyyy-MM-dd'),
-            completed_at: status === 'completed' ? new Date().toISOString() : null
+            completed_at: status === CHECKLIST_STATUS.completed ? new Date().toISOString() : null
           })
           .select().maybeSingle();
         if (error) throw error;
@@ -237,11 +241,11 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
         submissionId = data.id;
       } else {
         const { error } = await supabase
-          .from('ic_house_checklist_submissions')
+          .from(TABLES.HOUSE_CHECKLIST_SUBMISSIONS)
           .update({
             status: status,
             submitted_by: staffId || null,
-            completed_at: status === 'completed' ? new Date().toISOString() : null,
+            completed_at: status === CHECKLIST_STATUS.completed ? new Date().toISOString() : null,
           })
           .eq('id', submissionId);
         if (error) throw error;
@@ -254,21 +258,21 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
           item_id: item.item_id,
           master_item_id: originalItem?.master_item_id || null,
           is_completed: item.is_completed,
-          status: item.is_completed ? 'Completed' : 'Pending',
+          status: item.is_completed ? CHECKLIST_STATUS.COMPLETED : CHECKLIST_STATUS.PENDING,
           completed_by: item.completed_by,
           note: item.note,
           completed_at: item.is_completed ? new Date().toISOString() : null
         };
       });
-      await supabase.from('ic_house_checklist_submission_items').upsert(submissionItems, { onConflict: 'submission_id,item_id' });
+      await supabase.from(TABLES.HOUSE_CHECKLIST_SUBMISSION_ITEMS).upsert(submissionItems, { onConflict: 'submission_id,item_id' });
 
       // Handle attachments...
       if (results.toDeleteAttachments?.length > 0) {
         for (const attId of results.toDeleteAttachments) {
-          const { data: att } = await supabase.from('ic_house_checklist_item_attachments').select('file_path').eq('id', attId).maybeSingle();
+          const { data: att } = await supabase.from(TABLES.HOUSE_CHECKLIST_ITEM_ATTACHMENTS).select('file_path').eq('id', attId).maybeSingle();
           if (!att) throw new Error("You do not have permission to perform this action");
-          if (att?.file_path) await supabase.storage.from('ic_checklist_attachments').remove([att.file_path]);
-          await supabase.from('ic_house_checklist_item_attachments').delete().eq('id', attId);
+          if (att?.file_path) await supabase.storage.from(STORAGE_BUCKETS.CHECKLIST_ATTACHMENTS).remove([att.file_path]);
+          await supabase.from(TABLES.HOUSE_CHECKLIST_ITEM_ATTACHMENTS).delete().eq('id', attId);
         }
       }
 
@@ -276,8 +280,8 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
         for (const itemId in results.queuedAttachments) {
           for (const queued of results.queuedAttachments[itemId]) {
             const filePath = `${submissionId}/${itemId}/${Date.now()}-${queued.file.name}`;
-            await supabase.storage.from('ic_checklist_attachments').upload(filePath, queued.file);
-            await supabase.from('ic_house_checklist_item_attachments').insert({
+            await supabase.storage.from(STORAGE_BUCKETS.CHECKLIST_ATTACHMENTS).upload(filePath, queued.file);
+            await supabase.from(TABLES.HOUSE_CHECKLIST_ITEM_ATTACHMENTS).insert({
               submission_id: submissionId,
               item_id: itemId,
               file_name: queued.file.name,
@@ -294,7 +298,7 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
     };
 
     const handleSaveExecution = async (results: any) => {
-      const id = await persistExecution(results, 'in_progress');
+      const id = await persistExecution(results, CHECKLIST_STATUS.in_progress);
       if (id && !activeSubmission) {
         const completedItems: Record<string, boolean> = {};
         const itemNotes: Record<string, string> = {};
@@ -304,17 +308,17 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
         });
         setActiveSubmission({ id, completedItems, itemNotes, attachments: {} });
       }
-      queryClient.invalidateQueries({ queryKey: ['house-checklists'] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.CHECKLISTS] });
       refreshHistory();
       refreshChecklists();
     };
 
     const handleCompleteExecution = async (results: any) => {
-      await persistExecution(results, 'completed');
+      await persistExecution(results, CHECKLIST_STATUS.completed);
       setShowExecutionDialog(false);
       setExecutingChecklist(null);
       setActiveSubmission(null);
-      queryClient.invalidateQueries({ queryKey: ['house-checklists'] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.CHECKLISTS] });
       refreshHistory();
       refreshChecklists();
     };
@@ -352,7 +356,7 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
         accessorKey: 'status',
         header: ({ column }) => <DataGridColumnHeader title="Status / Progress" column={column} className="justify-center" />,
         cell: ({ row }) => {
-          const isInProgress = row.original.status === 'in_progress';
+          const isInProgress = row.original.status === CHECKLIST_STATUS.in_progress;
           return (
             <div className="text-center">
               {isInProgress ? (
@@ -384,7 +388,7 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
         id: 'actions',
         header: () => <div className="text-right">Actions</div>,
         cell: ({ row }) => {
-          const isInProgress = row.original.status === 'in_progress';
+          const isInProgress = row.original.status === CHECKLIST_STATUS.in_progress;
           return (
             <div className="flex justify-end gap-1">
               {isInProgress ? (
@@ -571,7 +575,7 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
                     setShowExecutionDialog(false);
                     setActiveSubmission(null);
                   }}
-                  isReadOnly={activeSubmission?.status === 'completed'}
+                  isReadOnly={activeSubmission?.status === CHECKLIST_STATUS.completed}
                   initialData={activeSubmission ? {
                     completedItems: activeSubmission.completedItems,
                     itemNotes: activeSubmission.itemNotes,

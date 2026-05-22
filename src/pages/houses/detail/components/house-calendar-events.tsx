@@ -27,6 +27,10 @@ import { HouseChecklistExecution } from './house-checklist-execution';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { TABLES } from '@/config/db-tables';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
+import { QUERY_KEYS } from '@/config/query-keys';
+import { STATUS, CHECKLIST_STATUS } from '@/config/enums';
 // Shift Dialog imports
 import { ShiftDialog, ShiftFormData } from '@/components/roster/shift-dialog';
 import { ShiftCard, ShiftCardData } from '@/components/roster/shift-card';
@@ -150,7 +154,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
       
       if (deleteShifts) {
         promises.push(
-          supabase.from('ic_staff_shifts')
+          supabase.from(TABLES.STAFF_SHIFTS)
             .delete()
             .eq('house_id', houseId)
             .gte('start_date', startDate)
@@ -160,7 +164,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
       
       if (deleteEvents) {
         promises.push(
-          supabase.from('ic_house_calendar_events')
+          supabase.from(TABLES.HOUSE_CALENDAR_EVENTS)
             .delete()
             .eq('house_id', houseId)
             .gte('event_date', startDate)
@@ -170,7 +174,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
       
       if (deleteChecklists) {
         promises.push(
-          supabase.from('ic_house_checklist_submissions')
+          supabase.from(TABLES.HOUSE_CHECKLIST_SUBMISSIONS)
             .delete()
             .eq('house_id', houseId)
             .gte('created_at', `${startDate}T00:00:00.000Z`)
@@ -247,7 +251,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
       id: ac.id,
       checklist_id: ac.checklist_id,
       assignment_title: ac.assignment_title,
-      is_completed: ac.submissions?.some((s: any) => s.status === 'completed')
+      is_completed: ac.submissions?.some((s: any) => s.status === CHECKLIST_STATUS.completed)
     })),
     notesCount: event.notes_count || 0
   });
@@ -361,7 +365,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
         
         // Fetch full shift data with participants and checklists
         const { data: shift, error: shiftError } = await supabase
-          .from('ic_staff_shifts')
+          .from(TABLES.STAFF_SHIFTS)
           .select(`
             *,
             participants:ic_shift_participants(participant:ic_participants(id, participant_name)),
@@ -394,8 +398,8 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
       try {
         // 1. Fetch the House Checklist and its items
         const { data: checklist, error: clError } = await supabase
-          .from('ic_house_checklists')
-          .select('*, items:ic_house_checklist_items(*)')
+          .from(TABLES.HOUSE_CHECKLISTS)
+          .select(`*, items:${TABLES.HOUSE_CHECKLIST_ITEMS}(*)`)
           .eq('id', event.house_checklist_id)
           .maybeSingle();
 
@@ -410,11 +414,11 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
         if (!existingSubmission) {
           const isShiftRoutine = event.is_shift_routine || event.id?.startsWith('shift-cl-');
           const { data: directSubs } = await supabase
-            .from('ic_house_checklist_submissions')
+            .from(TABLES.HOUSE_CHECKLIST_SUBMISSIONS)
             .select('id, status, updated_at, scheduled_date')
             .eq('checklist_id', event.house_checklist_id)
             .eq(isShiftRoutine ? 'shift_id' : 'calendar_event_id', isShiftRoutine ? event.shift_id : event.id)
-            .eq('status', 'in_progress')
+            .eq('status', CHECKLIST_STATUS.in_progress)
             .order('updated_at', { ascending: false })
             .limit(1);
             
@@ -427,10 +431,10 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
         if (existingSubmission) {
           // Fetch existing submission items to resume, including staff names
           const { data: subItems } = await supabase
-            .from('ic_house_checklist_submission_items')
+            .from(TABLES.HOUSE_CHECKLIST_SUBMISSION_ITEMS)
             .select(`
               *,
-              completed_by_staff:ic_staff!completed_by(id, staff_name)
+              completed_by_staff:${TABLES.STAFF}!completed_by(id, staff_name)
             `)
             .eq('submission_id', existingSubmission.id);
 
@@ -439,7 +443,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
           const completedBy: Record<string, { id: string; name: string }> = {};
 
           subItems?.forEach(si => {
-            const isDone = si.status === 'Completed' || si.is_completed;
+            const isDone = si.status === CHECKLIST_STATUS.COMPLETED || si.is_completed;
             completedItems[si.item_id] = isDone;
             itemNotes[si.item_id] = si.note || '';
             if (isDone && si.completed_by_staff) {
@@ -495,7 +499,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
     setShowLeaveDialog(true);
   };
 
-  const persistChecklistExecution = async (results: any, status: 'in_progress' | 'completed') => {
+  const persistChecklistExecution = async (results: any, status: string) => {
     console.log('[ChecklistDebug] persistChecklistExecution', { status, results });
     if (!selectedEvent || !houseId) return;
 
@@ -511,7 +515,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
       const calendarEventId = (isShiftRoutine || selectedEvent.id?.startsWith('shift-cl-')) ? null : selectedEvent.id;
       
       const { data, error } = await supabase
-        .from('ic_house_checklist_submissions')
+        .from(TABLES.HOUSE_CHECKLIST_SUBMISSIONS)
         .insert({
           checklist_id: executingChecklist.id,
           house_id: houseId,
@@ -522,7 +526,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
           status: status,
           submitted_by: staffId || null,
           started_at: new Date().toISOString(),
-          completed_at: status === 'completed' ? new Date().toISOString() : null
+          completed_at: status === CHECKLIST_STATUS.completed ? new Date().toISOString() : null
         })
         .select()
         .maybeSingle();
@@ -538,11 +542,11 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
       // Update existing submission
       console.log('[ChecklistDebug] Updating existing submission:', submissionId);
       const { error } = await supabase
-        .from('ic_house_checklist_submissions')
+        .from(TABLES.HOUSE_CHECKLIST_SUBMISSIONS)
         .update({
           status: status,
           submitted_by: staffId || null,
-          completed_at: status === 'completed' ? new Date().toISOString() : null,
+          completed_at: status === CHECKLIST_STATUS.completed ? new Date().toISOString() : null,
           updated_at: new Date().toISOString()
         })
         .eq('id', submissionId);
@@ -559,14 +563,14 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
       submission_id: submissionId,
       item_id: item.item_id,
       is_completed: !!item.is_completed,
-      status: item.is_completed ? 'Completed' : 'Pending',
+      status: item.is_completed ? CHECKLIST_STATUS.COMPLETED : CHECKLIST_STATUS.PENDING,
       note: item.note,
       completed_by: item.completed_by,
       completed_at: item.is_completed ? new Date().toISOString() : null
     }));
 
     const { error: itemsError } = await supabase
-      .from('ic_house_checklist_submission_items')
+      .from(TABLES.HOUSE_CHECKLIST_SUBMISSION_ITEMS)
       .upsert(submissionItems, { onConflict: 'submission_id,item_id' });
 
     if (itemsError) {
@@ -581,8 +585,8 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
         for (const queued of results.queuedAttachments[itemId]) {
           const file = queued.file;
           const filePath = `${submissionId}/${itemId}/${Date.now()}-${file.name}`;
-          await supabase.storage.from('ic_checklist_attachments').upload(filePath, file);
-          await supabase.from('ic_house_checklist_item_attachments').insert({
+          await supabase.storage.from(STORAGE_BUCKETS.CHECKLIST_ATTACHMENTS).upload(filePath, file);
+          await supabase.from(TABLES.HOUSE_CHECKLIST_ITEM_ATTACHMENTS).insert({
             submission_id: submissionId,
             item_id: itemId,
             file_name: file.name,
@@ -601,7 +605,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
   const handleSaveChecklistProgress = async (results: any) => {
     console.log('[ChecklistDebug] handleSaveChecklistProgress results:', results);
     try {
-      const id = await persistChecklistExecution(results, 'in_progress');
+      const id = await persistChecklistExecution(results, CHECKLIST_STATUS.in_progress);
       const completedItems: Record<string, boolean> = {};
       const itemNotes: Record<string, string> = {};
       const completedBy: Record<string, { id: string; name: string }> = {};
@@ -742,7 +746,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
           const { participant_ids, assigned_staff_ids, ...directTableData } = eventData;
 
           const { data: newEvent, error: insertError } = await supabase
-            .from('ic_house_calendar_events')
+            .from(TABLES.HOUSE_CALENDAR_EVENTS)
             .insert({
               ...directTableData,
               house_id: houseId,
@@ -757,12 +761,12 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
           // Also handle immediate junction inserts
           if (participant_ids?.length > 0) {
             await supabase
-              .from('ic_house_calendar_event_participants')
+              .from(TABLES.HOUSE_CALENDAR_EVENT_PARTICIPANTS)
               .insert(participant_ids.map(id => ({ event_id: finalEventId, participant_id: id })));
           }
           if (assigned_staff_ids?.length > 0) {
             await supabase
-              .from('ic_house_calendar_event_staff')
+              .from(TABLES.HOUSE_CALENDAR_EVENT_STAFF)
               .insert(assigned_staff_ids.map(id => ({ event_id: finalEventId, staff_id: id })));
           }
 
@@ -790,8 +794,8 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
         if (formData.toDeleteAttachments.length > 0) {
           for (const attId of formData.toDeleteAttachments) {
             const att = formData.existingAttachments.find(a => a.id === attId);
-            if (att?.file_path) await supabase.storage.from('ic_house_documents').remove([att.file_path]);
-            await supabase.from('ic_house_calendar_event_attachments').delete().eq('id', attId);
+            if (att?.file_path) await supabase.storage.from(STORAGE_BUCKETS.HOUSE_DOCUMENTS).remove([att.file_path]);
+            await supabase.from(TABLES.HOUSE_CALENDAR_EVENT_ATTACHMENTS).delete().eq('id', attId);
           }
         }
 
@@ -802,12 +806,12 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
             const filePath = `calendar-events/${finalEventId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
             
             const { error: uploadError } = await supabase.storage
-              .from('ic_house-documents')
+              .from(STORAGE_BUCKETS.HOUSE_DOCUMENTS)
               .upload(filePath, queued.file);
             
             if (uploadError) throw uploadError;
 
-            await supabase.from('ic_house_calendar_event_attachments').insert({
+            await supabase.from(TABLES.HOUSE_CALENDAR_EVENT_ATTACHMENTS).insert({
               event_id: finalEventId,
               file_name: queued.file.name,
               file_path: filePath,
@@ -989,8 +993,8 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
     if (event.type === 'shift') return 'Rostered';
     if (event.is_checklist_event) {
       const submission = event.submissions?.[0];
-      if (submission?.status === 'completed') return 'Completed';
-      if (submission?.status === 'in_progress') return 'In Progress';
+      if (submission?.status === CHECKLIST_STATUS.completed) return CHECKLIST_STATUS.COMPLETED;
+      if (submission?.status === CHECKLIST_STATUS.in_progress) return 'In Progress';
       
       const eventDate = startOfDay(new Date(event.event_date));
       const today = startOfDay(new Date());
@@ -1601,7 +1605,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
               <div className="space-y-2">
                 <Label>Participants</Label>
                 <div className="max-h-40 overflow-y-auto border rounded-md p-2 space-y-2 bg-gray-50/50">
-                  {participants.filter(p => p.status === 'active' || formData.participant_ids?.includes(p.id)).map(participant => (
+                  {participants.filter(p => p.status === STATUS.active || formData.participant_ids?.includes(p.id)).map(participant => (
                     <label key={participant.id} className="flex items-center space-x-2 cursor-pointer p-1 hover:bg-white rounded">
                       <Checkbox 
                         checked={formData.participant_ids?.includes(participant.id)}
@@ -1626,7 +1630,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
                 <Label>Assigned Staff</Label>
                 <div className="max-h-40 overflow-y-auto border rounded-md p-2 space-y-2 bg-gray-50/50">
                   {systemStaff.filter(s => {
-                    const isStatusActive = (s as any).status?.toLowerCase() === 'active' || formData.assigned_staff_ids?.includes(s.id);
+                    const isStatusActive = (s as any).status?.toLowerCase() === STATUS.active || formData.assigned_staff_ids?.includes(s.id);
                     if (!isStatusActive) return false;
                     const today = new Date().toISOString().split('T')[0];
                     const assignments = (s as any).house_assignments || [];

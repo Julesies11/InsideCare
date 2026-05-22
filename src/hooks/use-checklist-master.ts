@@ -1,8 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { TABLES } from '@/config/db-tables';
+import { QUERY_KEYS } from '@/config/query-keys';
 
 const getChecklistMasterQuery = () => supabase
-  .from('ic_checklist_master')
+  .from(TABLES.CHECKLIST_MASTER)
   .select(`
     id, checklist_name, days_of_week, description,
     items:ic_checklist_item_master(id, master_id, title, instructions, group_title, priority, is_required, sort_order)
@@ -17,10 +19,10 @@ export interface ChecklistMaster extends Omit<ChecklistMasterWithRelations, 'ite
 
 export function useChecklistMaster() {
   const query = useQuery({
-    queryKey: ['checklist-master'],
+    queryKey: [QUERY_KEYS.CHECKLIST_MASTER],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('ic_checklist_master')
+        .from(TABLES.CHECKLIST_MASTER)
         .select(`
           id, checklist_name, days_of_week, description,
           items:ic_checklist_item_master(id, master_id, title, instructions, group_title, priority, is_required, sort_order)

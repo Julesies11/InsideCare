@@ -1,8 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { TABLES } from '@/config/db-tables';
+import { CHECKLIST_STATUS } from '@/config/enums';
 
 const getHouseChecklistsQuery = () => supabase
-  .from('ic_house_checklists')
+  .from(TABLES.HOUSE_CHECKLISTS)
   .select(`
     id, house_id, house_checklist_name, days_of_week, description, master_id, sort_order, created_at, updated_at,
     house_checklist_items:ic_house_checklist_items(
@@ -32,7 +34,7 @@ export function useHouseChecklists(houseId?: string, scheduledDate?: string) {
 
       // Fetch checklists with items
       const { data: checklists, error: clError } = await supabase
-        .from('ic_house_checklists')
+        .from(TABLES.HOUSE_CHECKLISTS)
         .select(`
           id, house_id, house_checklist_name, days_of_week, description, master_id, sort_order, created_at, updated_at,
           house_checklist_items:ic_house_checklist_items(
@@ -48,14 +50,14 @@ export function useHouseChecklists(houseId?: string, scheduledDate?: string) {
       // Fetch latest in_progress submissions for these checklists in this house
       // If scheduledDate is provided, only fetch for that specific date
       let subQuery = supabase
-        .from('ic_house_checklist_submissions')
+        .from(TABLES.HOUSE_CHECKLIST_SUBMISSIONS)
         .select('id, checklist_id, status, updated_at, scheduled_date')
         .eq('house_id', houseId);
         
       if (scheduledDate) {
         subQuery = subQuery.eq('scheduled_date', scheduledDate);
       } else {
-        subQuery = subQuery.eq('status', 'in_progress');
+        subQuery = subQuery.eq('status', CHECKLIST_STATUS.in_progress);
       }
 
       const { data: submissions, error: subError } = await subQuery;

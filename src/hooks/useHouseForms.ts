@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { TABLES } from '@/config/db-tables';
 
 export interface HouseFormAssignment {
   id: string;
@@ -73,7 +74,7 @@ export function useHouseForms(houseId?: string) {
         setLoading(true);
         
         const { data, error } = await supabase
-          .from('ic_house_forms')
+          .from(TABLES.HOUSE_FORMS)
           .select(`
             *,
             creator:ic_staff!created_by(id, staff_name, email),

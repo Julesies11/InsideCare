@@ -19,6 +19,10 @@ import { useFormValidation } from '@/hooks/use-form-validation';
 import { validators } from '@/lib/validation-rules';
 import { RBAC_MODULES } from '@/config/rbac-modules';
 import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
+import { TABLES } from '@/config/db-tables';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
+import { QUERY_KEYS } from '@/config/query-keys';
+import { STATUS, COMPLIANCE_STATUS } from '@/config/enums';
 
 const stickySidebarClasses: Record<string, string> = {
   'demo1-layout': 'top-[calc(var(--header-height)+1rem)]',
@@ -118,7 +122,7 @@ export function StaffDetailContent({
     separation_date: '',
     availability: '',
     notes: '',
-    status: 'draft',
+    status: STATUS.draft,
   });
 
   // Use form validation hook
@@ -207,10 +211,10 @@ export function StaffDetailContent({
       // Step 0: Upload profile photo if a new file was selected, or clear if deleted
       if (photoFile) {
         // Use the new handleAvatarUpload utility for resizing and processing
-        const newPhotoUrl = await handleAvatarUpload(photoFile, 'ic_staff-photos', staffId);
+        const newPhotoUrl = await handleAvatarUpload(photoFile, STORAGE_BUCKETS.STAFF_PHOTOS, staffId);
 
         const { error: photoErr } = await supabase
-          .from('ic_staff')
+          .from(TABLES.STAFF)
           .update({ photo_url: newPhotoUrl })
           .eq('id', staffId);
         if (photoErr) {
@@ -239,7 +243,7 @@ export function StaffDetailContent({
       } else if (photoPreview === null && originalPhotoUrl !== null) {
         // Photo was deleted — clear it in the DB
         const { error: photoErr } = await supabase
-          .from('ic_staff')
+          .from(TABLES.STAFF)
           .update({ photo_url: null })
           .eq('id', staffId);
         if (photoErr) {
@@ -271,10 +275,10 @@ export function StaffDetailContent({
           compliance_name: item.compliance_name,
           completion_date: item.completion_date || null,
           expiry_date: item.expiry_date || null,
-          status: item.status || 'Complete',
+          status: item.status || COMPLIANCE_STATUS.COMPLETE,
         }));
 
-        const { error } = await supabase.from('ic_staff_compliance').insert(toInsert);
+        const { error } = await supabase.from(TABLES.STAFF_COMPLIANCE).insert(toInsert);
         if (error) {
           const parsedError = parseSupabaseError(error);
           toast.error(parsedError.title, { description: parsedError.description });
@@ -296,7 +300,7 @@ export function StaffDetailContent({
       if (currentPending.staffCompliance.toUpdate.length > 0) {
         for (const item of currentPending.staffCompliance.toUpdate) {
           const { error } = await supabase
-            .from('ic_staff_compliance')
+            .from(TABLES.STAFF_COMPLIANCE)
             .update({
               compliance_name: item.compliance_name,
               completion_date: item.completion_date || null,
@@ -324,12 +328,12 @@ export function StaffDetailContent({
       if (currentPending.staffCompliance.toDelete.length > 0) {
         // Get names before deleting for log
         const { data: compRecords } = await supabase
-          .from('ic_staff_compliance')
+          .from(TABLES.STAFF_COMPLIANCE)
           .select('id, compliance_name')
           .in('id', currentPending.staffCompliance.toDelete);
 
         const { error } = await supabase
-          .from('ic_staff_compliance')
+          .from(TABLES.STAFF_COMPLIANCE)
           .delete()
           .in('id', currentPending.staffCompliance.toDelete);
         
@@ -367,7 +371,7 @@ export function StaffDetailContent({
             const storagePath = `${staffId}/training/${uniqueFileName}`;
 
             const { error: uploadError } = await supabase.storage
-              .from('ic_staff-documents')
+              .from(STORAGE_BUCKETS.STAFF_DOCUMENTS)
               .upload(storagePath, item.file);
 
             if (uploadError) {
@@ -395,7 +399,7 @@ export function StaffDetailContent({
           });
         }
 
-        const { error } = await supabase.from('ic_staff_training').insert(toInsert);
+        const { error } = await supabase.from(TABLES.STAFF_TRAINING).insert(toInsert);
         if (error) {
           const parsedError = parseSupabaseError(error);
           toast.error(parsedError.title, { description: parsedError.description });
@@ -422,7 +426,7 @@ export function StaffDetailContent({
 
           if (item.file) {
             if (item.filePath) {
-              await supabase.storage.from('ic_staff-documents').remove([item.filePath]);
+              await supabase.storage.from(STORAGE_BUCKETS.STAFF_DOCUMENTS).remove([item.filePath]);
             }
 
             const fileExt = item.file.name.split('.').pop();
@@ -430,7 +434,7 @@ export function StaffDetailContent({
             const storagePath = `${staffId}/training/${uniqueFileName}`;
 
             const { error: uploadError } = await supabase.storage
-              .from('ic_staff-documents')
+              .from(STORAGE_BUCKETS.STAFF_DOCUMENTS)
               .upload(storagePath, item.file);
 
             if (uploadError) {
@@ -444,7 +448,7 @@ export function StaffDetailContent({
           }
 
           const { error } = await supabase
-            .from('ic_staff_training')
+            .from(TABLES.STAFF_TRAINING)
             .update({
               title: item.title,
               category: item.category,
@@ -480,15 +484,15 @@ export function StaffDetailContent({
         const filePaths = currentPending.training.toDelete.map(i => i.filePath).filter(Boolean) as string[];
 
         const { data: trainingRecords } = await supabase
-          .from('ic_staff_training')
+          .from(TABLES.STAFF_TRAINING)
           .select('id, title')
           .in('id', ids);
 
         if (filePaths.length > 0) {
-          await supabase.storage.from('ic_staff-documents').remove(filePaths);
+          await supabase.storage.from(STORAGE_BUCKETS.STAFF_DOCUMENTS).remove(filePaths);
         }
 
-        const { error } = await supabase.from('ic_staff_training').delete().in('id', ids);
+        const { error } = await supabase.from(TABLES.STAFF_TRAINING).delete().in('id', ids);
         if (error) {
           const parsedError = parseSupabaseError(error);
           toast.error(parsedError.title, { description: parsedError.description });
@@ -518,7 +522,7 @@ export function StaffDetailContent({
           const filePath = `staff-documents/${fileName}`;
 
           const { error: uploadError } = await supabase.storage
-            .from('ic_staff-documents')            .upload(filePath, doc.file);
+            .from(STORAGE_BUCKETS.STAFF_DOCUMENTS)            .upload(filePath, doc.file);
 
           if (uploadError) throw new Error(`Failed to upload document: ${uploadError.message}`);
 
@@ -529,7 +533,7 @@ export function StaffDetailContent({
           });
         }
 
-        const { error: dbError } = await supabase.from('ic_staff_documents').insert(toInsert);
+        const { error: dbError } = await supabase.from(TABLES.STAFF_DOCUMENTS).insert(toInsert);
         if (dbError) throw new Error(`Failed to create document records: ${dbError.message}`);
 
         for (const doc of currentPending.documents.toAdd) {
@@ -549,9 +553,9 @@ export function StaffDetailContent({
         const ids = currentPending.documents.toDelete.map(d => d.id);
         const filePaths = currentPending.documents.toDelete.map(d => d.filePath);
 
-        await supabase.storage.from('ic_staff_documents').remove(filePaths);
+        await supabase.storage.from(TABLES.STAFF_DOCUMENTS).remove(filePaths);
 
-        const { error: dbError } = await supabase.from('ic_staff_documents').delete().in('id', ids);
+        const { error: dbError } = await supabase.from(TABLES.STAFF_DOCUMENTS).delete().in('id', ids);
         if (dbError) throw new Error(`Failed to delete document records: ${dbError.message}`);
 
         for (const doc of currentPending.documents.toDelete) {
@@ -634,7 +638,7 @@ export function StaffDetailContent({
         // Validate: Name is required when status is not draft
         const nameValidation = validators.requiredWhen(
           currentName,
-          newStatus == 'active',
+          newStatus == STATUS.active,
           'Staff Name'
         );
         if (!nameValidation.isValid) {
@@ -647,7 +651,7 @@ export function StaffDetailContent({
         // Validate: Email is required when status is not 'draft'
         const emailValidation = validators.requiredWhen(
           currentEmail,
-          newStatus == 'active',
+          newStatus == STATUS.active,
           'Email'
         );
         if (!emailValidation.isValid) {
@@ -709,10 +713,10 @@ export function StaffDetailContent({
       }
 
       // Invalidate queries to refresh data from server
-      queryClient.invalidateQueries({ queryKey: ['staff', staffId] });
-      queryClient.invalidateQueries({ queryKey: ['staff-compliance', staffId] });
-      queryClient.invalidateQueries({ queryKey: ['staff-training', staffId] });
-      queryClient.invalidateQueries({ queryKey: ['staff-documents', staffId] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF, staffId] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF_COMPLIANCE, staffId] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF_TRAINING, staffId] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF_DOCUMENTS, staffId] });
 
       setRefreshKeys(prev => ({
         compliance: prev.compliance + 1,

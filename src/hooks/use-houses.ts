@@ -2,6 +2,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useLogActivity } from '@/hooks/use-activity-log';
 import { Database } from '@/models/database.types';
+import { TABLES } from '@/config/db-tables';
+import { QUERY_KEYS } from '@/config/query-keys';
 
 export interface HousesFilter {
   search?: string;
@@ -17,7 +19,7 @@ const HOUSE_COLUMNS = 'id, house_name, branch_id, address, phone, capacity, curr
 
 // Define the query so we can extract its return type
 const getHousesQuery = () => supabase
-  .from('ic_houses')
+  .from(TABLES.HOUSES)
   .select(`
     ${HOUSE_COLUMNS}, 
     checklists:ic_house_checklists(count), 
@@ -40,12 +42,12 @@ export function useHouses(
   branchId?: string
 ) {
   const query = useQuery({
-    queryKey: ['houses', { pageIndex, pageSize, sort, filters, branchId }],
+    queryKey: [QUERY_KEYS.HOUSES, { pageIndex, pageSize, sort, filters, branchId }],
     queryFn: async () => {
       const today = new Date().toISOString().split('T')[0];
       
       let query = supabase
-        .from('ic_houses')
+        .from(TABLES.HOUSES)
         .select(`
           ${HOUSE_COLUMNS}, 
           checklists:ic_house_checklists(count), 
@@ -122,7 +124,7 @@ export function useAddHouse() {
   return useMutation({
     mutationFn: async (house: Database['public']['Tables']['ic_houses']['Insert']) => {
       const { data, error } = await supabase
-        .from('ic_houses')
+        .from(TABLES.HOUSES)
         .insert([house])
         .select(HOUSE_COLUMNS)
         .maybeSingle();
@@ -144,7 +146,7 @@ export function useAddHouse() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['houses'] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.HOUSES] });
     },
   });
 }
@@ -156,7 +158,7 @@ export function useUpdateHouse() {
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Database['public']['Tables']['ic_houses']['Update'] }) => {
       const { data, error } = await supabase
-        .from('ic_houses')
+        .from(TABLES.HOUSES)
         .update(updates)
         .eq('id', id)
         .select(HOUSE_COLUMNS)
@@ -179,8 +181,8 @@ export function useUpdateHouse() {
       return data;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['houses'] });
-      queryClient.invalidateQueries({ queryKey: ['houses', data.id] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.HOUSES] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.HOUSES, data.id] });
     },
   });
 }
@@ -192,7 +194,7 @@ export function useDeleteHouse() {
   return useMutation({
     mutationFn: async ({ id, house_name }: { id: string; house_name: string }) => {
       const { error } = await supabase
-        .from('ic_houses')
+        .from(TABLES.HOUSES)
         .delete()
         .eq('id', id);
 
@@ -207,7 +209,7 @@ export function useDeleteHouse() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['houses'] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.HOUSES] });
     },
   });
 }

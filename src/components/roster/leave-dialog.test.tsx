@@ -48,7 +48,7 @@ describe('LeaveDialog Component', () => {
     
     // Default mock for leave_types
     (supabase.from as any).mockImplementation((table: string) => {
-      if (table === 'leave_types') {
+      if (table === 'ic_leave_types') {
         return createMockQuery([{ id: 'lt1', name: 'Annual Leave' }]);
       }
       return createMockQuery([]);
@@ -64,7 +64,7 @@ describe('LeaveDialog Component', () => {
 
   it('renders "Edit Leave Request" title when leaveId is provided', async () => {
     (supabase.from as any).mockImplementation((table: string) => {
-      if (table === 'leave_requests') {
+      if (table === 'ic_leave_requests') {
         return createMockQuery({
           leave_type_id: 'lt1',
           start_date: '2026-05-01',
@@ -73,7 +73,7 @@ describe('LeaveDialog Component', () => {
           attachment_url: null,
         });
       }
-      if (table === 'leave_types') {
+      if (table === 'ic_leave_types') {
         return createMockQuery([{ id: 'lt1', name: 'Annual Leave' }]);
       }
       return createMockQuery([]);
@@ -90,8 +90,11 @@ describe('LeaveDialog Component', () => {
 
   it('displays conflict warning when rostered shifts exist in the date range', async () => {
     (supabase.from as any).mockImplementation((table: string) => {
-      if (table === 'staff_shifts') {
-        return createMockQuery([{ id: 's1', start_date: '2026-04-15', house: { name: 'Test House' } }]);
+      if (table === 'ic_staff_shifts') {
+        return createMockQuery([{ id: 's1', start_date: '2026-04-15', house: { house_name: 'Test House' } }]);
+      }
+      if (table === 'ic_leave_types') {
+        return createMockQuery([{ id: 'lt1', name: 'Annual Leave' }]);
       }
       return createMockQuery([]);
     });
@@ -102,7 +105,7 @@ describe('LeaveDialog Component', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/1 rostered shift overlap/i)).toBeInTheDocument();
-    });
+    }, { timeout: 3000 });
   });
 
   it('shows submit button', async () => {

@@ -1,5 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { TABLES } from '@/config/db-tables';
+import { QUERY_KEYS } from '@/config/query-keys';
 
 export interface HouseStaffAssignment {
   id: string;
@@ -35,10 +37,10 @@ const HOUSE_STAFF_ASSIGNMENT_COLUMNS = `
 
 export function useHouseStaffAssignments(houseId?: string) {
   const query = useQuery({
-    queryKey: ['house-staff-assignments', { houseId }],
+    queryKey: [QUERY_KEYS.HOUSE_STAFF_ASSIGNMENTS, { houseId }],
     queryFn: async () => {
       let query = supabase
-        .from('ic_house_staff_assignments')
+        .from(TABLES.HOUSE_STAFF_ASSIGNMENTS)
         .select(HOUSE_STAFF_ASSIGNMENT_COLUMNS)
         .order('created_at', { ascending: false });
 

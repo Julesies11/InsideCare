@@ -330,7 +330,7 @@ export function useDeleteStaff() {
 
 export function useStaffCompliance(staffId?: string) {
   const query = useQuery({
-    queryKey: ['staff-compliance', staffId],
+    queryKey: [QUERY_KEYS.STAFF_COMPLIANCE, staffId],
     queryFn: async () => {
       if (!staffId) return [];
       const { data, error } = await supabase
@@ -387,7 +387,7 @@ export function useStaffByRole(roleId?: string) {
 
 export function useStaffTraining(staffId?: string) {
   const query = useQuery({
-    queryKey: ['staff-training', staffId],
+    queryKey: [QUERY_KEYS.STAFF_TRAINING, staffId],
     queryFn: async () => {
       let query = supabase
         .from(TABLES.STAFF_TRAINING)

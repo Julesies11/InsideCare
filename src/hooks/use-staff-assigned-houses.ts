@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/auth/context/auth-context';
+import { TABLES } from '@/config/db-tables';
 
 export interface AssignedHouse {
   id: string;
@@ -28,7 +29,7 @@ export function useStaffAssignedHouses(staffId?: string) {
       console.log('Fetching assigned houses for staff:', effectiveStaffId);
       
       const { data, error } = await supabase
-        .from('ic_house_staff_assignments')
+        .from(TABLES.HOUSE_STAFF_ASSIGNMENTS)
         .select(`
           id, 
           house_id, 

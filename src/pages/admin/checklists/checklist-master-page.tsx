@@ -19,6 +19,10 @@ import { Container } from '@/components/common/container';
 import { cn, getPeriodTheme } from '@/lib/utils';
 import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
 import { RBAC_MODULES } from '@/config/rbac-modules';
+import { TABLES } from '@/config/db-tables';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
+import { QUERY_KEYS } from '@/config/query-keys';
+import { STATUS } from '@/config/enums';
 
 export function ChecklistMasterPage() {
   const { masterChecklists, loading, refetch } = useChecklistMaster();
@@ -41,12 +45,12 @@ export function ChecklistMasterPage() {
   const [selectedItem, setSelectedItem] = useState<{ id?: string; tempId?: string; title: string; instructions?: string; priority?: string; is_required?: boolean; sort_order?: number } | null>(null);
   
   const [formData, setFormData] = useState<{
-    name: string;
+    checklist_name: string;
     days_of_week: string[];
     description: string;
     items: Array<{ id?: string; tempId?: string; title: string; instructions?: string; group_title?: string; priority?: string; is_required?: boolean; sort_order?: number }>;
   }>({
-    name: '',
+    checklist_name: '',
     days_of_week: [],
     description: '',
     items: [],
@@ -70,7 +74,7 @@ export function ChecklistMasterPage() {
   const handleAddTemplate = () => {
     setSelectedTemplate(null);
     const initialData: typeof formData = {
-      name: '',
+      checklist_name: '',
       days_of_week: [],
       description: '',
       items: [],
@@ -83,7 +87,7 @@ export function ChecklistMasterPage() {
   const handleEditTemplate = (template: ChecklistMaster) => {
     setSelectedTemplate(template);
     const initialData: typeof formData = {
-      name: template.checklist_name,
+      checklist_name: template.checklist_name,
       days_of_week: template.days_of_week || [],
       description: template.description || '',
       items: template.items || [],
@@ -99,7 +103,7 @@ export function ChecklistMasterPage() {
     try {
       // 1. Delete all associated items first
       const { error: itemsError } = await supabase
-        .from('ic_checklist_item_master')
+        .from(TABLES.CHECKLIST_ITEM_MASTER)
         .delete()
         .eq('master_id', template.id);
 
@@ -107,7 +111,7 @@ export function ChecklistMasterPage() {
 
       // 2. Delete the master checklist
       const { error } = await supabase
-        .from('ic_checklist_master')
+        .from(TABLES.CHECKLIST_MASTER)
         .delete()
         .eq('id', template.id);
 
@@ -128,7 +132,7 @@ export function ChecklistMasterPage() {
 
       if (masterId) {
         await supabase
-          .from('ic_checklist_master')
+          .from(TABLES.CHECKLIST_MASTER)
           .update({
             checklist_name: formData.checklist_name,
             days_of_week: formData.days_of_week || null,
@@ -138,7 +142,7 @@ export function ChecklistMasterPage() {
         masterId = selectedTemplate.id;
         } else {
         const { data, error } = await supabase
-          .from('ic_checklist_master')
+          .from(TABLES.CHECKLIST_MASTER)
           .insert({
             checklist_name: formData.checklist_name,
             days_of_week: formData.days_of_week || null,
@@ -165,7 +169,7 @@ export function ChecklistMasterPage() {
         .map(i => i.id);
       
       if (itemsToDelete.length > 0) {
-        await supabase.from('ic_checklist_item_master').delete().in('id', itemsToDelete);
+        await supabase.from(TABLES.CHECKLIST_ITEM_MASTER).delete().in('id', itemsToDelete);
       }
 
       // Separate updates from inserts to avoid PostgREST bulk array null key issues
@@ -197,14 +201,14 @@ export function ChecklistMasterPage() {
 
         if (itemsToUpdate.length > 0) {
           const { error: updateError } = await supabase
-            .from('ic_checklist_item_master')
+            .from(TABLES.CHECKLIST_ITEM_MASTER)
             .upsert(itemsToUpdate);
           if (updateError) throw updateError;
         }
 
         if (itemsToInsert.length > 0) {
           const { error: insertError } = await supabase
-            .from('ic_checklist_item_master')
+            .from(TABLES.CHECKLIST_ITEM_MASTER)
             .insert(itemsToInsert);
           if (insertError) throw insertError;
         }

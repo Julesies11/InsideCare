@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { TABLES } from '@/config/db-tables';
 
 // Define strict types for all supported notifications to prevent typos
 export type NotificationType = 
@@ -36,7 +37,7 @@ export const NotificationService = {
    * Base method to insert a notification into the database.
    */
   async send({ userId, type, title, body, link, metadata }: SendNotificationParams): Promise<void> {
-    const { error } = await supabase.from('ic_notifications').insert({
+    const { error } = await supabase.from(TABLES.NOTIFICATIONS).insert({
       user_id: userId,
       type,
       title,
@@ -188,7 +189,7 @@ export const NotificationService = {
   async notifyAssignedStaff(houseId: string, participantId: string, participantName: string, updateType: 'medication' | 'routine' | 'note') {
     // Fetch staff assigned to this house
     const { data: assignments } = await supabase
-      .from('ic_house_staff_assignments')
+      .from(TABLES.HOUSE_STAFF_ASSIGNMENTS)
       .select('staff:staff_id(auth_user_id)')
       .eq('house_id', houseId);
 

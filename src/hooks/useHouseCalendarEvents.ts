@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { TABLES } from '@/config/db-tables';
 
 export interface HouseCalendarEventType {
   id: string;
@@ -82,7 +83,7 @@ export function useHouseCalendarEvents(houseId?: string, staffId?: string) {
       
       // 1. Fetch regular calendar events including junction data
       const { data: events, error: eventError } = await supabase
-        .from('ic_house_calendar_events')
+        .from(TABLES.HOUSE_CALENDAR_EVENTS)
         .select(`
           id,
           house_id,
@@ -151,7 +152,7 @@ export function useHouseCalendarEvents(houseId?: string, staffId?: string) {
       endDate.setDate(endDate.getDate() + 90);
 
       let shiftQuery = supabase
-        .from('ic_staff_shifts')
+        .from(TABLES.STAFF_SHIFTS)
         .select(`
           id, 
           start_date,

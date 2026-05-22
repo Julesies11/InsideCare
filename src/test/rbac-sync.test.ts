@@ -74,7 +74,7 @@ describe('RBAC Sync Utility', () => {
 
       const result = await syncUserPermissionsByStaffId(staffId);
 
-      expect(supabase.from).toHaveBeenCalledWith('staff');
+      expect(supabase.from).toHaveBeenCalledWith('ic_staff');
       expect(mockSelect).toHaveBeenCalledWith('auth_user_id');
       expect(mockEq).toHaveBeenCalledWith('id', staffId);
       expect(supabase.functions.invoke).toHaveBeenCalledWith('ic-update-user-permissions', {

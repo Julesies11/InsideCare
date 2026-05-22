@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { Database } from '@/models/database.types';
+import { TABLES } from '@/config/db-tables';
+import { QUERY_KEYS } from '@/config/query-keys';
 
 export type RoleRow = Database['public']['Tables']['ic_roles']['Row'];
 
@@ -10,10 +12,10 @@ export interface Role extends RoleRow {
 
 export function useRoles() {
   const query = useQuery({
-    queryKey: ['roles'],
+    queryKey: [QUERY_KEYS.ROLES],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('ic_roles')
+        .from(TABLES.ROLES)
         .select(`
           *,
           staff:ic_staff(count)
@@ -46,7 +48,7 @@ export function useAddRole() {
   return useMutation({
     mutationFn: async (roleData: Database['public']['Tables']['ic_roles']['Insert']) => {
       const { data, error } = await supabase
-        .from('ic_roles')
+        .from(TABLES.ROLES)
         .insert([roleData])
         .select()
         .maybeSingle();
@@ -63,7 +65,7 @@ export function useAddRole() {
       return data as unknown as Role;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['roles'] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ROLES] });
     },
   });
 }
@@ -74,7 +76,7 @@ export function useUpdateRole() {
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Database['public']['Tables']['ic_roles']['Update'] }) => {
       const { data, error } = await supabase
-        .from('ic_roles')
+        .from(TABLES.ROLES)
         .update(updates)
         .eq('id', id)
         .select()
@@ -92,7 +94,7 @@ export function useUpdateRole() {
       return data as unknown as Role;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['roles'] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ROLES] });
     },
   });
 }
@@ -103,14 +105,14 @@ export function useDeleteRole() {
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('ic_roles')
+        .from(TABLES.ROLES)
         .delete()
         .eq('id', id);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['roles'] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ROLES] });
     },
   });
 }

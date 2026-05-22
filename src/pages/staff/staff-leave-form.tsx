@@ -26,6 +26,10 @@ import {
   ToolbarPageTitle,
   ToolbarDescription,
 } from '@/partials/common/toolbar';
+import { TABLES } from '@/config/db-tables';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
+import { QUERY_KEYS } from '@/config/query-keys';
+import { LEAVE_STATUS } from '@/config/enums';
 
 interface LeaveType {
   id: string;
@@ -78,7 +82,7 @@ export function StaffLeaveForm() {
     if (!isEdit || !id) return;
     const load = async () => {
       const { data } = await supabase
-        .from('ic_leave_requests')
+        .from(TABLES.LEAVE_REQUESTS)
         .select('leave_type_id, start_date, end_date, reason, attachment_url')
         .eq('id', id)
         .maybeSingle();
@@ -123,10 +127,10 @@ export function StaffLeaveForm() {
     if (!attachmentFile) return existingAttachmentUrl;
     const ext = attachmentFile.name.split('.').pop();
     const path = `leave-attachments/${staffId}/${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from('ic_staff_documents').upload(path, attachmentFile);
+    const { error } = await supabase.storage.from(STORAGE_BUCKETS.STAFF_DOCUMENTS).upload(path, attachmentFile);
     if (error) { toast.error('Failed to upload attachment'); return null; }
     const { data: urlData, error: urlError } = await supabase.storage
-      .from('ic_staff-documents')      .createSignedUrl(path, 3600);
+      .from(STORAGE_BUCKETS.STAFF_DOCUMENTS)      .createSignedUrl(path, 3600);
     
     if (urlError) {
       console.error('Error creating signed URL:', urlError);
@@ -153,7 +157,7 @@ export function StaffLeaveForm() {
     const attachmentUrl = await uploadAttachment(user.staff_id);
 
     if (isEdit && id) {
-      const { error } = await supabase.from('ic_leave_requests').update({
+      const { error } = await supabase.from(TABLES.LEAVE_REQUESTS).update({
         leave_type_id: leaveTypeId,
         start_date: startDate,
         end_date: endDate,
@@ -163,7 +167,7 @@ export function StaffLeaveForm() {
       if (error) { toast.error('Failed to update leave request'); setSaving(false); return; }
       toast.success('Leave request updated');
     } else {
-      const { error } = await supabase.from('ic_leave_requests').insert({
+      const { error } = await supabase.from(TABLES.LEAVE_REQUESTS).insert({
         staff_id: user.staff_id,
         leave_type_id: leaveTypeId,
         start_date: startDate,

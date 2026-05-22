@@ -1,5 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { TABLES } from '@/config/db-tables';
+import { QUERY_KEYS } from '@/config/query-keys';
 
 export interface ParticipantProvider {
   id: string;
@@ -16,11 +18,11 @@ const PROVIDER_COLUMNS = 'id, participant_id, provider_name, provider_type, prov
 
 export function useParticipantProviders(participantId?: string) {
   const query = useQuery({
-    queryKey: ['participant-providers', participantId],
+    queryKey: [QUERY_KEYS.PARTICIPANT_PROVIDERS, participantId],
     queryFn: async () => {
       if (!participantId) return [];
       const { data, error } = await supabase
-        .from('ic_provider_participants')
+        .from(TABLES.PARTICIPANT_PROVIDERS)
         .select(PROVIDER_COLUMNS)
         .eq('participant_id', participantId)
         .order('created_at', { ascending: false });
@@ -47,7 +49,7 @@ export function useAddParticipantProvider() {
   return useMutation({
     mutationFn: async (provider: Omit<ParticipantProvider, 'id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
-        .from('ic_provider_participants')
+        .from(TABLES.PARTICIPANT_PROVIDERS)
         .insert(provider)
         .select(PROVIDER_COLUMNS)
         .maybeSingle();
@@ -57,7 +59,7 @@ export function useAddParticipantProvider() {
       return data as ParticipantProvider;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['participant-providers', data.participant_id] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PARTICIPANT_PROVIDERS, data.participant_id] });
     },
   });
 }
@@ -68,7 +70,7 @@ export function useUpdateParticipantProvider() {
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<ParticipantProvider> }) => {
       const { data, error } = await supabase
-        .from('ic_provider_participants')
+        .from(TABLES.PARTICIPANT_PROVIDERS)
         .update(updates)
         .eq('id', id)
         .select(PROVIDER_COLUMNS)
@@ -79,7 +81,7 @@ export function useUpdateParticipantProvider() {
       return data as ParticipantProvider;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['participant-providers', data.participant_id] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PARTICIPANT_PROVIDERS, data.participant_id] });
     },
   });
 }
@@ -90,14 +92,14 @@ export function useDeleteParticipantProvider() {
   return useMutation({
     mutationFn: async ({ id, participantId }: { id: string; participantId: string }) => {
       const { error } = await supabase
-        .from('ic_provider_participants')
+        .from(TABLES.PARTICIPANT_PROVIDERS)
         .delete()
         .eq('id', id);
 
       if (error) throw error;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['participant-providers', variables.participantId] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PARTICIPANT_PROVIDERS, variables.participantId] });
     },
   });
 }

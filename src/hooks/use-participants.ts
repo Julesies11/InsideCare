@@ -2,6 +2,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { Participant, ParticipantWithHouse, ParticipantStatus } from '@/models/participant';
 import { Database } from '@/models/database.types';
+import { TABLES } from '@/config/db-tables';
+import { QUERY_KEYS } from '@/config/query-keys';
 
 export interface ParticipantsFilter {
   search?: string;
@@ -46,10 +48,10 @@ export function useParticipants(
   filters: ParticipantsFilter = {}
 ) {
   const query = useQuery({
-    queryKey: ['participants', { pageIndex, pageSize, sort, filters }],
+    queryKey: [QUERY_KEYS.PARTICIPANTS, { pageIndex, pageSize, sort, filters }],
     queryFn: async () => {
       let query = supabase
-        .from('ic_participants')
+        .from(TABLES.PARTICIPANTS)
         .select(PARTICIPANT_LIST_COLUMNS, { count: 'exact' });
 
       if (filters.search) {
@@ -104,7 +106,7 @@ export function useParticipantsCount(filters: ParticipantsFilter = {}) {
     queryKey: ['participants-count', { filters }],
     queryFn: async () => {
       let query = supabase
-        .from('ic_participants')
+        .from(TABLES.PARTICIPANTS)
         .select('*', { count: 'exact', head: true });
 
       if (filters.houses && filters.houses.length > 0) {
@@ -135,11 +137,11 @@ export function useParticipantsCount(filters: ParticipantsFilter = {}) {
 
 export function useParticipant(id?: string) {
   const query = useQuery({
-    queryKey: ['participants', id],
+    queryKey: [QUERY_KEYS.PARTICIPANTS, id],
     queryFn: async () => {
       if (!id) return null;
       const { data, error } = await supabase
-        .from('ic_participants')
+        .from(TABLES.PARTICIPANTS)
         .select(PARTICIPANT_DETAIL_COLUMNS)
         .eq('id', id)
         .maybeSingle();
@@ -173,7 +175,7 @@ export function useAddParticipant() {
   return useMutation({
     mutationFn: async (participant: Database['public']['Tables']['ic_participants']['Insert']) => {
       const { data, error } = await supabase
-        .from('ic_participants')
+        .from(TABLES.PARTICIPANTS)
         .insert([participant])
         .select(PARTICIPANT_DETAIL_COLUMNS)
         .maybeSingle();
@@ -185,7 +187,7 @@ export function useAddParticipant() {
       return data as unknown as Participant;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['participants'] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PARTICIPANTS] });
     },
   });
 }
@@ -196,7 +198,7 @@ export function useUpdateParticipant() {
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Database['public']['Tables']['ic_participants']['Update'] }) => {
       const { data, error } = await supabase
-        .from('ic_participants')
+        .from(TABLES.PARTICIPANTS)
         .update(updates)
         .eq('id', id)
         .select(PARTICIPANT_DETAIL_COLUMNS)
@@ -215,8 +217,8 @@ export function useUpdateParticipant() {
       return participantWithHouse as unknown as ParticipantWithHouse;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['participants'] });
-      queryClient.invalidateQueries({ queryKey: ['participants', data.id] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PARTICIPANTS] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PARTICIPANTS, data.id] });
     },
   });
 }
@@ -227,14 +229,14 @@ export function useDeleteParticipant() {
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('ic_participants')
+        .from(TABLES.PARTICIPANTS)
         .delete()
         .eq('id', id);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['participants'] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PARTICIPANTS] });
     },
   });
 }

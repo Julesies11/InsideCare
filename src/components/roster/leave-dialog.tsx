@@ -7,6 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { TABLES } from '@/config/db-tables';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
+import { LEAVE_STATUS } from '@/config/enums';
 import {
   Select,
   SelectContent,
@@ -34,7 +37,7 @@ interface ConflictingShift {
   start_date: string;
   start_time: string;
   end_time: string;
-  house?: { name: string } | null;
+  house?: { house_name: string } | null;
 }
 
 interface LeaveDialogProps {
@@ -67,11 +70,11 @@ export function LeaveDialog({ open, onOpenChange, leaveId, onSuccess, initialDat
     if (open) {
       const fetchLeaveTypes = async () => {
         const { data } = await supabase
-          .from('ic_leave_types')
+          .from(TABLES.LEAVE_TYPES)
           .select('id, leave_type_name')
           .eq('is_active', true)
           .order('leave_type_name');
-        setLeaveTypes((data as LeaveType[]) || []);
+        setLeaveTypes((data as any[])?.map(d => ({ id: d.id, name: d.leave_type_name })) || []);
       };
       fetchLeaveTypes();
 
@@ -79,7 +82,7 @@ export function LeaveDialog({ open, onOpenChange, leaveId, onSuccess, initialDat
         const load = async () => {
           setLoading(true);
           const { data } = await supabase
-            .from('ic_leave_requests')
+            .from(TABLES.LEAVE_REQUESTS)
             .select('leave_type_id, start_date, end_date, reason, attachment_url')
             .eq('id', leaveId)
             .maybeSingle();
@@ -116,13 +119,13 @@ export function LeaveDialog({ open, onOpenChange, leaveId, onSuccess, initialDat
 
     const check = async () => {
       const { data } = await supabase
-        .from('ic_staff_shifts')
-        .select('id, start_date, start_time, end_time, house:ic_houses(house_name)')
+        .from(TABLES.STAFF_SHIFTS)
+        .select(`id, start_date, start_time, end_time, house:${TABLES.HOUSES}(house_name)`)
         .eq('staff_id', user.staff_id)
         .gte('start_date', startDate)
         .lte('start_date', endDate)
         .order('start_date');
-      setConflictingShifts((data as ConflictingShift[]) || []);
+      setConflictingShifts((data as any[]) || []);
     };
 
     const timer = setTimeout(check, 500);
@@ -145,14 +148,14 @@ export function LeaveDialog({ open, onOpenChange, leaveId, onSuccess, initialDat
       const fileName = `${Math.random()}.${fileExt}`;
       const filePath = `leave-attachments/${user.staff_id}/${fileName}`;
       const { error: uploadError } = await supabase.storage
-        .from('ic_staff-documents')        .upload(filePath, attachmentFile);
+        .from(STORAGE_BUCKETS.STAFF_DOCUMENTS)        .upload(filePath, attachmentFile);
       if (uploadError) {
         toast.error('Failed to upload attachment');
         setSaving(false);
         return;
       }
       const { data: urlData, error: urlError } = await supabase.storage
-        .from('ic_staff-documents')        .createSignedUrl(filePath, 3600);
+        .from(STORAGE_BUCKETS.STAFF_DOCUMENTS)        .createSignedUrl(filePath, 3600);
       if (urlError) {
         console.error('Error creating signed URL:', urlError);
         toast.error('Failed to resolve attachment URL');
@@ -176,18 +179,18 @@ export function LeaveDialog({ open, onOpenChange, leaveId, onSuccess, initialDat
         reason: reason || null,
         ...(attachmentUrl !== undefined ? { attachment_url: attachmentUrl } : {}),
       };
-      const { error } = await supabase.from('ic_leave_requests').update(updates).eq('id', leaveId);
+      const { error } = await supabase.from(TABLES.LEAVE_REQUESTS).update(updates).eq('id', leaveId);
       if (error) { toast.error('Failed to update leave request'); setSaving(false); return; }
       toast.success('Leave request updated');
     } else {
-      const { error } = await supabase.from('ic_leave_requests').insert({
+      const { error } = await supabase.from(TABLES.LEAVE_REQUESTS).insert({
         staff_id: user.staff_id,
         leave_type_id: leaveTypeId,
         start_date: startDate,
         end_date: endDate,
         reason: reason || null,
         attachment_url: attachmentUrl || null,
-        status: 'pending',
+        status: LEAVE_STATUS.PENDING,
       });
       if (error) { toast.error('Failed to submit leave request'); setSaving(false); return; }
       toast.success('Leave request submitted successfully');

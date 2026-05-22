@@ -39,6 +39,10 @@ interface AssignedChecklist {
 
 
 import { NotificationService } from '@/lib/notification-service';
+import { TABLES } from '@/config/db-tables';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
+import { QUERY_KEYS } from '@/config/query-keys';
+import { TIMESHEET_STATUS } from '@/config/enums';
 
 interface ShiftNoteRes {
   id: string;
@@ -96,13 +100,13 @@ export function StaffTimesheetForm() {
     const load = async () => {
       const [shiftRes, tsRes, shiftNoteRes, checklistsRes] = await Promise.all([
         supabase
-          .from('ic_staff_shifts')
-          .select('id, house_id, start_date, end_date, start_time, end_time, shift_template, house:ic_houses(house_name)')
+          .from(TABLES.STAFF_SHIFTS)
+          .select(`id, house_id, start_date, end_date, start_time, end_time, shift_template, house:${TABLES.HOUSES}(house_name)`)
           .eq('id', shiftId)
           .maybeSingle(),
         user?.staff_id
           ? supabase
-              .from('ic_timesheets')
+              .from(TABLES.TIMESHEETS)
               .select('id, actual_start, actual_end, break_minutes, shift_notes_text, overtime_explanation, travel_km, incident_tag, sick_shift, notes, status')
               .eq('shift_id', shiftId)
               .eq('staff_id', user.staff_id)
@@ -117,11 +121,11 @@ export function StaffTimesheetForm() {
               .maybeSingle()
           : Promise.resolve({ data: null }),
         supabase
-          .from('ic_shift_assigned_checklists')
+          .from(TABLES.SHIFT_ASSIGNED_CHECKLISTS)
           .select(`
             checklist_id,
             assignment_title,
-            submissions:ic_house_checklist_submissions(id, status, shift_id)
+            submissions:${TABLES.HOUSE_CHECKLIST_SUBMISSIONS}(id, status, shift_id)
           `)
           .eq('shift_id', shiftId)
       ]);
@@ -242,7 +246,7 @@ export function StaffTimesheetForm() {
       sick_shift:           sickShift,
       notes:                sickShift ? (sickReason || null) : null,
       overtime_hours:       overtimeHours,
-      status:               'pending',
+      status: TIMESHEET_STATUS.PENDING,
       submitted_at:         now,
       updated_at:           now,
     };
@@ -253,12 +257,12 @@ export function StaffTimesheetForm() {
     try {
       if (existingId) {
         console.log('Timesheet: Updating existing record:', existingId);
-        const { error } = await supabase.from('ic_timesheets').update(payload).eq('id', existingId);
+        const { error } = await supabase.from(TABLES.TIMESHEETS).update(payload).eq('id', existingId);
         if (error) throw error;
       } else {
         console.log('Timesheet: Inserting new record (upsert)');
         const { data, error } = await supabase
-          .from('ic_timesheets')
+          .from(TABLES.TIMESHEETS)
           .upsert(payload, { onConflict: 'shift_id,staff_id' })
           .select('id')
           .maybeSingle();

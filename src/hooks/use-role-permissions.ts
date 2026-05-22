@@ -2,6 +2,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { AccessLevel } from './useRBAC';
 import { syncAllUsersOfRole } from '@/lib/rbac-sync';
+import { TABLES } from '@/config/db-tables';
+import { QUERY_KEYS } from '@/config/query-keys';
 
 export interface RolePermissions {
   role_id: string;
@@ -25,10 +27,10 @@ export interface RolePermissions {
 
 export function useAllRolePermissions() {
   return useQuery({
-    queryKey: ['role-permissions'],
+    queryKey: [QUERY_KEYS.ROLE_PERMISSIONS],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('ic_role_permissions')
+        .from(TABLES.ROLE_PERMISSIONS)
         .select('*');
 
       if (error) throw error;
@@ -44,7 +46,7 @@ export function useUpdateRolePermissions() {
   return useMutation({
     mutationFn: async ({ role_id, updates }: { role_id: string; updates: Partial<RolePermissions> }) => {
       const { data, error } = await supabase
-        .from('ic_role_permissions')
+        .from(TABLES.ROLE_PERMISSIONS)
         .upsert(
           { role_id, ...updates },
           { onConflict: 'role_id' }
@@ -61,7 +63,7 @@ export function useUpdateRolePermissions() {
       return data as RolePermissions;
     },
     onSuccess: (_, { role_id }) => {
-      queryClient.invalidateQueries({ queryKey: ['role-permissions'] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ROLE_PERMISSIONS] });
       // Propagate changes to all users of this role
       syncAllUsersOfRole(role_id);
     },

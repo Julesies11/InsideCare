@@ -3,15 +3,17 @@ import { supabase } from '@/lib/supabase';
 import { MedicationMaster } from '@/models/medication-master';
 import { useAuth } from '@/auth/context/auth-context';
 import { logActivity, detectChanges } from '@/lib/activity-logger';
+import { TABLES } from '@/config/db-tables';
+import { QUERY_KEYS } from '@/config/query-keys';
 
 const MEDICATION_MASTER_COLUMNS = 'id, medication_name, category, common_dosages, side_effects, interactions, is_active, created_by, updated_by, created_at, updated_at';
 
 export function useMedicationsMaster(includeInactive = true) {
   return useQuery({
-    queryKey: ['medications-master', { includeInactive }],
+    queryKey: [QUERY_KEYS.MEDICATIONS_MASTER, { includeInactive }],
     queryFn: async () => {
       let query = supabase
-        .from('ic_medications_master')
+        .from(TABLES.MEDICATIONS_MASTER)
         .select(MEDICATION_MASTER_COLUMNS)
         .order('medication_name', { ascending: true });
 
@@ -34,7 +36,7 @@ export function useAddMedicationMaster() {
   return useMutation({
     mutationFn: async (medication: Omit<MedicationMaster, 'id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
-        .from('ic_medications_master')
+        .from(TABLES.MEDICATIONS_MASTER)
         .insert(medication)
         .select(MEDICATION_MASTER_COLUMNS)
         .maybeSingle();
@@ -61,7 +63,7 @@ export function useAddMedicationMaster() {
       return data as MedicationMaster;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['medications-master'] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.MEDICATIONS_MASTER] });
     },
   });
 }
@@ -73,7 +75,7 @@ export function useUpdateMedicationMaster() {
   return useMutation({
     mutationFn: async ({ id, updates, oldMedication }: { id: string; updates: Partial<MedicationMaster>; oldMedication?: MedicationMaster }) => {
       const { data, error } = await supabase
-        .from('ic_medications_master')
+        .from(TABLES.MEDICATIONS_MASTER)
         .update(updates)
         .eq('id', id)
         .select(MEDICATION_MASTER_COLUMNS)
@@ -107,7 +109,7 @@ export function useUpdateMedicationMaster() {
       return data as MedicationMaster;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['medications-master'] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.MEDICATIONS_MASTER] });
     },
   });
 }
@@ -120,7 +122,7 @@ export function useDeleteMedicationMaster() {
     mutationFn: async ({ id, medication_name }: { id: string; medication_name: string }) => {
       // Soft delete - mark as inactive
       const { error } = await supabase
-        .from('ic_medications_master')
+        .from(TABLES.MEDICATIONS_MASTER)
         .update({
           is_active: false,
         })
@@ -137,7 +139,7 @@ export function useDeleteMedicationMaster() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['medications-master'] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.MEDICATIONS_MASTER] });
     },
   });
 }

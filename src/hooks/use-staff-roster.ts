@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { Database } from '@/models/database.types';
+import { TABLES } from '@/config/db-tables';
 
 export interface RosterEntry {
   id: string;
@@ -29,7 +30,7 @@ export function useStaffRoster(staffId?: string) {
 
       const [shiftsRes, eventsRes, leaveRes] = await Promise.all([
         supabase
-          .from('ic_staff_shifts')
+          .from(TABLES.STAFF_SHIFTS)
           .select(`
             id, 
             start_date, 
@@ -44,7 +45,7 @@ export function useStaffRoster(staffId?: string) {
           .eq('staff_id', staffId)
           .order('start_date', { ascending: false }),
         supabase
-          .from('ic_house_calendar_events')
+          .from(TABLES.HOUSE_CALENDAR_EVENTS)
           .select(`
             id,
             title,
@@ -59,7 +60,7 @@ export function useStaffRoster(staffId?: string) {
           .eq('staff_assignments.staff_id', staffId)
           .order('event_date', { ascending: false }),
         supabase
-          .from('ic_leave_requests')
+          .from(TABLES.LEAVE_REQUESTS)
           .select(`
             id,
             start_date,
@@ -85,7 +86,7 @@ export function useStaffRoster(staffId?: string) {
       
       // Fetch timesheets for these shifts
       const { data: timesheetData, error: tsError } = await supabase
-        .from('ic_timesheets')
+        .from(TABLES.TIMESHEETS)
         .select('shift_id')
         .in('shift_id', shiftIds.length > 0 ? shiftIds : ['00000000-0000-0000-0000-000000000000']);
 

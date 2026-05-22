@@ -11,8 +11,8 @@ const mockShift: ShiftCardData = {
   shift_template: 'Morning',
   staff_name: 'John Doe',
   staff_id: 'staff-1',
-  house: { id: 'house-1', name: 'Test House' },
-  participants: [{ id: 'p-1', name: 'Participant 1' }],
+  house: { id: 'house-1', house_name: 'Test House' },
+  participants: [{ id: 'p-1', participant_name: 'Participant 1' }],
   assigned_checklists: [{ id: 'cl-1', checklist_id: 'check-1', assignment_title: 'Morning Routine', is_completed: false }],
   notesCount: 2
 };

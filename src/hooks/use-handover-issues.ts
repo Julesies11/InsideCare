@@ -1,17 +1,19 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { format, subDays } from 'date-fns';
+import { TABLES } from '@/config/db-tables';
+import { QUERY_KEYS } from '@/config/query-keys';
 
 export function useHandoverIssues(houseIds: string[]) {
   return useQuery({
-    queryKey: ['handover-issues', houseIds],
+    queryKey: [QUERY_KEYS.HANDOVER_ISSUES, houseIds],
     queryFn: async () => {
       if (houseIds.length === 0) return [];
 
       const yesterday = format(subDays(new Date(), 1), 'yyyy-MM-dd');
       
       const { data, error } = await supabase
-        .from('ic_house_checklist_submissions')
+        .from(TABLES.HOUSE_CHECKLIST_SUBMISSIONS)
         .select(`
           id, status, scheduled_date, house_id,
           houses:ic_houses(house_name),

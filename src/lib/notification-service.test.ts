@@ -32,7 +32,7 @@ describe('NotificationService', () => {
         metadata: { key: 'value' }
       });
 
-      expect(supabase.from).toHaveBeenCalledWith('notifications');
+      expect(supabase.from).toHaveBeenCalledWith('ic_notifications');
       expect(mockInsert).toHaveBeenCalledWith({
         user_id: 'user-1',
         type: 'system_alert',
@@ -53,6 +53,7 @@ describe('NotificationService', () => {
         title: 'Test Alert',
       });
 
+      expect(supabase.from).toHaveBeenCalledWith('ic_notifications');
       expect(mockInsert).toHaveBeenCalledWith({
         user_id: 'user-1',
         type: 'system_alert',
@@ -110,7 +111,7 @@ describe('NotificationService', () => {
 
       await NotificationService.notifyAssignedStaff('house-1', 'part-1', 'John Doe', 'note');
 
-      expect(supabase.from).toHaveBeenCalledWith('house_staff_assignments');
+      expect(supabase.from).toHaveBeenCalledWith('ic_house_staff_assignments');
       expect(mockSelect).toHaveBeenCalledWith('staff:staff_id(auth_user_id)');
       expect(mockEq).toHaveBeenCalledWith('house_id', 'house-1');
 

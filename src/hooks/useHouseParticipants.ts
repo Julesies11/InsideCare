@@ -1,5 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { TABLES } from '@/config/db-tables';
+import { STATUS } from '@/config/enums';
 
 export interface HouseParticipant {
   id: string;
@@ -21,7 +23,7 @@ export function useHouseParticipants(houseId?: string) {
       if (!houseId) return [];
       
       const { data, error } = await supabase
-        .from('ic_participants')
+        .from(TABLES.PARTICIPANTS)
         .select(`
           id,
           participant_name,
@@ -35,7 +37,7 @@ export function useHouseParticipants(houseId?: string) {
           updated_at
         `)
         .eq('house_id', houseId)
-        .eq('status', 'active')
+        .eq('status', STATUS.active)
         .order('created_at', { ascending: false });
 
       if (error) throw error;

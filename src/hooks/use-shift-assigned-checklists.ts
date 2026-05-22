@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { TABLES } from '@/config/db-tables';
+import { QUERY_KEYS } from '@/config/query-keys';
 
 export interface ShiftAssignedChecklist {
   id: string;
@@ -15,11 +17,11 @@ export function useShiftAssignedChecklists(houseId?: string) {
   const queryClient = useQueryClient();
 
   const query = useQuery({
-    queryKey: ['shift-assigned-checklists', houseId],
+    queryKey: [QUERY_KEYS.SHIFT_ASSIGNED_CHECKLISTS, houseId],
     queryFn: async () => {
       if (!houseId) return [];
       const { data, error } = await supabase
-        .from('ic_shift_assigned_checklists')
+        .from(TABLES.SHIFT_ASSIGNED_CHECKLISTS)
         .select('*')
         .eq('house_id', houseId)
         .order('sort_order', { ascending: true });
@@ -36,7 +38,7 @@ export function useShiftAssignedChecklists(houseId?: string) {
 
       // 1. Delete existing for this house
       const { error: deleteError } = await supabase
-        .from('ic_shift_assigned_checklists')
+        .from(TABLES.SHIFT_ASSIGNED_CHECKLISTS)
         .delete()
         .eq('house_id', houseId);
 
@@ -54,14 +56,14 @@ export function useShiftAssignedChecklists(houseId?: string) {
         }));
 
         const { error: insertError } = await supabase
-          .from('ic_shift_assigned_checklists')
+          .from(TABLES.SHIFT_ASSIGNED_CHECKLISTS)
           .insert(toInsert);
 
         if (insertError) throw insertError;
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['shift-assigned-checklists', houseId] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SHIFT_ASSIGNED_CHECKLISTS, houseId] });
       toast.success('Shift routines updated successfully');
     },
     onError: (error: any) => {

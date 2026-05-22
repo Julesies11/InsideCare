@@ -19,6 +19,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { PersonalDetails } from '@/pages/employees/staff-detail/components/personal-details';
 import { EmergencyContact } from '@/pages/employees/staff-detail/components/emergency-contact';
 import { useStaffMember, useUpdateStaff, StaffTraining } from '@/hooks/use-staff';
+import { handleAvatarUpload } from '@/lib/api/profiles';
+import { TABLES } from '@/config/db-tables';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
+import { QUERY_KEYS } from '@/config/query-keys';
+import { STATUS, COMPLIANCE_STATUS } from '@/config/enums';
 
 type TrainingStatus = 'Current' | 'Expiring Soon' | 'Expired';
 
@@ -128,7 +133,7 @@ export function StaffProfile() {
         const ext = photoFile.name.split('.').pop();
         const path = `${staffId}/profile/${Date.now()}.${ext}`;
         const { error: uploadErr } = await supabase.storage
-          .from('ic_staff-photos')          .upload(path, photoFile, { upsert: true });
+          .from(STORAGE_BUCKETS.STAFF_PHOTOS)          .upload(path, photoFile, { upsert: true });
         if (uploadErr) throw uploadErr;
         
         // Save the PATH to the database, not the temporary signed URL
@@ -176,7 +181,7 @@ export function StaffProfile() {
 
   const handleDownloadTraining = async (filePath: string) => {
     try {
-      const { data, error } = await supabase.storage.from('ic_staff_documents').download(filePath);
+      const { data, error } = await supabase.storage.from(STORAGE_BUCKETS.STAFF_DOCUMENTS).download(filePath);
       if (error) throw error;
       const url = window.URL.createObjectURL(data);
       const a = document.createElement('a');

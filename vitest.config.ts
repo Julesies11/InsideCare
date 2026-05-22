@@ -17,6 +17,10 @@ export default defineConfig({
       '**/*.config.*',
       '**/mockData',
     ],
+    env: {
+      VITE_SUPABASE_URL: 'https://rdnaqrzqpcicskylmsyl.supabase.co',
+      VITE_SUPABASE_ANON_KEY: 'dummy-key',
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

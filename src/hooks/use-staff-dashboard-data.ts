@@ -1,10 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { subDays, format } from 'date-fns';
+import { TABLES } from '@/config/db-tables';
+import { QUERY_KEYS } from '@/config/query-keys';
 
 export function useStaffDashboardData(staffId?: string) {
   return useQuery({
-    queryKey: ['staff-dashboard-data', staffId],
+    queryKey: [QUERY_KEYS.STAFF_DASHBOARD, staffId],
     queryFn: async () => {
       if (!staffId) return null;
 
@@ -14,7 +16,7 @@ export function useStaffDashboardData(staffId?: string) {
 
       const [shiftsRes, eventsRes, leaveRes, timesheetsRes, allTimesheetsRes, pastShiftsRes] = await Promise.all([
         supabase
-          .from('ic_staff_shifts')
+          .from(TABLES.STAFF_SHIFTS)
           .select(`
             id, 
             start_date, 
@@ -36,7 +38,7 @@ export function useStaffDashboardData(staffId?: string) {
           .order('start_time', { ascending: true })
           .limit(5),
         supabase
-          .from('ic_house_calendar_events')
+          .from(TABLES.HOUSE_CALENDAR_EVENTS)
           .select(`
             id,
             title,
@@ -53,14 +55,14 @@ export function useStaffDashboardData(staffId?: string) {
           .order('event_date', { ascending: true })
           .limit(5),
         supabase
-          .from('ic_leave_requests')
+          .from(TABLES.LEAVE_REQUESTS)
           .select('id, leave_type:ic_leave_types(leave_type_name), start_date, end_date, status, updated_at')
           .eq('staff_id', staffId)
           .or(`status.eq.pending,and(status.eq.approved,updated_at.gte.${lastWeek})`)
           .order('start_date', { ascending: true })
           .limit(3),
         supabase
-          .from('ic_timesheets')
+          .from(TABLES.TIMESHEETS)
           .select('id, status, clock_in, shift:ic_staff_shifts(start_date)')
           .eq('staff_id', staffId)
           .in('status', ['pending'])
@@ -68,13 +70,13 @@ export function useStaffDashboardData(staffId?: string) {
           .limit(5),
         // All recent timesheet IDs
         supabase
-          .from('ic_timesheets')
+          .from(TABLES.TIMESHEETS)
           .select('shift_id')
           .eq('staff_id', staffId)
           .not('shift_id', 'is', null),
         // Past shifts to cross-reference
         supabase
-          .from('ic_staff_shifts')
+          .from(TABLES.STAFF_SHIFTS)
           .select('id, end_date, end_time')
           .eq('staff_id', staffId)
           .gte('end_date', thirtyDaysAgo)

@@ -31,8 +31,8 @@ const mockShift: StaffShift = {
   house_id: 'house-1',
   shift_template: 'Morning Shift',
   notes: 'Admin note',
-  house: { id: 'house-1', name: 'Alpha House' },
-  participants: [{ id: 'p-1', name: 'John Doe' }],
+  house: { id: 'house-1', house_name: 'Alpha House' },
+  participants: [{ id: 'p-1', participant_name: 'John Doe' }],
   assigned_checklists: [
     { 
       id: 'cl-1', 
@@ -52,11 +52,13 @@ describe('Roster Dialogs Smoke Tests', () => {
         shift={mockShift} 
       />
     );
-    expect(screen.getByText(/08:00 – 16:00/i)).toBeInTheDocument();
-    // Use getAllByText because it appears in sr-only description and location section
-    expect(screen.getAllByText(/Alpha House/i)[0]).toBeInTheDocument();
-    expect(screen.getByText(/Instructions from Scheduler/i)).toBeInTheDocument();
-    expect(screen.getByText(/Morning Routine/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/08:00 – 16:00/i)).toBeInTheDocument();
+      // Use getAllByText because it appears in sr-only description and location section
+      expect(screen.getAllByText(/Alpha House/i)[0]).toBeInTheDocument();
+      expect(screen.getByText(/Instructions from Scheduler/i)).toBeInTheDocument();
+      expect(screen.getByText(/Morning Routine/i)).toBeInTheDocument();
+    });
   });
 
   it('renders StaffShiftNoteDialog without crashing', async () => {
@@ -67,8 +69,10 @@ describe('Roster Dialogs Smoke Tests', () => {
         shift={mockShift} 
       />
     );
-    expect(screen.getByText(/Write Shift Note/i)).toBeInTheDocument();
-    expect(screen.getByText(/Alpha House/i)).toBeInTheDocument();
-    expect(screen.getByText(/Observation \/ Note/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/Write Shift Note/i)).toBeInTheDocument();
+      expect(screen.getByText(/Alpha House/i)).toBeInTheDocument();
+      expect(screen.getByText(/Observation \/ Note/i)).toBeInTheDocument();
+    });
   });
 });

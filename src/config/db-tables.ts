@@ -38,6 +38,7 @@ export const TABLES = {
   HOUSE_RESOURCES: 'ic_house_resources',
   HOUSE_COMMS: 'ic_house_comms',
   HOUSE_SHIFT_TEMPLATES: 'ic_house_shift_templates',
+  HOUSE_FILES: 'ic_house_files',
 
   // Staff Child Entities
   STAFF_COMPLIANCE: 'ic_staff_compliance',
@@ -63,6 +64,11 @@ export const TABLES = {
   HOUSE_TYPES_MASTER: 'ic_house_types_master',
   FUNDING_SOURCES_MASTER: 'ic_funding_sources_master',
   FUNDING_TYPES_MASTER: 'ic_funding_types_master',
+  LEAVE_TYPES: 'ic_leave_types',
+  
+  // Enums (PostgreSQL Enums don't need 'ic_' prefix in queries but might be useful to track)
+  SHIFT_PERIOD_ENUM: 'ic_shift_period_enum',
+  STATUS_ENUM: 'ic_status_enum',
 
   // System
   ACTIVITY_LOG: 'ic_activity_log',

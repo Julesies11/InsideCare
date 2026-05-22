@@ -1,7 +1,10 @@
 import '@testing-library/jest-dom';
 import { cleanup } from '@testing-library/react';
-import { afterEach, beforeAll, afterAll } from 'vitest';
+import { afterEach, beforeAll, afterAll, vi } from 'vitest';
 import { server } from './mocks/server';
+
+vi.stubEnv('VITE_SUPABASE_URL', 'https://jxxpufmygwbfzzpioryu.supabase.co');
+vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'dummy-key');
 
 // Start MSW server before all tests
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));

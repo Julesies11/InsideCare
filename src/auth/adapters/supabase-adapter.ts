@@ -122,7 +122,7 @@ export const SupabaseAdapter = {
     }
       
     const staff_id = staffRow?.id ?? appMetadata.staff_id ?? undefined;
-    const staff_name = staffRow?.name ?? undefined;
+    const staff_name = staffRow?.staff_name ?? undefined;
     const photo_url = staffRow?.photo_url ?? null;
     const role_name = (staffRow as any)?.role?.role_name ?? appMetadata.role_name ?? undefined;
     

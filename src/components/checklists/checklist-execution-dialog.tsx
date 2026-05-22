@@ -5,6 +5,9 @@ import { HouseChecklistExecution } from '@/pages/houses/detail/components/house-
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/auth/context/auth-context';
 import { toast } from 'sonner';
+import { TABLES } from '@/config/db-tables';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
+import { CHECKLIST_STATUS } from '@/config/enums';
 
 interface ChecklistExecutionDialogProps {
   open: boolean;
@@ -48,10 +51,10 @@ export function ChecklistExecutionDialog({
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('ic_house_checklist_submissions')
+        .from(TABLES.HOUSE_CHECKLIST_SUBMISSIONS)
         .select(`
           *,
-          ic_house_checklist_submission_items:ic_house_checklist_submission_items(
+          ${TABLES.HOUSE_CHECKLIST_SUBMISSION_ITEMS}:${TABLES.HOUSE_CHECKLIST_SUBMISSION_ITEMS}(
             id, 
             submission_id, 
             item_id, 
@@ -59,12 +62,12 @@ export function ChecklistExecutionDialog({
             is_completed, 
             note, 
             completed_at,
-            completed_by_staff:ic_staff!completed_by(id, staff_name)
+            completed_by_staff:${TABLES.STAFF}!completed_by(id, staff_name)
           )
         `)
         .eq('checklist_id', checklist.id)
         .eq('house_id', houseId)
-        .eq('status', 'in_progress')
+        .eq('status', CHECKLIST_STATUS.in_progress)
         .maybeSingle();
 
       if (error) throw error;
@@ -73,8 +76,8 @@ export function ChecklistExecutionDialog({
         const completedItems: Record<string, boolean> = {};
         const itemNotes: Record<string, string> = {};
         const completedBy: Record<string, { id: string; name: string }> = {};
-        data.ic_house_checklist_submission_items.forEach((item: any) => {
-          const isDone = item.status === 'Completed' || item.is_completed;
+        data[TABLES.HOUSE_CHECKLIST_SUBMISSION_ITEMS].forEach((item: any) => {
+          const isDone = item.status === CHECKLIST_STATUS.COMPLETED || item.is_completed;
           completedItems[item.item_id] = isDone;
           itemNotes[item.item_id] = item.note || '';
           if (isDone && item.completed_by_staff) {
@@ -87,7 +90,7 @@ export function ChecklistExecutionDialog({
 
         // Fetch existing attachments
         const { data: attachmentData } = await supabase
-          .from('ic_house_checklist_item_attachments')
+          .from(TABLES.HOUSE_CHECKLIST_ITEM_ATTACHMENTS)
           .select('id, submission_id, item_id, file_name, file_path, file_size, mime_type, uploaded_by, created_at')
           .eq('submission_id', data.id);
 
@@ -96,7 +99,7 @@ export function ChecklistExecutionDialog({
           for (const att of attachmentData) {
             if (!attachments[att.item_id]) attachments[att.item_id] = [];
             const { data: urlData, error: urlError } = await supabase.storage
-              .from('ic_checklist-attachments')
+              .from(STORAGE_BUCKETS.CHECKLIST_ATTACHMENTS)
               .createSignedUrl(att.file_path, 3600);
             
             if (urlError) {
@@ -140,14 +143,14 @@ export function ChecklistExecutionDialog({
 
     if (!submissionId) {
       const { data, error } = await supabase
-        .from('ic_house_checklist_submissions')
+        .from(TABLES.HOUSE_CHECKLIST_SUBMISSIONS)
         .insert({
           checklist_id: results.checklist_id,
           house_id: houseId,
           master_id: checklist?.master_id || null,
           submitted_by: staffId || null,
           status: status,
-          completed_at: status === 'completed' ? new Date().toISOString() : null
+          completed_at: status === CHECKLIST_STATUS.completed ? new Date().toISOString() : null
         })
         .select().maybeSingle();
       if (error) throw error;
@@ -155,11 +158,11 @@ export function ChecklistExecutionDialog({
       submissionId = data.id;
     } else {
       const { error } = await supabase
-        .from('ic_house_checklist_submissions')
+        .from(TABLES.HOUSE_CHECKLIST_SUBMISSIONS)
         .update({
           status: status,
           submitted_by: staffId || null,
-          completed_at: status === 'completed' ? new Date().toISOString() : null,
+          completed_at: status === CHECKLIST_STATUS.completed ? new Date().toISOString() : null,
         })
         .eq('id', submissionId);
       if (error) throw error;
@@ -172,20 +175,20 @@ export function ChecklistExecutionDialog({
         item_id: item.item_id,
         master_item_id: originalItem?.master_item_id || null,
         is_completed: item.is_completed,
-        status: item.is_completed ? 'Completed' : 'Pending',
+        status: item.is_completed ? CHECKLIST_STATUS.COMPLETED : CHECKLIST_STATUS.PENDING,
         completed_by: item.completed_by,
         note: item.note,
         completed_at: item.is_completed ? new Date().toISOString() : null
       };
     });
-    await supabase.from('ic_house_checklist_submission_items').upsert(submissionItems, { onConflict: 'submission_id,item_id' });
+    await supabase.from(TABLES.HOUSE_CHECKLIST_SUBMISSION_ITEMS).upsert(submissionItems, { onConflict: 'submission_id,item_id' });
 
     if (results.toDeleteAttachments && results.toDeleteAttachments.length > 0) {
       for (const attId of results.toDeleteAttachments) {
-        const { data: att } = await supabase.from('ic_house_checklist_item_attachments').select('file_path').eq('id', attId).maybeSingle();
+        const { data: att } = await supabase.from(TABLES.HOUSE_CHECKLIST_ITEM_ATTACHMENTS).select('file_path').eq('id', attId).maybeSingle();
         if (!att) throw new Error("You do not have permission to perform this action");
-        if (att?.file_path) await supabase.storage.from('ic_checklist_attachments').remove([att.file_path]);
-        await supabase.from('ic_house_checklist_item_attachments').delete().eq('id', attId);
+        if (att?.file_path) await supabase.storage.from(STORAGE_BUCKETS.CHECKLIST_ATTACHMENTS).remove([att.file_path]);
+        await supabase.from(TABLES.HOUSE_CHECKLIST_ITEM_ATTACHMENTS).delete().eq('id', attId);
       }
     }
 
@@ -193,8 +196,8 @@ export function ChecklistExecutionDialog({
       for (const itemId in results.queuedAttachments) {
         for (const queued of results.queuedAttachments[itemId]) {
           const filePath = `${submissionId}/${itemId}/${Date.now()}-${queued.file.name}`;
-          await supabase.storage.from('ic_checklist_attachments').upload(filePath, queued.file);
-          await supabase.from('ic_house_checklist_item_attachments').insert({
+          await supabase.storage.from(STORAGE_BUCKETS.CHECKLIST_ATTACHMENTS).upload(filePath, queued.file);
+          await supabase.from(TABLES.HOUSE_CHECKLIST_ITEM_ATTACHMENTS).insert({
             submission_id: submissionId,
             item_id: itemId,
             file_name: queued.file.name,
@@ -221,7 +224,7 @@ export function ChecklistExecutionDialog({
     queuedAttachments?: Record<string, Array<{ file: File }>>;
   }) => {
     try {
-      const id = await persistExecution(results, 'in_progress');
+      const id = await persistExecution(results, CHECKLIST_STATUS.in_progress);
       if (!activeSubmission) {
         const completedItems: Record<string, boolean> = {};
         const itemNotes: Record<string, string> = {};
@@ -249,7 +252,7 @@ export function ChecklistExecutionDialog({
     queuedAttachments?: Record<string, Array<{ file: File }>>;
   }) => {
     try {
-      await persistExecution(results, 'completed');
+      await persistExecution(results, CHECKLIST_STATUS.completed);
       onOpenChange(false);
       if (onSuccess) onSuccess();
     } catch (error) {

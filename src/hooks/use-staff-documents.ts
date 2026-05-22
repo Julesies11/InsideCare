@@ -1,5 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { TABLES } from '@/config/db-tables';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
+import { QUERY_KEYS } from '@/config/query-keys';
 
 export interface StaffDocument {
   id: string;
@@ -18,11 +21,11 @@ const STAFF_DOCUMENT_COLUMNS = 'id, staff_id, file_name, file_path, file_size, m
 
 export function useStaffDocuments(staffId?: string) {
   const query = useQuery({
-    queryKey: ['staff-documents', staffId],
+    queryKey: [QUERY_KEYS.STAFF_DOCUMENTS, staffId],
     queryFn: async () => {
       if (!staffId) return [];
       const { data, error } = await supabase
-        .from('ic_staff_documents')
+        .from(TABLES.STAFF_DOCUMENTS)
         .select(STAFF_DOCUMENT_COLUMNS)
         .eq('staff_id', staffId)
         .order('created_at', { ascending: false });
@@ -52,7 +55,7 @@ export function useUploadStaffDocument() {
       const filePath = `${staffId}/${fileName}`;
       
       const { error: uploadError } = await supabase.storage
-        .from('ic_staff-documents')
+        .from(STORAGE_BUCKETS.STAFF_DOCUMENTS)
         .upload(filePath, file, {
           cacheControl: '3600',
           upsert: false
@@ -63,7 +66,7 @@ export function useUploadStaffDocument() {
       }
 
       const { data, error } = await supabase
-        .from('ic_staff_documents')
+        .from(TABLES.STAFF_DOCUMENTS)
         .insert({
           staff_id: staffId,
           file_name: file.name,
@@ -85,7 +88,7 @@ export function useUploadStaffDocument() {
       return data as StaffDocument;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['staff-documents', data.staff_id] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF_DOCUMENTS, data.staff_id] });
     },
   });
 }
@@ -96,7 +99,7 @@ export function useDeleteStaffDocument() {
   return useMutation({
     mutationFn: async ({ id, filePath, staffId }: { id: string; filePath: string; staffId: string }) => {
       const { error: storageError } = await supabase.storage
-        .from('ic_staff-documents')
+        .from(STORAGE_BUCKETS.STAFF_DOCUMENTS)
         .remove([filePath]);
 
       if (storageError) {
@@ -104,21 +107,21 @@ export function useDeleteStaffDocument() {
       }
 
       const { error } = await supabase
-        .from('ic_staff_documents')
+        .from(TABLES.STAFF_DOCUMENTS)
         .delete()
         .eq('id', id);
 
       if (error) throw error;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['staff-documents', variables.staffId] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF_DOCUMENTS, variables.staffId] });
     },
   });
 }
 
 export const getStaffFileUrl = async (filePath: string) => {
   const { data, error } = await supabase.storage
-    .from('ic_staff-documents')
+    .from(STORAGE_BUCKETS.STAFF_DOCUMENTS)
     .createSignedUrl(filePath, 3600);
   
   if (error) {

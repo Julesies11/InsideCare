@@ -1,5 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { TABLES } from '@/config/db-tables';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
+import { QUERY_KEYS } from '@/config/query-keys';
 
 export interface HouseDocument {
   id: string;
@@ -21,12 +24,12 @@ const HOUSE_DOCUMENT_COLUMNS = 'id, house_id, file_name, file_path, file_size, f
 
 export function useHouseDocuments(houseId?: string) {
   const query = useQuery({
-    queryKey: ['house-documents', houseId],
+    queryKey: [QUERY_KEYS.HOUSE_DOCUMENTS, houseId],
     queryFn: async () => {
       if (!houseId) return [];
 
       const { data, error } = await supabase
-        .from('ic_house_files')
+        .from(TABLES.HOUSE_FILES)
         .select(HOUSE_DOCUMENT_COLUMNS)
         .eq('house_id', houseId)
         .eq('status', 'current')
@@ -50,7 +53,7 @@ export function useHouseDocuments(houseId?: string) {
 
 export const getHouseFileUrl = async (filePath: string) => {
   const { data, error } = await supabase.storage
-    .from('ic_house-documents')
+    .from(STORAGE_BUCKETS.HOUSE_DOCUMENTS)
     .createSignedUrl(filePath, 3600);
   
   if (error) {

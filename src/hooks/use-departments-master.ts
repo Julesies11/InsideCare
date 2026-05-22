@@ -1,15 +1,17 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { Database } from '@/models/database.types';
+import { TABLES } from '@/config/db-tables';
+import { QUERY_KEYS } from '@/config/query-keys';
 
 export type Department = Database['public']['Tables']['ic_departments']['Row'];
 
 export function useDepartmentsMaster() {
   const query = useQuery({
-    queryKey: ['departments-master'],
+    queryKey: [QUERY_KEYS.DEPARTMENTS_MASTER],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('ic_departments')
+        .from(TABLES.DEPARTMENTS)
         .select('*')
         .order('department_name', { ascending: true });
 
@@ -34,7 +36,7 @@ export function useAddDepartmentMaster() {
   return useMutation({
     mutationFn: async (departmentData: Database['public']['Tables']['ic_departments']['Insert']) => {
       const { data, error } = await supabase
-        .from('ic_departments')
+        .from(TABLES.DEPARTMENTS)
         .insert([departmentData])
         .select('*')
         .maybeSingle();
@@ -46,7 +48,7 @@ export function useAddDepartmentMaster() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['departments-master'] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.DEPARTMENTS_MASTER] });
     },
   });
 }
@@ -57,7 +59,7 @@ export function useUpdateDepartmentMaster() {
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Database['public']['Tables']['ic_departments']['Update'] }) => {
       const { data, error } = await supabase
-        .from('ic_departments')
+        .from(TABLES.DEPARTMENTS)
         .update(updates)
         .eq('id', id)
         .select('*')
@@ -70,7 +72,7 @@ export function useUpdateDepartmentMaster() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['departments-master'] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.DEPARTMENTS_MASTER] });
     },
   });
 }

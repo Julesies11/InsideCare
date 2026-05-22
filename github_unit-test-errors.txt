@@ -1,0 +1,745 @@
+Skip to content
+Julesies11
+InsideCare
+Repository navigation
+Code
+Issues
+Pull requests
+Agents
+Actions
+Projects
+Security and quality
+Insights
+Settings
+CI - Security, Lint, Build, E2E
+Added strict database types #53
+All jobs
+Run details
+ci
+failed 3 minutes ago in 2m 10s
+Search logs
+1s
+2s
+3s
+15s
+13s
+0s
+1m 35s
+Run npm test
+> metronic-vite@9.4.0 test
+> vitest
+ RUN  v4.1.6 /home/runner/work/InsideCare/InsideCare
+ ❯ src/pages/staff/staff-timesheet-form.test.tsx (0 test)
+ ❯ src/auth/adapters/supabase-adapter.test.ts (4 tests | 1 failed) 30ms
+       × should correctly map user metadata and staff record to UserModel 12ms
+       ✓ should handle missing staff record gracefully 1ms
+       ✓ should throw error if user is not found 5ms
+       ✓ should update user metadata and return fresh profile 2ms
+ ✓ src/pages/houses/detail/components/PopulateRosterModal.test.tsx (8 tests) 1858ms
+     ✓ renders correctly with house name  375ms
+ ❯ src/pages/staff/staff-leave-form.test.tsx (0 test)
+ ❯ src/lib/notification-service.test.ts (5 tests | 2 failed) 18ms
+       × should call supabase.from().insert() with correct parameters 7ms
+       ✓ should handle null optional fields 1ms
+       ✓ notifyTimesheetApproved 1ms
+       ✓ notifyClinicalUpdate 1ms
+       × should fetch assignments and notify each staff member 1ms
+ ❯ src/pages/staff/staff-dashboard.test.tsx (0 test)
+ ❯ src/auth/providers/supabase-provider.test.tsx (4 tests | 4 failed) 4088ms
+     × should initialize with null user if no session exists 1052ms
+     × should fetch user profile if session exists on mount 1014ms
+     × should handle SIGNED_IN event 1010ms
+     × should handle SIGNED_OUT event 1004ms
+ ❯ src/components/roster/use-roster-data.test.tsx (0 test)
+stderr | src/hooks/use-signed-url.test.tsx > useSignedUrl Hook > should handle errors gracefully
+Failed to sign a chunk of 1 URLs for bucket staff-photos: Error: Storage error
+    at Object.<anonymous> (/home/runner/work/InsideCare/InsideCare/src/hooks/use-signed-url.test.tsx:83:74)
+    at Object.Mock [as createSignedUrls] (file:///home/runner/work/InsideCare/InsideCare/node_modules/@vitest/spy/dist/index.js:332:34)
+    at /home/runner/work/InsideCare/InsideCare/src/lib/signed-url-batcher.ts:75:12
+    at Array.map (<anonymous>)
+    at SignedUrlBatcherClass.processQueue (/home/runner/work/InsideCare/InsideCare/src/lib/signed-url-batcher.ts:72:36)
+    at Timeout._onTimeout (/home/runner/work/InsideCare/InsideCare/src/lib/signed-url-batcher.ts:40:16)
+    at listOnTimeout (node:internal/timers:581:17)
+    at processTimers (node:internal/timers:519:7)
+ ❯ src/pages/participants/shift-notes/components/shift-notes.test.tsx (0 test)
+ ✓ src/hooks/use-signed-url.test.tsx (5 tests) 421ms
+ ❯ src/pages/houses/profiles/components/houses.test.tsx (0 test)
+stderr | src/components/roster/leave-dialog.test.tsx > LeaveDialog Component > renders "New Leave Request" title when no leaveId is provided
+Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+stderr | src/components/roster/leave-dialog.test.tsx > LeaveDialog Component > renders "New Leave Request" title when no leaveId is provided
+An update to LeaveDialog inside a test was not wrapped in act(...).
+When testing, code that causes React state updates should be wrapped into act(...):
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+stderr | src/components/roster/leave-dialog.test.tsx > LeaveDialog Component > renders "Edit Leave Request" title when leaveId is provided
+ ✓ src/test/pages-smoke.test.tsx (6 tests) 1058ms
+Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+     ✓ House Checklist Schedule Modal renders  443ms
+stderr | src/components/roster/leave-dialog.test.tsx > LeaveDialog Component > displays conflict warning when rostered shifts exist in the date range
+Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+ ✓ src/lib/api/storage.test.ts (8 tests) 25ms
+stderr | src/components/roster/leave-dialog.test.tsx > LeaveDialog Component > shows submit button
+Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+ ❯ src/components/roster/leave-dialog.test.tsx (4 tests | 1 failed) 1772ms
+     ✓ renders "New Leave Request" title when no leaveId is provided  392ms
+     ✓ renders "Edit Leave Request" title when leaveId is provided 118ms
+     × displays conflict warning when rostered shifts exist in the date range 1092ms
+     ✓ shows submit button 163ms
+ ❯ src/hooks/use-house-checklist-events.test.tsx (0 test)
+ ✓ src/pages/houses/detail/house-detail.smoke.test.tsx (1 test) 487ms
+     ✓ House Detail Content loads without crashing  481ms
+ ❯ src/pages/participants/detail/participant-detail-page.test.tsx (0 test)
+ ❯ src/hooks/useHouseCalendarEvents.test.tsx (0 test)
+ ❯ src/pages/employees/staff-detail/staff-detail-page.test.tsx (0 test)
+ ❯ src/pages/staff/staff-roster.test.tsx (0 test)
+stderr | src/test/rbac-sync.test.ts > RBAC Sync Utility > syncUserPermissions > should handle edge function errors
+Failed to sync user permissions: { message: 'Function error' }
+ ❯ src/test/rbac-sync.test.ts (6 tests | 1 failed) 25ms
+       ✓ should return error if userId is missing 3ms
+       ✓ should invoke edge function with correct userId 3ms
+       ✓ should handle edge function errors 4ms
+       ✓ should return error if staffId is missing 1ms
+       × should fetch auth_user_id and then sync 7ms
+       ✓ should handle missing staff record 1ms
+stderr | src/lib/signed-url-batcher.test.ts > SignedUrlBatcher > should handle errors in a single chunk gracefully
+Failed to sign a chunk of 50 URLs for bucket bucket1: { message: 'Chunk 1 failed' }
+ ✓ src/lib/signed-url-batcher.test.ts (4 tests) 228ms
+ ✓ src/layouts/demo1/components/sidebar-menu.test.tsx (3 tests) 451ms
+ ❯ src/components/roster/shift-dialog.test.tsx (0 test)
+stdout | src/pages/staff/staff-pages.smoke.test.tsx > Staff Pages Smoke Tests > renders Staff Checklists without crashing
+Fetching assigned houses for staff: staff-1
+stdout | src/pages/staff/staff-pages.smoke.test.tsx > Staff Pages Smoke Tests > renders Staff Checklists without crashing
+Found assigned houses: 0
+ ❯ src/pages/employees/timesheets/admin-timesheets-page.test.tsx (0 test)
+ ✓ src/pages/staff/staff-pages.smoke.test.tsx (7 tests) 437ms
+ ❯ src/hooks/use-staff-dashboard-data.test.tsx (0 test)
+ ✓ src/components/ui/accordion.test.tsx (4 tests) 404ms
+     ✓ renders all items correctly  307ms
+ ✓ src/components/activities/ActivityLog.test.tsx (5 tests) 366ms
+ ✓ src/hooks/useNotifications.test.tsx (2 tests) 41ms
+ ❯ src/test/security-hardened-rbac.test.ts (4 tests | 1 failed) 43ms
+     ✓ should grant full access to Admin 21ms
+     ✓ should deny edit access to read_only users 3ms
+     × should grant view access to context_read_only users correctly 10ms
+     ✓ should identify permissions from the permissions object correctly 3ms
+ ✓ src/lib/rrule-utils.test.ts (7 tests) 21ms
+ ✓ src/hooks/useRBAC.test.tsx (4 tests) 32ms
+ ✓ src/hooks/use-permissions.test.tsx (4 tests) 35ms
+stderr | src/test/smoke-vitest.test.tsx > Smoke Tests - Admin Pages > Admin Timesheets loads without crashing
+An update to AdminTimesheetsPage inside a test was not wrapped in act(...).
+When testing, code that causes React state updates should be wrapped into act(...):
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to AdminTimesheetsPage inside a test was not wrapped in act(...).
+When testing, code that causes React state updates should be wrapped into act(...):
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to AdminTimesheetsPage inside a test was not wrapped in act(...).
+When testing, code that causes React state updates should be wrapped into act(...):
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+stderr | src/test/smoke-vitest.test.tsx > Smoke Tests - Admin Pages > Admin Leave Requests loads without crashing
+An update to AdminLeaveRequestsPage inside a test was not wrapped in act(...).
+When testing, code that causes React state updates should be wrapped into act(...):
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to AdminLeaveRequestsPage inside a test was not wrapped in act(...).
+When testing, code that causes React state updates should be wrapped into act(...):
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+ ✓ src/test/smoke-vitest.test.tsx (6 tests) 642ms
+ ❯ src/pages/employees/leave-requests/admin-leave-requests-page.test.tsx (0 test)
+ ❯ src/components/roster/shift-card.test.tsx (4 tests | 1 failed) 166ms
+     ✓ renders compact view correctly 94ms
+     × renders expanded view correctly 31ms
+     ✓ calls onClick when clicked 20ms
+     ✓ shows OPEN SHIFT for unassigned shifts 13ms
+ ❯ src/hooks/useChecklistSchedules.test.tsx (2 tests | 2 failed) 51ms
+     × should create a schedule and materialize events 37ms
+     × should delete a schedule 5ms
+ ❯ src/pages/admin/checklists/checklist-master-page.test.tsx (0 test)
+ ✓ src/components/AccessControl.test.tsx (4 tests) 40ms
+ ✓ src/test/house-detail.smoke.test.tsx (1 test) 63ms
+ ❯ src/pages/roster-board/roster-board.test.tsx (0 test)
+ ✓ src/pages/houses/detail/components/ScheduleChecklistsModal.test.tsx (2 tests) 693ms
+     ✓ renders checklists correctly and allows selection  441ms
+ ❯ src/pages/houses/detail/house-detail-page.test.tsx (0 test)
+ ✓ src/components/ui/breadcrumb.test.tsx (4 tests) 251ms
+stderr | src/lib/utils/image.test.ts > Image Utility > compressImage > should return original file if compression fails
+Image compression failed, returning original file: Error: Compression failed
+    at /home/runner/work/InsideCare/InsideCare/src/lib/utils/image.test.ts:55:57
+    at file:///home/runner/work/InsideCare/InsideCare/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+    at file:///home/runner/work/InsideCare/InsideCare/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+ ✓ src/lib/utils/image.test.ts (7 tests) 21ms
+    at file:///home/runner/work/InsideCare/InsideCare/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel (file:///home/runner/work/InsideCare/InsideCare/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+    at file:///home/runner/work/InsideCare/InsideCare/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///home/runner/work/InsideCare/InsideCare/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)
+    at file:///home/runner/work/InsideCare/InsideCare/node_modules/@vitest/runner/dist/chunk-artifact.js:2955:64
+ ❯ src/pages/houses/detail/components/house-checklists.test.tsx (0 test)
+stderr | src/components/ui/alert-dialog.test.tsx > AlertDialog > calls action callback when Continue is clicked
+`AlertDialogContent` requires a description for the component to be accessible for screen reader users.
+You can add a description to the `AlertDialogContent` by passing a `AlertDialogDescription` component as a child, which also benefits sighted users by adding visible context to the dialog.
+Alternatively, you can use your own component as a description by assigning it an `id` and passing the same value to the `aria-describedby` prop in `AlertDialogContent`. If the description is confusing or duplicative for sighted users, you can use the `@radix-ui/react-visually-hidden` primitive as a wrapper around your description component.
+For more information, see https://radix-ui.com/primitives/docs/components/alert-dialog
+Warning: Missing `Description` or `aria-describedby={undefined}` for {AlertDialogContent}.
+ ✓ src/components/ui/alert-dialog.test.tsx (3 tests) 392ms
+ ❯ src/hooks/use-roster-active-staff.test.tsx (0 test)
+ ✓ src/components/ui/alert.test.tsx (5 tests) 318ms
+ ✓ src/components/ui/avatar.test.tsx (4 tests) 297ms
+stderr | src/components/ui/sheet.test.tsx > Sheet > closes the sheet when the close button is clicked
+Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+stderr | src/components/ui/sheet.test.tsx > Sheet > applies the correct side classes
+Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+ ✓ src/components/ui/sheet.test.tsx (4 tests) 383ms
+ ❯ src/pages/houses/detail/components/house-calendar-events.smoke.test.tsx (0 test)
+ ❯ src/pages/houses/detail/components/house-shift-setup.test.tsx (0 test)
+ ✓ src/hooks/useDirtyTracker.test.tsx (4 tests) 25ms
+ ❯ src/hooks/use-house-shift-templates.test.tsx (0 test)
+ ✓ src/pages/participants/detail/participant-detail-page.smoke.test.tsx (1 test) 430ms
+     ✓ renders the participant detail page without crashing  422ms
+ ❯ src/hooks/use-staff-roster.test.tsx (0 test)
+stderr | src/components/roster/roster-dialogs.smoke.test.tsx > Roster Dialogs Smoke Tests > renders StaffShiftNoteDialog without crashing
+An update to StaffShiftNoteDialog inside a test was not wrapped in act(...).
+When testing, code that causes React state updates should be wrapped into act(...):
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+ ❯ src/components/roster/roster-dialogs.smoke.test.tsx (2 tests | 2 failed) 431ms
+     × renders ViewShiftDialog without crashing 285ms
+     × renders StaffShiftNoteDialog without crashing 140ms
+ ❯ src/hooks/use-house-checklists.test.tsx (0 test)
+ ❯ src/pages/participants/detail/participant-detail-content.test.tsx (0 test)
+ ❯ src/hooks/use-houses-active-count.test.tsx (0 test)
+ ❯ src/pages/employees/staff-detail/staff-detail-page.smoke.test.tsx (1 test | 1 failed) 10141ms
+     × renders the staff detail page without crashing 10129ms
+ ✓ src/components/ui/progress.test.tsx (5 tests) 311ms
+ ❯ src/pages/houses/detail/components/HouseRosterWizard.test.tsx (0 test)
+ ✓ src/test/sanitization.test.ts (4 tests) 22ms
+stderr | src/pages/admin/roles/components/role-staff-list-dialog.test.tsx > RoleStaffListDialog > renders loading state
+Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+ ✓ src/pages/account/notifications/notification-center.test.tsx (3 tests) 410ms
+stderr | src/pages/admin/roles/components/role-staff-list-dialog.test.tsx > RoleStaffListDialog > renders staff list when data is loaded
+Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+stderr | src/pages/admin/roles/components/role-staff-list-dialog.test.tsx > RoleStaffListDialog > renders empty state when no staff assigned
+Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+ ❯ src/pages/admin/roles/components/role-staff-list-dialog.test.tsx (3 tests | 1 failed) 464ms
+     ✓ renders loading state  302ms
+     × renders staff list when data is loaded 107ms
+     ✓ renders empty state when no staff assigned 47ms
+ ❯ src/hooks/use-staff-shifts.test.tsx (0 test)
+ ❯ src/pages/houses/profiles/components/houses-persistence.test.tsx (0 test)
+ ❯ src/pages/admin/roles/components/role-permissions-matrix.utils.test.ts (0 test)
+ ❯ src/pages/employees/staff-detail/staff-detail.smoke.test.tsx (1 test | 1 failed) 5494ms
+     × renders the staff detail page without crashing 5485ms
+ ❯ src/pages/participants/profiles/components/participants.test.tsx (0 test)
+ ✓ src/test/checklist-audit.test.ts (2 tests) 11ms
+ ❯ src/hooks/use-checklist-history.test.tsx (0 test)
+ ✓ src/pages/roster-board/roster-board.smoke.test.tsx (1 test) 303ms
+ ✓ src/components/roster/shift-checklist-picker.test.tsx (1 test) 452ms
+     ✓ does not re-sort items when selection changes  446ms
+ ❯ src/components/ui/secure-avatar.test.tsx (4 tests | 2 failed) 112ms
+     ✓ should render initials when no src is provided 57ms
+     ✓ should render the image container when a signed URL is returned 24ms
+     × should use the correct bucket for staff photos by default 16ms
+     × should allow overriding the bucket 6ms
+ ❯ src/pages/houses/detail/components/house-shift-setup.smoke.test.tsx (0 test)
+ ✓ src/hooks/use-debounce.test.ts (3 tests) 57ms
+ ✓ src/components/ui/select.test.tsx (2 tests) 738ms
+     ✓ renders correctly and opens options  532ms
+ ❯ src/hooks/use-participant-medications.test.tsx (0 test)
+ ✓ src/components/roster/shift-calendar-warnings.test.tsx (1 test) 154ms
+ ✓ src/components/ui/collapsible.test.tsx (3 tests) 346ms
+ ❯ src/hooks/ChecklistSetup.smoke.test.tsx (0 test)
+ ❯ src/hooks/use-house-staff-assignments.test.tsx (0 test)
+ ✓ src/pages/houses/profiles/houses-profiles.smoke.test.tsx (1 test) 253ms
+ ✓ src/pages/employees/staff-detail/components/staff-availability.test.tsx (3 tests) 94ms
+ ❯ src/hooks/use-house-calendar-event-types-master.test.tsx (0 test)
+ ❯ src/hooks/use-medications-master.test.tsx (0 test)
+stderr | src/partials/topbar/notifications-sheet.test.tsx > NotificationsSheet > renders notifications inside sheet
+Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+ ✓ src/partials/topbar/notifications-sheet.test.tsx (2 tests) 441ms
+ ❯ src/test/smoke.test.tsx (0 test)
+ ✓ src/components/ui/separator.test.tsx (5 tests) 53ms
+ ✓ src/pages/houses/detail/house-detail-sidebar.test.tsx (1 test) 124ms
+ ❯ src/test/smoke-avatar.test.tsx (0 test)
+ ✓ src/hooks/RosterBoard.smoke.test.tsx (1 test) 253ms
+ ✓ src/components/ui/popover.test.tsx (3 tests) 466ms
+     ✓ opens the popover when the trigger is clicked  324ms
+ ✓ src/components/ui/button.test.tsx (4 tests) 342ms
+ ❯ src/hooks/use-employment-types-master.test.tsx (0 test)
+ ❯ src/hooks/use-participant-documents.test.tsx (0 test)
+ ❯ src/hooks/use-contact-types-master.test.tsx (0 test)
+ ❯ src/hooks/use-staff-documents.test.tsx (0 test)
+ ❯ src/hooks/use-departments-master.test.tsx (0 test)
+ ❯ src/hooks/use-house-types-master.test.tsx (0 test)
+ ❯ src/hooks/use-house-documents.test.tsx (0 test)
+ ✓ src/components/roster/shift-calendar.test.tsx (2 tests) 132ms
+ ❯ src/hooks/use-checklist-master.test.tsx (0 test)
+ ✓ src/pages/admin/roles/components/role-permissions-matrix.test.tsx (1 test) 903ms
+     ✓ should render the permissions matrix with all 5 access levels  895ms
+ ❯ src/hooks/use-participants.test.tsx (0 test)
+ ✓ src/config/__tests__/constants.test.ts (5 tests) 18ms
+ ❯ src/test/refactor-verification.test.ts (0 test)
+ ✓ src/components/ui/badge.test.tsx (4 tests) 75ms
+ ✓ src/components/ui/input.test.tsx (4 tests) 70ms
+ ✓ src/pages/admin/checklists/checklist-master.smoke.test.tsx (1 test) 84ms
+ ✓ src/pages/houses/detail/components/house-comms.test.tsx (1 test) 134ms
+ ✓ src/components/ui/dialog.test.tsx (1 test) 415ms
+     ✓ renders correctly and opens content  407ms
+ ✓ src/lib/utils.test.ts (5 tests) 11ms
+ ❯ src/pages/admin/roles/roles-page.smoke.test.tsx (1 test | 1 failed) 46ms
+     × renders correctly 38ms
+ ❯ src/pages/admin/checklists/checklist-master-page.smoke.test.tsx (0 test)
+ ✓ src/components/ui/checkbox.test.tsx (4 tests) 402ms
+ ✓ src/components/ui/label.test.tsx (3 tests) 89ms
+ ❯ src/pages/staff/staff-timesheet-list.smoke.test.tsx (0 test)
+ ✓ src/components/ui/switch.test.tsx (4 tests) 339ms
+ ❯ src/pages/houses/profiles/houses-basic-page.smoke.test.tsx (0 test)
+ ✓ src/pages/houses/profiles/components/houses-page.smoke.test.tsx (1 test) 229ms
+ ❯ src/hooks/use-houses.test.tsx (0 test)
+ ✓ src/components/ui/tabs.test.tsx (1 test) 353ms
+     ✓ renders correctly and switches content  346ms
+ ✓ src/components/ui/textarea.test.tsx (3 tests) 66ms
+ ❯ src/hooks/use-activity-log.test.tsx (0 test)
+ ❯ src/hooks/use-shift-notes.test.tsx (0 test)
+ ✓ src/components/ui/card.test.tsx (2 tests) 75ms
+ ✓ src/lib/period-theme.test.ts (4 tests) 12ms
+ ✓ src/components/ui/tooltip.test.tsx (1 test) 404ms
+     ✓ renders correctly and shows content on hover  393ms
+ ❯ src/pages/staff/staff-leave-list.smoke.test.tsx (0 test)
+ ❯ src/hooks/use-staff.test.tsx (0 test)
+ ✓ src/pages/admin/activity-log/activity-log-page.smoke.test.tsx (1 test) 79ms
+ ✓ src/components/ui/skeleton.test.tsx (2 tests) 48ms
+ ✓ src/components/ui/scroll-area.test.tsx (2 tests) 112ms
+ ✓ src/errors/error-403.test.tsx (1 test) 270ms
+ ✓ src/test/edge-functions.test.ts (1 test) 10ms
+ ✓ src/components/ui/aspect-ratio.test.tsx (1 test) 46ms
+ ✓ src/test/unit/edge-rbac.test.ts (1 test) 7ms
+⎯⎯⎯⎯⎯⎯ Failed Suites 59 ⎯⎯⎯⎯⎯⎯
+ FAIL  src/hooks/ChecklistSetup.smoke.test.tsx [ src/hooks/ChecklistSetup.smoke.test.tsx ]
+ FAIL  src/pages/houses/detail/components/house-checklists.test.tsx [ src/pages/houses/detail/components/house-checklists.test.tsx ]
+Error: @supabase/ssr: Your project's URL and API key are required to create a Supabase client!
+Check your Supabase project's API settings to find these values
+https://supabase.com/dashboard/project/_/settings/api
+ ❯ createBrowserClient node_modules/@supabase/ssr/src/createBrowserClient.ts:111:10
+ ❯ src/lib/supabase.ts:44:51
+     42|  * @supabase/ssr for robust session management and payload size loggin…
+     43|  */
+     44| export const supabase: SupabaseClient<Database> = createBrowserClient<…
+       |                                                   ^
+     45|   supabaseUrl,
+     46|   supabaseAnonKey,
+ ❯ src/hooks/useChecklistSchedules.ts:2:1
+ ❯ src/pages/houses/detail/components/HouseChecklistScheduleModal.tsx:9:1
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/80]⎯
+ FAIL  src/hooks/use-activity-log.test.tsx [ src/hooks/use-activity-log.test.tsx ]
+Error: @supabase/ssr: Your project's URL and API key are required to create a Supabase client!
+Check your Supabase project's API settings to find these values
+https://supabase.com/dashboard/project/_/settings/api
+ ❯ createBrowserClient node_modules/@supabase/ssr/src/createBrowserClient.ts:111:10
+ ❯ src/lib/supabase.ts:44:51
+     42|  * @supabase/ssr for robust session management and payload size loggin…
+     43|  */
+     44| export const supabase: SupabaseClient<Database> = createBrowserClient<…
+       |                                                   ^
+     45|   supabaseUrl,
+     46|   supabaseAnonKey,
+ ❯ src/hooks/use-activity-log.ts:2:1
+ ❯ src/hooks/use-activity-log.test.tsx:3:1
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/80]⎯
+ FAIL  src/hooks/use-checklist-history.test.tsx [ src/hooks/use-checklist-history.test.tsx ]
+Error: @supabase/ssr: Your project's URL and API key are required to create a Supabase client!
+Check your Supabase project's API settings to find these values
+https://supabase.com/dashboard/project/_/settings/api
+ ❯ createBrowserClient node_modules/@supabase/ssr/src/createBrowserClient.ts:111:10
+ ❯ src/lib/supabase.ts:44:51
+     42|  * @supabase/ssr for robust session management and payload size loggin…
+     43|  */
+     44| export const supabase: SupabaseClient<Database> = createBrowserClient<…
+       |                                                   ^
+     45|   supabaseUrl,
+     46|   supabaseAnonKey,
+ ❯ src/hooks/use-checklist-history.ts:2:1
+ ❯ src/hooks/use-checklist-history.test.tsx:3:1
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/80]⎯
+ FAIL  src/hooks/use-checklist-master.test.tsx [ src/hooks/use-checklist-master.test.tsx ]
+Error: @supabase/ssr: Your project's URL and API key are required to create a Supabase client!
+Check your Supabase project's API settings to find these values
+https://supabase.com/dashboard/project/_/settings/api
+ ❯ createBrowserClient node_modules/@supabase/ssr/src/createBrowserClient.ts:111:10
+ ❯ src/lib/supabase.ts:44:51
+     42|  * @supabase/ssr for robust session management and payload size loggin…
+     43|  */
+     44| export const supabase: SupabaseClient<Database> = createBrowserClient<…
+       |                                                   ^
+     45|   supabaseUrl,
+     46|   supabaseAnonKey,
+ ❯ src/hooks/use-checklist-master.ts:2:1
+ ❯ src/hooks/use-checklist-master.test.tsx:3:1
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/80]⎯
+ FAIL  src/hooks/use-contact-types-master.test.tsx [ src/hooks/use-contact-types-master.test.tsx ]
+Error: @supabase/ssr: Your project's URL and API key are required to create a Supabase client!
+Check your Supabase project's API settings to find these values
+https://supabase.com/dashboard/project/_/settings/api
+ ❯ createBrowserClient node_modules/@supabase/ssr/src/createBrowserClient.ts:111:10
+ ❯ src/lib/supabase.ts:44:51
+     42|  * @supabase/ssr for robust session management and payload size loggin…
+     43|  */
+     44| export const supabase: SupabaseClient<Database> = createBrowserClient<…
+       |                                                   ^
+     45|   supabaseUrl,
+     46|   supabaseAnonKey,
+ ❯ src/hooks/use-contact-types-master.ts:2:1
+ ❯ src/hooks/use-contact-types-master.test.tsx:3:1
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/80]⎯
+ FAIL  src/hooks/use-departments-master.test.tsx [ src/hooks/use-departments-master.test.tsx ]
+Error: @supabase/ssr: Your project's URL and API key are required to create a Supabase client!
+Check your Supabase project's API settings to find these values
+https://supabase.com/dashboard/project/_/settings/api
+ ❯ createBrowserClient node_modules/@supabase/ssr/src/createBrowserClient.ts:111:10
+ ❯ src/lib/supabase.ts:44:51
+     42|  * @supabase/ssr for robust session management and payload size loggin…
+     43|  */
+     44| export const supabase: SupabaseClient<Database> = createBrowserClient<…
+       |                                                   ^
+     45|   supabaseUrl,
+     46|   supabaseAnonKey,
+ ❯ src/hooks/use-departments-master.ts:2:1
+ ❯ src/hooks/use-departments-master.test.tsx:3:1
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/80]⎯
+ FAIL  src/hooks/use-employment-types-master.test.tsx [ src/hooks/use-employment-types-master.test.tsx ]
+Error: @supabase/ssr: Your project's URL and API key are required to create a Supabase client!
+Check your Supabase project's API settings to find these values
+https://supabase.com/dashboard/project/_/settings/api
+ ❯ createBrowserClient node_modules/@supabase/ssr/src/createBrowserClient.ts:111:10
+ ❯ src/lib/supabase.ts:44:51
+     42|  * @supabase/ssr for robust session management and payload size loggin…
+     43|  */
+     44| export const supabase: SupabaseClient<Database> = createBrowserClient<…
+       |                                                   ^
+     45|   supabaseUrl,
+     46|   supabaseAnonKey,
+ ❯ src/hooks/use-employment-types-master.ts:2:1
+ ❯ src/hooks/use-employment-types-master.test.tsx:3:1
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/80]⎯
+ FAIL  src/hooks/use-house-calendar-event-types-master.test.tsx [ src/hooks/use-house-calendar-event-types-master.test.tsx ]
+Error: @supabase/ssr: Your project's URL and API key are required to create a Supabase client!
+Check your Supabase project's API settings to find these values
+https://supabase.com/dashboard/project/_/settings/api
+ ❯ createBrowserClient node_modules/@supabase/ssr/src/createBrowserClient.ts:111:10
+ ❯ src/lib/supabase.ts:44:51
+     42|  * @supabase/ssr for robust session management and payload size loggin…
+     43|  */
+     44| export const supabase: SupabaseClient<Database> = createBrowserClient<…
+       |                                                   ^
+     45|   supabaseUrl,
+     46|   supabaseAnonKey,
+ ❯ src/hooks/use-house-calendar-event-types-master.ts:2:1
+ ❯ src/hooks/use-house-calendar-event-types-master.test.tsx:3:1
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/80]⎯
+ FAIL  src/hooks/use-house-checklist-events.test.tsx [ src/hooks/use-house-checklist-events.test.tsx ]
+Error: @supabase/ssr: Your project's URL and API key are required to create a Supabase client!
+Check your Supabase project's API settings to find these values
+https://supabase.com/dashboard/project/_/settings/api
+ ❯ createBrowserClient node_modules/@supabase/ssr/src/createBrowserClient.ts:111:10
+ ❯ src/lib/supabase.ts:44:51
+     42|  * @supabase/ssr for robust session management and payload size loggin…
+     43|  */
+     44| export const supabase: SupabaseClient<Database> = createBrowserClient<…
+       |                                                   ^
+     45|   supabaseUrl,
+     46|   supabaseAnonKey,
+ ❯ src/hooks/use-house-checklist-events.ts:2:1
+ ❯ src/hooks/use-house-checklist-events.test.tsx:3:1
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/80]⎯
+ FAIL  src/hooks/use-house-checklists.test.tsx [ src/hooks/use-house-checklists.test.tsx ]
+Error: @supabase/ssr: Your project's URL and API key are required to create a Supabase client!
+Check your Supabase project's API settings to find these values
+https://supabase.com/dashboard/project/_/settings/api
+ ❯ createBrowserClient node_modules/@supabase/ssr/src/createBrowserClient.ts:111:10
+ ❯ src/lib/supabase.ts:44:51
+     42|  * @supabase/ssr for robust session management and payload size loggin…
+     43|  */
+     44| export const supabase: SupabaseClient<Database> = createBrowserClient<…
+       |                                                   ^
+     45|   supabaseUrl,
+     46|   supabaseAnonKey,
+ ❯ src/hooks/use-house-checklists.ts:2:1
+ ❯ src/hooks/use-house-checklists.test.tsx:3:1
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/80]⎯
+ FAIL  src/hooks/use-house-documents.test.tsx [ src/hooks/use-house-documents.test.tsx ]
+Error: @supabase/ssr: Your project's URL and API key are required to create a Supabase client!
+Check your Supabase project's API settings to find these values
+https://supabase.com/dashboard/project/_/settings/api
+ ❯ createBrowserClient node_modules/@supabase/ssr/src/createBrowserClient.ts:111:10
+ ❯ src/lib/supabase.ts:44:51
+     42|  * @supabase/ssr for robust session management and payload size loggin…
+     43|  */
+     44| export const supabase: SupabaseClient<Database> = createBrowserClient<…
+       |                                                   ^
+     45|   supabaseUrl,
+     46|   supabaseAnonKey,
+ ❯ src/hooks/use-house-documents.ts:2:1
+ ❯ src/hooks/use-house-documents.test.tsx:3:1
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/80]⎯
+ FAIL  src/hooks/use-house-shift-templates.test.tsx [ src/hooks/use-house-shift-templates.test.tsx ]
+Error: @supabase/ssr: Your project's URL and API key are required to create a Supabase client!
+Check your Supabase project's API settings to find these values
+https://supabase.com/dashboard/project/_/settings/api
+ ❯ createBrowserClient node_modules/@supabase/ssr/src/createBrowserClient.ts:111:10
+ ❯ src/lib/supabase.ts:44:51
+     42|  * @supabase/ssr for robust session management and payload size loggin…
+     43|  */
+     44| export const supabase: SupabaseClient<Database> = createBrowserClient<…
+       |                                                   ^
+     45|   supabaseUrl,
+     46|   supabaseAnonKey,
+ ❯ src/hooks/use-house-shift-templates.ts:3:1
+ ❯ src/hooks/use-house-shift-templates.test.tsx:3:1
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/80]⎯
+ FAIL  src/hooks/use-house-staff-assignments.test.tsx [ src/hooks/use-house-staff-assignments.test.tsx ]
+Error: @supabase/ssr: Your project's URL and API key are required to create a Supabase client!
+Check your Supabase project's API settings to find these values
+https://supabase.com/dashboard/project/_/settings/api
+ ❯ createBrowserClient node_modules/@supabase/ssr/src/createBrowserClient.ts:111:10
+ ❯ src/lib/supabase.ts:44:51
+     42|  * @supabase/ssr for robust session management and payload size loggin…
+     43|  */
+     44| export const supabase: SupabaseClient<Database> = createBrowserClient<…
+       |                                                   ^
+     45|   supabaseUrl,
+     46|   supabaseAnonKey,
+ ❯ src/hooks/use-house-staff-assignments.ts:2:1
+ ❯ src/hooks/use-house-staff-assignments.test.tsx:3:1
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/80]⎯
+ FAIL  src/hooks/use-house-types-master.test.tsx [ src/hooks/use-house-types-master.test.tsx ]
+Error: @supabase/ssr: Your project's URL and API key are required to create a Supabase client!
+Check your Supabase project's API settings to find these values
+https://supabase.com/dashboard/project/_/settings/api
+ ❯ createBrowserClient node_modules/@supabase/ssr/src/createBrowserClient.ts:111:10
+ ❯ src/lib/supabase.ts:44:51
+     42|  * @supabase/ssr for robust session management and payload size loggin…
+     43|  */
+     44| export const supabase: SupabaseClient<Database> = createBrowserClient<…
+       |                                                   ^
+     45|   supabaseUrl,
+     46|   supabaseAnonKey,
+ ❯ src/hooks/use-house-types-master.ts:2:1
+ ❯ src/hooks/use-house-types-master.test.tsx:3:1
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/80]⎯
+ FAIL  src/hooks/use-houses-active-count.test.tsx [ src/hooks/use-houses-active-count.test.tsx ]
+Error: @supabase/ssr: Your project's URL and API key are required to create a Supabase client!
+Check your Supabase project's API settings to find these values
+https://supabase.com/dashboard/project/_/settings/api
+ ❯ createBrowserClient node_modules/@supabase/ssr/src/createBrowserClient.ts:111:10
+ ❯ src/lib/supabase.ts:44:51
+     42|  * @supabase/ssr for robust session management and payload size loggin…
+     43|  */
+     44| export const supabase: SupabaseClient<Database> = createBrowserClient<…
+       |                                                   ^
+     45|   supabaseUrl,
+     46|   supabaseAnonKey,
+ ❯ src/hooks/use-houses.ts:2:1
+ ❯ src/hooks/use-houses-active-count.test.tsx:3:1
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/80]⎯
+ FAIL  src/hooks/use-houses.test.tsx [ src/hooks/use-houses.test.tsx ]
+Error: @supabase/ssr: Your project's URL and API key are required to create a Supabase client!
+Check your Supabase project's API settings to find these values
+https://supabase.com/dashboard/project/_/settings/api
+ ❯ createBrowserClient node_modules/@supabase/ssr/src/createBrowserClient.ts:111:10
+ ❯ src/lib/supabase.ts:44:51
+     42|  * @supabase/ssr for robust session management and payload size loggin…
+     43|  */
+     44| export const supabase: SupabaseClient<Database> = createBrowserClient<…
+       |                                                   ^
+     45|   supabaseUrl,
+     46|   supabaseAnonKey,
+ ❯ src/hooks/use-houses.ts:2:1
+ ❯ src/hooks/use-houses.test.tsx:3:1
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/80]⎯
+ FAIL  src/hooks/use-medications-master.test.tsx [ src/hooks/use-medications-master.test.tsx ]
+Error: @supabase/ssr: Your project's URL and API key are required to create a Supabase client!
+Check your Supabase project's API settings to find these values
+https://supabase.com/dashboard/project/_/settings/api
+ ❯ createBrowserClient node_modules/@supabase/ssr/src/createBrowserClient.ts:111:10
+ ❯ src/lib/supabase.ts:44:51
+     42|  * @supabase/ssr for robust session management and payload size loggin…
+     43|  */
+     44| export const supabase: SupabaseClient<Database> = createBrowserClient<…
+       |                                                   ^
+     45|   supabaseUrl,
+     46|   supabaseAnonKey,
+ ❯ src/hooks/use-medications-master.ts:2:1
+ ❯ src/hooks/use-medications-master.test.tsx:3:1
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/80]⎯
+ FAIL  src/hooks/use-participant-documents.test.tsx [ src/hooks/use-participant-documents.test.tsx ]
+Error: @supabase/ssr: Your project's URL and API key are required to create a Supabase client!
+Check your Supabase project's API settings to find these values
+https://supabase.com/dashboard/project/_/settings/api
+ ❯ createBrowserClient node_modules/@supabase/ssr/src/createBrowserClient.ts:111:10
+ ❯ src/lib/supabase.ts:44:51
+     42|  * @supabase/ssr for robust session management and payload size loggin…
+     43|  */
+     44| export const supabase: SupabaseClient<Database> = createBrowserClient<…
+       |                                                   ^
+     45|   supabaseUrl,
+     46|   supabaseAnonKey,
+ ❯ src/hooks/use-participant-documents.ts:2:1
+ ❯ src/hooks/use-participant-documents.test.tsx:3:1
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/80]⎯
+ FAIL  src/hooks/use-participant-medications.test.tsx [ src/hooks/use-participant-medications.test.tsx ]
+Error: @supabase/ssr: Your project's URL and API key are required to create a Supabase client!
+Check your Supabase project's API settings to find these values
+https://supabase.com/dashboard/project/_/settings/api
+ ❯ createBrowserClient node_modules/@supabase/ssr/src/createBrowserClient.ts:111:10
+ ❯ src/lib/supabase.ts:44:51
+     42|  * @supabase/ssr for robust session management and payload size loggin…
+     43|  */
+     44| export const supabase: SupabaseClient<Database> = createBrowserClient<…
+       |                                                   ^
+     45|   supabaseUrl,
+     46|   supabaseAnonKey,
+ ❯ src/hooks/use-participant-medications.ts:2:1
+ ❯ src/hooks/use-participant-medications.test.tsx:3:1
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/80]⎯
+ FAIL  src/hooks/use-participants.test.tsx [ src/hooks/use-participants.test.tsx ]
+Error: @supabase/ssr: Your project's URL and API key are required to create a Supabase client!
+Check your Supabase project's API settings to find these values
+https://supabase.com/dashboard/project/_/settings/api
+ ❯ createBrowserClient node_modules/@supabase/ssr/src/createBrowserClient.ts:111:10
+ ❯ src/lib/supabase.ts:44:51
+     42|  * @supabase/ssr for robust session management and payload size loggin…
+     43|  */
+     44| export const supabase: SupabaseClient<Database> = createBrowserClient<…
+       |                                                   ^
+     45|   supabaseUrl,
+     46|   supabaseAnonKey,
+ ❯ src/hooks/use-participants.ts:2:1
+ ❯ src/hooks/use-participants.test.tsx:3:1
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/80]⎯
+ FAIL  src/hooks/use-roster-active-staff.test.tsx [ src/hooks/use-roster-active-staff.test.tsx ]
+Error: @supabase/ssr: Your project's URL and API key are required to create a Supabase client!
+Check your Supabase project's API settings to find these values
+https://supabase.com/dashboard/project/_/settings/api
+ ❯ createBrowserClient node_modules/@supabase/ssr/src/createBrowserClient.ts:111:10
+ ❯ src/lib/supabase.ts:44:51
+     42|  * @supabase/ssr for robust session management and payload size loggin…
+     43|  */
+     44| export const supabase: SupabaseClient<Database> = createBrowserClient<…
+       |                                                   ^
+     45|   supabaseUrl,
+     46|   supabaseAnonKey,
+ ❯ src/components/roster/use-roster-data.ts:3:1
+ ❯ src/hooks/use-roster-active-staff.test.tsx:3:1
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[21/80]⎯
+ FAIL  src/hooks/use-shift-notes.test.tsx [ src/hooks/use-shift-notes.test.tsx ]
+Error: @supabase/ssr: Your project's URL and API key are required to create a Supabase client!
+Check your Supabase project's API settings to find these values
+https://supabase.com/dashboard/project/_/settings/api
+ ❯ createBrowserClient node_modules/@supabase/ssr/src/createBrowserClient.ts:111:10
+ ❯ src/lib/supabase.ts:44:51
+     42|  * @supabase/ssr for robust session management and payload size loggin…
+     43|  */
+     44| export const supabase: SupabaseClient<Database> = createBrowserClient<…
+       |                                                   ^
+     45|   supabaseUrl,
+     46|   supabaseAnonKey,
+ ❯ src/hooks/use-shift-notes.ts:2:1
+ ❯ src/hooks/use-shift-notes.test.tsx:3:1
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22/80]⎯
+ FAIL  src/hooks/use-staff-dashboard-data.test.tsx [ src/hooks/use-staff-dashboard-data.test.tsx ]
+Error: @supabase/ssr: Your project's URL and API key are required to create a Supabase client!
+Check your Supabase project's API settings to find these values
+https://supabase.com/dashboard/project/_/settings/api
+ ❯ createBrowserClient node_modules/@supabase/ssr/src/createBrowserClient.ts:111:10
+ ❯ src/lib/supabase.ts:44:51
+     42|  * @supabase/ssr for robust session management and payload size loggin…
+     43|  */
+     44| export const supabase: SupabaseClient<Database> = createBrowserClient<…
+       |                                                   ^
+     45|   supabaseUrl,
+     46|   supabaseAnonKey,
+ ❯ src/hooks/use-staff-dashboard-data.ts:2:1
+ ❯ src/hooks/use-staff-dashboard-data.test.tsx:3:1
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[23/80]⎯
+ FAIL  src/hooks/use-staff-documents.test.tsx [ src/hooks/use-staff-documents.test.tsx ]
+Error: @supabase/ssr: Your project's URL and API key are required to create a Supabase client!
+Check your Supabase project's API settings to find these values
+https://supabase.com/dashboard/project/_/settings/api
+ ❯ createBrowserClient node_modules/@supabase/ssr/src/createBrowserClient.ts:111:10
+ ❯ src/lib/supabase.ts:44:51
+     42|  * @supabase/ssr for robust session management and payload size loggin…
+     43|  */
+     44| export const supabase: SupabaseClient<Database> = createBrowserClient<…
+       |                                                   ^
+     45|   supabaseUrl,
+     46|   supabaseAnonKey,
+ ❯ src/hooks/use-staff-documents.ts:2:1
+ ❯ src/hooks/use-staff-documents.test.tsx:3:1
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[24/80]⎯
+ FAIL  src/hooks/use-staff-roster.test.tsx [ src/hooks/use-staff-roster.test.tsx ]
+Error: @supabase/ssr: Your project's URL and API key are required to create a Supabase client!
+Check your Supabase project's API settings to find these values
+https://supabase.com/dashboard/project/_/settings/api
+ ❯ createBrowserClient node_modules/@supabase/ssr/src/createBrowserClient.ts:111:10
+ ❯ src/lib/supabase.ts:44:51
+     42|  * @supabase/ssr for robust session management and payload size loggin…
+     43|  */
+     44| export const supabase: SupabaseClient<Database> = createBrowserClient<…
+       |                                                   ^
+     45|   supabaseUrl,
+     46|   supabaseAnonKey,
+ ❯ src/hooks/use-staff-roster.ts:2:1
+ ❯ src/hooks/use-staff-roster.test.tsx:3:1
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[25/80]⎯
+ FAIL  src/hooks/use-staff-shifts.test.tsx [ src/hooks/use-staff-shifts.test.tsx ]
+Error: @supabase/ssr: Your project's URL and API key are required to create a Supabase client!
+Check your Supabase project's API settings to find these values
+https://supabase.com/dashboard/project/_/settings/api
+ ❯ createBrowserClient node_modules/@supabase/ssr/src/createBrowserClient.ts:111:10
+ ❯ src/lib/supabase.ts:44:51
+     42|  * @supabase/ssr for robust session management and payload size loggin…
+     43|  */
+     44| export const supabase: SupabaseClient<Database> = createBrowserClient<…
+       |                                                   ^
+     45|   supabaseUrl,
+     46|   supabaseAnonKey,
+ ❯ src/hooks/use-staff-shifts.ts:2:1
+ ❯ src/hooks/use-staff-shifts.test.tsx:3:1
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[26/80]⎯
+ FAIL  src/hooks/use-staff.test.tsx [ src/hooks/use-staff.test.tsx ]
+Error: @supabase/ssr: Your project's URL and API key are required to create a Supabase client!
+Check your Supabase project's API settings to find these values
+https://supabase.com/dashboard/project/_/settings/api
+ ❯ createBrowserClient node_modules/@supabase/ssr/src/createBrowserClient.ts:111:10
+ ❯ src/lib/supabase.ts:44:51
+     42|  * @supabase/ssr for robust session management and payload size loggin…
+0s
+0s
+0s
+0s
+0s
+0s

@@ -42,9 +42,9 @@ describe('SupabaseAdapter', () => {
 
       const mockStaff = {
         id: 'staff-456',
-        name: 'John Doe Staff',
+        staff_name: 'John Doe Staff',
         photo_url: 'https://example.com/photo.jpg',
-        role: { name: 'Super Admin' },
+        role: { role_name: 'Super Admin' },
       };
 
       // Mock auth.getUser
@@ -59,6 +59,7 @@ describe('SupabaseAdapter', () => {
       const profile = await SupabaseAdapter.getUserProfile();
 
       expect(profile).toEqual({
+        id: 'user-123',
         email: 'test@example.com',
         email_verified: true,
         username: '',
@@ -79,7 +80,7 @@ describe('SupabaseAdapter', () => {
         permissions: {},
       });
 
-      expect(supabase.from).toHaveBeenCalledWith('staff');
+      expect(supabase.from).toHaveBeenCalledWith('ic_staff');
       expect(mockEq).toHaveBeenCalledWith('auth_user_id', 'user-123');
     });
 

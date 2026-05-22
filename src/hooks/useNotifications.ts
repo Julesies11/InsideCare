@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/auth/context/auth-context';
 import { toast } from 'sonner';
+import { TABLES } from '@/config/db-tables';
 
 export interface AppNotification {
   id: string;
@@ -28,7 +29,7 @@ export function useNotifications() {
 
     setLoading(true);
     let query = supabase
-      .from('ic_notifications')
+      .from(TABLES.NOTIFICATIONS)
       .select('id, type, title, body, link, metadata, is_read, created_at', { count: 'exact' })
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
@@ -101,7 +102,7 @@ export function useNotifications() {
     if (!user?.id) return;
 
     await supabase
-      .from('ic_notifications')
+      .from(TABLES.NOTIFICATIONS)
       .update({ is_read: true })
       .eq('user_id', user.id)
       .eq('is_read', false);
@@ -111,7 +112,7 @@ export function useNotifications() {
 
   const markRead = useCallback(async (id: string) => {
     await supabase
-      .from('ic_notifications')
+      .from(TABLES.NOTIFICATIONS)
       .update({ is_read: true })
       .eq('id', id);
 
@@ -122,7 +123,7 @@ export function useNotifications() {
 
   const markUnread = useCallback(async (id: string) => {
     await supabase
-      .from('ic_notifications')
+      .from(TABLES.NOTIFICATIONS)
       .update({ is_read: false })
       .eq('id', id);
 
@@ -135,7 +136,7 @@ export function useNotifications() {
     if (!user?.id) return;
 
     await supabase
-      .from('ic_notifications')
+      .from(TABLES.NOTIFICATIONS)
       .delete()
       .eq('user_id', user.id);
 
@@ -146,7 +147,7 @@ export function useNotifications() {
 
   const clearNotification = useCallback(async (id: string) => {
     await supabase
-      .from('ic_notifications')
+      .from(TABLES.NOTIFICATIONS)
       .delete()
       .eq('id', id);
 

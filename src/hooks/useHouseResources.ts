@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { TABLES } from '@/config/db-tables';
 
 export interface HouseResource {
   id: string;
@@ -42,7 +43,7 @@ export function useHouseResources(houseId?: string) {
         setLoading(true);
         
         const { data, error } = await supabase
-          .from('ic_house_resources')
+          .from(TABLES.HOUSE_RESOURCES)
           .select(`
             *,
             creator:ic_staff!created_by(id, staff_name, email)

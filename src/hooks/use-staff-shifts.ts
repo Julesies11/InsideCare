@@ -1,9 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { Database } from '@/models/database.types';
+import { TABLES } from '@/config/db-tables';
 
 const getShiftsQuery = () => supabase
-  .from('ic_staff_shifts')
+  .from(TABLES.STAFF_SHIFTS)
   .select(`
     id,
     staff_id,
@@ -84,7 +85,7 @@ export function useStaffShifts(staffId?: string, startDate?: string, endDate?: s
       if (!staffId) return [];
 
       let query = supabase
-        .from('ic_staff_shifts')
+        .from(TABLES.STAFF_SHIFTS)
         .select(SHIFT_COLUMNS)
         .eq('staff_id', staffId)
         .order('start_date', { ascending: true })
@@ -101,7 +102,7 @@ export function useStaffShifts(staffId?: string, startDate?: string, endDate?: s
 
       const shiftIds = shifts.map((s) => s.id);
       const { data: participants, error: participantsError } = await supabase
-        .from('ic_shift_participants')
+        .from(TABLES.SHIFT_PARTICIPANTS)
         .select(`
           shift_id,
           participant:ic_participants(id, participant_name)
@@ -148,7 +149,7 @@ export function useCreateShift() {
   return useMutation({
     mutationFn: async (shiftData: Database['public']['Tables']['ic_staff_shifts']['Insert']) => {
       const { data, error } = await supabase
-        .from('ic_staff_shifts')
+        .from(TABLES.STAFF_SHIFTS)
         .insert([shiftData])
         .select(SHIFT_COLUMNS)
         .maybeSingle();
@@ -169,7 +170,7 @@ export function useUpdateShift() {
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Database['public']['Tables']['ic_staff_shifts']['Update'] }) => {
       const { data, error } = await supabase
-        .from('ic_staff_shifts')
+        .from(TABLES.STAFF_SHIFTS)
         .update(updates)
         .eq('id', id)
         .select(SHIFT_COLUMNS)
@@ -191,7 +192,7 @@ export function useDeleteShift() {
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('ic_staff_shifts')
+        .from(TABLES.STAFF_SHIFTS)
         .delete()
         .eq('id', id);
 
@@ -209,7 +210,7 @@ export function useShiftParticipants(shiftId?: string) {
     queryFn: async () => {
       if (!shiftId) return [];
       const { data, error } = await supabase
-        .from('ic_shift_participants')
+        .from(TABLES.SHIFT_PARTICIPANTS)
         .select(`
           id,
           shift_id,
@@ -242,7 +243,7 @@ export function useAddShiftParticipant() {
   return useMutation({
     mutationFn: async ({ shiftId, participantId }: { shiftId: string; participantId: string }) => {
       const { data, error } = await supabase
-        .from('ic_shift_participants')
+        .from(TABLES.SHIFT_PARTICIPANTS)
         .insert([{ shift_id: shiftId, participant_id: participantId }])
         .select()
         .maybeSingle();
@@ -264,7 +265,7 @@ export function useRemoveShiftParticipant() {
   return useMutation({
     mutationFn: async ({ shiftId, participantId }: { shiftId: string; participantId: string }) => {
       const { error } = await supabase
-        .from('ic_shift_participants')
+        .from(TABLES.SHIFT_PARTICIPANTS)
         .delete()
         .eq('shift_id', shiftId)
         .eq('participant_id', participantId);

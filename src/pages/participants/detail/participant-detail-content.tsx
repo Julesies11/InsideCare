@@ -29,6 +29,10 @@ import { useFormValidation } from '@/hooks/use-form-validation';
 import { handleAvatarUpload } from '@/lib/api/profiles';
 import { RBAC_MODULES } from '@/config/rbac-modules';
 import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
+import { TABLES } from '@/config/db-tables';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
+import { QUERY_KEYS } from '@/config/query-keys';
+import { STATUS } from '@/config/enums';
 
 import { ParticipantPendingChanges, emptyParticipantPendingChanges } from '@/models/participant-pending-changes';
 import { MealtimeManagement } from './components/mealtime-management';
@@ -372,7 +376,7 @@ export function ParticipantDetailContent({
           is_active: med.is_active,
         }));
 
-        const { error } = await supabase.from('ic_participant_medications').insert(toInsert);
+        const { error } = await supabase.from(TABLES.PARTICIPANT_MEDICATIONS).insert(toInsert);
         if (error) throw new Error(`Failed to add medications: ${error.message}`);
         
         if (participant?.house_id) {
@@ -383,7 +387,7 @@ export function ParticipantDetailContent({
       if (currentPending.medications.toUpdate.length > 0) {
         for (const med of currentPending.medications.toUpdate) {
           const { error } = await supabase
-            .from('ic_participant_medications')
+            .from(TABLES.PARTICIPANT_MEDICATIONS)
             .update({
               medication_id: med.medication_id,
               dosage: med.dosage || null,
@@ -400,7 +404,7 @@ export function ParticipantDetailContent({
 
       if (currentPending.medications.toDelete.length > 0) {
         const { error } = await supabase
-          .from('ic_participant_medications')
+          .from(TABLES.PARTICIPANT_MEDICATIONS)
           .delete()
           .in('id', currentPending.medications.toDelete);
         
@@ -420,7 +424,7 @@ export function ParticipantDetailContent({
           is_active: contact.is_active,
         }));
 
-        const { error } = await supabase.from('ic_participant_contacts').insert(toInsert);
+        const { error } = await supabase.from(TABLES.PARTICIPANT_CONTACTS).insert(toInsert);
         if (error) throw new Error(`Failed to add contacts: ${error.message}`);
         
         for (const contact of currentPending.contacts.toAdd) {
@@ -438,7 +442,7 @@ export function ParticipantDetailContent({
       if (currentPending.contacts.toUpdate.length > 0) {
         for (const contact of currentPending.contacts.toUpdate) {
           const { error } = await supabase
-            .from('ic_participant_contacts')
+            .from(TABLES.PARTICIPANT_CONTACTS)
             .update({
               contact_name: contact.contact_name,
               contact_type_id: contact.contact_type_id,
@@ -463,7 +467,7 @@ export function ParticipantDetailContent({
 
       if (currentPending.contacts.toDelete.length > 0) {
         const { error } = await supabase
-          .from('ic_participant_contacts')
+          .from(TABLES.PARTICIPANT_CONTACTS)
           .delete()
           .in('id', currentPending.contacts.toDelete);
         
@@ -479,7 +483,7 @@ export function ParticipantDetailContent({
           const filePath = `${id}/documents/${fileName}`;
 
           const { error: uploadError } = await supabase.storage
-            .from('ic_participant-documents')
+            .from(STORAGE_BUCKETS.PARTICIPANT_DOCUMENTS)
             .upload(filePath, doc.file);
 
           if (uploadError) {
@@ -495,7 +499,7 @@ export function ParticipantDetailContent({
           });
         }
 
-        const { error: dbError } = await supabase.from('ic_participant_documents').insert(toInsert);
+        const { error: dbError } = await supabase.from(TABLES.PARTICIPANT_DOCUMENTS).insert(toInsert);
         if (dbError) throw new Error(`Failed to create document records: ${dbError.message}`);
 
         for (const doc of currentPending.documents.toAdd) {
@@ -514,9 +518,9 @@ export function ParticipantDetailContent({
         const ids = currentPending.documents.toDelete.map(d => d.id);
         const filePaths = currentPending.documents.toDelete.map(d => d.filePath);
 
-        await supabase.storage.from('ic_participant-documents').remove(filePaths);
+        await supabase.storage.from(STORAGE_BUCKETS.PARTICIPANT_DOCUMENTS).remove(filePaths);
 
-        const { error: dbError } = await supabase.from('ic_participant_documents').delete().in('id', ids);
+        const { error: dbError } = await supabase.from(TABLES.PARTICIPANT_DOCUMENTS).delete().in('id', ids);
         if (dbError) throw new Error(`Failed to delete document records: ${dbError.message}`);
 
         for (const doc of currentPending.documents.toDelete) {
@@ -534,10 +538,10 @@ export function ParticipantDetailContent({
       // Profile Photo handling
       if (photoFile) {
         // Use the new handleAvatarUpload utility for resizing and processing
-        const newPhotoUrl = await handleAvatarUpload(photoFile, 'ic_participant-photos', id);
+        const newPhotoUrl = await handleAvatarUpload(photoFile, STORAGE_BUCKETS.PARTICIPANT_PHOTOS, id);
 
         const { error: photoErr } = await supabase
-          .from('ic_participants')
+          .from(TABLES.PARTICIPANTS)
           .update({ photo_url: newPhotoUrl })
           .eq('id', id);
         if (photoErr) throw photoErr;
@@ -556,7 +560,7 @@ export function ParticipantDetailContent({
         });
       } else if (photoPreview === null && originalPhotoUrl !== null) {
         const { error: photoErr } = await supabase
-          .from('ic_participants')
+          .from(TABLES.PARTICIPANTS)
           .update({ photo_url: null, updated_at: new Date().toISOString() })
           .eq('id', id);
         if (photoErr) throw photoErr;
@@ -682,12 +686,11 @@ export function ParticipantDetailContent({
       }
 
       // Invalidate queries to refresh data from server
-      queryClient.invalidateQueries({ queryKey: ['participants', id] });
-      queryClient.invalidateQueries({ queryKey: ['participant-goals', id] });
-      queryClient.invalidateQueries({ queryKey: ['participant-medications', id] });
-      queryClient.invalidateQueries({ queryKey: ['participant-contacts', id] });
-      queryClient.invalidateQueries({ queryKey: ['participant-documents', id] });
-      queryClient.invalidateQueries({ queryKey: ['participant-shift-notes', id] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PARTICIPANTS, id] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PARTICIPANT_MEDICATIONS, id] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PARTICIPANT_CONTACTS, id] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PARTICIPANT_GOALS, id] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PARTICIPANT_DOCUMENTS, id] });
 
       setRefreshKeys((prev) => ({
         goals: prev.goals + 1,

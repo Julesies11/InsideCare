@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { format, addDays, parseISO } from 'date-fns';
 import { expandRRule } from '@/lib/rrule-utils';
 import { toast } from 'sonner';
+import { TABLES } from '@/config/db-tables';
 
 export interface ChecklistSchedule {
   id: string;
@@ -52,7 +53,7 @@ export function useChecklistSchedules(houseId?: string) {
       if (eventDates.length > 0) {
         // Fetch the house checklist info for the title
         const { data: houseChecklist } = await supabase
-          .from('ic_house_checklists')
+          .from(TABLES.HOUSE_CHECKLISTS)
           .select('house_checklist_name')
           .eq('id', schedule.house_checklist_id)
           .maybeSingle();
@@ -72,7 +73,7 @@ export function useChecklistSchedules(houseId?: string) {
         }));
 
         const { error: eventError } = await supabase
-          .from('ic_house_calendar_events')
+          .from(TABLES.HOUSE_CALENDAR_EVENTS)
           .insert(calendarEvents);
 
         if (eventError) throw eventError;
@@ -119,7 +120,7 @@ export function useChecklistSchedules(houseId?: string) {
     try {
       setLoading(true);
       const { error } = await supabase
-        .from('ic_house_calendar_events')
+        .from(TABLES.HOUSE_CALENDAR_EVENTS)
         .delete()
         .eq('id', eventId);
 

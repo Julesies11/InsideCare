@@ -20,6 +20,9 @@ import { HouseChecklistScheduleModal } from './HouseChecklistScheduleModal';
 import { HouseChecklistHistory } from './house-checklist-history';
 import { cn, getPeriodTheme } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
+import { TABLES } from '@/config/db-tables';
+import { QUERY_KEYS } from '@/config/query-keys';
+import { STATUS } from '@/config/enums';
 
 interface HouseChecklistSetupProps {
   houseId?: string;
@@ -115,7 +118,7 @@ export function HouseChecklistSetup({
           sort_order: index
         }));
 
-        const { error } = await supabase.from('ic_house_checklists').upsert(toUpsert);
+        const { error } = await supabase.from(TABLES.HOUSE_CHECKLISTS).upsert(toUpsert);
         if (error) throw error;
         refreshChecklists();
         return;
@@ -168,7 +171,7 @@ export function HouseChecklistSetup({
 
         if (savedChecklistId && !selectedChecklist.tempId) {
           const { error } = await supabase
-            .from('ic_house_checklists')
+            .from(TABLES.HOUSE_CHECKLISTS)
             .update({
               checklist_name: checklistFormData.checklist_name,
               description: checklistFormData.description,
@@ -178,7 +181,7 @@ export function HouseChecklistSetup({
           if (error) throw error;
         } else {
           const { data, error } = await supabase
-            .from('ic_house_checklists')
+            .from(TABLES.HOUSE_CHECKLISTS)
             .insert({
               house_id: houseId,
               name: checklistFormData.name,
@@ -201,7 +204,7 @@ export function HouseChecklistSetup({
             .map((i: any) => i.id);
           
           if (toDelete.length > 0) {
-            await supabase.from('ic_house_checklist_items').delete().in('id', toDelete);
+            await supabase.from(TABLES.HOUSE_CHECKLIST_ITEMS).delete().in('id', toDelete);
           }
         }
 
@@ -216,7 +219,7 @@ export function HouseChecklistSetup({
           sort_order: i.sort_order
         }));
 
-        const { error: upsertErr } = await supabase.from('ic_house_checklist_items').upsert(toUpsert);
+        const { error: upsertErr } = await supabase.from(TABLES.HOUSE_CHECKLIST_ITEMS).upsert(toUpsert);
         if (upsertErr) throw upsertErr;
 
         toast.success('Checklist saved to database');
@@ -395,10 +398,10 @@ export function HouseChecklistSetup({
     setIsFetchingSource(true);
     try {
       const { data, error } = await supabase
-        .from('ic_house_checklists')
+        .from(TABLES.HOUSE_CHECKLISTS)
         .select(`
           id, name, description, sort_order,
-          items:ic_house_checklist_items(id, title, instructions, group_title, priority, is_required, sort_order)
+          items:${TABLES.HOUSE_CHECKLIST_ITEMS}(id, title, instructions, group_title, priority, is_required, sort_order)
         `)
         .eq('house_id', sourceId)
         .order('sort_order', { ascending: true });
@@ -452,7 +455,7 @@ export function HouseChecklistSetup({
 
         if (directSave) {
           const { data: newCl, error: clErr } = await supabase
-            .from('ic_house_checklists')
+            .from(TABLES.HOUSE_CHECKLISTS)
             .insert({
               house_id: houseId,
               name: checklistData.name,
@@ -475,7 +478,7 @@ export function HouseChecklistSetup({
             sort_order: i.sort_order
           }));
 
-          const { error: itemsErr } = await supabase.from('ic_house_checklist_items').insert(toInsertItems);
+          const { error: itemsErr } = await supabase.from(TABLES.HOUSE_CHECKLIST_ITEMS).insert(toInsertItems);
           if (itemsErr) throw itemsErr;
         } else {
           checklistsToAdd.push(checklistData);
@@ -647,7 +650,7 @@ export function HouseChecklistSetup({
                 </SelectTrigger>
                 <SelectContent>
                   {allHouses
-                    .filter(h => h.id !== houseId && h.status === 'active')
+                    .filter(h => h.id !== houseId && h.status === STATUS.active)
                     .map(h => {
                       const count = (h as any).checklists?.[0]?.count || 0;
                       return (

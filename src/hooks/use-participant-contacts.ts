@@ -1,5 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { TABLES } from '@/config/db-tables';
+import { QUERY_KEYS } from '@/config/query-keys';
 
 export interface ParticipantContact {
   id: string;
@@ -39,11 +41,11 @@ const CONTACT_COLUMNS = `
 
 export function useParticipantContacts(participantId?: string) {
   return useQuery({
-    queryKey: ['participant-contacts', participantId],
+    queryKey: [QUERY_KEYS.PARTICIPANT_CONTACTS, participantId],
     queryFn: async () => {
       if (!participantId) return [];
       const { data, error } = await supabase
-        .from('ic_participant_contacts')
+        .from(TABLES.PARTICIPANT_CONTACTS)
         .select(CONTACT_COLUMNS)
         .eq('participant_id', participantId)
         .order('created_at', { ascending: false });
@@ -66,7 +68,7 @@ export function useAddParticipantContact() {
   return useMutation({
     mutationFn: async (contact: Omit<ParticipantContact, 'id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
-        .from('ic_participant_contacts')
+        .from(TABLES.PARTICIPANT_CONTACTS)
         .insert(contact)
         .select(CONTACT_COLUMNS)
         .maybeSingle();
@@ -78,7 +80,7 @@ export function useAddParticipantContact() {
       return data as ParticipantContact;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['participant-contacts', data.participant_id] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PARTICIPANT_CONTACTS, data.participant_id] });
     },
   });
 }
@@ -89,7 +91,7 @@ export function useUpdateParticipantContact() {
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<ParticipantContact> }) => {
       const { data, error } = await supabase
-        .from('ic_participant_contacts')
+        .from(TABLES.PARTICIPANT_CONTACTS)
         .update(updates)
         .eq('id', id)
         .select(CONTACT_COLUMNS)
@@ -102,7 +104,7 @@ export function useUpdateParticipantContact() {
       return data as ParticipantContact;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['participant-contacts', data.participant_id] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PARTICIPANT_CONTACTS, data.participant_id] });
     },
   });
 }
@@ -113,14 +115,14 @@ export function useDeleteParticipantContact() {
   return useMutation({
     mutationFn: async ({ id, participantId }: { id: string; participantId: string }) => {
       const { error } = await supabase
-        .from('ic_participant_contacts')
+        .from(TABLES.PARTICIPANT_CONTACTS)
         .delete()
         .eq('id', id);
 
       if (error) throw error;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['participant-contacts', variables.participantId] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PARTICIPANT_CONTACTS, variables.participantId] });
     },
   });
 }

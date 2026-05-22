@@ -1,5 +1,6 @@
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
+import { TABLES } from '@/config/db-tables';
 
 export type ErrorCategory = 'database' | 'network' | 'auth' | 'validation' | 'unknown';
 
@@ -52,7 +53,7 @@ export async function syncOfflineErrors() {
     const errors: ErrorLogPayload[] = JSON.parse(existing);
     if (errors.length === 0) return;
 
-    const { error } = await supabase.from('ic_error_logs').insert(errors);
+    const { error } = await supabase.from(TABLES.ERROR_LOGS).insert(errors);
     
     if (!error) {
       localStorage.removeItem(OFFLINE_ERRORS_KEY);
@@ -142,7 +143,7 @@ export const handleError = (error: unknown, options: ErrorOptions = {}) => {
         return;
       }
 
-      supabase.from('ic_error_logs').insert([payload]).then(({ error: insertError }) => {
+      supabase.from(TABLES.ERROR_LOGS).insert([payload]).then(({ error: insertError }) => {
         if (insertError) {
           console.error('Failed to log error to database', insertError);
           saveErrorOffline(payload);

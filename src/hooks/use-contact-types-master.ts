@@ -3,15 +3,17 @@ import { supabase } from '@/lib/supabase';
 import { ContactTypeMaster } from '@/models/contact-type-master';
 import { useAuth } from '@/auth/context/auth-context';
 import { logActivity, detectChanges } from '@/lib/activity-logger';
+import { TABLES } from '@/config/db-tables';
+import { QUERY_KEYS } from '@/config/query-keys';
 
 const CONTACT_TYPE_MASTER_COLUMNS = 'id, contact_type_name, is_active, created_by, updated_by, created_at, updated_at';
 
 export function useContactTypesMaster(includeInactive = true) {
   return useQuery({
-    queryKey: ['contact-types-master', { includeInactive }],
+    queryKey: [QUERY_KEYS.CONTACT_TYPES_MASTER, { includeInactive }],
     queryFn: async () => {
       let query = supabase
-        .from('ic_contact_types_master')
+        .from(TABLES.CONTACT_TYPES_MASTER)
         .select(CONTACT_TYPE_MASTER_COLUMNS)
         .order('contact_type_name', { ascending: true });
 
@@ -34,7 +36,7 @@ export function useAddContactTypeMaster() {
   return useMutation({
     mutationFn: async (contactType: Omit<ContactTypeMaster, 'id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
-        .from('ic_contact_types_master')
+        .from(TABLES.CONTACT_TYPES_MASTER)
         .insert(contactType)
         .select(CONTACT_TYPE_MASTER_COLUMNS)
         .maybeSingle();
@@ -55,7 +57,7 @@ export function useAddContactTypeMaster() {
       return data as ContactTypeMaster;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['contact-types-master'] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.CONTACT_TYPES_MASTER] });
     },
   });
 }
@@ -67,7 +69,7 @@ export function useUpdateContactTypeMaster() {
   return useMutation({
     mutationFn: async ({ id, updates, oldContactType }: { id: string; updates: Partial<ContactTypeMaster>; oldContactType?: ContactTypeMaster }) => {
       const { data, error } = await supabase
-        .from('ic_contact_types_master')
+        .from(TABLES.CONTACT_TYPES_MASTER)
         .update(updates)
         .eq('id', id)
         .select(CONTACT_TYPE_MASTER_COLUMNS)
@@ -95,7 +97,7 @@ export function useUpdateContactTypeMaster() {
       return data as ContactTypeMaster;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['contact-types-master'] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.CONTACT_TYPES_MASTER] });
     },
   });
 }
@@ -108,7 +110,7 @@ export function useDeleteContactTypeMaster() {
     mutationFn: async ({ id, contact_type_name }: { id: string; contact_type_name: string }) => {
       // Soft delete - mark as inactive
       const { error } = await supabase
-        .from('ic_contact_types_master')
+        .from(TABLES.CONTACT_TYPES_MASTER)
         .update({
           is_active: false,
         })
@@ -125,7 +127,7 @@ export function useDeleteContactTypeMaster() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['contact-types-master'] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.CONTACT_TYPES_MASTER] });
     },
   });
 }

@@ -28,8 +28,8 @@ describe('RoleStaffListDialog', () => {
   it('renders staff list when data is loaded', async () => {
     vi.mocked(useStaffByRole).mockReturnValue({
       staff: [
-        { id: 'staff-1', name: 'John Doe', email: 'john@example.com', status: 'active', department_info: { name: 'IT' } },
-        { id: 'staff-2', name: 'Jane Smith', email: 'jane@example.com', status: 'inactive', department_info: { name: 'HR' } },
+        { id: 'staff-1', staff_name: 'John Doe', email: 'john@example.com', status: 'active', department_info: { department_name: 'IT' } },
+        { id: 'staff-2', staff_name: 'Jane Smith', email: 'jane@example.com', status: 'inactive', department_info: { department_name: 'HR' } },
       ],
       loading: false,
     } as any);

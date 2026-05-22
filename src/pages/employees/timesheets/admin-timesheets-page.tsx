@@ -38,6 +38,8 @@ import { DataGridPagination } from '@/components/ui/data-grid-pagination';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RBAC_MODULES } from '@/config/rbac-modules';
 import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
+import { TABLES } from '@/config/db-tables';
+import { TIMESHEET_STATUS } from '@/config/enums';
 
 interface Timesheet {
   id: string;
@@ -74,7 +76,10 @@ interface Timesheet {
 type StatusFilter = 'all' | 'pending' | 'approved' | 'rejected';
 
 const statusVariant: Record<string, 'secondary' | 'success' | 'destructive' | 'warning'> = {
-  draft: 'warning', pending: 'secondary', approved: 'success', rejected: 'destructive',
+  [TIMESHEET_STATUS.DRAFT]: 'warning', 
+  [TIMESHEET_STATUS.PENDING]: 'secondary', 
+  [TIMESHEET_STATUS.APPROVED]: 'success', 
+  [TIMESHEET_STATUS.REJECTED]: 'destructive',
 };
 
 function calcHours(ts: Timesheet) {
@@ -139,7 +144,7 @@ export function AdminTimesheetsPage() {
   const fetchTimesheets = useCallback(async () => {
     setLoading(true);
     let query = supabase
-      .from('ic_timesheets')
+      .from(TABLES.TIMESHEETS)
       .select(`
         id, staff_id, shift_id, clock_in, clock_out, actual_start, actual_end,
         break_minutes, shift_notes_text, notes, status, admin_notes, rejection_reason,
@@ -153,7 +158,7 @@ export function AdminTimesheetsPage() {
     if (statusFilter !== 'all') {
       query = query.eq('status', statusFilter);
     } else {
-      query = query.in('status', ['pending', 'approved', 'rejected']);
+      query = query.in('status', [TIMESHEET_STATUS.PENDING, TIMESHEET_STATUS.APPROVED, TIMESHEET_STATUS.REJECTED]);
     }
 
     const { data, error } = await query;
@@ -177,9 +182,9 @@ export function AdminTimesheetsPage() {
     });
   }, [timesheets, search]);
 
-  const pendingCount   = timesheets.filter(t => t.status === 'pending').length;
+  const pendingCount   = timesheets.filter(t => t.status === TIMESHEET_STATUS.PENDING).length;
   const exceptionCount = timesheets.filter(t =>
-    t.status === 'pending' && (t.incident_tag || t.sick_shift || t.overtime_hours > 0)
+    t.status === TIMESHEET_STATUS.PENDING && (t.incident_tag || t.sick_shift || t.overtime_hours > 0)
   ).length;
 
   const openReview = (ts: Timesheet, act: 'approve' | 'reject') => {
@@ -200,7 +205,7 @@ export function AdminTimesheetsPage() {
     }
     if (action === 'reject') updatePayload.rejection_reason = rejectionReason || null;
 
-    const { error } = await supabase.from('ic_timesheets').update(updatePayload).eq('id', selected.id);
+    const { error } = await supabase.from(TABLES.TIMESHEETS).update(updatePayload).eq('id', selected.id);
     if (error) { toast.error('Failed to update timesheet'); setSaving(false); return; }
 
     const userName = user.fullname || user.email || 'Admin';
@@ -218,12 +223,12 @@ export function AdminTimesheetsPage() {
     });
 
     if (selected.staff?.auth_user_id) {
-      if (newStatus === 'approved') {
+      if (newStatus === TIMESHEET_STATUS.APPROVED) {
         await NotificationService.notifyTimesheetApproved(
           selected.staff.auth_user_id,
           shiftDate
         );
-      } else if (newStatus === 'rejected') {
+      } else if (newStatus === TIMESHEET_STATUS.REJECTED) {
         await NotificationService.notifyTimesheetRejected(
           selected.staff.auth_user_id,
           shiftDate,
@@ -248,7 +253,7 @@ export function AdminTimesheetsPage() {
     setSaving(true);
     const now = new Date().toISOString();
     const { error } = await supabase
-      .from('ic_timesheets')
+      .from(TABLES.TIMESHEETS)
       .update({ status: 'approved', approved_at: now, approved_by: user?.staff_id ?? null })
       .in('id', ids);
 
@@ -283,7 +288,7 @@ export function AdminTimesheetsPage() {
     {
       id: 'select',
       header: ({ table }) => (
-        statusFilter === 'pending' ? (
+        statusFilter === TIMESHEET_STATUS.PENDING ? (
           <Checkbox
             checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
             onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
@@ -294,7 +299,7 @@ export function AdminTimesheetsPage() {
       cell: ({ row }) => {
         const ts = row.original;
         const hasException = ts.incident_tag || ts.sick_shift || ts.overtime_hours > 0;
-        const canSelect = ts.status === 'pending' && !hasException;
+        const canSelect = ts.status === TIMESHEET_STATUS.PENDING && !hasException;
         
         if (statusFilter !== 'pending') return null;
         if (!canSelect) return <span title="Cannot bulk approve — has exceptions" className="text-muted-foreground/40 text-xs">—</span>;
@@ -362,7 +367,7 @@ export function AdminTimesheetsPage() {
         const ts = row.original;
         return (
           <div className="flex items-center gap-1.5 justify-end">
-            {ts.status === 'pending' ? (
+            {ts.status === TIMESHEET_STATUS.PENDING ? (
               <>
                 <Button 
                   size="sm" 
@@ -444,7 +449,7 @@ export function AdminTimesheetsPage() {
               <p className="text-xs text-muted-foreground uppercase tracking-wide">Approved Today</p>
               <p className="text-3xl font-bold mt-1 text-green-600">
                 {timesheets.filter(t =>
-                  t.status === 'approved' &&
+                  t.status === TIMESHEET_STATUS.APPROVED &&
                   (t.submitted_at || t.created_at)?.startsWith(new Date().toISOString().slice(0, 10))
                 ).length}
               </p>
@@ -472,9 +477,9 @@ export function AdminTimesheetsPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
+                <SelectItem value={TIMESHEET_STATUS.PENDING}>Pending</SelectItem>
+                <SelectItem value={TIMESHEET_STATUS.APPROVED}>Approved</SelectItem>
+                <SelectItem value={TIMESHEET_STATUS.REJECTED}>Rejected</SelectItem>
                 <SelectItem value="all">All Submitted</SelectItem>
               </SelectContent>
             </Select>
@@ -486,7 +491,7 @@ export function AdminTimesheetsPage() {
             )}
           </div>
 
-          {statusFilter === 'pending' && filtered.some(ts => ts.incident_tag || ts.sick_shift || ts.overtime_hours > 0) && (
+          {statusFilter === TIMESHEET_STATUS.PENDING && filtered.some(ts => ts.incident_tag || ts.sick_shift || ts.overtime_hours > 0) && (
             <p className="text-xs text-muted-foreground -mt-2">
               Timesheets with exceptions (incident, sick, overtime) must be reviewed individually and cannot be bulk approved.
             </p>
@@ -647,7 +652,7 @@ export function AdminTimesheetsPage() {
                 )}
 
                 {/* Previous rejection reason (view mode) */}
-                {selected.status === 'rejected' && selected.rejection_reason && (
+                {selected.status === TIMESHEET_STATUS.REJECTED && selected.rejection_reason && (
                   <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3">
                     <p className="text-xs font-medium text-destructive mb-1">Rejection Reason</p>
                     <p className="text-sm text-destructive/80">{selected.rejection_reason}</p>
@@ -707,7 +712,7 @@ export function AdminTimesheetsPage() {
                         : 'Confirm Reject'}
                     </Button>
                   </>
-                ) : selected.status === 'pending' ? (
+                ) : selected.status === TIMESHEET_STATUS.PENDING ? (
                   <>
                     <Button
                       variant="destructive"
