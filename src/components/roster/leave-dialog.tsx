@@ -145,16 +145,14 @@ export function LeaveDialog({ open, onOpenChange, leaveId, onSuccess, initialDat
       const fileName = `${Math.random()}.${fileExt}`;
       const filePath = `leave-attachments/${user.staff_id}/${fileName}`;
       const { error: uploadError } = await supabase.storage
-        .from('staff-documents')
-        .upload(filePath, attachmentFile);
+        .from('ic_staff-documents')        .upload(filePath, attachmentFile);
       if (uploadError) {
         toast.error('Failed to upload attachment');
         setSaving(false);
         return;
       }
       const { data: urlData, error: urlError } = await supabase.storage
-        .from('staff-documents')
-        .createSignedUrl(filePath, 3600);
+        .from('ic_staff-documents')        .createSignedUrl(filePath, 3600);
       if (urlError) {
         console.error('Error creating signed URL:', urlError);
         toast.error('Failed to resolve attachment URL');

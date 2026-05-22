@@ -36,7 +36,7 @@ describe('SecureAvatar Component', () => {
   it('should allow overriding the bucket', () => {
     vi.mocked(useSignedUrl).mockReturnValue({ url: null, loading: false, error: null });
     
-    render(<SecureAvatar initials="PT" src="patient.jpg" bucket="participant-photos" />);
+    render(<SecureAvatar initials="PT" src="patient.jpg" bucket="ic_participant-photos" />);
     expect(useSignedUrl).toHaveBeenCalledWith('participant-photos', 'patient.jpg');
   });
 });

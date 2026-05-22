@@ -328,7 +328,7 @@ export function HouseStaff({
                             src={getStaffPhoto(staffAssignment)} 
                             initials={getStaffName(staffAssignment).split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2)} 
                             className="size-9"
-                            bucket="staff-photos" 
+                            bucket="ic_staff-photos" 
                           />
                           <div className={`flex flex-col ${isPendingDelete ? 'line-through' : ''}`}>
                             <span className="font-bold text-gray-900">{getStaffName(staffAssignment)}</span>

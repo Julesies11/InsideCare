@@ -340,7 +340,7 @@ export function ShiftDialog({
                           src={s.photo_url || undefined} 
                           initials={s.name?.substring(0, 2).toUpperCase() ?? '?'} 
                           className="size-5 sm:size-6"
-                          bucket="staff-photos"
+                          bucket="ic_staff-photos"
  
                         />
                         <span className="text-sm">{s.name}</span>

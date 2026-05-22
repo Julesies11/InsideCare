@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -38,6 +39,7 @@ export function Contacts({
   pendingChanges,
   onPendingChangesChange 
 }: ContactsProps) {
+  const queryClient = useQueryClient();
   const [showDialog, setShowDialog] = useState(false);
   const [showContactTypeMasterDialog, setShowContactTypeMasterDialog] = useState(false);
   const [editingContact, setEditingContact] = useState<{ id?: string; tempId?: string; contact_name: string; contact_type_id?: string; phone?: string; email?: string; address?: string; notes?: string; is_active: boolean } | null>(null);
@@ -159,7 +161,7 @@ export function Contacts({
   };
 
   const getContactTypeName = (id: string) => {
-    return contactTypes.find(t => t.id === id)?.name || 'Unknown Type';
+    return contactTypes.find(t => t.id === id)?.contact_type_name || 'Unknown Type';
   };
 
   // Combine actual and pending contacts
@@ -364,7 +366,7 @@ export function Contacts({
       <ContactTypeMasterDialog
         open={showContactTypeMasterDialog}
         onClose={() => setShowContactTypeMasterDialog(false)}
-        onUpdate={() => {}}
+        onUpdate={() => queryClient.invalidateQueries({ queryKey: ['contact-types-master'] })}
       />
     </>
   );

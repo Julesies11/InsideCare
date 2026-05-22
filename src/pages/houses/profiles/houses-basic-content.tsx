@@ -25,7 +25,7 @@ export function HousesProfilesContent() {
         .from('ic_houses')
         .insert([
           {
-            name: 'New House',
+            house_name: 'New House',
             status: 'active',
           },
         ])
@@ -40,7 +40,7 @@ export function HousesProfilesContent() {
         activityType: 'create',
         entityType: 'house',
         entityId: data.id,
-        entityName: data.name || 'New House',
+        entityName: data.house_name || 'New House',
         userName: 'Current User', // TODO: Get from auth context
       });
 

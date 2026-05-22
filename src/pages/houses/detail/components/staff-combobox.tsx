@@ -36,7 +36,7 @@ export function StaffCombobox({ value, onChange, placeholder = "Select staff..."
                 src={selectedStaff.photo_url || undefined} 
                 initials={selectedStaff.name?.substring(0, 2).toUpperCase() ?? '?'} 
                 className="size-6"
-                bucket="staff-photos" 
+                bucket="ic_staff-photos" 
               />
               <span className="font-bold">{selectedStaff.name}</span>
             </div>
@@ -67,7 +67,7 @@ export function StaffCombobox({ value, onChange, placeholder = "Select staff..."
                       src={staffMember.photo_url || undefined} 
                       initials={staffMember.name?.substring(0, 2).toUpperCase() ?? '?'} 
                       className="size-8"
-                      bucket="staff-photos" 
+                      bucket="ic_staff-photos" 
                     />
                     <div className="flex flex-col">
                       <span className="font-bold text-sm text-gray-900">{staffMember.name}</span>

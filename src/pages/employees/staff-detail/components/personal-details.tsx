@@ -37,7 +37,7 @@ export function PersonalDetails({
                 value={formData.photo_url_preview ?? formData.photo_url ?? undefined}
                 onChange={canEdit ? handlePhotoChange : () => {}}
                 size="lg"
-                bucket="staff-photos"
+                bucket="ic_staff-photos"
               />
               {canEdit && (
                 <p className="text-xs text-muted-foreground">Click the photo to change it</p>
@@ -51,15 +51,15 @@ export function PersonalDetails({
             <Label className="flex w-full max-w-56">Full Name *</Label>
             <div className="grow">
               <Input
-                id="name"
+                id="staff_name"
                 placeholder="Staff member name"
-                value={formData.name || ''}
-                onChange={(e) => onFormChange('name', e.target.value)}
+                value={formData.staff_name || ''}
+                onChange={(e) => onFormChange('staff_name', e.target.value)}
                 disabled={!canEdit}
-                className={validationErrors.name ? 'border-red-500 focus-visible:ring-red-500' : ''}
+                className={validationErrors.staff_name ? 'border-red-500 focus-visible:ring-red-500' : ''}
               />
-              {validationErrors.name && (
-                <p className="text-red-500 text-sm mt-1">{validationErrors.name}</p>
+              {validationErrors.staff_name && (
+                <p className="text-red-500 text-sm mt-1">{validationErrors.staff_name}</p>
               )}
             </div>
           </div>

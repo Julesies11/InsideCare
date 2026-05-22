@@ -291,7 +291,7 @@ export function HouseChecklists({
             
             // Get signed URL
             const { data: urlData, error: urlError } = await supabase.storage
-              .from('checklist-attachments')
+              .from('ic_checklist-attachments')
               .createSignedUrl(att.file_path, 3600);
 
             if (urlError) {

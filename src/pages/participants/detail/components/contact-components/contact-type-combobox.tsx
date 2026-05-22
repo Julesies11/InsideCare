@@ -57,7 +57,7 @@ export function ContactTypeCombobox({
             disabled={!canEdit}
           >
             {selectedContactType ? (
-              <span className="truncate">{selectedContactType.name}</span>
+              <span className="truncate">{selectedContactType.contact_type_name}</span>
             ) : (
               <span>Select contact type...</span>
             )}
@@ -79,10 +79,10 @@ export function ContactTypeCombobox({
                     activeContactTypes.map((contactType) => (
                       <CommandItem
                         key={contactType.id}
-                        value={contactType.name}
+                        value={contactType.contact_type_name}
                         onSelect={() => handleSelect(contactType.id)}
                       >
-                        <span className="truncate font-medium">{contactType.name}</span>
+                        <span className="truncate font-medium">{contactType.contact_type_name}</span>
                         {value === contactType.id && <CommandCheck />}
                       </CommandItem>
                     ))

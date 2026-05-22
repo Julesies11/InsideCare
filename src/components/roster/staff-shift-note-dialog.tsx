@@ -196,7 +196,7 @@ export function StaffShiftNoteDialog({
                   <SelectItem value="none">General Note</SelectItem>
                   {participants.map((p) => (
                     <SelectItem key={p.id} value={p.id}>
-                      {p.name}
+                      {p.participant_name}
                     </SelectItem>
                   ))}
                   {loadingParticipants && participants.length === 0 && (

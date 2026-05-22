@@ -52,7 +52,7 @@ export function useUploadStaffDocument() {
       const filePath = `${staffId}/${fileName}`;
       
       const { error: uploadError } = await supabase.storage
-        .from('staff-documents')
+        .from('ic_staff-documents')
         .upload(filePath, file, {
           cacheControl: '3600',
           upsert: false
@@ -96,7 +96,7 @@ export function useDeleteStaffDocument() {
   return useMutation({
     mutationFn: async ({ id, filePath, staffId }: { id: string; filePath: string; staffId: string }) => {
       const { error: storageError } = await supabase.storage
-        .from('staff-documents')
+        .from('ic_staff-documents')
         .remove([filePath]);
 
       if (storageError) {
@@ -118,7 +118,7 @@ export function useDeleteStaffDocument() {
 
 export const getStaffFileUrl = async (filePath: string) => {
   const { data, error } = await supabase.storage
-    .from('staff-documents')
+    .from('ic_staff-documents')
     .createSignedUrl(filePath, 3600);
   
   if (error) {

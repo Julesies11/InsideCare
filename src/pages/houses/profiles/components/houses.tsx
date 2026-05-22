@@ -62,7 +62,7 @@ const HOUSE_STATUS_OPTIONS: StatusOption[] = [
 ];
 
 // Helper function to get participants for a house
-function getHouseParticipants(houseId: string, allParticipants: Array<{ id: string; name: string; house_id?: string; status: string }>) {
+function getHouseParticipants(houseId: string, allParticipants: Array<{ id: string; participant_name: string; house_id?: string; status: string }>) {
   return allParticipants
     .filter(participant => participant.house_id === houseId && participant.status === 'active')
     .map(participant => participant.participant_name)

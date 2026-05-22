@@ -61,7 +61,7 @@ export function HouseDetailContent({
   const scrollPosition = useScrollPosition({ targetRef: parentRef });
 
   const [formData, setFormData] = useState<any>({
-    name: '',
+    house_name: '',
     address: '',
     phone: '',
     house_type_id: '',
@@ -156,7 +156,7 @@ export function HouseDetailContent({
       const { data: houseData, error: houseError } = await supabase
         .from('ic_houses')
         .update({
-          name: currentFormData.house_name,
+          house_name: currentFormData.house_name,
           address: currentFormData.address || null,
           phone: currentFormData.phone || null,
           house_type_id: currentFormData.house_type_id || null,
@@ -407,11 +407,12 @@ export function HouseDetailContent({
         for (const doc of currentPending.documents.toAdd) {
           const fileExt = doc.file.name.split('.').pop();
           const fileName = `${id}-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-          const filePath = `house-documents/${fileName}`;
+          const filePath = `ic_house-documents/${fileName}`;
 
           const { error: uploadError } = await supabase.storage
-            .from('house-documents')
+            .from('ic_house-documents')
             .upload(filePath, doc.file);
+
 
           if (uploadError) throw new Error(`Failed to upload document: ${uploadError.message}`);
 
@@ -434,8 +435,7 @@ export function HouseDetailContent({
         const recordIds = currentPending.documents.toDelete.map(doc => doc.id);
 
         const { error: storageError } = await supabase.storage
-          .from('house-documents')
-          .remove(filePaths);
+          .from('ic_house-documents')          .remove(filePaths);
 
         if (storageError) console.warn('Failed to delete files from storage:', storageError);
 
@@ -553,7 +553,7 @@ export function HouseDetailContent({
       if (currentPending.forms.toAdd.length > 0) {
         const toInsert = currentPending.forms.toAdd.map(form => ({
           house_id: id,
-          name: form.name,
+          form_name: form.name,
           type: form.type,
           description: form.description || null,
           frequency: form.frequency,
@@ -568,7 +568,7 @@ export function HouseDetailContent({
           const { error } = await supabase
             .from('ic_house_forms')
             .update({
-              name: form.name,
+              form_name: form.name,
               type: form.type,
               description: form.description || null,
               frequency: form.frequency,
@@ -894,8 +894,8 @@ export function HouseDetailContent({
                   <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
                     <Label className="flex w-full max-w-56">House Name</Label>
                     <Input
-                      value={formData.name}
-                      onChange={(e) => handleFieldChange('name', e.target.value)}
+                      value={formData.house_name}
+                      onChange={(e) => handleFieldChange('house_name', e.target.value)}
                       placeholder="Enter house name"
                       disabled={!canEdit}
                     />
@@ -906,11 +906,11 @@ export function HouseDetailContent({
                   <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
                     <Label className="flex w-full max-w-56">Address</Label>
                     <Textarea
-                      value={formData.address}
+                      value={formData.address || ''}
                       onChange={(e) => handleFieldChange('address', e.target.value)}
                       placeholder="Enter house address"
-                      rows={2}
                       disabled={!canEdit}
+                      rows={2}
                     />
                   </div>
                 </div>
@@ -919,7 +919,7 @@ export function HouseDetailContent({
                   <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
                     <Label className="flex w-full max-w-56">Phone Number</Label>
                     <Input
-                      value={formData.phone}
+                      value={formData.phone || ''}
                       onChange={(e) => handleFieldChange('phone', e.target.value)}
                       placeholder="Enter phone number"
                       disabled={!canEdit}
@@ -939,7 +939,7 @@ export function HouseDetailContent({
 
           <HouseCalendarEvents 
             houseId={id!} 
-            houseName={formData.name}
+            houseName={formData.house_name}
             events={formData.calendarEvents || []}
             pendingChanges={pendingChanges}
             onPendingChangesChange={onPendingChangesChange}

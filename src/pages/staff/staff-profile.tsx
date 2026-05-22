@@ -128,8 +128,7 @@ export function StaffProfile() {
         const ext = photoFile.name.split('.').pop();
         const path = `${staffId}/profile/${Date.now()}.${ext}`;
         const { error: uploadErr } = await supabase.storage
-          .from('staff-photos')
-          .upload(path, photoFile, { upsert: true });
+          .from('ic_staff-photos')          .upload(path, photoFile, { upsert: true });
         if (uploadErr) throw uploadErr;
         
         // Save the PATH to the database, not the temporary signed URL

@@ -109,7 +109,7 @@ export function ParticipantDetailContent({
   const [originalPhotoUrl, setOriginalPhotoUrl] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<Record<string, any>>({
-    name: '',
+    participant_name: '',
     email: '',
     house_phone: '',
     personal_mobile: '',
@@ -186,7 +186,7 @@ export function ParticipantDetailContent({
     if (participantData && !hasInitialized) {
       setParticipant(participantData);
       const mappedData: ParticipantFormData = {
-        name: participantData.participant_name ?? '',
+        participant_name: participantData.participant_name ?? '',
         email: participantData.email ?? '',
         house_phone: participantData.house_phone ?? '',
         personal_mobile: participantData.personal_mobile ?? '',
@@ -479,7 +479,7 @@ export function ParticipantDetailContent({
           const filePath = `${id}/documents/${fileName}`;
 
           const { error: uploadError } = await supabase.storage
-            .from('participant-documents')
+            .from('ic_participant-documents')
             .upload(filePath, doc.file);
 
           if (uploadError) {
@@ -514,7 +514,7 @@ export function ParticipantDetailContent({
         const ids = currentPending.documents.toDelete.map(d => d.id);
         const filePaths = currentPending.documents.toDelete.map(d => d.filePath);
 
-        await supabase.storage.from('ic_participant_documents').remove(filePaths);
+        await supabase.storage.from('ic_participant-documents').remove(filePaths);
 
         const { error: dbError } = await supabase.from('ic_participant_documents').delete().in('id', ids);
         if (dbError) throw new Error(`Failed to delete document records: ${dbError.message}`);
@@ -534,7 +534,7 @@ export function ParticipantDetailContent({
       // Profile Photo handling
       if (photoFile) {
         // Use the new handleAvatarUpload utility for resizing and processing
-        const newPhotoUrl = await handleAvatarUpload(photoFile, 'participant-photos', id);
+        const newPhotoUrl = await handleAvatarUpload(photoFile, 'ic_participant-photos', id);
 
         const { error: photoErr } = await supabase
           .from('ic_participants')
@@ -595,8 +595,8 @@ export function ParticipantDetailContent({
 
       if (Object.keys(changedFields).length > 0) {
         if (!currentFormData.participant_name) {
-          setFieldError('name', 'Name is required');
-          scrollToField('name');
+          setFieldError('participant_name', 'Name is required');
+          scrollToField('participant_name');
           toast.error('Validation Error', { description: 'Name is required' });
           return;
         }
@@ -687,6 +687,7 @@ export function ParticipantDetailContent({
       queryClient.invalidateQueries({ queryKey: ['participant-medications', id] });
       queryClient.invalidateQueries({ queryKey: ['participant-contacts', id] });
       queryClient.invalidateQueries({ queryKey: ['participant-documents', id] });
+      queryClient.invalidateQueries({ queryKey: ['participant-shift-notes', id] });
 
       setRefreshKeys((prev) => ({
         goals: prev.goals + 1,

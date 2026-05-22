@@ -44,7 +44,7 @@ export function useUploadParticipantDocument() {
       const filePath = `${participantId}/${fileName}`;
       
       const { error: uploadError } = await supabase.storage
-        .from('participant-documents')
+        .from('ic_participant-documents')
         .upload(filePath, file, {
           cacheControl: '3600',
           upsert: false
@@ -88,7 +88,7 @@ export function useDeleteParticipantDocument() {
   return useMutation({
     mutationFn: async ({ id, filePath, participantId }: { id: string; filePath: string; participantId: string }) => {
       const { error: storageError } = await supabase.storage
-        .from('participant-documents')
+        .from('ic_participant-documents')
         .remove([filePath]);
 
       if (storageError) {
@@ -110,7 +110,7 @@ export function useDeleteParticipantDocument() {
 
 export const getParticipantFileUrl = async (filePath: string) => {
   const { data, error } = await supabase.storage
-    .from('participant-documents')
+    .from('ic_participant-documents')
     .createSignedUrl(filePath, 3600);
   
   if (error) {

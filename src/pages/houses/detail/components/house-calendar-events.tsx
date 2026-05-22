@@ -802,7 +802,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
             const filePath = `calendar-events/${finalEventId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
             
             const { error: uploadError } = await supabase.storage
-              .from('house-documents')
+              .from('ic_house-documents')
               .upload(filePath, queued.file);
             
             if (uploadError) throw uploadError;

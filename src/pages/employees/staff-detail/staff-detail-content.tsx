@@ -101,7 +101,7 @@ export function StaffDetailContent({
   const canEdit = hasAccess({ resource: RBAC_MODULES.EMPLOYEES, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE });
 
   const [formData, setFormData] = useState<Record<string, any>>({
-    name: '',
+    staff_name: '',
     email: '',
     phone: '',
     date_of_birth: '',
@@ -137,7 +137,7 @@ export function StaffDetailContent({
     if (staffData && !hasInitialized) {
       setStaffMember(staffData);
       const initialData = {
-        name: staffData.name ?? '',
+        staff_name: staffData.staff_name ?? '',
         email: staffData.email ?? '',
         phone: staffData.phone ?? '',
         date_of_birth: staffData.date_of_birth ?? '',
@@ -180,7 +180,7 @@ export function StaffDetailContent({
       if (staffData.photo_url) setPhotoPreview(staffData.photo_url);
       
       setHasInitialized(true);
-      (window as any).entityName = staffData.name;
+      (window as any).entityName = staffData.staff_name;
     }
   }, [staffData, hasInitialized, onFormDataChange, onOriginalDataChange]);
 
@@ -207,7 +207,7 @@ export function StaffDetailContent({
       // Step 0: Upload profile photo if a new file was selected, or clear if deleted
       if (photoFile) {
         // Use the new handleAvatarUpload utility for resizing and processing
-        const newPhotoUrl = await handleAvatarUpload(photoFile, 'staff-photos', staffId);
+        const newPhotoUrl = await handleAvatarUpload(photoFile, 'ic_staff-photos', staffId);
 
         const { error: photoErr } = await supabase
           .from('ic_staff')
@@ -367,7 +367,7 @@ export function StaffDetailContent({
             const storagePath = `${staffId}/training/${uniqueFileName}`;
 
             const { error: uploadError } = await supabase.storage
-              .from('staff-documents')
+              .from('ic_staff-documents')
               .upload(storagePath, item.file);
 
             if (uploadError) {
@@ -422,7 +422,7 @@ export function StaffDetailContent({
 
           if (item.file) {
             if (item.filePath) {
-              await supabase.storage.from('ic_staff_documents').remove([item.filePath]);
+              await supabase.storage.from('ic_staff-documents').remove([item.filePath]);
             }
 
             const fileExt = item.file.name.split('.').pop();
@@ -430,7 +430,7 @@ export function StaffDetailContent({
             const storagePath = `${staffId}/training/${uniqueFileName}`;
 
             const { error: uploadError } = await supabase.storage
-              .from('staff-documents')
+              .from('ic_staff-documents')
               .upload(storagePath, item.file);
 
             if (uploadError) {
@@ -485,7 +485,7 @@ export function StaffDetailContent({
           .in('id', ids);
 
         if (filePaths.length > 0) {
-          await supabase.storage.from('ic_staff_documents').remove(filePaths);
+          await supabase.storage.from('ic_staff-documents').remove(filePaths);
         }
 
         const { error } = await supabase.from('ic_staff_training').delete().in('id', ids);
@@ -518,8 +518,7 @@ export function StaffDetailContent({
           const filePath = `staff-documents/${fileName}`;
 
           const { error: uploadError } = await supabase.storage
-            .from('staff-documents')
-            .upload(filePath, doc.file);
+            .from('ic_staff-documents')            .upload(filePath, doc.file);
 
           if (uploadError) throw new Error(`Failed to upload document: ${uploadError.message}`);
 
@@ -570,7 +569,7 @@ export function StaffDetailContent({
       // Step 3: Save main staff form data using json-diff-ts
       const toNull = (value: any) => (value === '' ? null : value);
       const normalizedFormData = {
-        name: currentFormData.name,
+        staff_name: currentFormData.staff_name,
         email: currentFormData.email,
         phone: toNull(currentFormData.phone),
         date_of_birth: toNull(currentFormData.date_of_birth),
@@ -630,18 +629,18 @@ export function StaffDetailContent({
         // Check if status is being changed to active or inactive
         const newStatus = changedFields.status || normalizedFormData.status;
         const currentEmail = changedFields.email !== undefined ? changedFields.email : normalizedFormData.email;
-        const currentName = normalizedFormData.name;
+        const currentName = normalizedFormData.staff_name;
         
         // Validate: Name is required when status is not draft
         const nameValidation = validators.requiredWhen(
           currentName,
           newStatus == 'active',
-          'Name'
+          'Staff Name'
         );
         if (!nameValidation.isValid) {
-          setFieldError('name', nameValidation.error);
-          scrollToField('name');
-          toast.error('Name is required');
+          setFieldError('staff_name', nameValidation.error);
+          scrollToField('staff_name');
+          toast.error('Staff name is required');
           return;
         }
         

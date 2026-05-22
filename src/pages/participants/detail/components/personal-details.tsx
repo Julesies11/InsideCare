@@ -42,7 +42,7 @@ export function PersonalDetails({
               value={formData.photo_url_preview || formData.photo_url}
               onChange={handlePhotoChange}
               size="lg"
-              bucket="participant-photos"
+              bucket="ic_participant-photos"
             />
             {!canEdit && <span className="text-sm text-muted-foreground">View only</span>}
           </div>
@@ -51,12 +51,12 @@ export function PersonalDetails({
         {/* Form Fields */}
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <Label htmlFor="name" className="flex w-full max-w-56">Full Name {formData.status !== 'draft' && '*'}</Label>
+            <Label htmlFor="participant_name" className="flex w-full max-w-56">Full Name *</Label>
             <div className="grow">
               <Input
-                id="name"
+                id="participant_name"
                 value={formData.participant_name || ''}
-                onChange={(e) => onFormChange('name', e.target.value)}
+                onChange={(e) => onFormChange('participant_name', e.target.value)}
                 disabled={!canEdit}
                 className={validationErrors.participant_name ? 'border-red-500 focus-visible:ring-red-500' : ''}
               />

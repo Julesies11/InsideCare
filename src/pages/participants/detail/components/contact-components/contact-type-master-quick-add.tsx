@@ -40,7 +40,7 @@ export function ContactTypeMasterQuickAdd({
   useEffect(() => {
     if (open && editingContactType) {
       form.reset({
-        name: editingContactType.contact_type_name,
+        contact_type_name: editingContactType.contact_type_name,
         is_active: editingContactType.is_active,
       });
     } else if (open) {
@@ -53,7 +53,7 @@ export function ContactTypeMasterQuickAdd({
 
   const handleSubmit = async (data: ContactTypeFormValues) => {
     await onSave({
-      name: data.name,
+      contact_type_name: data.contact_type_name,
       is_active: data.is_active,
     });
   };

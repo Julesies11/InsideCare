@@ -156,7 +156,7 @@ const StaffTable = () => {
               src={row.original.photo_url} 
               initials={initials} 
               className="size-9"
-              bucket="staff-photos" 
+              bucket="ic_staff-photos" 
             />
             <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
               {name || '-'}

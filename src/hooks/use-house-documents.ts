@@ -50,7 +50,7 @@ export function useHouseDocuments(houseId?: string) {
 
 export const getHouseFileUrl = async (filePath: string) => {
   const { data, error } = await supabase.storage
-    .from('house-documents')
+    .from('ic_house-documents')
     .createSignedUrl(filePath, 3600);
   
   if (error) {

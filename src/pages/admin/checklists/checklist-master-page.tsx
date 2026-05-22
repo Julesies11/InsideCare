@@ -21,7 +21,7 @@ import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
 import { RBAC_MODULES } from '@/config/rbac-modules';
 
 export function ChecklistMasterPage() {
-  const { masterChecklists, loading, refresh } = useChecklistMaster();
+  const { masterChecklists, loading, refetch } = useChecklistMaster();
   const { hasAccess } = useRBAC();
 
   const canEdit = hasAccess({ 
@@ -94,24 +94,34 @@ export function ChecklistMasterPage() {
   };
 
   const handleDeleteTemplate = async (template: ChecklistMaster) => {
-    if (!confirm('Are you sure you want to delete this master checklist? It will not affect existing house checklists.')) return;
+    if (!confirm('Are you sure you want to delete this master checklist? It will also delete all associated checklist items.')) return;
 
     try {
+      // 1. Delete all associated items first
+      const { error: itemsError } = await supabase
+        .from('ic_checklist_item_master')
+        .delete()
+        .eq('master_id', template.id);
+
+      if (itemsError) throw itemsError;
+
+      // 2. Delete the master checklist
       const { error } = await supabase
         .from('ic_checklist_master')
         .delete()
         .eq('id', template.id);
 
       if (error) throw error;
+      
       toast.success('Master checklist deleted successfully');
-      refresh();
+      refetch();
     } catch (error) {
       handleSupabaseError(error, 'Failed to delete checklist');
     }
   };
 
   const handleSaveTemplate = async () => {
-    if (!formData.name.trim()) return;
+    if (!formData.checklist_name.trim()) return;
 
     try {
       let masterId = selectedTemplate?.id;
@@ -120,7 +130,7 @@ export function ChecklistMasterPage() {
         await supabase
           .from('ic_checklist_master')
           .update({
-            checklist_name: formData.name,
+            checklist_name: formData.checklist_name,
             days_of_week: formData.days_of_week || null,
             description: formData.description || null,
           })
@@ -130,7 +140,7 @@ export function ChecklistMasterPage() {
         const { data, error } = await supabase
           .from('ic_checklist_master')
           .insert({
-            checklist_name: formData.name,
+            checklist_name: formData.checklist_name,
             days_of_week: formData.days_of_week || null,
             description: formData.description || null,
           })
@@ -202,7 +212,7 @@ export function ChecklistMasterPage() {
 
       toast.success('Master checklist saved successfully');
       setShowEditDialog(false);
-      refresh();
+      refetch();
     } catch (error) {
       handleSupabaseError(error, 'Failed to save checklist');
     }
@@ -337,8 +347,8 @@ export function ChecklistMasterPage() {
               <Label htmlFor="tpl-name">Name *</Label>
               <Input
                 id="tpl-name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                value={formData.checklist_name}
+                onChange={(e) => setFormData({ ...formData, checklist_name: e.target.value })}
                 placeholder="e.g., Weekly Safety Audit"
               />
             </div>
@@ -433,7 +443,7 @@ export function ChecklistMasterPage() {
 
           <DialogFooter className="p-6 pt-2 border-t">
             <Button variant="outline" onClick={() => setShowEditDialog(false)}>Cancel</Button>
-            <Button variant="primary" onClick={handleSaveTemplate} disabled={!canEdit || !hasEdits || !formData.name.trim()}>Save Master Checklist</Button>
+            <Button variant="primary" onClick={handleSaveTemplate} disabled={!canEdit || !hasEdits || !formData.checklist_name.trim()}>Save Master Checklist</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

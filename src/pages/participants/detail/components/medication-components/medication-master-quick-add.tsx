@@ -49,7 +49,7 @@ export function MedicationMasterQuickAdd({
   useEffect(() => {
     if (open && editingMedication) {
       form.reset({
-        name: editingMedication.medication_name,
+        medication_name: editingMedication.medication_name,
         category: editingMedication.category || '',
         common_dosages: editingMedication.common_dosages || '',
         side_effects: editingMedication.side_effects || '',
@@ -70,7 +70,7 @@ export function MedicationMasterQuickAdd({
 
   const handleSubmit = async (data: MedicationFormValues) => {
     await onSave({
-      name: data.name,
+      medication_name: data.medication_name,
       category: data.category || null,
       common_dosages: data.common_dosages || null,
       side_effects: data.side_effects || null,
@@ -78,6 +78,7 @@ export function MedicationMasterQuickAdd({
       is_active: data.is_active,
     });
   };
+
 
   return (
     <Dialog open={open} onOpenChange={onClose}>

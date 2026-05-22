@@ -56,7 +56,8 @@ export function useHouses(
 
       if (sort.length > 0) {
         sort.forEach(s => {
-          query = query.order(s.id === 'name' ? 'house_name' : s.id, { ascending: !s.desc });
+          const column = s.id === 'name' || s.id === 'house_name' ? 'house_name' : s.id;
+          query = query.order(column, { ascending: !s.desc });
         });
       } else {
         query = query.order('house_name', { ascending: true });

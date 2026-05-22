@@ -126,8 +126,7 @@ export function StaffLeaveForm() {
     const { error } = await supabase.storage.from('ic_staff_documents').upload(path, attachmentFile);
     if (error) { toast.error('Failed to upload attachment'); return null; }
     const { data: urlData, error: urlError } = await supabase.storage
-      .from('staff-documents')
-      .createSignedUrl(path, 3600);
+      .from('ic_staff-documents')      .createSignedUrl(path, 3600);
     
     if (urlError) {
       console.error('Error creating signed URL:', urlError);

@@ -96,7 +96,7 @@ export function ChecklistExecutionDialog({
           for (const att of attachmentData) {
             if (!attachments[att.item_id]) attachments[att.item_id] = [];
             const { data: urlData, error: urlError } = await supabase.storage
-              .from('checklist-attachments')
+              .from('ic_checklist-attachments')
               .createSignedUrl(att.file_path, 3600);
             
             if (urlError) {

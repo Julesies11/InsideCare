@@ -190,7 +190,7 @@ export function Medications({
   ];
 
   const getMedicationName = (id: string) => {
-    return medicationsMaster.find(m => m.id === id)?.name || 'Unknown Medication';
+    return medicationsMaster.find(m => m.id === id)?.medication_name || 'Unknown Medication';
   };
 
   return (
