@@ -15,7 +15,7 @@ export function SecureAvatar({
   alt = "avatar", 
   initials = "?", 
   className,
-  bucket = "staff-photos"
+  bucket = "ic_staff-photos"
 }: SecureAvatarProps) {
 
   const { url: signedUrl } = useSignedUrl(bucket, src);

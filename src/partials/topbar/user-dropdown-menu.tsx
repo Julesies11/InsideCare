@@ -54,6 +54,7 @@ export function UserDropdownMenu({ trigger }: { trigger: ReactNode }) {
               src={user?.photo_url} 
               initials={initials} 
               className="size-9 border-2 border-green-500" 
+              bucket="ic_staff-photos"
             />
             <div className="flex flex-col">
               <Link

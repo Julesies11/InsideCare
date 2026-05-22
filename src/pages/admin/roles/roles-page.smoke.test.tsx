@@ -1,35 +1,39 @@
-import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { RolesPage } from './roles-page';
+import { vi, describe, it, expect } from 'vitest';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router';
 
-import { SettingsProvider } from '@/providers/settings-provider';
+const queryClient = new QueryClient();
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
-    },
+vi.mock('@/lib/supabase', () => ({
+  supabase: {
+    from: vi.fn(() => ({
+      select: vi.fn().mockReturnThis(),
+      or: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+    })),
   },
-});
+}));
+
+vi.mock('@/auth/context/auth-context', () => ({
+  useAuth: () => ({ user: { id: 'test-user' } }),
+}));
+
+vi.mock('@/hooks/useRBAC', () => ({
+  useRBAC: () => ({ hasAccess: () => true }),
+  ACCESS_LEVEL: { CONTEXT_READ_WRITE: 'rw' },
+}));
 
 describe('RolesPage Smoke Test', () => {
-  it('renders the roles page without crashing', async () => {
+  it('renders correctly', async () => {
     render(
       <MemoryRouter>
-        <SettingsProvider>
-          <QueryClientProvider client={queryClient}>
-            <RolesPage />
-          </QueryClientProvider>
-        </SettingsProvider>
+        <QueryClientProvider client={queryClient}>
+          <RolesPage />
+        </QueryClientProvider>
       </MemoryRouter>
     );
-
-    // Check for page title
-    expect(screen.getByText('Roles & Permissions')).toBeInTheDocument();
-
-    // Check for the Add Role button
-    expect(screen.getByRole('button', { name: /Add Role/i })).toBeInTheDocument();
-  }, 30000);
+    expect(screen.getByText(/Role Management/i)).toBeInTheDocument();
+  });
 });

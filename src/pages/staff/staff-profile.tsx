@@ -52,7 +52,7 @@ export function StaffProfile() {
 
   // Form state — mirrors StaffDetailContent pattern
   const [formData, setFormData] = useState<Record<string, any>>({
-    name: '',
+    staff_name: '',
     email: '',
     phone: '',
     date_of_birth: '',
@@ -74,7 +74,7 @@ export function StaffProfile() {
   useEffect(() => {
     if (staffData) {
       const d = {
-        name: staffData.name ?? '',
+        staff_name: staffData.staff_name ?? '',
         email: staffData.email ?? '',
         phone: staffData.phone ?? '',
         date_of_birth: staffData.date_of_birth ?? '',
@@ -151,7 +151,7 @@ export function StaffProfile() {
       // Step 2: Save form fields via useStaff hook (mirrors StaffDetailContent)
       const toNull = (v: string | null) => (v === '' ? null : v);
       const updates: Record<string, any> = {
-        name: formData.name,
+        staff_name: formData.staff_name,
         email: formData.email,
         phone: toNull(formData.phone),
         date_of_birth: toNull(formData.date_of_birth),

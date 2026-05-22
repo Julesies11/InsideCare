@@ -453,7 +453,7 @@ export function HouseDetailContent({
             .from('ic_house_checklists')
             .insert({
               house_id: id,
-              name: checklist.name,
+              checklist_name: checklist.name,
               days_of_week: checklist.days_of_week || null,
               description: checklist.description || null,
               master_id: checklist.master_id || null,
@@ -489,7 +489,7 @@ export function HouseDetailContent({
           const { error } = await supabase
             .from('ic_house_checklists')
             .update({
-              name: checklist.name,
+              checklist_name: checklist.name,
               days_of_week: checklist.days_of_week || null,
               description: checklist.description || null,
               sort_order: checklist.sort_order,

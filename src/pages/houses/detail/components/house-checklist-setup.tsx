@@ -96,13 +96,14 @@ export function HouseChecklistSetup({
   const handleEditChecklist = (checklist: any) => {
     setSelectedChecklist(checklist);
     setChecklistFormData({
-      name: checklist.name,
+      checklist_name: checklist.checklist_name,
       days_of_week: checklist.days_of_week || [],
       description: checklist.description || '',
       items: checklist.items || [],
     });
     setShowChecklistDialog(true);
   };
+
 
   const handleSortChecklists = async (newChecklists: any[]) => {
     if (directSave && houseId) {
@@ -169,7 +170,7 @@ export function HouseChecklistSetup({
           const { error } = await supabase
             .from('ic_house_checklists')
             .update({
-              name: checklistFormData.name,
+              checklist_name: checklistFormData.checklist_name,
               description: checklistFormData.description,
               days_of_week: checklistFormData.days_of_week,
             })
@@ -743,7 +744,7 @@ export function HouseChecklistSetup({
           <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
             <div className="space-y-2">
               <Label htmlFor="setup-name">Name *</Label>
-              <Input id="setup-name" value={checklistFormData.name} onChange={(e) => setChecklistFormData({ ...checklistFormData, name: e.target.value })} />
+              <Input id="setup-name" value={checklistFormData.checklist_name} onChange={(e) => setChecklistFormData({ ...checklistFormData, checklist_name: e.target.value })} />
             </div>
 
             <div className="space-y-2">
