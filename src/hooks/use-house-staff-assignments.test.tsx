@@ -25,14 +25,14 @@ const wrapper = ({ children }: { children: ReactNode }): ReactElement => (
 describe('useHouseStaffAssignments', () => {
   it('should fetch house staff assignments successfully', async () => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/house_staff_assignments`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_house_staff_assignments`, () => {
         return HttpResponse.json([
           { 
             id: 'hsa-1', 
             house_id: 'house-1', 
             staff_id: 'staff-1', 
             is_primary: true,
-            staff: { id: 'staff-1', name: 'John Staff' }
+            staff: { id: 'staff-1', staff_name: 'John Staff' }
           },
         ]);
       })

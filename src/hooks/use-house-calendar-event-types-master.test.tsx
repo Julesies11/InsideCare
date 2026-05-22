@@ -25,7 +25,7 @@ const wrapper = ({ children }: { children: ReactNode }): ReactElement => (
 describe('useHouseCalendarEventTypesMaster', () => {
   it('should fetch calendar event types successfully', async () => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/house_calendar_event_types_master`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_house_calendar_event_types_master`, () => {
         return HttpResponse.json([
           { id: 'cet-1', name: 'Meeting', color: 'purple', status: 'Active' },
           { id: 'cet-2', name: 'Appointment', color: 'orange', status: 'Active' },

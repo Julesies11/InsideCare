@@ -9,7 +9,7 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
 const mockChecklistMaster = {
   id: 'master-1',
-  name: 'Weekly Safety Audit',
+  checklist_name: 'Weekly Safety Audit',
   frequency: 'weekly',
   description: 'Standard safety check',
   items: [
@@ -33,10 +33,10 @@ vi.mock('@/hooks/use-mobile', () => ({
 describe('ChecklistMasterPage', () => {
   beforeEach(() => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/checklist_master`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_checklist_master`, () => {
         return HttpResponse.json([mockChecklistMaster]);
       }),
-      http.post(`${SUPABASE_URL}/rest/v1/checklist_master`, () => {
+      http.post(`${SUPABASE_URL}/rest/v1/ic_checklist_master`, () => {
         return HttpResponse.json({ ...mockChecklistMaster, id: 'new-id' });
       })
     );

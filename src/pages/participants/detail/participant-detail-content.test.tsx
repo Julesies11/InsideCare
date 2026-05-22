@@ -9,7 +9,7 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
 const mockParticipant = {
   id: 'participant-1',
-  name: 'John Doe',
+  participant_name: 'John Doe',
   email: 'john@example.com',
   status: 'active',
   ndis_number: 'NDIS123',
@@ -36,7 +36,7 @@ vi.mock('@/hooks/use-scroll-position', () => ({
 describe('ParticipantDetailContent', () => {
   beforeEach(() => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/participants`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_participants`, () => {
         return HttpResponse.json(mockParticipant);
       })
     );

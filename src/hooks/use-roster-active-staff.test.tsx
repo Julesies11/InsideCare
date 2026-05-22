@@ -28,13 +28,13 @@ describe('useRosterData Active Staff Filtering', () => {
     const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
 
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/houses`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_houses`, () => {
         return HttpResponse.json([{ id: 'h1', name: 'House 1', status: 'active' }]);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/participants`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_participants`, () => {
         return HttpResponse.json([]);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/staff`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_staff`, () => {
         return HttpResponse.json([
           {
             id: 's1',

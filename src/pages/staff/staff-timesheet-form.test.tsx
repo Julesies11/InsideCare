@@ -14,7 +14,7 @@ const mockShift = {
   start_time: '08:00:00',
   end_time: '16:00:00',
   shift_template: 'Morning',
-  house: { name: 'Test House' },
+  house: { house_name: 'Test House' },
 };
 
 const mockAdmins = [
@@ -45,25 +45,25 @@ describe('StaffTimesheetForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/staff_shifts`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_staff_shifts`, () => {
         return HttpResponse.json([mockShift]);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/timesheets`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_timesheets`, () => {
         return HttpResponse.json([]);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/staff`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_staff`, () => {
         return HttpResponse.json(mockAdmins);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/shift_assigned_checklists`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_shift_assigned_checklists`, () => {
         return HttpResponse.json([]);
       }),
-      http.post(`${SUPABASE_URL}/rest/v1/timesheets`, () => {
+      http.post(`${SUPABASE_URL}/rest/v1/ic_timesheets`, () => {
         return HttpResponse.json({ id: 'ts-1' });
       }),
-      http.post(`${SUPABASE_URL}/rest/v1/shift_notes`, () => {
+      http.post(`${SUPABASE_URL}/rest/v1/ic_shift_notes`, () => {
         return HttpResponse.json({});
       }),
-      http.post(`${SUPABASE_URL}/rest/v1/notifications`, () => {
+      http.post(`${SUPABASE_URL}/rest/v1/ic_notifications`, () => {
         return HttpResponse.json({});
       })
     );
@@ -154,7 +154,7 @@ describe('StaffTimesheetForm', () => {
   it('blocks submission if checklists are incomplete', async () => {
     // Override checklist mock to return an incomplete routine
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/shift_assigned_checklists`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_shift_assigned_checklists`, () => {
         return HttpResponse.json([
           { 
             checklist_id: 'cl-1', 

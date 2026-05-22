@@ -18,7 +18,7 @@ const mockConflictingShifts = [
     start_date: '2026-03-10',
     start_time: '08:00:00',
     end_time: '16:00:00',
-    house: { name: 'Test House' },
+    house: { house_name: 'Test House' },
   },
 ];
 
@@ -42,13 +42,13 @@ describe('StaffLeaveForm', () => {
     vi.clearAllMocks();
     vi.mocked(useParams).mockReturnValue({ id: undefined });
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/leave_types`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_leave_types`, () => {
         return HttpResponse.json(mockLeaveTypes);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/staff_shifts`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_staff_shifts`, () => {
         return HttpResponse.json([]);
       }),
-      http.post(`${SUPABASE_URL}/rest/v1/leave_requests`, () => {
+      http.post(`${SUPABASE_URL}/rest/v1/ic_leave_requests`, () => {
         return HttpResponse.json([{ id: 'new-leave-id' }]);
       })
     );
@@ -64,7 +64,7 @@ describe('StaffLeaveForm', () => {
 
   it('shows conflict warning when shifts overlap', async () => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/staff_shifts`, ({ request }) => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_staff_shifts`, ({ request }) => {
         const url = new URL(request.url);
         if (url.searchParams.get('start_date') === 'gte.2026-03-10') {
            return HttpResponse.json(mockConflictingShifts);
@@ -118,7 +118,7 @@ describe('StaffLeaveForm', () => {
     vi.mocked(useParams).mockReturnValue({ id: 'leave-1' });
 
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/leave_requests`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_leave_requests`, () => {
         return HttpResponse.json({
           leave_type_id: 'type-1',
           start_date: '2026-04-01',
@@ -127,7 +127,7 @@ describe('StaffLeaveForm', () => {
           attachment_url: null,
         });
       }),
-      http.patch(`${SUPABASE_URL}/rest/v1/leave_requests`, () => {
+      http.patch(`${SUPABASE_URL}/rest/v1/ic_leave_requests`, () => {
         return HttpResponse.json({});
       })
     );

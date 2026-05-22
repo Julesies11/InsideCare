@@ -25,3 +25,4 @@ pnpm-debug.log*
 .env.test
 .env.staging
 
+github_unit-test-errors.txt

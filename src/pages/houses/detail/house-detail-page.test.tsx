@@ -36,7 +36,7 @@ vi.mock('@/hooks/use-scroll-position', () => ({
 describe('HouseDetailPage', () => {
   beforeEach(() => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/houses`, ({ request }) => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_houses`, ({ request }) => {
         const url = new URL(request.url);
         const idParam = url.searchParams.get('id');
         if (idParam || request.headers.get('Accept')?.includes('vnd.pgrst.object+json')) {
@@ -44,7 +44,7 @@ describe('HouseDetailPage', () => {
         }
         return HttpResponse.json([mockHouse]);
       }),
-      http.patch(`${SUPABASE_URL}/rest/v1/houses`, () => {
+      http.patch(`${SUPABASE_URL}/rest/v1/ic_houses`, () => {
         return HttpResponse.json(mockHouse);
       })
     );

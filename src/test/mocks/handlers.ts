@@ -1,6 +1,6 @@
 import { http, HttpResponse } from 'msw';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://jxxpufmygwbfzzpioryu.supabase.co';
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://rdnaqrzqpcicskylmsyl.supabase.co';
 
 export const handlers = [
   // Auth Mocks
@@ -151,6 +151,61 @@ export const handlers = [
         participant: { id: 'participant-1', participant_name: 'John Doe' },
         staff: { id: 'staff-1', staff_name: 'Admin User' },
       },
+    ]);
+  }),
+
+  // Database Mocks - Staff Shifts
+  http.get(`${SUPABASE_URL}/rest/v1/ic_staff_shifts`, ({ request }) => {
+    const url = new URL(request.url);
+    const idParam = url.searchParams.get('id');
+    
+    const shifts = [
+      {
+        id: 'shift-1',
+        staff_id: 'staff-1',
+        house_id: 'house-1',
+        start_date: '2026-03-10',
+        end_date: '2026-03-10',
+        start_time: '08:00:00',
+        end_time: '16:00:00',
+        shift_template: 'Morning Shift',
+        house: { house_name: 'Test House 1' },
+      },
+    ];
+
+    if (idParam && idParam.startsWith('eq.')) {
+      const id = idParam.replace('eq.', '');
+      const shift = shifts.find(s => s.id === id);
+      if (shift) {
+        if (request.headers.get('Accept')?.includes('vnd.pgrst.object+json')) {
+          return HttpResponse.json(shift);
+        }
+        return HttpResponse.json([shift]);
+      }
+    }
+
+    return HttpResponse.json(shifts);
+  }),
+
+  // Database Mocks - Timesheets
+  http.get(`${SUPABASE_URL}/rest/v1/ic_timesheets`, () => {
+    return HttpResponse.json([]);
+  }),
+
+  http.post(`${SUPABASE_URL}/rest/v1/ic_timesheets`, () => {
+    return HttpResponse.json({ success: true }, { status: 201 });
+  }),
+
+  // Database Mocks - Shift Assigned Checklists
+  http.get(`${SUPABASE_URL}/rest/v1/ic_shift_assigned_checklists`, () => {
+    return HttpResponse.json([]);
+  }),
+
+  // Database Mocks - Leave Types
+  http.get(`${SUPABASE_URL}/rest/v1/ic_leave_types`, () => {
+    return HttpResponse.json([
+      { id: 'leave-type-1', leave_type_name: 'Annual Leave', is_active: true },
+      { id: 'leave-type-2', leave_type_name: 'Sick Leave', is_active: true },
     ]);
   }),
 

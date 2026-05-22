@@ -25,7 +25,7 @@ const wrapper = ({ children }: { children: ReactNode }): ReactElement => (
 describe('useEmploymentTypesMaster', () => {
   it('should fetch employment types successfully', async () => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/employment_types_master`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_employment_types_master`, () => {
         return HttpResponse.json([
           { id: 'et-1', name: 'Full-time', status: 'Active' },
           { id: 'et-2', name: 'Casual', status: 'Active' },

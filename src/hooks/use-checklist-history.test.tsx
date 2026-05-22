@@ -25,7 +25,7 @@ const wrapper = ({ children }: { children: ReactNode }): ReactElement => (
 describe('useChecklistHistory', () => {
   it('should fetch checklist history successfully', async () => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/house_checklist_submissions`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_house_checklist_submissions`, () => {
         return HttpResponse.json([
           { 
             id: 'sub-1', 
@@ -33,8 +33,8 @@ describe('useChecklistHistory', () => {
             house_id: 'house-1', 
             status: 'completed',
             started_at: new Date().toISOString(),
-            house_checklists: { name: 'Morning Routine' },
-            staff: { name: 'John Staff' },
+            house_checklists: { house_checklist_name: 'Morning Routine' },
+            staff: { staff_name: 'John Staff' },
             ic_house_checklist_submission_items: [{ is_completed: true }, { is_completed: false }]
           },
         ]);

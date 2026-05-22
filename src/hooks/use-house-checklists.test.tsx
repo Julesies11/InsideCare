@@ -25,7 +25,7 @@ const wrapper = ({ children }: { children: ReactNode }): ReactElement => (
 describe('useHouseChecklists', () => {
   it('should fetch house checklists sorted by sort_order', async () => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/house_checklists`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_house_checklists`, () => {
         return HttpResponse.json([
           { 
             id: 'cl-1', 
@@ -46,7 +46,7 @@ describe('useHouseChecklists', () => {
           },
         ]);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/house_checklist_submissions`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_house_checklist_submissions`, () => {
         return HttpResponse.json([]);
       })
     );

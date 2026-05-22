@@ -25,7 +25,7 @@ const wrapper = ({ children }: { children: ReactNode }): ReactElement => (
 describe('useStaffShifts', () => {
   it('should fetch shifts and participants successfully', async () => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/staff_shifts`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_staff_shifts`, () => {
         return HttpResponse.json([
           {
             id: 'shift-1',
@@ -36,7 +36,7 @@ describe('useStaffShifts', () => {
             house_id: 'house-1',
             shift_template: 'day',
             status: 'confirmed',
-            house: { id: 'house-1', name: 'Test House 1' }
+            house: { id: 'house-1', house_name: 'Test House 1' }
           },
         ]);
       }),
@@ -44,7 +44,7 @@ describe('useStaffShifts', () => {
         return HttpResponse.json([
           {
             shift_id: 'shift-1',
-            participant: { id: 'participant-1', name: 'John Doe' }
+            participant: { id: 'participant-1', participant_name: 'John Doe' }
           },
         ]);
       })
@@ -57,6 +57,6 @@ describe('useStaffShifts', () => {
     expect(result.current.data).toHaveLength(1);
     expect(result.current.data?.[0].duration_hours).toBe(8);
     expect(result.current.data?.[0].participants).toHaveLength(1);
-    expect(result.current.data?.[0].participants?.[0].name).toBe('John Doe');
+    expect(result.current.data?.[0].participants?.[0].participant_name).toBe('John Doe');
   });
 });

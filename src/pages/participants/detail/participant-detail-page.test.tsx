@@ -38,16 +38,16 @@ vi.setConfig({ testTimeout: 15000 });
 describe('ParticipantDetailPage', () => {
   beforeEach(() => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/participants`, ({ request }) => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_participants`, ({ request }) => {
         if (request.headers.get('Accept')?.includes('vnd.pgrst.object+json')) {
           return HttpResponse.json(mockParticipant);
         }
         return HttpResponse.json([mockParticipant]);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/houses`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_houses`, () => {
         return HttpResponse.json([]);
       }),
-      http.patch(`${SUPABASE_URL}/rest/v1/participants`, () => {
+      http.patch(`${SUPABASE_URL}/rest/v1/ic_participants`, () => {
         return HttpResponse.json([mockParticipant]);
       })
     );
@@ -82,7 +82,7 @@ describe('ParticipantDetailPage', () => {
   it('calls update mutation when save is clicked', async () => {
     const updateSpy = vi.fn();
     server.use(
-      http.patch(`${SUPABASE_URL}/rest/v1/participants`, async ({ request }) => {
+      http.patch(`${SUPABASE_URL}/rest/v1/ic_participants`, async ({ request }) => {
         const body = await request.json();
         console.log('PATCH body received by MSW:', body);
         updateSpy(body);

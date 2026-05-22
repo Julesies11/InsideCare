@@ -25,7 +25,7 @@ describe('useParticipants', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(result.current.data?.data).toHaveLength(1);
-    expect(result.current.data?.data[0].name).toBe('John Doe');
+    expect(result.current.data?.data[0].participant_name).toBe('John Doe');
   });
 
   it('should include house name from joined data', async () => {
@@ -33,6 +33,6 @@ describe('useParticipants', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(result.current.data?.data[0].house_name).toBe('Test House 1');
+    expect(result.current.data?.data[0].houses?.house_name).toBe('Test House 1');
   });
 });

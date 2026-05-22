@@ -25,19 +25,19 @@ const wrapper = ({ children }: { children: ReactNode }): ReactElement => (
 describe('useHouseCalendarEvents Integration', () => {
   it('should intelligently map event types based on title and checklist flag', async () => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/house_calendar_events`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_house_calendar_events`, () => {
         return HttpResponse.json([
           { 
             id: 'evt-1', 
             title: 'Team Meeting', 
             is_checklist_event: false,
-            event_type_info: { name: 'Meeting' }
+            event_type_info: { event_type_name: 'Meeting' }
           },
           { 
             id: 'evt-2', 
             title: 'Doctor Appointment', 
             is_checklist_event: false,
-            event_type_info: { name: 'Appointment' }
+            event_type_info: { event_type_name: 'Appointment' }
           },
           { 
             id: 'cl-1', 
@@ -46,7 +46,7 @@ describe('useHouseCalendarEvents Integration', () => {
           },
         ]);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/staff_shifts`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_staff_shifts`, () => {
         return HttpResponse.json([]);
       })
     );
@@ -68,22 +68,22 @@ describe('useHouseCalendarEvents Integration', () => {
 
   it('should include participants when fetching shifts', async () => {
     const mockParticipants = [
-      { participant: { id: 'p1', name: 'John Doe' } },
-      { participant: { id: 'p2', name: 'Jane Smith' } }
+      { participant: { id: 'p1', participant_name: 'John Doe' } },
+      { participant: { id: 'p2', participant_name: 'Jane Smith' } }
     ];
 
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/house_calendar_events`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_house_calendar_events`, () => {
         return HttpResponse.json([]);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/staff_shifts`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_staff_shifts`, () => {
         return HttpResponse.json([
           {
             id: 'shift-1',
             start_date: '2026-04-13',
             start_time: '08:00',
             end_time: '16:00',
-            staff_id: { id: 's1', name: 'Staff Member' },
+            staff_id: { id: 's1', staff_name: 'Staff Member' },
             shift_template: 'Morning',
             participants: mockParticipants
           }

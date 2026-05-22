@@ -16,7 +16,7 @@ const mockShifts = [
     start_date: today,
     start_time: '00:00',
     end_time: '23:59',
-    house: { id: 'house-1', name: 'Test House' },
+    house: { id: 'house-1', house_name: 'Test House' },
     assigned_checklists: [
       {
         checklist_id: 'cl-1',
@@ -37,7 +37,7 @@ const mockShifts = [
 const mockLeave = [
   {
     id: 'leave-1',
-    leave_type: { name: 'Annual Leave' },
+    leave_type: { leave_type_name: 'Annual Leave' },
     start_date: '2026-03-10',
     end_date: '2026-03-12',
     status: 'pending',
@@ -76,13 +76,13 @@ describe('StaffDashboard', () => {
     }];
 
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/staff_shifts`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_staff_shifts`, () => {
         return HttpResponse.json(mockShiftsWithCurrentDate);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/leave_requests`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_leave_requests`, () => {
         return HttpResponse.json(mockLeave);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/timesheets`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_timesheets`, () => {
         return HttpResponse.json(mockTimesheets);
       })
     );
@@ -121,9 +121,9 @@ describe('StaffDashboard', () => {
 
   it('renders empty states when no data is returned', async () => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/staff_shifts`, () => HttpResponse.json([])),
-      http.get(`${SUPABASE_URL}/rest/v1/leave_requests`, () => HttpResponse.json([])),
-      http.get(`${SUPABASE_URL}/rest/v1/timesheets`, () => HttpResponse.json([]))
+      http.get(`${SUPABASE_URL}/rest/v1/ic_staff_shifts`, () => HttpResponse.json([])),
+      http.get(`${SUPABASE_URL}/rest/v1/ic_leave_requests`, () => HttpResponse.json([])),
+      http.get(`${SUPABASE_URL}/rest/v1/ic_timesheets`, () => HttpResponse.json([]))
     );
 
     renderWithProviders(<StaffDashboard />);

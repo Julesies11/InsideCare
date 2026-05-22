@@ -46,13 +46,13 @@ vi.mock('@/lib/activity-logger', () => ({
 describe('AdminTimesheetsPage', () => {
   beforeEach(() => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/timesheets`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_timesheets`, () => {
         return HttpResponse.json([mockTimesheet]);
       }),
-      http.patch(`${SUPABASE_URL}/rest/v1/timesheets`, () => {
+      http.patch(`${SUPABASE_URL}/rest/v1/ic_timesheets`, () => {
         return HttpResponse.json({ ...mockTimesheet, status: 'approved' });
       }),
-      http.post(`${SUPABASE_URL}/rest/v1/notifications`, () => {
+      http.post(`${SUPABASE_URL}/rest/v1/ic_notifications`, () => {
         return HttpResponse.json({});
       })
     );

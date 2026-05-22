@@ -38,13 +38,13 @@ vi.setConfig({ testTimeout: 15000 });
 describe('StaffDetailPage', () => {
   beforeEach(() => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/staff`, ({ request }) => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_staff`, ({ request }) => {
         if (request.headers.get('Accept')?.includes('vnd.pgrst.object+json')) {
           return HttpResponse.json(mockStaff);
         }
         return HttpResponse.json([mockStaff]);
       }),
-      http.patch(`${SUPABASE_URL}/rest/v1/staff`, () => {
+      http.patch(`${SUPABASE_URL}/rest/v1/ic_staff`, () => {
         return HttpResponse.json([mockStaff]);
       })
     );
@@ -84,7 +84,7 @@ describe('StaffDetailPage', () => {
   it('calls update mutation when save is clicked', async () => {
     const updateSpy = vi.fn();
     server.use(
-      http.patch(`${SUPABASE_URL}/rest/v1/staff`, async ({ request }) => {
+      http.patch(`${SUPABASE_URL}/rest/v1/ic_staff`, async ({ request }) => {
         const body = await request.json();
         updateSpy(body);
         return HttpResponse.json({ ...mockStaff, ...body });

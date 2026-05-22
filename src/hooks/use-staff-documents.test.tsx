@@ -25,7 +25,7 @@ const wrapper = ({ children }: { children: ReactNode }): ReactElement => (
 describe('useStaffDocuments', () => {
   it('should fetch staff documents successfully', async () => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/staff_documents`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_staff_documents`, () => {
         return HttpResponse.json([
           { id: 'doc-1', staff_id: 'staff-1', file_name: 'resume.pdf', file_path: 'staff-1/resume.pdf' },
         ]);

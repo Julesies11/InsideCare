@@ -25,7 +25,7 @@ const wrapper = ({ children }: { children: ReactNode }): ReactElement => (
 describe('useHouseTypesMaster', () => {
   it('should fetch house types successfully', async () => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/house_types_master`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_house_types_master`, () => {
         return HttpResponse.json([
           { id: 'ht-1', name: 'SIL', status: 'Active' },
           { id: 'ht-2', name: 'SDA', status: 'Active' },

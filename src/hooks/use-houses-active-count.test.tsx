@@ -29,7 +29,7 @@ describe('useHouses Active Staff Count', () => {
     const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
 
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/houses`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_houses`, () => {
         return HttpResponse.json([
           {
             id: 'house-1',

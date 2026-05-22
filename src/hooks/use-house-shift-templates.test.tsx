@@ -32,10 +32,10 @@ describe('useHouseShiftTemplates', () => {
     ];
 
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/house_shift_templates`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_house_shift_templates`, () => {
         return HttpResponse.json(mockShiftTemplates);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/shift_template_default_checklists`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_shift_template_default_checklists`, () => {
         return HttpResponse.json(mockDefaults);
       })
     );
@@ -53,7 +53,7 @@ describe('useHouseShiftTemplates', () => {
     const newType = { name: 'Night', short_name: 'N' };
     
     server.use(
-      http.post(`${SUPABASE_URL}/rest/v1/house_shift_templates`, () => {
+      http.post(`${SUPABASE_URL}/rest/v1/ic_house_shift_templates`, () => {
         return HttpResponse.json({ id: 'st-3', ...newType, house_id: 'house-1' });
       })
     );

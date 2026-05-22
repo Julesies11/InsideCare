@@ -25,7 +25,7 @@ const wrapper = ({ children }: { children: ReactNode }): ReactElement => (
 describe('useDepartmentsMaster', () => {
   it('should fetch departments successfully', async () => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/departments`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_departments`, () => {
         return HttpResponse.json([
           { id: 'dept-1', name: 'Care', status: 'Active' },
           { id: 'dept-2', name: 'Admin', status: 'Active' },

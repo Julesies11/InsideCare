@@ -25,7 +25,7 @@ const wrapper = ({ children }: { children: ReactNode }): ReactElement => (
 describe('useParticipantDocuments', () => {
   it('should fetch participant documents successfully', async () => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/participant_documents`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_participant_documents`, () => {
         return HttpResponse.json([
           { id: 'doc-1', participant_id: 'participant-1', file_name: 'care-plan.pdf' },
         ]);

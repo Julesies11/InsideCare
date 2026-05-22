@@ -25,7 +25,7 @@ const wrapper = ({ children }: { children: ReactNode }): ReactElement => (
 describe('useChecklistMaster', () => {
   it('should fetch checklist master records successfully', async () => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/checklist_master`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_checklist_master`, () => {
         return HttpResponse.json([
           { id: 'cm-1', name: 'Morning Routine', frequency: 'daily' },
         ]);

@@ -13,9 +13,9 @@ const mockShiftNotes = [
     start_date: '2026-03-05',
     shift_time: '08:00 - 16:00',
     notes: 'Test note 1',
-    participant: { id: 'p-1', name: 'John Doe' },
-    staff: { id: 's-1', name: 'Staff Member' },
-    house: { id: 'h-1', name: 'House A' },
+    participant: { id: 'p-1', participant_name: 'John Doe' },
+    staff: { id: 's-1', staff_name: 'Staff Member' },
+    house: { id: 'h-1', house_name: 'House A' },
     house_id: 'h-1',
     shift: {
         id: 'shift-1',
@@ -28,32 +28,32 @@ const mockShiftNotes = [
 ];
 
 const mockHouses = [
-  { id: 'h-1', name: 'House A', status: 'active' },
-  { id: 'h-2', name: 'House B', status: 'active' },
+  { id: 'h-1', house_name: 'House A', status: 'active' },
+  { id: 'h-2', house_name: 'House B', status: 'active' },
 ];
 
 const mockParticipants = [
-    { id: 'p-1', name: 'John Doe' }
+    { id: 'p-1', participant_name: 'John Doe' }
 ];
 
 const mockStaff = [
-    { id: 's-1', name: 'Staff Member' }
+    { id: 's-1', staff_name: 'Staff Member' }
 ];
 
 describe('ShiftNotes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/shift_notes`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_shift_notes`, () => {
         return HttpResponse.json(mockShiftNotes);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/houses`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_houses`, () => {
         return HttpResponse.json(mockHouses);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/participants`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_participants`, () => {
         return HttpResponse.json(mockParticipants);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/staff`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_staff`, () => {
         return HttpResponse.json(mockStaff);
       })
     );

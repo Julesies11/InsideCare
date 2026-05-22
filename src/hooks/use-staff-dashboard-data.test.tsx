@@ -60,10 +60,10 @@ describe('useStaffDashboardData', () => {
     ];
 
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/staff_shifts`, () => HttpResponse.json(mockShifts)),
-      http.get(`${SUPABASE_URL}/rest/v1/house_calendar_events`, () => HttpResponse.json(mockEvents)),
-      http.get(`${SUPABASE_URL}/rest/v1/leave_requests`, () => HttpResponse.json([])),
-      http.get(`${SUPABASE_URL}/rest/v1/timesheets`, () => HttpResponse.json([]))
+      http.get(`${SUPABASE_URL}/rest/v1/ic_staff_shifts`, () => HttpResponse.json(mockShifts)),
+      http.get(`${SUPABASE_URL}/rest/v1/ic_house_calendar_events`, () => HttpResponse.json(mockEvents)),
+      http.get(`${SUPABASE_URL}/rest/v1/ic_leave_requests`, () => HttpResponse.json([])),
+      http.get(`${SUPABASE_URL}/rest/v1/ic_timesheets`, () => HttpResponse.json([]))
     );
 
     const { result } = renderHook(() => useStaffDashboardData(staffId), { wrapper });
@@ -82,10 +82,10 @@ describe('useStaffDashboardData', () => {
 
   it('handles empty results gracefully', async () => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/staff_shifts`, () => HttpResponse.json([])),
-      http.get(`${SUPABASE_URL}/rest/v1/house_calendar_events`, () => HttpResponse.json([])),
-      http.get(`${SUPABASE_URL}/rest/v1/leave_requests`, () => HttpResponse.json([])),
-      http.get(`${SUPABASE_URL}/rest/v1/timesheets`, () => HttpResponse.json([]))
+      http.get(`${SUPABASE_URL}/rest/v1/ic_staff_shifts`, () => HttpResponse.json([])),
+      http.get(`${SUPABASE_URL}/rest/v1/ic_house_calendar_events`, () => HttpResponse.json([])),
+      http.get(`${SUPABASE_URL}/rest/v1/ic_leave_requests`, () => HttpResponse.json([])),
+      http.get(`${SUPABASE_URL}/rest/v1/ic_timesheets`, () => HttpResponse.json([]))
     );
 
     const { result } = renderHook(() => useStaffDashboardData(staffId), { wrapper });

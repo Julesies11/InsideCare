@@ -25,7 +25,7 @@ const wrapper = ({ children }: { children: ReactNode }): ReactElement => (
 describe('useContactTypesMaster', () => {
   it('should fetch contact types successfully', async () => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/contact_types_master`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_contact_types_master`, () => {
         return HttpResponse.json([
           { id: 'ct-1', name: 'Family', is_active: true },
           { id: 'ct-2', name: 'Doctor', is_active: true },

@@ -36,28 +36,28 @@ vi.mock('@/hooks/use-house-shift-templates', () => ({
 describe('RosterBoard', () => {
   beforeEach(() => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/staff`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_staff`, () => {
         return HttpResponse.json(mockStaff);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/houses`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_houses`, () => {
         return HttpResponse.json(mockHouses);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/participants`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_participants`, () => {
         return HttpResponse.json(mockParticipants);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/staff_shifts`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_staff_shifts`, () => {
         return HttpResponse.json([]);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/leave_requests`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_leave_requests`, () => {
         return HttpResponse.json([]);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/shift_notes`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_shift_notes`, () => {
         return HttpResponse.json([]);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/house_checklists`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_house_checklists`, () => {
         return HttpResponse.json([]);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/shift_template_default_checklists`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_shift_template_default_checklists`, () => {
         return HttpResponse.json([]);
       })
     );

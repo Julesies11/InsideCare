@@ -18,25 +18,25 @@ const mockLeaveRequest = {
   admin_notes: null,
   attachment_url: null,
   created_at: '2024-01-15T10:00:00Z',
-  staff: { id: 'staff-2', name: 'Jane Smith', auth_user_id: 'user-2' },
-  leave_type: { name: 'Annual Leave' },
+  staff: { id: 'staff-2', staff_name: 'Jane Smith', auth_user_id: 'user-2' },
+  leave_type: { leave_type_name: 'Annual Leave' },
 };
 
 describe('AdminLeaveRequestsPage', () => {
   beforeEach(() => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/leave_requests`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_leave_requests`, () => {
         return HttpResponse.json([mockLeaveRequest]);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/staff_shifts`, () => {
+      http.get(`${SUPABASE_URL}/rest/v1/ic_staff_shifts`, () => {
         return HttpResponse.json([
           { id: 'shift-1', staff_id: 'staff-2', start_date: '2024-02-02' }
         ]);
       }),
-      http.patch(`${SUPABASE_URL}/rest/v1/leave_requests`, () => {
+      http.patch(`${SUPABASE_URL}/rest/v1/ic_leave_requests`, () => {
         return HttpResponse.json({ ...mockLeaveRequest, status: 'approved' });
       }),
-      http.post(`${SUPABASE_URL}/rest/v1/notifications`, () => {
+      http.post(`${SUPABASE_URL}/rest/v1/ic_notifications`, () => {
         return HttpResponse.json({});
       })
     );

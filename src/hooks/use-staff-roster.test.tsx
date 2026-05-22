@@ -57,9 +57,9 @@ describe('useStaffRoster', () => {
     ];
 
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/staff_shifts`, () => HttpResponse.json(mockShifts)),
-      http.get(`${SUPABASE_URL}/rest/v1/house_calendar_events`, () => HttpResponse.json(mockEvents)),
-      http.get(`${SUPABASE_URL}/rest/v1/timesheets`, () => HttpResponse.json([]))
+      http.get(`${SUPABASE_URL}/rest/v1/ic_staff_shifts`, () => HttpResponse.json(mockShifts)),
+      http.get(`${SUPABASE_URL}/rest/v1/ic_house_calendar_events`, () => HttpResponse.json(mockEvents)),
+      http.get(`${SUPABASE_URL}/rest/v1/ic_timesheets`, () => HttpResponse.json([]))
     );
 
     const { result } = renderHook(() => useStaffRoster(staffId), { wrapper });
