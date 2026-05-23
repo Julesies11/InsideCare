@@ -263,6 +263,23 @@ For queries involving joins, the application uses TypeScript's `Awaited<ReturnTy
 - **Pattern**: Extract the return type of the query builder to ensure frontend types exactly match the data fetching logic.
 - **Benefits**: This prevents "Shadow Types" where manual interfaces for joined data get out of sync with actual SQL queries.
 
-### 4. Build-Time Enforcement
-The application uses `tsc --noEmit` during the build process to ensure that all data access patterns are consistent with the current database schema. Runtime errors caused by property renames are effectively eliminated by this build-time guarantee.
+## 11. Testing & Reliability Patterns
+
+### 1. Component Environment Safety
+Components that utilize browser globals (like `document`, `window`, or `localStorage`) within asynchronous logic (e.g., `setTimeout`, `setInterval`, or event listeners) must include safety checks to prevent test-time regressions.
+- **Pattern**: `if (typeof document === 'undefined') return;`
+- **Tear Down**: Always clear timeouts and remove event listeners in the `useEffect` cleanup function to prevent memory leaks and "unhandled error" failures in Vitest.
+
+### 2. Robust Smoke Testing (No WSoD)
+The application uses a "Negative Proof" strategy for smoke testing to maximize reliability across dynamic layouts.
+- **Strategy**: Instead of asserting on specific text or headers (which change frequently), the tests verify the **absence of failure**.
+- **`checkNoWSoD` Helper**:
+    1. Verifies the `#root` element is visible and populated.
+    2. Verifies that no Error Boundary text ("Something went wrong") is visible.
+    3. Verifies that no Vite crash overlay is attached to the DOM.
+
+### 3. CI Authentication Persistence
+To prevent repeated logins during CI, the system uses Playwright `storageState`. 
+- **Setup**: `tests/auth.setup.ts` performs a single login per role (Admin/Staff) and persists the resulting cookies and local storage to `.json` files.
+- **Reliability**: Form submission in CI uses `page.keyboard.press('Enter')` to bypass issues with hidden or overlapping buttons.
 

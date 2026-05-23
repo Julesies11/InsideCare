@@ -19,6 +19,8 @@
 # ===============================
 - Do NOT run 'npm run build', 'npm run dev', or any scripts automatically.
 - Do NOT run unit tests (e.g., 'npm test', 'vitest', 'npx vitest') automatically.
+- **NEVER** run Playwright smoke tests (e.g., 'npm run test:smoke') automatically in the local development environment. These tests take too long, consume significant resources, and often timeout in the local context.
+- **CI Ownership**: All Playwright E2E/Smoke tests are exclusively owned by the GitHub Actions pipeline and run automatically on every push.
 - Only execute build or test steps if I explicitly ask for them.
 
 # ===============================
@@ -50,5 +52,20 @@ For detailed information on the project architecture, database, and features, re
     - `XX`: Sequential number starting at `00`.
 - **Logic**: Favor implementing logic in TypeScript/Hooks over SQL Functions/Triggers (as per ARCHITECTURE.md).
 - **Enums**: Use `.eq()` or `.in()` for enum columns in Supabase queries; do NOT use `.ilike()`.
+
+# ===============================
+# 5. CI/CD & OPERATIONAL STANDARDS
+# ===============================
+- **GitHub Environment**: The CI workflow (`ci.yml`) is linked to the **'Dev' Environment** on GitHub.
+    - All secrets (Supabase URL, Anon Key, Playwright credentials) MUST be stored as **Environment Secrets** under 'Dev'.
+    - Repository-level secrets are ignored by the Playwright job.
+- **Browser Caching**: CI uses `actions/cache` for the `~/.cache/ms-playwright` directory.
+    - If there is a cache hit, it runs `npx playwright install-deps` (fast).
+    - If there is a cache miss, it runs `npx playwright install --with-deps` (slow).
+- **Node.js Version**: Project standard is **Node 22**. Ensure local and CI environments match this.
+- **Test Hardening**:
+    - **Smoke Tests**: Use the `checkNoWSoD` pattern in `tests/smoke.spec.ts`. Check for `#root` existence and absence of error boundaries instead of specific header text.
+    - **Auth Setup**: Use `page.keyboard.press('Enter')` for login submission in CI for maximum reliability.
+    - **Component Safety**: Always add `typeof document !== 'undefined'` checks in components with async logic (like `setTimeout`) to prevent `ReferenceError` during test teardown.
 
 # Gemini Project Instructions — Metronic React (Vite) + TanStack Query + Supabase
