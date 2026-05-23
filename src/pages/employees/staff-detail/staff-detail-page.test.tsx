@@ -5,12 +5,13 @@ import { renderWithProviders } from '@/test/test-utils';
 import { TABLES } from '@/config/db-tables';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
+import { StaffRow } from '@/test/type-helpers';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
-const mockStaff = {
+const mockStaff: Partial<StaffRow> = {
   id: 'staff-1',
-  name: 'John Staff',
+  staff_name: 'John Staff',
   email: 'john.staff@example.com',
   status: 'active',
   auth_user_id: 'test-user-id',
@@ -111,7 +112,7 @@ describe('StaffDetailPage', () => {
 
     await waitFor(() => {
       expect(updateSpy).toHaveBeenCalledWith(expect.objectContaining({
-        name: 'John Updated'
+        staff_name: 'John Updated'
       }));
     }, { timeout: 10000 });
   }, 20000);

@@ -15,7 +15,7 @@ vi.mock('@/lib/supabase', () => ({
           single: vi.fn(() => {
             if (table === 'houses') {
               return Promise.resolve({ 
-                data: { id: 'house-1', name: 'Test House', status: 'active' }, 
+                data: { id: 'house-1', house_name: 'Test House', status: 'active' }, 
                 error: null 
               });
             }
@@ -24,7 +24,7 @@ vi.mock('@/lib/supabase', () => ({
           maybeSingle: vi.fn(() => {
              if (table === 'houses') {
               return Promise.resolve({ 
-                data: { id: 'house-1', name: 'Test House', status: 'active' }, 
+                data: { id: 'house-1', house_name: 'Test House', status: 'active' }, 
                 error: null 
               });
             }

@@ -6,6 +6,7 @@ import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
 import { TABLES } from '@/config/db-tables';
 import { ReactNode } from 'react';
+import { ShiftRow, HouseRow, Row } from '@/test/type-helpers';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
@@ -32,18 +33,22 @@ describe('useStaffRoster', () => {
   });
 
   it('fetches and merges shifts and events', async () => {
-    const mockShifts = [
+    const mockShifts: (Partial<ShiftRow> & { house: Partial<HouseRow> })[] = [
       {
         id: 'shift-1',
         start_date: '2026-04-10',
         start_time: '10:00:00',
         end_time: '14:00:00',
         shift_template: 'Standard',
-        house: { name: 'House A' }
+        house: { house_name: 'House A' }
       }
     ];
 
-    const mockEvents = [
+    const mockEvents: (Partial<Row<'ic_house_calendar_events'>> & { 
+      type: { event_type_name: string, color: string }, 
+      house: Partial<HouseRow>,
+      staff_assignments: any[] 
+    })[] = [
       {
         id: 'event-1',
         title: 'Meeting',
@@ -51,8 +56,8 @@ describe('useStaffRoster', () => {
         start_time: '09:00:00',
         end_time: '09:30:00',
         location: 'Office',
-        type: { name: 'Meeting', color: 'blue' },
-        house: { name: 'House A' },
+        type: { event_type_name: 'Meeting', color: 'blue' },
+        house: { house_name: 'House A' },
         staff_assignments: [{ staff_id: staffId }]
       }
     ];
@@ -60,7 +65,8 @@ describe('useStaffRoster', () => {
     server.use(
       http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF_SHIFTS}`, () => HttpResponse.json(mockShifts)),
       http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSE_CALENDAR_EVENTS}`, () => HttpResponse.json(mockEvents)),
-      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.TIMESHEETS}`, () => HttpResponse.json([]))
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.TIMESHEETS}`, () => HttpResponse.json([])),
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.LEAVE_REQUESTS}`, () => HttpResponse.json([]))
     );
 
     const { result } = renderHook(() => useStaffRoster(staffId), { wrapper });

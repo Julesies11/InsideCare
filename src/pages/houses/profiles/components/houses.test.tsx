@@ -2,14 +2,15 @@ import { describe, it, expect, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import { Houses } from './houses';
 import { renderWithProviders } from '@/test/test-utils';
+import { HouseRow } from '@/test/type-helpers';
 
 // Mock useHouses hook
 vi.mock('@/hooks/use-houses', () => ({
   useHouses: (pageIndex: number, pageSize: number, sort: any[], filters: any) => {
-    const mockHouses = [
+    const mockHouses: (Partial<HouseRow> & { staff_assignments: any[] })[] = [
       {
         id: 'house-1',
-        name: 'Test House 1',
+        house_name: 'Test House 1',
         status: 'active',
         capacity: 5,
         address: '123 Test St',
@@ -17,7 +18,7 @@ vi.mock('@/hooks/use-houses', () => ({
       },
       {
         id: 'house-2',
-        name: 'Test House 2',
+        house_name: 'Test House 2',
         status: 'active',
         capacity: 3,
         address: '456 Mock Ave',
@@ -28,7 +29,7 @@ vi.mock('@/hooks/use-houses', () => ({
     // Simple filter simulation
     let filtered = mockHouses;
     if (filters.statuses && filters.statuses.length > 0) {
-      filtered = mockHouses.filter(h => filters.statuses.includes(h.status));
+      filtered = mockHouses.filter(h => filters.statuses.includes(h.status!));
     }
 
     return {

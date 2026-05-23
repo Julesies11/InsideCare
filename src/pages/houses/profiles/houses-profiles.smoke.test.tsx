@@ -17,7 +17,7 @@ vi.mock('@/lib/supabase', () => ({
       })),
       insert: vi.fn(() => ({
         select: vi.fn(() => ({
-          single: vi.fn(() => Promise.resolve({ data: { id: '1', name: 'New House' }, error: null }))
+          single: vi.fn(() => Promise.resolve({ data: { id: '1', house_name: 'New House' }, error: null }))
         }))
       }))
     }))

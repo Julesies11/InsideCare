@@ -7,8 +7,8 @@ import { emptyHousePendingChanges } from '@/models/house-pending-changes';
 vi.mock('@/hooks/use-house-shift-templates', () => ({
   useHouseShiftTemplates: () => ({
     shiftTemplates: [
-      { id: '1', name: 'Morning Shift', default_start_time: '07:00:00', default_end_time: '15:00:00', color_theme: 'morning', icon_name: 'Sun' },
-      { id: '2', name: 'Day Shift', default_start_time: '15:00:00', default_end_time: '23:00:00', color_theme: 'day', icon_name: 'CloudSun' }
+      { id: '1', shift_template_name: 'Morning Shift', default_start_time: '07:00:00', default_end_time: '15:00:00', color_theme: 'morning', icon_name: 'Sun' },
+      { id: '2', shift_template_name: 'Day Shift', default_start_time: '15:00:00', default_end_time: '23:00:00', color_theme: 'day', icon_name: 'CloudSun' }
     ],
     isLoading: false,
     refresh: vi.fn()

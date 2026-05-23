@@ -1,21 +1,22 @@
 import { renderWithProviders, screen, fireEvent, waitFor } from '@/test/test-utils';
 import { ShiftDialog } from './shift-dialog';
 import { describe, it, expect, vi } from 'vitest';
+import { StaffRow, HouseRow, ParticipantRow } from '@/test/type-helpers';
 
 // Mock hooks used in ShiftDialog
 vi.mock('@/hooks/use-staff', () => ({
   useStaff: () => ({
     staff: [
-      { id: 's1', name: 'Active Staff', status: 'active' },
-      { id: 's2', name: 'Inactive Staff', status: 'inactive' }
-    ],
+      { id: 's1', staff_name: 'Active Staff', status: 'active' },
+      { id: 's2', staff_name: 'Inactive Staff', status: 'inactive' }
+    ] as Partial<StaffRow>[],
     isLoading: false
   })
 }));
 
 vi.mock('@/hooks/use-houses', () => ({
   useHouses: () => ({
-    houses: [{ id: 'h1', name: 'House 1' }],
+    houses: [{ id: 'h1', house_name: 'House 1' }] as Partial<HouseRow>[],
     isLoading: false
   })
 }));
@@ -23,9 +24,9 @@ vi.mock('@/hooks/use-houses', () => ({
 vi.mock('@/hooks/use-participants', () => ({
   useParticipants: () => ({
     participants: [
-      { id: 'p1', name: 'UniqueActive Participant', status: 'active', house_id: 'h1' },
-      { id: 'p2', name: 'UniqueInactive Participant', status: 'inactive', house_id: 'h1' }
-    ],
+      { id: 'p1', participant_name: 'UniqueActive Participant', status: 'active', house_id: 'h1' },
+      { id: 'p2', participant_name: 'UniqueInactive Participant', status: 'inactive', house_id: 'h1' }
+    ] as Partial<ParticipantRow>[],
     isLoading: false
   })
 }));

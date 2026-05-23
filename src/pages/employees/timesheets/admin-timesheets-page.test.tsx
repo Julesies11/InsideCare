@@ -5,38 +5,35 @@ import { renderWithProviders } from '@/test/test-utils';
 import { TABLES } from '@/config/db-tables';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
+import { TimesheetRow, StaffRow, ShiftRow, HouseRow } from '@/test/type-helpers';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
-const mockTimesheet = {
+const mockTimesheet: Partial<TimesheetRow> & { 
+  staff: Partial<StaffRow>, 
+  shift: Partial<ShiftRow> & { house: Partial<HouseRow> } 
+} = {
   id: 'ts-1',
   staff_id: 'staff-1',
   shift_id: 'shift-1',
   clock_in: '2024-01-01T09:00:00Z',
   clock_out: '2024-01-01T17:00:00Z',
-  actual_start: null,
-  actual_end: null,
   break_minutes: 30,
   shift_notes_text: 'Worked well',
-  notes: null,
   status: 'pending',
-  admin_notes: null,
-  rejection_reason: null,
   submitted_at: '2024-01-01T17:05:00Z',
   incident_tag: false,
   sick_shift: false,
   overtime_hours: 0,
   travel_km: 0,
-  overtime_explanation: null,
   created_at: '2024-01-01T17:05:00Z',
-  staff: { id: 'staff-1', name: 'John Doe', auth_user_id: 'user-1' },
+  staff: { id: 'staff-1', staff_name: 'John Doe', auth_user_id: 'user-1' },
   shift: {
     start_date: '2024-01-01',
-    end_date: null,
     start_time: '09:00:00',
     end_time: '17:00:00',
     shift_template: 'day',
-    house: { name: 'Sunset House' },
+    house: { house_name: 'Sunset House' },
   },
 };
 

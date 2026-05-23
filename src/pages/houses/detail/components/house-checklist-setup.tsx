@@ -655,7 +655,7 @@ export function HouseChecklistSetup({
                       const count = (h as any).checklists?.[0]?.count || 0;
                       return (
                         <SelectItem key={h.id} value={h.id}>
-                          {h.name} ({count} checklist{count !== 1 ? 's' : ''})
+                          {h.house_name} ({count} checklist{count !== 1 ? 's' : ''})
                         </SelectItem>
                       );
                     })}
@@ -708,7 +708,7 @@ export function HouseChecklistSetup({
                         />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
-                            <span className="font-bold text-sm">{cl.name}</span>
+                            <span className="font-bold text-sm">{cl.house_checklist_name}</span>
                           </div>
                           <p className="text-xs text-muted-foreground line-clamp-1">{cl.description || 'No description'}</p>
                           <div className="mt-2 text-[10px] font-bold text-gray-400 uppercase tracking-tighter">

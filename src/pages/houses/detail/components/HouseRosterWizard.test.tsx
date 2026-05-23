@@ -1,14 +1,19 @@
-import { describe, it, expect, vi } from 'vitest';
-import { screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
 import { HouseRosterWizard } from './HouseRosterWizard';
 import { renderWithProviders } from '@/test/test-utils';
 import { emptyHousePendingChanges } from '@/models/house-pending-changes';
+import { TABLES } from '@/config/db-tables';
+import { http, HttpResponse } from 'msw';
+import { server } from '@/test/mocks/server';
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
 // Mock the hooks to return stable data and prevent network requests
 vi.mock('@/hooks/use-house-shift-templates', () => ({
   useHouseShiftTemplates: () => ({
     shiftTemplates: [
-      { id: 'st-1', name: 'Morning', color_theme: 'morning', default_start_time: '07:00', default_end_time: '15:00' }
+      { id: 'st-1', shift_template_name: 'Morning', color_theme: 'morning', default_start_time: '07:00', default_end_time: '15:00' }
     ],
     isLoading: false,
     refresh: vi.fn()
@@ -18,7 +23,7 @@ vi.mock('@/hooks/use-house-shift-templates', () => ({
 vi.mock('@/hooks/use-house-checklists', () => ({
   useHouseChecklists: () => ({
     houseChecklists: [
-      { id: 'cl-1', name: 'Standard Routine', description: 'Test desc' }
+      { id: 'cl-1', house_checklist_name: 'Standard Routine', description: 'Test desc' }
     ],
     isLoading: false
   })
@@ -28,10 +33,21 @@ vi.mock('@/hooks/use-houses', () => ({
   useHouses: () => ({
     houses: [],
     isLoading: false
+  }),
+  useUpdateHouse: () => ({
+    mutateAsync: vi.fn().mockResolvedValue({})
   })
 }));
 
 describe('HouseRosterWizard Smoke Test', () => {
+  beforeEach(() => {
+    server.use(
+      http.patch(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSES}`, () => {
+        return HttpResponse.json({ success: true });
+      })
+    );
+  });
+
   const defaultProps = {
     open: true,
     onOpenChange: vi.fn(),
@@ -46,20 +62,29 @@ describe('HouseRosterWizard Smoke Test', () => {
     expect(screen.getByText('Morning')).toBeInTheDocument();
   });
 
-  it('navigates to Step 2 (Calendar Tasks)', () => {
+  it('navigates to Step 2 (Calendar Tasks)', async () => {
     renderWithProviders(<HouseRosterWizard {...defaultProps} />);
     const continueBtn = screen.getByText(/Continue/i);
     fireEvent.click(continueBtn);
     
-    expect(screen.getByText(/Step 2: Calendar Tasks/i)).toBeInTheDocument();
+    await waitFor(() => {
+        expect(screen.getByText(/Step 2: Calendar Tasks/i)).toBeInTheDocument();
+    });
   });
 
-  it('navigates to Step 3 (Review)', () => {
+  it('navigates to Step 3 (Review)', async () => {
     renderWithProviders(<HouseRosterWizard {...defaultProps} />);
     const continueBtn = screen.getByText(/Continue/i);
     fireEvent.click(continueBtn); // to Step 2
+    
+    await waitFor(() => {
+        expect(screen.getByText(/Step 2: Calendar Tasks/i)).toBeInTheDocument();
+    });
+
     fireEvent.click(continueBtn); // to Step 3
     
-    expect(screen.getByText(/Ready to Go!/i)).toBeInTheDocument();
+    await waitFor(() => {
+        expect(screen.getByText(/Ready to Go!/i)).toBeInTheDocument();
+    });
   });
 });

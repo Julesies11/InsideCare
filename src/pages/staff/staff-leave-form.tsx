@@ -33,7 +33,7 @@ import { LEAVE_STATUS } from '@/config/enums';
 
 interface LeaveType {
   id: string;
-  name: string;
+  leave_type_name: string;
 }
 
 interface ConflictingShift {
@@ -41,7 +41,7 @@ interface ConflictingShift {
   start_date: string;
   start_time: string;
   end_time: string;
-  house?: { name: string } | null;
+  house?: { house_name: string } | null;
 }
 
 export function StaffLeaveForm() {
@@ -259,7 +259,7 @@ export function StaffLeaveForm() {
                     <SelectContent>
                       {leaveTypes.map((lt) => (
                         <SelectItem key={lt.id} value={lt.id}>
-                          {lt.name}
+                          {lt.leave_type_name}
                         </SelectItem>
                       ))}
                     </SelectContent>

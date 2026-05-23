@@ -28,8 +28,8 @@ describe('useHouseCalendarEventTypesMaster', () => {
     server.use(
       http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSE_CALENDAR_EVENT_TYPES_MASTER}`, () => {
         return HttpResponse.json([
-          { id: 'cet-1', name: 'Meeting', color: 'purple', status: 'Active' },
-          { id: 'cet-2', name: 'Appointment', color: 'orange', status: 'Active' },
+          { id: 'cet-1', event_type_name: 'Meeting', color: 'purple', status: 'Active' },
+          { id: 'cet-2', event_type_name: 'Appointment', color: 'orange', status: 'Active' },
         ]);
       })
     );
@@ -39,6 +39,7 @@ describe('useHouseCalendarEventTypesMaster', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(result.current.data).toHaveLength(2);
+    expect(result.current.data?.[0].event_type_name).toBe('Meeting');
     expect(result.current.data?.[0].color).toBe('purple');
   });
 });

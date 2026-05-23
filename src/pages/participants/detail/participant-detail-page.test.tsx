@@ -5,12 +5,13 @@ import { renderWithProviders } from '@/test/test-utils';
 import { TABLES } from '@/config/db-tables';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
+import { ParticipantRow } from '@/test/type-helpers';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
-const mockParticipant = {
+const mockParticipant: Partial<ParticipantRow> = {
   id: 'participant-1',
-  name: 'John Doe',
+  participant_name: 'John Doe',
   email: 'john@example.com',
   status: 'active',
   ndis_number: 'NDIS123',
@@ -85,7 +86,6 @@ describe('ParticipantDetailPage', () => {
     server.use(
       http.patch(`${SUPABASE_URL}/rest/v1/${TABLES.PARTICIPANTS}`, async ({ request }) => {
         const body = await request.json();
-        console.log('PATCH body received by MSW:', body);
         updateSpy(body);
         return HttpResponse.json({ ...mockParticipant, ...body });
       })
@@ -111,7 +111,7 @@ describe('ParticipantDetailPage', () => {
 
     await waitFor(() => {
       expect(updateSpy).toHaveBeenCalledWith(expect.objectContaining({
-        name: 'John Doe (Updated)'
+        participant_name: 'John Doe (Updated)'
       }));
     }, { timeout: 10000 });
   }, 20000);

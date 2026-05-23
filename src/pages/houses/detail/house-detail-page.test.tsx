@@ -5,12 +5,13 @@ import { renderWithProviders } from '@/test/test-utils';
 import { TABLES } from '@/config/db-tables';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
+import { HouseRow } from '@/test/type-helpers';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
-const mockHouse = {
+const mockHouse: Partial<HouseRow> = {
   id: 'house-1',
-  name: 'Test House 1',
+  house_name: 'Test House 1',
   status: 'active',
   capacity: 5,
   address: '123 Test St',

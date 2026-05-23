@@ -5,10 +5,11 @@ import { renderWithProviders } from '@/test/test-utils';
 import { TABLES } from '@/config/db-tables';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
+import { ParticipantRow } from '@/test/type-helpers';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
-const mockParticipant = {
+const mockParticipant: Partial<ParticipantRow> = {
   id: 'participant-1',
   participant_name: 'John Doe',
   email: 'john@example.com',
@@ -37,8 +38,11 @@ vi.mock('@/hooks/use-scroll-position', () => ({
 describe('ParticipantDetailContent', () => {
   beforeEach(() => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.PARTICIPANTS}`, () => {
-        return HttpResponse.json(mockParticipant);
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.PARTICIPANTS}`, ({ request }) => {
+        if (request.headers.get('Accept')?.includes('vnd.pgrst.object+json')) {
+          return HttpResponse.json(mockParticipant);
+        }
+        return HttpResponse.json([mockParticipant]);
       })
     );
   });
@@ -53,7 +57,7 @@ describe('ParticipantDetailContent', () => {
 
     await waitFor(() => {
       expect(screen.queryByText(/loading participant details/i)).not.toBeInTheDocument();
-    });
+    }, { timeout: 10000 });
 
     // Check if name is rendered in the form (PersonalDetails component)
     expect(screen.getByDisplayValue('John Doe')).toBeInTheDocument();

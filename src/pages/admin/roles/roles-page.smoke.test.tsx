@@ -1,39 +1,34 @@
-import { render, screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { RolesPage } from './roles-page';
-import { vi, describe, it, expect } from 'vitest';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { MemoryRouter } from 'react-router';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { renderWithProviders } from '@/test/test-utils';
+import { TABLES } from '@/config/db-tables';
+import { http, HttpResponse } from 'msw';
+import { server } from '@/test/mocks/server';
 
-const queryClient = new QueryClient();
-
-vi.mock('@/lib/supabase', () => ({
-  supabase: {
-    from: vi.fn(() => ({
-      select: vi.fn().mockReturnThis(),
-      or: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
-    })),
-  },
-}));
-
-vi.mock('@/auth/context/auth-context', () => ({
-  useAuth: () => ({ user: { id: 'test-user' } }),
-}));
-
-vi.mock('@/hooks/useRBAC', () => ({
-  useRBAC: () => ({ hasAccess: () => true }),
-  ACCESS_LEVEL: { CONTEXT_READ_WRITE: 'rw' },
-}));
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
 describe('RolesPage Smoke Test', () => {
-  it('renders correctly', async () => {
-    render(
-      <MemoryRouter>
-        <QueryClientProvider client={queryClient}>
-          <RolesPage />
-        </QueryClientProvider>
-      </MemoryRouter>
+  beforeEach(() => {
+    server.use(
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.ROLES}`, () => {
+        return HttpResponse.json([
+          { id: 'role-1', role_name: 'Admin', description: 'System Admin', is_active: true, assigned_count: 5 }
+        ]);
+      }),
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.ROLE_PERMISSIONS}`, () => {
+        return HttpResponse.json([]);
+      })
     );
-    expect(screen.getByText(/Role Management/i)).toBeInTheDocument();
+  });
+
+  it('renders correctly', async () => {
+    renderWithProviders(<RolesPage />);
+    
+    expect(screen.getByText(/Roles & Permissions/i)).toBeInTheDocument();
+    
+    await waitFor(() => {
+        expect(screen.getByText(/Permission Matrix/i)).toBeInTheDocument();
+    });
   });
 });

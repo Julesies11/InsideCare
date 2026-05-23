@@ -14,8 +14,8 @@ vi.mock('@/hooks/use-house-checklists', () => ({
 vi.mock('@/hooks/use-houses', () => ({
   useHouses: vi.fn(() => ({
     houses: [
-      { id: 'house-1', name: 'Source House', status: 'active' },
-      { id: 'house-2', name: 'Other House', status: 'active' }
+      { id: 'house-1', house_name: 'Source House', status: 'active' },
+      { id: 'house-2', house_name: 'Other House', status: 'active' }
     ],
     loading: false
   }))
@@ -49,7 +49,7 @@ describe('HouseChecklistSetup Component', () => {
   });
 
   it('opens import dialog and lists source houses', async () => {
-    renderWithProviders(
+    const { user } = renderWithProviders(
       <HouseChecklistSetup 
         houseId="house-current" 
         canAdd={true} 
@@ -59,22 +59,25 @@ describe('HouseChecklistSetup Component', () => {
     );
 
     const importBtn = screen.getByRole('button', { name: /Import Checklists/i });
-    fireEvent.click(importBtn);
+    await user.click(importBtn);
 
     // Dialog title check
     expect(screen.getByRole('heading', { name: /Import Checklists/i })).toBeInTheDocument();
     
     // Open select - searching for the trigger text
     const selectTrigger = screen.getByText(/Select source house.../i);
+    // Use fireEvent for the select trigger as Radix UI sometimes sets pointer-events: none 
+    // during transitions which causes userEvent.click to fail
     fireEvent.click(selectTrigger);
 
     await waitFor(async () => {
-      // The mock name "Source House" and "Other House" should appear in the options
-      const sourceHouses = await screen.findAllByText(/Source House/i);
-      expect(sourceHouses.length).toBeGreaterThan(0);
+      // Use findByRole('option') to specifically target the items in the dropdown
+      // and avoid ambiguity with the "Source House" label
+      const sourceHouse = await screen.findByRole('option', { name: /Source House/i });
+      expect(sourceHouse).toBeInTheDocument();
       
-      const otherHouses = await screen.findAllByText(/Other House/i);
-      expect(otherHouses.length).toBeGreaterThan(0);
-    });
+      const otherHouse = await screen.findByRole('option', { name: /Other House/i });
+      expect(otherHouse).toBeInTheDocument();
+    }, { timeout: 10000 });
   });
 });

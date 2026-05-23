@@ -18,7 +18,7 @@ vi.mock('@/hooks/use-houses', async (importOriginal) => {
     useHouse: vi.fn(() => ({
       house: { 
         id: 'house-1', 
-        name: 'Test House', 
+        house_name: 'Test House', 
         setup_step: 'complete',
         status: 'active'
       },
@@ -26,7 +26,7 @@ vi.mock('@/hooks/use-houses', async (importOriginal) => {
       refresh: vi.fn()
     })),
     useHouses: vi.fn(() => ({
-      houses: [{ id: 'house-1', name: 'Test House' }],
+      houses: [{ id: 'house-1', house_name: 'Test House' }],
       loading: false
     }))
   };
@@ -56,8 +56,8 @@ const mockSupabaseQuery = {
   in: vi.fn().mockReturnThis(),
   order: vi.fn().mockReturnThis(),
   limit: vi.fn().mockReturnThis(),
-  single: vi.fn(() => Promise.resolve({ data: { id: 'house-1', name: 'Test House' }, error: null })),
-  maybeSingle: vi.fn(() => Promise.resolve({ data: { id: 'house-1', name: 'Test House' }, error: null })),
+  single: vi.fn(() => Promise.resolve({ data: { id: 'house-1', house_name: 'Test House' }, error: null })),
+  maybeSingle: vi.fn(() => Promise.resolve({ data: { id: 'house-1', house_name: 'Test House' }, error: null })),
   then: vi.fn((onFulfilled) => Promise.resolve({ data: [], error: null }).then(onFulfilled))
 };
 
