@@ -49,6 +49,10 @@ export function Scrollspy({
 
   const handleScroll = useCallback(() => {
     if (!anchorElementsRef.current || anchorElementsRef.current.length === 0) return;
+    
+    // Safety check for document
+    if (typeof document === 'undefined') return;
+
     const scrollElement = targetRef?.current === document ? window : targetRef?.current;
     const scrollTop =
       scrollElement === window
@@ -102,6 +106,9 @@ export function Scrollspy({
       const sectionElement = document.getElementById(sectionId);
       if (!sectionElement) return;
 
+      // Safety check for document
+      if (typeof document === 'undefined') return;
+
       const scrollToElement = targetRef?.current === document ? window : targetRef?.current;
 
       let customOffset = offset;
@@ -146,16 +153,17 @@ export function Scrollspy({
       item.addEventListener('click', scrollTo(item as HTMLElement));
     });
 
-    const scrollElement = targetRef?.current === document ? window : targetRef?.current;
+    const scrollElement = targetRef?.current === (typeof document !== 'undefined' ? document : null) ? window : targetRef?.current;
 
     // Attach the scroll event to the correct scrollable element
     scrollElement?.addEventListener('scroll', handleScroll);
 
     // Check if there's a hash in the URL and scroll to the corresponding section
-    setTimeout(() => {
+    let timeout2: ReturnType<typeof setTimeout>;
+    const timeout1 = setTimeout(() => {
       scrollToHashSection();
       // Wait for scroll to settle, then update nav highlighting
-      setTimeout(() => {
+      timeout2 = setTimeout(() => {
         handleScroll();
       }, 100);
     }, 100); // Adding a slight delay to ensure content is fully rendered
@@ -165,6 +173,8 @@ export function Scrollspy({
       anchorElementsRef.current?.forEach((item) => {
         item.removeEventListener('click', scrollTo(item as HTMLElement));
       });
+      clearTimeout(timeout1);
+      if (timeout2) clearTimeout(timeout2);
     };
   }, [targetRef, selfRef, handleScroll, dataAttribute, scrollTo, scrollToHashSection]);
 
