@@ -12,30 +12,23 @@ let activeUserPromise: Promise<UserModel | null> | null = null;
 
 // Fetch user profile with a hard timeout and singleton pattern
 async function fetchUserWithTimeout(timeoutMs = 60000): Promise<UserModel | null> {
-  if (activeUserPromise) {
-    console.log('[Auth] fetchUser: Returning existing activeUserPromise');
-    return activeUserPromise;
-  }
+  if (activeUserPromise) return activeUserPromise;
 
-  console.log('[Auth] fetchUser: Starting new fetch...');
   activeUserPromise = (async () => {
     let timeoutId: any;
     const timeoutPromise = new Promise<null>((_, reject) => {
       timeoutId = setTimeout(() => {
-        console.error(`[Auth] fetchUser: TIMED OUT after ${timeoutMs}ms`);
         reject(new Error('Auth profile fetch timed out'));
       }, timeoutMs);
     });
 
     try {
       const userPromise = SupabaseAdapter.getCurrentUser().then(user => {
-        console.log('[Auth] fetchUser: SupabaseAdapter returned:', user ? 'USER_FOUND' : 'NULL');
         clearTimeout(timeoutId);
         return user;
       });
       return await Promise.race([userPromise, timeoutPromise]);
     } catch (err) {
-      console.error('[Auth] fetchUser: ERROR caught:', err);
       clearTimeout(timeoutId);
       throw err;
     } finally {
@@ -73,10 +66,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
         try {
           // Hardening: Ensure permissions are synced on login
           if (event === 'SIGNED_IN') {
-            console.log('[Auth] Triggering permission sync...');
-            syncUserPermissions(session.user.id).catch(err => {
-              console.error('[Auth] Permission sync failed (non-blocking):', err);
-            });
+            syncUserPermissions(session.user.id).catch(() => {});
           }
           
           const user = await fetchUserWithTimeout();
@@ -118,28 +108,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, [handleAuthStateChange]);
 
   const login = async (email: string, password: string) => {
-    console.log(`[Auth] Attempting signInWithPassword for: ${email}`);
-    const startTime = Date.now();
-
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      const duration = Date.now() - startTime;
-
-      if (error) {
-        console.error(`[Auth] signInWithPassword ERROR after ${duration}ms:`, {
-          status: error.status,
-          message: error.message,
-          code: error.code
-        });
-        throw error;
-      }
-
-      console.log(`[Auth] signInWithPassword SUCCESS after ${duration}ms. Session user:`, data.user?.id);
-    } catch (err) {
-      const duration = Date.now() - startTime;
-      console.error(`[Auth] signInWithPassword EXCEPTION after ${duration}ms:`, err);
-      throw err;
-    }
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw new Error(error.message);
   };
 
 

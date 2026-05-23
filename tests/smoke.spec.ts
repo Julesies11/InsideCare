@@ -90,10 +90,7 @@ async function checkNoWSoD(page) {
 for (const path of PUBLIC_PAGES) {
   publicTest(`Public Page ${path} loads without WSoD`, async ({ page }) => {
     await page.goto(path);
-    // For public auth pages, we check for cards or headings
-    const authCard = page.locator('.card, form, h1, h2');
-    await expect(authCard.first()).toBeVisible({ timeout: 15000 });
-    await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+    await checkNoWSoD(page);
   });
 }
 

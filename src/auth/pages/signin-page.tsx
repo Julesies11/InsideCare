@@ -81,15 +81,6 @@ export function SignInPage() {
     },
   });
 
-  // Log validation errors for debugging in CI
-  useEffect(() => {
-    console.log('[SignIn] Component Mounted');
-    const errors = form.formState.errors;
-    if (Object.keys(errors).length > 0) {
-      console.error('[SignIn] Validation Errors:', JSON.stringify(errors, null, 2));
-    }
-  }, [form.formState.errors]);
-
   const loginAs = async (credentials: { email: string; password: string }) => {
     try {
       setIsProcessing(true);
@@ -116,8 +107,6 @@ export function SignInPage() {
       setIsProcessing(true);
       setError(null);
 
-      console.log(`[SignIn] Starting login for: ${values.email}`);
-
       // Simple validation
       if (!values.email.trim() || !values.password) {
         setError('Email and password are required');
@@ -125,28 +114,20 @@ export function SignInPage() {
       }
 
       // Sign in using the auth context
-      console.log('[SignIn] Calling login()...');
       await login(values.email, values.password);
-      console.log('[SignIn] login() successful');
 
       // Role-based redirect — read fresh user to avoid stale state
-      console.log('[SignIn] Fetching fresh user data...');
       const user = await getUser();
-      console.log('[SignIn] User data fetched:', user ? { id: user.id, is_admin: user.is_admin, staff_id: user.staff_id } : 'null');
 
       const nextPath = searchParams.get('next');
       if (nextPath) {
-        console.log(`[SignIn] Redirecting to next path: ${nextPath}`);
         navigate(nextPath);
       } else if (user?.is_admin) {
-        console.log('[SignIn] Redirecting to admin root /');
         navigate('/');
       } else {
-        console.log('[SignIn] Redirecting to staff dashboard /staff/dashboard');
         navigate('/staff/dashboard');
       }
     } catch (err) {
-      console.error('[SignIn] Unexpected error during submit:', err);
       setError(
         err instanceof Error
           ? err.message
@@ -161,12 +142,7 @@ export function SignInPage() {
   return (
     <Form {...form}>
       <form
-        onSubmit={(e) => {
-          console.log('[SignIn] Raw form onSubmit triggered');
-          form.handleSubmit(onSubmit, (errors) => {
-            console.error('[SignIn] Submit failed - Validation errors:', JSON.stringify(errors, null, 2));
-          })(e);
-        }}
+        onSubmit={form.handleSubmit(onSubmit)}
         className="block w-full space-y-5"
       >
         <div className="text-center space-y-1 pb-3">

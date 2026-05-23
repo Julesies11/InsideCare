@@ -2,163 +2,1063 @@
 > playwright test
 ◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
 Running 134 tests using 1 worker
-◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
 Navigating to /auth/signin for admin...
 BROWSER LOG [admin]: [vite] connecting...
 BROWSER LOG [admin]: [vite] connected.
 BROWSER LOG [admin]: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+BROWSER LOG [admin]: [SignIn] Component Mounted
+BROWSER LOG [admin]: [SignIn] Component Mounted
 Filling admin credentials...
-Submitting login form...
+BROWSER LOG [admin]: [SignIn] Component Mounted
+Submitting login form via Enter key...
+BROWSER LOG [admin]: [SignIn] Raw form onSubmit triggered
+BROWSER LOG [admin]: [SignIn] Starting login for: ***
+BROWSER LOG [admin]: [SignIn] Calling login()...
+BROWSER LOG [admin]: [Auth] Attempting signInWithPassword for: ***
+BROWSER LOG [admin]: [SignIn] Component Mounted
 Waiting for redirect...
-Login TIMED OUT without a visible error alert. Still on signin page.
-Current URL: http://localhost:5173/auth/signin
-×◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
-Navigating to /auth/signin for admin...
-BROWSER LOG [admin]: [vite] connecting...
-BROWSER LOG [admin]: [vite] connected.
-BROWSER LOG [admin]: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-Filling admin credentials...
-Submitting login form...
-Waiting for redirect...
-Login TIMED OUT without a visible error alert. Still on signin page.
-Current URL: http://localhost:5173/auth/signin
-×◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
-Navigating to /auth/signin for admin...
-BROWSER LOG [admin]: [vite] connecting...
-BROWSER LOG [admin]: [vite] connected.
-BROWSER LOG [admin]: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-Filling admin credentials...
-Submitting login form...
-Waiting for redirect...
-Login TIMED OUT without a visible error alert. Still on signin page.
-Current URL: http://localhost:5173/auth/signin
-F◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
-Navigating to /auth/signin for staff...
+BROWSER LOG [admin]: [Auth] Triggering permission sync...
+BROWSER LOG [admin]: [Auth] fetchUser: Starting new fetch...
+BROWSER LOG [admin]: [Auth] signInWithPassword SUCCESS after 1405ms. Session user: 361b6842-5936-4d6d-8ef8-5ba4826532f6
+BROWSER LOG [admin]: [SignIn] login() successful
+BROWSER LOG [admin]: [SignIn] Fetching fresh user data...
+BROWSER LOG [admin]: %c[Supabase] POST 3.25 KB - ***/auth/v1/token color: #52c41a
+BROWSER LOG [admin]: Full URL: ***/auth/v1/token?grant_type=password
+BROWSER LOG [admin]: Size: 3.25 KB
+BROWSER LOG [admin]: Headers: {content-type: application/json}
+BROWSER LOG [admin]: console.groupEnd
+BROWSER LOG [admin]: %c[Supabase] GET 1.53 KB - ***/auth/v1/user color: #52c41a
+BROWSER LOG [admin]: Full URL: ***/auth/v1/user
+BROWSER LOG [admin]: Size: 1.53 KB
+BROWSER LOG [admin]: Headers: {content-type: application/json}
+BROWSER LOG [admin]: console.groupEnd
+BROWSER LOG [admin]: %c[Supabase] GET 1.53 KB - ***/auth/v1/user color: #52c41a
+BROWSER LOG [admin]: Full URL: ***/auth/v1/user
+BROWSER LOG [admin]: Size: 1.53 KB
+BROWSER LOG [admin]: Headers: {content-type: application/json}
+BROWSER LOG [admin]: console.groupEnd
+BROWSER LOG [admin]: [SignIn] User data fetched: {id: 361b6842-5936-4d6d-8ef8-5ba4826532f6, is_admin: true, staff_id: 764c8568-4c80-41f1-bd95-3c5aa31b5bcc}
+BROWSER LOG [admin]: [SignIn] Redirecting to admin root /
+BROWSER LOG [admin]: %c[Supabase] GET 0.17 KB - ***/rest/v1/ic_staff color: #52c41a
+BROWSER LOG [admin]: Full URL: ***/rest/v1/ic_staff?select=id%2Cstaff_name%2Cphoto_url%2Crole%3Aic_roles%28role_name%29&auth_user_id=eq.361b6842-5936-4d6d-8ef8-5ba4826532f6
+BROWSER LOG [admin]: Size: 0.17 KB
+BROWSER LOG [admin]: Headers: {content-encoding: gzip, content-location: /ic_staff?auth_user_id=eq.361b6842-5936-4d6d-8ef8-…name%2Cphoto_url%2Crole%3Aic_roles%28role_name%29, content-range: 0-0/*, content-type: application/json; charset=utf-8, date: Sat, 23 May 2026 08:14:09 GMT}
+BROWSER LOG [admin]: console.groupEnd
+BROWSER LOG [admin]: [Auth] fetchUser: SupabaseAdapter returned: USER_FOUND
+BROWSER LOG [admin]: %c[Supabase] GET 0.17 KB - ***/rest/v1/ic_staff color: #52c41a
+BROWSER LOG [admin]: Full URL: ***/rest/v1/ic_staff?select=id%2Cstaff_name%2Cphoto_url%2Crole%3Aic_roles%28role_name%29&auth_user_id=eq.361b6842-5936-4d6d-8ef8-5ba4826532f6
+BROWSER LOG [admin]: Size: 0.17 KB
+BROWSER LOG [admin]: Headers: {content-encoding: gzip, content-location: /ic_staff?auth_user_id=eq.361b6842-5936-4d6d-8ef8-…name%2Cphoto_url%2Crole%3Aic_roles%28role_name%29, content-range: 0-0/*, content-type: application/json; charset=utf-8, date: Sat, 23 May 2026 08:14:09 GMT}
+BROWSER LOG [admin]: console.groupEnd
+Saving admin storage state...
+·Navigating to /auth/signin for staff...
 BROWSER LOG [staff]: [vite] connecting...
 BROWSER LOG [staff]: [vite] connected.
 BROWSER LOG [staff]: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+BROWSER LOG [staff]: [SignIn] Component Mounted
+BROWSER LOG [staff]: [SignIn] Component Mounted
 Filling staff credentials...
-Submitting login form for staff...
+BROWSER LOG [staff]: [SignIn] Component Mounted
+Submitting login form for staff via Enter key...
+BROWSER LOG [staff]: [SignIn] Raw form onSubmit triggered
+BROWSER LOG [staff]: [SignIn] Starting login for: ***
+BROWSER LOG [staff]: [SignIn] Calling login()...
+BROWSER LOG [staff]: [Auth] Attempting signInWithPassword for: ***
+BROWSER LOG [staff]: [SignIn] Component Mounted
 Waiting for redirect for staff...
-Staff Login TIMED OUT without a visible error alert.
-Current URL: http://localhost:5173/auth/signin
-×◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
-Navigating to /auth/signin for staff...
-BROWSER LOG [staff]: [vite] connecting...
-BROWSER LOG [staff]: [vite] connected.
-BROWSER LOG [staff]: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-Filling staff credentials...
-Submitting login form for staff...
-Waiting for redirect for staff...
-Staff Login TIMED OUT without a visible error alert.
-Current URL: http://localhost:5173/auth/signin
-×◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
-Navigating to /auth/signin for staff...
-BROWSER LOG [staff]: [vite] connecting...
-BROWSER LOG [staff]: [vite] connected.
-BROWSER LOG [staff]: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-Filling staff credentials...
-Submitting login form for staff...
-Waiting for redirect for staff...
-Staff Login TIMED OUT without a visible error alert.
-Current URL: http://localhost:5173/auth/signin
-F
-  1) [setup] › tests/auth.setup.ts:21:1 › authenticate as admin ────────────────────────────────────
-    TimeoutError: page.waitForURL: Timeout 15000ms exceeded.
-    =========================== logs ===========================
-    waiting for navigation until "load"
-    ============================================================
-      63 |   try {
-      64 |     // Wait for the URL to change away from the signin page
-    > 65 |     await page.waitForURL(url => !url.pathname.includes('/auth/signin'), { timeout: 15000 });
-         |                ^
-      66 |   } catch (err) {
-      67 |     // Check if there's a visible error alert
-      68 |     const errorAlert = page.locator('[data-slot="alert"]');
-        at /home/runner/work/InsideCare/InsideCare/tests/auth.setup.ts:65:16
-    Error Context: test-results/auth.setup.ts-authenticate-as-admin-setup/error-context.md
+BROWSER LOG [staff]: [Auth] Triggering permission sync...
+BROWSER LOG [staff]: [Auth] fetchUser: Starting new fetch...
+BROWSER LOG [staff]: [Auth] signInWithPassword SUCCESS after 763ms. Session user: c4678a02-43af-4871-90d2-f0d3537359da
+BROWSER LOG [staff]: [SignIn] login() successful
+BROWSER LOG [staff]: [SignIn] Fetching fresh user data...
+BROWSER LOG [staff]: %c[Supabase] POST 3.72 KB - ***/auth/v1/token color: #52c41a
+BROWSER LOG [staff]: Full URL: ***/auth/v1/token?grant_type=password
+BROWSER LOG [staff]: Size: 3.72 KB
+BROWSER LOG [staff]: Headers: {content-type: application/json}
+BROWSER LOG [staff]: console.groupEnd
+BROWSER LOG [staff]: %c[Supabase] GET 1.73 KB - ***/auth/v1/user color: #52c41a
+BROWSER LOG [staff]: Full URL: ***/auth/v1/user
+BROWSER LOG [staff]: Size: 1.73 KB
+BROWSER LOG [staff]: Headers: {content-type: application/json}
+BROWSER LOG [staff]: console.groupEnd
+BROWSER LOG [staff]: %c[Supabase] GET 1.73 KB - ***/auth/v1/user color: #52c41a
+BROWSER LOG [staff]: Full URL: ***/auth/v1/user
+BROWSER LOG [staff]: Size: 1.73 KB
+BROWSER LOG [staff]: Headers: {content-type: application/json}
+BROWSER LOG [staff]: console.groupEnd
+BROWSER ERROR [staff]: Failed to load resource: the server responded with a status of 500 ()
+BROWSER LOG [staff]: [SignIn] User data fetched: {id: c4678a02-43af-4871-90d2-f0d3537359da, is_admin: false, staff_id: c8acb62c-3f7e-4eb5-b1d1-4978ee9a8d06}
+BROWSER LOG [staff]: [SignIn] Redirecting to staff dashboard /staff/dashboard
+BROWSER LOG [staff]: %c[Supabase] GET 0.21 KB - ***/rest/v1/ic_staff color: #52c41a
+BROWSER LOG [staff]: Full URL: ***/rest/v1/ic_staff?select=id%2Cstaff_name%2Cphoto_url%2Crole%3Aic_roles%28role_name%29&auth_user_id=eq.c4678a02-43af-4871-90d2-f0d3537359da
+BROWSER LOG [staff]: Size: 0.21 KB
+BROWSER LOG [staff]: Headers: {content-encoding: gzip, content-type: application/json; charset=utf-8, date: Sat, 23 May 2026 08:14:22 GMT, server: cloudflare}
+BROWSER LOG [staff]: console.groupEnd
+Saving staff storage state...
+····××F·××F·××F··××F·························××F·××F·××F··××F··················
+·······××F·××F·××F··××F·························××F·××F·××F··××F················
+······
+  1) [chromium] › tests/smoke.spec.ts:91:3 › Public Page /auth/check-email loads without WSoD ──────
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-auth-check-email-loads-without-WSoD-chromium/error-context.md
     Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
-    TimeoutError: page.waitForURL: Timeout 15000ms exceeded.
-    =========================== logs ===========================
-    waiting for navigation until "load"
-    ============================================================
-      63 |   try {
-      64 |     // Wait for the URL to change away from the signin page
-    > 65 |     await page.waitForURL(url => !url.pathname.includes('/auth/signin'), { timeout: 15000 });
-         |                ^
-      66 |   } catch (err) {
-      67 |     // Check if there's a visible error alert
-      68 |     const errorAlert = page.locator('[data-slot="alert"]');
-        at /home/runner/work/InsideCare/InsideCare/tests/auth.setup.ts:65:16
-    Error Context: test-results/auth.setup.ts-authenticate-as-admin-setup-retry1/error-context.md
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-auth-check-email-loads-without-WSoD-chromium-retry1/error-context.md
     attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
-    test-results/auth.setup.ts-authenticate-as-admin-setup-retry1/trace.zip
+    test-results/smoke-Public-Page-auth-check-email-loads-without-WSoD-chromium-retry1/trace.zip
     Usage:
-        npx playwright show-trace test-results/auth.setup.ts-authenticate-as-admin-setup-retry1/trace.zip
+        npx playwright show-trace test-results/smoke-Public-Page-auth-check-email-loads-without-WSoD-chromium-retry1/trace.zip
     ────────────────────────────────────────────────────────────────────────────────────────────────
     Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
-    TimeoutError: page.waitForURL: Timeout 15000ms exceeded.
-    =========================== logs ===========================
-    waiting for navigation until "load"
-    ============================================================
-      63 |   try {
-      64 |     // Wait for the URL to change away from the signin page
-    > 65 |     await page.waitForURL(url => !url.pathname.includes('/auth/signin'), { timeout: 15000 });
-         |                ^
-      66 |   } catch (err) {
-      67 |     // Check if there's a visible error alert
-      68 |     const errorAlert = page.locator('[data-slot="alert"]');
-        at /home/runner/work/InsideCare/InsideCare/tests/auth.setup.ts:65:16
-    Error Context: test-results/auth.setup.ts-authenticate-as-admin-setup-retry2/error-context.md
-  2) [setup] › tests/auth.setup.ts:86:1 › authenticate as staff ────────────────────────────────────
-    TimeoutError: page.waitForURL: Timeout 15000ms exceeded.
-    =========================== logs ===========================
-    waiting for navigation until "load"
-    ============================================================
-      122 |   console.log('Waiting for redirect for staff...');
-      123 |   try {
-    > 124 |     await page.waitForURL(url => !url.pathname.includes('/auth/signin'), { timeout: 15000 });
-          |                ^
-      125 |   } catch (err) {
-      126 |     const errorAlert = page.locator('[data-slot="alert"]');
-      127 |     if (await errorAlert.isVisible()) {
-        at /home/runner/work/InsideCare/InsideCare/tests/auth.setup.ts:124:16
-    Error Context: test-results/auth.setup.ts-authenticate-as-staff-setup/error-context.md
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-auth-check-email-loads-without-WSoD-chromium-retry2/error-context.md
+  2) [chromium] › tests/smoke.spec.ts:91:3 › Public Page /auth/2fa loads without WSoD ──────────────
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-auth-2fa-loads-without-WSoD-chromium/error-context.md
     Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
-    TimeoutError: page.waitForURL: Timeout 15000ms exceeded.
-    =========================== logs ===========================
-    waiting for navigation until "load"
-    ============================================================
-      122 |   console.log('Waiting for redirect for staff...');
-      123 |   try {
-    > 124 |     await page.waitForURL(url => !url.pathname.includes('/auth/signin'), { timeout: 15000 });
-          |                ^
-      125 |   } catch (err) {
-      126 |     const errorAlert = page.locator('[data-slot="alert"]');
-      127 |     if (await errorAlert.isVisible()) {
-        at /home/runner/work/InsideCare/InsideCare/tests/auth.setup.ts:124:16
-    Error Context: test-results/auth.setup.ts-authenticate-as-staff-setup-retry1/error-context.md
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-auth-2fa-loads-without-WSoD-chromium-retry1/error-context.md
     attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
-    test-results/auth.setup.ts-authenticate-as-staff-setup-retry1/trace.zip
+    test-results/smoke-Public-Page-auth-2fa-loads-without-WSoD-chromium-retry1/trace.zip
     Usage:
-        npx playwright show-trace test-results/auth.setup.ts-authenticate-as-staff-setup-retry1/trace.zip
+        npx playwright show-trace test-results/smoke-Public-Page-auth-2fa-loads-without-WSoD-chromium-retry1/trace.zip
     ────────────────────────────────────────────────────────────────────────────────────────────────
     Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
-    TimeoutError: page.waitForURL: Timeout 15000ms exceeded.
-    =========================== logs ===========================
-    waiting for navigation until "load"
-    ============================================================
-      122 |   console.log('Waiting for redirect for staff...');
-      123 |   try {
-    > 124 |     await page.waitForURL(url => !url.pathname.includes('/auth/signin'), { timeout: 15000 });
-          |                ^
-      125 |   } catch (err) {
-      126 |     const errorAlert = page.locator('[data-slot="alert"]');
-      127 |     if (await errorAlert.isVisible()) {
-        at /home/runner/work/InsideCare/InsideCare/tests/auth.setup.ts:124:16
-    Error Context: test-results/auth.setup.ts-authenticate-as-staff-setup-retry2/error-context.md
-  2 failed
-    [setup] › tests/auth.setup.ts:21:1 › authenticate as admin ─────────────────────────────────────
-    [setup] › tests/auth.setup.ts:86:1 › authenticate as staff ─────────────────────────────────────
-  132 did not run
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-auth-2fa-loads-without-WSoD-chromium-retry2/error-context.md
+  3) [chromium] › tests/smoke.spec.ts:91:3 › Public Page /auth/reset-password/changed loads without WSoD 
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-auth-res-31c11--changed-loads-without-WSoD-chromium/error-context.md
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-auth-res-31c11--changed-loads-without-WSoD-chromium-retry1/error-context.md
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/smoke-Public-Page-auth-res-31c11--changed-loads-without-WSoD-chromium-retry1/trace.zip
+    Usage:
+        npx playwright show-trace test-results/smoke-Public-Page-auth-res-31c11--changed-loads-without-WSoD-chromium-retry1/trace.zip
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-auth-res-31c11--changed-loads-without-WSoD-chromium-retry2/error-context.md
+  4) [chromium] › tests/smoke.spec.ts:91:3 › Public Page /error/404 loads without WSoD ─────────────
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-error-404-loads-without-WSoD-chromium/error-context.md
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-error-404-loads-without-WSoD-chromium-retry1/error-context.md
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/smoke-Public-Page-error-404-loads-without-WSoD-chromium-retry1/trace.zip
+    Usage:
+        npx playwright show-trace test-results/smoke-Public-Page-error-404-loads-without-WSoD-chromium-retry1/trace.zip
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-error-404-loads-without-WSoD-chromium-retry2/error-context.md
+  5) [firefox] › tests/smoke.spec.ts:91:3 › Public Page /auth/check-email loads without WSoD ───────
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-auth-check-email-loads-without-WSoD-firefox/error-context.md
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-auth-check-email-loads-without-WSoD-firefox-retry1/error-context.md
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/smoke-Public-Page-auth-check-email-loads-without-WSoD-firefox-retry1/trace.zip
+    Usage:
+        npx playwright show-trace test-results/smoke-Public-Page-auth-check-email-loads-without-WSoD-firefox-retry1/trace.zip
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-auth-check-email-loads-without-WSoD-firefox-retry2/error-context.md
+  6) [firefox] › tests/smoke.spec.ts:91:3 › Public Page /auth/2fa loads without WSoD ───────────────
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-auth-2fa-loads-without-WSoD-firefox/error-context.md
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-auth-2fa-loads-without-WSoD-firefox-retry1/error-context.md
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/smoke-Public-Page-auth-2fa-loads-without-WSoD-firefox-retry1/trace.zip
+    Usage:
+        npx playwright show-trace test-results/smoke-Public-Page-auth-2fa-loads-without-WSoD-firefox-retry1/trace.zip
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-auth-2fa-loads-without-WSoD-firefox-retry2/error-context.md
+  7) [firefox] › tests/smoke.spec.ts:91:3 › Public Page /auth/reset-password/changed loads without WSoD 
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-auth-res-31c11--changed-loads-without-WSoD-firefox/error-context.md
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-auth-res-31c11--changed-loads-without-WSoD-firefox-retry1/error-context.md
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/smoke-Public-Page-auth-res-31c11--changed-loads-without-WSoD-firefox-retry1/trace.zip
+    Usage:
+        npx playwright show-trace test-results/smoke-Public-Page-auth-res-31c11--changed-loads-without-WSoD-firefox-retry1/trace.zip
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-auth-res-31c11--changed-loads-without-WSoD-firefox-retry2/error-context.md
+  8) [firefox] › tests/smoke.spec.ts:91:3 › Public Page /error/404 loads without WSoD ──────────────
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-error-404-loads-without-WSoD-firefox/error-context.md
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-error-404-loads-without-WSoD-firefox-retry1/error-context.md
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/smoke-Public-Page-error-404-loads-without-WSoD-firefox-retry1/trace.zip
+    Usage:
+        npx playwright show-trace test-results/smoke-Public-Page-error-404-loads-without-WSoD-firefox-retry1/trace.zip
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-error-404-loads-without-WSoD-firefox-retry2/error-context.md
+  9) [Mobile Chrome] › tests/smoke.spec.ts:91:3 › Public Page /auth/check-email loads without WSoD ─
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-auth-check-email-loads-without-WSoD-Mobile-Chrome/error-context.md
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-auth-check-email-loads-without-WSoD-Mobile-Chrome-retry1/error-context.md
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/smoke-Public-Page-auth-check-email-loads-without-WSoD-Mobile-Chrome-retry1/trace.zip
+    Usage:
+        npx playwright show-trace test-results/smoke-Public-Page-auth-check-email-loads-without-WSoD-Mobile-Chrome-retry1/trace.zip
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-auth-check-email-loads-without-WSoD-Mobile-Chrome-retry2/error-context.md
+  10) [Mobile Chrome] › tests/smoke.spec.ts:91:3 › Public Page /auth/2fa loads without WSoD ────────
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-auth-2fa-loads-without-WSoD-Mobile-Chrome/error-context.md
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-auth-2fa-loads-without-WSoD-Mobile-Chrome-retry1/error-context.md
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/smoke-Public-Page-auth-2fa-loads-without-WSoD-Mobile-Chrome-retry1/trace.zip
+    Usage:
+        npx playwright show-trace test-results/smoke-Public-Page-auth-2fa-loads-without-WSoD-Mobile-Chrome-retry1/trace.zip
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-auth-2fa-loads-without-WSoD-Mobile-Chrome-retry2/error-context.md
+  11) [Mobile Chrome] › tests/smoke.spec.ts:91:3 › Public Page /auth/reset-password/changed loads without WSoD 
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-auth-res-31c11--changed-loads-without-WSoD-Mobile-Chrome/error-context.md
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-auth-res-31c11--changed-loads-without-WSoD-Mobile-Chrome-retry1/error-context.md
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/smoke-Public-Page-auth-res-31c11--changed-loads-without-WSoD-Mobile-Chrome-retry1/trace.zip
+    Usage:
+        npx playwright show-trace test-results/smoke-Public-Page-auth-res-31c11--changed-loads-without-WSoD-Mobile-Chrome-retry1/trace.zip
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-auth-res-31c11--changed-loads-without-WSoD-Mobile-Chrome-retry2/error-context.md
+  12) [Mobile Chrome] › tests/smoke.spec.ts:91:3 › Public Page /error/404 loads without WSoD ───────
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-error-404-loads-without-WSoD-Mobile-Chrome/error-context.md
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-error-404-loads-without-WSoD-Mobile-Chrome-retry1/error-context.md
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/smoke-Public-Page-error-404-loads-without-WSoD-Mobile-Chrome-retry1/trace.zip
+    Usage:
+        npx playwright show-trace test-results/smoke-Public-Page-error-404-loads-without-WSoD-Mobile-Chrome-retry1/trace.zip
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-error-404-loads-without-WSoD-Mobile-Chrome-retry2/error-context.md
+  13) [Mobile Safari] › tests/smoke.spec.ts:91:3 › Public Page /auth/check-email loads without WSoD 
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-auth-check-email-loads-without-WSoD-Mobile-Safari/error-context.md
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-auth-check-email-loads-without-WSoD-Mobile-Safari-retry1/error-context.md
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/smoke-Public-Page-auth-check-email-loads-without-WSoD-Mobile-Safari-retry1/trace.zip
+    Usage:
+        npx playwright show-trace test-results/smoke-Public-Page-auth-check-email-loads-without-WSoD-Mobile-Safari-retry1/trace.zip
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-auth-check-email-loads-without-WSoD-Mobile-Safari-retry2/error-context.md
+  14) [Mobile Safari] › tests/smoke.spec.ts:91:3 › Public Page /auth/2fa loads without WSoD ────────
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-auth-2fa-loads-without-WSoD-Mobile-Safari/error-context.md
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-error-404-loads-without-WSoD-Mobile-Safari/error-context.md
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-error-404-loads-without-WSoD-Mobile-Safari-retry1/error-context.md
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/smoke-Public-Page-error-404-loads-without-WSoD-Mobile-Safari-retry1/trace.zip
+    Usage:
+        npx playwright show-trace test-results/smoke-Public-Page-error-404-loads-without-WSoD-Mobile-Safari-retry1/trace.zip
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-error-404-loads-without-WSoD-Mobile-Safari-retry2/error-context.md
+  16 failed
+    [chromium] › tests/smoke.spec.ts:91:3 › Public Page /auth/check-email loads without WSoD ───────
+    [chromium] › tests/smoke.spec.ts:91:3 › Public Page /auth/2fa loads without WSoD ───────────────
+    [chromium] › tests/smoke.spec.ts:91:3 › Public Page /auth/reset-password/changed loads without WSoD 
+    [chromium] › tests/smoke.spec.ts:91:3 › Public Page /error/404 loads without WSoD ──────────────
+    [firefox] › tests/smoke.spec.ts:91:3 › Public Page /auth/check-email loads without WSoD ────────
+    [firefox] › tests/smoke.spec.ts:91:3 › Public Page /auth/2fa loads without WSoD ────────────────
+    [firefox] › tests/smoke.spec.ts:91:3 › Public Page /auth/reset-password/changed loads without WSoD 
+    [firefox] › tests/smoke.spec.ts:91:3 › Public Page /error/404 loads without WSoD ───────────────
+    [Mobile Chrome] › tests/smoke.spec.ts:91:3 › Public Page /auth/check-email loads without WSoD ──
+    [Mobile Chrome] › tests/smoke.spec.ts:91:3 › Public Page /auth/2fa loads without WSoD ──────────
+    [Mobile Chrome] › tests/smoke.spec.ts:91:3 › Public Page /auth/reset-password/changed loads without WSoD 
+    [Mobile Chrome] › tests/smoke.spec.ts:91:3 › Public Page /error/404 loads without WSoD ─────────
+    [Mobile Safari] › tests/smoke.spec.ts:91:3 › Public Page /auth/check-email loads without WSoD ──
+    [Mobile Safari] › tests/smoke.spec.ts:91:3 › Public Page /auth/2fa loads without WSoD ──────────
+    [Mobile Safari] › tests/smoke.spec.ts:91:3 › Public Page /auth/reset-password/changed loads without WSoD 
+    [Mobile Safari] › tests/smoke.spec.ts:91:3 › Public Page /error/404 loads without WSoD ─────────
+  118 passed (15.5m)
 Error: Process completed with exit code 1.
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-auth-2fa-loads-without-WSoD-Mobile-Safari-retry1/error-context.md
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/smoke-Public-Page-auth-2fa-loads-without-WSoD-Mobile-Safari-retry1/trace.zip
+    Usage:
+        npx playwright show-trace test-results/smoke-Public-Page-auth-2fa-loads-without-WSoD-Mobile-Safari-retry1/trace.zip
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-auth-2fa-loads-without-WSoD-Mobile-Safari-retry2/error-context.md
+  15) [Mobile Safari] › tests/smoke.spec.ts:91:3 › Public Page /auth/reset-password/changed loads without WSoD 
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-auth-res-31c11--changed-loads-without-WSoD-Mobile-Safari/error-context.md
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-auth-res-31c11--changed-loads-without-WSoD-Mobile-Safari-retry1/error-context.md
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/smoke-Public-Page-auth-res-31c11--changed-loads-without-WSoD-Mobile-Safari-retry1/trace.zip
+    Usage:
+        npx playwright show-trace test-results/smoke-Public-Page-auth-res-31c11--changed-loads-without-WSoD-Mobile-Safari-retry1/trace.zip
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
+      98 | }
+        at /home/runner/work/InsideCare/InsideCare/tests/smoke.spec.ts:95:36
+    Error Context: test-results/smoke-Public-Page-auth-res-31c11--changed-loads-without-WSoD-Mobile-Safari-retry2/error-context.md
+  16) [Mobile Safari] › tests/smoke.spec.ts:91:3 › Public Page /error/404 loads without WSoD ───────
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.card, form, h1, h2').first()
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.card, form, h1, h2').first()
+      93 |     // For public auth pages, we check for cards or headings
+      94 |     const authCard = page.locator('.card, form, h1, h2');
+    > 95 |     await expect(authCard.first()).toBeVisible({ timeout: 15000 });
+         |                                    ^
+      96 |     await expect(page.getByText(/Something went wrong/i)).not.toBeVisible();
+      97 |   });
