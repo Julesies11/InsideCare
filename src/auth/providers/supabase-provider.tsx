@@ -95,8 +95,15 @@ export function AuthProvider({ children }: PropsWithChildren) {
       }
     );
 
+    // Safety fallback: If auth doesn't initialize within 5 seconds, stop loading
+    // This prevents WSoD/stuck loader if Supabase URL is invalid or blocked
+    const safetyTimeout = setTimeout(() => {
+      setLoading(false);
+    }, 5000);
+
     return () => {
       subscription.unsubscribe();
+      clearTimeout(safetyTimeout);
     };
   }, [handleAuthStateChange]);
 

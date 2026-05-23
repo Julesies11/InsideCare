@@ -2,13 +2,23 @@ import { createBrowserClient } from '@supabase/ssr';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { Database } from '@/models/database.types';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('Supabase credentials are missing. Check your .env file.');
+}
 
 /**
  * Custom fetch wrapper to log Supabase payload sizes in development.
  */
 const customFetch = async (url: RequestInfo | URL, options?: RequestInit) => {
+  if (!supabaseUrl) {
+    return new Response(JSON.stringify({ error: 'Supabase URL missing' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
   const response = await fetch(url, options);
   
   if (import.meta.env.DEV) {
@@ -42,8 +52,8 @@ const customFetch = async (url: RequestInfo | URL, options?: RequestInit) => {
  * @supabase/ssr for robust session management and payload size logging.
  */
 export const supabase: SupabaseClient<Database> = createBrowserClient<Database>(
-  supabaseUrl,
-  supabaseAnonKey,
+  supabaseUrl || 'https://placeholder.supabase.co',
+  supabaseAnonKey || 'placeholder-key',
   {
     global: {
       fetch: customFetch
