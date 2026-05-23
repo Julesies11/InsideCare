@@ -26,3 +26,4 @@ pnpm-debug.log*
 .env.staging
 
 github_unit-test-errors.txt
+playwright-report/playwright_tests_github.txt

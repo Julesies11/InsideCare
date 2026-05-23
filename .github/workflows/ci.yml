@@ -125,6 +125,8 @@ jobs:
       - name: Run Playwright tests
         run: npm run test:smoke
         env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           PLAYWRIGHT_ADMIN_EMAIL: ${{ secrets.PLAYWRIGHT_ADMIN_EMAIL }}
           PLAYWRIGHT_ADMIN_PASSWORD: ${{ secrets.PLAYWRIGHT_ADMIN_PASSWORD }}
           PLAYWRIGHT_STAFF_EMAIL: ${{ secrets.PLAYWRIGHT_STAFF_EMAIL }}
@@ -137,3 +139,5 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 30
+
+
