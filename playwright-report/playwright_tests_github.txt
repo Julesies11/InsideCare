@@ -1,10 +1,20 @@
+npm run test:smoke
+  shell: /usr/bin/bash -e {0}
+  env:
+    VITE_SUPABASE_URL: 
+    VITE_SUPABASE_ANON_KEY: 
+    PLAYWRIGHT_ADMIN_EMAIL: 
+    PLAYWRIGHT_ADMIN_PASSWORD: 
+    PLAYWRIGHT_STAFF_EMAIL: 
+    PLAYWRIGHT_STAFF_PASSWORD: 
+
 > metronic-vite@9.4.0 test:smoke
 > playwright test
 
-◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
 
 Running 134 tests using 1 worker
-◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
 Navigating to /auth/signin for admin...
 BROWSER LOG [admin]: [vite] connecting...
 BROWSER LOG [admin]: [vite] connected.
@@ -14,16 +24,16 @@ Filling admin credentials...
 BROWSER LOG [admin]: [SignIn] Starting login for: demo@kt.com
 BROWSER LOG [admin]: [SignIn] Calling login()...
 BROWSER ERROR [admin]: [SignIn] Unexpected error during submit: AuthApiError: Supabase URL missing
-    at handleError2 (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=ebba8319:13043:9)
-    at async _handleRequest2 (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=ebba8319:13084:5)
-    at async _request (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=ebba8319:13068:16)
-    at async SupabaseAuthClient.signInWithPassword (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=ebba8319:15894:15)
+    at handleError2 (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=a59f2a99:13043:9)
+    at async _handleRequest2 (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=a59f2a99:13084:5)
+    at async _request (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=a59f2a99:13068:16)
+    at async SupabaseAuthClient.signInWithPassword (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=a59f2a99:15894:15)
     at async login (http://localhost:5173/src/auth/providers/supabase-provider.tsx:97:23)
     at async onSubmit (http://localhost:5173/src/auth/pages/signin-page.tsx:107:7)
-    at async http://localhost:5173/node_modules/.vite/deps/chunk-33X4OLMA.js?v=198d78ab:1845:9
+    at async http://localhost:5173/node_modules/.vite/deps/chunk-33X4OLMA.js?v=e93120a7:1845:9
 Waiting for redirect...
 Login FAILED with visible error alert: Supabase URL missing
-×◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+×◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
 Navigating to /auth/signin for admin...
 BROWSER LOG [admin]: [vite] connecting...
 BROWSER LOG [admin]: [vite] connected.
@@ -33,16 +43,16 @@ Filling admin credentials...
 BROWSER LOG [admin]: [SignIn] Starting login for: demo@kt.com
 BROWSER LOG [admin]: [SignIn] Calling login()...
 BROWSER ERROR [admin]: [SignIn] Unexpected error during submit: AuthApiError: Supabase URL missing
-    at handleError2 (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=ebba8319:13043:9)
-    at async _handleRequest2 (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=ebba8319:13084:5)
-    at async _request (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=ebba8319:13068:16)
-    at async SupabaseAuthClient.signInWithPassword (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=ebba8319:15894:15)
+    at handleError2 (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=a59f2a99:13043:9)
+    at async _handleRequest2 (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=a59f2a99:13084:5)
+    at async _request (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=a59f2a99:13068:16)
+    at async SupabaseAuthClient.signInWithPassword (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=a59f2a99:15894:15)
     at async login (http://localhost:5173/src/auth/providers/supabase-provider.tsx:97:23)
     at async onSubmit (http://localhost:5173/src/auth/pages/signin-page.tsx:107:7)
-    at async http://localhost:5173/node_modules/.vite/deps/chunk-33X4OLMA.js?v=198d78ab:1845:9
+    at async http://localhost:5173/node_modules/.vite/deps/chunk-33X4OLMA.js?v=e93120a7:1845:9
 Waiting for redirect...
 Login FAILED with visible error alert: Supabase URL missing
-×◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+×◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
 Navigating to /auth/signin for admin...
 BROWSER LOG [admin]: [vite] connecting...
 BROWSER LOG [admin]: [vite] connected.
@@ -52,16 +62,16 @@ Filling admin credentials...
 BROWSER LOG [admin]: [SignIn] Starting login for: demo@kt.com
 BROWSER LOG [admin]: [SignIn] Calling login()...
 BROWSER ERROR [admin]: [SignIn] Unexpected error during submit: AuthApiError: Supabase URL missing
-    at handleError2 (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=ebba8319:13043:9)
-    at async _handleRequest2 (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=ebba8319:13084:5)
-    at async _request (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=ebba8319:13068:16)
-    at async SupabaseAuthClient.signInWithPassword (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=ebba8319:15894:15)
+    at handleError2 (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=a59f2a99:13043:9)
+    at async _handleRequest2 (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=a59f2a99:13084:5)
+    at async _request (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=a59f2a99:13068:16)
+    at async SupabaseAuthClient.signInWithPassword (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=a59f2a99:15894:15)
     at async login (http://localhost:5173/src/auth/providers/supabase-provider.tsx:97:23)
     at async onSubmit (http://localhost:5173/src/auth/pages/signin-page.tsx:107:7)
-    at async http://localhost:5173/node_modules/.vite/deps/chunk-33X4OLMA.js?v=198d78ab:1845:9
+    at async http://localhost:5173/node_modules/.vite/deps/chunk-33X4OLMA.js?v=e93120a7:1845:9
 Waiting for redirect...
 Login FAILED with visible error alert: Supabase URL missing
-F◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+F◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
 Navigating to /auth/signin for staff...
 BROWSER LOG [staff]: [vite] connecting...
 BROWSER LOG [staff]: [vite] connected.
@@ -71,16 +81,16 @@ Filling staff credentials...
 BROWSER LOG [staff]: [SignIn] Starting login for: staff@kt.com
 BROWSER LOG [staff]: [SignIn] Calling login()...
 BROWSER ERROR [staff]: [SignIn] Unexpected error during submit: AuthApiError: Supabase URL missing
-    at handleError2 (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=ebba8319:13043:9)
-    at async _handleRequest2 (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=ebba8319:13084:5)
-    at async _request (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=ebba8319:13068:16)
-    at async SupabaseAuthClient.signInWithPassword (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=ebba8319:15894:15)
+    at handleError2 (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=a59f2a99:13043:9)
+    at async _handleRequest2 (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=a59f2a99:13084:5)
+    at async _request (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=a59f2a99:13068:16)
+    at async SupabaseAuthClient.signInWithPassword (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=a59f2a99:15894:15)
     at async login (http://localhost:5173/src/auth/providers/supabase-provider.tsx:97:23)
     at async onSubmit (http://localhost:5173/src/auth/pages/signin-page.tsx:107:7)
-    at async http://localhost:5173/node_modules/.vite/deps/chunk-33X4OLMA.js?v=198d78ab:1845:9
+    at async http://localhost:5173/node_modules/.vite/deps/chunk-33X4OLMA.js?v=e93120a7:1845:9
 Waiting for redirect for staff...
 Staff Login FAILED with visible error alert: Supabase URL missing
-×◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+×◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
 Navigating to /auth/signin for staff...
 BROWSER LOG [staff]: [vite] connecting...
 BROWSER LOG [staff]: [vite] connected.
@@ -90,16 +100,16 @@ Filling staff credentials...
 BROWSER LOG [staff]: [SignIn] Starting login for: staff@kt.com
 BROWSER LOG [staff]: [SignIn] Calling login()...
 BROWSER ERROR [staff]: [SignIn] Unexpected error during submit: AuthApiError: Supabase URL missing
-    at handleError2 (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=ebba8319:13043:9)
-    at async _handleRequest2 (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=ebba8319:13084:5)
-    at async _request (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=ebba8319:13068:16)
-    at async SupabaseAuthClient.signInWithPassword (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=ebba8319:15894:15)
+    at handleError2 (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=a59f2a99:13043:9)
+    at async _handleRequest2 (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=a59f2a99:13084:5)
+    at async _request (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=a59f2a99:13068:16)
+    at async SupabaseAuthClient.signInWithPassword (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=a59f2a99:15894:15)
     at async login (http://localhost:5173/src/auth/providers/supabase-provider.tsx:97:23)
     at async onSubmit (http://localhost:5173/src/auth/pages/signin-page.tsx:107:7)
-    at async http://localhost:5173/node_modules/.vite/deps/chunk-33X4OLMA.js?v=198d78ab:1845:9
+    at async http://localhost:5173/node_modules/.vite/deps/chunk-33X4OLMA.js?v=e93120a7:1845:9
 Waiting for redirect for staff...
 Staff Login FAILED with visible error alert: Supabase URL missing
-×◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+×◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
 Navigating to /auth/signin for staff...
 BROWSER LOG [staff]: [vite] connecting...
 BROWSER LOG [staff]: [vite] connected.
@@ -109,13 +119,13 @@ Filling staff credentials...
 BROWSER LOG [staff]: [SignIn] Starting login for: staff@kt.com
 BROWSER LOG [staff]: [SignIn] Calling login()...
 BROWSER ERROR [staff]: [SignIn] Unexpected error during submit: AuthApiError: Supabase URL missing
-    at handleError2 (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=ebba8319:13043:9)
-    at async _handleRequest2 (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=ebba8319:13084:5)
-    at async _request (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=ebba8319:13068:16)
-    at async SupabaseAuthClient.signInWithPassword (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=ebba8319:15894:15)
+    at handleError2 (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=a59f2a99:13043:9)
+    at async _handleRequest2 (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=a59f2a99:13084:5)
+    at async _request (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=a59f2a99:13068:16)
+    at async SupabaseAuthClient.signInWithPassword (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=a59f2a99:15894:15)
     at async login (http://localhost:5173/src/auth/providers/supabase-provider.tsx:97:23)
     at async onSubmit (http://localhost:5173/src/auth/pages/signin-page.tsx:107:7)
-    at async http://localhost:5173/node_modules/.vite/deps/chunk-33X4OLMA.js?v=198d78ab:1845:9
+    at async http://localhost:5173/node_modules/.vite/deps/chunk-33X4OLMA.js?v=e93120a7:1845:9
 Waiting for redirect for staff...
 Staff Login FAILED with visible error alert: Supabase URL missing
 F
