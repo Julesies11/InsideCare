@@ -32,8 +32,14 @@ setup('authenticate as admin', async ({ page }) => {
     console.error(`BROWSER PAGE ERROR [admin]: ${err.message}`);
   });
 
+  // Monitor failed requests to catch CORS or connection issues
+  page.on('requestfailed', request => {
+    console.error(`REQUEST FAILED [admin]: ${request.method()} ${request.url()} - ${request.failure()?.errorText}`);
+  });
+
   console.log('Navigating to /auth/signin for admin...');
-  await page.goto('/auth/signin');
+  // waitUntil: 'networkidle' ensures the SPA is fully loaded before we interact
+  await page.goto('/auth/signin', { waitUntil: 'networkidle' });
   
   // Wait for the page to be ready and log content for debugging if it fails
   try {
@@ -48,12 +54,15 @@ setup('authenticate as admin', async ({ page }) => {
   console.log('Filling admin credentials...');
   await page.getByLabel(/Email/i).fill(ADMIN_EMAIL);
   await page.getByLabel(/Password/i).fill(ADMIN_PASSWORD);
+  
+  console.log('Submitting login form...');
   await page.getByRole('button', { name: /Sign In/i }).click();
 
   console.log('Waiting for redirect...');
   // Wait for the app to recognize the state and redirect
   try {
-    await expect(page).not.toHaveURL(/.*\/auth\/signin.*/, { timeout: 15000 });
+    // Wait for the URL to change away from the signin page
+    await page.waitForURL(url => !url.pathname.includes('/auth/signin'), { timeout: 15000 });
   } catch (err) {
     // Check if there's a visible error alert
     const errorAlert = page.locator('[data-slot="alert"]');
@@ -62,6 +71,7 @@ setup('authenticate as admin', async ({ page }) => {
       console.error(`Login FAILED with visible error alert: ${errorText}`);
     } else {
       console.error('Login TIMED OUT without a visible error alert. Still on signin page.');
+      console.error('Current URL:', page.url());
     }
     throw err;
   }
@@ -87,8 +97,13 @@ setup('authenticate as staff', async ({ page }) => {
     console.error(`BROWSER PAGE ERROR [staff]: ${err.message}`);
   });
 
+  // Monitor failed requests
+  page.on('requestfailed', request => {
+    console.error(`REQUEST FAILED [staff]: ${request.method()} ${request.url()} - ${request.failure()?.errorText}`);
+  });
+
   console.log('Navigating to /auth/signin for staff...');
-  await page.goto('/auth/signin');
+  await page.goto('/auth/signin', { waitUntil: 'networkidle' });
   
   try {
     await expect(page.getByRole('heading', { name: /Sign In/i })).toBeVisible({ timeout: 15000 });
@@ -100,11 +115,13 @@ setup('authenticate as staff', async ({ page }) => {
   console.log('Filling staff credentials...');
   await page.getByLabel(/Email/i).fill(STAFF_EMAIL);
   await page.getByLabel(/Password/i).fill(STAFF_PASSWORD);
+  
+  console.log('Submitting login form for staff...');
   await page.getByRole('button', { name: /Sign In/i }).click();
 
   console.log('Waiting for redirect for staff...');
   try {
-    await expect(page).not.toHaveURL(/.*\/auth\/signin.*/, { timeout: 15000 });
+    await page.waitForURL(url => !url.pathname.includes('/auth/signin'), { timeout: 15000 });
   } catch (err) {
     const errorAlert = page.locator('[data-slot="alert"]');
     if (await errorAlert.isVisible()) {
@@ -112,6 +129,7 @@ setup('authenticate as staff', async ({ page }) => {
       console.error(`Staff Login FAILED with visible error alert: ${errorText}`);
     } else {
       console.error('Staff Login TIMED OUT without a visible error alert.');
+      console.error('Current URL:', page.url());
     }
     throw err;
   }

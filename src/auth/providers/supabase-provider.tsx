@@ -118,9 +118,30 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, [handleAuthStateChange]);
 
   const login = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
+    console.log(`[Auth] Attempting signInWithPassword for: ${email}`);
+    const startTime = Date.now();
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const duration = Date.now() - startTime;
+
+      if (error) {
+        console.error(`[Auth] signInWithPassword ERROR after ${duration}ms:`, {
+          status: error.status,
+          message: error.message,
+          code: error.code
+        });
+        throw error;
+      }
+
+      console.log(`[Auth] signInWithPassword SUCCESS after ${duration}ms. Session user:`, data.user?.id);
+    } catch (err) {
+      const duration = Date.now() - startTime;
+      console.error(`[Auth] signInWithPassword EXCEPTION after ${duration}ms:`, err);
+      throw err;
+    }
   };
+
 
   const register = async (
     email: string,
