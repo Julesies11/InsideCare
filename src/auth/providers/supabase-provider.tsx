@@ -12,23 +12,30 @@ let activeUserPromise: Promise<UserModel | null> | null = null;
 
 // Fetch user profile with a hard timeout and singleton pattern
 async function fetchUserWithTimeout(timeoutMs = 60000): Promise<UserModel | null> {
-  if (activeUserPromise) return activeUserPromise;
+  if (activeUserPromise) {
+    console.log('[Auth] fetchUser: Returning existing activeUserPromise');
+    return activeUserPromise;
+  }
 
+  console.log('[Auth] fetchUser: Starting new fetch...');
   activeUserPromise = (async () => {
     let timeoutId: any;
     const timeoutPromise = new Promise<null>((_, reject) => {
       timeoutId = setTimeout(() => {
+        console.error(`[Auth] fetchUser: TIMED OUT after ${timeoutMs}ms`);
         reject(new Error('Auth profile fetch timed out'));
       }, timeoutMs);
     });
 
     try {
       const userPromise = SupabaseAdapter.getCurrentUser().then(user => {
+        console.log('[Auth] fetchUser: SupabaseAdapter returned:', user ? 'USER_FOUND' : 'NULL');
         clearTimeout(timeoutId);
         return user;
       });
       return await Promise.race([userPromise, timeoutPromise]);
     } catch (err) {
+      console.error('[Auth] fetchUser: ERROR caught:', err);
       clearTimeout(timeoutId);
       throw err;
     } finally {
@@ -66,7 +73,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
         try {
           // Hardening: Ensure permissions are synced on login
           if (event === 'SIGNED_IN') {
-            await syncUserPermissions(session.user.id);
+            console.log('[Auth] Triggering permission sync...');
+            syncUserPermissions(session.user.id).catch(err => {
+              console.error('[Auth] Permission sync failed (non-blocking):', err);
+            });
           }
           
           const user = await fetchUserWithTimeout();

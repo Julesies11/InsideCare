@@ -107,7 +107,7 @@ export function SignInPage() {
       setIsProcessing(true);
       setError(null);
 
-      console.log('Attempting to sign in with email:', values.email);
+      console.log(`[SignIn] Starting login for: ${values.email}`);
 
       // Simple validation
       if (!values.email.trim() || !values.password) {
@@ -116,20 +116,28 @@ export function SignInPage() {
       }
 
       // Sign in using the auth context
+      console.log('[SignIn] Calling login()...');
       await login(values.email, values.password);
+      console.log('[SignIn] login() successful');
 
       // Role-based redirect — read fresh user to avoid stale state
+      console.log('[SignIn] Fetching fresh user data...');
       const user = await getUser();
+      console.log('[SignIn] User data fetched:', user ? { id: user.id, is_admin: user.is_admin, staff_id: user.staff_id } : 'null');
+
       const nextPath = searchParams.get('next');
       if (nextPath) {
+        console.log(`[SignIn] Redirecting to next path: ${nextPath}`);
         navigate(nextPath);
       } else if (user?.is_admin) {
+        console.log('[SignIn] Redirecting to admin root /');
         navigate('/');
       } else {
+        console.log('[SignIn] Redirecting to staff dashboard /staff/dashboard');
         navigate('/staff/dashboard');
       }
     } catch (err) {
-      console.error('Unexpected sign-in error:', err);
+      console.error('[SignIn] Unexpected error during submit:', err);
       setError(
         err instanceof Error
           ? err.message

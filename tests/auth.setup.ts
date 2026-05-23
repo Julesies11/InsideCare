@@ -19,6 +19,19 @@ const STAFF_EMAIL = process.env.PLAYWRIGHT_STAFF_EMAIL || 'staff@kt.com';
 const STAFF_PASSWORD = process.env.PLAYWRIGHT_STAFF_PASSWORD || 'demo123';
 
 setup('authenticate as admin', async ({ page }) => {
+  // Capture console logs for debugging
+  page.on('console', msg => {
+    if (msg.type() === 'error') {
+      console.error(`BROWSER ERROR [admin]: ${msg.text()}`);
+    } else {
+      console.log(`BROWSER LOG [admin]: ${msg.text()}`);
+    }
+  });
+
+  page.on('pageerror', err => {
+    console.error(`BROWSER PAGE ERROR [admin]: ${err.message}`);
+  });
+
   console.log('Navigating to /auth/signin for admin...');
   await page.goto('/auth/signin');
   
@@ -39,7 +52,19 @@ setup('authenticate as admin', async ({ page }) => {
 
   console.log('Waiting for redirect...');
   // Wait for the app to recognize the state and redirect
-  await expect(page).not.toHaveURL(/.*\/auth\/signin.*/, { timeout: 15000 });
+  try {
+    await expect(page).not.toHaveURL(/.*\/auth\/signin.*/, { timeout: 15000 });
+  } catch (err) {
+    // Check if there's a visible error alert
+    const errorAlert = page.locator('[data-slot="alert"]');
+    if (await errorAlert.isVisible()) {
+      const errorText = await errorAlert.textContent();
+      console.error(`Login FAILED with visible error alert: ${errorText}`);
+    } else {
+      console.error('Login TIMED OUT without a visible error alert. Still on signin page.');
+    }
+    throw err;
+  }
   
   // Basic check that we landed on a protected page (admin usually goes to root / dashboard)
   await expect(page.locator('.layout-container, .sidebar, .header').first()).toBeVisible({ timeout: 15000 });
@@ -49,6 +74,19 @@ setup('authenticate as admin', async ({ page }) => {
 });
 
 setup('authenticate as staff', async ({ page }) => {
+  // Capture console logs for debugging
+  page.on('console', msg => {
+    if (msg.type() === 'error') {
+      console.error(`BROWSER ERROR [staff]: ${msg.text()}`);
+    } else {
+      console.log(`BROWSER LOG [staff]: ${msg.text()}`);
+    }
+  });
+
+  page.on('pageerror', err => {
+    console.error(`BROWSER PAGE ERROR [staff]: ${err.message}`);
+  });
+
   console.log('Navigating to /auth/signin for staff...');
   await page.goto('/auth/signin');
   
@@ -65,7 +103,18 @@ setup('authenticate as staff', async ({ page }) => {
   await page.getByRole('button', { name: /Sign In/i }).click();
 
   console.log('Waiting for redirect for staff...');
-  await expect(page).not.toHaveURL(/.*\/auth\/signin.*/, { timeout: 15000 });
+  try {
+    await expect(page).not.toHaveURL(/.*\/auth\/signin.*/, { timeout: 15000 });
+  } catch (err) {
+    const errorAlert = page.locator('[data-slot="alert"]');
+    if (await errorAlert.isVisible()) {
+      const errorText = await errorAlert.textContent();
+      console.error(`Staff Login FAILED with visible error alert: ${errorText}`);
+    } else {
+      console.error('Staff Login TIMED OUT without a visible error alert.');
+    }
+    throw err;
+  }
   
   // Staff usually redirects to /staff/dashboard
   await expect(page.locator('.layout-container, .sidebar, .header').first()).toBeVisible({ timeout: 15000 });
