@@ -1,0 +1,298 @@
+npm run test:smoke
+  shell: /usr/bin/bash -e {0}
+  env:
+    VITE_SUPABASE_URL: 
+    VITE_SUPABASE_ANON_KEY: 
+    PLAYWRIGHT_ADMIN_EMAIL: 
+    PLAYWRIGHT_ADMIN_PASSWORD: 
+    PLAYWRIGHT_STAFF_EMAIL: 
+    PLAYWRIGHT_STAFF_PASSWORD: 
+  
+
+> metronic-vite@9.4.0 test:smoke
+> playwright test
+
+◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+
+Running 134 tests using 1 worker
+◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+Navigating to /auth/signin for admin...
+BROWSER LOG [admin]: [vite] connecting...
+BROWSER LOG [admin]: [vite] connected.
+BROWSER LOG [admin]: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+BROWSER ERROR [admin]: Supabase credentials are missing. Check your .env file.
+Filling admin credentials...
+BROWSER LOG [admin]: [SignIn] Starting login for: demo@kt.com
+BROWSER LOG [admin]: [SignIn] Calling login()...
+BROWSER ERROR [admin]: [SignIn] Unexpected error during submit: AuthApiError: Supabase URL missing
+    at handleError2 (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=be19dddf:13043:9)
+    at async _handleRequest2 (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=be19dddf:13084:5)
+    at async _request (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=be19dddf:13068:16)
+    at async SupabaseAuthClient.signInWithPassword (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=be19dddf:15894:15)
+    at async login (http://localhost:5173/src/auth/providers/supabase-provider.tsx:97:23)
+    at async onSubmit (http://localhost:5173/src/auth/pages/signin-page.tsx:107:7)
+    at async http://localhost:5173/node_modules/.vite/deps/chunk-NKHE4YUA.js?v=2b7e1909:1845:9
+Waiting for redirect...
+Login FAILED with visible error alert: Supabase URL missing
+×◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+Navigating to /auth/signin for admin...
+BROWSER LOG [admin]: [vite] connecting...
+BROWSER LOG [admin]: [vite] connected.
+BROWSER LOG [admin]: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+BROWSER ERROR [admin]: Supabase credentials are missing. Check your .env file.
+Filling admin credentials...
+BROWSER LOG [admin]: [SignIn] Starting login for: demo@kt.com
+BROWSER LOG [admin]: [SignIn] Calling login()...
+BROWSER ERROR [admin]: [SignIn] Unexpected error during submit: AuthApiError: Supabase URL missing
+    at handleError2 (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=be19dddf:13043:9)
+    at async _handleRequest2 (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=be19dddf:13084:5)
+    at async _request (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=be19dddf:13068:16)
+    at async SupabaseAuthClient.signInWithPassword (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=be19dddf:15894:15)
+    at async login (http://localhost:5173/src/auth/providers/supabase-provider.tsx:97:23)
+    at async onSubmit (http://localhost:5173/src/auth/pages/signin-page.tsx:107:7)
+    at async http://localhost:5173/node_modules/.vite/deps/chunk-NKHE4YUA.js?v=2b7e1909:1845:9
+Waiting for redirect...
+Login FAILED with visible error alert: Supabase URL missing
+×◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+Navigating to /auth/signin for admin...
+BROWSER LOG [admin]: [vite] connecting...
+BROWSER LOG [admin]: [vite] connected.
+BROWSER LOG [admin]: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+BROWSER ERROR [admin]: Supabase credentials are missing. Check your .env file.
+Filling admin credentials...
+BROWSER LOG [admin]: [SignIn] Starting login for: demo@kt.com
+BROWSER LOG [admin]: [SignIn] Calling login()...
+BROWSER ERROR [admin]: [SignIn] Unexpected error during submit: AuthApiError: Supabase URL missing
+    at handleError2 (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=be19dddf:13043:9)
+    at async _handleRequest2 (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=be19dddf:13084:5)
+    at async _request (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=be19dddf:13068:16)
+    at async SupabaseAuthClient.signInWithPassword (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=be19dddf:15894:15)
+    at async login (http://localhost:5173/src/auth/providers/supabase-provider.tsx:97:23)
+    at async onSubmit (http://localhost:5173/src/auth/pages/signin-page.tsx:107:7)
+    at async http://localhost:5173/node_modules/.vite/deps/chunk-NKHE4YUA.js?v=2b7e1909:1845:9
+Waiting for redirect...
+Login FAILED with visible error alert: Supabase URL missing
+F◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+Navigating to /auth/signin for staff...
+BROWSER LOG [staff]: [vite] connecting...
+BROWSER LOG [staff]: [vite] connected.
+BROWSER LOG [staff]: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+BROWSER ERROR [staff]: Supabase credentials are missing. Check your .env file.
+Filling staff credentials...
+BROWSER LOG [staff]: [SignIn] Starting login for: staff@kt.com
+BROWSER LOG [staff]: [SignIn] Calling login()...
+BROWSER ERROR [staff]: [SignIn] Unexpected error during submit: AuthApiError: Supabase URL missing
+    at handleError2 (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=be19dddf:13043:9)
+    at async _handleRequest2 (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=be19dddf:13084:5)
+    at async _request (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=be19dddf:13068:16)
+    at async SupabaseAuthClient.signInWithPassword (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=be19dddf:15894:15)
+    at async login (http://localhost:5173/src/auth/providers/supabase-provider.tsx:97:23)
+    at async onSubmit (http://localhost:5173/src/auth/pages/signin-page.tsx:107:7)
+    at async http://localhost:5173/node_modules/.vite/deps/chunk-NKHE4YUA.js?v=2b7e1909:1845:9
+Waiting for redirect for staff...
+Staff Login FAILED with visible error alert: Supabase URL missing
+×◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+Navigating to /auth/signin for staff...
+BROWSER LOG [staff]: [vite] connecting...
+BROWSER LOG [staff]: [vite] connected.
+BROWSER LOG [staff]: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+BROWSER ERROR [staff]: Supabase credentials are missing. Check your .env file.
+Filling staff credentials...
+BROWSER LOG [staff]: [SignIn] Starting login for: staff@kt.com
+BROWSER LOG [staff]: [SignIn] Calling login()...
+BROWSER ERROR [staff]: [SignIn] Unexpected error during submit: AuthApiError: Supabase URL missing
+    at handleError2 (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=be19dddf:13043:9)
+    at async _handleRequest2 (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=be19dddf:13084:5)
+    at async _request (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=be19dddf:13068:16)
+    at async SupabaseAuthClient.signInWithPassword (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=be19dddf:15894:15)
+    at async login (http://localhost:5173/src/auth/providers/supabase-provider.tsx:97:23)
+    at async onSubmit (http://localhost:5173/src/auth/pages/signin-page.tsx:107:7)
+    at async http://localhost:5173/node_modules/.vite/deps/chunk-NKHE4YUA.js?v=2b7e1909:1845:9
+Waiting for redirect for staff...
+Staff Login FAILED with visible error alert: Supabase URL missing
+×◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+Navigating to /auth/signin for staff...
+BROWSER LOG [staff]: [vite] connecting...
+BROWSER LOG [staff]: [vite] connected.
+BROWSER LOG [staff]: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+BROWSER ERROR [staff]: Supabase credentials are missing. Check your .env file.
+Filling staff credentials...
+BROWSER LOG [staff]: [SignIn] Starting login for: staff@kt.com
+BROWSER LOG [staff]: [SignIn] Calling login()...
+BROWSER ERROR [staff]: [SignIn] Unexpected error during submit: AuthApiError: Supabase URL missing
+    at handleError2 (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=be19dddf:13043:9)
+    at async _handleRequest2 (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=be19dddf:13084:5)
+    at async _request (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=be19dddf:13068:16)
+    at async SupabaseAuthClient.signInWithPassword (http://localhost:5173/node_modules/.vite/deps/@supabase_ssr.js?v=be19dddf:15894:15)
+    at async login (http://localhost:5173/src/auth/providers/supabase-provider.tsx:97:23)
+    at async onSubmit (http://localhost:5173/src/auth/pages/signin-page.tsx:107:7)
+    at async http://localhost:5173/node_modules/.vite/deps/chunk-NKHE4YUA.js?v=2b7e1909:1845:9
+Waiting for redirect for staff...
+Staff Login FAILED with visible error alert: Supabase URL missing
+F
+
+  1) [setup] › tests/auth.setup.ts:21:1 › authenticate as admin ────────────────────────────────────
+
+    Error: expect(page).not.toHaveURL(expected) failed
+
+    Expected pattern: not /.*\/auth\/signin.*/
+    Received string: "http://localhost:5173/auth/signin"
+    Timeout: 15000ms
+
+    Call log:
+      - Expect "not toHaveURL" with timeout 15000ms
+        34 × unexpected value "http://localhost:5173/auth/signin"
+
+
+      54 |   // Wait for the app to recognize the state and redirect
+      55 |   try {
+    > 56 |     await expect(page).not.toHaveURL(/.*\/auth\/signin.*/, { timeout: 15000 });
+         |                            ^
+      57 |   } catch (err) {
+      58 |     // Check if there's a visible error alert
+      59 |     const errorAlert = page.locator('[data-slot="alert"]');
+        at /home/runner/work/InsideCare/InsideCare/tests/auth.setup.ts:56:28
+
+    Error Context: test-results/auth.setup.ts-authenticate-as-admin-setup/error-context.md
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(page).not.toHaveURL(expected) failed
+
+    Expected pattern: not /.*\/auth\/signin.*/
+    Received string: "http://localhost:5173/auth/signin"
+    Timeout: 15000ms
+
+    Call log:
+      - Expect "not toHaveURL" with timeout 15000ms
+        34 × unexpected value "http://localhost:5173/auth/signin"
+
+
+      54 |   // Wait for the app to recognize the state and redirect
+      55 |   try {
+    > 56 |     await expect(page).not.toHaveURL(/.*\/auth\/signin.*/, { timeout: 15000 });
+         |                            ^
+      57 |   } catch (err) {
+      58 |     // Check if there's a visible error alert
+      59 |     const errorAlert = page.locator('[data-slot="alert"]');
+        at /home/runner/work/InsideCare/InsideCare/tests/auth.setup.ts:56:28
+
+    Error Context: test-results/auth.setup.ts-authenticate-as-admin-setup-retry1/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/auth.setup.ts-authenticate-as-admin-setup-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/auth.setup.ts-authenticate-as-admin-setup-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(page).not.toHaveURL(expected) failed
+
+    Expected pattern: not /.*\/auth\/signin.*/
+    Received string: "http://localhost:5173/auth/signin"
+    Timeout: 15000ms
+
+    Call log:
+      - Expect "not toHaveURL" with timeout 15000ms
+        34 × unexpected value "http://localhost:5173/auth/signin"
+
+
+      54 |   // Wait for the app to recognize the state and redirect
+      55 |   try {
+    > 56 |     await expect(page).not.toHaveURL(/.*\/auth\/signin.*/, { timeout: 15000 });
+         |                            ^
+      57 |   } catch (err) {
+      58 |     // Check if there's a visible error alert
+      59 |     const errorAlert = page.locator('[data-slot="alert"]');
+        at /home/runner/work/InsideCare/InsideCare/tests/auth.setup.ts:56:28
+
+    Error Context: test-results/auth.setup.ts-authenticate-as-admin-setup-retry2/error-context.md
+
+  2) [setup] › tests/auth.setup.ts:76:1 › authenticate as staff ────────────────────────────────────
+
+    Error: expect(page).not.toHaveURL(expected) failed
+
+    Expected pattern: not /.*\/auth\/signin.*/
+    Received string: "http://localhost:5173/auth/signin"
+    Timeout: 15000ms
+
+    Call log:
+      - Expect "not toHaveURL" with timeout 15000ms
+        34 × unexpected value "http://localhost:5173/auth/signin"
+
+
+      105 |   console.log('Waiting for redirect for staff...');
+      106 |   try {
+    > 107 |     await expect(page).not.toHaveURL(/.*\/auth\/signin.*/, { timeout: 15000 });
+          |                            ^
+      108 |   } catch (err) {
+      109 |     const errorAlert = page.locator('[data-slot="alert"]');
+      110 |     if (await errorAlert.isVisible()) {
+        at /home/runner/work/InsideCare/InsideCare/tests/auth.setup.ts:107:28
+
+    Error Context: test-results/auth.setup.ts-authenticate-as-staff-setup/error-context.md
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(page).not.toHaveURL(expected) failed
+
+    Expected pattern: not /.*\/auth\/signin.*/
+    Received string: "http://localhost:5173/auth/signin"
+    Timeout: 15000ms
+
+    Call log:
+      - Expect "not toHaveURL" with timeout 15000ms
+        34 × unexpected value "http://localhost:5173/auth/signin"
+
+
+      105 |   console.log('Waiting for redirect for staff...');
+      106 |   try {
+    > 107 |     await expect(page).not.toHaveURL(/.*\/auth\/signin.*/, { timeout: 15000 });
+          |                            ^
+      108 |   } catch (err) {
+      109 |     const errorAlert = page.locator('[data-slot="alert"]');
+      110 |     if (await errorAlert.isVisible()) {
+        at /home/runner/work/InsideCare/InsideCare/tests/auth.setup.ts:107:28
+
+    Error Context: test-results/auth.setup.ts-authenticate-as-staff-setup-retry1/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/auth.setup.ts-authenticate-as-staff-setup-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/auth.setup.ts-authenticate-as-staff-setup-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(page).not.toHaveURL(expected) failed
+
+    Expected pattern: not /.*\/auth\/signin.*/
+    Received string: "http://localhost:5173/auth/signin"
+    Timeout: 15000ms
+
+    Call log:
+      - Expect "not toHaveURL" with timeout 15000ms
+        34 × unexpected value "http://localhost:5173/auth/signin"
+
+
+      105 |   console.log('Waiting for redirect for staff...');
+      106 |   try {
+    > 107 |     await expect(page).not.toHaveURL(/.*\/auth\/signin.*/, { timeout: 15000 });
+          |                            ^
+      108 |   } catch (err) {
+      109 |     const errorAlert = page.locator('[data-slot="alert"]');
+      110 |     if (await errorAlert.isVisible()) {
+        at /home/runner/work/InsideCare/InsideCare/tests/auth.setup.ts:107:28
+
+    Error Context: test-results/auth.setup.ts-authenticate-as-staff-setup-retry2/error-context.md
+
+  2 failed
+    [setup] › tests/auth.setup.ts:21:1 › authenticate as admin ─────────────────────────────────────
+    [setup] › tests/auth.setup.ts:76:1 › authenticate as staff ─────────────────────────────────────
+  132 did not run
+Error: Process completed with exit code 1.
