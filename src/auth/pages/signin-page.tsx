@@ -81,6 +81,15 @@ export function SignInPage() {
     },
   });
 
+  // Log validation errors for debugging in CI
+  useEffect(() => {
+    console.log('[SignIn] Component Mounted');
+    const errors = form.formState.errors;
+    if (Object.keys(errors).length > 0) {
+      console.error('[SignIn] Validation Errors:', JSON.stringify(errors, null, 2));
+    }
+  }, [form.formState.errors]);
+
   const loginAs = async (credentials: { email: string; password: string }) => {
     try {
       setIsProcessing(true);
@@ -152,7 +161,12 @@ export function SignInPage() {
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(onSubmit)}
+        onSubmit={(e) => {
+          console.log('[SignIn] Raw form onSubmit triggered');
+          form.handleSubmit(onSubmit, (errors) => {
+            console.error('[SignIn] Submit failed - Validation errors:', JSON.stringify(errors, null, 2));
+          })(e);
+        }}
         className="block w-full space-y-5"
       >
         <div className="text-center space-y-1 pb-3">

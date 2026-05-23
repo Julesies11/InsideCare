@@ -1,221 +1,164 @@
 > metronic-vite@9.4.0 test:smoke
 > playwright test
-
-◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
-
+◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
 Running 134 tests using 1 worker
-◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
 Navigating to /auth/signin for admin...
 BROWSER LOG [admin]: [vite] connecting...
 BROWSER LOG [admin]: [vite] connected.
 BROWSER LOG [admin]: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
 Filling admin credentials...
+Submitting login form...
 Waiting for redirect...
 Login TIMED OUT without a visible error alert. Still on signin page.
+Current URL: http://localhost:5173/auth/signin
+×◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+Navigating to /auth/signin for admin...
+BROWSER LOG [admin]: [vite] connecting...
+BROWSER LOG [admin]: [vite] connected.
+BROWSER LOG [admin]: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+Filling admin credentials...
+Submitting login form...
+Waiting for redirect...
+Login TIMED OUT without a visible error alert. Still on signin page.
+Current URL: http://localhost:5173/auth/signin
 ×◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
 Navigating to /auth/signin for admin...
 BROWSER LOG [admin]: [vite] connecting...
 BROWSER LOG [admin]: [vite] connected.
 BROWSER LOG [admin]: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
 Filling admin credentials...
+Submitting login form...
 Waiting for redirect...
 Login TIMED OUT without a visible error alert. Still on signin page.
-×◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
-Navigating to /auth/signin for admin...
-BROWSER LOG [admin]: [vite] connecting...
-BROWSER LOG [admin]: [vite] connected.
-BROWSER LOG [admin]: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-Filling admin credentials...
-Waiting for redirect...
-Login TIMED OUT without a visible error alert. Still on signin page.
-F◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+Current URL: http://localhost:5173/auth/signin
+F◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
 Navigating to /auth/signin for staff...
 BROWSER LOG [staff]: [vite] connecting...
 BROWSER LOG [staff]: [vite] connected.
 BROWSER LOG [staff]: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
 Filling staff credentials...
+Submitting login form for staff...
 Waiting for redirect for staff...
 Staff Login TIMED OUT without a visible error alert.
-×◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+Current URL: http://localhost:5173/auth/signin
+×◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
 Navigating to /auth/signin for staff...
 BROWSER LOG [staff]: [vite] connecting...
 BROWSER LOG [staff]: [vite] connected.
 BROWSER LOG [staff]: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
 Filling staff credentials...
+Submitting login form for staff...
 Waiting for redirect for staff...
 Staff Login TIMED OUT without a visible error alert.
-×◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+Current URL: http://localhost:5173/auth/signin
+×◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
 Navigating to /auth/signin for staff...
 BROWSER LOG [staff]: [vite] connecting...
 BROWSER LOG [staff]: [vite] connected.
 BROWSER LOG [staff]: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
 Filling staff credentials...
+Submitting login form for staff...
 Waiting for redirect for staff...
 Staff Login TIMED OUT without a visible error alert.
+Current URL: http://localhost:5173/auth/signin
 F
-
   1) [setup] › tests/auth.setup.ts:21:1 › authenticate as admin ────────────────────────────────────
-
-    Error: expect(page).not.toHaveURL(expected) failed
-
-    Expected pattern: not /.*\/auth\/signin.*/
-    Received string: "http://localhost:5173/auth/signin"
-    Timeout: 15000ms
-
-    Call log:
-      - Expect "not toHaveURL" with timeout 15000ms
-        34 × unexpected value "http://localhost:5173/auth/signin"
-
-
-      54 |   // Wait for the app to recognize the state and redirect
-      55 |   try {
-    > 56 |     await expect(page).not.toHaveURL(/.*\/auth\/signin.*/, { timeout: 15000 });
-         |                            ^
-      57 |   } catch (err) {
-      58 |     // Check if there's a visible error alert
-      59 |     const errorAlert = page.locator('[data-slot="alert"]');
-        at /home/runner/work/InsideCare/InsideCare/tests/auth.setup.ts:56:28
-
+    TimeoutError: page.waitForURL: Timeout 15000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation until "load"
+    ============================================================
+      63 |   try {
+      64 |     // Wait for the URL to change away from the signin page
+    > 65 |     await page.waitForURL(url => !url.pathname.includes('/auth/signin'), { timeout: 15000 });
+         |                ^
+      66 |   } catch (err) {
+      67 |     // Check if there's a visible error alert
+      68 |     const errorAlert = page.locator('[data-slot="alert"]');
+        at /home/runner/work/InsideCare/InsideCare/tests/auth.setup.ts:65:16
     Error Context: test-results/auth.setup.ts-authenticate-as-admin-setup/error-context.md
-
     Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
-
-    Error: expect(page).not.toHaveURL(expected) failed
-
-    Expected pattern: not /.*\/auth\/signin.*/
-    Received string: "http://localhost:5173/auth/signin"
-    Timeout: 15000ms
-
-    Call log:
-      - Expect "not toHaveURL" with timeout 15000ms
-        34 × unexpected value "http://localhost:5173/auth/signin"
-
-
-      54 |   // Wait for the app to recognize the state and redirect
-      55 |   try {
-    > 56 |     await expect(page).not.toHaveURL(/.*\/auth\/signin.*/, { timeout: 15000 });
-         |                            ^
-      57 |   } catch (err) {
-      58 |     // Check if there's a visible error alert
-      59 |     const errorAlert = page.locator('[data-slot="alert"]');
-        at /home/runner/work/InsideCare/InsideCare/tests/auth.setup.ts:56:28
-
+    TimeoutError: page.waitForURL: Timeout 15000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation until "load"
+    ============================================================
+      63 |   try {
+      64 |     // Wait for the URL to change away from the signin page
+    > 65 |     await page.waitForURL(url => !url.pathname.includes('/auth/signin'), { timeout: 15000 });
+         |                ^
+      66 |   } catch (err) {
+      67 |     // Check if there's a visible error alert
+      68 |     const errorAlert = page.locator('[data-slot="alert"]');
+        at /home/runner/work/InsideCare/InsideCare/tests/auth.setup.ts:65:16
     Error Context: test-results/auth.setup.ts-authenticate-as-admin-setup-retry1/error-context.md
-
     attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
     test-results/auth.setup.ts-authenticate-as-admin-setup-retry1/trace.zip
     Usage:
-
         npx playwright show-trace test-results/auth.setup.ts-authenticate-as-admin-setup-retry1/trace.zip
-
     ────────────────────────────────────────────────────────────────────────────────────────────────
-
     Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
-
-    Error: expect(page).not.toHaveURL(expected) failed
-
-    Expected pattern: not /.*\/auth\/signin.*/
-    Received string: "http://localhost:5173/auth/signin"
-    Timeout: 15000ms
-
-    Call log:
-      - Expect "not toHaveURL" with timeout 15000ms
-        34 × unexpected value "http://localhost:5173/auth/signin"
-
-
-      54 |   // Wait for the app to recognize the state and redirect
-      55 |   try {
-    > 56 |     await expect(page).not.toHaveURL(/.*\/auth\/signin.*/, { timeout: 15000 });
-         |                            ^
-      57 |   } catch (err) {
-      58 |     // Check if there's a visible error alert
-      59 |     const errorAlert = page.locator('[data-slot="alert"]');
-        at /home/runner/work/InsideCare/InsideCare/tests/auth.setup.ts:56:28
-
+    TimeoutError: page.waitForURL: Timeout 15000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation until "load"
+    ============================================================
+      63 |   try {
+      64 |     // Wait for the URL to change away from the signin page
+    > 65 |     await page.waitForURL(url => !url.pathname.includes('/auth/signin'), { timeout: 15000 });
+         |                ^
+      66 |   } catch (err) {
+      67 |     // Check if there's a visible error alert
+      68 |     const errorAlert = page.locator('[data-slot="alert"]');
+        at /home/runner/work/InsideCare/InsideCare/tests/auth.setup.ts:65:16
     Error Context: test-results/auth.setup.ts-authenticate-as-admin-setup-retry2/error-context.md
-
-  2) [setup] › tests/auth.setup.ts:76:1 › authenticate as staff ────────────────────────────────────
-
-    Error: expect(page).not.toHaveURL(expected) failed
-
-    Expected pattern: not /.*\/auth\/signin.*/
-    Received string: "http://localhost:5173/auth/signin"
-    Timeout: 15000ms
-
-    Call log:
-      - Expect "not toHaveURL" with timeout 15000ms
-        34 × unexpected value "http://localhost:5173/auth/signin"
-
-
-      105 |   console.log('Waiting for redirect for staff...');
-      106 |   try {
-    > 107 |     await expect(page).not.toHaveURL(/.*\/auth\/signin.*/, { timeout: 15000 });
-          |                            ^
-      108 |   } catch (err) {
-      109 |     const errorAlert = page.locator('[data-slot="alert"]');
-      110 |     if (await errorAlert.isVisible()) {
-        at /home/runner/work/InsideCare/InsideCare/tests/auth.setup.ts:107:28
-
+  2) [setup] › tests/auth.setup.ts:86:1 › authenticate as staff ────────────────────────────────────
+    TimeoutError: page.waitForURL: Timeout 15000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation until "load"
+    ============================================================
+      122 |   console.log('Waiting for redirect for staff...');
+      123 |   try {
+    > 124 |     await page.waitForURL(url => !url.pathname.includes('/auth/signin'), { timeout: 15000 });
+          |                ^
+      125 |   } catch (err) {
+      126 |     const errorAlert = page.locator('[data-slot="alert"]');
+      127 |     if (await errorAlert.isVisible()) {
+        at /home/runner/work/InsideCare/InsideCare/tests/auth.setup.ts:124:16
     Error Context: test-results/auth.setup.ts-authenticate-as-staff-setup/error-context.md
-
     Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
-
-    Error: expect(page).not.toHaveURL(expected) failed
-
-    Expected pattern: not /.*\/auth\/signin.*/
-    Received string: "http://localhost:5173/auth/signin"
-    Timeout: 15000ms
-
-    Call log:
-      - Expect "not toHaveURL" with timeout 15000ms
-        34 × unexpected value "http://localhost:5173/auth/signin"
-
-
-      105 |   console.log('Waiting for redirect for staff...');
-      106 |   try {
-    > 107 |     await expect(page).not.toHaveURL(/.*\/auth\/signin.*/, { timeout: 15000 });
-          |                            ^
-      108 |   } catch (err) {
-      109 |     const errorAlert = page.locator('[data-slot="alert"]');
-      110 |     if (await errorAlert.isVisible()) {
-        at /home/runner/work/InsideCare/InsideCare/tests/auth.setup.ts:107:28
-
+    TimeoutError: page.waitForURL: Timeout 15000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation until "load"
+    ============================================================
+      122 |   console.log('Waiting for redirect for staff...');
+      123 |   try {
+    > 124 |     await page.waitForURL(url => !url.pathname.includes('/auth/signin'), { timeout: 15000 });
+          |                ^
+      125 |   } catch (err) {
+      126 |     const errorAlert = page.locator('[data-slot="alert"]');
+      127 |     if (await errorAlert.isVisible()) {
+        at /home/runner/work/InsideCare/InsideCare/tests/auth.setup.ts:124:16
     Error Context: test-results/auth.setup.ts-authenticate-as-staff-setup-retry1/error-context.md
-
     attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
     test-results/auth.setup.ts-authenticate-as-staff-setup-retry1/trace.zip
     Usage:
-
         npx playwright show-trace test-results/auth.setup.ts-authenticate-as-staff-setup-retry1/trace.zip
-
     ────────────────────────────────────────────────────────────────────────────────────────────────
-
     Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
-
-    Error: expect(page).not.toHaveURL(expected) failed
-
-    Expected pattern: not /.*\/auth\/signin.*/
-    Received string: "http://localhost:5173/auth/signin"
-    Timeout: 15000ms
-
-    Call log:
-      - Expect "not toHaveURL" with timeout 15000ms
-        34 × unexpected value "http://localhost:5173/auth/signin"
-
-
-      105 |   console.log('Waiting for redirect for staff...');
-      106 |   try {
-    > 107 |     await expect(page).not.toHaveURL(/.*\/auth\/signin.*/, { timeout: 15000 });
-          |                            ^
-      108 |   } catch (err) {
-      109 |     const errorAlert = page.locator('[data-slot="alert"]');
-      110 |     if (await errorAlert.isVisible()) {
-        at /home/runner/work/InsideCare/InsideCare/tests/auth.setup.ts:107:28
-
+    TimeoutError: page.waitForURL: Timeout 15000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation until "load"
+    ============================================================
+      122 |   console.log('Waiting for redirect for staff...');
+      123 |   try {
+    > 124 |     await page.waitForURL(url => !url.pathname.includes('/auth/signin'), { timeout: 15000 });
+          |                ^
+      125 |   } catch (err) {
+      126 |     const errorAlert = page.locator('[data-slot="alert"]');
+      127 |     if (await errorAlert.isVisible()) {
+        at /home/runner/work/InsideCare/InsideCare/tests/auth.setup.ts:124:16
     Error Context: test-results/auth.setup.ts-authenticate-as-staff-setup-retry2/error-context.md
-
   2 failed
     [setup] › tests/auth.setup.ts:21:1 › authenticate as admin ─────────────────────────────────────
-    [setup] › tests/auth.setup.ts:76:1 › authenticate as staff ─────────────────────────────────────
+    [setup] › tests/auth.setup.ts:86:1 › authenticate as staff ─────────────────────────────────────
   132 did not run
 Error: Process completed with exit code 1.

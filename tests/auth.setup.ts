@@ -55,8 +55,11 @@ setup('authenticate as admin', async ({ page }) => {
   await page.getByLabel(/Email/i).fill(ADMIN_EMAIL);
   await page.getByLabel(/Password/i).fill(ADMIN_PASSWORD);
   
-  console.log('Submitting login form...');
-  await page.getByRole('button', { name: /Sign In/i }).click();
+  // Wait a moment for state to sync
+  await page.waitForTimeout(500);
+
+  console.log('Submitting login form via Enter key...');
+  await page.keyboard.press('Enter');
 
   console.log('Waiting for redirect...');
   // Wait for the app to recognize the state and redirect
@@ -116,8 +119,11 @@ setup('authenticate as staff', async ({ page }) => {
   await page.getByLabel(/Email/i).fill(STAFF_EMAIL);
   await page.getByLabel(/Password/i).fill(STAFF_PASSWORD);
   
-  console.log('Submitting login form for staff...');
-  await page.getByRole('button', { name: /Sign In/i }).click();
+  // Wait a moment for state to sync
+  await page.waitForTimeout(500);
+
+  console.log('Submitting login form for staff via Enter key...');
+  await page.keyboard.press('Enter');
 
   console.log('Waiting for redirect for staff...');
   try {
