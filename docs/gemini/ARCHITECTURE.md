@@ -204,20 +204,35 @@ To ensure a consistent and secure user experience, all major entity detail pages
   - `old_consolidated/`: Historical migration files (archived).
 
 ## 8. Testing Strategy
-The project follows a rigorous testing strategy to ensure reliability of the core business logic.
+The project follows a multi-layered testing strategy to ensure reliability across core business logic and UI stability.
 
-- **Framework**: [Vitest](https://vitest.dev/) for unit and integration testing.
-- **Library**: [React Testing Library](https://testing-library.com/docs/react-reality-library/intro/) for testing hooks and components.
+### 1. Unit & Integration Testing (Vitest)
+- **Framework**: [Vitest](https://vitest.dev/).
+- **Library**: [React Testing Library](https://testing-library.com/).
 - **API Mocking**: [MSW (Mock Service Worker)](https://mswjs.io/) to mock Supabase REST and Auth endpoints.
-  - Handlers are located in `src/test/mocks/handlers.ts`.
-  - The mock server is configured in `src/test/mocks/server.ts`.
-- **Test Locations**: 
-  - Hook tests: `src/hooks/*.test.ts` or `src/hooks/*.test.tsx`.
-  - Utility tests: `src/lib/*.test.ts`.
 - **Patterns**:
   - **Empirical Reproduction**: When fixing a bug, first create a test case that reproduces the failure.
   - **Hook Isolation**: Tests focus on verifying the state transitions and API calls triggered by custom hooks.
-  - **MSW for Stability**: Avoid mocking the Supabase client directly; mock the network layer instead for more realistic integration tests.
+
+### 2. End-to-End & Smoke Testing (Playwright)
+The project maintains a comprehensive Playwright suite for high-level validation.
+
+- **Smoke Testing (`tests/smoke.spec.ts`)**: 
+  - Achieves **100% route coverage** for all public, staff, and admin pages.
+  - Verifies the absence of "White Screen of Death" (WSoD) rendering failures.
+  - Validates **RBAC Baselines** (ensuring unauthorized users are redirected).
+  - Validates **Deep Link Stability** (verifying that specific tabs/parameters render correctly).
+
+- **Functional E2E Testing (`tests/e2e/`)**:
+  - Validates critical business workflows across domain-specific files:
+    - `auth.spec.ts`: Login/Logout and security boundaries.
+    - `staff.spec.ts`: Leave requests, timesheets, shift notes, and rosters.
+    - `admin.spec.ts`: Roster board management, activity logs, and roles.
+    - `house-participant.spec.ts`: Participant profiles, house management, and deep-linking.
+
+- **Execution Policy**:
+  - **CI-Only**: Playwright tests are exclusively owned by the GitHub Actions pipeline. They are **NOT** to be run locally to prevent resource exhaustion and timeouts.
+  - **Auth Persistence**: Uses `storageState` (`.auth/*.json`) to persist Admin and Staff sessions, minimizing login overhead.
 
 ## 9. Image Processing & Storage
 The application implements a high-performance, client-side image optimization workflow to ensure visual consistency and minimize storage costs.

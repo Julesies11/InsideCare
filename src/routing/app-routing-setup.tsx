@@ -37,6 +37,7 @@ const StaffProfile = lazy(() => import('@/pages/staff').then(m => ({ default: m.
 const StaffChecklists = lazy(() => import('@/pages/staff').then(m => ({ default: m.StaffChecklists })));
 
 const ChecklistMasterPage = lazy(() => import('@/pages/admin/checklists/checklist-master-page').then(m => ({ default: m.ChecklistMasterPage })));
+const LeaveTypeMasterPage = lazy(() => import('@/pages/admin/leave-types/leave-type-master-page').then(m => ({ default: m.LeaveTypeMasterPage })));
 const RolesPage = lazy(() => import('@/pages/admin/roles/roles-page').then(m => ({ default: m.RolesPage })));
 const ActivityLogPage = lazy(() => import('@/pages/admin/activity-log/activity-log-page').then(m => ({ default: m.ActivityLogPage })));
 const NotificationCenter = lazy(() => import('@/pages/account/notifications/notification-center').then(m => ({ default: m.NotificationCenter })));
@@ -159,6 +160,12 @@ export function AppRoutingSetup() {
                 path="/admin/checklist-templates"
                 element={<ChecklistMasterPage />}
               />
+              <Route element={<RequirePermission module={RBAC_MODULES.MASTER_LISTS} />}>
+                <Route
+                  path="/admin/leave-types"
+                  element={<LeaveTypeMasterPage />}
+                />
+              </Route>
               <Route
                 path="/admin/roles"
                 element={<RolesPage />}

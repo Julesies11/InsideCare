@@ -7,74 +7,23 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
+// Map of role permissions to check against
+const PERMISSION_COLUMNS = [
+  'my_roster', 'my_timesheets', 'my_leave', 'shift_routines',
+  'participants', 'shift_notes', 'employees', 'timesheets',
+  'leave_requests', 'roster_board', 'houses', 'house_checklists',
+  'access_control', 'master_lists', 'activity_log'
+];
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { 
-      status: 204, 
-      headers: corsHeaders 
-    });
+    return new Response(null, { status: 204, headers: corsHeaders });
   }
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
     const supabaseServiceKey = Deno.env.get('SERVICE_ROLE_KEY') ?? '';
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
-
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
-
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      throw new Error('Missing Authorization header');
-    }
-
-    const isServiceRole = authHeader === `Bearer ${supabaseServiceKey}`;
-    let isCallerAdmin = false;
-
-    if (!isServiceRole) {
-      const supabaseUser = createClient(supabaseUrl, supabaseAnonKey, {
-        global: { headers: { Authorization: authHeader } },
-      });
-
-      const { data: { user: callingUser }, error: userError } = await supabaseUser.auth.getUser();
-      if (userError || !callingUser) {
-        throw new Error('Unauthorized');
-      }
-
-      // --- HARDENING: Server-Side Role Check ---
-      const { data: callerProfile, error: callerError } = await supabaseAdmin
-        .from('ic_staff')
-        .select('id, role_id')
-        .eq('auth_user_id', callingUser.id)
-        .eq('status', 'active')
-        .maybeSingle();
-
-      if (callerError || !callerProfile) {
-        console.error(`Unauthorized access attempt by user ${callingUser.id}`);
-        throw new Error('Forbidden: Active staff profile required');
-      }
-
-      // Module constants (Must match RBAC_MODULES in frontend)
-      const ACCESS_CONTROL_MODULE = 'access_control';
-
-      // Determine admin status by checking permissions for 'access_control' module
-      const { data: callerPerms, error: permsError } = await supabaseAdmin
-        .from('ic_role_permissions')
-        .select(ACCESS_CONTROL_MODULE)
-        .eq('role_id', callerProfile.role_id)
-        .maybeSingle();
-
-      if (permsError) throw permsError;
-      isCallerAdmin = callerPerms?.[ACCESS_CONTROL_MODULE] === 'full';
-
-      if (!isCallerAdmin) {
-        console.error(`User ${callingUser.id} attempted to update roles without admin rights.`);
-        throw new Error('Forbidden: Admin access (full access_control) required');
-      }
-    } else {
-      isCallerAdmin = true;
-      console.log('Authorized via Service Role');
-    }
-    // --- END HARDENING ---
 
     let body;
     try {
@@ -83,36 +32,99 @@ serve(async (req) => {
       throw new Error('Invalid JSON body');
     }
 
-    const { userId, isAdmin: targetIsAdmin, permissions } = body;
-    if (!userId) {
-      throw new Error('userId is required');
+    let targetAuthUserId: string | null = null;
+    let targetStaffId: string | null = null;
+
+    // 1. Determine the target user from the Webhook Payload
+    if (body.table === 'ic_staff') {
+      const record = body.type === 'DELETE' ? body.old_record : body.record;
+      targetAuthUserId = record.auth_user_id;
+      targetStaffId = record.id;
+    } else if (body.table === 'ic_house_staff_assignments') {
+      const record = body.type === 'DELETE' ? body.old_record : body.record;
+      targetStaffId = record.staff_id;
+      // We need to look up the auth_user_id for this staff member
+      const { data: staff } = await supabaseAdmin
+        .from('ic_staff')
+        .select('auth_user_id')
+        .eq('id', targetStaffId)
+        .single();
+      targetAuthUserId = staff?.auth_user_id;
+    } else if (body.userId) {
+       // Manual invocation fallback
+       targetAuthUserId = body.userId;
     }
 
-    // Prepare update data for BOTH app_metadata and user_metadata for backward compatibility
-    const updateData: any = {
-      app_metadata: {},
-      user_metadata: {}
+    if (!targetAuthUserId) {
+      console.log('No valid auth_user_id found to sync. Exiting gracefully.');
+      return new Response(JSON.stringify({ success: true, message: 'No sync required' }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log(`Syncing JWT claims for Auth User: ${targetAuthUserId}`);
+
+    // 2. Fetch the comprehensive state from the database
+    const { data: profile, error: profileError } = await supabaseAdmin
+      .from('ic_staff')
+      .select('id, role_id, status')
+      .eq('auth_user_id', targetAuthUserId)
+      .maybeSingle();
+
+    if (profileError) throw profileError;
+
+    let is_admin = false;
+    const permissions: Record<string, string> = {};
+    let assigned_houses: string[] = [];
+    const staff_id = profile?.id ?? null;
+
+    // Only calculate active permissions if the profile is active
+    if (profile && profile.status === 'active' && profile.role_id) {
+      // Get Role Permissions
+      const { data: rolePerms } = await supabaseAdmin
+        .from('ic_role_permissions')
+        .select('*')
+        .eq('role_id', profile.role_id)
+        .maybeSingle();
+
+      if (rolePerms) {
+        is_admin = rolePerms.access_control === 'full';
+        PERMISSION_COLUMNS.forEach(col => {
+          if (rolePerms[col]) permissions[col] = rolePerms[col];
+        });
+      }
+
+      // Get House Assignments
+      const { data: assignments } = await supabaseAdmin
+        .from('ic_house_staff_assignments')
+        .select('house_id')
+        .eq('staff_id', staff_id);
+      
+      if (assignments) {
+        assigned_houses = assignments.map(a => a.house_id);
+      }
+    }
+
+    // 3. Prepare the new app_metadata payload
+    const updateData = {
+      app_metadata: {
+        is_admin,
+        staff_id,
+        permissions,
+        assigned_houses
+      }
     };
-    
-    if (targetIsAdmin !== undefined) {
-      updateData.app_metadata.is_admin = targetIsAdmin;
-      updateData.user_metadata.is_admin = targetIsAdmin;
-    }
-    
-    if (permissions !== undefined) {
-      updateData.app_metadata.permissions = permissions;
-      updateData.user_metadata.permissions = permissions;
-    }
 
-    // Update the user via Supabase admin API
+    // 4. Inject into Supabase Auth
     const { data: updatedUser, error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
-      userId,
+      targetAuthUserId,
       updateData
     );
 
-    if (updateError) {
-      throw updateError;
-    }
+    if (updateError) throw updateError;
+
+    console.log(`Successfully synced JWT for ${targetAuthUserId}. Admin: ${is_admin}, Houses: ${assigned_houses.length}`);
 
     return new Response(JSON.stringify({ success: true, user: updatedUser.user }), {
       status: 200,
@@ -120,7 +132,7 @@ serve(async (req) => {
     });
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : String(err);
-    console.error('Edge Function Error:', errorMessage);
+    console.error('Edge Function Sync Error:', errorMessage);
     return new Response(JSON.stringify({ error: errorMessage }), {
       status: 400,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

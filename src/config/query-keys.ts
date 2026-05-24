@@ -36,6 +36,7 @@ export const QUERY_KEYS = {
   EMPLOYMENT_TYPES_MASTER: 'employment-types-master',
   HOUSE_TYPES_MASTER: 'house-types-master',
   EVENT_TYPES_MASTER: 'house-calendar-event-types-master',
+  LEAVE_TYPES: 'leave-types',
   SHIFT_TEMPLATES: 'global-shift-templates',
   HOUSE_SHIFT_TEMPLATES: 'house-shift-templates',
 

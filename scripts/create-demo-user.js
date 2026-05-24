@@ -129,6 +129,54 @@ async function setupUsers() {
       }
     }
 
+    console.log('Checking for default House...');
+    let { data: house, error: houseError } = await supabase
+      .from('ic_houses')
+      .select('id')
+      .eq('house_name', 'New House')
+      .maybeSingle();
+
+    if (!house) {
+      console.log('Creating New House...');
+      const { data: newHouse, error: createHouseError } = await supabase
+        .from('ic_houses')
+        .insert({ house_name: 'New House', status: 'active' })
+        .select().single();
+      if (createHouseError) throw createHouseError;
+      house = newHouse;
+    }
+
+    console.log('Checking for default Participant...');
+    let { data: participant, error: participantError } = await supabase
+      .from('ic_participants')
+      .select('id')
+      .eq('participant_name', 'John Doe')
+      .maybeSingle();
+
+    if (!participant) {
+      console.log('Creating John Doe...');
+      const { error: createParticipantError } = await supabase
+        .from('ic_participants')
+        .insert({ 
+          participant_name: 'John Doe', 
+          email: 'john.doe@example.com',
+          status: 'active', 
+          house_id: house.id 
+        });
+      if (createParticipantError) throw createParticipantError;
+    }
+
+    console.log('Checking for Leave Types...');
+    const { data: leaveTypes } = await supabase.from('ic_leave_types').select('id').limit(1);
+    if (!leaveTypes || leaveTypes.length === 0) {
+      console.log('Creating default Leave Types...');
+      const { error: ltError } = await supabase.from('ic_leave_types').insert([
+        { leave_type_name: 'Annual Leave', is_active: true },
+        { leave_type_name: 'Sick Leave', is_active: true }
+      ]);
+      if (ltError) throw ltError;
+    }
+
     console.log('✅ Environment Provisioned Successfully!');
     console.log('💡 Now run: node scripts/sync-all-user-jwt.js');
 

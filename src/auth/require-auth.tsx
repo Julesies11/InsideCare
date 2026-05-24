@@ -59,7 +59,7 @@ export const RequireAuth = () => {
  * Staff-only users are redirected to their dashboard.
  */
 export const RequireAdmin = () => {
-  const { auth, user, isAdmin, isStaff, loading } = useAuth();
+  const { auth, user, isAdmin, loading } = useAuth();
 
   if (loading) return <ScreenLoader />;
 
@@ -67,13 +67,13 @@ export const RequireAdmin = () => {
     return <Navigate to="/auth/signin" replace />;
   }
 
-  // user is loaded (not undefined) and is staff-only — redirect away
-  if (user && isStaff && !isAdmin) {
-    return <Navigate to="/staff/dashboard" replace />;
-  }
-
   // user not yet loaded but auth token exists — wait
   if (!user) return <ScreenLoader />;
+
+  // User is authenticated but not an admin — redirect to 403
+  if (!isAdmin) {
+    return <Navigate to="/error/403" replace />;
+  }
 
   return <Outlet />;
 };

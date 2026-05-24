@@ -31,7 +31,7 @@ import { toast } from 'sonner';
 
 interface LeaveRequest {
   id: string;
-  leave_type: { name: string } | null;
+  leave_type: { leave_type_name: string } | null;
   start_date: string;
   end_date: string;
   reason: string | null;

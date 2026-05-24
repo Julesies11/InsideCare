@@ -91,6 +91,12 @@ export const MENU_SIDEBAR: MenuItemConfig[] = [
     permission: RBAC_MODULES.ACCESS_CONTROL,
   },
   {
+    title: 'Leave Types',
+    icon: LogOut,
+    path: '/admin/leave-types',
+    permission: RBAC_MODULES.MASTER_LISTS,
+  },
+  {
     title: 'Checklist Templates',
     icon: ClipboardList,
     path: '/admin/checklist-templates',

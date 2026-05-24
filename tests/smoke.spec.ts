@@ -39,7 +39,16 @@ const PUBLIC_PAGES = [
   '/auth/reset-password/changed',
   '/auth/branded/signin',
   '/auth/branded/signup',
+  '/auth/branded/change-password',
+  '/auth/branded/reset-password',
+  '/auth/branded/2fa',
+  '/auth/branded/check-email',
+  '/auth/branded/reset-password/check-email',
+  '/auth/branded/reset-password/changed',
+  '/auth/callback',
   '/error/404',
+  '/error/403',
+  '/error/500',
 ];
 
 // Pages accessible by both Staff and Admins
@@ -55,6 +64,8 @@ const STAFF_PAGES = [
   '/participants/profiles',
   '/participants/shift-notes',
   '/auth/welcome-message',
+  '/auth/account-deactivated',
+  '/account/notifications',
 ];
 
 // Pages accessible only by Admins
@@ -63,8 +74,10 @@ const ADMIN_PAGES = [
   '/employees/timesheets',
   '/employees/leave-requests',
   '/admin/checklist-templates',
+  '/admin/roles',
   '/houses/profiles',
   '/roster-board',
+  '/activity-log',
 ];
 
 // Helper to check for White Screen of Death or major rendering errors
@@ -115,6 +128,7 @@ for (const path of ADMIN_PAGES) {
 const MOCK_PARTICIPANT_ID = 'participant-1';
 const MOCK_STAFF_ID = 'staff-1';
 const MOCK_HOUSE_ID = 'house-1';
+const MOCK_SHIFT_ID = 'shift-1';
 
 staffTest(`Participant Detail page loads`, async ({ page }) => {
   await page.goto(`/participants/detail/${MOCK_PARTICIPANT_ID}`);
@@ -124,6 +138,39 @@ staffTest(`Participant Detail page loads`, async ({ page }) => {
 staffTest(`Participant Edit page loads`, async ({ page }) => {
   await page.goto(`/participants/detail/${MOCK_PARTICIPANT_ID}/edit`);
   await checkNoWSoD(page);
+});
+
+staffTest(`Staff Timesheet Form page loads`, async ({ page }) => {
+  await page.goto(`/staff/roster/${MOCK_SHIFT_ID}/timesheet`);
+  await checkNoWSoD(page);
+});
+
+// Deep Link & Tab Smoke Tests
+staffTest(`Participant Detail Medications tab loads`, async ({ page }) => {
+  await page.goto(`/participants/detail/${MOCK_PARTICIPANT_ID}?tab=medications`);
+  await checkNoWSoD(page);
+});
+
+staffTest(`Participant Detail Documents tab loads`, async ({ page }) => {
+  await page.goto(`/participants/detail/${MOCK_PARTICIPANT_ID}?tab=documents`);
+  await checkNoWSoD(page);
+});
+
+// RBAC & Security Verification Tests
+publicTest(`Public user is redirected from protected page to signin`, async ({ page }) => {
+  await page.goto('/staff/dashboard');
+  await expect(page).toHaveURL(/\/auth\/signin/);
+});
+
+staffTest(`Staff member is blocked from Admin Roster Board`, async ({ page }) => {
+  await page.goto('/roster-board');
+  // RequirePermission redirects to 403
+  await expect(page).toHaveURL(/\/error\/403/);
+});
+
+staffTest(`Staff member is blocked from Admin Activity Log`, async ({ page }) => {
+  await page.goto('/activity-log');
+  await expect(page).toHaveURL(/\/error\/403/);
 });
 
 adminTest(`Staff Detail page loads`, async ({ page }) => {

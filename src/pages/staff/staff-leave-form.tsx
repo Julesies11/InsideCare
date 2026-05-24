@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ArrowLeft, AlertTriangle, Paperclip, X } from 'lucide-react';
+import { ArrowLeft, AlertTriangle, Paperclip, X, Settings2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Container } from '@/components/common/container';
@@ -28,13 +28,11 @@ import {
 } from '@/partials/common/toolbar';
 import { TABLES } from '@/config/db-tables';
 import { STORAGE_BUCKETS } from '@/config/storage-buckets';
-import { QUERY_KEYS } from '@/config/query-keys';
 import { LEAVE_STATUS } from '@/config/enums';
-
-interface LeaveType {
-  id: string;
-  leave_type_name: string;
-}
+import { useLeaveTypesMaster } from '@/hooks/use-leave-types-master';
+import { LeaveTypeMasterDialog } from '@/pages/admin/leave-types/components/leave-type-master-dialog';
+import { RBAC_MODULES } from '@/config/rbac-modules';
+import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
 
 interface ConflictingShift {
   id: string;
@@ -46,12 +44,14 @@ interface ConflictingShift {
 
 export function StaffLeaveForm() {
   const { user } = useAuth();
+  const { hasAccess } = useRBAC();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const isEdit = !!id;
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [leaveTypes, setLeaveTypes] = useState<LeaveType[]>([]);
+  const { data: leaveTypes = [], refetch: refetchLeaveTypes } = useLeaveTypesMaster(false);
+  const [showManageDialog, setShowManageDialog] = useState(false);
   const [leaveTypeId, setLeaveTypeId] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -61,21 +61,14 @@ export function StaffLeaveForm() {
   const [saving, setSaving] = useState(false);
   const [loadingEdit, setLoadingEdit] = useState(isEdit);
 
+  const canManageLeaveTypes = hasAccess({
+    resource: RBAC_MODULES.MASTER_LISTS,
+    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE,
+  });
+
   // Conflict detection
   const [conflictingShifts, setConflictingShifts] = useState<ConflictingShift[]>([]);
   const [checkingConflicts, setCheckingConflicts] = useState(false);
-
-  useEffect(() => {
-    const fetchLeaveTypes = async () => {
-      const { data } = await supabase
-        .from('ic_leave_types')
-        .select('id, leave_type_name')
-        .eq('is_active', true)
-        .order('leave_type_name');
-      setLeaveTypes((data as LeaveType[]) || []);
-    };
-    fetchLeaveTypes();
-  }, []);
 
   // Load existing leave for edit mode
   useEffect(() => {
@@ -251,7 +244,21 @@ export function StaffLeaveForm() {
             <CardContent className="pt-6 pb-8 px-4 sm:px-6">
               <form id="leave-form" onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="leaveType">Leave Type <span className="text-destructive">*</span></Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="leaveType">Leave Type <span className="text-destructive">*</span></Label>
+                    {canManageLeaveTypes && (
+                      <Button 
+                        type="button" 
+                        variant="link" 
+                        size="sm" 
+                        className="h-auto p-0 text-primary font-medium flex items-center gap-1"
+                        onClick={() => setShowManageDialog(true)}
+                      >
+                        <Settings2 className="size-3.5" />
+                        Manage List
+                      </Button>
+                    )}
+                  </div>
                   <Select value={leaveTypeId} onValueChange={setLeaveTypeId} required>
                     <SelectTrigger id="leaveType">
                       <SelectValue placeholder="Select leave type" />
@@ -356,6 +363,12 @@ export function StaffLeaveForm() {
           </Card>
         </div>
       </Container>
+
+      <LeaveTypeMasterDialog
+        open={showManageDialog}
+        onClose={() => setShowManageDialog(false)}
+        onUpdate={refetchLeaveTypes}
+      />
     </>
   );
 }
