@@ -91,7 +91,7 @@ jobs:
     name: Playwright E2E Tests
     needs: ci
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/dev'
+    if: (github.event_name == 'pull_request' || github.ref == 'refs/heads/dev') && !startsWith(github.head_ref || github.ref_name, 'hotfix/')
     environment: Dev
     env:
       VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
