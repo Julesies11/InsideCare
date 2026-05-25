@@ -6,13 +6,11 @@ export const STATUS = {
   ACTIVE: 'Active',
   INACTIVE: 'Inactive',
   DRAFT: 'Draft',
-  ARCHIVED: 'Archived',
   
   // Database lowercase variants
   active: 'active',
   inactive: 'inactive',
   draft: 'draft',
-  archived: 'archived',
 } as const;
 
 export const CHECKLIST_STATUS = {

@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/auth/context/auth-context';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { AlertCircle, Check, Eye, EyeOff } from 'lucide-react';
+import { AlertCircle, Check, Eye, EyeOff, ShieldAlert } from 'lucide-react';
 import { useForm } from 'react-hook-form';
-import { Link, useNavigate, useSearchParams } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { supabase } from '@/lib/supabase';
 import { Alert, AlertIcon, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -23,58 +23,117 @@ import {
 
 export function ChangePasswordPage() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  useAuth();
+  const { getUser } = useAuth();
+  
+  // Start initializing if we see tokens in the URL hash, wait for Supabase to consume them
+  const [isInitializing, setIsInitializing] = useState(() => {
+    const hash = typeof window !== 'undefined' ? window.location.hash : '';
+    return hash.includes('access_token') || hash.includes('type=recovery') || hash.includes('type=invite');
+  });
+  
+  const [sessionUser, setSessionUser] = useState<any>(null);
+  const [isAdminSession, setIsAdminSession] = useState(false);
+  
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [tokenValid, setTokenValid] = useState(false);
 
-  // Check for different possible token parameter names used by Supabase
-  // Supabase might use 'token', 'code', 'token_hash' or pass it as a URL hash
-  const token =
-    searchParams.get('token') ||
-    searchParams.get('code') ||
-    searchParams.get('token_hash');
+  // Define verification logic
+  const verifySession = async () => {
+    try {
+      // 1. Check for existing session
+      const { data: { session: existingSession } } = await supabase.auth.getSession();
+      
+      if (existingSession?.user) {
+        setSessionUser(existingSession.user);
+        setIsAdminSession(!!existingSession.user.app_metadata?.is_admin);
+        setIsInitializing(false);
+        return;
+      }
 
-  console.log('Reset token from URL:', token);
-  console.log(
-    'All search parameters:',
-    Object.fromEntries(searchParams.entries()),
-  );
+      // 2. MANUAL RECOVERY: If no session but hash exists, try to manually consume it
+      const hash = typeof window !== 'undefined' ? window.location.hash : '';
+      if (hash && hash.includes('access_token')) {
+        console.log('Detected unconsumed tokens in hash. Attempting manual recovery...');
+        
+        // Convert hash to params
+        const params = new URLSearchParams(hash.substring(1));
+        const accessToken = params.get('access_token');
+        const refreshToken = params.get('refresh_token');
 
-  // Process Supabase recovery token
+        if (accessToken && refreshToken) {
+          const { data: { session: recoveredSession }, error: recoveryError } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+
+          if (!recoveryError && recoveredSession?.user) {
+            console.log('Successfully recovered session from hash!');
+            setSessionUser(recoveredSession.user);
+            setIsAdminSession(!!recoveredSession.user.app_metadata?.is_admin);
+            setIsInitializing(false);
+            // Clean up the URL hash
+            window.history.replaceState(null, '', window.location.pathname);
+            return;
+          } else if (recoveryError) {
+            console.error('Manual recovery error:', recoveryError.message);
+          }
+        }
+      }
+
+      // 3. If we reach here and have no tokens, it truly is an invalid link
+      if (!hash.includes('access_token')) {
+        setSessionUser(null);
+        setIsAdminSession(false);
+        setIsInitializing(false);
+      }
+    } catch (err) {
+      console.error('Session verification error:', err);
+      setIsInitializing(false);
+    }
+  };
+
+  // Run verification on mount and on auth events
   useEffect(() => {
-    // This automatically processes the token in the URL
-    const { data: authListener } = supabase.auth.onAuthStateChange((event) => {
+    let attempts = 0;
+    const maxAttempts = 5; // 5 seconds of polling
+
+    const checkInterval = setInterval(() => {
+      attempts++;
+      console.log(`Verification attempt ${attempts}...`);
+      verifySession();
+      
+      if (attempts >= maxAttempts) {
+        clearInterval(checkInterval);
+        // If we still haven't found a session after 5 seconds, stop spinning
+        setIsInitializing(false);
+      }
+    }, 1000);
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth event detected in ChangePasswordPage:', event);
+      
+      // Handle any event that provides a user session
+      if (session?.user) {
+        setSessionUser(session.user);
+        setIsAdminSession(!!session.user.app_metadata?.is_admin);
+        setIsInitializing(false);
+        clearInterval(checkInterval);
+      }
+      
+      // Specifically handle the recovery event
       if (event === 'PASSWORD_RECOVERY') {
-        // Token is valid and has been processed by Supabase
-        console.log('Password recovery mode activated');
-        setTokenValid(true);
         setSuccessMessage('You can now set your new password');
       }
     });
 
     return () => {
+      clearInterval(checkInterval);
       authListener.subscription.unsubscribe();
     };
   }, []);
-
-  // Also check for hash fragment which might contain the token
-  useEffect(() => {
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const hashToken =
-      hashParams.get('token') ||
-      hashParams.get('code') ||
-      hashParams.get('token_hash');
-
-    if (hashToken && !token) {
-      console.log('Found token in URL hash fragment:', hashToken);
-      // Optionally, you could update the state or reload the page with the token as a query param
-    }
-  }, [token]);
 
   const form = useForm<NewPasswordSchemaType>({
     resolver: zodResolver(getNewPasswordSchema()),
@@ -89,8 +148,13 @@ export function ChangePasswordPage() {
       setIsProcessing(true);
       setError(null);
 
-      // Use Supabase's updateUser method directly
-      // The token is already processed by the onAuthStateChange handler
+      // Final session check before update
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('Auth session missing! Please click the link in your email again.');
+      }
+
+      // 1. Update the password
       const { error } = await supabase.auth.updateUser({
         password: values.password,
       });
@@ -99,16 +163,20 @@ export function ChangePasswordPage() {
         throw new Error(error.message);
       }
 
-      // Set success message
-      setSuccessMessage('Password changed successfully!');
-
-      // Reset form
+      setSuccessMessage('Password set successfully! Redirecting you to the dashboard...');
       form.reset();
 
-      // Redirect to login page after a successful password reset
+      // 2. Refresh the user context to ensure permissions are loaded
+      const user = await getUser();
+
+      // 3. Smoothly redirect to dashboard after a short delay
       setTimeout(() => {
-        navigate('/auth/signin');
-      }, 2000);
+        if (user?.is_admin) {
+          navigate('/');
+        } else {
+          navigate('/staff/dashboard');
+        }
+      }, 1500);
     } catch (err) {
       console.error('Password reset error:', err);
       setError(
@@ -121,7 +189,56 @@ export function ChangePasswordPage() {
     }
   }
 
-  if (!token && !tokenValid) {
+  // --- RENDERING LOGIC ---
+
+  // 1. Initial verification loader
+  if (isInitializing) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 space-y-4">
+        <LoaderCircleIcon className="size-8 animate-spin text-primary" />
+        <p className="text-muted-foreground animate-pulse">Verifying link...</p>
+      </div>
+    );
+  }
+
+  // 2. Security Check: Admin Session Warning
+  if (isAdminSession) {
+    return (
+      <div className="max-w-md mx-auto space-y-6">
+        <div className="text-center space-y-2">
+          <div className="flex justify-center">
+            <div className="bg-amber-100 p-3 rounded-full">
+              <ShieldAlert className="size-8 text-amber-600" />
+            </div>
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight">Admin Session Detected</h1>
+          <p className="text-sm text-muted-foreground">
+            You are currently logged in with an Admin account.
+          </p>
+        </div>
+
+        <Alert variant="warning" className="bg-amber-50 border-amber-200">
+          <AlertIcon><AlertCircle className="text-amber-600" /></AlertIcon>
+          <AlertTitle className="text-amber-800 text-sm leading-relaxed">
+            To prevent accidentally changing your Admin password, please <strong>log out</strong> or use an <strong>Incognito/Private window</strong> to accept this staff invitation.
+          </AlertTitle>
+        </Alert>
+
+        <Button variant="outline" className="w-full" onClick={() => window.location.reload()}>
+          Refresh Page after Logout
+        </Button>
+
+        <div className="text-center text-sm">
+          <Link to="/auth/signin" className="text-primary hover:underline">
+            Back to Sign In
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // 3. Fallback: No session found (Invalid Link)
+  if (!sessionUser) {
     return (
       <div className="max-w-md mx-auto space-y-5">
         <div className="text-center space-y-2">
@@ -142,7 +259,7 @@ export function ChangePasswordPage() {
         </div>
 
         <Button asChild className="w-full">
-          <Link to="/auth/request-reset">Request a Reset Link</Link>
+          <Link to="/auth/reset-password">Request a Reset Link</Link>
         </Button>
 
         <div className="text-center text-sm">
@@ -155,6 +272,7 @@ export function ChangePasswordPage() {
     );
   }
 
+  // 4. Success State: Form to set password
   return (
     <div className="max-w-md mx-auto">
       <Form {...form}>
@@ -163,8 +281,8 @@ export function ChangePasswordPage() {
             <h1 className="text-2xl font-bold tracking-tight">
               Set New Password
             </h1>
-            <p className="text-muted-foreground">
-              Create a strong password for your account
+            <p className="text-muted-foreground text-sm">
+              Logged in as <span className="font-medium text-foreground">{sessionUser.email}</span>. Please create a strong password for your account.
             </p>
           </div>
 
@@ -192,9 +310,10 @@ export function ChangePasswordPage() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>New Password</FormLabel>
+                  <FormLabel htmlFor="new_password">New Password</FormLabel>
                   <div className="relative">
                     <Input
+                      id="new_password"
                       placeholder="Create a strong password"
                       type={passwordVisible ? 'text' : 'password'}
                       autoComplete="new-password"
@@ -203,7 +322,7 @@ export function ChangePasswordPage() {
                     <Button
                       type="button"
                       variant="ghost"
-                      mode="icon"
+                      size="icon"
                       onClick={() => setPasswordVisible(!passwordVisible)}
                       className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                     >
@@ -224,9 +343,10 @@ export function ChangePasswordPage() {
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Confirm Password</FormLabel>
+                  <FormLabel htmlFor="confirm_password">Confirm Password</FormLabel>
                   <div className="relative">
                     <Input
+                      id="confirm_password"
                       placeholder="Verify your password"
                       type={confirmPasswordVisible ? 'text' : 'password'}
                       autoComplete="new-password"
@@ -235,7 +355,7 @@ export function ChangePasswordPage() {
                     <Button
                       type="button"
                       variant="ghost"
-                      mode="icon"
+                      size="icon"
                       onClick={() =>
                         setConfirmPasswordVisible(!confirmPasswordVisible)
                       }
@@ -257,7 +377,7 @@ export function ChangePasswordPage() {
           <Button type="submit" className="w-full" disabled={isProcessing}>
             {isProcessing ? (
               <span className="flex items-center gap-2">
-                <LoaderCircleIcon className="h-4 w-4" /> Updating Password...
+                <LoaderCircleIcon className="h-4 w-4 animate-spin" /> Updating Password...
               </span>
             ) : (
               'Reset Password'

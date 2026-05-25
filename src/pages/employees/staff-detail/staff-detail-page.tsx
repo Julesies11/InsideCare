@@ -2,9 +2,27 @@ import { Fragment, useState, useRef, useCallback, useEffect } from 'react';
 import { useParams } from 'react-router';
 import { Container } from '@/components/common/container';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Mail, CheckCircle } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { ArrowLeft, Mail, CheckCircle, Archive, UserCheck, MoreHorizontal, LogOut, ShieldX, HelpCircle } from 'lucide-react';
 import { StaffDetailContent } from './staff-detail-content.tsx';
+import { StaffDeactivationDialog } from './components/staff-deactivation-dialog';
+import { StaffActivationDialog } from './components/staff-activation-dialog';
 import { supabase } from '@/lib/supabase';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from '@/components/ui/dropdown-menu';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { useAuth } from '@/auth/context/auth-context';
 import { toast } from 'sonner';
 import { handleError } from '@/errors/error-handler';
 import {
@@ -16,12 +34,17 @@ import {
 } from '@/partials/common/toolbar';
 import { StaffPendingChanges, emptyStaffPendingChanges } from '@/models/staff-pending-changes';
 import { useDirtyTracker } from '@/hooks/useDirtyTracker';
-import { useUpdateStaff, useStaffMember } from '@/hooks/use-staff';
+import { useUpdateStaff, useStaffMember, useInviteStaff, useRevokeInvite } from '@/hooks/use-staff';
+import { useLogActivity } from '@/hooks/use-activity-log';
 
 export function StaffDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const { isAdmin, user } = useAuth();
   const { data: staffMember } = useStaffMember(id);
   const { mutateAsync: updateStaff } = useUpdateStaff();
+  const { mutateAsync: logActivity } = useLogActivity();
+  const { mutateAsync: inviteStaff } = useInviteStaff();
+  const { mutateAsync: revokeInvite } = useRevokeInvite();
   const [formData, setFormData] = useState<Record<string, any> | null>(null);
   const [originalData, setOriginalData] = useState<Record<string, any> | null>(null);
   const [pendingChanges, setPendingChanges] = useState<StaffPendingChanges>(emptyStaffPendingChanges);
@@ -29,9 +52,90 @@ export function StaffDetailPage() {
   const [photoDirty, setPhotoDirty] = useState(false);
   const saveHandlerRef = useRef<(() => Promise<void>) | null>(null);
   const [inviting, setInviting] = useState(false);
+  const [revoking, setRevoking] = useState(false);
+  const [archiving, setArchiving] = useState(false);
+  const [showDeactivateDialog, setShowDeactivateDialog] = useState(false);
+  const [showActivateDialog, setShowActivateDialog] = useState(false);
 
   const staffAuthUserId = staffMember?.auth_user_id;
-  const isNewRecord = !staffAuthUserId;
+
+  const handleStatusToggle = async () => {
+    if (!id || !staffMember) return;
+    
+    const isActivating = staffMember.status === 'inactive' || staffMember.status === 'draft';
+    
+    if (isActivating) {
+      setShowActivateDialog(true);
+    } else {
+      setShowDeactivateDialog(true);
+    }
+  };
+
+  const executeActivate = async (sendInvite: boolean) => {
+    if (!id || !staffMember) return;
+
+    setArchiving(true);
+    try {
+      // 1. Perform Activation
+      await updateStaff({ id, updates: { status: 'active' } });
+      
+      // 2. Perform Invitation if requested
+      let inviteMsg = '';
+      if (sendInvite && formData?.email && !staffAuthUserId) {
+        await inviteStaff({ staffId: id, email: formData.email });
+        inviteMsg = ' and portal invitation sent';
+      }
+
+      await logActivity({
+        activityType: 'update',
+        entityType: 'staff',
+        entityId: id,
+        entityName: staffMember.staff_name,
+        userName: user?.email || 'Admin',
+        customDescription: `Activated staff member "${staffMember.staff_name}" (Status: ACTIVE)${inviteMsg}`,
+      });
+      toast.success(`Staff member activated successfully${inviteMsg}`);
+    } catch (err) {
+      handleError(err as Error, { category: 'network', title: 'Activation Failed' });
+    } finally {
+      setArchiving(false);
+    }
+  };
+
+  const executeDeactivate = async (revokeAccess: boolean) => {
+    if (!id || !staffMember) return;
+
+    setArchiving(true);
+    try {
+      // 1. Update status to inactive
+      await updateStaff({ id, updates: { status: 'inactive' } });
+
+      // 2. Revoke access if requested
+      if (revokeAccess && staffAuthUserId) {
+        await revokeInvite({ staffId: id, authUserId: staffAuthUserId });
+      }
+
+      // 3. Log activity
+      await logActivity({
+        activityType: 'update',
+        entityType: 'staff',
+        entityId: id,
+        entityName: staffMember.staff_name,
+        userName: user?.email || 'Admin',
+        customDescription: `Deactivated staff member "${staffMember.staff_name}" (Status: INACTIVE)${revokeAccess ? ' and revoked portal access' : ''}`,
+      });
+
+      toast.success(
+        revokeAccess 
+          ? 'Staff member deactivated and portal access revoked' 
+          : 'Staff member deactivated successfully'
+      );
+    } catch (err) {
+      handleError(err as Error, { category: 'network', title: 'Deactivation Failed' });
+    } finally {
+      setArchiving(false);
+    }
+  };
 
   const handleInvite = async () => {
     if (!id || !formData?.email) {
@@ -40,16 +144,34 @@ export function StaffDetailPage() {
     }
     setInviting(true);
     try {
-      const { error } = await supabase.functions.invoke('ic-invite-staff-user', {
-        body: { staffId: id, email: formData.email },
-      });
-      if (error) throw new Error(error.message || 'Invite failed');
+      await inviteStaff({ staffId: id, email: formData.email });
       toast.success('Invite sent! The staff member will receive an email to set their password.');
     } catch (err) {
       const error = err as Error;
       handleError(error, { category: 'network', title: 'Invite Failed' });
     } finally {
       setInviting(false);
+    }
+  };
+
+  const handleRevokeInvite = async () => {
+    if (!id || !staffAuthUserId) return;
+    
+    const confirmed = window.confirm(
+      'Are you sure you want to cancel this invitation? This will delete the user\'s login account and they will no longer be able to access the portal.'
+    );
+    
+    if (!confirmed) return;
+
+    setRevoking(true);
+    try {
+      await revokeInvite({ staffId: id, authUserId: staffAuthUserId });
+      toast.success('Invitation cancelled successfully.');
+    } catch (err) {
+      const error = err as Error;
+      handleError(error, { category: 'network', title: 'Revoke Failed' });
+    } finally {
+      setRevoking(false);
     }
   };
 
@@ -100,31 +222,111 @@ export function StaffDetailPage() {
                   Back
                 </Button>
                 <div>
-                  <ToolbarPageTitle text="Staff Details" />
-                  <ToolbarDescription>View and manage staff member information</ToolbarDescription>
+                  <div className="flex items-center gap-2.5">
+                    <ToolbarPageTitle text="Staff Details" />
+                    {id && (
+                      <div className="flex items-center gap-1.5">
+                        <Badge 
+                          variant={staffAuthUserId ? "success" : "destructive"} 
+                          appearance="light" 
+                          size="sm"
+                          className="font-semibold uppercase tracking-wider text-[10px]"
+                        >
+                          {staffAuthUserId ? "Portal Active" : "No Portal Access"}
+                        </Badge>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <HelpCircle className="size-3.5 text-muted-foreground cursor-help hover:text-foreground transition-colors" />
+                            </TooltipTrigger>
+                            <TooltipContent variant="light" className="max-w-[280px] p-3 shadow-lg border-border">
+                              <p className="font-semibold mb-1">About Portal Access</p>
+                              <p className="text-[11px] leading-relaxed text-muted-foreground">
+                                {staffAuthUserId 
+                                  ? "This staff member has an active login and can access the portal to view their roster, timesheets, and participant data."
+                                  : "This staff member currently has no login credentials. They cannot access the portal until you send them an invitation via the 'More Actions' menu."}
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </ToolbarHeading>
             <ToolbarActions>
-              <div className="flex items-center gap-2.5">
-                {staffAuthUserId ? (
-                  <span className="flex items-center gap-1.5 text-sm text-green-600 font-medium">
-                    <CheckCircle className="size-4" /> Portal Access Active
-                  </span>
-                ) : (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleInvite}
-                    disabled={inviting || !formData?.email || isNewRecord}
-                  >
-                    <Mail className="size-4 me-1.5" />
-                    {inviting ? 'Sending...' : 'Invite to Portal'}
-                  </Button>
-                )}
+              <div className="flex items-center gap-2">
                 <Button onClick={handleSave} disabled={!isDirty || saving} size="sm">
                   {saving ? 'Saving...' : 'Save Changes'}
                 </Button>
+
+                {isAdmin && staffMember && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleStatusToggle}
+                    disabled={archiving}
+                    className={
+                      staffMember.status === 'active'
+                        ? 'text-amber-600 hover:text-amber-700 hover:bg-amber-50'
+                        : 'text-green-600 hover:text-green-700 hover:bg-green-50'
+                    }
+                  >
+                    {staffMember.status === 'active' ? (
+                      <>
+                        <Archive className="size-4 me-1.5" />
+                        {archiving ? 'Deactivating...' : 'Deactivate'}
+                      </>
+                    ) : (
+                      <>
+                        <UserCheck className="size-4 me-1.5" />
+                        {archiving ? 'Activating...' : 'Activate Staff'}
+                      </>
+                    )}
+                  </Button>
+                )}
+
+                {isAdmin && staffMember && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" className="size-9 px-0">
+                        <MoreHorizontal className="size-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuLabel className="text-xs font-semibold uppercase text-muted-foreground">Portal Settings</DropdownMenuLabel>
+                      {staffAuthUserId ? (
+                        <>
+                          <div className="px-2 py-1.5 flex items-center gap-2 text-[11px] text-green-600 font-bold uppercase tracking-wider">
+                            <CheckCircle className="size-3" /> Access Active
+                          </div>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={handleInvite} disabled={inviting}>
+                            <Mail className="size-4 mr-2" />
+                            {inviting ? 'Sending...' : 'Resend Invite'}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={handleRevokeInvite} 
+                            disabled={revoking}
+                            className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                          >
+                            <ShieldX className="size-4 mr-2" />
+                            Revoke Access
+                          </DropdownMenuItem>
+                        </>
+                      ) : (
+                        <DropdownMenuItem 
+                          onClick={handleInvite} 
+                          disabled={inviting || !formData?.email}
+                        >
+                          <Mail className="size-4 mr-2" />
+                          {inviting ? 'Sending...' : 'Invite to Portal'}
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
               </div>
             </ToolbarActions>
           </Toolbar>
@@ -146,6 +348,26 @@ export function StaffDetailPage() {
           />
         )}
       </Container>
+
+      {staffMember && (
+        <StaffDeactivationDialog
+          open={showDeactivateDialog}
+          onOpenChange={setShowDeactivateDialog}
+          staffName={staffMember.staff_name}
+          hasPortalAccess={!!staffAuthUserId}
+          onConfirmDeactivate={executeDeactivate}
+        />
+      )}
+
+      {staffMember && (
+        <StaffActivationDialog
+          open={showActivateDialog}
+          onOpenChange={setShowActivateDialog}
+          staffName={staffMember.staff_name}
+          email={!staffAuthUserId ? formData?.email : undefined}
+          onConfirmActivate={executeActivate}
+        />
+      )}
     </Fragment>
   );
 }

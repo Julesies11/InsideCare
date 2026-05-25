@@ -293,8 +293,24 @@ The application uses a "Negative Proof" strategy for smoke testing to maximize r
     2. Verifies that no Error Boundary text ("Something went wrong") is visible.
     3. Verifies that no Vite crash overlay is attached to the DOM.
 
-### 3. CI Authentication Persistence
-To prevent repeated logins during CI, the system uses Playwright `storageState`. 
-- **Setup**: `tests/auth.setup.ts` performs a single login per role (Admin/Staff) and persists the resulting cookies and local storage to `.json` files.
-- **Reliability**: Form submission in CI uses `page.keyboard.press('Enter')` to bypass issues with hidden or overlapping buttons.
+## 12. Staff Lifecycle & Onboarding (Gold Standard)
+The application implements a robust, security-first staff lifecycle management system.
+
+### 12.1 Invitation Flow
+To maintain high security, staff passwords are never handled by administrators.
+- **Trigger**: Admin clicks "Invite to Portal" (or "Activate & Invite").
+- **Mechanism**: Invokes the `ic-invite-staff-user` Edge Function.
+- **Smart Logic**: If the user doesn't exist, it sends a Supabase Invitation. If the user is already confirmed, it sends a Password Reset link instead. This prevents 400 errors during re-invitation.
+- **Redirects**: Invitation links redirect to `/auth/change-password`. The page uses **Manual Token Recovery** (manually parsing the hash and calling `setSession`) to eliminate race conditions between the browser and the Supabase library.
+
+### 12.2 Status Management (Smart Toggle)
+Staff status is managed via a contextual "Smart Toggle" in the profile toolbar.
+- **Active**: Primary action is "Deactivate".
+- **Inactive/Draft**: Primary action is "Activate Staff".
+- **Deactivation Dialog**: A custom dialog that explains the impact of deactivation and offers an optional, one-click "Revoke Access" action to delete the user's login account.
+- **Activation Dialog**: A custom dialog that offers an optional, one-click "Invite to Portal" action if the staff member lacks digital access.
+
+### 12.3 Security Safeguards
+- **Session Protection**: The `ChangePasswordPage` detects if an Admin is currently logged in while attempting to process a staff invitation. It blocks the update and displays a warning to prevent accidental Admin password overwrites.
+- **Automatic Cleanup**: Every status change or invitation event is recorded in the `ic_activity_log` for audit compliance.
 

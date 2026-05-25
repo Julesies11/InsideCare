@@ -18,6 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { PersonalDetails } from '@/pages/employees/staff-detail/components/personal-details';
 import { EmergencyContact } from '@/pages/employees/staff-detail/components/emergency-contact';
+import { AccountSecurity } from './components/account-security';
 import { useStaffMember, useUpdateStaff, StaffTraining } from '@/hooks/use-staff';
 import { handleAvatarUpload } from '@/lib/api/profiles';
 import { TABLES } from '@/config/db-tables';
@@ -252,6 +253,8 @@ export function StaffProfile() {
               canEdit={true}
             />
           </Card>
+
+          <AccountSecurity />
 
           {/* Training (read-only) */}
           <Card className="pb-2.5 border-0 sm:border" id="staff_training">

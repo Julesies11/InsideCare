@@ -1,5 +1,5 @@
 import { renderWithProviders, screen, waitFor } from '@/test/test-utils';
-import { StaffRoster, StaffChecklists, StaffLeaveList, StaffLeaveForm, StaffDashboard, StaffTimesheetList, StaffTimesheetForm } from './index';
+import { StaffRoster, StaffChecklists, StaffLeaveList, StaffLeaveForm, StaffDashboard, StaffTimesheetList, StaffTimesheetForm, StaffProfile } from './index';
 import { describe, it, expect, vi } from 'vitest';
 
 // Mock useNavigate and useParams
@@ -94,6 +94,14 @@ describe('Staff Pages Smoke Tests', () => {
     renderWithProviders(<StaffTimesheetForm />);
     await waitFor(() => {
       expect(screen.getByText(/Shift not found/i)).toBeInTheDocument();
+    });
+  });
+
+  it('renders Staff Profile without crashing', async () => {
+    renderWithProviders(<StaffProfile />);
+    await waitFor(() => {
+      expect(screen.getByText(/My Profile/i)).toBeInTheDocument();
+      expect(screen.getByText(/Account Security/i)).toBeInTheDocument();
     });
   });
 });
