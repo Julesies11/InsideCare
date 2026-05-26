@@ -10,6 +10,8 @@ import { Loader2 } from 'lucide-react';
 // Lazy load pages
 const ParticipantsProfilesPage = lazy(() => import('@/pages/participants').then(m => ({ default: m.ParticipantsProfilesPage })));
 const ParticipantDetailPage = lazy(() => import('@/pages/participants').then(m => ({ default: m.ParticipantDetailPage })));
+const MedicationRegisterPage = lazy(() => import('@/pages/participants/medication-register/medication-register-page').then(m => ({ default: m.MedicationRegisterPage })));
+const MedicationDetailPage = lazy(() => import('@/pages/participants/medication-register/medication-detail-page').then(m => ({ default: m.MedicationDetailPage })));
 const ShiftNotesPage = lazy(() => import('@/pages/participants').then(m => ({ default: m.ShiftNotesPage })));
 
 const HousesProfilesPage = lazy(() => import('@/pages/houses').then(m => ({ default: m.HousesProfilesPage })));
@@ -17,6 +19,8 @@ const HouseDetailPage = lazy(() => import('@/pages/houses').then(m => ({ default
 
 const StaffProfilesPage = lazy(() => import('@/pages/employees').then(m => ({ default: m.StaffProfilesPage })));
 const StaffDetailPage = lazy(() => import('@/pages/employees').then(m => ({ default: m.StaffDetailPage })));
+const ShiftTemplatesPage = lazy(() => import('@/pages/roster-board/shift-templates').then(m => ({ default: m.ShiftTemplatesPage })));
+const ShiftTemplatesEditPage = lazy(() => import('@/pages/roster-board/shift-templates-edit').then(m => ({ default: m.ShiftTemplatesEditPage })));
 const AdminTimesheetsPage = lazy(() => import('@/pages/employees').then(m => ({ default: m.AdminTimesheetsPage })));
 const AdminLeaveRequestsPage = lazy(() => import('@/pages/employees').then(m => ({ default: m.AdminLeaveRequestsPage })));
 
@@ -98,6 +102,17 @@ export function AppRoutingSetup() {
               />
             </Route>
 
+            <Route element={<RequirePermission module={RBAC_MODULES.MASTER_LISTS} />}>
+              <Route
+                path="/participants/medication-register"
+                element={<MedicationRegisterPage />}
+              />
+              <Route
+                path="/participants/medication-register/:id"
+                element={<MedicationDetailPage />}
+              />
+            </Route>
+
             <Route element={<RequirePermission module={RBAC_MODULES.SHIFT_NOTES} />}>
               <Route
                 path="/participants/shift-notes"
@@ -146,8 +161,14 @@ export function AppRoutingSetup() {
                 path="/roster-board"
                 element={<RosterBoard />}
               />
-            </Route>
-
+              <Route
+                path="/roster-board/shift-templates"
+                element={<ShiftTemplatesPage />}
+              />
+              <Route
+                path="/roster-board/shift-templates/:id"
+                element={<ShiftTemplatesEditPage />}
+              />            </Route>
             <Route element={<RequirePermission module={RBAC_MODULES.ACTIVITY_LOG} />}>
               <Route
                 path="/activity-log"

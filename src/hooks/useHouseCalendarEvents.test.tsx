@@ -67,15 +67,17 @@ describe('useHouseCalendarEvents Integration', () => {
     expect(checklist?.type).toBe('checklist');
   });
 
-  it('should include participants when fetching shifts', async () => {
-    const mockParticipants = [
-      { participant: { id: 'p1', participant_name: 'John Doe' } },
-      { participant: { id: 'p2', participant_name: 'Jane Smith' } }
-    ];
-
+  it('should EXCLUDE shifts even if they are returned by the legacy API (Sanity Check)', async () => {
     server.use(
       http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSE_CALENDAR_EVENTS}`, () => {
-        return HttpResponse.json([]);
+        return HttpResponse.json([
+          { 
+            id: 'evt-1', 
+            title: 'Team Meeting', 
+            is_checklist_event: false,
+            event_type_info: { event_type_name: 'Meeting' }
+          }
+        ]);
       }),
       http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF_SHIFTS}`, () => {
         return HttpResponse.json([
@@ -84,9 +86,8 @@ describe('useHouseCalendarEvents Integration', () => {
             start_date: '2026-04-13',
             start_time: '08:00',
             end_time: '16:00',
-            staff_id: { id: 's1', staff_name: 'Staff Member' },
-            shift_template: 'Morning',
-            participants: mockParticipants
+            staff_id: 's1',
+            shift_template: 'Morning'
           }
         ]);
       })
@@ -96,10 +97,8 @@ describe('useHouseCalendarEvents Integration', () => {
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
-    const shiftEvent = result.current.houseCalendarEvents.find(e => e.id === 'shift-shift-1');
-    expect(shiftEvent).toBeDefined();
-    expect(shiftEvent?.event_participants).toHaveLength(2);
-    expect(shiftEvent?.event_participants?.[0].participant.participant_name).toBe('John Doe');
-    expect(shiftEvent?.event_participants?.[1].participant.id).toBe('p2');
+    // Should only contain the 1 event, and NO shifts
+    expect(result.current.houseCalendarEvents).toHaveLength(1);
+    expect(result.current.houseCalendarEvents.find(e => e.id?.toString().includes('shift'))).toBeUndefined();
   });
 });

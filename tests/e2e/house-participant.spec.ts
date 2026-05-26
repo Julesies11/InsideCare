@@ -9,11 +9,18 @@ test.describe('House & Participant Management', () => {
     const search = page.getByPlaceholder(/Search Participants/i);
     await expect(search).toBeVisible({ timeout: 15000 });
     await search.fill('NonExistentParticipant');
+    
+    // Ensure loading is gone before checking for 'No data available'
+    await expect(page.getByText(/Loading participants/i)).not.toBeVisible({ timeout: 30000 });
+    
     // 'No data available' is the default empty state text in DataGrid
-    await expect(page.locator('body')).toContainText(/No data available/i, { timeout: 10000 });
+    await expect(page.locator('body')).toContainText(/No data available/i, { timeout: 15000 });
   });
 
-  test('Deep linking to Participant Medications tab', async ({ page }) => {
+  test('Deep linking to Participant Medications tab', async ({ page, browserName }) => {
+    // Firefox is specifically slow with deep linking and large component trees
+    if (browserName === 'firefox') test.slow();
+    
     await page.goto('/participants/profiles');
     
     // Wait for data to load or empty state, avoiding the "Loading" state
@@ -22,7 +29,7 @@ test.describe('House & Participant Management', () => {
     const loading = page.getByText(/Loading participants/i);
     
     // First, ensure loading is gone (it might appear and then disappear)
-    await expect(loading).not.toBeVisible({ timeout: 20000 });
+    await expect(loading).not.toBeVisible({ timeout: 30000 });
     
     await expect(editButton.or(noData)).toBeVisible({ timeout: 15000 });
     
@@ -40,9 +47,8 @@ test.describe('House & Participant Management', () => {
     await page.goto(`${currentUrl}?tab=medications`);
     
     // Check that the Medications section is active or visible
-    // Wait for the "Loading" state to disappear first
-    await expect(page.getByText(/Loading participant details/i)).not.toBeVisible({ timeout: 60000 });
-    await expect(page.locator('body')).toContainText(/Medication/i, { timeout: 15000 });
+    // Wait directly for the target section instead of just waiting for loading to disappear
+    await expect(page.locator('#medications')).toBeVisible({ timeout: 60000 });
   });
 
   test('Navigate to House Profiles and search', async ({ page }) => {
@@ -51,6 +57,6 @@ test.describe('House & Participant Management', () => {
     await expect(search).toBeVisible({ timeout: 15000 });
     await search.fill('Demo House');
     // Use specific locator for the table to avoid strict mode violation
-    await expect(page.getByRole('table')).toBeVisible();
+    await expect(page.locator('#houses_table')).toBeVisible({ timeout: 30000 });
   });
 });

@@ -3120,6 +3120,13 @@
           },
           {
             "pk": false,
+            "name": "risk_management",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
             "name": "setup_step",
             "type": "integer",
             "default": "1",
@@ -4221,13 +4228,6 @@
           {
             "pk": false,
             "name": "dosage",
-            "type": "text",
-            "default": null,
-            "nullable": "YES"
-          },
-          {
-            "pk": false,
-            "name": "frequency",
             "type": "text",
             "default": null,
             "nullable": "YES"

@@ -18,7 +18,7 @@ import { HouseCalendarEvents } from './components/house-calendar-events';
 import { HouseChecklistSetup } from './components/house-checklist-setup';
 import { HouseResources } from './components/house-resources';
 import { HouseComms } from './components/house-comms';
-import { HouseShiftSetup } from './components/house-shift-setup';
+import { HouseChecklistHistory } from './components/house-checklist-history';
 import { HouseManagement } from './components/house-management';
 import { HousePendingChanges, emptyHousePendingChanges } from '@/models/house-pending-changes';
 import { useAuth } from '@/auth/context/auth-context';
@@ -77,6 +77,7 @@ export function HouseDetailContent({
     participant_dynamics: '',
     observations: '',
     general_house_details: '',
+    risk_management: '',
   });
   const [originalData, setOriginalData] = useState<any>(null);
 
@@ -100,7 +101,6 @@ export function HouseDetailContent({
     forms: 0,
     resources: 0,
     comms: 0,
-    shiftTemplates: 0,
     activityLog: 0,
   });
 
@@ -115,7 +115,7 @@ export function HouseDetailContent({
         setLoading(true);
         const { data, error } = await supabase
           .from(TABLES.HOUSES)
-          .select('id, house_name, branch_id, address, phone, house_type_id, capacity, current_occupancy, house_manager, status, notes, individuals_breakdown, participant_dynamics, observations, general_house_details, is_configured, setup_step, created_at, updated_at')
+          .select('id, house_name, branch_id, address, phone, house_type_id, capacity, current_occupancy, house_manager, status, notes, individuals_breakdown, participant_dynamics, observations, general_house_details, risk_management, is_configured, setup_step, created_at, updated_at')
           .eq('id', id)
           .maybeSingle();
 
@@ -172,6 +172,7 @@ export function HouseDetailContent({
           participant_dynamics: currentFormData.participant_dynamics || null,
           observations: currentFormData.observations || null,
           general_house_details: currentFormData.general_house_details || null,
+          risk_management: currentFormData.risk_management || null,
         })
         .eq('id', id)
         .select()
@@ -394,7 +395,7 @@ export function HouseDetailContent({
             .from(TABLES.HOUSE_CHECKLISTS)
             .insert({
               house_id: id,
-              checklist_name: checklist.name,
+              house_checklist_name: checklist.house_checklist_name,
               days_of_week: checklist.days_of_week || null,
               description: checklist.description || null,
               master_id: checklist.master_id || null,
@@ -430,7 +431,7 @@ export function HouseDetailContent({
           const { error } = await supabase
             .from(TABLES.HOUSE_CHECKLISTS)
             .update({
-              checklist_name: checklist.name,
+              house_checklist_name: checklist.house_checklist_name,
               days_of_week: checklist.days_of_week || null,
               description: checklist.description || null,
               sort_order: checklist.sort_order,
@@ -738,7 +739,6 @@ export function HouseDetailContent({
         resources: (currentPending.resources.toAdd.length || 0) > 0 || (currentPending.resources.toUpdate.length || 0) > 0 || (currentPending.resources.toDelete.length || 0) > 0 ? prev.resources + 1 : prev.resources,
         participants: (currentPending.participants.toAdd.length || 0) > 0 || (currentPending.participants.toUpdate.length || 0) > 0 || (currentPending.participants.toDelete.length || 0) > 0 ? prev.participants + 1 : prev.participants,
         comms: (currentPending.comms.toAdd.length || 0) > 0 ? prev.comms + 1 : prev.comms,
-        shiftTemplates: (currentPending.shiftTemplates.toAdd.length || 0) > 0 || (currentPending.shiftTemplates.toUpdate.length || 0) > 0 || (currentPending.shiftTemplates.toDelete.length || 0) > 0 ? prev.shiftTemplates + 1 : prev.shiftTemplates,
         activityLog: prev.activityLog + 1,
       }));
 
@@ -878,33 +878,26 @@ export function HouseDetailContent({
             canEdit={canEdit}
           />
 
-          <HouseCalendarEvents 
-            houseId={id!} 
-            houseName={formData.house_name}
-            events={formData.calendarEvents || []}
-            pendingChanges={pendingChanges}
-            onPendingChangesChange={onPendingChangesChange}
-            canEdit={canEdit}
-            refreshKey={refreshKeys.calendarEvents}
-          />
-
-          <div id="shift_templates">
-            <HouseShiftSetup
-              houseId={id!}
+          <div id="daily_operations" className="flex flex-col gap-5 lg:gap-7.5">
+            <HouseCalendarEvents 
+              houseId={id!} 
+              houseName={formData.house_name}
+              events={formData.calendarEvents || []}
               pendingChanges={pendingChanges}
               onPendingChangesChange={onPendingChangesChange}
               canEdit={canEdit}
-              refreshKey={refreshKeys.shiftTemplates}
-              />          </div>
+              refreshKey={refreshKeys.calendarEvents}
+            />
 
-          <div id="checklist_comms_section" className="flex flex-col gap-5 lg:gap-7.5">
             <HouseComms 
               houseId={id!} 
               canEdit={canEdit}
               pendingChanges={pendingChanges}
               onPendingChangesChange={onPendingChangesChange}
             />
+          </div>
 
+          <div id="checklists">
             <HouseChecklistSetup 
               houseId={id!} 
               canAdd={canEdit}
@@ -914,6 +907,8 @@ export function HouseDetailContent({
               onRefresh={() => queryClient.invalidateQueries({ queryKey: ['house-checklists', id] })}
             />
           </div>
+
+          <HouseChecklistHistory houseId={id!} />
 
           <HouseResources 
             houseId={id!} 

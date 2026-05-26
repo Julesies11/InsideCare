@@ -1,53 +1,48 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo, forwardRef, useImperativeHandle } from 'react';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit, Trash2, CheckSquare, GripVertical, Loader2, ChevronDown, Copy, CalendarDays, Download, Settings2, X, AlertCircle, Move } from 'lucide-react';
+import { Plus, Edit, Trash2, Clock, CheckSquare, Download, Info } from 'lucide-react';
 import { useHouseChecklists } from '@/hooks/use-house-checklists';
-import { useChecklistMaster } from '@/hooks/use-checklist-master';
 import { useHouses } from '@/hooks/use-houses';
-import { HousePendingChanges } from '@/models/house-pending-changes';
-import { Sortable, SortableItem, SortableItemHandle } from '@/components/ui/sortable';
 import { toast } from 'sonner';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { ChecklistCard } from '@/components/checklists/checklist-card';
-import { HouseChecklistScheduleModal } from './HouseChecklistScheduleModal';
-import { HouseChecklistHistory } from './house-checklist-history';
-import { cn, getPeriodTheme } from '@/lib/utils';
+import { cn } from '@/lib/utils';
+import { Switch } from '@/components/ui/switch';
+import { HousePendingChanges } from '@/models/house-pending-changes';
 import { supabase } from '@/lib/supabase';
 import { TABLES } from '@/config/db-tables';
-import { QUERY_KEYS } from '@/config/query-keys';
-import { STATUS } from '@/config/enums';
+import { STATUS, CHECKLIST_STATUS } from '@/config/enums';
+import { Textarea } from '@/components/ui/textarea';
+import { Sortable, SortableItem } from '@/components/ui/sortable';
+import { ChecklistCard } from '@/components/checklists/checklist-card';
+import { HouseChecklistScheduleModal } from './HouseChecklistScheduleModal';
 
 interface HouseChecklistSetupProps {
-  houseId?: string;
-  canAdd: boolean;
-  canDelete: boolean;
+  houseId: string;
   pendingChanges?: HousePendingChanges;
   onPendingChangesChange?: (changes: HousePendingChanges) => void;
-  onRefresh?: () => void;
   directSave?: boolean;
+  canAdd?: boolean;
+  canDelete?: boolean;
+  onRefresh?: () => void;
 }
 
 export function HouseChecklistSetup({ 
   houseId, 
-  canAdd, 
-  pendingChanges,
-  onPendingChangesChange,
-  onRefresh,
-  directSave = false
+  pendingChanges, 
+  onPendingChangesChange, 
+  directSave = false,
+  canAdd = true,
+  canDelete = true,
+  onRefresh
 }: HouseChecklistSetupProps) {
-  const { houseChecklists, isLoading: loading, refresh: refreshChecklists } = useHouseChecklists(houseId);
-  const { masterChecklists, isLoading: loadingMaster } = useChecklistMaster();
-  const { houses: allHouses } = useHouses(0, 100); 
-  
+  const { houseChecklists, refresh: refreshChecklists, loading } = useHouseChecklists(houseId);
+  const { houses: allHouses } = useHouses(0, 100, [], { statuses: [STATUS.active] });
+
   const [showChecklistDialog, setShowChecklistDialog] = useState(false);
-  const [showTemplateDialog, setShowTemplateDialog] = useState(false);
   const [showItemDialog, setShowItemDialog] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
@@ -64,12 +59,12 @@ export function HouseChecklistSetup({
   const [isImporting, setIsImporting] = useState(false);
 
   const [checklistFormData, setChecklistFormData] = useState<{
-    name: string;
+    house_checklist_name: string;
     days_of_week: string[];
     description: string;
     items: any[];
   }>({
-    name: '',
+    house_checklist_name: '',
     days_of_week: [],
     description: '',
     items: [],
@@ -88,7 +83,7 @@ export function HouseChecklistSetup({
   const handleAddChecklist = () => {
     setSelectedChecklist(null);
     setChecklistFormData({
-      name: '',
+      house_checklist_name: '',
       days_of_week: [],
       description: '',
       items: [],
@@ -99,7 +94,7 @@ export function HouseChecklistSetup({
   const handleEditChecklist = (checklist: any) => {
     setSelectedChecklist(checklist);
     setChecklistFormData({
-      checklist_name: checklist.checklist_name,
+      house_checklist_name: checklist.house_checklist_name || checklist.checklist_name || '',
       days_of_week: checklist.days_of_week || [],
       description: checklist.description || '',
       items: checklist.items || [],
@@ -107,58 +102,20 @@ export function HouseChecklistSetup({
     setShowChecklistDialog(true);
   };
 
-
-  const handleSortChecklists = async (newChecklists: any[]) => {
-    if (directSave && houseId) {
-      try {
-        const toUpsert = newChecklists.map((cl, index) => ({
-          id: cl.id,
-          house_id: houseId,
-          name: cl.name,
-          sort_order: index
-        }));
-
-        const { error } = await supabase.from(TABLES.HOUSE_CHECKLISTS).upsert(toUpsert);
-        if (error) throw error;
-        refreshChecklists();
-        return;
-      } catch (err: any) {
-        toast.error(`Failed to save order: ${err.message}`);
-        return;
-      }
-    }
-
-    if (!onPendingChangesChange || !pendingChanges) return;
-
-    const updatedToAdd = [...(pendingChanges.checklists?.toAdd || [])];
-    const updatedToUpdate = [...(pendingChanges.checklists?.toUpdate || [])];
-
-    newChecklists.forEach((cl, index) => {
-      if (cl.tempId) {
-        const addIdx = updatedToAdd.findIndex(a => a.tempId === cl.tempId);
-        if (addIdx !== -1) updatedToAdd[addIdx].sort_order = index;
-      } else {
-        const upIdx = updatedToUpdate.findIndex(u => u.id === cl.id);
-        if (upIdx !== -1) {
-          updatedToUpdate[upIdx].sort_order = index;
-        } else {
-          updatedToUpdate.push({ id: cl.id, sort_order: index });
-        }
-      }
+  const visibleChecklists = useMemo(() => {
+    if (directSave || !pendingChanges) return houseChecklists;
+    
+    const dbChecklists = houseChecklists.filter(cl => !pendingChanges.checklists.toDelete.includes(cl.id));
+    const merged = dbChecklists.map(cl => {
+      const update = pendingChanges.checklists.toUpdate.find(u => u.id === cl.id);
+      return update ? { ...cl, ...update } : cl;
     });
-
-    onPendingChangesChange({
-      ...pendingChanges,
-      checklists: {
-        ...pendingChanges.checklists,
-        toAdd: updatedToAdd,
-        toUpdate: updatedToUpdate
-      }
-    });
-  };
+    
+    return [...merged, ...pendingChanges.checklists.toAdd].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+  }, [houseChecklists, pendingChanges, directSave]);
 
   const handleSaveChecklist = async () => {
-    if (!checklistFormData.name.trim() || !houseId) return;
+    if (!checklistFormData.house_checklist_name.trim() || !houseId) return;
 
     const itemsWithUpdatedSortOrder = checklistFormData.items.map((item: any, index: number) => ({
       ...item,
@@ -173,9 +130,9 @@ export function HouseChecklistSetup({
           const { error } = await supabase
             .from(TABLES.HOUSE_CHECKLISTS)
             .update({
-              checklist_name: checklistFormData.checklist_name,
-              description: checklistFormData.description,
+              house_checklist_name: checklistFormData.house_checklist_name,
               days_of_week: checklistFormData.days_of_week,
+              description: checklistFormData.description,
             })
             .eq('id', savedChecklistId);
           if (error) throw error;
@@ -184,223 +141,198 @@ export function HouseChecklistSetup({
             .from(TABLES.HOUSE_CHECKLISTS)
             .insert({
               house_id: houseId,
-              name: checklistFormData.name,
-              description: checklistFormData.description,
+              house_checklist_name: checklistFormData.house_checklist_name,
               days_of_week: checklistFormData.days_of_week,
-              sort_order: visibleChecklists.length
+              description: checklistFormData.description,
+              sort_order: visibleChecklists.length * 10,
             })
             .select()
             .maybeSingle();
+
           if (error) throw error;
-          if (!data) throw new Error("You do not have permission to create checklists for this house");
+          if (!data) throw new Error("You do not have permission to perform this action");
           savedChecklistId = data.id;
         }
 
-        const currentItems = itemsWithUpdatedSortOrder;
+        // Sync items (Delete existing and insert new for simplicity in directSave mode)
+        const { error: deleteItemsError } = await supabase
+          .from(TABLES.HOUSE_CHECKLIST_ITEMS)
+          .delete()
+          .eq('checklist_id', savedChecklistId);
         
-        if (selectedChecklist?.items) {
-          const toDelete = selectedChecklist.items
-            .filter((orig: any) => !currentItems.some((curr: any) => curr.id === orig.id))
-            .map((i: any) => i.id);
+        if (deleteItemsError) throw deleteItemsError;
+
+        if (itemsWithUpdatedSortOrder.length > 0) {
+          const itemsToInsert = itemsWithUpdatedSortOrder.map((item: any) => ({
+            checklist_id: savedChecklistId,
+            title: item.title,
+            instructions: item.instructions,
+            group_title: item.group_title || 'Morning',
+            priority: item.priority || 'medium',
+            is_required: !!item.is_required,
+            sort_order: item.sort_order,
+          }));
+
+          const { error: insertItemsError } = await supabase
+            .from(TABLES.HOUSE_CHECKLIST_ITEMS)
+            .insert(itemsToInsert);
           
-          if (toDelete.length > 0) {
-            await supabase.from(TABLES.HOUSE_CHECKLIST_ITEMS).delete().in('id', toDelete);
-          }
+          if (insertItemsError) throw insertItemsError;
         }
 
-        const toUpsert = currentItems.map(i => ({
-          id: i.id || undefined,
-          checklist_id: savedChecklistId,
-          title: i.title,
-          instructions: i.instructions,
-          group_title: i.group_title,
-          priority: i.priority,
-          is_required: i.is_required,
-          sort_order: i.sort_order
-        }));
-
-        const { error: upsertErr } = await supabase.from(TABLES.HOUSE_CHECKLIST_ITEMS).upsert(toUpsert);
-        if (upsertErr) throw upsertErr;
-
-        toast.success('Checklist saved to database');
+        toast.success('Checklist saved');
         refreshChecklists();
+        if (onRefresh) onRefresh();
         setShowChecklistDialog(false);
-        return;
       } catch (err: any) {
-        toast.error(`Database error: ${err.message}`);
-        return;
+        toast.error(`Failed to save checklist: ${err.message}`);
       }
+      return;
     }
 
-    if (!pendingChanges || !onPendingChangesChange) return;
-
-    const checklistData = {
-      ...checklistFormData,
-      items: itemsWithUpdatedSortOrder,
-      house_id: houseId,
-      sort_order: visibleChecklists.length
-    };
+    if (!onPendingChangesChange || !pendingChanges) return;
 
     if (selectedChecklist) {
       if (selectedChecklist.tempId) {
-        const newPending = {
+        onPendingChangesChange({
           ...pendingChanges,
           checklists: {
             ...pendingChanges.checklists,
-            toAdd: pendingChanges.checklists.toAdd.map(checklist =>
-              checklist.tempId === selectedChecklist.tempId ? { ...checklist, ...checklistData } : checklist
-            ),
-          },
-        };
-        onPendingChangesChange(newPending);
+            toAdd: pendingChanges.checklists.toAdd.map(a => 
+              a.tempId === selectedChecklist.tempId 
+                ? { ...a, house_checklist_name: checklistFormData.house_checklist_name, days_of_week: checklistFormData.days_of_week, description: checklistFormData.description, items: itemsWithUpdatedSortOrder } 
+                : a
+            )
+          }
+        });
       } else {
-        const originalItems = selectedChecklist.items || [];
-        const currentItems = itemsWithUpdatedSortOrder;
-        const itemsToAdd = currentItems.filter((item: any) => !item.id);
-        const itemsToUpdate = currentItems.filter((item: any) => item.id);
-        const itemsToDeleteIds = originalItems
-          .filter((origItem: any) => !currentItems.some((currItem: any) => currItem.id === origItem.id))
-          .map((item: any) => item.id);
-
-        const newPending = {
+        const update = { 
+          id: selectedChecklist.id, 
+          house_checklist_name: checklistFormData.house_checklist_name, 
+          days_of_week: checklistFormData.days_of_week, 
+          description: checklistFormData.description 
+        };
+        
+        onPendingChangesChange({
           ...pendingChanges,
           checklists: {
             ...pendingChanges.checklists,
             toUpdate: [
-              ...pendingChanges.checklists.toUpdate.filter(c => c.id !== selectedChecklist.id),
-              { id: selectedChecklist.id, ...checklistData },
-            ],
-            checklistItems: {
-              toAdd: [
-                ...pendingChanges.checklists.checklistItems.toAdd.filter(i => i.checklist_id !== selectedChecklist.id),
-                ...itemsToAdd.map(i => ({ ...i, checklist_id: selectedChecklist.id }))
-              ],
-              toUpdate: [
-                ...pendingChanges.checklists.checklistItems.toUpdate.filter(i => !itemsToUpdate.some(ui => ui.id === i.id)),
-                ...itemsToUpdate
-              ],
-              toDelete: [
-                ...pendingChanges.checklists.checklistItems.toDelete,
-                ...itemsToDeleteIds
-              ]
-            }
-          },
-        };
-        onPendingChangesChange(newPending);
+              ...pendingChanges.checklists.toUpdate.filter(u => u.id !== selectedChecklist.id),
+              update
+            ]
+          }
+        });
       }
     } else {
       const tempId = `temp-cl-${Date.now()}`;
-      const newPending = {
+      onPendingChangesChange({
         ...pendingChanges,
         checklists: {
           ...pendingChanges.checklists,
-          toAdd: [...pendingChanges.checklists.toAdd, { tempId, ...checklistData }],
-        },
-      };
-      onPendingChangesChange(newPending);
+          toAdd: [
+            ...pendingChanges.checklists.toAdd, 
+            { 
+              tempId, 
+              house_id: houseId, 
+              house_checklist_name: checklistFormData.house_checklist_name, 
+              days_of_week: checklistFormData.days_of_week, 
+              description: checklistFormData.description, 
+              sort_order: visibleChecklists.length * 10,
+              items: itemsWithUpdatedSortOrder 
+            }
+          ]
+        }
+      });
     }
     setShowChecklistDialog(false);
   };
 
-  const handleSelectTemplate = (template: any) => {
-    if (!houseId || !pendingChanges || !onPendingChangesChange) return;
+  const handleDeleteChecklist = async (checklist: any) => {
+    if (!confirm('Are you sure you want to delete this checklist?')) return;
 
-    const tempId = `temp-cl-${Date.now()}`;
-    const newChecklist = {
-      tempId,
-      house_id: houseId,
-      master_id: template.id,
-      name: template.name,
-      description: template.description,
-      sort_order: visibleChecklists.length,
-      items: (template.items || []).map((item: any) => {
-        return {
-          tempId: `temp-item-${Date.now()}-${Math.random()}`,
-          master_item_id: item.id,
-          title: item.title,
-          instructions: item.instructions,
-          group_title: item.group_title,
-          priority: item.priority,
-          is_required: item.is_required,
-          sort_order: item.sort_order
-        };
-      })
-    };
-
-    const newPending = {
-      ...pendingChanges,
-      checklists: {
-        ...pendingChanges.checklists,
-        toAdd: [...pendingChanges.checklists.toAdd, newChecklist]
+    if (directSave) {
+      try {
+        const { error } = await supabase.from(TABLES.HOUSE_CHECKLISTS).delete().eq('id', checklist.id);
+        if (error) throw error;
+        toast.success('Checklist deleted');
+        refreshChecklists();
+        if (onRefresh) onRefresh();
+      } catch (err: any) {
+        toast.error(`Failed to delete: ${err.message}`);
       }
-    };
+      return;
+    }
 
-    onPendingChangesChange(newPending);
-    setShowTemplateDialog(false);
-    toast.success(`Checklist created from template: ${template.name}`);
+    if (!onPendingChangesChange || !pendingChanges) return;
+
+    if (checklist.tempId) {
+      onPendingChangesChange({
+        ...pendingChanges,
+        checklists: {
+          ...pendingChanges.checklists,
+          toAdd: pendingChanges.checklists.toAdd.filter(a => a.tempId !== checklist.tempId)
+        }
+      });
+    } else {
+      onPendingChangesChange({
+        ...pendingChanges,
+        checklists: {
+          ...pendingChanges.checklists,
+          toDelete: [...pendingChanges.checklists.toDelete, checklist.id]
+        }
+      });
+    }
   };
 
-  const handleSaveItem = () => {
+  const handleAddItemToDialog = () => {
+    setSelectedItem(null);
+    setItemFormData({
+      title: '',
+      instructions: '',
+      group_id: '',
+      group_title: 'Morning',
+      priority: 'medium',
+      is_required: true,
+      sort_order: checklistFormData.items.length,
+    });
+    setShowItemDialog(true);
+  };
+
+  const handleSaveItemInDialog = () => {
     if (!itemFormData.title.trim()) return;
-    
+
     if (selectedItem) {
       setChecklistFormData({
         ...checklistFormData,
-        items: checklistFormData.items.map((item: any) => 
-          (item.id && item.id === selectedItem.id) || (item.tempId && item.tempId === selectedItem.tempId) 
-            ? { ...item, ...itemFormData } 
-            : item
-        )
+        items: checklistFormData.items.map(i => i === selectedItem ? itemFormData : i)
       });
     } else {
-      const tempId = `temp-item-${Date.now()}-${Math.random()}`;
       setChecklistFormData({
         ...checklistFormData,
-        items: [...checklistFormData.items, { ...itemFormData, tempId }]
+        items: [...checklistFormData.items, itemFormData]
       });
     }
     setShowItemDialog(false);
   };
 
-  const handleDeleteItemFromDialog = (itemToDelete: any) => {
+  const handleDeleteItemFromDialog = (item: any) => {
     setChecklistFormData({
       ...checklistFormData,
-      items: checklistFormData.items.filter((item: any) => 
-        !((item.id && item.id === itemToDelete.id) || (item.tempId && item.tempId === itemToDelete.tempId))
-      )
+      items: checklistFormData.items.filter(i => i !== item)
     });
-  };
-
-  const handleDeleteChecklist = (checklist: any) => {
-    if (!pendingChanges || !onPendingChangesChange) return;
-    if (checklist.tempId) {
-      onPendingChangesChange({
-        ...pendingChanges,
-        checklists: { ...pendingChanges.checklists, toAdd: pendingChanges.checklists.toAdd.filter(c => c.tempId !== checklist.tempId) }
-      });
-      return;
-    }
-    if (confirm('Delete this checklist from the house? This will not affect historical submissions.')) {
-      onPendingChangesChange({
-        ...pendingChanges,
-        checklists: { ...pendingChanges.checklists, toDelete: [...pendingChanges.checklists.toDelete, checklist.id] }
-      });
-    }
   };
 
   const handleFetchSourceChecklists = async (sourceId: string) => {
     setImportSourceHouseId(sourceId);
-    if (!sourceId) {
-      setSourceChecklists([]);
-      return;
-    }
+    if (!sourceId) return;
 
     setIsFetchingSource(true);
     try {
       const { data, error } = await supabase
         .from(TABLES.HOUSE_CHECKLISTS)
         .select(`
-          id, name, description, sort_order,
+          id, house_checklist_name, description, sort_order,
           items:${TABLES.HOUSE_CHECKLIST_ITEMS}(id, title, instructions, group_title, priority, is_required, sort_order)
         `)
         .eq('house_id', sourceId)
@@ -439,7 +371,7 @@ export function HouseChecklistSetup({
         const checklistData = {
           tempId,
           house_id: houseId,
-          name: source.name,
+          house_checklist_name: source.house_checklist_name || source.name,
           description: source.description,
           sort_order: (visibleChecklists.length + importCounter),
           items: (source.items || []).map((item: any) => ({
@@ -458,7 +390,7 @@ export function HouseChecklistSetup({
             .from(TABLES.HOUSE_CHECKLISTS)
             .insert({
               house_id: houseId,
-              name: checklistData.name,
+              house_checklist_name: checklistData.house_checklist_name,
               description: checklistData.description,
               sort_order: checklistData.sort_order
             })
@@ -500,303 +432,124 @@ export function HouseChecklistSetup({
       if (directSave) refreshChecklists();
       setShowImportDialog(false);
     } catch (err: any) {
-      toast.error(`Failed to import checklists: ${err.message}`);
+      toast.error(`Import failed: ${err.message}`);
     } finally {
       setIsImporting(false);
     }
   };
 
-  const visibleChecklists = [
-    ...(houseChecklists || [])
-      .filter(checklist => !pendingChanges?.checklists?.toDelete?.includes(checklist.id))
-      .map(checklist => {
-        const update = pendingChanges?.checklists?.toUpdate?.find(u => u.id === checklist.id);
-        return update ? { ...checklist, ...update } : checklist;
-      }),
-    ...(pendingChanges?.checklists?.toAdd || []),
-  ].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
-
   return (
-    <>
-      <div className="flex flex-col gap-6 lg:gap-8" id="checklists">
-        <div className="flex justify-between items-center">
-          <div>
-            <h3 className="text-lg font-bold text-gray-900">House Checklists</h3>
-            <p className="text-sm text-muted-foreground">Configure house-specific tasks and routines.</p>
-          </div>
-          
-          <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="gap-2 font-bold border-gray-300 shadow-sm"
-              onClick={() => setShowImportDialog(true)}
-              disabled={!houseId || !canAdd}
-            >
-              <Download className="size-4" />
-              Import Checklists
-            </Button>
-            
-            <Button 
-              size="sm" 
-              className="gap-1.5 font-bold shadow-sm" 
-              disabled={!houseId || !canAdd}
-              onClick={handleAddChecklist}
-            >
-              <Plus className="size-4" />
-              Add Checklist
-            </Button>
-          </div>
+    <div id="checklists" className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <CheckSquare className="size-5 text-primary" />
+          <h2 className="text-lg font-bold">Checklist Setup</h2>
         </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowImportDialog(true)} disabled={!canAdd}>
+            <Download className="size-4" />
+            Import
+          </Button>
+          <Button variant="primary" size="sm" className="gap-2" onClick={handleAddChecklist} disabled={!canAdd}>
+            <Plus className="size-4" />
+            Add Checklist
+          </Button>
+        </div>
+      </div>
 
-        {loading ? (
-          <div className="py-20 text-center">
-            <Loader2 className="size-8 animate-spin mx-auto mb-4 text-primary/50" />
-            <p className="text-sm text-muted-foreground font-medium">Loading checklist configuration...</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {visibleChecklists.map((checklist) => (
+          <ChecklistCard
+            key={checklist.id || checklist.tempId}
+            checklist={checklist}
+            onEdit={() => handleEditChecklist(checklist)}
+            onDelete={() => handleDeleteChecklist(checklist)}
+            onSchedule={() => {
+              setSelectedForSchedule(checklist);
+              setShowScheduleModal(true);
+            }}
+            canDelete={canDelete}
+          />
+        ))}
+        {visibleChecklists.length === 0 && !loading && (
+          <div className="col-span-full border-2 border-dashed rounded-xl p-8 text-center text-muted-foreground">
+            No checklists configured for this house.
           </div>
-        ) : visibleChecklists.length === 0 ? (
-          <div className="py-20 text-center bg-gray-50/30 rounded-2xl border border-dashed border-gray-200">
-            <div className="size-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
-              <CheckSquare className="size-8 text-gray-300" />
-            </div>
-            <p className="text-gray-400 font-medium italic">No checklists configured for this house.</p>
-            <p className="text-xs text-gray-400 mt-2">Start by adding a new checklist or importing from another house.</p>
-          </div>
-        ) : (
-          <Sortable 
-            value={visibleChecklists} 
-            onValueChange={handleSortChecklists}
-            getItemValue={(cl) => (cl.id || cl.tempId).toString()}
-            strategy="grid"
-            className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
-          >
-            {visibleChecklists.map((checklist) => {
-              const isPendingAdd = 'tempId' in checklist;
-              const isPendingUpdate = pendingChanges?.checklists.toUpdate.some(c => c.id === (checklist as any).id);
-              const isPendingDelete = pendingChanges?.checklists.toDelete.includes((checklist as any).id);
-
-              return (
-                <SortableItem key={(checklist as any).id || (checklist as any).tempId} value={((checklist as any).id || (checklist as any).tempId).toString()}>
-                  <ChecklistCard 
-                    checklist={checklist}
-                    isPendingAdd={isPendingAdd}
-                    isPendingUpdate={isPendingUpdate}
-                    isPendingDelete={isPendingDelete}
-                    onDelete={handleDeleteChecklist}
-                    dragHandle={
-                      <SortableItemHandle>
-                        <GripVertical className="size-5 text-gray-400 cursor-grab group-hover/drag:text-primary transition-colors" />
-                      </SortableItemHandle>
-                    }
-                    renderActions={(cl) => (
-                      <>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="size-8 text-primary hover:bg-primary/5" 
-                          title="Schedule on Calendar"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (cl.id) {
-                              setSelectedForSchedule({ id: cl.id, name: cl.name });
-                              setShowScheduleModal(true);
-                            } else {
-                              toast.error('Please save changes before scheduling.');
-                            }
-                          }}
-                        >
-                          <CalendarDays className="size-3.5" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="size-8 hover:bg-gray-100" 
-                          disabled={!canAdd}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEditChecklist(cl);
-                          }}
-                        >
-                          <Edit className="size-3.5" />
-                        </Button>
-                      </>
-                    )}
-                  />
-                </SortableItem>
-              );
-            })}
-          </Sortable>
         )}
       </div>
 
-      <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
-        <DialogContent className="max-w-xl max-h-[85vh] flex flex-col p-0 overflow-hidden">
-          <DialogHeader className="p-6 pb-2">
-            <DialogTitle className="flex items-center gap-2">
-              <Download className="size-5 text-primary" />
-              Import Checklists
-            </DialogTitle>
-            <DialogDescription>
-              Select a house to "pull" checklist routines from.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
-            <div className="space-y-2">
-              <Label>Source House</Label>
-              <Select value={importSourceHouseId} onValueChange={handleFetchSourceChecklists}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select source house..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {allHouses
-                    .filter(h => h.id !== houseId && h.status === STATUS.active)
-                    .map(h => {
-                      const count = (h as any).checklists?.[0]?.count || 0;
-                      return (
-                        <SelectItem key={h.id} value={h.id}>
-                          {h.house_name} ({count} checklist{count !== 1 ? 's' : ''})
-                        </SelectItem>
-                      );
-                    })}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {isFetchingSource ? (
-              <div className="py-12 text-center">
-                <Loader2 className="size-8 animate-spin mx-auto text-primary/30" />
-              </div>
-            ) : importSourceHouseId && (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Available Checklists ({sourceChecklists.length})</span>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-6 text-[10px] font-bold"
-                    onClick={() => {
-                      if (selectedImportIds.length === sourceChecklists.length) setSelectedImportIds([]);
-                      else setSelectedImportIds(sourceChecklists.map(cl => cl.id));
-                    }}
-                  >
-                    {selectedImportIds.length === sourceChecklists.length ? 'Deselect All' : 'Select All'}
-                  </Button>
-                </div>
-
-                <div className="space-y-2 border rounded-xl overflow-hidden divide-y">
-                  {sourceChecklists.length === 0 ? (
-                    <div className="p-8 text-center text-muted-foreground italic text-sm">No checklists found in this house.</div>
-                  ) : (
-                    sourceChecklists.map(cl => (
-                      <div 
-                        key={cl.id} 
-                        className={cn(
-                          "flex items-start gap-4 p-4 hover:bg-gray-50 transition-colors cursor-pointer",
-                          selectedImportIds.includes(cl.id) && "bg-primary/[0.02]"
-                        )}
-                        onClick={() => {
-                          setSelectedImportIds(prev => 
-                            prev.includes(cl.id) ? prev.filter(i => i !== cl.id) : [...prev, cl.id]
-                          );
-                        }}
-                      >
-                        <Checkbox 
-                          checked={selectedImportIds.includes(cl.id)}
-                          onCheckedChange={() => {}} 
-                          className="mt-1"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-bold text-sm">{cl.house_checklist_name}</span>
-                          </div>
-                          <p className="text-xs text-muted-foreground line-clamp-1">{cl.description || 'No description'}</p>
-                          <div className="mt-2 text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
-                            {cl.items?.length || 0} tasks included
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <DialogFooter className="p-6 pt-2 border-t">
-            <Button variant="outline" onClick={() => setShowImportDialog(false)}>Cancel</Button>
-            <Button 
-              variant="primary" 
-              onClick={handleImportChecklists}
-              disabled={selectedImportIds.length === 0 || isImporting}
-              className="gap-2 font-bold"
-            >
-              {isImporting ? <Loader2 className="size-4 animate-spin" /> : <Download className="size-4" />}
-              Import {selectedImportIds.length > 0 ? `(${selectedImportIds.length})` : ''}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
+      {/* Checklist Dialog */}
       <Dialog open={showChecklistDialog} onOpenChange={setShowChecklistDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
-          <DialogHeader className="p-6 pb-2">
-            <DialogTitle>{selectedChecklist ? 'Edit Checklist' : 'Add Checklist'}</DialogTitle>
-            <DialogDescription>Define the tasks for this house-specific checklist.</DialogDescription>
+        <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col p-0">
+          <DialogHeader className="p-6 border-b">
+            <DialogTitle>{selectedChecklist ? 'Edit Checklist' : 'New House Checklist'}</DialogTitle>
+            <DialogDescription>Define a routine for this house and its specific tasks.</DialogDescription>
           </DialogHeader>
-          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="setup-name">Name *</Label>
-              <Input id="setup-name" value={checklistFormData.checklist_name} onChange={(e) => setChecklistFormData({ ...checklistFormData, checklist_name: e.target.value })} />
+          
+          <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Checklist Name *</Label>
+                <Input 
+                  value={checklistFormData.house_checklist_name} 
+                  onChange={e => setChecklistFormData({ ...checklistFormData, house_checklist_name: e.target.value })}
+                  placeholder="e.g. Morning Routine, Weekly Cleaning"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Applicable Days (Optional)</Label>
+                <div className="flex flex-wrap gap-2">
+                  {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+                    <Badge 
+                      key={day} 
+                      variant={checklistFormData.days_of_week.includes(day) ? 'primary' : 'outline'}
+                      className="cursor-pointer"
+                      onClick={() => {
+                        const newDays = checklistFormData.days_of_week.includes(day)
+                          ? checklistFormData.days_of_week.filter(d => d !== day)
+                          : [...checklistFormData.days_of_week, day];
+                        setChecklistFormData({ ...checklistFormData, days_of_week: newDays });
+                      }}
+                    >
+                      {day}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="setup-desc">Description</Label>
-              <Textarea id="setup-desc" value={checklistFormData.description} onChange={(e) => setChecklistFormData({ ...checklistFormData, description: e.target.value })} rows={2} />
+              <Label>Description</Label>
+              <Textarea 
+                value={checklistFormData.description} 
+                onChange={e => setChecklistFormData({ ...checklistFormData, description: e.target.value })}
+                placeholder="Briefly describe the purpose of this checklist..."
+                rows={2}
+              />
             </div>
-            
-            <div className="space-y-4 pt-4 border-t">
+
+            <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <Label className="text-base font-semibold">Tasks</Label>
-                <Button variant="outline" size="sm" onClick={() => { 
-                  setSelectedItem(null); 
-                  setItemFormData({ 
-                    title: '', 
-                    instructions: '', 
-                    group_id: '',
-                    group_title: 'Morning',
-                    priority: 'medium', 
-                    is_required: true, 
-                    sort_order: checklistFormData.items.length 
-                  }); 
-                  setShowItemDialog(true); 
-                }}>
-
-                  <Plus className="size-3.5 mr-1" /> Add Task
+                <Label className="text-sm font-bold">Tasks ({checklistFormData.items.length})</Label>
+                <Button variant="ghost" size="sm" className="h-8 gap-2 text-primary" onClick={handleAddItemToDialog}>
+                  <Plus className="size-4" />
+                  Add Task
                 </Button>
               </div>
-              <Sortable value={checklistFormData.items} onValueChange={(newItems) => setChecklistFormData({ ...checklistFormData, items: newItems })} getItemValue={(item) => (item.id || item.tempId).toString()} className="space-y-2">
-                {checklistFormData.items.map((item: any) => (
-                  <SortableItem key={item.id || item.tempId} value={(item.id || item.tempId).toString()} className="flex items-center gap-3 p-3 bg-background border rounded-lg group">
-                    <SortableItemHandle className="shrink-0 text-muted-foreground/50 hover:text-foreground cursor-grab"><GripVertical className="size-4" /></SortableItemHandle>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <span className="text-sm font-medium break-words block">{item.title}</span>
+
+              <Sortable
+                value={checklistFormData.items}
+                onValueChange={(newItems) => setChecklistFormData({ ...checklistFormData, items: newItems })}
+                getItemValue={(item) => (item.tempId || item.id || '').toString()}
+              >
+                {checklistFormData.items.map((item, idx) => (
+                  <SortableItem key={item.tempId || idx} value={item.tempId || idx.toString()}>
+                    <div className="flex flex-col gap-1 flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-sm text-gray-900">{item.title}</span>
+                        {item.is_required && <Badge variant="outline" className="text-[9px] h-4 px-1 border-red-200 text-red-600 bg-red-50 uppercase font-black tracking-tighter">Required</Badge>}
                         {item.group_title && (
-                          <Badge 
-                            variant="outline" 
-                            className={cn(
-                              "text-[8px] h-3.5 px-1 uppercase shrink-0 gap-1 font-bold",
-                              getPeriodTheme(item.group_title).bg,
-                              getPeriodTheme(item.group_title).text,
-                              getPeriodTheme(item.group_title).border
-                            )}
-                          >
-                            {(() => {
-                              const theme = getPeriodTheme(item.group_title);
-                              const ThemeIcon = theme.icon;
-                              return <ThemeIcon className="size-2" />;
-                            })()}
+                          <Badge variant="outline" className="text-[9px] h-4 px-1 uppercase font-bold text-blue-600 border-blue-200 bg-blue-50">
                             {item.group_title}
                           </Badge>
                         )}
@@ -804,7 +557,7 @@ export function HouseChecklistSetup({
                       {item.instructions && <p className="text-[10px] text-muted-foreground truncate">{item.instructions}</p>}
                     </div>
                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button variant="ghost" size="icon" className="size-7" onClick={() => { setSelectedItem(item); setItemFormData({ ...item, group_id: item.group_id || '', group_title: item.group_title || '' }); setShowItemDialog(true); }}><Edit className="size-3.5" /> </Button>
+                      <Button variant="ghost" size="icon" className="size-7" onClick={() => { setSelectedItem(item); setItemFormData({ ...item }); setShowItemDialog(true); }}><Edit className="size-3.5" /> </Button>
                       <Button variant="ghost" size="icon" className="size-7 text-destructive" onClick={() => handleDeleteItemFromDialog(item)}><Trash2 className="size-3.5" /></Button>
                     </div>
                   </SortableItem>
@@ -812,10 +565,15 @@ export function HouseChecklistSetup({
               </Sortable>
             </div>
           </div>
-          <DialogFooter className="p-6 pt-2 border-t"><Button variant="outline" onClick={() => setShowChecklistDialog(false)}>Cancel</Button><Button variant="primary" onClick={handleSaveChecklist}>Save Checklist</Button></DialogFooter>
+
+          <DialogFooter className="p-6 pt-2 border-t">
+            <Button variant="outline" onClick={() => setShowChecklistDialog(false)}>Cancel</Button>
+            <Button variant="primary" onClick={handleSaveChecklist}>Save Checklist</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
+      {/* Task Item Dialog */}
       <Dialog open={showItemDialog} onOpenChange={setShowItemDialog}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -825,81 +583,161 @@ export function HouseChecklistSetup({
             </DialogTitle>
             <DialogDescription>Define the specific requirements for this task.</DialogDescription>
           </DialogHeader>
+          
           <div className="space-y-5 py-4">
             <div className="space-y-2">
-              <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Group / Shift Period *</Label>
-              <Select 
-                value={itemFormData.group_title} 
-                onValueChange={(v) => setItemFormData({ ...itemFormData, group_title: v })}
-              >
-                <SelectTrigger className="h-10">
-                  <SelectValue placeholder="Select group..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {['Morning', 'Day', 'Afternoon', 'Night', 'General'].map(period => (
-                    <SelectItem key={period} value={period}>{period}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Task Title *</Label>
+              <Label>Task Title *</Label>
               <Input 
                 value={itemFormData.title} 
-                onChange={(e) => setItemFormData({ ...itemFormData, title: e.target.value })} 
-                placeholder="e.g. Check Fridge Temps"
-                className="h-10 font-medium"
+                onChange={e => setItemFormData({ ...itemFormData, title: e.target.value })}
+                placeholder="e.g. Check kitchen cleanliness"
               />
             </div>
 
             <div className="space-y-2">
-              <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Instructions</Label>
+              <Label>Instructions (Optional)</Label>
               <Textarea 
                 value={itemFormData.instructions} 
-                onChange={(e) => setItemFormData({ ...itemFormData, instructions: e.target.value })} 
-                rows={2} 
-                placeholder="Optional guide for staff..."
-                className="resize-none text-xs"
+                onChange={e => setItemFormData({ ...itemFormData, instructions: e.target.value })}
+                placeholder="Step-by-step guidance for staff..."
+                rows={3}
               />
             </div>
 
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-dashed">
-              <div className="flex flex-col">
-                <span className="text-xs font-bold text-gray-700">Required Task</span>
-                <span className="text-[9px] text-muted-foreground">Staff must check this to complete the checklist</span>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Group / Shift Period</Label>
+                <Select value={itemFormData.group_title} onValueChange={v => setItemFormData({ ...itemFormData, group_title: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Morning">Morning</SelectItem>
+                    <SelectItem value="Afternoon">Afternoon</SelectItem>
+                    <SelectItem value="Evening">Evening</SelectItem>
+                    <SelectItem value="Sleepover">Sleepover</SelectItem>
+                    <SelectItem value="Daily">General/Daily</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              <Checkbox 
-                id="itm-req-setup" 
-                checked={itemFormData.is_required} 
-                onCheckedChange={(c) => setItemFormData({ ...itemFormData, is_required: !!c })} 
-              />
+              <div className="space-y-2">
+                <Label>Priority</Label>
+                <Select value={itemFormData.priority} onValueChange={v => setItemFormData({ ...itemFormData, priority: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                    <SelectItem value="critical">Critical</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between p-3 rounded-lg border bg-gray-50/50">
+              <div className="space-y-0.5">
+                <Label className="text-sm font-bold">Mandatory Task</Label>
+                <p className="text-[10px] text-muted-foreground">Staff must confirm this task is done.</p>
+              </div>
+              <Switch checked={itemFormData.is_required} onCheckedChange={v => setItemFormData({ ...itemFormData, is_required: v })} />
             </div>
           </div>
-          <DialogFooter className="bg-gray-50 p-6 -m-6 mt-2 border-t rounded-b-lg">
+
+          <DialogFooter>
             <Button variant="outline" onClick={() => setShowItemDialog(false)}>Cancel</Button>
-            <Button variant="primary" onClick={handleSaveItem} className="px-8 font-bold">Confirm</Button>
+            <Button variant="primary" onClick={handleSaveItemInDialog}>Apply Task</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {houseId && (
-        <>
-          <HouseChecklistScheduleModal
-            open={showScheduleModal}
-            onClose={() => {
-              setShowScheduleModal(false);
-              setSelectedForSchedule(null);
-              if (onRefresh) onRefresh();
-            }}
-            houseId={houseId}
-            checklist={selectedForSchedule}
-          />
-          <HouseChecklistHistory
-            houseId={houseId}
-          />
-        </>
-      )}
-    </>
+      {/* Import Dialog */}
+      <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Download className="size-5 text-primary" />
+              Import Checklists
+            </DialogTitle>
+            <DialogDescription>Quickly copy existing routines from another house.</DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 py-4">
+            <div className="space-y-2">
+              <Label>Source House</Label>
+              <Select value={importSourceHouseId} onValueChange={handleFetchSourceChecklists}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select source house..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {allHouses.filter(h => h.id !== houseId).map(h => (
+                    <SelectItem key={h.id} value={h.id}>{h.house_name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {importSourceHouseId && (
+              <div className="space-y-4">
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Available Checklists</Label>
+                <div className="grid grid-cols-1 gap-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                  {isFetchingSource ? (
+                    <div className="py-8 text-center text-muted-foreground italic">Fetching checklists...</div>
+                  ) : sourceChecklists.length === 0 ? (
+                    <div className="py-8 text-center text-muted-foreground italic">No checklists found in this house.</div>
+                  ) : (
+                    sourceChecklists.map(cl => (
+                      <div 
+                        key={cl.id} 
+                        className={cn(
+                          "flex items-center justify-between p-3 rounded-lg border transition-all cursor-pointer",
+                          selectedImportIds.includes(cl.id) ? "border-primary bg-primary/5 ring-1 ring-primary" : "hover:bg-gray-50"
+                        )}
+                        onClick={() => {
+                          setSelectedImportIds(prev => 
+                            prev.includes(cl.id) ? prev.filter(id => id !== cl.id) : [...prev, cl.id]
+                          );
+                        }}
+                      >
+                        <div className="flex flex-col gap-0.5">
+                          <span className="font-bold text-sm">{cl.house_checklist_name || cl.name}</span>
+                          <span className="text-[10px] text-muted-foreground">{cl.items?.length || 0} tasks</span>
+                        </div>
+                        <div className={cn(
+                          "size-5 rounded-full border flex items-center justify-center transition-all",
+                          selectedImportIds.includes(cl.id) ? "bg-primary border-primary text-white" : "border-gray-300"
+                        )}>
+                          {selectedImportIds.includes(cl.id) && <Plus className="size-3" />}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowImportDialog(false)}>Cancel</Button>
+            <Button 
+              variant="primary" 
+              onClick={handleImportChecklists} 
+              disabled={selectedImportIds.length === 0 || isImporting}
+              className="gap-2"
+            >
+              {isImporting ? 'Importing...' : `Import Selected (${selectedImportIds.length})`}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <HouseChecklistScheduleModal
+        open={showScheduleModal}
+        onClose={() => setShowScheduleModal(false)}
+        checklist={selectedForSchedule}
+        houseId={houseId}
+        onSuccess={() => {
+          refreshChecklists();
+          if (onRefresh) onRefresh();
+        }}
+      />
+    </div>
   );
 }

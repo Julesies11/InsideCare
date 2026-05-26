@@ -133,7 +133,7 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
       setEditingType(type);
       const checklists = getVisibleDefaults(type.id || type.tempId);
       setTypeFormData({
-        name: type.shift_template_name,
+        shift_template_name: type.shift_template_name || '',
         short_name: type.short_name || '',
         icon_name: type.icon_name || 'Clock',
         color_theme: type.color_theme || 'morning',
@@ -161,6 +161,11 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
   };
 
   const handleSaveType = async () => {
+    if (!typeFormData.shift_template_name.trim()) {
+      toast.error('Template name is required');
+      return;
+    }
+
     if (directSave) {
       try {
         let typeId = editingType?.id;
@@ -478,7 +483,7 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
                 <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">Template Name</Label>
                 <Input 
                   value={typeFormData.shift_template_name} 
-                  onChange={e => setTypeFormData({...typeFormData, name: e.target.value})} 
+                  onChange={e => setTypeFormData({...typeFormData, shift_template_name: e.target.value})} 
                   placeholder="e.g. Morning" 
                   className="h-9 text-sm bg-white" 
                 />

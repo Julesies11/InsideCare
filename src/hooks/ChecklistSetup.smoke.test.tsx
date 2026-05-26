@@ -42,7 +42,7 @@ describe('HouseChecklistSetup Dialogs', () => {
     fireEvent.click(addBtn);
     
     // Check for dialog title specifically
-    expect(screen.getByRole('heading', { name: /add checklist/i })).toBeInTheDocument();
-    expect(screen.getByLabelText(/name/i)).toBeInTheDocument();
+    expect(screen.getByText(/New House Checklist/i)).toBeInTheDocument();
+    expect(screen.getByText(/Checklist Name/i)).toBeInTheDocument();
   });
 });

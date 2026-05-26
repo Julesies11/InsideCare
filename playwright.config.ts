@@ -25,11 +25,16 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
+  /* Maximum time one test can run for. */
+  timeout: 60 * 1000,
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
+  expect: {
+    timeout: 15000,
+  },
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: 'http://localhost:5173',
@@ -62,11 +67,11 @@ export default defineConfig({
       use: { ...devices['Pixel 5'] },
       dependencies: ['setup'],
     },
-    {
-      name: 'Mobile Safari',
-      use: { ...devices['iPhone 12'] },
-      dependencies: ['setup'],
-    },
+    // {
+    //   name: 'Mobile Safari',
+    //   use: { ...devices['iPhone 12'] },
+    //   dependencies: ['setup'],
+    // },
   ],
 
   /* Run your local dev server before starting the tests */

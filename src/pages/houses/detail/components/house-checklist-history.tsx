@@ -39,6 +39,7 @@ import { CHECKLIST_STATUS } from '@/config/enums';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { DataGrid } from '@/components/ui/data-grid';
+import { Link } from 'react-router';
 import { DataGridColumnHeader } from '@/components/ui/data-grid-column-header';
 import { DataGridPagination } from '@/components/ui/data-grid-pagination';
 import { DataGridTable } from '@/components/ui/data-grid-table';
@@ -348,7 +349,18 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
         id: 'staff_name',
         accessorKey: 'staff_name',
         header: ({ column }) => <DataGridColumnHeader title="Staff Member" column={column} />,
-        cell: ({ row }) => <span className="text-gray-600">{row.original.staff_name}</span>,
+        cell: ({ row }) => (
+          row.original.submitted_by ? (
+            <Link 
+              to={`/employees/staff-detail/${row.original.submitted_by}`}
+              className="text-gray-900 font-bold hover:text-primary hover:underline transition-colors"
+            >
+              {row.original.staff_name}
+            </Link>
+          ) : (
+            <span className="text-gray-600">{row.original.staff_name}</span>
+          )
+        ),
         size: 150,
       },
       {

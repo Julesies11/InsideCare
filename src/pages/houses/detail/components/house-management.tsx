@@ -45,6 +45,25 @@ export function HouseManagement({
           </div>
 
           <div id="house_management_details" className="flex flex-col gap-6">
+            {/* General house details */}
+            <div id="house_general_details" className="space-y-2">
+              <Label className="text-sm font-bold flex items-center gap-2">
+                <Info className="size-4 text-primary" />
+                General House Details
+              </Label>
+              <Textarea
+                value={formData.general_house_details || ''}
+                onChange={(e) => onFieldChange('general_house_details', e.target.value)}
+                placeholder={canEdit ? "Enter general house routines, preferences, and rules..." : "No information provided."}
+                rows={4}
+                disabled={!canEdit}
+                className="resize-none"
+              />
+              <p className="text-xs text-muted-foreground italic">
+                Example: Keep the kitchen light on at night; specific cleaning routines, etc.
+              </p>
+            </div>
+
             {/* Breakdown of individuals */}
             <div id="house_individuals_breakdown" className="space-y-2">
               <Label className="text-sm font-bold flex items-center gap-2">
@@ -83,6 +102,25 @@ export function HouseManagement({
               </p>
             </div>
 
+            {/* Risk Management */}
+            <div id="house_risk_management" className="space-y-2">
+              <Label className="text-sm font-bold flex items-center gap-2">
+                <Activity className="size-4 text-primary" />
+                Risk Management
+              </Label>
+              <Textarea
+                value={formData.risk_management || ''}
+                onChange={(e) => onFieldChange('risk_management', e.target.value)}
+                placeholder={canEdit ? "Enter house-level risk management strategies and alerts..." : "No information provided."}
+                rows={4}
+                disabled={!canEdit}
+                className="resize-none"
+              />
+              <p className="text-xs text-muted-foreground italic">
+                Identify key risks associated with the house environment or specific participant interactions.
+              </p>
+            </div>
+
             {/* Observations */}
             <div id="house_observations" className="space-y-2">
               <Label className="text-sm font-bold flex items-center gap-2">
@@ -99,25 +137,6 @@ export function HouseManagement({
               />
               <p className="text-xs text-muted-foreground italic">
                 Staff observations regarding the house environment and participant wellbeing.
-              </p>
-            </div>
-
-            {/* General house details */}
-            <div id="house_general_details" className="space-y-2">
-              <Label className="text-sm font-bold flex items-center gap-2">
-                <Info className="size-4 text-primary" />
-                General House Details
-              </Label>
-              <Textarea
-                value={formData.general_house_details || ''}
-                onChange={(e) => onFieldChange('general_house_details', e.target.value)}
-                placeholder={canEdit ? "Enter general house routines, preferences, and rules..." : "No information provided."}
-                rows={4}
-                disabled={!canEdit}
-                className="resize-none"
-              />
-              <p className="text-xs text-muted-foreground italic">
-                Example: Keep the kitchen light on at night; specific cleaning routines, etc.
               </p>
             </div>
           </div>

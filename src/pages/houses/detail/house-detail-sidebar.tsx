@@ -19,6 +19,10 @@ export function HouseDetailSidebar() {
           target: 'house_participants',
         },
         {
+          title: 'General House Details',
+          target: 'house_general_details',
+        },
+        {
           title: 'Breakdown of Individuals',
           target: 'house_individuals_breakdown',
         },
@@ -27,26 +31,22 @@ export function HouseDetailSidebar() {
           target: 'house_participant_dynamics',
         },
         {
-          title: 'Observations',
-          target: 'house_observations',
+          title: 'Risk Management',
+          target: 'house_risk_management',
         },
         {
-          title: 'General House Details',
-          target: 'house_general_details',
+          title: 'Observations',
+          target: 'house_observations',
         },
       ]
     },
     {
-      title: 'Calendar',
-      target: 'calendar_events',
-    },
-    {
-      title: 'Shift Setup',
-      target: 'shift_templates',
+      title: 'Daily Operations',
+      target: 'daily_operations',
       children: [
         {
-          title: 'Shift Templates',
-          target: 'shift_templates',
+          title: 'Calendar',
+          target: 'calendar_events',
         },
         {
           title: 'Daily Comms',
@@ -56,17 +56,11 @@ export function HouseDetailSidebar() {
     },
     {
       title: 'Checklist Setup',
-      target: 'checklist_comms_section',
-      children: [
-        {
-          title: 'Checklist Setup',
-          target: 'checklists',
-        },
-        {
-          title: 'Checklist History',
-          target: 'checklist_history',
-        },
-      ]
+      target: 'checklists',
+    },
+    {
+      title: 'Checklist History',
+      target: 'checklist_history',
     },
     {
       title: 'Resources',

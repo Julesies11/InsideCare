@@ -11,7 +11,7 @@ import { useHouseParticipants } from '@/hooks/useHouseParticipants';
 import { useParticipants } from '@/hooks/use-participants';
 import { ParticipantCombobox } from './participant-combobox';
 import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router';
+import { useNavigate, Link } from 'react-router';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
@@ -277,11 +277,12 @@ export function HouseParticipants({
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Users className="size-4 text-muted-foreground" />
-                        <span 
-                          className={`font-medium ${isPendingDelete ? 'line-through' : ''}`}
+                        <Link 
+                          to={`/participants/detail/${participant.participant_id || participant.id}`}
+                          className={`font-bold text-gray-900 hover:underline hover:text-primary transition-colors ${isPendingDelete ? 'line-through opacity-50 pointer-events-none' : ''}`}
                         >
                           {getParticipantName(participant)}
-                        </span>
+                        </Link>
                         {isPendingAdd && (
                           <span className="text-xs text-primary flex items-center gap-1">
                             <Clock className="size-3" />

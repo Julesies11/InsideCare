@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { MessageSquare, Plus, Calendar, User, Clock, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { Link } from 'react-router';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/auth/context/auth-context';
 import { format, subDays, addDays, isToday, parseISO } from 'date-fns';
@@ -241,7 +242,12 @@ export function HouseComms({
                   <div className="flex-1 ml-12 bg-white rounded-xl border border-gray-100 p-4 shadow-sm hover:border-primary/20 transition-colors">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold text-gray-900">{entry.creator?.staff_name || 'Staff Member'}</span>
+                        <Link 
+                          to={`/employees/staff-detail/${entry.created_by}`}
+                          className="text-sm font-bold text-gray-900 hover:text-primary hover:underline transition-colors"
+                        >
+                          {entry.creator?.staff_name || 'Staff Member'}
+                        </Link>
                         <span className="size-1 rounded-full bg-gray-300" />
                         <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
                           <Clock className="size-3" />

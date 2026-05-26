@@ -62,12 +62,17 @@ The project uses Postgres Enums for critical columns (e.g., `public.status_enum`
 
 ## Core Entities
 
-### 1. Participants (`public.participants`)
+### 1. Participants (`public.ic_participants`)
 The central entity representing the individuals receiving care.
 - **Key Fields:** `id`, `name`, `email`, `house_id`, `status` (`active`, `draft`, etc.), `ndis_number`, `support_level`.
 - **Relationships:** Belongs to a House (`house_id`). Has many Notes, Medications, Goals, Documents, etc.
 
-### 2. Staff (`public.staff`)
+### 2. Medication Master (`public.ic_medications_master`)
+Centralized register of all medications used in care.
+- **Key Fields:** `id`, `medication_name` (UNIQUE), `category`, `common_dosages`, `side_effects`, `interactions`, `is_active`.
+- **Constraint**: Enforces uniqueness on `medication_name` to ensure register integrity.
+
+### 3. Staff (`public.ic_staff`)
 The employees providing care.
 - **Key Fields:** `id`, `name`, `email`, `role_id`, `status`, `auth_user_id` (links to Supabase Auth).
 - **Relationships:** Belongs to a Department. Assigned to many Houses via `house_staff_assignments`.
@@ -77,14 +82,20 @@ The employees providing care.
     3. The assignment record has no `end_date` OR the `end_date` is in the future.
     4. *This definition must be strictly enforced across all dropdowns, rosters, and house-linked counts.*
 
-### 3. Houses (`public.houses`)
+### 4. Houses (`public.ic_houses`)
 The care facilities/locations.
 - **Key Fields:** `id`, `name`, `branch_id`, `capacity`, `current_occupancy`.
+- **Management Fields:** 
+    - `general_house_details`: Routines, preferences, and general house rules.
+    - `individuals_breakdown`: Qualitative description of each person residing in the house.
+    - `participant_dynamics`: Social dynamics and interactions between participants.
+    - `risk_management`: House-level risk mitigation strategies and alerts.
+    - `observations`: General staff observations regarding the house environment.
 - **Relationships:** Belongs to a Branch. Has many Participants and Staff assignments.
 
 ## Child Entities (Participant-related)
 
-- **`participant_medications`**: Tracks medications, dosage, and frequency. Linked to `medications_master`.
+- **`participant_medications`**: Tracks medications and dosage. Linked to `medications_master`.
 - **`participant_goals` & `participant_goal_progress`**: Tracks care goals and their progress.
 - **`participant_notes`**: General and important notes about the participant.
 - **`participant_documents`**: Files uploaded for the participant.

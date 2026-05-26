@@ -8,24 +8,107 @@ import { QUERY_KEYS } from '@/config/query-keys';
 
 const MEDICATION_MASTER_COLUMNS = 'id, medication_name, category, common_dosages, side_effects, interactions, is_active, created_by, updated_by, created_at, updated_at';
 
-export function useMedicationsMaster(includeInactive = true) {
-  return useQuery({
-    queryKey: [QUERY_KEYS.MEDICATIONS_MASTER, { includeInactive }],
+export interface MedicationsFilter {
+  search?: string;
+  category?: string;
+  includeInactive?: boolean;
+}
+
+export interface MedicationsSort {
+  id: string;
+  desc: boolean;
+}
+
+export function useMedicationsMaster(
+  pageIndex: number = 0,
+  pageSize: number = 50,
+  sort: MedicationsSort[] = [],
+  filters: MedicationsFilter = {}
+) {
+  const query = useQuery({
+    queryKey: [QUERY_KEYS.MEDICATIONS_MASTER, { pageIndex, pageSize, sort, filters }],
     queryFn: async () => {
       let query = supabase
         .from(TABLES.MEDICATIONS_MASTER)
-        .select(MEDICATION_MASTER_COLUMNS)
-        .order('medication_name', { ascending: true });
+        .select(MEDICATION_MASTER_COLUMNS, { count: 'exact' });
 
-      if (!includeInactive) {
+      if (filters.search) {
+        query = query.ilike('medication_name', `%${filters.search}%`);
+      }
+
+      if (filters.category && filters.category !== 'all') {
+        query = query.eq('category', filters.category);
+      }
+
+      if (filters.includeInactive === false) {
         query = query.eq('is_active', true);
       }
 
-      const { data, error } = await query;
+      if (sort.length > 0) {
+        sort.forEach(s => {
+          query = query.order(s.id as any, { ascending: !s.desc });
+        });
+      } else {
+        query = query.order('medication_name', { ascending: true });
+      }
+
+      const from = pageIndex * pageSize;
+      const to = from + pageSize - 1;
+      query = query.range(from, to);
+
+      const { data, error, count } = await query;
       if (error) throw error;
-      return data as MedicationMaster[];
+      return { data: data as MedicationMaster[], count: count || 0 };
     },
     staleTime: 1000 * 60 * 60, // 1 hour
+  });
+
+  return {
+    ...query,
+    medications: query.data?.data || [],
+    count: query.data?.count || 0,
+    loading: query.isLoading,
+  };
+}
+
+export function useMedicationMaster(id: string | undefined) {
+  return useQuery({
+    queryKey: [QUERY_KEYS.MEDICATIONS_MASTER, id],
+    queryFn: async () => {
+      if (!id || id === 'new') return null;
+      const { data, error } = await supabase
+        .from(TABLES.MEDICATIONS_MASTER)
+        .select(MEDICATION_MASTER_COLUMNS)
+        .eq('id', id)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data as MedicationMaster;
+    },
+    enabled: !!id,
+    staleTime: 1000 * 60 * 60,
+  });
+}
+
+export function useMedicationCategories() {
+  return useQuery({
+    queryKey: [QUERY_KEYS.MEDICATIONS_MASTER, 'categories'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from(TABLES.MEDICATIONS_MASTER)
+        .select('category')
+        .not('category', 'is', null)
+        .order('category');
+
+      if (error) throw error;
+      
+      const categories = Array.from(new Set(data.map(m => m.category)))
+        .filter((c): c is string => !!c)
+        .sort();
+        
+      return categories;
+    },
+    staleTime: 1000 * 60 * 60,
   });
 }
 

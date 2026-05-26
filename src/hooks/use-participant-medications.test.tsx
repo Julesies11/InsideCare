@@ -33,7 +33,6 @@ describe('useParticipantMedications', () => {
             participant_id: 'participant-1',
             medication_id: 'master-med-1',
             dosage: '10mg',
-            frequency: 'Daily',
             is_active: true,
             medication: {
               id: 'master-med-1',

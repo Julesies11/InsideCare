@@ -74,8 +74,18 @@ export const MENU_SIDEBAR: MenuItemConfig[] = [
     permission: RBAC_MODULES.PARTICIPANTS,
     children: [
       { title: 'Participant Profiles', path: '/participants/profiles', permission: RBAC_MODULES.PARTICIPANTS },
+      { title: 'Medication Register', path: '/participants/medication-register', permission: RBAC_MODULES.MASTER_LISTS },
       { title: 'Shift Notes', path: '/participants/shift-notes', permission: RBAC_MODULES.SHIFT_NOTES },
     ],
+  },
+  {
+    heading: 'Shifts',
+  },
+  {
+    title: 'Shift Setup',
+    icon: ClipboardList,
+    path: '/roster-board/shift-templates',
+    permission: RBAC_MODULES.ROSTER_BOARD,
   },
   {
     title: 'Roster Board',
@@ -89,12 +99,6 @@ export const MENU_SIDEBAR: MenuItemConfig[] = [
     icon: Settings,
     path: '/admin/roles',
     permission: RBAC_MODULES.ACCESS_CONTROL,
-  },
-  {
-    title: 'Leave Types',
-    icon: LogOut,
-    path: '/admin/leave-types',
-    permission: RBAC_MODULES.MASTER_LISTS,
   },
   {
     title: 'Checklist Templates',

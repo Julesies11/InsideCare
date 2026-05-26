@@ -9,8 +9,8 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Clock, MapPin, Edit, Trash2, Plus, CalendarDays, ChevronLeft, ChevronRight, Loader2, CheckSquare, Zap, CalendarCheck } from 'lucide-react';
-import { format, addMonths, addWeeks, addDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameDay, isBefore, startOfDay, eachDayOfInterval, isSameMonth, parseISO } from 'date-fns';
+import { Clock, MapPin, Edit, Trash2, Plus, CalendarDays, ChevronLeft, ChevronRight, Loader2, CheckSquare, CalendarCheck } from 'lucide-react';
+import { format, addMonths, addWeeks, addDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameDay, isBefore, startOfDay, eachDayOfInterval, isSameMonth } from 'date-fns';
 import { useHouseCalendarEvents } from '@/hooks/useHouseCalendarEvents';
 import { useParticipants } from '@/hooks/use-participants';
 import { useStaff } from '@/hooks/use-staff';
@@ -22,7 +22,7 @@ import { HousePendingChanges } from '@/models/house-pending-changes';
 import { HouseCalendarEventTypeCombobox } from './house-calendar-event-type-components/HouseCalendarEventTypeCombobox';
 import { HouseCalendarEventTypeMasterDialog } from './house-calendar-event-type-components/HouseCalendarEventTypeMasterDialog';
 import { HouseCalendarEventAttachments, QueuedAttachment } from './HouseCalendarEventAttachments';
-import { cn, getPeriodTheme } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { HouseChecklistExecution } from './house-checklist-execution';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { supabase } from '@/lib/supabase';
@@ -31,15 +31,8 @@ import { TABLES } from '@/config/db-tables';
 import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 import { QUERY_KEYS } from '@/config/query-keys';
 import { STATUS, CHECKLIST_STATUS } from '@/config/enums';
-// Shift Dialog imports
-import { ShiftDialog, ShiftFormData } from '@/components/roster/shift-dialog';
-import { ShiftCard, ShiftCardData } from '@/components/roster/shift-card';
-import { LeaveDialog } from '@/components/roster/leave-dialog';
-import { useRosterData, useLeaveRequestsQuery } from '@/components/roster/use-roster-data';
-import { useHouseShiftTemplates } from '@/hooks/use-house-shift-templates';
-import { PopulateRosterModal } from './PopulateRosterModal';
-import { ScheduleChecklistsModal } from './ScheduleChecklistsModal';
 import { BulkDeleteCalendarModal } from './BulkDeleteCalendarModal';
+import { ScheduleChecklistsModal } from './ScheduleChecklistsModal';
 import { useQueryClient } from '@tanstack/react-query';
 
 export interface HouseCalendarEventsProps {
@@ -74,15 +67,11 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
   const [showEventDialog, setShowEventDialog] = useState(false);
   const [showEventTypeDialog, setShowEventTypeDialog] = useState(false);
   const [showChecklistDialog, setShowChecklistDialog] = useState(false);
-  const [showPopulateModal, setShowPopulateModal] = useState(false);
   const [showScheduleChecklistsModal, setShowScheduleChecklistsModal] = useState(false);
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
-  const [showLeave, setShowLeave] = useState(false);
-  const [selectedLeaveId, setSelectedLeaveId] = useState<string | null>(null);
-  const [showLeaveDialog, setShowLeaveDialog] = useState(false);
   
   // Filtering state
-  const [filterTypes, setFilterTypes] = useState<string[]>(['shift', 'checklist', 'meeting', 'appointment', 'clinical', 'other']);
+  const [filterTypes, setFilterTypes] = useState<string[]>(['checklist', 'meeting', 'appointment', 'clinical', 'other']);
   const [showDeleteChoice, setShowDeleteChoice] = useState(false);
   const [eventToDeleteInstance, setEventToDeleteInstance] = useState<any>(null);
   const [executingChecklist, setExecutingChecklist] = useState<any>(null);
@@ -125,42 +114,22 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
     };
   }, [currentDate, viewMode]);
 
-  const { data: leaveBlocks = [] } = useLeaveRequestsQuery(
-    showLeave ? 'all' : 'skip',
-    startDate,
-    endDate
-  );
-
   const { deleteSchedule, deleteEvent, loading: deleting } = useChecklistSchedules(houseId);
   const { participants } = useParticipants(0, 1000);
   const { staff: systemStaff } = useStaff(0, 1000, [], { statuses: ['active'] }); // Fetch more staff for general events
   const { assignments: houseStaffAssignments } = useHouseStaffAssignments(houseId);
   const { user, isAdmin = false } = useAuth();
   
-  // Shift Dialog hooks
-  const { createShift, updateShift, deleteShift, staff: allRosterStaff } = useRosterData();
-  const { shiftTemplates } = useHouseShiftTemplates(houseId);
-  
   // Refresh when refreshKey changes
   useEffect(() => {
     if (refreshKey) refresh();
   }, [refreshKey, refresh]);
 
-  const handleBulkDelete = async ({ startDate, endDate, deleteShifts, deleteEvents, deleteChecklists }: any) => {
+  const handleBulkDelete = async ({ startDate, endDate, deleteEvents, deleteChecklists }: any) => {
     if (!houseId) return;
     
     try {
       const promises = [];
-      
-      if (deleteShifts) {
-        promises.push(
-          supabase.from(TABLES.STAFF_SHIFTS)
-            .delete()
-            .eq('house_id', houseId)
-            .gte('start_date', startDate)
-            .lte('start_date', endDate)
-        );
-      }
       
       if (deleteEvents) {
         promises.push(
@@ -188,7 +157,6 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
       if (error) throw error;
       
       await queryClient.invalidateQueries({ queryKey: ['house-calendar-events', { houseId }] });
-      await queryClient.invalidateQueries({ queryKey: ['roster-shifts'] });
       await queryClient.invalidateQueries({ queryKey: ['house-checklist-history', houseId] });
       refresh();
       
@@ -198,63 +166,9 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
     }
   };
 
-  // Shift Dialog state
-  const [showShiftDialog, setShowShiftDialog] = useState(false);
-  const [selectedShift, setSelectedShift] = useState<any>(null);
-  const [shiftPreSelectedDate, setShiftPreSelectedDate] = useState<Date>();
-  const [savingShift, setSavingShift] = useState(false);
-
-  const handleQuickAssign = useCallback(async (shiftId: string, staffId: string) => {
-    try {
-      await updateShift(shiftId, { staff_id: staffId });
-      toast.success('Staff assigned successfully');
-      refresh();
-    } catch (error: any) {
-      toast.error('Failed to assign staff: ' + error.message);
-    }
-  }, [updateShift, refresh]);
-
   const staffList = useMemo(() => {
-    if (!allRosterStaff || !houseId) return [];
-    
-    const targetHouseId = houseId.toLowerCase();
-    
-    return allRosterStaff.filter(s => {
-      const assignments = (s as any).house_assignments || [];
-      return assignments.some((a: any) => {
-        const assignmentHouseId = (a.house_id || a.house?.id || '').toLowerCase();
-        return assignmentHouseId === targetHouseId;
-      });
-    }).map(s => ({ id: s.id, staff_name: s.staff_name }));
-  }, [allRosterStaff, houseId]);
-
-  const houseLeaveBlocks = useMemo(() => {
-    if (!showLeave || !staffList.length) return [];
-    const staffIds = new Set(staffList.map(s => s.id));
-    return leaveBlocks.filter(l => staffIds.has(l.staff_id));
-  }, [leaveBlocks, staffList, showLeave]);
-
-  // Helper to convert calendar event to ShiftCardData
-  const mapEventToShiftCardData = (event: any): ShiftCardData => ({
-    id: event.id.replace('shift-', ''),
-    start_date: event.event_date,
-    end_date: event.end_date,
-    start_time: event.start_time,
-    end_time: event.end_time,
-    shift_template: event.shift_template,
-    color_theme: event.type_details?.color_theme,
-    icon_name: event.type_details?.icon_name,
-    staff_name: event.event_staff?.[0]?.staff?.staff_name,
-    staff_id: event.event_staff?.[0]?.staff?.id,
-    participants: event.event_participants?.map((p: any) => ({ id: p.participant.id, participant_name: p.participant.participant_name })) || event.participants,
-    assigned_checklists: event.assigned_checklists?.map((ac: any) => ({
-      id: ac.id,
-      checklist_id: ac.checklist_id,
-      assignment_title: ac.assignment_title,
-      is_completed: ac.submissions?.some((s: any) => s.status === CHECKLIST_STATUS.completed)
-    })),
-    notesCount: event.notes_count || 0
-  });
+    return systemStaff.map(s => ({ id: s.id, staff_name: s.staff_name }));
+  }, [systemStaff]);
 
   // Apply filtering
   const filteredEvents = useMemo(() => {
@@ -357,43 +271,6 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
   };
 
   const handleEditEvent = async (event: any) => {
-    // Handle shift events
-    if (event.type === 'shift') {
-      try {
-        // Extract shift ID from synthetic ID format (shift-{id})
-        const shiftId = event.id.replace('shift-', '');
-        
-        // Fetch full shift data with participants and checklists
-        const { data: shift, error: shiftError } = await supabase
-          .from(TABLES.STAFF_SHIFTS)
-          .select(`
-            *,
-            participants:ic_shift_participants(participant:ic_participants(id, participant_name)),
-            assigned_checklists:ic_shift_assigned_checklists(id, checklist_id, assignment_title)
-          `)
-          .eq('id', shiftId)
-          .maybeSingle();
-        
-        if (shiftError) throw shiftError;
-        if (!shift) throw new Error("You do not have permission to perform this action");
-        
-        // Convert participants array to participant_ids
-        const participant_ids = shift.participants?.map((p: any) => p.participant.id) || [];
-        
-        // Set shift data for editing
-        setSelectedShift({
-          ...shift,
-          participant_ids,
-          assigned_checklists: shift.assigned_checklists || []
-        });
-        setShowShiftDialog(true);
-      } catch (err) {
-        console.error('Error loading shift:', err);
-        toast.error('Failed to load shift details.');
-      }
-      return;
-    }
-    
     if (event.is_checklist_event) {
       try {
         // 1. Fetch the House Checklist and its items
@@ -409,27 +286,22 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
         // 2. Check if a submission already exists for this calendar event
         let existingSubmission = event.submissions?.[0];
         
-        // If not found in the passed event object, try a direct lookup to be safe 
-        // (prevents race conditions with stale data from parent)
         if (!existingSubmission) {
-          const isShiftRoutine = event.is_shift_routine || event.id?.startsWith('shift-cl-');
           const { data: directSubs } = await supabase
             .from(TABLES.HOUSE_CHECKLIST_SUBMISSIONS)
             .select('id, status, updated_at, scheduled_date')
             .eq('checklist_id', event.house_checklist_id)
-            .eq(isShiftRoutine ? 'shift_id' : 'calendar_event_id', isShiftRoutine ? event.shift_id : event.id)
+            .eq('calendar_event_id', event.id)
             .eq('status', CHECKLIST_STATUS.in_progress)
             .order('updated_at', { ascending: false })
             .limit(1);
             
           if (directSubs && directSubs.length > 0) {
-            console.log('[ChecklistDebug] Found existing submission via safety check:', directSubs[0].id);
             existingSubmission = directSubs[0];
           }
         }
         
         if (existingSubmission) {
-          // Fetch existing submission items to resume, including staff names
           const { data: subItems } = await supabase
             .from(TABLES.HOUSE_CHECKLIST_SUBMISSION_ITEMS)
             .select(`
@@ -494,34 +366,19 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
     setShowEventDialog(true);
   };
 
-  const handleEditLeave = (leave: any) => {
-    setSelectedLeaveId(leave.id);
-    setShowLeaveDialog(true);
-  };
-
   const persistChecklistExecution = async (results: any, status: string) => {
-    console.log('[ChecklistDebug] persistChecklistExecution', { status, results });
     if (!selectedEvent || !houseId) return;
 
     const staffId = (user as any)?.staff_id;
     let submissionId = activeSubmission?.id;
 
     if (!submissionId) {
-      // Create new submission linked to calendar event OR shift
-      const isShiftRoutine = selectedEvent.is_shift_routine || selectedEvent.id?.startsWith('shift-cl-');
-      console.log('[ChecklistDebug] New submission. isShiftRoutine:', isShiftRoutine);
-      
-      // Ensure we don't try to insert synthetic IDs into UUID columns
-      const calendarEventId = (isShiftRoutine || selectedEvent.id?.startsWith('shift-cl-')) ? null : selectedEvent.id;
-      
       const { data, error } = await supabase
         .from(TABLES.HOUSE_CHECKLIST_SUBMISSIONS)
         .insert({
           checklist_id: executingChecklist.id,
           house_id: houseId,
-          calendar_event_id: calendarEventId,
-          shift_id: isShiftRoutine ? selectedEvent.shift_id : null,
-          shift_template_id: isShiftRoutine ? selectedEvent.shift_template_id : null,
+          calendar_event_id: selectedEvent.id,
           scheduled_date: selectedEvent.event_date,
           status: status,
           submitted_by: staffId || null,
@@ -531,16 +388,10 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
         .select()
         .maybeSingle();
 
-      if (error) {
-        console.error('[ChecklistDebug] Insert error:', error);
-        throw error;
-      }
+      if (error) throw error;
       if (!data) throw new Error("You do not have permission to perform this action");
       submissionId = data.id;
-      console.log('[ChecklistDebug] Created ID:', submissionId);
     } else {
-      // Update existing submission
-      console.log('[ChecklistDebug] Updating existing submission:', submissionId);
       const { error } = await supabase
         .from(TABLES.HOUSE_CHECKLIST_SUBMISSIONS)
         .update({
@@ -551,14 +402,9 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
         })
         .eq('id', submissionId);
 
-      if (error) {
-        console.error('[ChecklistDebug] Update error:', error);
-        throw error;
-      }
+      if (error) throw error;
     }
 
-    // Upsert items
-    console.log('[ChecklistDebug] Upserting', results.items?.length, 'items');
     const submissionItems = results.items.map((item: any) => ({
       submission_id: submissionId,
       item_id: item.item_id,
@@ -573,13 +419,8 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
       .from(TABLES.HOUSE_CHECKLIST_SUBMISSION_ITEMS)
       .upsert(submissionItems, { onConflict: 'submission_id,item_id' });
 
-    if (itemsError) {
-      console.error('[ChecklistDebug] Items error:', itemsError);
-      throw itemsError;
-    }
-    console.log('[ChecklistDebug] Success');
+    if (itemsError) throw itemsError;
 
-    // Handle attachments (simplified for now, following house-checklists pattern)
     if (results.queuedAttachments) {
       for (const itemId in results.queuedAttachments) {
         for (const queued of results.queuedAttachments[itemId]) {
@@ -603,7 +444,6 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
   };
 
   const handleSaveChecklistProgress = async (results: any) => {
-    console.log('[ChecklistDebug] handleSaveChecklistProgress results:', results);
     try {
       const id = await persistChecklistExecution(results, CHECKLIST_STATUS.in_progress);
       const completedItems: Record<string, boolean> = {};
@@ -625,8 +465,6 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
           };
         }
       });
-
-      console.log('[ChecklistDebug] New activeSubmission:', { id, completedItems, itemNotes, completedBy });
 
       setActiveSubmission({ 
         id, 
@@ -707,9 +545,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
       let finalEventId: string | null = null;
 
       if (selectedEvent) {
-        // Update existing event
         if (selectedEvent.tempId) {
-          // Update pending add
           const newPending = {
             ...pendingChanges,
             calendarEvents: {
@@ -720,10 +556,8 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
             },
           };
           onPendingChangesChange(newPending);
-          // For temp events, we still can't upload attachments until real ID exists
         } else {
           finalEventId = selectedEvent.id;
-          // Add to pending updates
           const newPending = {
             ...pendingChanges,
             calendarEvents: {
@@ -737,12 +571,8 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
           onPendingChangesChange(newPending);
         }
       } else {
-        // Add new event - since user wants to upload NOW, we must CREATE the event now to get an ID
-        // instead of putting it in "pendingChanges"
         if (formData.queuedAttachments.length > 0) {
           toast.loading('Creating event and uploading attachments...');
-          
-          // Exclude junction fields for direct table insert
           const { participant_ids, assigned_staff_ids, ...directTableData } = eventData;
 
           const { data: newEvent, error: insertError } = await supabase
@@ -758,7 +588,6 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
           if (!newEvent) throw new Error("You do not have permission to perform this action");
           finalEventId = newEvent.id;
 
-          // Also handle immediate junction inserts
           if (participant_ids?.length > 0) {
             await supabase
               .from(TABLES.HOUSE_CALENDAR_EVENT_PARTICIPANTS)
@@ -769,10 +598,8 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
               .from(TABLES.HOUSE_CALENDAR_EVENT_STAFF)
               .insert(assigned_staff_ids.map(id => ({ event_id: finalEventId, staff_id: id })));
           }
-
           toast.dismiss();
         } else {
-          // Normal flow for events without attachments (keep them pending)
           const tempId = `temp-${Date.now()}-${Math.random()}`;
           const newPending = {
             ...pendingChanges,
@@ -788,9 +615,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
         }
       }
 
-      // Handle attachments if we have a real database ID
       if (finalEventId) {
-        // 1. Delete marked attachments
         if (formData.toDeleteAttachments.length > 0) {
           for (const attId of formData.toDeleteAttachments) {
             const att = formData.existingAttachments.find(a => a.id === attId);
@@ -799,18 +624,14 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
           }
         }
 
-        // 2. Upload queued attachments
         if (formData.queuedAttachments.length > 0) {
           for (const queued of formData.queuedAttachments) {
             const ext = queued.file.name.split('.').pop();
             const filePath = `calendar-events/${finalEventId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
-            
             const { error: uploadError } = await supabase.storage
               .from(STORAGE_BUCKETS.HOUSE_DOCUMENTS)
               .upload(filePath, queued.file);
-            
             if (uploadError) throw uploadError;
-
             await supabase.from(TABLES.HOUSE_CALENDAR_EVENT_ATTACHMENTS).insert({
               event_id: finalEventId,
               file_name: queued.file.name,
@@ -821,12 +642,10 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
             });
           }
         }
-        
         if (formData.toDeleteAttachments.length > 0 || formData.queuedAttachments.length > 0) {
           toast.success('Event saved with attachments');
         }
       }
-
       setShowEventDialog(false);
     } catch (error: any) {
       console.error('Error saving event attachments:', error);
@@ -837,13 +656,6 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
   const handleDeleteEvent = (event: any) => {
     if (event.tempId) {
       handleCancelPendingAdd(event.tempId);
-      return;
-    }
-
-    // Handle shift deletion
-    if (event.type === 'shift') {
-      const shiftId = event.id.replace('shift-', '');
-      handleDeleteShift(shiftId);
       return;
     }
 
@@ -885,7 +697,6 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
 
   const handleCancelPendingAdd = (tempId: string) => {
     if (!pendingChanges || !onPendingChangesChange) return;
-
     const newPending = {
       ...pendingChanges,
       calendarEvents: {
@@ -898,7 +709,6 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
 
   const handleCancelPendingUpdate = (id: string) => {
     if (!pendingChanges || !onPendingChangesChange) return;
-
     const newPending = {
       ...pendingChanges,
       calendarEvents: {
@@ -911,7 +721,6 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
 
   const handleCancelPendingDelete = (id: string) => {
     if (!pendingChanges || !onPendingChangesChange) return;
-
     const newPending = {
       ...pendingChanges,
       calendarEvents: {
@@ -922,47 +731,6 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
     onPendingChangesChange(newPending);
   };
 
-  // Shift Dialog handlers
-  const handleSaveShift = async (formData: ShiftFormData) => {
-    setSavingShift(true);
-    try {
-      if (selectedShift) {
-        // Update existing shift
-        await updateShift(selectedShift.id, formData);
-        toast.success('Shift updated successfully');
-      } else {
-        // Create new shift - ensure house_id is set
-        const shiftData = {
-          ...formData,
-          house_id: houseId,
-        };
-        await createShift(shiftData);
-        toast.success('Shift created successfully');
-      }
-      setShowShiftDialog(false);
-      refresh(); // Refresh calendar events to show new shift
-    } catch (error: any) {
-      console.error('Error saving shift:', error);
-      toast.error('Failed to save shift: ' + error.message);
-    } finally {
-      setSavingShift(false);
-    }
-  };
-
-  const handleDeleteShift = async (shiftId: string) => {
-    if (!confirm('Are you sure you want to delete this shift?')) return;
-    try {
-      await deleteShift(shiftId);
-      toast.success('Shift deleted successfully');
-      setShowShiftDialog(false);
-      refresh();
-    } catch (error: any) {
-      console.error('Error deleting shift:', error);
-      toast.error('Failed to delete shift: ' + error.message);
-    }
-  };
-
-  // Helper function to get participant name
   const getParticipantName = (event: any) => {
     if (event.event_participants?.length > 0) {
       const names = event.event_participants.map((ep: any) => ep.participant?.participant_name).filter(Boolean);
@@ -971,7 +739,6 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
     return null;
   };
 
-  // Helper function to get staff name
   const getStaffName = (event: any) => {
     if (event.event_staff?.length > 0) {
       const names = event.event_staff.map((es: any) => es.staff?.staff_name).filter(Boolean);
@@ -980,54 +747,37 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
     return null;
   };
 
-  // Get status color based on date/time calculation
   const getStatusColor = (event: any) => {
     const now = new Date();
     const eventDate = new Date(`${event.event_date}T${event.start_time || '00:00'}`);
-    
-    if (eventDate > now) return 'blue'; // Upcoming
-    return 'green'; // Past
+    if (eventDate > now) return 'blue';
+    return 'green';
   };
 
   const getStatusText = (event: any) => {
-    if (event.type === 'shift') return 'Rostered';
     if (event.is_checklist_event) {
       const submission = event.submissions?.[0];
       if (submission?.status === CHECKLIST_STATUS.completed) return CHECKLIST_STATUS.COMPLETED;
       if (submission?.status === CHECKLIST_STATUS.in_progress) return 'In Progress';
-      
       const eventDate = startOfDay(new Date(event.event_date));
       const today = startOfDay(new Date());
       if (isBefore(eventDate, today)) return 'Overdue';
       return 'Scheduled';
     }
-
     const now = new Date();
     const eventDate = new Date(`${event.event_date}T${event.start_time || '00:00'}`);
-    
     return eventDate > now ? 'Upcoming' : 'Past';
   };
 
-  // Get type color
   const getTypeColor = (event: any) => {
-    // Priority 1: Shift-specific color
-    if (event.type === 'shift') {
-      return getPeriodTheme(event.shift_template, event.type_details?.color_theme).color || 'blue';
-    }
-
-    // Priority 2: Checklist (Dynamic Period Theme)
-    if (event.is_checklist_event) return getPeriodTheme(event.target_shift).color;
-    // Priority 3: Explicit Event Type Color from DB
+    if (event.is_checklist_event) return 'amber';
     if (event.event_type_info?.color) return event.event_type_info.color;
-
-    // Priority 4: Fallback string matching
-    const type = event.type || '';
-    const lowerType = type.toLowerCase();
-    if (lowerType.includes('meeting') || lowerType.includes('visit')) return 'purple';
-    if (lowerType.includes('appointment')) return 'orange';
-    if (lowerType.includes('activity') || lowerType.includes('event')) return 'green';
-    if (lowerType.includes('community')) return 'blue';
-    if (lowerType.includes('maintenance')) return 'red';
+    const type = (event.type || '').toLowerCase();
+    if (type.includes('meeting') || type.includes('visit')) return 'purple';
+    if (type.includes('appointment')) return 'orange';
+    if (type.includes('activity') || type.includes('event')) return 'green';
+    if (type.includes('community')) return 'blue';
+    if (type.includes('maintenance')) return 'red';
     return 'gray';
   };
 
@@ -1048,24 +798,8 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
             </CardTitle>
 
             <div className="flex items-center gap-2 flex-wrap">
-              <div className="flex items-center gap-2 mr-4 bg-muted/30 px-3 py-1.5 rounded-lg border border-transparent hover:border-gray-100 transition-all">
-                <Switch 
-                  id="house-show-leave" 
-                  checked={showLeave} 
-                  onCheckedChange={setShowLeave} 
-                  size="sm" 
-                />
-                <Label 
-                  htmlFor="house-show-leave" 
-                  className="font-black text-[10px] uppercase tracking-widest cursor-pointer text-muted-foreground"
-                >
-                  Staff Leave
-                </Label>
-              </div>
-
               <div className="flex items-center bg-gray-100 rounded-lg p-1 mr-4">
                 {[
-                  { id: 'shift', label: 'Shifts', color: 'blue' },
                   { id: 'checklist', label: 'Checklists', color: 'amber' },
                   { id: 'meeting', label: 'Meetings', color: 'purple' },
                   { id: 'appointment', label: 'Appts', color: 'orange' },
@@ -1085,15 +819,6 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
                 ))}
               </div>
               <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowPopulateModal(true)}
-                  className="gap-2 font-bold border-primary/30 text-primary hover:bg-primary/5"
-                >
-                  <Zap className="size-4 fill-primary" />
-                  Build Roster
-                </Button>
                 <Button
                   variant="outline"
                   size="sm"
@@ -1186,58 +911,12 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
                             </div>
                           </div>
                           <div className="flex-1 p-1.5 space-y-1.5 overflow-y-auto max-h-[400px]">
-                            {/* Leave Blocks */}
-                            {houseLeaveBlocks.filter(l => {
-                              const dateStr = format(day, 'yyyy-MM-dd');
-                              return dateStr >= l.start_date && dateStr <= l.end_date;
-                            }).map(leave => (
-                              <div
-                                key={leave.id}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleEditLeave(leave);
-                                }}
-                                className={cn(
-                                  "p-1.5 rounded-lg border text-[10px] font-bold truncate cursor-pointer hover:brightness-95 transition-all",
-                                  leave.status === 'pending' 
-                                    ? 'bg-yellow-100 text-yellow-800 border-yellow-300' 
-                                    : 'bg-gray-100 text-gray-600 border-gray-300'
-                                )}
-                                title={`${staffList.find(s => s.id === leave.staff_id)?.staff_name}: ${leave.leave_type_name}${leave.reason ? ` - ${leave.reason}` : ''}`}
-                              >
-                                🏖 {staffList.find(s => s.id === leave.staff_id)?.staff_name}: {leave.leave_type_name}
-                                {leave.reason && <div className="font-normal opacity-70 mt-0.5">{leave.reason.length > 50 ? `${leave.reason.slice(0, 50)}...` : leave.reason}</div>}
-                              </div>
-                            ))}
-
-                            {dayEvents.length === 0 && houseLeaveBlocks.filter(l => {
-                              const start = parseISO(l.start_date);
-                              const end = parseISO(l.end_date);
-                              return isSameDay(start, day) || (start < day && end >= day);
-                            }).length === 0 ? (
+                            {dayEvents.length === 0 ? (
                               <div className="h-full min-h-[100px] flex items-center justify-center italic text-[10px] text-muted-foreground/30">
                                 No events
                               </div>
                             ) : (
                               dayEvents.map(event => {
-                                if (event.type === 'shift') {
-                                  return (
-                                    <ShiftCard
-                                      key={event.id}
-                                      shift={mapEventToShiftCardData(event)}
-                                      compact={true}
-                                      showStaffName={true}
-                                      showHouseName={false}
-                                      onClick={(e?: React.MouseEvent) => {
-                                        e?.stopPropagation();
-                                        handleEditEvent(event);
-                                      }}
-                                      staffList={staffList}
-                                      onQuickAssign={handleQuickAssign}
-                                    />
-                                  );
-                                }
-                                
                                 return (
                                   <div
                                     key={event.id || event.tempId}
@@ -1247,8 +926,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
                                       pendingChanges?.calendarEvents.toDelete.includes(event.id) ? 'opacity-40 bg-destructive/5' :
                                       'bg-white border-gray-100'
                                     }`}
-                                  >
-                                    <div className="flex flex-col gap-1">
+                                  >                                    <div className="flex flex-col gap-1">
                                       <div className="text-[9px] text-gray-500 font-bold uppercase tracking-tighter flex items-center gap-1.5">
                                         {event.is_checklist_event && <CheckSquare className={`size-2.5 text-${getTypeColor(event)}-600`} />}
                                         {event.is_checklist_event ? 'CHECKLIST' : (event.event_type_info?.event_type_name || event.type)}
@@ -1287,23 +965,6 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
                         <div className="py-12 text-center text-muted-foreground italic">No events for this day</div>
                       ) : (
                         getEventsForPeriod.map(event => {
-                          if (event.type === 'shift') {
-                            return (
-                              <ShiftCard
-                                key={event.id}
-                                shift={mapEventToShiftCardData(event)}
-                                compact={false}
-                                showStaffName={true}
-                                showHouseName={false}
-                                onClick={(e?: React.MouseEvent) => {
-                                  e?.stopPropagation();
-                                  handleEditEvent(event);
-                                }}
-                                staffList={staffList}
-                                onQuickAssign={handleQuickAssign}
-                              />                            );
-                          }
-
                           return (
                             <div 
                               key={event.id || event.tempId}
@@ -1397,55 +1058,8 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
                             </div>
 
                             <div className="flex flex-col gap-1 overflow-y-auto max-h-[85px] custom-scrollbar">
-                              {/* Leave Blocks */}
-                              {houseLeaveBlocks.filter(l => {
-                                const dateStr = format(day, 'yyyy-MM-dd');
-                                return dateStr >= l.start_date && dateStr <= l.end_date;
-                              }).map(leave => (
-                                <div
-                                  key={leave.id}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleEditLeave(leave);
-                                  }}
-                                  className={cn(
-                                    "px-1.5 py-1 rounded text-[8px] font-bold border truncate cursor-pointer hover:brightness-95 transition-all",
-                                    leave.status === 'pending' 
-                                      ? 'bg-yellow-100 text-yellow-800 border-yellow-300' 
-                                      : 'bg-gray-100 text-gray-600 border-gray-300'
-                                  )}
-                                  title={`${staffList.find(s => s.id === leave.staff_id)?.staff_name}: ${leave.leave_type_name}${leave.reason ? ` - ${leave.reason}` : ''}`}
-                                >
-                                  🏖 {staffList.find(s => s.id === leave.staff_id)?.staff_name}: {leave.leave_type_name}
-                                </div>
-                              ))}
-
                               {dayEvents.map(event => {
-                                const isShift = event.type === 'shift';
-                                
-                                if (isShift) {
-                                  return (
-                                    <ShiftCard
-                                      key={event.id}
-                                      shift={mapEventToShiftCardData(event)}
-                                      compact={true}
-                                      showStaffName={true}
-                                      showHouseName={false}
-                                      onClick={(e?: React.MouseEvent) => {
-                                        e?.stopPropagation();
-                                        handleEditEvent(event);
-                                      }}
-                                      staffList={staffList}
-                                      onQuickAssign={handleQuickAssign}
-                                    />
-                                  );
-                                }
-
-                                const theme = event.is_checklist_event
-                                  ? getPeriodTheme(event.target_shift)
-                                  : null;
-                                
-                                const Icon = event.is_checklist_event ? theme?.icon || CheckSquare : null;
+                                const Icon = event.is_checklist_event ? CheckSquare : null;
 
                                 return (
                                   <div
@@ -1456,7 +1070,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
                                     }}
                                     className={cn(
                                       "px-1.5 py-1 rounded text-[9px] font-medium flex flex-col gap-0.5 border transition-all hover:scale-[1.02]",
-                                      event.is_checklist_event 
+                                      event.is_checklist_event
                                         ? `bg-${getTypeColor(event)}-50 text-${getTypeColor(event)}-700 border-${getTypeColor(event)}-200`
                                         : `bg-white text-gray-700 border-gray-200`
                                     )}
@@ -1469,11 +1083,9 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
                                       </span>
                                       <span className={cn(
                                         "size-1.5 rounded-full shrink-0",
-                                        event.is_checklist_event ? getPeriodTheme(event.target_shift).dot : 
                                         `bg-${getTypeColor(event)}-500`
                                       )} />
-                                    </div>
-                                    <div className="font-bold text-gray-900 leading-tight whitespace-normal break-words">
+                                    </div>                                    <div className="font-bold text-gray-900 leading-tight whitespace-normal break-words">
                                       {event.title}
                                     </div>
                                     
@@ -1802,46 +1414,11 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
         </DialogContent>
       </Dialog>
 
-      {/* Shift Dialog */}
-      {houseId && (
-        <ShiftDialog
-          open={showShiftDialog}
-          onOpenChange={setShowShiftDialog}
-          shift={selectedShift}
-          staffId={staffId}
-          preSelectedDate={shiftPreSelectedDate}
-          preSelectedHouseId={houseId}
-          staffList={allRosterStaff || []}
-          houses={[{ id: houseId, name: 'Current House' }]}
-          participants={participants.filter(p => p.house_id === houseId)}
-          checklists={houseChecklists}
-          shiftTemplates={shiftTemplates}
-          onSave={handleSaveShift}
-          onDelete={selectedShift ? handleDeleteShift : undefined}
-          staffSelectionDisabled={false}
-          readOnly={!isAdmin && !canEdit}
-          />
-          )}
-      <PopulateRosterModal 
-        open={showPopulateModal}
-        onOpenChange={setShowPopulateModal}
-        houseId={houseId!}
-        houseName={houseName || ''}
-        onSuccess={refresh}
-      />
-
       <ScheduleChecklistsModal
         open={showScheduleChecklistsModal}
         onOpenChange={setShowScheduleChecklistsModal}
         houseId={houseId!}
         houseName={houseName || ''}
-        onSuccess={refresh}
-      />
-
-      <LeaveDialog
-        open={showLeaveDialog}
-        onOpenChange={setShowLeaveDialog}
-        leaveId={selectedLeaveId}
         onSuccess={refresh}
       />
     </>
