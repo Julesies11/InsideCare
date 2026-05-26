@@ -24,7 +24,7 @@ export function MedicationMasterDialog({
   onClose,
   onUpdate,
 }: MedicationMasterDialogProps) {
-  const { data: medications = [], isLoading: loading } = useMedicationsMaster();
+  const { medications = [], isLoading: loading } = useMedicationsMaster();
   const { mutateAsync: addMedication } = useAddMedicationMaster();
   const { mutateAsync: updateMedication } = useUpdateMedicationMaster();
   const [showAddDialog, setShowAddDialog] = useState(false);

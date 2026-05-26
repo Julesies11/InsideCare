@@ -23,9 +23,15 @@ The project employs a **Gold Standard RLS architecture**:
 1.  **Explicit Command Separation**: Policies are explicitly separated into `SELECT`, `INSERT`, `UPDATE`, and `DELETE` commands. Broad `ALL` policies for non-admin roles are strictly forbidden to ensure granular control.
 2.  **Delete Restriction (Admin Only)**: All records (clinical, transactional, organizational, master lists) can **only** be deleted by global `Admin` users (defined as `full` access to `access_control`). This enforces the project-wide soft-delete architecture at the database level.
 3.  **Level-Guarded Context**: House or staff-specific access is only granted if the user's permission level for that specific module is at least `context_read_only`.
-4.  **Master List Protection**: Master List tables (e.g., `medications_master`) are restricted to users with the `master_lists` permission.
-5.  **Audit Integrity**: Use of `WITH CHECK` clauses ensures that users can only insert or update records that they own or are authorized to manage (e.g., matching their own `staff_id` or `house_id`).
-6.  **JWT-Driven Performance**: System performance is maintained using memory-resident `auth.jwt()` lookups via `SECURITY DEFINER` helper functions.
+4.  **Hierarchical Module Access**: Permissions are structured hierarchically:
+    - **Houses**: `houses` parent with `house_management`, `house_operations`, etc., as children.
+    - **Participant Records**: `participants` parent with `participant_goals`, `participant_medications`, etc., as children.
+    - **Staff Profiles**: `employees` parent with `staff_compliance`, `staff_employment`, etc., as children.
+    - *Enforcement*: Setting a parent to `none` ghost-locks children in the UI, but database policies are inclusive to prevent logic deadlocks.
+5.  **Inclusive Entry Logic**: Application-level entry guards for complex modules (like Houses) use OR-logic. A user is granted access to a module if they have authorized access to ANY granular sub-module, ensuring they can reach the specific data they are permitted to manage.
+6.  **Master List Protection**: Master List tables (e.g., `medications_master`) are restricted to users with the `master_lists` permission.
+7.  **Audit Integrity**: Use of `WITH CHECK` clauses ensures that users can only insert or update records that they own or are authorized to manage (e.g., matching their own `staff_id` or `house_id`).
+8.  **JWT-Driven Performance**: System performance is maintained using memory-resident `auth.jwt()` lookups via `SECURITY DEFINER` helper functions.
 
 ### Migration Naming Convention
 New migrations must follow the `YYYYMMDDXX_description.sql` format:

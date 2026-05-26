@@ -111,10 +111,33 @@ export function useDeleteParticipantDocument() {
   });
 }
 
-export const getParticipantFileUrl = async (filePath: string) => {
+export function useUpdateParticipantDocument() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, participantId, updates }: { id: string; participantId: string; updates: Partial<ParticipantDocument> }) => {
+      const { data, error } = await supabase
+        .from(TABLES.PARTICIPANT_DOCUMENTS)
+        .update(updates)
+        .eq('id', id)
+        .select(PARTICIPANT_DOCUMENT_COLUMNS)
+        .single();
+
+      if (error) throw error;
+      return data as ParticipantDocument;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PARTICIPANT_DOCUMENTS, data.participant_id] });
+    },
+  });
+}
+
+export const getParticipantFileUrl = async (filePath: string, downloadName?: string) => {
   const { data, error } = await supabase.storage
     .from(STORAGE_BUCKETS.PARTICIPANT_DOCUMENTS)
-    .createSignedUrl(filePath, 3600);
+    .createSignedUrl(filePath, 3600, {
+      download: downloadName || true
+    });
   
   if (error) {
     console.error('Error creating signed URL:', error);

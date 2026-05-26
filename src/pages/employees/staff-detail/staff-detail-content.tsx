@@ -101,7 +101,39 @@ export function StaffDetailContent({
   }, [photoFile, photoPreview, originalPhotoUrl, onPhotoDirtyChange]);
 
   const { hasAccess } = useRBAC();
-  const canEdit = hasAccess({ resource: RBAC_MODULES.EMPLOYEES, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE });
+
+  // Granular RBAC Flags
+  const canViewPersonal = hasAccess({ resource: RBAC_MODULES.EMPLOYEES, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY });
+  const canEditPersonal = hasAccess({ resource: RBAC_MODULES.EMPLOYEES, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE });
+
+  const canViewEmployment = hasAccess({ resource: RBAC_MODULES.STAFF_EMPLOYMENT, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY });
+  const canEditEmployment = hasAccess({ resource: RBAC_MODULES.STAFF_EMPLOYMENT, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE });
+
+  const canViewAvailability = hasAccess({ resource: RBAC_MODULES.STAFF_AVAILABILITY, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY });
+  const canEditAvailability = hasAccess({ resource: RBAC_MODULES.STAFF_AVAILABILITY, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE });
+
+  const canViewEmergency = hasAccess({ resource: RBAC_MODULES.STAFF_EMERGENCY, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY });
+  const canEditEmergency = hasAccess({ resource: RBAC_MODULES.STAFF_EMERGENCY, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE });
+
+  const canViewCompliance = hasAccess({ resource: RBAC_MODULES.STAFF_COMPLIANCE, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY });
+  const canEditCompliance = hasAccess({ resource: RBAC_MODULES.STAFF_COMPLIANCE, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE });
+
+  const canViewTraining = hasAccess({ resource: RBAC_MODULES.STAFF_TRAINING, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY });
+  const canEditTraining = hasAccess({ resource: RBAC_MODULES.STAFF_TRAINING, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE });
+
+  const canViewDocuments = hasAccess({ resource: RBAC_MODULES.STAFF_DOCUMENTS, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY });
+  const canEditDocuments = hasAccess({ resource: RBAC_MODULES.STAFF_DOCUMENTS, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE });
+
+  const canViewRoster = hasAccess({ resource: RBAC_MODULES.STAFF_ROSTER, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY });
+  const canEditRoster = hasAccess({ resource: RBAC_MODULES.STAFF_ROSTER, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE });
+
+  const canViewLeave = hasAccess({ resource: RBAC_MODULES.STAFF_LEAVE, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY });
+  const canEditLeave = hasAccess({ resource: RBAC_MODULES.STAFF_LEAVE, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE });
+
+  const canViewWarnings = hasAccess({ resource: RBAC_MODULES.STAFF_WARNINGS, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY });
+  const canEditWarnings = hasAccess({ resource: RBAC_MODULES.STAFF_WARNINGS, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE });
+
+  const canViewActivityLog = hasAccess({ resource: RBAC_MODULES.STAFF_ACTIVITY_LOG, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY });
 
   const [formData, setFormData] = useState<Record<string, any>>({
     staff_name: '',
@@ -208,7 +240,7 @@ export function StaffDetailContent({
 
     try {
       // Step 0: Upload profile photo if a new file was selected, or clear if deleted
-      if (photoFile) {
+      if (photoFile && canEditPersonal) {
         // Use the new handleAvatarUpload utility for resizing and processing
         const newPhotoUrl = await handleAvatarUpload(photoFile, STORAGE_BUCKETS.STAFF_PHOTOS, staffId);
 
@@ -230,10 +262,7 @@ export function StaffDetailContent({
         setPhotoPreview(newPhotoUrl);
         setFormData((prev: any) => ({ ...prev, photo_url: newPhotoUrl }));
         latestFormData.current = { ...currentFormData, photo_url: newPhotoUrl };
-
-// Redundant manual logging removed, handled by SQL trigger
-
-      } else if (photoPreview === null && originalPhotoUrl !== null) {
+      } else if (photoPreview === null && originalPhotoUrl !== null && canEditPersonal) {
         // Photo was deleted — clear it in the DB
         const { error: photoErr } = await supabase
           .from(TABLES.STAFF)
@@ -250,40 +279,52 @@ export function StaffDetailContent({
         }
         setFormData((prev: any) => ({ ...prev, photo_url: null }));
         latestFormData.current = { ...currentFormData, photo_url: null };
-
-// Redundant manual logging removed, handled by SQL trigger
-
       }
 
       // Step 1: Process pending compliance
-      if (currentPending.staffCompliance.toAdd.length > 0) {
-        const toInsert = currentPending.staffCompliance.toAdd.map(item => ({
-          staff_id: staffId,
-          compliance_name: item.compliance_name,
-          completion_date: item.completion_date || null,
-          expiry_date: item.expiry_date || null,
-          status: item.status || COMPLIANCE_STATUS.COMPLETE,
-        }));
+      if (canEditCompliance) {
+        if (currentPending.staffCompliance.toAdd.length > 0) {
+          const toInsert = currentPending.staffCompliance.toAdd.map(item => ({
+            staff_id: staffId,
+            compliance_name: item.compliance_name,
+            completion_date: item.completion_date || null,
+            expiry_date: item.expiry_date || null,
+            status: item.status || COMPLIANCE_STATUS.COMPLETE,
+          }));
 
-        const { error } = await supabase.from(TABLES.STAFF_COMPLIANCE).insert(toInsert);
-        if (error) {
-          const parsedError = parseSupabaseError(error);
-          toast.error(parsedError.title, { description: parsedError.description });
-          throw error;
+          const { error } = await supabase.from(TABLES.STAFF_COMPLIANCE).insert(toInsert);
+          if (error) {
+            const parsedError = parseSupabaseError(error);
+            toast.error(parsedError.title, { description: parsedError.description });
+            throw error;
+          }
         }
-      }
 
-      if (currentPending.staffCompliance.toUpdate.length > 0) {
-        for (const item of currentPending.staffCompliance.toUpdate) {
+        if (currentPending.staffCompliance.toUpdate.length > 0) {
+          for (const item of currentPending.staffCompliance.toUpdate) {
+            const { error } = await supabase
+              .from(TABLES.STAFF_COMPLIANCE)
+              .update({
+                compliance_name: item.compliance_name,
+                completion_date: item.completion_date || null,
+                expiry_date: item.expiry_date || null,
+                status: item.status || 'Complete',
+              })
+              .eq('id', item.id);
+            if (error) {
+              const parsedError = parseSupabaseError(error);
+              toast.error(parsedError.title, { description: parsedError.description });
+              throw error;
+            }
+          }
+        }
+
+        if (currentPending.staffCompliance.toDelete.length > 0) {
           const { error } = await supabase
             .from(TABLES.STAFF_COMPLIANCE)
-            .update({
-              compliance_name: item.compliance_name,
-              completion_date: item.completion_date || null,
-              expiry_date: item.expiry_date || null,
-              status: item.status || 'Complete',
-            })
-            .eq('id', item.id);
+            .delete()
+            .in('id', currentPending.staffCompliance.toDelete);
+          
           if (error) {
             const parsedError = parseSupabaseError(error);
             toast.error(parsedError.title, { description: parsedError.description });
@@ -292,101 +333,36 @@ export function StaffDetailContent({
         }
       }
 
-      if (currentPending.staffCompliance.toDelete.length > 0) {
-        const { error } = await supabase
-          .from(TABLES.STAFF_COMPLIANCE)
-          .delete()
-          .in('id', currentPending.staffCompliance.toDelete);
-        
-        if (error) {
-          const parsedError = parseSupabaseError(error);
-          toast.error(parsedError.title, { description: parsedError.description });
-          throw error;
-        }
-      }
-
       // Step 2: Process pending training records
-      if (currentPending.training.toAdd.length > 0) {
-        const toInsert = [];
-        for (const item of currentPending.training.toAdd) {
-          let filePath = null;
-          let fileName = null;
-          let fileSize = null;
+      if (canEditTraining) {
+        if (currentPending.training.toAdd.length > 0) {
+          const toInsert = [];
+          for (const item of currentPending.training.toAdd) {
+            let filePath = null;
+            let fileName = null;
+            let fileSize = null;
 
-          if (item.file) {
-            const fileExt = item.file.name.split('.').pop();
-            const uniqueFileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-            const storagePath = `${staffId}/training/${uniqueFileName}`;
+            if (item.file) {
+              const fileExt = item.file.name.split('.').pop();
+              const uniqueFileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+              const storagePath = `${staffId}/training/${uniqueFileName}`;
 
-            const { error: uploadError } = await supabase.storage
-              .from(STORAGE_BUCKETS.STAFF_DOCUMENTS)
-              .upload(storagePath, item.file);
+              const { error: uploadError } = await supabase.storage
+                .from(STORAGE_BUCKETS.STAFF_DOCUMENTS)
+                .upload(storagePath, item.file);
 
-            if (uploadError) {
-              toast.error('Failed to upload training document');
-              throw uploadError;
+              if (uploadError) {
+                toast.error('Failed to upload training document');
+                throw uploadError;
+              }
+
+              filePath = storagePath;
+              fileName = item.file.name;
+              fileSize = item.file.size;
             }
 
-            filePath = storagePath;
-            fileName = item.file.name;
-            fileSize = item.file.size;
-          }
-
-          toInsert.push({
-            staff_id: staffId,
-            title: item.title,
-            category: item.category,
-            description: item.description || null,
-            provider: item.provider || null,
-            date_completed: item.date_completed || null,
-            expiry_date: item.expiry_date || null,
-            file_path: filePath,
-            file_name: fileName,
-            file_size: fileSize,
-            created_by: staffId,
-          });
-        }
-
-        const { error } = await supabase.from(TABLES.STAFF_TRAINING).insert(toInsert);
-        if (error) {
-          const parsedError = parseSupabaseError(error);
-          toast.error(parsedError.title, { description: parsedError.description });
-          throw error;
-        }
-      }
-
-      if (currentPending.training.toUpdate.length > 0) {
-        for (const item of currentPending.training.toUpdate) {
-          let filePath = item.filePath;
-          let fileName = item.fileName;
-          let fileSize = null;
-
-          if (item.file) {
-            if (item.filePath) {
-              await supabase.storage.from(STORAGE_BUCKETS.STAFF_DOCUMENTS).remove([item.filePath]);
-            }
-
-            const fileExt = item.file.name.split('.').pop();
-            const uniqueFileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-            const storagePath = `${staffId}/training/${uniqueFileName}`;
-
-            const { error: uploadError } = await supabase.storage
-              .from(STORAGE_BUCKETS.STAFF_DOCUMENTS)
-              .upload(storagePath, item.file);
-
-            if (uploadError) {
-              toast.error('Failed to upload training document');
-              throw uploadError;
-            }
-
-            filePath = storagePath;
-            fileName = item.file.name;
-            fileSize = item.file.size;
-          }
-
-          const { error } = await supabase
-            .from(TABLES.STAFF_TRAINING)
-            .update({
+            toInsert.push({
+              staff_id: staffId,
               title: item.title,
               category: item.category,
               description: item.description || null,
@@ -396,9 +372,79 @@ export function StaffDetailContent({
               file_path: filePath,
               file_name: fileName,
               file_size: fileSize,
-            })
-            .eq('id', item.id);
-          
+              created_by: staffId,
+            });
+          }
+
+          const { error } = await supabase.from(TABLES.STAFF_TRAINING).insert(toInsert);
+          if (error) {
+            const parsedError = parseSupabaseError(error);
+            toast.error(parsedError.title, { description: parsedError.description });
+            throw error;
+          }
+        }
+
+        if (currentPending.training.toUpdate.length > 0) {
+          for (const item of currentPending.training.toUpdate) {
+            let filePath = item.filePath;
+            let fileName = item.fileName;
+            let fileSize = null;
+
+            if (item.file) {
+              if (item.filePath) {
+                await supabase.storage.from(STORAGE_BUCKETS.STAFF_DOCUMENTS).remove([item.filePath]);
+              }
+
+              const fileExt = item.file.name.split('.').pop();
+              const uniqueFileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+              const storagePath = `${staffId}/training/${uniqueFileName}`;
+
+              const { error: uploadError } = await supabase.storage
+                .from(STORAGE_BUCKETS.STAFF_DOCUMENTS)
+                .upload(storagePath, item.file);
+
+              if (uploadError) {
+                toast.error('Failed to upload training document');
+                throw uploadError;
+              }
+
+              filePath = storagePath;
+              fileName = item.file.name;
+              fileSize = item.file.size;
+            }
+
+            const { error = null } = await supabase
+              .from(TABLES.STAFF_TRAINING)
+              .update({
+                title: item.title,
+                category: item.category,
+                description: item.description || null,
+                provider: item.provider || null,
+                date_completed: item.date_completed || null,
+                expiry_date: item.expiry_date || null,
+                file_path: filePath,
+                file_name: fileName,
+                file_size: fileSize,
+              })
+              .eq('id', item.id);
+            
+            if (error) {
+              const parsedError = parseSupabaseError(error);
+              toast.error(parsedError.title, { description: parsedError.description });
+              throw error;
+            }
+          }
+        }
+
+        if (currentPending.training.toDelete.length > 0) {
+          const ids = currentPending.training.toDelete.map(i => i.id);
+          const filePaths = currentPending.training.toDelete.map(i => i.filePath).filter(Boolean) as string[];
+
+          if (filePaths.length > 0) {
+            await supabase.storage.from(STORAGE_BUCKETS.STAFF_DOCUMENTS).remove(filePaths);
+          }
+
+          const { error } = await supabase.from(TABLES.STAFF_TRAINING).delete().in('id', ids);
           if (error) {
             const parsedError = parseSupabaseError(error);
             toast.error(parsedError.title, { description: parsedError.description });
@@ -407,190 +453,134 @@ export function StaffDetailContent({
         }
       }
 
-      if (currentPending.training.toDelete.length > 0) {
-        const ids = currentPending.training.toDelete.map(i => i.id);
-        const filePaths = currentPending.training.toDelete.map(i => i.filePath).filter(Boolean) as string[];
+      // Step 3: Process pending documents
+      if (canEditDocuments) {
+        if (currentPending.documents.toAdd.length > 0) {
+          const toInsert = [];
+          for (const doc of currentPending.documents.toAdd) {
+            const fileExt = doc.file.name.split('.').pop();
+            const fileName = `${staffId}-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+            const filePath = `staff-documents/${fileName}`;
 
-        const { data: trainingRecords } = await supabase
-          .from(TABLES.STAFF_TRAINING)
-          .select('id, title')
-          .in('id', ids);
+            const { error: uploadError } = await supabase.storage
+              .from(STORAGE_BUCKETS.STAFF_DOCUMENTS)
+              .upload(filePath, doc.file);
 
-        if (filePaths.length > 0) {
-          await supabase.storage.from(STORAGE_BUCKETS.STAFF_DOCUMENTS).remove(filePaths);
+            if (uploadError) throw new Error(`Failed to upload document: ${uploadError.message}`);
+
+            toInsert.push({
+              staff_id: staffId,
+              file_name: doc.file.name,
+              file_path: filePath,
+            });
+          }
+
+          const { error: dbError } = await supabase.from(TABLES.STAFF_DOCUMENTS).insert(toInsert);
+          if (dbError) throw new Error(`Failed to create document records: ${dbError.message}`);
         }
 
-        const { error } = await supabase.from(TABLES.STAFF_TRAINING).delete().in('id', ids);
-        if (error) {
-          const parsedError = parseSupabaseError(error);
-          toast.error(parsedError.title, { description: parsedError.description });
-          throw error;
+        if (currentPending.documents.toDelete.length > 0) {
+          const ids = currentPending.documents.toDelete.map(d => d.id);
+          const filePaths = currentPending.documents.toDelete.map(d => d.filePath);
+
+          await supabase.storage.from(TABLES.STAFF_DOCUMENTS).remove(filePaths);
+
+          const { error: dbError } = await supabase.from(TABLES.STAFF_DOCUMENTS).delete().in('id', ids);
+          if (dbError) throw new Error(`Failed to delete document records: ${dbError.message}`);
         }
       }
 
-      // Step 1: Upload pending documents
-      if (currentPending.documents.toAdd.length > 0) {
-        const toInsert = [];
-        for (const doc of currentPending.documents.toAdd) {
-          const fileExt = doc.file.name.split('.').pop();
-          const fileName = `${staffId}-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-          const filePath = `staff-documents/${fileName}`;
-
-          const { error: uploadError } = await supabase.storage
-            .from(STORAGE_BUCKETS.STAFF_DOCUMENTS)            .upload(filePath, doc.file);
-
-          if (uploadError) throw new Error(`Failed to upload document: ${uploadError.message}`);
-
-          toInsert.push({
-            staff_id: staffId,
-            file_name: doc.file.name,
-            file_path: filePath,
-          });
-        }
-
-        const { error: dbError } = await supabase.from(TABLES.STAFF_DOCUMENTS).insert(toInsert);
-        if (dbError) throw new Error(`Failed to create document records: ${dbError.message}`);
-      }
-
-      // Step 2: Delete pending document deletions
-      if (currentPending.documents.toDelete.length > 0) {
-        const ids = currentPending.documents.toDelete.map(d => d.id);
-        const filePaths = currentPending.documents.toDelete.map(d => d.filePath);
-
-        await supabase.storage.from(TABLES.STAFF_DOCUMENTS).remove(filePaths);
-
-        const { error: dbError } = await supabase.from(TABLES.STAFF_DOCUMENTS).delete().in('id', ids);
-        if (dbError) throw new Error(`Failed to delete document records: ${dbError.message}`);
-      }
-
-      // Step 3: Save main staff form data using json-diff-ts
+      // Step 4: Save main staff form data
       const toNull = (value: any) => (value === '' ? null : value);
-      const normalizedFormData = {
-        staff_name: currentFormData.staff_name,
-        email: currentFormData.email,
-        phone: toNull(currentFormData.phone),
-        date_of_birth: toNull(currentFormData.date_of_birth),
-        address: toNull(currentFormData.address),
-        hobbies: toNull(currentFormData.hobbies),
-        allergies: toNull(currentFormData.allergies),
-        emergency_contact_name: toNull(currentFormData.emergency_contact_name),
-        emergency_contact_phone: toNull(currentFormData.emergency_contact_phone),
-        department_id: toNull(currentFormData.department_id),
-        employment_type_id: toNull(currentFormData.employment_type_id),
-        role_id: toNull(currentFormData.role_id),
-        manager_id: toNull(currentFormData.manager_id),
-        hire_date: toNull(currentFormData.hire_date),
-        separation_date: toNull(currentFormData.separation_date),
-        availability: toNull(currentFormData.availability),
-        notes: toNull(currentFormData.notes),
-        status: currentFormData.status,
-        // Compliance checklist fields
-        ndis_worker_screening_check: currentFormData.ndis_worker_screening_check ?? false,
-        ndis_worker_screening_check_expiry: toNull(currentFormData.ndis_worker_screening_check_expiry),
-        ndis_orientation_module: currentFormData.ndis_orientation_module ?? false,
-        ndis_orientation_module_expiry: toNull(currentFormData.ndis_orientation_module_expiry),
-        ndis_code_of_conduct: currentFormData.ndis_code_of_conduct ?? false,
-        ndis_code_of_conduct_expiry: toNull(currentFormData.ndis_code_of_conduct_expiry),
-        ndis_infection_control_training: currentFormData.ndis_infection_control_training ?? false,
-        ndis_infection_control_training_expiry: toNull(currentFormData.ndis_infection_control_training_expiry),
-        drivers_license: currentFormData.drivers_license ?? false,
-        drivers_license_expiry: toNull(currentFormData.drivers_license_expiry),
-        comprehensive_car_insurance: currentFormData.comprehensive_car_insurance ?? false,
-        comprehensive_car_insurance_expiry: toNull(currentFormData.comprehensive_car_insurance_expiry),
-      };
-
-      // Build object with only changed fields by comparing with original staff data
+      
       const changedFields: Record<string, any> = {};
-      const formFields = Object.keys(normalizedFormData) as (keyof typeof normalizedFormData)[];
+      const formFields = Object.keys(currentFormData);
       
       for (const field of formFields) {
-        const newValue = (normalizedFormData as any)[field];
-        const oldValue = (currentOriginalData as any)[field];
+        const newValue = currentFormData[field];
+        const oldValue = currentOriginalData[field];
         
-        // Compare values - handle null/undefined/empty string equivalence
         const normalizedOld = oldValue === undefined || oldValue === '' ? null : oldValue;
         const normalizedNew = newValue === undefined || newValue === '' ? null : newValue;
         
         if (normalizedOld !== normalizedNew) {
-          changedFields[field] = newValue;
+          // Check granular permissions for the field
+          let canUpdateField = false;
+          
+          const personalFields = ['staff_name', 'email', 'phone', 'date_of_birth', 'address', 'hobbies', 'allergies', 'status'];
+          const employmentFields = ['department_id', 'employment_type_id', 'role_id', 'manager_id', 'hire_date', 'separation_date', 'notes'];
+          const availabilityFields = ['availability'];
+          const emergencyFields = ['emergency_contact_name', 'emergency_contact_phone'];
+          const complianceFields = [
+            'ndis_worker_screening_check', 'ndis_worker_screening_check_expiry',
+            'ndis_orientation_module', 'ndis_orientation_module_expiry',
+            'ndis_code_of_conduct', 'ndis_code_of_conduct_expiry',
+            'ndis_infection_control_training', 'ndis_infection_control_training_expiry',
+            'drivers_license', 'drivers_license_expiry',
+            'comprehensive_car_insurance', 'comprehensive_car_insurance_expiry'
+          ];
+
+          if (personalFields.includes(field)) canUpdateField = canEditPersonal;
+          else if (employmentFields.includes(field)) canUpdateField = canEditEmployment;
+          else if (availabilityFields.includes(field)) canUpdateField = canEditAvailability;
+          else if (emergencyFields.includes(field)) canUpdateField = canEditEmergency;
+          else if (complianceFields.includes(field)) canUpdateField = canEditCompliance;
+
+          if (canUpdateField) {
+            changedFields[field] = (normalizedNew === '' ? null : normalizedNew);
+          }
         }
       }
 
-      console.log('Changed fields:', changedFields);
-
-      // Clear previous validation errors
-      clearAllErrors();
-
-      // Validate before saving
+      // Validate and Save
       if (Object.keys(changedFields).length > 0) {
-        // Check if status is being changed to active or inactive
-        const newStatus = changedFields.status || normalizedFormData.status;
-        const currentEmail = changedFields.email !== undefined ? changedFields.email : normalizedFormData.email;
-        const currentName = normalizedFormData.staff_name;
+        const newStatus = changedFields.status || currentFormData.status;
+        const currentEmail = changedFields.email !== undefined ? changedFields.email : currentFormData.email;
+        const currentName = changedFields.staff_name !== undefined ? changedFields.staff_name : currentFormData.staff_name;
         
-        // Validate: Name is required when status is not draft
-        const nameValidation = validators.requiredWhen(
-          currentName,
-          newStatus == STATUS.active,
-          'Staff Name'
-        );
-        if (!nameValidation.isValid) {
-          setFieldError('staff_name', nameValidation.error);
-          scrollToField('staff_name');
-          toast.error('Staff name is required');
-          return;
-        }
-        
-        // Validate: Email is required when status is not 'draft'
-        const emailValidation = validators.requiredWhen(
-          currentEmail,
-          newStatus == STATUS.active,
-          'Email'
-        );
-        if (!emailValidation.isValid) {
-          setFieldError('email', 'Email is required when status is Active');
-          scrollToField('email');
-          toast.error('Email is required when status is Active');
-          return;
+        clearAllErrors();
+
+        // Validation logic
+        if (newStatus === STATUS.active) {
+          if (!currentName) {
+            setFieldError('staff_name', 'Staff name is required when Active');
+            scrollToField('staff_name');
+            toast.error('Staff name is required');
+            return;
+          }
+          if (!currentEmail) {
+            setFieldError('email', 'Email is required when Active');
+            scrollToField('email');
+            toast.error('Email is required');
+            return;
+          }
         }
 
         try {
           await updateStaffFn({ id: staffId, updates: changedFields });
-          console.log('Successfully saved changes to database');
         } catch (error: any) {
-          // Parse error using centralized error parser
           const parsedError = parseSupabaseError(error);
-          
-          // Check if error is related to specific fields
           if (parsedError.title === 'Email already in use') {
             setFieldError('email', parsedError.description);
             scrollToField('email');
-          } else if (parsedError.title === 'Email is required') {
-            setFieldError('email', parsedError.description);
-            scrollToField('email');
           }
-          
           toast.error(parsedError.title, { description: parsedError.description });
           throw new Error(parsedError.description);
         }
-      } else {
-        console.log('No changes detected in main form fields');
       }
 
-      // Update local state with saved data
-      setStaffMember({ ...staffMember, ...normalizedFormData, photo_url: currentFormData.photo_url ?? staffMember.photo_url });
-      setFormData(normalizedFormData);
-      latestFormData.current = normalizedFormData;
-      latestOriginalData.current = normalizedFormData;
-      onOriginalDataChange?.(normalizedFormData);
-      onFormDataChange?.(normalizedFormData);
+      // Reset state and refs
+      setFormData(currentFormData);
+      latestOriginalData.current = currentFormData;
+      onOriginalDataChange?.(currentFormData);
+      onFormDataChange?.(currentFormData);
 
       if (onPendingChangesChange) {
         onPendingChangesChange(emptyStaffPendingChanges);
         latestPendingChanges.current = emptyStaffPendingChanges;
       }
 
-      // Invalidate queries to refresh data from server
+      // Invalidate and refresh
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF, staffId] });
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF_COMPLIANCE, staffId] });
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF_TRAINING, staffId] });
@@ -611,7 +601,7 @@ export function StaffDetailContent({
     } finally {
       onSavingChange?.(false);
     }
-  }, [staffId, staffMember, userName, updateStaffFn, onSavingChange, onOriginalDataChange, onFormDataChange, onPendingChangesChange, onSaveSuccess, clearAllErrors, scrollToField, setFieldError, setUser, user, photoFile, photoPreview, originalPhotoUrl, queryClient]);
+  }, [staffId, staffMember, userName, updateStaffFn, onSavingChange, onOriginalDataChange, onFormDataChange, onPendingChangesChange, onSaveSuccess, clearAllErrors, scrollToField, setFieldError, setUser, user, photoFile, photoPreview, originalPhotoUrl, queryClient, canEditPersonal, canEditEmployment, canEditAvailability, canEditEmergency, canEditCompliance, canEditTraining, canEditDocuments]);
 
   useEffect(() => {
     if (saveHandlerRef) {
@@ -622,7 +612,6 @@ export function StaffDetailContent({
     };
   }, [handleSave, saveHandlerRef]);
 
-  // Get the sticky class based on the current layout
   const stickyClass = settings?.layout
     ? stickySidebarClasses[`${settings?.layout}-layout`] ||
       'top-[calc(var(--header-height)+1rem)]'
@@ -640,12 +629,7 @@ export function StaffDetailContent({
     <div className="flex grow gap-5 lg:gap-7.5">
       {!isMobile && (
         <div className="w-[230px] shrink-0">
-          <div
-            className={cn(
-              'w-[230px]',
-              sidebarSticky && `fixed z-10 start-auto ${stickyClass}`,
-            )}
-          >
+          <div className={cn('w-[230px]', sidebarSticky && `fixed z-10 start-auto ${stickyClass}`)}>
             <Scrollspy offset={100} targetRef={parentRef}>
               <StaffDetailSidebar />
             </Scrollspy>
@@ -658,7 +642,6 @@ export function StaffDetailContent({
           staffId={staffId}
           formData={{ ...formData, photo_url_preview: photoPreview }}
           onFormDataChange={(data) => {
-            // Intercept photo fields so they don't enter formData / dirty tracker
             const { photo_file, photo_url_preview, ...rest } = data;
             if (photo_file !== undefined) setPhotoFile(photo_file);
             if (photo_url_preview !== undefined) setPhotoPreview(photo_url_preview);
@@ -666,7 +649,27 @@ export function StaffDetailContent({
             latestFormData.current = rest;
             onFormDataChange?.(rest);
           }}
-          canEdit={canEdit}
+          canEditPersonal={canEditPersonal}
+          canEditEmployment={canEditEmployment}
+          canEditAvailability={canEditAvailability}
+          canEditEmergency={canEditEmergency}
+          canEditCompliance={canEditCompliance}
+          canEditTraining={canEditTraining}
+          canEditDocuments={canEditDocuments}
+          canEditRoster={canEditRoster}
+          canEditLeave={canEditLeave}
+          canEditWarnings={canEditWarnings}
+          canViewPersonal={canViewPersonal}
+          canViewEmployment={canViewEmployment}
+          canViewAvailability={canViewAvailability}
+          canViewEmergency={canViewEmergency}
+          canViewCompliance={canViewCompliance}
+          canViewTraining={canViewTraining}
+          canViewDocuments={canViewDocuments}
+          canViewRoster={canViewRoster}
+          canViewLeave={canViewLeave}
+          canViewWarnings={canViewWarnings}
+          canViewActivityLog={canViewActivityLog}
           pendingChanges={pendingChanges}
           onPendingChangesChange={onPendingChangesChange}
           activityRefreshTrigger={refreshKeys.activityLog}

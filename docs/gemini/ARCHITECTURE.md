@@ -296,24 +296,19 @@ The application uses a "Negative Proof" strategy for smoke testing to maximize r
     2. Verifies that no Error Boundary text ("Something went wrong") is visible.
     3. Verifies that no Vite crash overlay is attached to the DOM.
 
-## 12. Staff Lifecycle & Onboarding (Gold Standard)
-The application implements a robust, security-first staff lifecycle management system.
+### 13. Granular RBAC & Inclusive Entry
+The application employs a hierarchical and inclusive RBAC model for complex modules, covering **Houses**, **Participant Records**, and **Staff Profiles**.
 
-### 12.1 Invitation Flow
-To maintain high security, staff passwords are never handled by administrators.
-- **Trigger**: Admin clicks "Invite to Portal" (or "Activate & Invite").
-- **Mechanism**: Invokes the `ic-invite-staff-user` Edge Function.
-- **Smart Logic**: If the user doesn't exist, it sends a Supabase Invitation. If the user is already confirmed, it sends a Password Reset link instead. This prevents 400 errors during re-invitation.
-- **Redirects**: Invitation links redirect to `/auth/change-password`. The page uses **Manual Token Recovery** (manually parsing the hash and calling `setSession`) to eliminate race conditions between the browser and the Supabase library.
+### 13.1 Inclusive Entry Logic
+For modules with multiple sub-permissions, the route guard (`RequirePermission`) uses OR-logic.
+- **Entry Requirement**: A user can enter a module if they have authorized access to **ANY** granular sub-permission (e.g., `house_management`, `participant_medications`, or `staff_compliance`), even if the parent permission (`houses`, `participants`, or `employees`) is restricted.
+- **Consistency**: This logic is synchronized across the `MENU_SIDEBAR` configuration, the `RequirePermission` component, and the `usePermissions` hook.
 
-### 12.2 Status Management (Smart Toggle)
-Staff status is managed via a contextual "Smart Toggle" in the profile toolbar.
-- **Active**: Primary action is "Deactivate".
-- **Inactive/Draft**: Primary action is "Activate Staff".
-- **Deactivation Dialog**: A custom dialog that explains the impact of deactivation and offers an optional, one-click "Revoke Access" action to delete the user's login account.
-- **Activation Dialog**: A custom dialog that offers an optional, one-click "Invite to Portal" action if the staff member lacks digital access.
+### 13.2 Component-Level Enforcement
+While the route guard handles entry, individual components (Cards, Tabs, Buttons) are responsible for granular enforcement.
+- **Visibility**: Components use the `useRBAC` hook to hide entire sections if the user lacks the specific sub-permission.
+- **Interactivity**: Input fields and action buttons use the `disabled` prop based on the granular permission level (e.g., `CONTEXT_READ_ONLY` allows viewing but disables editing).
 
-### 12.3 Security Safeguards
-- **Session Protection**: The `ChangePasswordPage` detects if an Admin is currently logged in while attempting to process a staff invitation. It blocks the update and displays a warning to prevent accidental Admin password overwrites.
-- **Automatic Cleanup**: Every status change or invitation event is recorded in the `ic_activity_log` for audit compliance.
+### 13.3 Database Policy Synchronization
+To support inclusive entry, database RLS policies (specifically `SELECT` policies) for parent tables (`ic_houses`, `ic_participants`, `ic_staff`) are broadened to include all granular sub-module checks. This ensures that having permission for a child record (like a medication or training record) also grants visibility of the necessary parent context (the participant or staff name).
 

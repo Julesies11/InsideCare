@@ -2,6 +2,7 @@ import { useState, useEffect, Fragment } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useRoles } from '@/hooks/use-roles';
@@ -15,6 +16,7 @@ import { AccessLevel, ACCESS_LEVEL, useRBAC } from '@/hooks/useRBAC';
 interface ModuleConfig {
   id: RBACModule;
   label: string;
+  isChild?: boolean;
 }
 
 interface GroupConfig {
@@ -35,24 +37,57 @@ const GROUPS: GroupConfig[] = [
   {
     title: 'Participant Records',
     modules: [
-      { id: RBAC_MODULES.PARTICIPANTS, label: 'Participants' },
-      { id: RBAC_MODULES.SHIFT_NOTES, label: 'Shift Notes' },
+      { id: RBAC_MODULES.PARTICIPANTS, label: 'Participant Profiles' },
+      { id: RBAC_MODULES.PARTICIPANT_GOALS, label: 'Goals', isChild: true },
+      { id: RBAC_MODULES.PARTICIPANT_BEHAVIOUR, label: 'Behaviour & Support', isChild: true },
+      { id: RBAC_MODULES.PARTICIPANT_SUPPORT_NEEDS, label: 'Support Needs', isChild: true },
+      { id: RBAC_MODULES.PARTICIPANT_MEALTIME, label: 'Mealtime Management', isChild: true },
+      { id: RBAC_MODULES.PARTICIPANT_MEDICAL_ROUTINE, label: 'Medical Routine', isChild: true },
+      { id: RBAC_MODULES.PARTICIPANT_MEDICATIONS, label: 'Medications', isChild: true },
+      { id: RBAC_MODULES.PARTICIPANT_EMERGENCY, label: 'Emergency Management', isChild: true },
+      { id: RBAC_MODULES.PARTICIPANT_CONTACTS, label: 'Contacts', isChild: true },
+      { id: RBAC_MODULES.PARTICIPANT_DOCUMENTS, label: 'Documents', isChild: true },
+      { id: RBAC_MODULES.PARTICIPANT_SHIFT_NOTES, label: 'Shift Notes', isChild: true },
+      { id: RBAC_MODULES.PARTICIPANT_ACTIVITY_LOG, label: 'Activity Log', isChild: true },
+    {
+      title: 'Employees & HR',
+      modules: [
+        { id: RBAC_MODULES.EMPLOYEES, label: 'Staff Profiles' },
+        { id: RBAC_MODULES.STAFF_EMPLOYMENT, label: 'Employment Details', isChild: true },
+        { id: RBAC_MODULES.STAFF_AVAILABILITY, label: 'Availability', isChild: true },
+        { id: RBAC_MODULES.STAFF_EMERGENCY, label: 'Emergency Contact', isChild: true },
+        { id: RBAC_MODULES.STAFF_COMPLIANCE, label: 'Compliance', isChild: true },
+        { id: RBAC_MODULES.STAFF_TRAINING, label: 'Training', isChild: true },
+        { id: RBAC_MODULES.STAFF_DOCUMENTS, label: 'Documents', isChild: true },
+        { id: RBAC_MODULES.STAFF_ROSTER, label: 'Roster (Detail View)', isChild: true },
+        { id: RBAC_MODULES.STAFF_LEAVE, label: 'Leave (Detail View)', isChild: true },
+        { id: RBAC_MODULES.STAFF_WARNINGS, label: 'Warnings', isChild: true },
+        { id: RBAC_MODULES.STAFF_ACTIVITY_LOG, label: 'Activity Log', isChild: true },
+        { id: RBAC_MODULES.TIMESHEETS, label: 'Timesheet Approvals' },
+        { id: RBAC_MODULES.LEAVE_REQUESTS, label: 'Leave Approvals' },
+      ],
+    },
+
+      { id: RBAC_MODULES.ROSTER_BOARD, label: 'Roster Board' },
     ],
   },
   {
-    title: 'Employees & HR',
+    title: 'Houses',
     modules: [
-      { id: RBAC_MODULES.EMPLOYEES, label: 'Employees' },
-      { id: RBAC_MODULES.TIMESHEETS, label: 'Timesheets' },
-      { id: RBAC_MODULES.LEAVE_REQUESTS, label: 'Leave Requests' },
-      { id: RBAC_MODULES.ROSTER_BOARD, label: 'Roster Board' },
+      { id: RBAC_MODULES.HOUSES, label: 'House Profiles' },
+      { id: RBAC_MODULES.HOUSE_MANAGEMENT, label: 'House Management', isChild: true },
+      { id: RBAC_MODULES.HOUSE_OPERATIONS, label: 'Daily Operations', isChild: true },
+      { id: RBAC_MODULES.HOUSE_CHECKLISTS, label: 'Checklist Setup', isChild: true },
+      { id: RBAC_MODULES.HOUSE_CHECKLIST_HISTORY, label: 'Checklist History', isChild: true },
+      { id: RBAC_MODULES.HOUSE_RESOURCES, label: 'Resources', isChild: true },
+      { id: RBAC_MODULES.HOUSE_STAFF, label: 'Staff', isChild: true },
+      { id: RBAC_MODULES.HOUSE_ACTIVITY_LOG, label: 'Activity Log', isChild: true },
     ],
   },
   {
     title: 'Operations & Facilities',
     modules: [
-      { id: RBAC_MODULES.HOUSES, label: 'Houses' },
-      { id: RBAC_MODULES.HOUSE_CHECKLISTS, label: 'House Checklists' },
+      { id: RBAC_MODULES.ROSTER_BOARD, label: 'Roster Board' },
     ],
   },
   {
@@ -60,7 +95,7 @@ const GROUPS: GroupConfig[] = [
     modules: [
       { id: RBAC_MODULES.ACCESS_CONTROL, label: 'Access Control' },
       { id: RBAC_MODULES.MASTER_LISTS, label: 'Master Lists' },
-      { id: RBAC_MODULES.ACTIVITY_LOG, label: 'Activity Log' },
+      { id: RBAC_MODULES.ACTIVITY_LOG, label: 'System Activity Log' },
     ],
   },
 ];
@@ -87,12 +122,35 @@ export const getContextDescription = (moduleId: RBACModule, level: AccessLevel):
 
   const isOperational = [
     RBAC_MODULES.HOUSES, 
-    RBAC_MODULES.HOUSE_CHECKLISTS
+    RBAC_MODULES.HOUSE_MANAGEMENT,
+    RBAC_MODULES.HOUSE_OPERATIONS,
+    RBAC_MODULES.HOUSE_CHECKLISTS,
+    RBAC_MODULES.HOUSE_CHECKLIST_HISTORY,
+    RBAC_MODULES.HOUSE_RESOURCES,
+    RBAC_MODULES.HOUSE_STAFF
   ].includes(moduleId);
 
   const isClinical = [
     RBAC_MODULES.PARTICIPANTS, 
+    RBAC_MODULES.PARTICIPANT_GOALS,
+    RBAC_MODULES.PARTICIPANT_BEHAVIOUR,
+    RBAC_MODULES.PARTICIPANT_SUPPORT_NEEDS,
+    RBAC_MODULES.PARTICIPANT_MEALTIME,
+    RBAC_MODULES.PARTICIPANT_MEDICAL_ROUTINE,
+    RBAC_MODULES.PARTICIPANT_MEDICATIONS,
+    RBAC_MODULES.PARTICIPANT_EMERGENCY,
+    RBAC_MODULES.PARTICIPANT_CONTACTS,
+    RBAC_MODULES.PARTICIPANT_DOCUMENTS,
+    RBAC_MODULES.PARTICIPANT_SHIFT_NOTES,
+    RBAC_MODULES.PARTICIPANT_ACTIVITY_LOG,
     RBAC_MODULES.SHIFT_NOTES
+  ].includes(moduleId);
+
+  const isSystem = [
+    RBAC_MODULES.ACCESS_CONTROL,
+    RBAC_MODULES.MASTER_LISTS,
+    RBAC_MODULES.ACTIVITY_LOG,
+    RBAC_MODULES.HOUSE_ACTIVITY_LOG
   ].includes(moduleId);
 
   switch (level) {
@@ -105,12 +163,14 @@ export const getContextDescription = (moduleId: RBACModule, level: AccessLevel):
       if (isManagement) return 'View and edit direct reports or assigned house staff.';
       if (isClinical) return 'View and edit participants in your assigned houses.';
       if (isOperational) return 'Full management of assigned houses and facilities.';
+      if (isSystem) return 'Full access to system configurations or logs.';
       return 'Context-aware read and write access.';
     case ACCESS_LEVEL.CONTEXT_READ_ONLY:
       if (isPersonal) return 'View-only access to your own personal records.';
       if (isManagement) return 'View-only access for direct reports or assigned houses.';
       if (isClinical) return 'View-only for participants in your assigned houses.';
       if (isOperational) return 'View-only access for assigned houses and facilities.';
+      if (isSystem) return 'View-only access to logs or configurations.';
       return 'Context-aware view-only access.';
     default:
       return 'Access is restricted.';
@@ -242,62 +302,103 @@ export function RolePermissionsMatrix() {
             </TableRow>
           </TableHeader>
           <TableBody className="text-sm font-medium">
-            {GROUPS.map((group) => (
-              <Fragment key={group.title}>
-                <TableRow className="bg-gray-100/30">
-                  <TableCell colSpan={ACCESS_LEVELS.length + 1} className="py-2.5 px-4 font-bold text-gray-800 uppercase tracking-wide text-xs">
-                    {group.title}
-                  </TableCell>
-                </TableRow>
-                {group.modules.map((module) => {
-                  const currentLevel = getPermission(module.id);
-                  return (
-                    <TableRow key={module.id} className="hover:bg-gray-50/50 transition-colors">
-                      <TableCell className="py-4 pl-8">
-                        <div className="flex flex-col">
-                          <span className="font-semibold text-gray-700">{module.label}</span>
-                          <div className="flex items-center gap-1 text-[11px] text-gray-400 mt-1">
-                            <Info className="size-3" />
-                            <span>
-                              {getContextDescription(
-                                module.id, 
-                                isAdminRole ? ACCESS_LEVEL.FULL : currentLevel
-                              )}
-                            </span>
-                          </div>
-                        </div>
-                      </TableCell>
-                      {ACCESS_LEVELS.map(level => {
-                        let isChecked = currentLevel === level.value;
-                        
-                        // Override for Admin Role
-                        if (isAdminRole) {
-                          isChecked = level.value === ACCESS_LEVEL.FULL;
-                        }
+            {GROUPS.map((group) => {
+              // Special logic for Houses group dependency
+              const isHousesGroup = group.title === 'Houses';
+              const houseProfilesLevel = getPermission(RBAC_MODULES.HOUSES);
+              const houseProfilesDisabled = houseProfilesLevel === ACCESS_LEVEL.NONE;
 
-                        return (
-                          <TableCell key={level.value} className="py-4 text-center">
-                            <div className="flex justify-center">
-                              <Checkbox 
-                                checked={isChecked} 
-                                onCheckedChange={() => {
-                                  if (!isChecked && canEdit) handleUpdate(module.id, level.value);
-                                }}
-                                disabled={isAdminRole || !canEdit}
-                                className={cn(
-                                  "size-5 border-gray-300 data-[state=checked]:bg-primary data-[state=checked]:border-primary",
-                                  (isAdminRole || !canEdit) && "opacity-50 cursor-not-allowed"
-                                )}
-                              />
+              // Special logic for Participant Records group dependency
+              const isParticipantsGroup = group.title === 'Participant Records';
+              const participantProfilesLevel = getPermission(RBAC_MODULES.PARTICIPANTS);
+              const participantProfilesDisabled = participantProfilesLevel === ACCESS_LEVEL.NONE;
+
+              // Special logic for Employees group dependency
+              const isEmployeesGroup = group.title === 'Employees & HR';
+              const staffProfilesLevel = getPermission(RBAC_MODULES.EMPLOYEES);
+              const staffProfilesDisabled = staffProfilesLevel === ACCESS_LEVEL.NONE;
+
+              return (
+                <Fragment key={group.title}>
+                  <TableRow className="bg-gray-100/30">
+                    <TableCell colSpan={ACCESS_LEVELS.length + 1} className="py-2.5 px-4 font-bold text-gray-800 uppercase tracking-wide text-xs">
+                      {group.title}
+                    </TableCell>
+                  </TableRow>
+                  {group.modules.map((module) => {
+                    const currentLevel = getPermission(module.id);
+                    
+                    // Dependency checks
+                    const isLocked = (isHousesGroup && houseProfilesDisabled && module.id !== RBAC_MODULES.HOUSES) || 
+                                     (isParticipantsGroup && participantProfilesDisabled && module.id !== RBAC_MODULES.PARTICIPANTS) ||
+                                     (isEmployeesGroup && staffProfilesDisabled && module.id !== RBAC_MODULES.EMPLOYEES && module.isChild);
+
+                    return (
+                      <TableRow 
+                        key={module.id} 
+                        className={cn(
+                          "hover:bg-gray-50/50 transition-colors",
+                          isLocked && "opacity-40"
+                        )}
+                      >
+                        <TableCell className={cn("py-4", module.isChild ? "pl-14" : "pl-8")}>
+                          <div className="flex flex-col">
+                            <div className="flex items-center gap-2">
+                              <span className={cn("font-semibold", module.isChild ? "text-gray-600" : "text-gray-700")}>
+                                {module.label}
+                              </span>
+                              {isLocked && (
+                                <Badge variant="secondary" className="text-[10px] py-0 px-1.5 h-4 font-bold uppercase tracking-tight bg-gray-200 text-gray-500 border-none">
+                                  LOCKED
+                                </Badge>
+                              )}
                             </div>
-                          </TableCell>
-                        );
-                      })}
-                    </TableRow>
-                  );
-                })}
-              </Fragment>
-            ))}
+                            <div className="flex items-center gap-1 text-[11px] text-gray-400 mt-1">
+                              <Info className="size-3" />
+                              <span>
+                                {isLocked 
+                                  ? `Requires '${isHousesGroup ? "Houses" : isParticipantsGroup ? "Participant Profiles" : "Staff Profiles"}' access to be active.`
+                                  : getContextDescription(
+                                      module.id, 
+                                      isAdminRole ? ACCESS_LEVEL.FULL : currentLevel
+                                    )
+                                }
+                              </span>
+                            </div>
+                          </div>
+                        </TableCell>
+                        {ACCESS_LEVELS.map(level => {
+                          let isChecked = currentLevel === level.value;
+                          
+                          // Override for Admin Role
+                          if (isAdminRole) {
+                            isChecked = level.value === ACCESS_LEVEL.FULL;
+                          }
+
+                          return (
+                            <TableCell key={level.value} className="py-4 text-center">
+                              <div className="flex justify-center">
+                                <Checkbox 
+                                  checked={isChecked} 
+                                  onCheckedChange={() => {
+                                    if (!isChecked && canEdit && !isLocked) handleUpdate(module.id, level.value);
+                                  }}
+                                  disabled={isAdminRole || !canEdit || isLocked}
+                                  className={cn(
+                                    "size-5 border-gray-300 data-[state=checked]:bg-primary data-[state=checked]:border-primary",
+                                    (isAdminRole || !canEdit || isLocked) && "opacity-50 cursor-not-allowed"
+                                  )}
+                                />
+                              </div>
+                            </TableCell>
+                          );
+                        })}
+                      </TableRow>
+                    );
+                  })}
+                </Fragment>
+              );
+            })}
           </TableBody>
         </Table>
       </CardContent>

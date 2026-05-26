@@ -168,6 +168,7 @@ serve(async (req) => {
 
     const app_metadata = {
       staff_id: staff.id,
+      role_id: staff.role_id,
       is_admin: isTargetAdmin,
       role_name: targetRoleName,
       permissions: modulePermissions,

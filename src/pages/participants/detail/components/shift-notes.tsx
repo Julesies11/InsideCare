@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Sheet, SheetBody, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -26,6 +26,7 @@ interface ShiftNotesProps {
   canEdit: boolean;
   pendingChanges?: ShiftNotePendingChanges;
   onPendingChangesChange?: (changes: ShiftNotePendingChanges) => void;
+  refreshTrigger?: number;
 }
 
 export function ShiftNotes({ 
@@ -35,6 +36,7 @@ export function ShiftNotes({
   canEdit,
   pendingChanges,
   onPendingChangesChange,
+  refreshTrigger,
 }: ShiftNotesProps) {
   const [showSheet, setShowSheet] = useState(false);
   const [editingNote, setEditingNote] = useState<{ id?: string; tempId?: string; start_date: string; shift_time?: string; staff_id: string; full_note: string } | null>(null);
@@ -46,9 +48,15 @@ export function ShiftNotes({
     full_note: '',
   });
 
-  const { data: shiftNotes = [], isLoading: loading } = useShiftNotesByParticipantId(participantId);
+  const { data: shiftNotes = [], isLoading: loading, refetch } = useShiftNotesByParticipantId(participantId);
   const { data: staffData } = useStaff();
   const staff = staffData?.data || [];
+
+  useEffect(() => {
+    if (refreshTrigger !== undefined && refreshTrigger > 0) {
+      refetch();
+    }
+  }, [refreshTrigger, refetch]);
 
   const handleAdd = () => {
     setEditingNote(null);

@@ -93,8 +93,6 @@ describe('House Detail Smoke Tests', () => {
   it('House Detail Content loads without crashing', async () => {
     renderWithProviders(
       <HouseDetailContent 
-        houseId="house-1" 
-        houseName="Test House" 
         pendingChanges={mockPendingChanges as any}
         onPendingChangesChange={() => {}}
         canEdit={true}
@@ -105,7 +103,7 @@ describe('House Detail Smoke Tests', () => {
     await waitFor(() => {
       // Check for sidebar navigation items which should be present
       expect(screen.getAllByText(/House Details/i).length).toBeGreaterThan(0);
-      expect(screen.getByText(/Shift Setup/i)).toBeDefined();
+      expect(screen.getByText(/Daily Operations/i)).toBeDefined();
       expect(screen.getAllByText(/Checklist Setup/i).length).toBeGreaterThan(0);
     });
   });

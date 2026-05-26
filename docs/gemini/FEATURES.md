@@ -78,3 +78,10 @@ Comprehensive alert system for critical updates and workflows.
 - **Role-Based Alerts**: Automated triggers for leave requests, timesheet approvals, roster changes, and compliance expiries.
 - **Real-time Sync**: Uses Supabase Realtime for instant in-app alerts and topbar toasts.
 - **Activity Correlation**: Integrated with the Activity Log to provide context for clinical updates.
+
+## 8. Security & RBAC
+- **Granular Permissions**: System-wide support for module-specific access levels (Full, Context-Read/Write, Context-Read-Only, Read-Only, None).
+- **Hierarchical Module Security**: Specialized grouping for **Houses**, **Participant Records**, and **Staff Profiles**, allowing independent control over specific sections (e.g., Medications, Compliance, Employment).
+- **Inclusive Entry Logic**: Smart routing that allows access to a module if a user has any relevant sub-permission, ensuring they can manage authorized data even if parent access is restricted.
+- **Visual Locking**: Intuitive UI that "ghost-locks" dependent sub-permissions when a parent gateway is disabled, guiding administrators toward logical configurations.
+- **JWT-Driven RLS**: High-performance database security that enforces these granular rules directly at the data layer using Supabase Row Level Security.

@@ -19,8 +19,10 @@ interface GoalsProps {
   participantId?: string;
   canAdd: boolean;
   canDelete: boolean;
+  canEdit: boolean;
   pendingChanges?: ParticipantPendingChanges;
   onPendingChangesChange?: (changes: ParticipantPendingChanges) => void;
+  refreshTrigger?: number;
 }
 
 const goalSchema = z.object({
@@ -207,8 +209,10 @@ export function Goals({
   participantId,
   canAdd,
   canDelete,
+  canEdit,
   pendingChanges,
   onPendingChangesChange,
+  refreshTrigger,
 }: GoalsProps) {
   const [showGoalDialog, setShowGoalDialog] = useState(false);
   const [editingGoal, setEditingGoal] = useState<ParticipantGoal | null>(null);
@@ -219,13 +223,19 @@ export function Goals({
   // Option D: Progress dialog state — selected goal for focused progress dialog
   const [progressDialogGoal, setProgressDialogGoal] = useState<ParticipantGoal | null>(null);
 
-  const { data, isLoading: loading } = useParticipantGoals(participantId);
+  const { data, isLoading: loading, refetch } = useParticipantGoals(participantId);
   const goals = data?.goals || [];
   const goalProgress = data?.progress || [];
 
   const { mutateAsync: addProgress } = useAddGoalProgress();
   const { mutateAsync: updateProgress } = useUpdateGoalProgress();
   const { mutateAsync: deleteProgress } = useDeleteGoalProgress();
+
+  useEffect(() => {
+    if (refreshTrigger !== undefined && refreshTrigger > 0) {
+      refetch();
+    }
+  }, [refreshTrigger, refetch]);
 
   const form = useForm<GoalFormValues>({
     resolver: zodResolver(goalSchema),
@@ -341,15 +351,18 @@ export function Goals({
 
 
   const handleAddNote = async (goalId: string, text: string) => {
-    await addProgress({ goal_id: goalId, progress_note: text });
+    if (!participantId) return;
+    await addProgress({ progress: { goal_id: goalId, progress_note: text }, participantId });
   };
 
   const handleEditNote = async (id: string, text: string) => {
-    await updateProgress(id, text);
+    if (!participantId) return;
+    await updateProgress({ id, progress_note: text, participantId });
   };
 
   const handleDeleteNote = async (id: string) => {
-    await deleteProgress(id);
+    if (!participantId) return;
+    await deleteProgress({ id, participantId });
   };
 
   const visibleGoals = [
@@ -449,7 +462,7 @@ export function Goals({
                         <div className="flex justify-end gap-1">
                           {!isPendingDelete && (
                             <>
-                              <Button variant="ghost" size="sm" onClick={() => handleEdit(goal)} disabled={!canAdd}>
+                              <Button variant="ghost" size="sm" onClick={() => handleEdit(goal)} disabled={!canEdit}>
                                 <Edit className="size-4" />
                               </Button>
                               {canDelete && (
@@ -478,7 +491,7 @@ export function Goals({
                               variant="ghost"
                               size="sm"
                               onClick={() => handleCancelPendingUpdate(goal.id)}
-                              disabled={!canAdd}
+                              disabled={!canEdit}
                             >
                               Undo
                             </Button>
@@ -555,7 +568,7 @@ export function Goals({
                     onAddNote={handleAddNote}
                     onEditNote={handleEditNote}
                     onDeleteNote={handleDeleteNote}
-                    canAdd={canAdd}
+                    canAdd={canEdit}
                   />
                 </div>
               ) : !editingGoal ? (
@@ -598,7 +611,7 @@ export function Goals({
                 onAddNote={handleAddNote}
                 onEditNote={handleEditNote}
                 onDeleteNote={handleDeleteNote}
-                canAdd={canAdd}
+                canAdd={canEdit}
               />
             )}
           </SheetBody>
@@ -625,7 +638,7 @@ export function Goals({
                 onAddNote={handleAddNote}
                 onEditNote={handleEditNote}
                 onDeleteNote={handleDeleteNote}
-                canAdd={canAdd}
+                canAdd={canEdit}
               />
             )}
           </div>

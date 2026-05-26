@@ -63,9 +63,27 @@ export const MENU_SIDEBAR: MenuItemConfig[] = [
   {
     title: 'Houses',
     icon: Home,
-    permission: RBAC_MODULES.HOUSES,
+    permission: [
+      RBAC_MODULES.HOUSES, 
+      RBAC_MODULES.HOUSE_MANAGEMENT, 
+      RBAC_MODULES.HOUSE_OPERATIONS,
+      RBAC_MODULES.HOUSE_CHECKLISTS,
+      RBAC_MODULES.HOUSE_CHECKLIST_HISTORY,
+      RBAC_MODULES.HOUSE_RESOURCES,
+      RBAC_MODULES.HOUSE_STAFF,
+      RBAC_MODULES.HOUSE_ACTIVITY_LOG
+    ],
     children: [
-      { title: 'House Profiles', path: '/houses/profiles', permission: RBAC_MODULES.HOUSES },
+      { title: 'House Profiles', path: '/houses/profiles', permission: [
+        RBAC_MODULES.HOUSES, 
+        RBAC_MODULES.HOUSE_MANAGEMENT, 
+        RBAC_MODULES.HOUSE_OPERATIONS,
+        RBAC_MODULES.HOUSE_CHECKLISTS,
+        RBAC_MODULES.HOUSE_CHECKLIST_HISTORY,
+        RBAC_MODULES.HOUSE_RESOURCES,
+        RBAC_MODULES.HOUSE_STAFF,
+        RBAC_MODULES.HOUSE_ACTIVITY_LOG
+      ] },
     ],
   },
   {

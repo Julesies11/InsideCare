@@ -29,6 +29,10 @@ describe('RolesPage Smoke Test', () => {
     
     await waitFor(() => {
         expect(screen.getByText(/Permission Matrix/i)).toBeInTheDocument();
+        // Check for new granular modules
+        expect(screen.getByText(/House Management/i)).toBeInTheDocument();
+        expect(screen.getByText(/Daily Operations/i)).toBeInTheDocument();
+        expect(screen.getByText(/Checklist History/i)).toBeInTheDocument();
     });
   });
 });

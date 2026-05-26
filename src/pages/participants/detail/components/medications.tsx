@@ -31,6 +31,7 @@ interface MedicationsProps {
   canEdit: boolean;
   pendingChanges?: MedicationPendingChanges;
   onPendingChangesChange?: (changes: MedicationPendingChanges) => void;
+  refreshTrigger?: number;
 }
 
 const medicationSchema = z.object({
@@ -47,21 +48,27 @@ export function Medications({
   canDelete,
   canEdit,
   pendingChanges,
-  onPendingChangesChange 
+  onPendingChangesChange,
+  refreshTrigger,
 }: MedicationsProps) {
   const [showDialog, setShowDialog] = useState(false);
   const [editingMedication, setEditingMedication] = useState<{ id?: string; tempId?: string; medication_id: string; dosage?: string; is_active: boolean } | null>(null);
   const [showMasterDialog, setShowMasterDialog] = useState(false);
 
-  const { data: medications = [], isLoading: loading } = useParticipantMedications(participantId);
-  const { data: medicationsMaster = [] } = useMedicationsMaster();
+  const { data: medications = [], isLoading: loading, refetch } = useParticipantMedications(participantId);
+  const { medications: medicationsMaster = [] } = useMedicationsMaster();
+
+  useEffect(() => {
+    if (refreshTrigger !== undefined && refreshTrigger > 0) {
+      refetch();
+    }
+  }, [refreshTrigger, refetch]);
 
   const form = useForm<MedicationFormValues>({
     resolver: zodResolver(medicationSchema),
     defaultValues: {
       medication_id: '',
       dosage: '',
-      frequency: '',
       is_active: true,
     },
   });
@@ -251,7 +258,7 @@ export function Medications({
                         <div className="flex justify-end gap-1">
                           {!isPendingDelete && !isPendingAdd && !isPendingUpdate && (
                             <>
-                              <Button variant="ghost" size="sm" onClick={() => handleEdit(med)} disabled={!canAdd}>
+                              <Button variant="ghost" size="sm" onClick={() => handleEdit(med)} disabled={!canEdit}>
                                 <Edit className="size-4" />
                               </Button>
                               <Button variant="ghost" size="sm" className="text-destructive" onClick={() => handleDelete(med)} disabled={!canDelete}>
@@ -269,7 +276,7 @@ export function Medications({
                               variant="ghost"
                               size="sm"
                               onClick={() => handleCancelPendingUpdate(med.id)}
-                              disabled={!canAdd}
+                              disabled={!canEdit}
                             >
                               Undo
                             </Button>

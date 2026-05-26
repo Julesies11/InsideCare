@@ -89,15 +89,15 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
   // --- Visibility Logic (Merging current and pending) ---
 
   const visibleShiftTemplates = useMemo(() => {
-    if (directSave || !pendingChanges) return shiftTemplates;
+    if (directSave || !pendingChanges?.shiftTemplates) return shiftTemplates;
     
-    const dbTypes = shiftTemplates.filter(st => !pendingChanges.shiftTemplates.toDelete.includes(st.id));
+    const dbTypes = shiftTemplates.filter(st => !pendingChanges.shiftTemplates?.toDelete?.includes(st.id));
     const merged = dbTypes.map(st => {
-      const update = pendingChanges.shiftTemplates.toUpdate.find(u => u.id === st.id);
+      const update = pendingChanges.shiftTemplates?.toUpdate?.find(u => u.id === st.id);
       return update ? { ...st, ...update } : st;
     });
     
-    return [...merged, ...pendingChanges.shiftTemplates.toAdd];
+    return [...merged, ...(pendingChanges.shiftTemplates?.toAdd || [])];
   }, [shiftTemplates, pendingChanges, directSave]);
 
   const getVisibleDefaults = (shiftTemplateId: string) => {
@@ -370,7 +370,7 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
           const theme = getPeriodTheme(st.shift_template_name, st.color_theme, st.icon_name);
           const typeDefaults = getVisibleDefaults(st.id || st.tempId);
           const isPendingAdd = !!st.tempId;
-          const isPendingUpdate = pendingChanges?.shiftTemplates.toUpdate.some(u => u.id === st.id);
+          const isPendingUpdate = pendingChanges?.shiftTemplates?.toUpdate?.some(u => u.id === st.id);
 
           return (
             <div key={st.id || st.tempId} className={cn(

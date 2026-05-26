@@ -56,6 +56,22 @@
     "with_check_expression": null
   },
   {
+    "bucket_context": "ic_participant_documents",
+    "policyname": "RBAC storage participant_documents ALL",
+    "operation": "ALL",
+    "roles": "{authenticated}",
+    "using_expression": "((bucket_id = 'ic_participant_documents'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('participant_documents'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text]))))",
+    "with_check_expression": null
+  },
+  {
+    "bucket_context": "ic_participant_documents",
+    "policyname": "RBAC storage participant_documents SELECT",
+    "operation": "SELECT",
+    "roles": "{authenticated}",
+    "using_expression": "((bucket_id = 'ic_participant_documents'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('participant_documents'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text]))))",
+    "with_check_expression": null
+  },
+  {
     "bucket_context": "ic_participant_photos",
     "policyname": "RBAC participant_photos INSERT",
     "operation": "INSERT",
@@ -88,6 +104,22 @@
     "with_check_expression": null
   },
   {
+    "bucket_context": "ic_staff_documents",
+    "policyname": "RBAC storage staff_documents ALL",
+    "operation": "ALL",
+    "roles": "{authenticated}",
+    "using_expression": "((bucket_id = 'ic_staff_documents'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('staff_documents'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text])) OR (split_part(name, '/'::text, 1) = (ic_jwt_get_staff_id())::text)))",
+    "with_check_expression": null
+  },
+  {
+    "bucket_context": "ic_staff_documents",
+    "policyname": "RBAC storage staff_documents SELECT",
+    "operation": "SELECT",
+    "roles": "{authenticated}",
+    "using_expression": "((bucket_id = 'ic_staff_documents'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('staff_documents'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text])) OR (split_part(name, '/'::text, 1) = (ic_jwt_get_staff_id())::text)))",
+    "with_check_expression": null
+  },
+  {
     "bucket_context": "ic_staff_photos",
     "policyname": "RBAC staff_photos INSERT",
     "operation": "INSERT",
@@ -101,6 +133,22 @@
     "operation": "SELECT",
     "roles": "{authenticated}",
     "using_expression": "((bucket_id = 'ic_staff_photos'::text) AND (ic_jwt_is_admin() OR (split_part(name, '/'::text, 1) = (ic_jwt_get_staff_id())::text) OR ((ic_jwt_get_perm('employees'::text) = ANY (ARRAY['context_read_write'::text, 'context_read_only'::text])) AND (EXISTS ( SELECT 1\n   FROM ic_staff s\n  WHERE (((s.id)::text = split_part(objects.name, '/'::text, 1)) AND ic_jwt_manages_staff(s.id)))))))",
+    "with_check_expression": null
+  },
+  {
+    "bucket_context": "ic_staff_photos",
+    "policyname": "RBAC storage staff_photos ALL",
+    "operation": "ALL",
+    "roles": "{authenticated}",
+    "using_expression": "((bucket_id = 'ic_staff_photos'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('employees'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text])) OR (split_part(name, '/'::text, 1) = (ic_jwt_get_staff_id())::text)))",
+    "with_check_expression": null
+  },
+  {
+    "bucket_context": "ic_staff_photos",
+    "policyname": "RBAC storage staff_photos SELECT",
+    "operation": "SELECT",
+    "roles": "{authenticated}",
+    "using_expression": "((bucket_id = 'ic_staff_photos'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('employees'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text])) OR (split_part(name, '/'::text, 1) = (ic_jwt_get_staff_id())::text)))",
     "with_check_expression": null
   }
 ]

@@ -16,7 +16,7 @@ export interface MenuItem {
   separator?: boolean;
   hidden?: boolean;
   roles?: ('admin' | 'staff')[];
-  permission?: string;
+  permission?: string | string[];
 }
 
 export type MenuConfig = MenuItem[];

@@ -4,6 +4,15 @@ import { Label } from '@/components/ui/label';
 import { Paperclip, X, FileText, Download, Trash2, UploadCloud } from 'lucide-react';
 import { HouseCalendarEventAttachment } from '@/hooks/useHouseCalendarEvents';
 import { cn } from '@/lib/utils';
+import { getHouseFileUrl } from '@/hooks/use-house-documents';
+import { KeenIcon } from '@/components/keenicons';
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from '@/components/ui/context-menu';
 
 export interface QueuedAttachment {
   file: File;
@@ -62,6 +71,11 @@ export function HouseCalendarEventAttachments({
     }
   };
 
+  const handleDownload = async (filePath: string, fileName: string) => {
+    const url = await getHouseFileUrl(filePath, fileName);
+    if (url) window.open(url, '_blank');
+  };
+
   const activeAttachments = existingAttachments.filter(
     (att) => !toDeleteAttachments.includes(att.id)
   );
@@ -105,50 +119,73 @@ export function HouseCalendarEventAttachments({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {/* Existing Attachments */}
         {activeAttachments.map((att) => (
-          <div
-            key={att.id}
-            className="flex items-center justify-between p-3 rounded-xl border border-gray-100 bg-gray-50/50 group hover:border-primary/20 hover:bg-white transition-all shadow-sm"
-          >
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="size-8 rounded-lg bg-white border border-gray-100 flex items-center justify-center text-gray-400 shrink-0">
-                <FileText className="size-4" />
-              </div>
-              <div className="flex flex-col min-w-0">
-                <span className="text-xs font-bold text-gray-900 truncate">{att.file_name}</span>
-                <span className="text-[10px] text-muted-foreground">Uploaded File</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="size-8 text-blue-500 hover:bg-blue-50"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  window.open(att.file_path, '_blank');
-                }}
-                title="Download"
+          <ContextMenu key={att.id}>
+            <ContextMenuTrigger asChild>
+              <div
+                className="flex items-center justify-between p-3 rounded-xl border border-gray-100 bg-gray-50/50 group hover:border-primary/20 hover:bg-white transition-all shadow-sm cursor-context-menu"
               >
-                <Download className="size-4" />
-              </Button>
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="size-8 rounded-lg bg-white border border-gray-100 flex items-center justify-center text-gray-400 shrink-0">
+                    <FileText className="size-4" />
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-xs font-bold text-gray-900 truncate">{att.file_name}</span>
+                    <span className="text-[10px] text-muted-foreground">Uploaded File</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="size-8 text-blue-500 hover:bg-blue-50"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDownload(att.file_path, att.file_name);
+                    }}
+                    title="Download"
+                  >
+                    <Download className="size-4" />
+                  </Button>
+                  {canEdit && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="size-8 text-destructive hover:bg-destructive/5"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onMarkForDeletion(att.id);
+                      }}
+                      title="Remove"
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </ContextMenuTrigger>
+            
+            <ContextMenuContent className="w-48">
+              <ContextMenuItem onClick={() => handleDownload(att.file_path, att.file_name)}>
+                <KeenIcon icon="cloud-download" className="me-2" />
+                Download
+              </ContextMenuItem>
+              
               {canEdit && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="size-8 text-destructive hover:bg-destructive/5"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onMarkForDeletion(att.id);
-                  }}
-                  title="Remove"
-                >
-                  <Trash2 className="size-4" />
-                </Button>
+                <>
+                  <ContextMenuSeparator />
+                  <ContextMenuItem 
+                    variant="destructive"
+                    onClick={() => onMarkForDeletion(att.id)}
+                  >
+                    <KeenIcon icon="trash" className="me-2" />
+                    Remove
+                  </ContextMenuItem>
+                </>
               )}
-            </div>
-          </div>
+            </ContextMenuContent>
+          </ContextMenu>
         ))}
 
         {/* Queued Attachments */}
