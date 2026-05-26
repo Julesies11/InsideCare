@@ -22,11 +22,51 @@
   {
     "schemaname": "public",
     "tablename": "ic_activity_log",
-    "policyname": "RBAC activity_log SELECT",
+    "policyname": "RBAC Activity Log - Global Auditor",
     "permissive": "PERMISSIVE",
-    "roles": "{authenticated}",
+    "roles": "{public}",
     "cmd": "SELECT",
-    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('activity_log'::text) = 'full'::text))",
+    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('activity_log'::text) = ANY (ARRAY['read'::text, 'context_read_write'::text, 'full'::text])))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "ic_activity_log",
+    "policyname": "RBAC Activity Log - Staff Context",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "(((entity_type = ANY (ARRAY['employees'::text, 'staff'::text])) OR (entity_type ~~ 'staff_%'::text) OR (entity_type = ANY (ARRAY['leave_requests'::text, 'timesheets'::text]))) AND (ic_jwt_get_perm('employees'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "ic_activity_log",
+    "policyname": "RBAC Activity Log - House Context",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "(((entity_type = ANY (ARRAY['houses'::text, 'house'::text])) OR (entity_type ~~ 'house_%'::text)) AND (ic_jwt_get_perm('houses'::text) = ANY (ARRAY['read'::text, 'context_read'::text, 'context_read_write'::text, 'full'::text])))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "ic_activity_log",
+    "policyname": "RBAC Activity Log - Self Auth",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "((entity_type = 'auth'::text) AND (entity_id = (auth.uid())::text))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "ic_activity_log",
+    "policyname": "RBAC Activity Log - Participant Context",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "(((entity_type = ANY (ARRAY['participants'::text, 'participant'::text])) OR (entity_type ~~ 'participant_%'::text) OR (entity_type = 'shift_notes'::text)) AND (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])))",
     "with_check": null
   },
   {
@@ -152,7 +192,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_checklist_master",
-    "policyname": "RBAC ic_checklist_master UPDATE",
+    "policyname": "RBAC checklist_master UPDATE",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "UPDATE",
@@ -162,7 +202,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_checklist_master",
-    "policyname": "RBAC checklist_master UPDATE",
+    "policyname": "RBAC ic_checklist_master UPDATE",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "UPDATE",
@@ -1022,7 +1062,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_medications_master",
-    "policyname": "RBAC ic_medications_master UPDATE",
+    "policyname": "RBAC medications_master UPDATE",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "UPDATE",
@@ -1032,7 +1072,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_medications_master",
-    "policyname": "RBAC medications_master UPDATE",
+    "policyname": "RBAC ic_medications_master UPDATE",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "UPDATE",
@@ -1642,21 +1682,21 @@
   {
     "schemaname": "public",
     "tablename": "ic_staff",
-    "policyname": "RBAC staff SELECT",
-    "permissive": "PERMISSIVE",
-    "roles": "{authenticated}",
-    "cmd": "SELECT",
-    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('employees'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR ic_jwt_manages_staff(id))",
-    "with_check": null
-  },
-  {
-    "schemaname": "public",
-    "tablename": "ic_staff",
     "policyname": "RBAC staff SELECT SELF",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "SELECT",
     "qual": "(auth_user_id = auth.uid())",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "ic_staff",
+    "policyname": "RBAC staff SELECT",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('employees'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR ic_jwt_manages_staff(id))",
     "with_check": null
   },
   {
@@ -1702,21 +1742,21 @@
   {
     "schemaname": "public",
     "tablename": "ic_staff_shifts",
-    "policyname": "RBAC staff_shifts SELECT",
-    "permissive": "PERMISSIVE",
-    "roles": "{authenticated}",
-    "cmd": "SELECT",
-    "qual": "(ic_jwt_is_admin() OR (staff_id = ic_jwt_get_staff_id()) OR (ic_jwt_get_perm('employees'::text) = ANY (ARRAY['full'::text, 'read_only'::text])))",
-    "with_check": null
-  },
-  {
-    "schemaname": "public",
-    "tablename": "ic_staff_shifts",
     "policyname": "RBAC ic_staff_shifts SELECT",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "SELECT",
     "qual": "(ic_jwt_is_admin() OR (staff_id = ic_jwt_get_staff_id()) OR (ic_jwt_get_perm('my_roster'::text) = ANY (ARRAY['full'::text, 'read_only'::text])))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "ic_staff_shifts",
+    "policyname": "RBAC staff_shifts SELECT",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(ic_jwt_is_admin() OR (staff_id = ic_jwt_get_staff_id()) OR (ic_jwt_get_perm('employees'::text) = ANY (ARRAY['full'::text, 'read_only'::text])))",
     "with_check": null
   },
   {
@@ -1782,12 +1822,42 @@
   {
     "schemaname": "storage",
     "tablename": "objects",
+    "policyname": "RBAC house_documents INSERT",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "((bucket_id = 'ic_house-documents'::text) AND (ic_jwt_is_admin() OR (ic_jwt_has_house((split_part(name, '/'::text, 1))::uuid) AND (ic_jwt_get_perm('houses'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text])))))"
+  },
+  {
+    "schemaname": "storage",
+    "tablename": "objects",
+    "policyname": "RBAC participant_documents INSERT",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "((bucket_id = 'ic_participant-documents'::text) AND (ic_jwt_is_admin() OR (EXISTS ( SELECT 1\n   FROM ic_participants p\n  WHERE (((p.id)::text = split_part(p.participant_name, '/'::text, 1)) AND ic_jwt_has_house(p.house_id) AND (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text])))))))"
+  },
+  {
+    "schemaname": "storage",
+    "tablename": "objects",
     "policyname": "RBAC checklist_attachments INSERT",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "INSERT",
     "qual": null,
     "with_check": "((bucket_id = 'ic_checklist-attachments'::text) AND (ic_jwt_is_admin() OR (EXISTS ( SELECT 1\n   FROM ic_house_checklist_submissions hcs\n  WHERE (((hcs.id)::text = split_part(objects.name, '/'::text, 1)) AND ic_jwt_has_house(hcs.house_id) AND (ic_jwt_get_perm('house_checklists'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text])))))))"
+  },
+  {
+    "schemaname": "storage",
+    "tablename": "objects",
+    "policyname": "RBAC participant_photos INSERT",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "((bucket_id = 'ic_participant-photos'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text]))))"
   },
   {
     "schemaname": "storage",
@@ -1822,32 +1892,22 @@
   {
     "schemaname": "storage",
     "tablename": "objects",
-    "policyname": "RBAC participant_documents INSERT",
+    "policyname": "RBAC participant_documents SELECT",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
-    "cmd": "INSERT",
-    "qual": null,
-    "with_check": "((bucket_id = 'ic_participant-documents'::text) AND (ic_jwt_is_admin() OR (EXISTS ( SELECT 1\n   FROM ic_participants p\n  WHERE (((p.id)::text = split_part(p.participant_name, '/'::text, 1)) AND ic_jwt_has_house(p.house_id) AND (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text])))))))"
+    "cmd": "SELECT",
+    "qual": "((bucket_id = 'ic_participant-documents'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR ((ic_jwt_get_perm('participants'::text) = ANY (ARRAY['context_read_write'::text, 'context_read_only'::text])) AND (EXISTS ( SELECT 1\n   FROM ic_participants p\n  WHERE (((p.id)::text = split_part(p.participant_name, '/'::text, 1)) AND ic_jwt_has_house(p.house_id)))))))",
+    "with_check": null
   },
   {
     "schemaname": "storage",
     "tablename": "objects",
-    "policyname": "RBAC participant_photos INSERT",
+    "policyname": "RBAC participant_photos SELECT",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
-    "cmd": "INSERT",
-    "qual": null,
-    "with_check": "((bucket_id = 'ic_participant-photos'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text]))))"
-  },
-  {
-    "schemaname": "storage",
-    "tablename": "objects",
-    "policyname": "RBAC house_documents INSERT",
-    "permissive": "PERMISSIVE",
-    "roles": "{authenticated}",
-    "cmd": "INSERT",
-    "qual": null,
-    "with_check": "((bucket_id = 'ic_house-documents'::text) AND (ic_jwt_is_admin() OR (ic_jwt_has_house((split_part(name, '/'::text, 1))::uuid) AND (ic_jwt_get_perm('houses'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text])))))"
+    "cmd": "SELECT",
+    "qual": "((bucket_id = 'ic_participant-photos'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR ((ic_jwt_get_perm('participants'::text) = ANY (ARRAY['context_read_write'::text, 'context_read_only'::text])) AND (EXISTS ( SELECT 1\n   FROM ic_participants p\n  WHERE ((((p.id)::text = split_part(p.participant_name, '/'::text, 1)) OR (p.photo_url ~~* ('%'::text || p.participant_name))) AND ic_jwt_has_house(p.house_id)))))))",
+    "with_check": null
   },
   {
     "schemaname": "storage",
@@ -1862,21 +1922,21 @@
   {
     "schemaname": "storage",
     "tablename": "objects",
-    "policyname": "RBAC branch_documents SELECT",
-    "permissive": "PERMISSIVE",
-    "roles": "{authenticated}",
-    "cmd": "SELECT",
-    "qual": "((bucket_id = 'ic_branch-documents'::text) AND (ic_jwt_is_admin() OR (EXISTS ( SELECT 1\n   FROM ic_houses h\n  WHERE (((h.branch_id)::text = split_part(h.house_name, '/'::text, 1)) AND ic_jwt_has_house(h.id))))))",
-    "with_check": null
-  },
-  {
-    "schemaname": "storage",
-    "tablename": "objects",
     "policyname": "RBAC checklist_attachments SELECT",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "SELECT",
     "qual": "((bucket_id = 'ic_checklist-attachments'::text) AND (ic_jwt_is_admin() OR (EXISTS ( SELECT 1\n   FROM ic_house_checklist_submissions hcs\n  WHERE (((hcs.id)::text = split_part(objects.name, '/'::text, 1)) AND ic_jwt_has_house(hcs.house_id))))))",
+    "with_check": null
+  },
+  {
+    "schemaname": "storage",
+    "tablename": "objects",
+    "policyname": "RBAC branch_documents SELECT",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "((bucket_id = 'ic_branch-documents'::text) AND (ic_jwt_is_admin() OR (EXISTS ( SELECT 1\n   FROM ic_houses h\n  WHERE (((h.branch_id)::text = split_part(h.house_name, '/'::text, 1)) AND ic_jwt_has_house(h.id))))))",
     "with_check": null
   },
   {
@@ -1897,26 +1957,6 @@
     "roles": "{authenticated}",
     "cmd": "SELECT",
     "qual": "((bucket_id = 'ic_staff-documents'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('employees'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR (split_part(name, '/'::text, 1) = (ic_jwt_get_staff_id())::text) OR ((ic_jwt_get_perm('employees'::text) = ANY (ARRAY['context_read_write'::text, 'context_read_only'::text])) AND (EXISTS ( SELECT 1\n   FROM ic_staff s\n  WHERE (((s.id)::text = split_part(s.staff_name, '/'::text, 1)) AND ic_jwt_manages_staff(s.id)))))))",
-    "with_check": null
-  },
-  {
-    "schemaname": "storage",
-    "tablename": "objects",
-    "policyname": "RBAC participant_photos SELECT",
-    "permissive": "PERMISSIVE",
-    "roles": "{authenticated}",
-    "cmd": "SELECT",
-    "qual": "((bucket_id = 'ic_participant-photos'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR ((ic_jwt_get_perm('participants'::text) = ANY (ARRAY['context_read_write'::text, 'context_read_only'::text])) AND (EXISTS ( SELECT 1\n   FROM ic_participants p\n  WHERE ((((p.id)::text = split_part(p.participant_name, '/'::text, 1)) OR (p.photo_url ~~* ('%'::text || p.participant_name))) AND ic_jwt_has_house(p.house_id)))))))",
-    "with_check": null
-  },
-  {
-    "schemaname": "storage",
-    "tablename": "objects",
-    "policyname": "RBAC participant_documents SELECT",
-    "permissive": "PERMISSIVE",
-    "roles": "{authenticated}",
-    "cmd": "SELECT",
-    "qual": "((bucket_id = 'ic_participant-documents'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR ((ic_jwt_get_perm('participants'::text) = ANY (ARRAY['context_read_write'::text, 'context_read_only'::text])) AND (EXISTS ( SELECT 1\n   FROM ic_participants p\n  WHERE (((p.id)::text = split_part(p.participant_name, '/'::text, 1)) AND ic_jwt_has_house(p.house_id)))))))",
     "with_check": null
   }
 ]

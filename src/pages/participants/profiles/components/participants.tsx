@@ -54,7 +54,6 @@ import { Archive, Edit } from 'lucide-react';
 import { useParticipants, useUpdateParticipant } from '@/hooks/use-participants';
 import { useHouses } from '@/hooks/use-houses';
 import { useNavigate } from 'react-router';
-import { logActivity } from '@/lib/activity-logger';
 import { useAuth } from '@/auth/context/auth-context';
 import { parseSupabaseError } from '@/lib/error-parser';
 
@@ -89,16 +88,6 @@ function ActionsCell({ row, updateParticipant }: { row: Row<ParticipantWithHouse
     if (!canArchive) return;
     try {
       await updateParticipant({ id: row.original.id, updates: { status: 'inactive' } });
-
-      // Log activity
-      await logActivity({
-        activityType: 'update',
-        entityType: 'participant',
-        entityId: row.original.id,
-        entityName: row.original.participant_name,
-        userName: user?.email || 'Unknown user',
-        customDescription: `Archived participant "${row.original.participant_name}"`,
-      });
 
       toast.success('Participant archived successfully');
     } catch (error) {

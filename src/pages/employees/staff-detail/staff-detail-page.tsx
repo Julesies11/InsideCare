@@ -35,16 +35,17 @@ import {
 import { StaffPendingChanges, emptyStaffPendingChanges } from '@/models/staff-pending-changes';
 import { useDirtyTracker } from '@/hooks/useDirtyTracker';
 import { useUpdateStaff, useStaffMember, useInviteStaff, useRevokeInvite } from '@/hooks/use-staff';
-import { useLogActivity } from '@/hooks/use-activity-log';
+import { useAdminAuthStatus } from '@/hooks/use-auth-status';
+import { format } from 'date-fns';
 
 export function StaffDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { isAdmin, user } = useAuth();
   const { data: staffMember } = useStaffMember(id);
   const { mutateAsync: updateStaff } = useUpdateStaff();
-  const { mutateAsync: logActivity } = useLogActivity();
   const { mutateAsync: inviteStaff } = useInviteStaff();
   const { mutateAsync: revokeInvite } = useRevokeInvite();
+  const { data: authStatusData } = useAdminAuthStatus();
   const [formData, setFormData] = useState<Record<string, any> | null>(null);
   const [originalData, setOriginalData] = useState<Record<string, any> | null>(null);
   const [pendingChanges, setPendingChanges] = useState<StaffPendingChanges>(emptyStaffPendingChanges);
@@ -86,14 +87,6 @@ export function StaffDetailPage() {
         inviteMsg = ' and portal invitation sent';
       }
 
-      await logActivity({
-        activityType: 'update',
-        entityType: 'staff',
-        entityId: id,
-        entityName: staffMember.staff_name,
-        userName: user?.email || 'Admin',
-        customDescription: `Activated staff member "${staffMember.staff_name}" (Status: ACTIVE)${inviteMsg}`,
-      });
       toast.success(`Staff member activated successfully${inviteMsg}`);
     } catch (err) {
       handleError(err as Error, { category: 'network', title: 'Activation Failed' });
@@ -114,16 +107,6 @@ export function StaffDetailPage() {
       if (revokeAccess && staffAuthUserId) {
         await revokeInvite({ staffId: id, authUserId: staffAuthUserId });
       }
-
-      // 3. Log activity
-      await logActivity({
-        activityType: 'update',
-        entityType: 'staff',
-        entityId: id,
-        entityName: staffMember.staff_name,
-        userName: user?.email || 'Admin',
-        customDescription: `Deactivated staff member "${staffMember.staff_name}" (Status: INACTIVE)${revokeAccess ? ' and revoked portal access' : ''}`,
-      });
 
       toast.success(
         revokeAccess 
@@ -241,11 +224,29 @@ export function StaffDetailPage() {
                             </TooltipTrigger>
                             <TooltipContent variant="light" className="max-w-[280px] p-3 shadow-lg border-border">
                               <p className="font-semibold mb-1">About Portal Access</p>
-                              <p className="text-[11px] leading-relaxed text-muted-foreground">
-                                {staffAuthUserId 
-                                  ? "This staff member has an active login and can access the portal to view their roster, timesheets, and participant data."
-                                  : "This staff member currently has no login credentials. They cannot access the portal until you send them an invitation via the 'More Actions' menu."}
-                              </p>
+                              <div className="text-[11px] leading-relaxed text-muted-foreground flex flex-col gap-1.5">
+                                {staffAuthUserId && authStatusData?.[staffAuthUserId] ? (
+                                  <>
+                                    {authStatusData[staffAuthUserId].invited_at && (
+                                      <p><span className="font-medium text-foreground">Invited:</span> {format(new Date(authStatusData[staffAuthUserId].invited_at), 'PPP p')}</p>
+                                    )}
+                                    {authStatusData[staffAuthUserId].confirmed_at && (
+                                      <p><span className="font-medium text-foreground">Accepted:</span> {format(new Date(authStatusData[staffAuthUserId].confirmed_at), 'PPP p')}</p>
+                                    )}
+                                    {authStatusData[staffAuthUserId].last_sign_in_at ? (
+                                      <p><span className="font-medium text-foreground">Last Login:</span> {format(new Date(authStatusData[staffAuthUserId].last_sign_in_at), 'PPP p')}</p>
+                                    ) : (
+                                      <p className="text-warning">Never logged in</p>
+                                    )}
+                                  </>
+                                ) : (
+                                  <p>
+                                    {staffAuthUserId 
+                                      ? "This staff member has an active login and can access the portal to view their roster, timesheets, and participant data."
+                                      : "This staff member currently has no login credentials. They cannot access the portal until you send them an invitation via the 'More Actions' menu."}
+                                  </p>
+                                )}
+                              </div>
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
@@ -298,8 +299,15 @@ export function StaffDetailPage() {
                       <DropdownMenuLabel className="text-xs font-semibold uppercase text-muted-foreground">Portal Settings</DropdownMenuLabel>
                       {staffAuthUserId ? (
                         <>
-                          <div className="px-2 py-1.5 flex items-center gap-2 text-[11px] text-green-600 font-bold uppercase tracking-wider">
-                            <CheckCircle className="size-3" /> Access Active
+                          <div className="px-2 py-1.5 flex flex-col gap-0.5">
+                            <div className="flex items-center gap-2 text-[11px] text-green-600 font-bold uppercase tracking-wider">
+                              <CheckCircle className="size-3" /> Access Active
+                            </div>
+                            {authStatusData?.[staffAuthUserId]?.last_sign_in_at && (
+                              <div className="text-[10px] text-muted-foreground ps-5">
+                                Last login: {format(new Date(authStatusData[staffAuthUserId].last_sign_in_at!), 'PP p')}
+                              </div>
+                            )}
                           </div>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem onClick={handleInvite} disabled={inviting}>

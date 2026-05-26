@@ -53,8 +53,11 @@ To ensure system flexibility, the RBAC model strictly forbids hard-coding of rol
 
 1.  **Role Agnosticism**: Roles must never be identified by name (e.g., `'Admin'`) in application logic or Edge Functions. Roles are managed exclusively via the `roles` table.
 2.  **Permission-Based Authorization**: Authorization checks must be performed against specific module permissions in the `role_permissions` table.
-3.  **Defining "Admin"**: In the context of system-wide administrative actions (e.g., syncing all user permissions, updating roles), a user is considered an **Admin** if and only if their assigned role has `'full'` access to the `access_control` module.
-4.  **Frontend Sync**: Permission-based checks in the frontend should utilize the `RBAC_MODULES` constants found in `src/config/rbac-modules.ts`.
+- **Defining "Admin"**: In the context of system-wide administrative actions (e.g., syncing all user permissions, updating roles), a user is considered an **Admin** if and only if their assigned role has `'full'` access to the `access_control` module.
+- **Portal Access Monitoring**: Admins can monitor staff portal status (invited dates, accepted status, last login) via the `useAdminAuthStatus` hook, which fetches metadata from Supabase Auth via a secure Edge Function.
+- **Centralized Activity Auditing**: The system implements a robust Activity Log with server-side pagination and category filtering. Login events are automatically captured via a Supabase Auth Webhook that triggers the `ic-auth-webhook` Edge Function.
+- **Frontend Sync**: Permission-based checks in the frontend should utilize the `RBAC_MODULES` constants found in `src/config/rbac-modules.ts`.
+
 
 ### Staff Access
 - **Clinical Awareness**: Staff have `SELECT` access to all Participants and their clinical child entities (medications, routines, notes) to ensure they can provide informed care anywhere.

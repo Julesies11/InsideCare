@@ -24,7 +24,7 @@ describe('useActivityLog', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(result.current.data).toHaveLength(1);
-    expect(result.current.data?.[0].entity_name).toBe('John Doe');
+    expect(result.current.data?.data).toHaveLength(1);
+    expect(result.current.data?.data?.[0].entity_name).toBe('John Doe');
   });
 });

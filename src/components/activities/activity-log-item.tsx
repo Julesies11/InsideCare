@@ -19,9 +19,29 @@ export function ActivityLogItem({ activity, isLast }: ActivityLogItemProps) {
   const Icon = activityTypeIcons[activity.activity_type] || FileText;
   const timeAgo = formatDistanceToNow(new Date(activity.created_at), { addSuffix: true });
 
-  // Just return the description as-is (no entity name on entity's own page)
+  // Format description by stripping redundant context (since we are on the entity's own page)
   const formatDescription = () => {
-    return activity.description;
+    let desc = activity.description || '';
+
+    // 1. Extract granular changes from [...] block if present
+    const summaryMatch = desc.match(/\[(.*?)\]/);
+    if (summaryMatch) {
+      return summaryMatch[1];
+    }
+
+    // 2. Strip "to/from Participant: Name" suffixes for child records
+    desc = desc.replace(/ (to|from|for) (Participant|Staff|House):.*$/, '');
+    
+    // 3. Simplify main record creates/updates
+    if (desc.startsWith('Created ') || desc.startsWith('Updated ')) {
+      const parts = desc.split(' "');
+      if (parts.length > 0) {
+        // e.g., "Updated Staff"
+        return parts[0];
+      }
+    }
+
+    return desc;
   };
 
   return (

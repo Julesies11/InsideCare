@@ -12,7 +12,6 @@ import { Staff, StaffUpdateData, useUpdateStaff, useStaffMember } from '@/hooks/
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { StaffPendingChanges, emptyStaffPendingChanges } from '@/models/staff-pending-changes';
-import { logActivity, detectChanges } from '@/lib/activity-logger';
 import { parseSupabaseError } from '@/lib/error-parser';
 import { handleAvatarUpload } from '@/lib/api/profiles';
 import { useFormValidation } from '@/hooks/use-form-validation';
@@ -232,14 +231,8 @@ export function StaffDetailContent({
         setFormData((prev: any) => ({ ...prev, photo_url: newPhotoUrl }));
         latestFormData.current = { ...currentFormData, photo_url: newPhotoUrl };
 
-        await logActivity({
-          activityType: 'update',
-          entityType: 'staff',
-          entityId: staffId,
-          entityName: staffMember?.staff_name,
-          userName,
-          customDescription: `Updated profile photo for ${staffMember?.staff_name || 'staff'}`,
-        });
+// Redundant manual logging removed, handled by SQL trigger
+
       } else if (photoPreview === null && originalPhotoUrl !== null) {
         // Photo was deleted — clear it in the DB
         const { error: photoErr } = await supabase
@@ -258,14 +251,8 @@ export function StaffDetailContent({
         setFormData((prev: any) => ({ ...prev, photo_url: null }));
         latestFormData.current = { ...currentFormData, photo_url: null };
 
-        await logActivity({
-          activityType: 'update',
-          entityType: 'staff',
-          entityId: staffId,
-          entityName: staffMember?.staff_name,
-          userName,
-          customDescription: 'Removed profile photo',
-        });
+// Redundant manual logging removed, handled by SQL trigger
+
       }
 
       // Step 1: Process pending compliance
@@ -283,17 +270,6 @@ export function StaffDetailContent({
           const parsedError = parseSupabaseError(error);
           toast.error(parsedError.title, { description: parsedError.description });
           throw error;
-        }
-
-        for (const item of currentPending.staffCompliance.toAdd) {
-          await logActivity({
-            activityType: 'create',
-            entityType: 'staff',
-            entityId: staffId,
-            entityName: staffMember?.staff_name,
-            userName,
-            customDescription: `Added compliance requirement "${item.compliance_name}"`,
-          });
         }
       }
 
@@ -313,25 +289,10 @@ export function StaffDetailContent({
             toast.error(parsedError.title, { description: parsedError.description });
             throw error;
           }
-
-          await logActivity({
-            activityType: 'update',
-            entityType: 'staff',
-            entityId: staffId,
-            entityName: staffMember?.staff_name,
-            userName,
-            customDescription: `Updated compliance requirement "${item.compliance_name}"`,
-          });
         }
       }
 
       if (currentPending.staffCompliance.toDelete.length > 0) {
-        // Get names before deleting for log
-        const { data: compRecords } = await supabase
-          .from(TABLES.STAFF_COMPLIANCE)
-          .select('id, compliance_name')
-          .in('id', currentPending.staffCompliance.toDelete);
-
         const { error } = await supabase
           .from(TABLES.STAFF_COMPLIANCE)
           .delete()
@@ -341,19 +302,6 @@ export function StaffDetailContent({
           const parsedError = parseSupabaseError(error);
           toast.error(parsedError.title, { description: parsedError.description });
           throw error;
-        }
-
-        if (compRecords) {
-          for (const record of compRecords) {
-            await logActivity({
-              activityType: 'delete',
-              entityType: 'staff',
-              entityId: staffId,
-              entityName: staffMember?.staff_name,
-              userName,
-              customDescription: `Deleted compliance requirement "${record.compliance_name || 'Unknown requirement'}"`,
-            });
-          }
         }
       }
 
@@ -404,17 +352,6 @@ export function StaffDetailContent({
           const parsedError = parseSupabaseError(error);
           toast.error(parsedError.title, { description: parsedError.description });
           throw error;
-        }
-
-        for (const item of currentPending.training.toAdd) {
-          await logActivity({
-            activityType: 'create',
-            entityType: 'staff',
-            entityId: staffId,
-            entityName: staffMember?.staff_name,
-            userName,
-            customDescription: `Added training record "${item.title}"`,
-          });
         }
       }
 
@@ -467,15 +404,6 @@ export function StaffDetailContent({
             toast.error(parsedError.title, { description: parsedError.description });
             throw error;
           }
-
-          await logActivity({
-            activityType: 'update',
-            entityType: 'staff',
-            entityId: staffId,
-            entityName: staffMember?.staff_name,
-            userName,
-            customDescription: `Updated training record "${item.title}"`,
-          });
         }
       }
 
@@ -497,19 +425,6 @@ export function StaffDetailContent({
           const parsedError = parseSupabaseError(error);
           toast.error(parsedError.title, { description: parsedError.description });
           throw error;
-        }
-
-        if (trainingRecords) {
-          for (const record of trainingRecords) {
-            await logActivity({
-              activityType: 'delete',
-              entityType: 'staff',
-              entityId: staffId,
-              entityName: staffMember?.staff_name,
-              userName,
-              customDescription: `Deleted training record "${record.title || 'Unknown training'}"`,
-            });
-          }
         }
       }
 
@@ -535,17 +450,6 @@ export function StaffDetailContent({
 
         const { error: dbError } = await supabase.from(TABLES.STAFF_DOCUMENTS).insert(toInsert);
         if (dbError) throw new Error(`Failed to create document records: ${dbError.message}`);
-
-        for (const doc of currentPending.documents.toAdd) {
-          await logActivity({
-            activityType: 'create',
-            entityType: 'staff',
-            entityId: staffId,
-            entityName: staffMember?.staff_name,
-            userName,
-            customDescription: `Uploaded document "${doc.file.name}"`,
-          });
-        }
       }
 
       // Step 2: Delete pending document deletions
@@ -557,17 +461,6 @@ export function StaffDetailContent({
 
         const { error: dbError } = await supabase.from(TABLES.STAFF_DOCUMENTS).delete().in('id', ids);
         if (dbError) throw new Error(`Failed to delete document records: ${dbError.message}`);
-
-        for (const doc of currentPending.documents.toDelete) {
-          await logActivity({
-            activityType: 'delete',
-            entityType: 'staff',
-            entityId: staffId,
-            entityName: staffMember?.staff_name,
-            userName,
-            customDescription: `Deleted document "${doc.fileName}"`,
-          });
-        }
       }
 
       // Step 3: Save main staff form data using json-diff-ts
@@ -682,21 +575,6 @@ export function StaffDetailContent({
         }
       } else {
         console.log('No changes detected in main form fields');
-      }
-
-      // Detect what changed for activity log
-      const changes = detectChanges(staffMember, normalizedFormData);
-
-      // Log the activity (only if there were actual changes)
-      if (Object.keys(changes).length > 0) {
-        await logActivity({
-          activityType: 'update',
-          entityType: 'staff',
-          entityId: staffId,
-          entityName: currentFormData.staff_name,
-          changes,
-          userName,
-        });
       }
 
       // Update local state with saved data

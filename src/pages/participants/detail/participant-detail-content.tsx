@@ -23,7 +23,6 @@ import { useUpdateParticipant, useParticipant } from '@/hooks/use-participants';
 import { Participant } from '@/models/participant';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { logActivity, detectChanges } from '@/lib/activity-logger';
 import { NotificationService } from '@/lib/notification-service';
 import { useFormValidation } from '@/hooks/use-form-validation';
 import { handleAvatarUpload } from '@/lib/api/profiles';
@@ -304,17 +303,6 @@ export function ParticipantDetailContent({
         
         const { error } = await supabase.from('ic_participant_goals').insert(toInsert);
         if (error) throw new Error(`Failed to add goals: ${error.message}`);
-        
-        for (const goal of currentPending.goals.toAdd) {
-          await logActivity({
-            activityType: 'create',
-            entityType: 'participant',
-            entityId: id,
-            entityName: participant?.participant_name,
-            userName,
-            customDescription: `Added goal "${goal.goal_type}"${goal.description ? ` (${goal.description})` : ''}`,
-          });
-        }
       }
 
       if (currentPending.goals.toUpdate.length > 0) {
@@ -328,42 +316,16 @@ export function ParticipantDetailContent({
             })
             .eq('id', goal.id);
           if (error) throw new Error(`Failed to update goal: ${error.message}`);
-          await logActivity({
-            activityType: 'update',
-            entityType: 'participant',
-            entityId: id,
-            entityName: participant?.participant_name,
-            userName,
-            customDescription: `Updated goal "${goal.goal_type}"${goal.description ? ` (${goal.description})` : ''}`,
-          });
         }
       }
 
       if (currentPending.goals.toDelete.length > 0) {
-        const { data: goalRecords } = await supabase
-          .from('ic_participant_goals')
-          .select('id, goal_type')
-          .in('id', currentPending.goals.toDelete);
-
         const { error } = await supabase
           .from('ic_participant_goals')
           .delete()
           .in('id', currentPending.goals.toDelete);
         
         if (error) throw new Error(`Failed to delete goals: ${error.message}`);
-        
-        if (goalRecords) {
-          for (const record of goalRecords) {
-            await logActivity({
-              activityType: 'delete',
-              entityType: 'participant',
-              entityId: id,
-              entityName: participant?.participant_name,
-              userName,
-              customDescription: `Deleted goal "${record.goal_type || 'Unknown goal'}"`,
-            });
-          }
-        }
       }
 
       // Step 2: Process pending medications
@@ -426,17 +388,6 @@ export function ParticipantDetailContent({
 
         const { error } = await supabase.from(TABLES.PARTICIPANT_CONTACTS).insert(toInsert);
         if (error) throw new Error(`Failed to add contacts: ${error.message}`);
-        
-        for (const contact of currentPending.contacts.toAdd) {
-          await logActivity({
-            activityType: 'create',
-            entityType: 'participant',
-            entityId: id,
-            entityName: participant?.participant_name,
-            userName,
-            customDescription: `Added contact "${contact.contact_name}"`,
-          });
-        }
       }
 
       if (currentPending.contacts.toUpdate.length > 0) {
@@ -454,14 +405,6 @@ export function ParticipantDetailContent({
             })
             .eq('id', contact.id);
           if (error) throw new Error(`Failed to update contact: ${error.message}`);
-          await logActivity({
-            activityType: 'update',
-            entityType: 'participant',
-            entityId: id,
-            entityName: participant?.participant_name,
-            userName,
-            customDescription: `Updated contact "${contact.contact_name}"`,
-          });
         }
       }
 
@@ -501,17 +444,6 @@ export function ParticipantDetailContent({
 
         const { error: dbError } = await supabase.from(TABLES.PARTICIPANT_DOCUMENTS).insert(toInsert);
         if (dbError) throw new Error(`Failed to create document records: ${dbError.message}`);
-
-        for (const doc of currentPending.documents.toAdd) {
-          await logActivity({
-            activityType: 'create',
-            entityType: 'participant',
-            entityId: id,
-            entityName: participant?.participant_name,
-            userName,
-            customDescription: `Uploaded document "${doc.file.name}"`,
-          });
-        }
       }
 
       if (currentPending.documents.toDelete.length > 0) {
@@ -522,17 +454,6 @@ export function ParticipantDetailContent({
 
         const { error: dbError } = await supabase.from(TABLES.PARTICIPANT_DOCUMENTS).delete().in('id', ids);
         if (dbError) throw new Error(`Failed to delete document records: ${dbError.message}`);
-
-        for (const doc of currentPending.documents.toDelete) {
-          await logActivity({
-            activityType: 'delete',
-            entityType: 'participant',
-            entityId: id,
-            entityName: participant?.participant_name,
-            userName,
-            customDescription: `Deleted document "${doc.fileName}"`,
-          });
-        }
       }
 
       // Profile Photo handling
@@ -550,14 +471,8 @@ export function ParticipantDetailContent({
         setPhotoPreview(newPhotoUrl);
         setFormData(prev => ({ ...prev, photo_url: newPhotoUrl }));
         latestFormData.current = { ...currentFormData, photo_url: newPhotoUrl };
-        await logActivity({
-          activityType: 'update',
-          entityType: 'participant',
-          entityId: id,
-          entityName: currentFormData.participant_name,
-          userName,
-          customDescription: 'Updated profile photo',
-        });
+// Redundant manual logging removed, handled by SQL trigger
+
       } else if (photoPreview === null && originalPhotoUrl !== null) {
         const { error: photoErr } = await supabase
           .from(TABLES.PARTICIPANTS)
@@ -567,14 +482,8 @@ export function ParticipantDetailContent({
         setOriginalPhotoUrl(null);
         setFormData(prev => ({ ...prev, photo_url: null }));
         latestFormData.current = { ...currentFormData, photo_url: null };
-        await logActivity({
-          activityType: 'update',
-          entityType: 'participant',
-          entityId: id,
-          entityName: currentFormData.participant_name,
-          userName,
-          customDescription: `Removed profile photo for ${currentFormData.participant_name || 'participant'}`,
-        });
+// Redundant manual logging removed, handled by SQL trigger
+
       }
 
       // Step 4: Save main participant form data
@@ -613,19 +522,6 @@ export function ParticipantDetailContent({
             await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.participant_name || 'Participant', 'routine');
           }
         }
-      }
-
-      // Detect changes for activity log
-      const changes = detectChanges(currentOriginalData, normalizedFormData);
-      if (Object.keys(changes).length > 0) {
-        await logActivity({
-          activityType: 'update',
-          entityType: 'participant',
-          entityId: id,
-          entityName: currentFormData.participant_name,
-          changes,
-          userName,
-        });
       }
 
       // Step 5: Process pending shift notes

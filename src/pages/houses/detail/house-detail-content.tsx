@@ -25,7 +25,6 @@ import { useAuth } from '@/auth/context/auth-context';
 import { useQueryClient } from '@tanstack/react-query';
 import { handleSupabaseError } from '@/errors/error-handler';
 import { ActivityLog } from '@/components/activities/ActivityLog';
-import { logActivity, detectChanges } from '@/lib/activity-logger';
 import { syncUserPermissionsByStaffId } from '@/lib/rbac-sync';
 import { TABLES } from '@/config/db-tables';
 import { STORAGE_BUCKETS } from '@/config/storage-buckets';
@@ -184,19 +183,6 @@ export function HouseDetailContent({
       }
       if (!houseData) throw new Error("You do not have permission to perform this action");
 
-      // Log basic detail changes
-      const detailChanges = detectChanges(currentOriginalData, currentFormData);
-      if (Object.keys(detailChanges).length > 0) {
-        await logActivity({
-          activityType: 'update',
-          entityType: 'house',
-          entityId: id!,
-          entityName: currentFormData.house_name,
-          changes: detailChanges,
-          userName,
-        });
-      }
-
       // Step 2: Process pending participants
       if (currentPending.participants.toAdd.length > 0) {
         const ids = currentPending.participants.toAdd.map(p => p.participant_id);
@@ -205,17 +191,6 @@ export function HouseDetailContent({
           .update({ house_id: id, status: 'active' })
           .in('id', ids);
         if (error) throw new Error(`Failed to link participants: ${error.message}`);
-
-        for (const p of currentPending.participants.toAdd) {
-          await logActivity({
-            activityType: 'update',
-            entityType: 'house',
-            entityId: id!,
-            entityName: currentFormData.house_name,
-            userName,
-            customDescription: `Linked participant "${p.participant_name || p.participant_id}" to house`,
-          });
-        }
       }
 
       if (currentPending.participants.toUpdate.length > 0) {
@@ -229,42 +204,15 @@ export function HouseDetailContent({
             .update(updates)
             .eq('id', p.id);
           if (error) throw new Error(`Failed to update participant: ${error.message}`);
-
-          await logActivity({
-            activityType: 'update',
-            entityType: 'house',
-            entityId: id!,
-            entityName: currentFormData.house_name,
-            userName,
-            customDescription: `Updated participant "${p.participant_name || p.id}" house settings`,
-          });
         }
       }
 
       if (currentPending.participants.toDelete.length > 0) {
-        // Fetch participant names before unlinking for the activity log
-        const { data: participantsToDelete } = await supabase
-          .from(TABLES.PARTICIPANTS)
-          .select('id, participant_name')
-          .in('id', currentPending.participants.toDelete);
-
         const { error } = await supabase
           .from(TABLES.PARTICIPANTS)
           .update({ house_id: null })
           .in('id', currentPending.participants.toDelete);
         if (error) throw new Error(`Failed to unlink participants: ${error.message}`);
-
-        for (const pid of currentPending.participants.toDelete) {
-          const participantName = participantsToDelete?.find(p => p.id === pid)?.participant_name || pid;
-          await logActivity({
-            activityType: 'update',
-            entityType: 'house',
-            entityId: id!,
-            entityName: currentFormData.house_name,
-            userName,
-            customDescription: `Unlinked participant "${participantName}" from house`,
-          });
-        }
       }
 
       // Step 3: Process pending staff assignments
@@ -277,19 +225,8 @@ export function HouseDetailContent({
           end_date: s.end_date || null,
           notes: s.notes || null,
         }));
-        const { error } = await supabase.from(TABLES.HOUSE_STAFF_ASSIGNMENTS).insert(toInsert);
-        if (error) throw new Error(`Failed to add staff assignments: ${error.message}`);
-
-        for (const _s of currentPending.staff.toAdd) {
-          await logActivity({
-            activityType: 'update',
-            entityType: 'house',
-            entityId: id!,
-            entityName: currentFormData.house_name,
-            userName,
-            customDescription: `Assigned staff member "${_s.staff_name || _s.staff_id}" to house`,
-          });
-        }
+        const { error: dbError } = await supabase.from(TABLES.HOUSE_STAFF_ASSIGNMENTS).insert(toInsert);
+        if (dbError) throw new Error(`Failed to add staff assignments: ${dbError.message}`);
       }
 
       if (currentPending.staff.toUpdate.length > 0) {

@@ -5,7 +5,6 @@ import { useAuth } from '@/auth/context/auth-context';
 import { format, parseISO, differenceInMinutes } from 'date-fns';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { logActivity } from '@/lib/activity-logger';
 import {
   ArrowLeft, Clock, FileText, AlertTriangle, Car, Info, CheckCircle2, ClipboardList,
 } from 'lucide-react';
@@ -279,17 +278,6 @@ export function StaffTimesheetForm() {
         full_note:  shiftNotes.trim(),
         notes:      shiftNotes.trim().slice(0, 100),
       }, { onConflict: 'shift_id,staff_id' });
-
-      console.log('Timesheet: Logging activity...');
-      const userName = user.fullname || user.email || 'Staff';
-      await logActivity({
-        activityType:      'submit',
-        entityType:        'timesheet',
-        entityId:          tsId ?? shiftId,
-        entityName:        `Timesheet – ${format(parseISO(shift.start_date), 'dd MMM yyyy')}`,
-        userName,
-        customDescription: `Submitted timesheet for ${format(parseISO(shift.start_date), 'dd MMM yyyy')}`,
-      });
 
       console.log('Timesheet: Notifying admins...');
       const { data: admins } = await supabase
