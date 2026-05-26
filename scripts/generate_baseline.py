@@ -95,42 +95,7 @@ for b in buckets:
     # Supabase storage bucket creation via SQL
     sql.append(f"INSERT INTO storage.buckets (id, name, public) VALUES ('{b}', '{b}', false) ON CONFLICT DO NOTHING;")
 
-# 7. RLS Policies
-sql.append("\n-- 6. RLS Policies")
-for p in rbac:
-    table = p['tablename']
-    schema_name = p['schemaname']
-    target_table = f"{schema_name}.{table}"
-    
-    qual = p.get('qual')
-    with_check = p.get('with_check')
-    
-    # FIX: Replace hyphens with underscores in bucket_id checks within policies
-    if qual:
-        qual = qual.replace('ic_branch-documents', 'ic_branch_documents') \
-                   .replace('ic_checklist-attachments', 'ic_checklist_attachments') \
-                   .replace('ic_house-documents', 'ic_house_documents') \
-                   .replace('ic_participant-documents', 'ic_participant_documents') \
-                   .replace('ic_participant-photos', 'ic_participant_photos') \
-                   .replace('ic_staff-documents', 'ic_staff_documents') \
-                   .replace('ic_staff-photos', 'ic_staff_photos')
-    if with_check:
-        with_check = with_check.replace('ic_branch-documents', 'ic_branch_documents') \
-                               .replace('ic_checklist-attachments', 'ic_checklist_attachments') \
-                               .replace('ic_house-documents', 'ic_house_documents') \
-                               .replace('ic_participant-documents', 'ic_participant_documents') \
-                               .replace('ic_participant-photos', 'ic_participant_photos') \
-                               .replace('ic_staff-documents', 'ic_staff_documents') \
-                               .replace('ic_staff-photos', 'ic_staff_photos')
-    
-    # Construct policy
-    sql.append(f'DROP POLICY IF EXISTS "{p["policyname"]}" ON {target_table};')
-    pol_sql = f'CREATE POLICY "{p["policyname"]}" ON {target_table} FOR {p["cmd"]} TO {p["roles"].strip("{}")}'
-    if qual:
-        pol_sql += f" USING ({qual})"
-    if with_check:
-        pol_sql += f" WITH CHECK ({with_check})"
-    sql.append(pol_sql + ";")
+# RLS Policies skipped as per user request (managed manually in docs/database_schema/current_database_rbac.json)
 
 # 8. Triggers
 sql.append("\n-- 7. Triggers")
@@ -140,7 +105,7 @@ for tr in schema.get('triggers', []):
 
 sql.append("\nCOMMIT;")
 
-output_file = 'migrations/2026052110_baseline_dev_schema.sql'
+output_file = 'migrations/2026052510_baseline_schema.sql'
 with open(output_file, 'w') as f:
     f.write("\n".join(sql))
 

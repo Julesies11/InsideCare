@@ -32,6 +32,12 @@ New migrations must follow the `YYYYMMDDXX_description.sql` format:
 - `XX`: A sequential number starting from `00` for each unique migration on that date (e.g., `00`, `01`, `02`).
 - `description`: A brief, lowercase, underscore-separated description of the change.
 
+### Schema Baselining
+As of **May 25, 2026**, the database schema has been consolidated into a single baseline migration: `migrations/2026052510_baseline_schema.sql`.
+- **Purpose**: Consolidates tables, functions, triggers, enums, and buckets into a single starting point.
+- **RLS Policy Handling**: To maintain readability and manageable file sizes, RLS policies are **EXCLUDED** from the baseline SQL file. They are maintained as a single source of truth in `docs/database_schema/current_database_rbac.json` and must be applied manually or via a specialized deployment script.
+- **Archiving**: All previous migrations have been moved to `migrations/old_consolidated/`.
+
 ## RBAC Access Levels (`public.access_level_enum`)
 Used in `role_permissions` to define granular module access. Enforcement is performed via optimized JWT-based RLS:
 - `full`: Global Read/Write.
