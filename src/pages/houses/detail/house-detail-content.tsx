@@ -348,7 +348,7 @@ export function HouseDetailContent({
         for (const doc of currentPending.documents.toAdd) {
           const fileExt = doc.file.name.split('.').pop();
           const fileName = `${id}-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-          const filePath = `ic_house-documents/${fileName}`;
+          const filePath = `${STORAGE_BUCKETS.HOUSE_DOCUMENTS}/${fileName}`;
 
           const { error: uploadError } = await supabase.storage
             .from(STORAGE_BUCKETS.HOUSE_DOCUMENTS)

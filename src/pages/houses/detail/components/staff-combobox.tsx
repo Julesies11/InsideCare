@@ -6,6 +6,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { SecureAvatar } from '@/components/ui/secure-avatar';
 import { useStaff } from '@/hooks/use-staff';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 
 interface StaffComboboxProps {
   value?: string;
@@ -36,7 +37,7 @@ export function StaffCombobox({ value, onChange, placeholder = "Select staff..."
                 src={selectedStaff.photo_url || undefined} 
                 initials={selectedStaff.staff_name?.substring(0, 2).toUpperCase() ?? '?'} 
                 className="size-6"
-                bucket="ic_staff-photos" 
+                bucket={STORAGE_BUCKETS.STAFF_PHOTOS} 
               />
               <span className="font-bold">{selectedStaff.staff_name}</span>
             </div>
@@ -67,7 +68,7 @@ export function StaffCombobox({ value, onChange, placeholder = "Select staff..."
                       src={staffMember.photo_url || undefined} 
                       initials={staffMember.staff_name?.substring(0, 2).toUpperCase() ?? '?'} 
                       className="size-8"
-                      bucket="ic_staff-photos" 
+                      bucket={STORAGE_BUCKETS.STAFF_PHOTOS} 
                     />
                     <div className="flex flex-col">
                       <span className="font-bold text-sm text-gray-900">{staffMember.staff_name}</span>

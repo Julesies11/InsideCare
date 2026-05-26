@@ -20,11 +20,12 @@ Before generating any SQL statements, the AI **MUST** perform a `read_file` on t
 
 ### Security Model (Gold Standard RLS)
 The project employs a **Gold Standard RLS architecture**:
-1.  **Granular Commands**: Policies are explicitly separated into `SELECT`, `INSERT`, `UPDATE`, and `DELETE`.
-2.  **Delete Restriction**: All records (clinical, transactional, organizational, master lists) can **only** be deleted by users with the `Admin` role (defined as `full` access to `access_control`). This supports the project-wide soft-delete architecture.
+1.  **Explicit Command Separation**: Policies are explicitly separated into `SELECT`, `INSERT`, `UPDATE`, and `DELETE` commands. Broad `ALL` policies for non-admin roles are strictly forbidden to ensure granular control.
+2.  **Delete Restriction (Admin Only)**: All records (clinical, transactional, organizational, master lists) can **only** be deleted by global `Admin` users (defined as `full` access to `access_control`). This enforces the project-wide soft-delete architecture at the database level.
 3.  **Level-Guarded Context**: House or staff-specific access is only granted if the user's permission level for that specific module is at least `context_read_only`.
 4.  **Master List Protection**: Master List tables (e.g., `medications_master`) are restricted to users with the `master_lists` permission.
-5.  **JWT-Driven**: Performance is maintained using `auth.jwt()` lookups.
+5.  **Audit Integrity**: Use of `WITH CHECK` clauses ensures that users can only insert or update records that they own or are authorized to manage (e.g., matching their own `staff_id` or `house_id`).
+6.  **JWT-Driven Performance**: System performance is maintained using memory-resident `auth.jwt()` lookups via `SECURITY DEFINER` helper functions.
 
 ### Migration Naming Convention
 New migrations must follow the `YYYYMMDDXX_description.sql` format:
@@ -33,8 +34,8 @@ New migrations must follow the `YYYYMMDDXX_description.sql` format:
 - `description`: A brief, lowercase, underscore-separated description of the change.
 
 ### Schema Baselining
-As of **May 25, 2026**, the database schema has been consolidated into a single baseline migration: `migrations/2026052510_baseline_schema.sql`.
-- **Purpose**: Consolidates tables, functions, triggers, enums, and buckets into a single starting point.
+As of **May 26, 2026**, the database schema has been consolidated into a single baseline migration: `migrations/2026052602_baseline_schema.sql`.
+- **Purpose**: Consolidates all tables, functions, triggers, enums, and storage buckets into a single starting point, including the latest RLS hardening and storage cleanup fixes.
 - **RLS Policy Handling**: To maintain readability and manageable file sizes, RLS policies are **EXCLUDED** from the baseline SQL file. They are maintained as a single source of truth in `docs/database_schema/current_database_rbac.json` and must be applied manually or via a specialized deployment script.
 - **Archiving**: All previous migrations have been moved to `migrations/old_consolidated/`.
 
@@ -47,11 +48,12 @@ Used in `role_permissions` to define granular module access. Enforcement is perf
 - `none`: No access.
 
 ### Security Helpers (Postgres)
-The following optimized functions are used in RLS policies to query the user's JWT metadata:
-- **`jwt_is_admin()`**: Returns true if the user has global admin rights.
-- **`jwt_has_house(uuid)`**: Returns true if the user is authorized for the given house.
-- **`jwt_get_perm(text)`**: Returns the access level string for a specific module.
-- **`jwt_manages_staff(uuid)`**: Returns true if the user manages the given staff member.
+The following optimized functions are used in RLS policies to query the user's JWT metadata. These are prefixed with `ic_` and are `SECURITY DEFINER` to prevent recursion:
+- **`ic_jwt_is_admin()`**: Returns true if the user has global admin rights.
+- **`ic_jwt_has_house(uuid)`**: Returns true if the user is authorized for the given house.
+- **`ic_jwt_get_perm(text)`**: Returns the access level string for a specific module.
+- **`ic_jwt_get_staff_id()`**: Returns the staff UUID associated with the current user.
+- **`ic_jwt_manages_staff(uuid)`**: Returns true if the user manages the given staff member.
 
 ## Enum Compatibility & Querying
 The project uses Postgres Enums for critical columns (e.g., `public.status_enum`).

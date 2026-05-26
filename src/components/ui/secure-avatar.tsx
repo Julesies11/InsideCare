@@ -1,6 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useSignedUrl } from '@/hooks/use-signed-url';
 import { cn } from '@/lib/utils';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 
 interface SecureAvatarProps {
   src?: string | null;
@@ -15,7 +16,7 @@ export function SecureAvatar({
   alt = "avatar", 
   initials = "?", 
   className,
-  bucket = "ic_staff-photos"
+  bucket = STORAGE_BUCKETS.STAFF_PHOTOS
 }: SecureAvatarProps) {
 
   const { url: signedUrl } = useSignedUrl(bucket, src);

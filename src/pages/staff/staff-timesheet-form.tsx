@@ -280,6 +280,7 @@ export function StaffTimesheetForm() {
       }, { onConflict: 'shift_id,staff_id' });
 
       console.log('Timesheet: Notifying admins...');
+      const userName = user?.fullname || user?.email || 'Staff';
       const { data: admins } = await supabase
         .from('ic_staff')
         .select('auth_user_id')

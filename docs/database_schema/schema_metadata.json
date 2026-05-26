@@ -3270,7 +3270,7 @@
             "ref_table": "ic_leave_types"
           }
         ],
-        "policy_count": 3
+        "policy_count": 4
       },
       {
         "name": "ic_leave_types",
@@ -4377,7 +4377,7 @@
             "ref_table": "ic_participants"
           }
         ],
-        "policy_count": 2
+        "policy_count": 4
       },
       {
         "name": "ic_participant_restrictive_practices",
@@ -5959,7 +5959,7 @@
             "ref_table": "ic_staff_shifts"
           }
         ],
-        "policy_count": 1
+        "policy_count": 4
       },
       {
         "name": "ic_shift_participants",
@@ -6743,7 +6743,7 @@
             "ref_table": "ic_houses"
           }
         ],
-        "policy_count": 3
+        "policy_count": 4
       },
       {
         "name": "ic_staff_training",
@@ -7073,7 +7073,7 @@
             "ref_table": "ic_staff"
           }
         ],
-        "policy_count": 3
+        "policy_count": 4
       },
       {
         "name": "ic_user_roles",
@@ -7200,7 +7200,7 @@
         "args": "p_module text",
         "name": "ic_jwt_get_perm",
         "returns": "text",
-        "definition": "\nDECLARE\n  v_perm_text text;\nBEGIN\n  -- FIRST: Try to get from JWT (Fastest, no recursion)\n  v_perm_text := auth.jwt() -> 'app_metadata' -> 'permissions' ->> p_module;\n  \n  IF v_perm_text IS NOT NULL THEN\n    RETURN v_perm_text;\n  END IF;\n\n  -- SECOND: Fallback to database lookup\n  -- This JOIN is safe because of SECURITY DEFINER bypassing RLS on ic_staff and ic_role_permissions\n  SELECT \n    CASE p_module\n      WHEN 'my_roster' THEN my_roster::text\n      WHEN 'my_timesheets' THEN my_timesheets::text\n      WHEN 'my_leave' THEN my_leave::text\n      WHEN 'shift_routines' THEN shift_routines::text\n      WHEN 'participants' THEN participants::text\n      WHEN 'shift_notes' THEN shift_notes::text\n      WHEN 'employees' THEN employees::text\n      WHEN 'timesheets' THEN timesheets::text\n      WHEN 'leave_requests' THEN leave_requests::text\n      WHEN 'roster_board' THEN roster_board::text\n      WHEN 'houses' THEN houses::text\n      WHEN 'house_checklists' THEN house_checklists::text\n      WHEN 'access_control' THEN access_control::text\n      WHEN 'master_lists' THEN master_lists::text\n      WHEN 'activity_log' THEN activity_log::text\n      ELSE 'none'\n    END INTO v_perm_text\n  FROM public.ic_role_permissions rp\n  JOIN public.ic_staff s ON s.role_id = rp.role_id\n  WHERE s.auth_user_id = auth.uid()\n  LIMIT 1;\n\n  RETURN COALESCE(v_perm_text, 'none');\nEND;\n"
+        "definition": "\nDECLARE\n  v_perm_text text;\nBEGIN\n  -- FIRST: Try to get from JWT (Fastest, no recursion)\n  v_perm_text := auth.jwt() -> 'app_metadata' -> 'permissions' ->> p_module;\n  \n  IF v_perm_text IS NOT NULL THEN\n    RETURN v_perm_text;\n  END IF;\n\n  -- SECOND: Fallback to database lookup\n  -- This JOIN is now safe because of SECURITY DEFINER bypassing RLS on ic_staff and ic_role_permissions\n  SELECT \n    CASE p_module\n      WHEN 'my_roster' THEN my_roster::text\n      WHEN 'my_timesheets' THEN my_timesheets::text\n      WHEN 'my_leave' THEN my_leave::text\n      WHEN 'shift_routines' THEN shift_routines::text\n      WHEN 'participants' THEN participants::text\n      WHEN 'shift_notes' THEN shift_notes::text\n      WHEN 'employees' THEN employees::text\n      WHEN 'timesheets' THEN timesheets::text\n      WHEN 'leave_requests' THEN leave_requests::text\n      WHEN 'roster_board' THEN roster_board::text\n      WHEN 'houses' THEN houses::text\n      WHEN 'house_checklists' THEN house_checklists::text\n      WHEN 'access_control' THEN access_control::text\n      WHEN 'master_lists' THEN master_lists::text\n      WHEN 'activity_log' THEN activity_log::text\n      ELSE 'none'\n    END INTO v_perm_text\n  FROM public.ic_role_permissions rp\n  JOIN public.ic_staff s ON s.role_id = rp.role_id\n  WHERE s.auth_user_id = auth.uid()\n  LIMIT 1;\n\n  RETURN COALESCE(v_perm_text, 'none');\nEND;\n"
       },
       {
         "args": "",
@@ -7230,7 +7230,7 @@
         "args": "p_staff_id uuid",
         "name": "ic_jwt_manages_staff",
         "returns": "bool",
-        "definition": "\nBEGIN\n  -- Admin always manages everyone\n  IF ic_jwt_is_admin() THEN\n    RETURN true;\n  END IF;\n\n  -- Staff member manages themselves\n  IF p_staff_id = public.ic_jwt_get_staff_id() THEN\n    RETURN true;\n  END IF;\n\n  -- Managers can see staff in houses they are assigned to\n  RETURN EXISTS (\n    SELECT 1 \n    FROM public.ic_house_staff_assignments hsa_target\n    JOIN public.ic_house_staff_assignments hsa_manager ON hsa_manager.house_id = hsa_target.house_id\n    WHERE hsa_target.staff_id = p_staff_id\n    AND hsa_manager.staff_id = public.ic_jwt_get_staff_id()\n    AND public.ic_jwt_get_perm('employees') IN ('context_read_write', 'context_read_only')\n  );\nEND;\n"
+        "definition": "\nBEGIN\n  -- Admin always manages everyone\n  IF public.ic_jwt_is_admin() THEN\n    RETURN true;\n  END IF;\n\n  -- Staff member manages themselves\n  IF p_staff_id = public.ic_jwt_get_staff_id() THEN\n    RETURN true;\n  END IF;\n\n  -- Managers can see staff in houses they are assigned to\n  RETURN EXISTS (\n    SELECT 1 \n    FROM public.ic_house_staff_assignments hsa_target\n    JOIN public.ic_house_staff_assignments hsa_manager ON hsa_manager.house_id = hsa_target.house_id\n    WHERE hsa_target.staff_id = p_staff_id\n    AND hsa_manager.staff_id = public.ic_jwt_get_staff_id()\n    AND public.ic_jwt_get_perm('employees') IN ('context_read_write', 'context_read_only')\n  );\nEND;\n"
       },
       {
         "args": "",

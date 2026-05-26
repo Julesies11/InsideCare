@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useHouses } from '@/hooks/use-houses';
 import { AvatarInput } from '@/components/image-input/avatar-input';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 
 interface PersonalDetailsProps {
   canEdit: boolean;
@@ -42,7 +43,7 @@ export function PersonalDetails({
               value={formData.photo_url_preview || formData.photo_url}
               onChange={handlePhotoChange}
               size="lg"
-              bucket="ic_participant-photos"
+              bucket={STORAGE_BUCKETS.PARTICIPANT_PHOTOS}
             />
             {!canEdit && <span className="text-sm text-muted-foreground">View only</span>}
           </div>

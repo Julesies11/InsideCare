@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { TABLES } from '@/config/db-tables';
 
 /**
  * Invokes the Edge Function to recalculate and sync a user's permissions
@@ -35,7 +36,7 @@ export async function syncUserPermissionsByStaffId(staffId: string) {
   if (!staffId) return { error: 'staffId is required' };
 
   const { data: staff, error: staffError } = await supabase
-    .from('ic_staff')
+    .from(TABLES.STAFF)
     .select('auth_user_id')
     .eq('id', staffId)
     .single();
@@ -57,7 +58,7 @@ export async function syncAllUsersOfRole(roleId: string) {
   if (!roleId) return { error: 'roleId is required' };
 
   const { data: staffMembers, error: staffError } = await supabase
-    .from('ic_staff')
+    .from(TABLES.STAFF)
     .select('auth_user_id')
     .eq('role_id', roleId)
     .not('auth_user_id', 'is', null)

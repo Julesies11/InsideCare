@@ -14,6 +14,7 @@ import { useHouseStaffAssignments } from '@/hooks/use-house-staff-assignments';
 import { useStaff } from '@/hooks/use-staff';
 import { StaffCombobox } from './staff-combobox';
 import { HousePendingChanges } from '@/models/house-pending-changes';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 
 interface StaffProps {
   houseId?: string;
@@ -328,7 +329,7 @@ export function HouseStaff({
                             src={getStaffPhoto(staffAssignment)} 
                             initials={getStaffName(staffAssignment).split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2)} 
                             className="size-9"
-                            bucket="ic_staff-photos" 
+                            bucket={STORAGE_BUCKETS.STAFF_PHOTOS} 
                           />
                           <div className={`flex flex-col ${isPendingDelete ? 'line-through' : ''}`}>
                             <span className="font-bold text-gray-900">{getStaffName(staffAssignment)}</span>

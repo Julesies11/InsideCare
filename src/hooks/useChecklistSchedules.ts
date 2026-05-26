@@ -28,7 +28,7 @@ export function useChecklistSchedules(houseId?: string) {
 
       // 1. Insert the Schedule
       const { data: newSchedule, error: scheduleError } = await supabase
-        .from('ic_checklist_schedules')
+        .from(TABLES.CHECKLIST_SCHEDULES)
         .insert(schedule)
         .select()
         .maybeSingle();
@@ -99,7 +99,7 @@ export function useChecklistSchedules(houseId?: string) {
       
       // Deleting the schedule will cascade delete calendar events (due to FK ON DELETE CASCADE)
       const { error } = await supabase
-        .from('ic_checklist_schedules')
+        .from(TABLES.CHECKLIST_SCHEDULES)
         .delete()
         .eq('id', scheduleId);
 

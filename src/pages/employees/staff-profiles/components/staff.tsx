@@ -47,6 +47,7 @@ import { useDebounce } from '@/hooks/use-debounce';
 
 import { RBAC_MODULES } from '@/config/rbac-modules';
 import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 
 const STAFF_STATUS_OPTIONS: StatusOption[] = [
   { value: 'active', label: 'Active', badge: 'success' },
@@ -156,7 +157,7 @@ const StaffTable = () => {
               src={row.original.photo_url} 
               initials={initials} 
               className="size-9"
-              bucket="ic_staff-photos" 
+              bucket={STORAGE_BUCKETS.STAFF_PHOTOS} 
             />
             <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
               {name || '-'}

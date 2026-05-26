@@ -8,147 +8,99 @@
     "with_check_expression": null
   },
   {
-    "bucket_context": "ic_branch-documents",
+    "bucket_context": "ic_branch_documents",
     "policyname": "RBAC branch_documents SELECT",
     "operation": "SELECT",
     "roles": "{authenticated}",
-    "using_expression": "((bucket_id = 'ic_branch-documents'::text) AND (ic_jwt_is_admin() OR (EXISTS ( SELECT 1\n   FROM ic_houses h\n  WHERE (((h.branch_id)::text = split_part(h.house_name, '/'::text, 1)) AND ic_jwt_has_house(h.id))))))",
+    "using_expression": "((bucket_id = 'ic_branch_documents'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('master_lists'::text) = ANY (ARRAY['full'::text, 'read_only'::text]))))",
     "with_check_expression": null
   },
   {
-    "bucket_context": "ic_checklist-attachments",
+    "bucket_context": "ic_checklist_attachments",
     "policyname": "RBAC checklist_attachments INSERT",
     "operation": "INSERT",
     "roles": "{authenticated}",
     "using_expression": null,
-    "with_check_expression": "((bucket_id = 'ic_checklist-attachments'::text) AND (ic_jwt_is_admin() OR (EXISTS ( SELECT 1\n   FROM ic_house_checklist_submissions hcs\n  WHERE (((hcs.id)::text = split_part(objects.name, '/'::text, 1)) AND ic_jwt_has_house(hcs.house_id) AND (ic_jwt_get_perm('house_checklists'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text])))))))"
+    "with_check_expression": "((bucket_id = 'ic_checklist_attachments'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('house_checklists'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text]))))"
   },
   {
-    "bucket_context": "ic_checklist-attachments",
-    "policyname": "RBAC checklist_attachments SELECT",
-    "operation": "SELECT",
-    "roles": "{authenticated}",
-    "using_expression": "((bucket_id = 'ic_checklist-attachments'::text) AND (ic_jwt_is_admin() OR (EXISTS ( SELECT 1\n   FROM ic_house_checklist_submissions hcs\n  WHERE (((hcs.id)::text = split_part(objects.name, '/'::text, 1)) AND ic_jwt_has_house(hcs.house_id))))))",
-    "with_check_expression": null
-  },
-  {
-    "bucket_context": "ic_checklist-attachments",
-    "policyname": "RBAC storage_objects INSERT",
-    "operation": "INSERT",
-    "roles": "{authenticated}",
-    "using_expression": null,
-    "with_check_expression": "(ic_jwt_is_admin() OR ((bucket_id = 'ic_checklist-attachments'::text) AND (ic_jwt_get_perm('house_checklists'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text]))) OR ((bucket_id = 'ic_participant-photos'::text) AND (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text]))) OR ((bucket_id = 'ic_participant-documents'::text) AND (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text]))) OR ((bucket_id = 'ic_staff-photos'::text) AND (split_part(name, '/'::text, 1) = (ic_jwt_get_staff_id())::text)) OR ((bucket_id = 'ic_staff-documents'::text) AND (split_part(name, '/'::text, 1) = (ic_jwt_get_staff_id())::text)))"
-  },
-  {
-    "bucket_context": "ic_house-documents",
+    "bucket_context": "ic_house_documents",
     "policyname": "RBAC house_documents INSERT",
     "operation": "INSERT",
     "roles": "{authenticated}",
     "using_expression": null,
-    "with_check_expression": "((bucket_id = 'ic_house-documents'::text) AND (ic_jwt_is_admin() OR (ic_jwt_has_house((split_part(name, '/'::text, 1))::uuid) AND (ic_jwt_get_perm('houses'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text])))))"
+    "with_check_expression": "((bucket_id = 'ic_house_documents'::text) AND (ic_jwt_is_admin() OR (ic_jwt_has_house((split_part(name, '/'::text, 1))::uuid) AND (ic_jwt_get_perm('houses'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text])))))"
   },
   {
-    "bucket_context": "ic_house-documents",
+    "bucket_context": "ic_house_documents",
     "policyname": "RBAC house_documents SELECT",
     "operation": "SELECT",
     "roles": "{authenticated}",
-    "using_expression": "((bucket_id = 'ic_house-documents'::text) AND (ic_jwt_is_admin() OR ic_jwt_has_house((split_part(name, '/'::text, 1))::uuid) OR (ic_jwt_get_perm('houses'::text) = ANY (ARRAY['full'::text, 'read_only'::text]))))",
+    "using_expression": "((bucket_id = 'ic_house_documents'::text) AND (ic_jwt_is_admin() OR ic_jwt_has_house((split_part(name, '/'::text, 1))::uuid) OR (ic_jwt_get_perm('houses'::text) = ANY (ARRAY['full'::text, 'read_only'::text]))))",
     "with_check_expression": null
   },
   {
-    "bucket_context": "ic_participant-documents",
+    "bucket_context": "ic_participant_documents",
     "policyname": "RBAC participant_documents INSERT",
     "operation": "INSERT",
     "roles": "{authenticated}",
     "using_expression": null,
-    "with_check_expression": "((bucket_id = 'ic_participant-documents'::text) AND (ic_jwt_is_admin() OR (EXISTS ( SELECT 1\n   FROM ic_participants p\n  WHERE (((p.id)::text = split_part(p.participant_name, '/'::text, 1)) AND ic_jwt_has_house(p.house_id) AND (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text])))))))"
+    "with_check_expression": "((bucket_id = 'ic_participant_documents'::text) AND (ic_jwt_is_admin() OR ((ic_jwt_get_perm('participants'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text])) AND (EXISTS ( SELECT 1\n   FROM ic_participants p\n  WHERE (((p.id)::text = split_part(objects.name, '/'::text, 1)) AND ic_jwt_has_house(p.house_id)))))))"
   },
   {
-    "bucket_context": "ic_participant-documents",
+    "bucket_context": "ic_participant_documents",
     "policyname": "RBAC participant_documents SELECT",
     "operation": "SELECT",
     "roles": "{authenticated}",
-    "using_expression": "((bucket_id = 'ic_participant-documents'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR ((ic_jwt_get_perm('participants'::text) = ANY (ARRAY['context_read_write'::text, 'context_read_only'::text])) AND (EXISTS ( SELECT 1\n   FROM ic_participants p\n  WHERE (((p.id)::text = split_part(p.participant_name, '/'::text, 1)) AND ic_jwt_has_house(p.house_id)))))))",
+    "using_expression": "((bucket_id = 'ic_participant_documents'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR ((ic_jwt_get_perm('participants'::text) = ANY (ARRAY['context_read_write'::text, 'context_read_only'::text])) AND (EXISTS ( SELECT 1\n   FROM ic_participants p\n  WHERE (((p.id)::text = split_part(objects.name, '/'::text, 1)) AND ic_jwt_has_house(p.house_id)))))))",
     "with_check_expression": null
   },
   {
-    "bucket_context": "ic_participant-documents",
-    "policyname": "RBAC storage_objects INSERT",
-    "operation": "INSERT",
-    "roles": "{authenticated}",
-    "using_expression": null,
-    "with_check_expression": "(ic_jwt_is_admin() OR ((bucket_id = 'ic_checklist-attachments'::text) AND (ic_jwt_get_perm('house_checklists'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text]))) OR ((bucket_id = 'ic_participant-photos'::text) AND (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text]))) OR ((bucket_id = 'ic_participant-documents'::text) AND (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text]))) OR ((bucket_id = 'ic_staff-photos'::text) AND (split_part(name, '/'::text, 1) = (ic_jwt_get_staff_id())::text)) OR ((bucket_id = 'ic_staff-documents'::text) AND (split_part(name, '/'::text, 1) = (ic_jwt_get_staff_id())::text)))"
-  },
-  {
-    "bucket_context": "ic_participant-photos",
+    "bucket_context": "ic_participant_photos",
     "policyname": "RBAC participant_photos INSERT",
     "operation": "INSERT",
     "roles": "{authenticated}",
     "using_expression": null,
-    "with_check_expression": "((bucket_id = 'ic_participant-photos'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text]))))"
+    "with_check_expression": "((bucket_id = 'ic_participant_photos'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text]))))"
   },
   {
-    "bucket_context": "ic_participant-photos",
+    "bucket_context": "ic_participant_photos",
     "policyname": "RBAC participant_photos SELECT",
     "operation": "SELECT",
     "roles": "{authenticated}",
-    "using_expression": "((bucket_id = 'ic_participant-photos'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR ((ic_jwt_get_perm('participants'::text) = ANY (ARRAY['context_read_write'::text, 'context_read_only'::text])) AND (EXISTS ( SELECT 1\n   FROM ic_participants p\n  WHERE ((((p.id)::text = split_part(p.participant_name, '/'::text, 1)) OR (p.photo_url ~~* ('%'::text || p.participant_name))) AND ic_jwt_has_house(p.house_id)))))))",
+    "using_expression": "((bucket_id = 'ic_participant_photos'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR ((ic_jwt_get_perm('participants'::text) = ANY (ARRAY['context_read_write'::text, 'context_read_only'::text])) AND (EXISTS ( SELECT 1\n   FROM ic_participants p\n  WHERE (((p.id)::text = split_part(objects.name, '/'::text, 1)) AND ic_jwt_has_house(p.house_id)))))))",
     "with_check_expression": null
   },
   {
-    "bucket_context": "ic_participant-photos",
-    "policyname": "RBAC storage_objects INSERT",
-    "operation": "INSERT",
-    "roles": "{authenticated}",
-    "using_expression": null,
-    "with_check_expression": "(ic_jwt_is_admin() OR ((bucket_id = 'ic_checklist-attachments'::text) AND (ic_jwt_get_perm('house_checklists'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text]))) OR ((bucket_id = 'ic_participant-photos'::text) AND (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text]))) OR ((bucket_id = 'ic_participant-documents'::text) AND (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text]))) OR ((bucket_id = 'ic_staff-photos'::text) AND (split_part(name, '/'::text, 1) = (ic_jwt_get_staff_id())::text)) OR ((bucket_id = 'ic_staff-documents'::text) AND (split_part(name, '/'::text, 1) = (ic_jwt_get_staff_id())::text)))"
-  },
-  {
-    "bucket_context": "ic_staff-documents",
+    "bucket_context": "ic_staff_documents",
     "policyname": "RBAC staff_documents INSERT",
     "operation": "INSERT",
     "roles": "{authenticated}",
     "using_expression": null,
-    "with_check_expression": "((bucket_id = 'ic_staff-documents'::text) AND (ic_jwt_is_admin() OR (split_part(name, '/'::text, 1) = (ic_jwt_get_staff_id())::text) OR (ic_jwt_get_perm('employees'::text) = 'full'::text)))"
+    "with_check_expression": "((bucket_id = 'ic_staff_documents'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('employees'::text) = 'full'::text) OR (split_part(name, '/'::text, 1) = (ic_jwt_get_staff_id())::text) OR ((split_part(name, '/'::text, 1) = 'leave-attachments'::text) AND (split_part(name, '/'::text, 2) = (ic_jwt_get_staff_id())::text))))"
   },
   {
-    "bucket_context": "ic_staff-documents",
+    "bucket_context": "ic_staff_documents",
     "policyname": "RBAC staff_documents SELECT",
     "operation": "SELECT",
     "roles": "{authenticated}",
-    "using_expression": "((bucket_id = 'ic_staff-documents'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('employees'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR (split_part(name, '/'::text, 1) = (ic_jwt_get_staff_id())::text) OR ((ic_jwt_get_perm('employees'::text) = ANY (ARRAY['context_read_write'::text, 'context_read_only'::text])) AND (EXISTS ( SELECT 1\n   FROM ic_staff s\n  WHERE (((s.id)::text = split_part(s.staff_name, '/'::text, 1)) AND ic_jwt_manages_staff(s.id)))))))",
+    "using_expression": "((bucket_id = 'ic_staff_documents'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('employees'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR (split_part(name, '/'::text, 1) = (ic_jwt_get_staff_id())::text) OR ((split_part(name, '/'::text, 1) = 'leave-attachments'::text) AND (split_part(name, '/'::text, 2) = (ic_jwt_get_staff_id())::text)) OR ((ic_jwt_get_perm('employees'::text) = ANY (ARRAY['context_read_write'::text, 'context_read_only'::text])) AND (EXISTS ( SELECT 1\n   FROM ic_staff s\n  WHERE (((s.id)::text = split_part(objects.name, '/'::text, 1)) AND ic_jwt_manages_staff(s.id)))))))",
     "with_check_expression": null
   },
   {
-    "bucket_context": "ic_staff-documents",
-    "policyname": "RBAC storage_objects INSERT",
-    "operation": "INSERT",
-    "roles": "{authenticated}",
-    "using_expression": null,
-    "with_check_expression": "(ic_jwt_is_admin() OR ((bucket_id = 'ic_checklist-attachments'::text) AND (ic_jwt_get_perm('house_checklists'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text]))) OR ((bucket_id = 'ic_participant-photos'::text) AND (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text]))) OR ((bucket_id = 'ic_participant-documents'::text) AND (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text]))) OR ((bucket_id = 'ic_staff-photos'::text) AND (split_part(name, '/'::text, 1) = (ic_jwt_get_staff_id())::text)) OR ((bucket_id = 'ic_staff-documents'::text) AND (split_part(name, '/'::text, 1) = (ic_jwt_get_staff_id())::text)))"
-  },
-  {
-    "bucket_context": "ic_staff-photos",
+    "bucket_context": "ic_staff_photos",
     "policyname": "RBAC staff_photos INSERT",
     "operation": "INSERT",
     "roles": "{authenticated}",
     "using_expression": null,
-    "with_check_expression": "((bucket_id = 'ic_staff-photos'::text) AND (ic_jwt_is_admin() OR (split_part(name, '/'::text, 1) = (ic_jwt_get_staff_id())::text) OR (ic_jwt_get_perm('employees'::text) = 'full'::text)))"
+    "with_check_expression": "((bucket_id = 'ic_staff_photos'::text) AND (ic_jwt_is_admin() OR (split_part(name, '/'::text, 1) = (ic_jwt_get_staff_id())::text)))"
   },
   {
-    "bucket_context": "ic_staff-photos",
+    "bucket_context": "ic_staff_photos",
     "policyname": "RBAC staff_photos SELECT",
     "operation": "SELECT",
     "roles": "{authenticated}",
-    "using_expression": "((bucket_id = 'ic_staff-photos'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('employees'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR (split_part(name, '/'::text, 1) = (ic_jwt_get_staff_id())::text) OR ((ic_jwt_get_perm('employees'::text) = ANY (ARRAY['context_read_write'::text, 'context_read_only'::text])) AND (EXISTS ( SELECT 1\n   FROM (ic_house_staff_assignments hsa\n     JOIN ic_staff s ON ((s.id = hsa.staff_id)))\n  WHERE ((((hsa.staff_id)::text = split_part(s.staff_name, '/'::text, 1)) OR (s.photo_url ~~* ('%'::text || s.staff_name))) AND ic_jwt_has_house(hsa.house_id)))))))",
+    "using_expression": "((bucket_id = 'ic_staff_photos'::text) AND (ic_jwt_is_admin() OR (split_part(name, '/'::text, 1) = (ic_jwt_get_staff_id())::text) OR ((ic_jwt_get_perm('employees'::text) = ANY (ARRAY['context_read_write'::text, 'context_read_only'::text])) AND (EXISTS ( SELECT 1\n   FROM ic_staff s\n  WHERE (((s.id)::text = split_part(objects.name, '/'::text, 1)) AND ic_jwt_manages_staff(s.id)))))))",
     "with_check_expression": null
-  },
-  {
-    "bucket_context": "ic_staff-photos",
-    "policyname": "RBAC storage_objects INSERT",
-    "operation": "INSERT",
-    "roles": "{authenticated}",
-    "using_expression": null,
-    "with_check_expression": "(ic_jwt_is_admin() OR ((bucket_id = 'ic_checklist-attachments'::text) AND (ic_jwt_get_perm('house_checklists'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text]))) OR ((bucket_id = 'ic_participant-photos'::text) AND (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text]))) OR ((bucket_id = 'ic_participant-documents'::text) AND (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text]))) OR ((bucket_id = 'ic_staff-photos'::text) AND (split_part(name, '/'::text, 1) = (ic_jwt_get_staff_id())::text)) OR ((bucket_id = 'ic_staff-documents'::text) AND (split_part(name, '/'::text, 1) = (ic_jwt_get_staff_id())::text)))"
   }
 ]

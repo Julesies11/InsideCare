@@ -47,9 +47,10 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { SecureAvatar } from '@/components/ui/secure-avatar';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 
 import { Participant, ParticipantWithHouse }  from '@/models/participant';
-import { SecureAvatar } from '@/components/ui/secure-avatar';
 import { Archive, Edit } from 'lucide-react';
 import { useParticipants, useUpdateParticipant } from '@/hooks/use-participants';
 import { useHouses } from '@/hooks/use-houses';
@@ -276,7 +277,7 @@ const Participants = () => {
               src={row.original.photo_url} 
               initials={getInitials(row.original.participant_name)} 
               className="size-9"
-              bucket="ic_participant-photos" 
+              bucket={STORAGE_BUCKETS.PARTICIPANT_PHOTOS} 
             />
 
             <div className="flex flex-col gap-0.5">
