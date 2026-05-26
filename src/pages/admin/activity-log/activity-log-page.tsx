@@ -1,6 +1,5 @@
 import { Container } from '@/components/common/container';
-import { ActivityLog } from '@/components/activities/ActivityLog';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ActivityLogTable } from './components/activity-log-table';
 import { Activity } from 'lucide-react';
 
 export function ActivityLogPage() {
@@ -16,17 +15,7 @@ export function ActivityLogPage() {
           </p>
         </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center gap-2 py-5 border-b mb-4">
-            <Activity className="size-5 text-gray-500" />
-            <CardTitle className="text-lg font-semibold">
-              Recent Activity
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <ActivityLog />
-          </CardContent>
-        </Card>
+        <ActivityLogTable />
       </div>
     </Container>
   );

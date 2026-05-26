@@ -83,24 +83,65 @@ serve(async (req) => {
       throw new Error('Invalid JSON body');
     }
 
-    const { staffId, email } = body;
+    const { staffId, email, redirectTo } = body;
+    console.log(`Processing request for staff: ${staffId}, email: ${email}, redirectTo: ${redirectTo}`);
+
     if (!staffId || !email) {
       throw new Error('staffId and email are required');
     }
 
-    // Invite the user via Supabase admin API
+    // 1. Check if user already exists in Auth
+    const { data: { users }, error: listError } = await supabaseAdmin.auth.admin.listUsers();
+    if (listError) throw listError;
+
+    const existingUser = users.find(u => u.email?.toLowerCase() === email.toLowerCase());
+    
+    if (existingUser && existingUser.confirmed_at) {
+      console.log(`User ${email} is already confirmed. Sending password reset instead of invite.`);
+      
+      const { error: resetError } = await supabaseAdmin.auth.resetPasswordForEmail(email, {
+        redirectTo: redirectTo || undefined,
+      });
+
+      if (resetError) {
+        console.error('Password Reset Error:', resetError.message);
+        return new Response(JSON.stringify({ error: resetError.message }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // Ensure staff record is linked (might be a re-link)
+      await supabaseAdmin.from('ic_staff').update({ auth_user_id: existingUser.id }).eq('id', staffId);
+
+      return new Response(JSON.stringify({ success: true, message: 'Password reset email sent' }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // 2. If user doesn't exist or isn't confirmed, send/resend the invite
+    console.log(`Sending/Resending invitation to ${email}...`);
     const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
       data: { is_admin: false },
+      redirectTo: redirectTo || undefined,
     });
 
     if (inviteError) {
-      return new Response(JSON.stringify({ error: inviteError.message }), {
+      console.error('Supabase Auth Invite Error:', inviteError.message);
+      return new Response(JSON.stringify({ 
+        error: inviteError.message,
+        details: inviteError.message.includes('rate limit') 
+          ? 'You have exceeded the email rate limit. Please wait an hour or configure a custom SMTP provider like Resend.'
+          : 'Ensure the redirectTo URL is in your Supabase Auth Redirect URLs allowlist.'
+      }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
     const authUserId = inviteData.user.id;
+    console.log(`Auth user invited: ${authUserId}`);
 
     // Link the auth user to the staff record
     const { error: updateError } = await supabaseAdmin
@@ -109,6 +150,7 @@ serve(async (req) => {
       .eq('id', staffId);
 
     if (updateError) {
+      console.error('Database Update Error:', updateError.message);
       throw updateError;
     }
 

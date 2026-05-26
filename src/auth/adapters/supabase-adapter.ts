@@ -1,5 +1,6 @@
 import { UserModel } from '@/auth/lib/models';
 import { supabase } from '@/lib/supabase';
+import { TABLES } from '@/config/db-tables';
 
 /**
  * Supabase adapter that provides profile management and OAuth integration.
@@ -112,7 +113,7 @@ export const SupabaseAdapter = {
     let staffRow = null;
     try {
       const { data } = await supabase
-        .from('ic_staff')
+        .from(TABLES.STAFF)
         .select('id, staff_name, photo_url, role:ic_roles(role_name)')
         .eq('auth_user_id', user.id)
         .maybeSingle();

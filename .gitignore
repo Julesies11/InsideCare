@@ -26,3 +26,15 @@ pnpm-debug.log*
 .env.staging
 
 github_unit-test-errors.txt
+
+# Local development scripts
+scripts/local/
+
+# Supabase temp files
+supabase/.temp/
+
+# Tooling & IDEs
+.aider*
+.vscode/
+.claude/
+*.log

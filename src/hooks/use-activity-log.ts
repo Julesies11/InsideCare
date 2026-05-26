@@ -9,23 +9,43 @@ interface UseActivityLogOptions {
   entityId?: string;
   entityType?: string;
   limit?: number;
+  pageIndex?: number;
+  pageSize?: number;
+  sort?: { id: string; desc: boolean }[];
+  category?: 'all' | 'data_changes' | 'logins_security';
+  search?: string;
+  userName?: string;
+  module?: string;
+  startDate?: string;
+  endDate?: string;
 }
 
 const ACTIVITY_LOG_COLUMNS = 'id, activity_type, entity_type, entity_id, entity_name, description, user_name, metadata, created_at';
 const ACTIVITY_LOG_LIST_COLUMNS = 'id, activity_type, entity_type, entity_id, entity_name, description, user_name, created_at';
 
-export function useActivityLog({ entityId, entityType, limit = 50 }: UseActivityLogOptions = {}) {
+export function useActivityLog({ 
+  entityId, 
+  entityType, 
+  limit,
+  pageIndex = 0,
+  pageSize = 50,
+  sort = [],
+  category = 'all',
+  search,
+  userName,
+  module,
+  startDate,
+  endDate
+}: UseActivityLogOptions = {}) {
   const query = useQuery({
-    queryKey: [QUERY_KEYS.ACTIVITY_LOG, { entityId, entityType, limit }],
+    queryKey: [QUERY_KEYS.ACTIVITY_LOG, { entityId, entityType, limit, pageIndex, pageSize, sort, category, search, userName, module, startDate, endDate }],
     queryFn: async () => {
-      // If we're fetching a list (limit > 1 and no specific entityId), use list columns to save payload size
-      const columns = (limit > 1 && !entityId) ? ACTIVITY_LOG_LIST_COLUMNS : ACTIVITY_LOG_COLUMNS;
+      // Use list columns for bulk table views unless we're looking at a single entity's log
+      const columns = (limit && limit > 1 && !entityId) || (!limit && !entityId) ? ACTIVITY_LOG_LIST_COLUMNS : ACTIVITY_LOG_COLUMNS;
       
       let query = supabase
         .from(TABLES.ACTIVITY_LOG)
-        .select(columns as any)
-        .order('created_at', { ascending: false })
-        .limit(limit);
+        .select(columns as any, { count: 'exact' });
 
       if (entityId) {
         query = query.eq('entity_id', entityId);
@@ -35,16 +55,77 @@ export function useActivityLog({ entityId, entityType, limit = 50 }: UseActivity
         query = query.eq('entity_type', entityType);
       }
 
-      const { data, error } = await query;
+      // New filters
+      if (userName) {
+        query = query.eq('user_name', userName);
+      }
+
+      if (module) {
+        if (module === 'employees') {
+          query = query.or('entity_type.eq.staff,entity_type.ilike.staff_%');
+        } else if (module === 'participants') {
+          query = query.or('entity_type.eq.participants,entity_type.eq.participant,entity_type.ilike.participant_%');
+        } else if (module === 'houses') {
+          query = query.or('entity_type.eq.houses,entity_type.eq.house,entity_type.ilike.house_%');
+        } else {
+          query = query.eq('entity_type', module);
+        }
+      }
+
+      if (startDate) {
+        query = query.gte('created_at', startDate);
+      }
+
+      if (endDate) {
+        // Adjust end date to include the entire day
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        query = query.lte('created_at', end.toISOString());
+      }
+
+      // Category-based filtering
+      if (category === 'data_changes') {
+        // Data changes are typically create/update/delete on non-auth entities
+        query = query.not('entity_type', 'eq', 'auth');
+      } else if (category === 'logins_security') {
+        // Logins and security events are strictly entity_type = 'auth'
+        query = query.eq('entity_type', 'auth');
+      }
+
+      if (search) {
+        query = query.or(`description.ilike.%${search}%,user_name.ilike.%${search}%,entity_name.ilike.%${search}%`);
+      }
+
+      if (sort.length > 0) {
+        sort.forEach(s => {
+          query = query.order(s.id as any, { ascending: !s.desc });
+        });
+      } else {
+        query = query.order('created_at', { ascending: false });
+      }
+
+      if (limit) {
+        query = query.limit(limit);
+      } else {
+        const from = pageIndex * pageSize;
+        const to = from + pageSize - 1;
+        query = query.range(from, to);
+      }
+
+      const { data, error, count } = await query;
       if (error) throw error;
-      return data as unknown as ActivityLog[];
+      return {
+        data: data as unknown as ActivityLog[],
+        count: count || 0
+      };
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
   return {
     ...query,
-    activities: query.data || [],
+    activities: query.data?.data || [],
+    count: query.data?.count || 0,
     loading: query.isLoading,
     error: query.error ? (query.error as Error).message : null,
   };

@@ -7,7 +7,6 @@ import { format, addDays } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ShiftDialog, ShiftFormData } from '@/components/roster/shift-dialog';
 import { toast } from 'sonner';
-import { logActivity } from '@/hooks/use-activity-log';
 import { useAuth } from '@/auth/context/auth-context';
 
 export function UpcomingShifts() {
@@ -77,15 +76,6 @@ export function UpcomingShifts() {
 
         // Log activity
         const staffMember = staff.find(s => s.id === formData.staff_id);
-        await logActivity({
-          activityType: 'update',
-          entityType: 'shift_note', // Using shift_note as proxy for roster activity
-          entityId: selectedShift.id,
-          entityName: `Shift for ${staffMember?.staff_name || 'Unknown'}`,
-          userName: user?.email || 'Unknown',
-          customDescription: `Updated shift on ${formData.start_date}`,
-        });
-
         toast.success('Shift updated successfully');
       }
       setShowShiftDialog(false);
@@ -100,15 +90,7 @@ export function UpcomingShifts() {
       await deleteShift(shiftId);
       
       const staffMember = staff.find(s => s.id === selectedShift?.staff_id);
-      
-      // Log activity
-      await logActivity({
-        activityType: 'delete',
-        entityType: 'shift_note',
-        entityId: shiftId,
-        userName: user?.email || 'Unknown',
-        customDescription: `Deleted shift for ${staffMember?.staff_name || 'staff'} on ${selectedShift?.start_date || 'an unknown date'}`,
-      });
+      await deleteShift(shiftId);
 
       toast.success('Shift deleted successfully');
       setShowShiftDialog(false);

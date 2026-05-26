@@ -47,14 +47,14 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { SecureAvatar } from '@/components/ui/secure-avatar';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 
 import { Participant, ParticipantWithHouse }  from '@/models/participant';
-import { SecureAvatar } from '@/components/ui/secure-avatar';
 import { Archive, Edit } from 'lucide-react';
 import { useParticipants, useUpdateParticipant } from '@/hooks/use-participants';
 import { useHouses } from '@/hooks/use-houses';
 import { useNavigate } from 'react-router';
-import { logActivity } from '@/lib/activity-logger';
 import { useAuth } from '@/auth/context/auth-context';
 import { parseSupabaseError } from '@/lib/error-parser';
 
@@ -89,16 +89,6 @@ function ActionsCell({ row, updateParticipant }: { row: Row<ParticipantWithHouse
     if (!canArchive) return;
     try {
       await updateParticipant({ id: row.original.id, updates: { status: 'inactive' } });
-
-      // Log activity
-      await logActivity({
-        activityType: 'update',
-        entityType: 'participant',
-        entityId: row.original.id,
-        entityName: row.original.participant_name,
-        userName: user?.email || 'Unknown user',
-        customDescription: `Archived participant "${row.original.participant_name}"`,
-      });
 
       toast.success('Participant archived successfully');
     } catch (error) {
@@ -287,7 +277,7 @@ const Participants = () => {
               src={row.original.photo_url} 
               initials={getInitials(row.original.participant_name)} 
               className="size-9"
-              bucket="ic_participant-photos" 
+              bucket={STORAGE_BUCKETS.PARTICIPANT_PHOTOS} 
             />
 
             <div className="flex flex-col gap-0.5">

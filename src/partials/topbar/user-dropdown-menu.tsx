@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Switch } from '@/components/ui/switch';
 import { SecureAvatar } from '@/components/ui/secure-avatar';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 
 export function UserDropdownMenu({ trigger }: { trigger: ReactNode }) {
   const { logout, user } = useAuth();
@@ -54,7 +55,7 @@ export function UserDropdownMenu({ trigger }: { trigger: ReactNode }) {
               src={user?.photo_url} 
               initials={initials} 
               className="size-9 border-2 border-green-500" 
-              bucket="ic_staff-photos"
+              bucket={STORAGE_BUCKETS.STAFF_PHOTOS}
             />
             <div className="flex flex-col">
               <Link

@@ -3,7 +3,6 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/auth/context/auth-context';
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
-import { logActivity } from '@/lib/activity-logger';
 import {
   Check, X, ChevronRight, Search, Filter, RefreshCw, ClipboardList,
 } from 'lucide-react';
@@ -208,19 +207,9 @@ export function AdminTimesheetsPage() {
     const { error } = await supabase.from(TABLES.TIMESHEETS).update(updatePayload).eq('id', selected.id);
     if (error) { toast.error('Failed to update timesheet'); setSaving(false); return; }
 
-    const userName = user.fullname || user.email || 'Admin';
     const shiftDate = selected.shift?.start_date
       ? format(parseISO(selected.shift.start_date), 'dd MMM yyyy')
       : format(new Date(selected.clock_in), 'dd MMM yyyy');
-
-    await logActivity({
-      activityType:      action === 'approve' ? 'approve' : 'reject',
-      entityType:        'timesheet',
-      entityId:          selected.id,
-      entityName:        `Timesheet – ${shiftDate} (${selected.staff?.staff_name ?? 'Unknown'})`,
-      userName,
-      customDescription: `${action === 'approve' ? 'Approved' : 'Rejected'} timesheet for ${selected.staff?.staff_name ?? 'staff'} on ${shiftDate}${action === 'reject' && rejectionReason ? `: ${rejectionReason}` : ''}`,
-    });
 
     if (selected.staff?.auth_user_id) {
       if (newStatus === TIMESHEET_STATUS.APPROVED) {
@@ -259,20 +248,13 @@ export function AdminTimesheetsPage() {
 
     if (error) { toast.error('Bulk approve failed'); setSaving(false); return; }
 
-    const userName = user?.fullname || user?.email || 'Admin';
     for (const ts of selectedItems) {
       const shiftDate = ts.shift?.start_date
         ? format(parseISO(ts.shift.start_date), 'dd MMM yyyy')
         : format(new Date(ts.clock_in), 'dd MMM yyyy');
-      await logActivity({
-        activityType:      'approve',
-        entityType:        'timesheet',
-        entityId:          ts.id,
-        entityName:        `Timesheet – ${shiftDate} (${ts.staff?.staff_name ?? 'Unknown'})`,
-        userName,
-        customDescription: `Bulk approved timesheet for ${ts.staff?.staff_name ?? 'staff'} on ${shiftDate}`,
-      });
+
       if (ts.staff?.auth_user_id) {
+
         await NotificationService.notifyTimesheetApproved(
           ts.staff.auth_user_id,
           shiftDate

@@ -20,13 +20,17 @@ import { getSigninSchema, SigninSchemaType } from '../forms/signin-schema';
 import { LoaderCircleIcon } from 'lucide-react';
 import { toAbsoluteUrl } from '@/lib/helpers';
 
-const TEST_ADMIN = { email: 'admin@demo.com', password: 'demo' };
-const TEST_STAFF = { email: 'staff@demo.com', password: 'demo' };
+const TEST_ADMIN = { email: 'julian.gibbings+admin@gmail.com', password: 'Password123!' };
+const TEST_SUPPORT_WORKER = { email: 'julian.gibbings+supportworker@gmail.com', password: 'Password123!' };
+const TEST_SUPERVISOR = { email: 'julian.gibbings+supervisor@gmail.com', password: 'Password123!' };
+const TEST_HOUSE_MANAGER = { email: 'julian.gibbings+housemanager@gmail.com', password: 'Password123!' };
+const TEST_DIRECTOR = { email: 'julian.gibbings+director@gmail.com', password: 'Password123!' };
+const TEST_FINANCE = { email: 'julian.gibbings+finance@gmail.com', password: 'Password123!' };
 
 export function SignInPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { login, getUser } = useAuth();
+  const { login, getUser, logout } = useAuth();
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -85,12 +89,16 @@ export function SignInPage() {
     try {
       setIsProcessing(true);
       setError(null);
+      
+      // ENSURE CLEAN SLATE: Logout existing user and clear query cache
+      await logout();
+      
       await login(credentials.email, credentials.password);
       const user = await getUser();
-      const nextPath = searchParams.get('next');
-      if (nextPath) {
-        navigate(nextPath);
-      } else if (user?.is_admin) {
+      
+      // NOTE: We ignore the 'next' parameter for Development buttons 
+      // to ensure the user lands on a page they actually have access to.
+      if (user?.is_admin) {
         navigate('/');
       } else {
         navigate('/staff/dashboard');
@@ -272,7 +280,7 @@ export function SignInPage() {
         </Button>
 
         <div className="border-t pt-4 mt-2">
-          <p className="text-xs text-center text-muted-foreground mb-2 font-medium uppercase tracking-wide">TEST LOGIN</p>
+          <p className="text-xs text-center text-muted-foreground mb-3 font-medium uppercase tracking-wide">Development</p>
           <div className="grid grid-cols-2 gap-2">
             <Button
               type="button"
@@ -281,16 +289,52 @@ export function SignInPage() {
               onClick={() => loginAs(TEST_ADMIN)}
               disabled={isProcessing}
             >
-              Admin (Test)
+              Admin
             </Button>
             <Button
               type="button"
-              className="bg-purple-600 text-white hover:bg-purple-700 border-none"
+              className="bg-blue-600 text-white hover:bg-blue-700 border-none"
               size="sm"
-              onClick={() => loginAs(TEST_STAFF)}
+              onClick={() => loginAs(TEST_SUPPORT_WORKER)}
               disabled={isProcessing}
             >
-              Staff (Test)
+              Support Worker
+            </Button>
+            <Button
+              type="button"
+              className="bg-emerald-600 text-white hover:bg-emerald-700 border-none"
+              size="sm"
+              onClick={() => loginAs(TEST_SUPERVISOR)}
+              disabled={isProcessing}
+            >
+              Supervisor
+            </Button>
+            <Button
+              type="button"
+              className="bg-orange-600 text-white hover:bg-orange-700 border-none"
+              size="sm"
+              onClick={() => loginAs(TEST_HOUSE_MANAGER)}
+              disabled={isProcessing}
+            >
+              House Manager
+            </Button>
+            <Button
+              type="button"
+              className="bg-cyan-600 text-white hover:bg-cyan-700 border-none"
+              size="sm"
+              onClick={() => loginAs(TEST_DIRECTOR)}
+              disabled={isProcessing}
+            >
+              Director
+            </Button>
+            <Button
+              type="button"
+              className="bg-rose-600 text-white hover:bg-rose-700 border-none"
+              size="sm"
+              onClick={() => loginAs(TEST_FINANCE)}
+              disabled={isProcessing}
+            >
+              Finance Manager
             </Button>
           </div>
         </div>

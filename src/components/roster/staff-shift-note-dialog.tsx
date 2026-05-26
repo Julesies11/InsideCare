@@ -27,6 +27,7 @@ import { useShiftNotes } from '@/hooks/use-shift-notes';
 import { StaffShift } from './use-roster-data';
 import { FileText, User, Clock, Home, Calendar, Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { TABLES } from '@/config/db-tables';
 
 interface StaffShiftNoteDialogProps {
   open: boolean;
@@ -71,7 +72,7 @@ export function StaffShiftNoteDialog({
 
         try {
           const { data, error } = await supabase
-            .from('ic_shift_notes')
+            .from(TABLES.SHIFT_NOTES)
             .select('full_note, shift_time, participant_id')
             .eq('shift_id', shift.id)
             .eq('staff_id', user.staff_id)

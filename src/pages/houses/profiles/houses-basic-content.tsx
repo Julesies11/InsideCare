@@ -4,7 +4,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Houses } from './components';
 import { useNavigate } from 'react-router';
 import { supabase } from '@/lib/supabase';
-import { logActivity } from '@/lib/activity-logger';
 import { handleSupabaseError } from '@/errors/error-handler';
 import { RBAC_MODULES } from '@/config/rbac-modules';
 import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
@@ -34,15 +33,6 @@ export function HousesProfilesContent() {
 
       if (error) throw error;
       if (!data) throw new Error("You do not have permission to perform this action");
-
-      // Log the activity
-      await logActivity({
-        activityType: 'create',
-        entityType: 'house',
-        entityId: data.id,
-        entityName: data.house_name || 'New House',
-        userName: 'Current User', // TODO: Get from auth context
-      });
 
       // Navigate to the detail page
       navigate(`/houses/detail/${data.id}`);

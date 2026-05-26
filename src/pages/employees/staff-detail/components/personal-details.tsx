@@ -3,6 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { AvatarInput } from '@/components/image-input/avatar-input';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 
 interface PersonalDetailsProps {
   formData: Record<string, any>;
@@ -37,7 +38,7 @@ export function PersonalDetails({
                 value={formData.photo_url_preview ?? formData.photo_url ?? undefined}
                 onChange={canEdit ? handlePhotoChange : () => {}}
                 size="lg"
-                bucket="ic_staff-photos"
+                bucket={STORAGE_BUCKETS.STAFF_PHOTOS}
               />
               {canEdit && (
                 <p className="text-xs text-muted-foreground">Click the photo to change it</p>

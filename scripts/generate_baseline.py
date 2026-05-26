@@ -1,5 +1,6 @@
 import json
 import os
+import re
 
 # Load schema metadata
 schema_path = 'docs/database_schema/schema_metadata.json'
@@ -13,10 +14,10 @@ with open(schema_path) as f:
     schema_list = json.load(f)
     schema = schema_list[0]
 
-with open(rbac_path) as f:
-    rbac = json.load(f)
+# with open(rbac_path) as f:
+#     rbac = json.load(f)
 
-sql = ["-- InsideCare Baseline Migration", "-- Generated from docs/database_schema", "BEGIN;"]
+sql = ["-- InsideCare Baseline Migration", "-- Generated from docs/database_schema", "-- Date: 2026-05-26", "BEGIN;"]
 
 # 1. Extensions
 sql.append("\n-- 0. Extensions")
@@ -40,15 +41,18 @@ for t in schema['tables']:
         if col_type == 'ARRAY':
             col_type = 'text[]'
         elif col_type == 'USER-DEFINED' and c.get('default'):
-            import re
             m = re.search(r'::(\w+)', c['default'])
             if m:
                 col_type = m.group(1)
+        
+        # Cleanup character varying length
+        if col_type == 'character varying':
+            col_type = 'text'
+            
         col_def = f"{c['name']} {col_type}"
         if c.get('nullable') == 'NO':
             col_def += " NOT NULL"
         if c.get('default'):
-            # Handle default value escaping if necessary, but metadata should be clean
             col_def += f" DEFAULT {c['default']}"
         cols.append(col_def)
     
@@ -63,6 +67,8 @@ for t in schema['tables']:
     elif t['name'] == 'ic_staff':
         cols.append("UNIQUE (email)")
         cols.append("UNIQUE (auth_user_id)")
+    elif t['name'] == 'ic_timesheets':
+        cols.append("UNIQUE (shift_id, staff_id)")
         
     sql.append(f"CREATE TABLE public.{t['name']} (\n    " + ",\n    ".join(cols) + "\n);")
     if t.get('rls_enabled'):
@@ -72,7 +78,6 @@ for t in schema['tables']:
 sql.append("\n-- 3. Foreign Keys")
 for t in schema['tables']:
     for fk in t.get('foreign_keys', []):
-        # Strip ic_ prefix for constraint name to match frontend hints
         simple_table = t['name'].replace('ic_', '')
         constraint_name = f"{simple_table}_{fk['col']}_fkey"
         sql.append(f"ALTER TABLE public.{t['name']} ADD CONSTRAINT {constraint_name} FOREIGN KEY ({fk['col']}) REFERENCES public.{fk['ref_table']}({fk['ref_col']});")
@@ -80,67 +85,27 @@ for t in schema['tables']:
 # 5. Postgres Functions
 sql.append("\n-- 4. Postgres Functions")
 for f_obj in schema.get('functions', []):
-    # Ensure function body uses ic_ prefixes
     definition = f_obj['definition']
     security = ""
-    if 'auth.users' in definition:
+    if 'auth.users' in definition or 'auth.uid()' in definition:
         security = " SECURITY DEFINER"
     sql.append(f"CREATE OR REPLACE FUNCTION public.{f_obj['name']}({f_obj['args']}) RETURNS {f_obj['returns']} AS $${definition}$$ LANGUAGE plpgsql{security};")
 
 # 6. Storage Buckets
 sql.append("\n-- 5. Storage Buckets")
-# ALIGNED WITH FRONTEND: Using underscores
-buckets = ['ic_branch_documents', 'ic_checklist_attachments', 'ic_house_documents', 'ic_participant_documents', 'ic_participant_photos', 'ic_staff_documents', 'ic_staff_photos']
+buckets = ['ic_branch_documents', 'ic_checklist_attachments', 'ic_house_documents', 'ic_participant_documents', 'ic_participant_photos', 'ic_staff_documents', 'ic_staff_photos', 'ic_house_resources']
 for b in buckets:
-    # Supabase storage bucket creation via SQL
-    sql.append(f"INSERT INTO storage.buckets (id, name, public) VALUES ('{b}', '{b}', false) ON CONFLICT DO NOTHING;")
-
-# 7. RLS Policies
-sql.append("\n-- 6. RLS Policies")
-for p in rbac:
-    table = p['tablename']
-    schema_name = p['schemaname']
-    target_table = f"{schema_name}.{table}"
-    
-    qual = p.get('qual')
-    with_check = p.get('with_check')
-    
-    # FIX: Replace hyphens with underscores in bucket_id checks within policies
-    if qual:
-        qual = qual.replace('ic_branch-documents', 'ic_branch_documents') \
-                   .replace('ic_checklist-attachments', 'ic_checklist_attachments') \
-                   .replace('ic_house-documents', 'ic_house_documents') \
-                   .replace('ic_participant-documents', 'ic_participant_documents') \
-                   .replace('ic_participant-photos', 'ic_participant_photos') \
-                   .replace('ic_staff-documents', 'ic_staff_documents') \
-                   .replace('ic_staff-photos', 'ic_staff_photos')
-    if with_check:
-        with_check = with_check.replace('ic_branch-documents', 'ic_branch_documents') \
-                               .replace('ic_checklist-attachments', 'ic_checklist_attachments') \
-                               .replace('ic_house-documents', 'ic_house_documents') \
-                               .replace('ic_participant-documents', 'ic_participant_documents') \
-                               .replace('ic_participant-photos', 'ic_participant_photos') \
-                               .replace('ic_staff-documents', 'ic_staff_documents') \
-                               .replace('ic_staff-photos', 'ic_staff_photos')
-    
-    # Construct policy
-    sql.append(f'DROP POLICY IF EXISTS "{p["policyname"]}" ON {target_table};')
-    pol_sql = f'CREATE POLICY "{p["policyname"]}" ON {target_table} FOR {p["cmd"]} TO {p["roles"].strip("{}")}'
-    if qual:
-        pol_sql += f" USING ({qual})"
-    if with_check:
-        pol_sql += f" WITH CHECK ({with_check})"
-    sql.append(pol_sql + ";")
+    sql.append(f"INSERT INTO storage.buckets (id, name, public) VALUES ('{b}', '{b}', false) ON CONFLICT (id) DO UPDATE SET public = false;")
 
 # 8. Triggers
-sql.append("\n-- 7. Triggers")
+sql.append("\n-- 6. Triggers")
 for tr in schema.get('triggers', []):
     sql.append(f"DROP TRIGGER IF EXISTS {tr['name']} ON public.{tr['table']};")
     sql.append(f"CREATE TRIGGER {tr['name']} {tr['timing']} {tr['event']} ON public.{tr['table']} FOR EACH ROW {tr['definition']};")
 
 sql.append("\nCOMMIT;")
 
-output_file = 'migrations/2026052110_baseline_dev_schema.sql'
+output_file = 'migrations/2026052602_baseline_schema.sql'
 with open(output_file, 'w') as f:
     f.write("\n".join(sql))
 

@@ -4,7 +4,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { StaffTable } from './components';
 import { useNavigate } from 'react-router';
 import { supabase } from '@/lib/supabase';
-import { logActivity } from '@/lib/activity-logger';
 import { handleSupabaseError } from '@/errors/error-handler';
 import { RBAC_MODULES } from '@/config/rbac-modules';
 import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
@@ -35,15 +34,6 @@ export function StaffProfilesContent() {
 
       if (error) throw error;
       if (!data) throw new Error("You do not have permission to perform this action");
-
-      // Log the activity
-      await logActivity({
-        activityType: 'create',
-        entityType: 'staff',
-        entityId: data.id,
-        entityName: data.staff_name || 'Draft Staff Member',
-        userName: 'Current User', // TODO: Get from auth context
-      });
 
       // Navigate to the detail page
       navigate(`/employees/staff-detail/${data.id}`);

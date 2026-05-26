@@ -18,6 +18,7 @@ import { SHIFT_ICONS, cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useHouseChecklists } from '@/hooks/use-house-checklists';
 import { ShiftChecklistPicker } from './ShiftChecklistPicker';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 
 export interface AssignedChecklist {
   checklist_id: string;
@@ -340,7 +341,7 @@ export function ShiftDialog({
                           src={s.photo_url || undefined} 
                           initials={s.staff_name?.substring(0, 2).toUpperCase() ?? '?'} 
                           className="size-5 sm:size-6"
-                          bucket="ic_staff-photos"
+                          bucket={STORAGE_BUCKETS.STAFF_PHOTOS}
  
                         />
                         <span className="text-sm">{s.staff_name}</span>

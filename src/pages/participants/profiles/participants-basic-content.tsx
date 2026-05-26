@@ -5,7 +5,6 @@ import { Participants } from './components';
 import { useNavigate } from 'react-router';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { logActivity } from '@/lib/activity-logger';
 import { RBAC_MODULES } from '@/config/rbac-modules';
 import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
 
@@ -33,15 +32,6 @@ export function ParticipantsProfilesContent() {
 
       if (error) throw error;
       if (!data) throw new Error("You do not have permission to perform this action");
-
-      // Log the activity
-      await logActivity({
-        activityType: 'create',
-        entityType: 'participant',
-        entityId: data.id,
-        entityName: data.participant_name || 'Draft Participant',
-        userName: 'Current User', // TODO: Get from auth context
-      });
 
       // Navigate to the detail page
       navigate(`/participants/detail/${data.id}`);

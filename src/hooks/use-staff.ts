@@ -26,7 +26,7 @@ export interface StaffSort {
 }
 
 const STAFF_LIST_COLUMNS = `
-  id, staff_name, email, phone, status, branch_id, role_id, photo_url, 
+  id, staff_name, email, phone, status, branch_id, role_id, photo_url, auth_user_id,
   created_at, updated_at,
   department_info:${TABLES.DEPARTMENTS}(id, department_name),
   employment_type_info:${TABLES.EMPLOYMENT_TYPES_MASTER}(id, employment_type_name),
@@ -42,7 +42,7 @@ const STAFF_DETAIL_COLUMNS = `
   id, staff_name, email, phone, date_of_birth, address, hobbies, allergies, 
   emergency_contact_name, emergency_contact_phone, department_id, 
   employment_type_id, manager_id, hire_date, separation_date, 
-  availability, notes, branch_id, role_id, status, created_by, updated_by, created_at, updated_at, 
+  availability, notes, branch_id, role_id, status, auth_user_id, created_by, updated_by, created_at, updated_at, 
   ndis_worker_screening_check, ndis_worker_screening_check_expiry, 
   ndis_orientation_module, ndis_orientation_module_expiry, 
   ndis_code_of_conduct, ndis_code_of_conduct_expiry, 
@@ -324,6 +324,48 @@ export function useDeleteStaff() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF] });
+    },
+  });
+}
+
+export function useInviteStaff() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ staffId, email }: { staffId: string; email: string }) => {
+      const { data, error } = await supabase.functions.invoke('ic-invite-staff-user', {
+        body: { 
+          staffId, 
+          email,
+          redirectTo: `${window.location.origin}/auth/change-password`
+        },
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF, variables.staffId] });
+    },
+  });
+}
+
+export function useRevokeInvite() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ staffId, authUserId }: { staffId: string; authUserId: string }) => {
+      const { data, error } = await supabase.functions.invoke('ic-revoke-staff-invite', {
+        body: { staffId, authUserId },
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF, variables.staffId] });
     },
   });
 }

@@ -53,6 +53,7 @@ export const TABLES = {
   SHIFT_TEMPLATE_DEFAULT_CHECKLISTS: 'ic_shift_template_default_checklists',
   TIMESHEETS: 'ic_timesheets',
   LEAVE_REQUESTS: 'ic_leave_requests',
+  CHECKLIST_SCHEDULES: 'ic_checklist_schedules',
   
   // Master Lists
   MEDICATIONS_MASTER: 'ic_medications_master',

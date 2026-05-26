@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { TABLES } from '@/config/db-tables';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 
 export interface HouseResource {
   id: string;
@@ -69,7 +70,7 @@ export function useHouseResources(houseId?: string) {
 
   const getFileUrl = async (filePath: string) => {
     const { data, error } = await supabase.storage
-      .from('ic_house-resources')
+      .from(STORAGE_BUCKETS.HOUSE_RESOURCES)
       .createSignedUrl(filePath, 3600);
     
     if (error) {

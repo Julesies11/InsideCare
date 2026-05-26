@@ -17,6 +17,7 @@ import { HouseChecklistExecution } from './house-checklist-execution';
 import { HouseChecklistScheduleModal } from './HouseChecklistScheduleModal';
 import { Sortable, SortableItem, SortableItemHandle } from '@/components/ui/sortable';
 import { supabase } from '@/lib/supabase';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 import { useAuth } from '@/auth/context/auth-context';
 import { toast } from 'sonner';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -291,7 +292,7 @@ export function HouseChecklists({
             
             // Get signed URL
             const { data: urlData, error: urlError } = await supabase.storage
-              .from('ic_checklist-attachments')
+              .from(STORAGE_BUCKETS.CHECKLIST_ATTACHMENTS)
               .createSignedUrl(att.file_path, 3600);
 
             if (urlError) {

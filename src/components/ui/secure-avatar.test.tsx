@@ -2,6 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { SecureAvatar } from './secure-avatar';
 import { useSignedUrl } from '@/hooks/use-signed-url';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 
 // Mock the hook
 vi.mock('@/hooks/use-signed-url', () => ({
@@ -30,13 +31,13 @@ describe('SecureAvatar Component', () => {
     vi.mocked(useSignedUrl).mockReturnValue({ url: null, loading: false, error: null });
     
     render(<SecureAvatar initials="JD" src="avatar.jpg" />);
-    expect(useSignedUrl).toHaveBeenCalledWith('ic_staff-photos', 'avatar.jpg');
+    expect(useSignedUrl).toHaveBeenCalledWith(STORAGE_BUCKETS.STAFF_PHOTOS, 'avatar.jpg');
   });
 
   it('should allow overriding the bucket', () => {
     vi.mocked(useSignedUrl).mockReturnValue({ url: null, loading: false, error: null });
     
-    render(<SecureAvatar initials="PT" src="patient.jpg" bucket="ic_participant-photos" />);
-    expect(useSignedUrl).toHaveBeenCalledWith('ic_participant-photos', 'patient.jpg');
+    render(<SecureAvatar initials="PT" src="patient.jpg" bucket={STORAGE_BUCKETS.PARTICIPANT_PHOTOS} />);
+    expect(useSignedUrl).toHaveBeenCalledWith(STORAGE_BUCKETS.PARTICIPANT_PHOTOS, 'patient.jpg');
   });
 });

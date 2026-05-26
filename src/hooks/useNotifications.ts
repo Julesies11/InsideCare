@@ -74,7 +74,7 @@ export function useNotifications() {
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'ic_notifications',
+          table: TABLES.NOTIFICATIONS,
           filter: `user_id=eq.${user.id}`,
         },
         (payload) => {

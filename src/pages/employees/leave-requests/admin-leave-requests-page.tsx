@@ -27,7 +27,6 @@ import {
 import { NotificationService } from '@/lib/notification-service';
 import { RBAC_MODULES } from '@/config/rbac-modules';
 import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
-import { logActivity } from '@/lib/activity-logger';
 
 interface LeaveRequest {
   id: string;
@@ -180,16 +179,6 @@ export function AdminLeaveRequestsPage() {
         .eq('id', selected.id);
 
       if (error) throw error;
-
-      // Log activity
-      await logActivity({
-        activityType: action === 'approve' ? 'approve' : 'reject',
-        entityType: 'leave_request',
-        entityId: selected.id,
-        entityName: `${selected.staff?.staff_name || 'Staff'} Leave Request`,
-        userName: user.fullname || user.email || 'Admin',
-        customDescription: `${action === 'approve' ? 'Approved' : 'Rejected'} leave request for ${selected.staff?.staff_name} from ${selected.start_date} to ${selected.end_date}.`
-      });
 
       // Handle shift removal if approved
       if (newStatus === 'approved' && affectedShifts.length > 0) {

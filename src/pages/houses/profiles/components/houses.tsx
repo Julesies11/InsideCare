@@ -45,7 +45,6 @@ import { House } from '@/models/house';
 import { useHouses, useUpdateHouse } from '@/hooks/use-houses';
 import { useParticipants } from '@/hooks/use-participants';
 import { useNavigate } from 'react-router';
-import { logActivity } from '@/lib/activity-logger';
 import { useAuth } from '@/auth/context/auth-context';
 import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
 import { RBAC_MODULES } from '@/config/rbac-modules';
@@ -95,16 +94,6 @@ function ActionsCell({ row, updateHouse }: { row: Row<House>; updateHouse: (para
     
     try {
       await updateHouse({ id: row.original.id, updates: { status: 'inactive' } });
-
-      // Log activity
-      await logActivity({
-        activityType: 'update',
-        entityType: 'house',
-        entityId: row.original.id,
-        entityName: row.original.house_name,
-        userName: user?.email || 'Unknown user',
-        customDescription: `Archived house "${row.original.house_name}"`,
-      });
 
       toast.success('House archived successfully');
     } catch (error) {
