@@ -123,6 +123,7 @@ export function StaffDetailContent({
 
   const canViewDocuments = hasAccess({ resource: RBAC_MODULES.STAFF_DOCUMENTS, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY });
   const canEditDocuments = hasAccess({ resource: RBAC_MODULES.STAFF_DOCUMENTS, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE });
+  const canDeleteDocuments = hasAccess({ resource: RBAC_MODULES.STAFF_DOCUMENTS, requiredLevel: ACCESS_LEVEL.FULL });
 
   const canViewRoster = hasAccess({ resource: RBAC_MODULES.STAFF_ROSTER, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY });
   const canEditRoster = hasAccess({ resource: RBAC_MODULES.STAFF_ROSTER, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE });
@@ -460,7 +461,7 @@ export function StaffDetailContent({
           for (const doc of currentPending.documents.toAdd) {
             const fileExt = doc.file.name.split('.').pop();
             const fileName = `${staffId}-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-            const filePath = `staff-documents/${fileName}`;
+            const filePath = `${staffId}/documents/${fileName}`;
 
             const { error: uploadError } = await supabase.storage
               .from(STORAGE_BUCKETS.STAFF_DOCUMENTS)
@@ -472,6 +473,9 @@ export function StaffDetailContent({
               staff_id: staffId,
               file_name: doc.file.name,
               file_path: filePath,
+              file_size: doc.file.size,
+              mime_type: doc.file.type,
+              uploaded_by: userName,
             });
           }
 
@@ -479,11 +483,11 @@ export function StaffDetailContent({
           if (dbError) throw new Error(`Failed to create document records: ${dbError.message}`);
         }
 
-        if (currentPending.documents.toDelete.length > 0) {
+        if (canDeleteDocuments && currentPending.documents.toDelete.length > 0) {
           const ids = currentPending.documents.toDelete.map(d => d.id);
           const filePaths = currentPending.documents.toDelete.map(d => d.filePath);
 
-          await supabase.storage.from(TABLES.STAFF_DOCUMENTS).remove(filePaths);
+          await supabase.storage.from(STORAGE_BUCKETS.STAFF_DOCUMENTS).remove(filePaths);
 
           const { error: dbError } = await supabase.from(TABLES.STAFF_DOCUMENTS).delete().in('id', ids);
           if (dbError) throw new Error(`Failed to delete document records: ${dbError.message}`);
@@ -601,7 +605,7 @@ export function StaffDetailContent({
     } finally {
       onSavingChange?.(false);
     }
-  }, [staffId, staffMember, userName, updateStaffFn, onSavingChange, onOriginalDataChange, onFormDataChange, onPendingChangesChange, onSaveSuccess, clearAllErrors, scrollToField, setFieldError, setUser, user, photoFile, photoPreview, originalPhotoUrl, queryClient, canEditPersonal, canEditEmployment, canEditAvailability, canEditEmergency, canEditCompliance, canEditTraining, canEditDocuments]);
+  }, [staffId, staffMember, userName, updateStaffFn, onSavingChange, onOriginalDataChange, onFormDataChange, onPendingChangesChange, onSaveSuccess, clearAllErrors, scrollToField, setFieldError, setUser, user, photoFile, photoPreview, originalPhotoUrl, queryClient, canEditPersonal, canEditEmployment, canEditAvailability, canEditEmergency, canEditCompliance, canEditTraining, canEditDocuments, canDeleteDocuments]);
 
   useEffect(() => {
     if (saveHandlerRef) {
@@ -656,6 +660,7 @@ export function StaffDetailContent({
           canEditCompliance={canEditCompliance}
           canEditTraining={canEditTraining}
           canEditDocuments={canEditDocuments}
+          canDeleteDocuments={canDeleteDocuments}
           canEditRoster={canEditRoster}
           canEditLeave={canEditLeave}
           canEditWarnings={canEditWarnings}
@@ -675,7 +680,8 @@ export function StaffDetailContent({
           activityRefreshTrigger={refreshKeys.activityLog}
           validationErrors={validationErrors}
           staffName={staffMember!.staff_name}
-          documentsRefreshKey={refreshKeys.resources}          trainingRefreshKey={refreshKeys.training}
+          documentsRefreshKey={refreshKeys.resources}
+          trainingRefreshKey={refreshKeys.training}
         />
       </div>
     </div>

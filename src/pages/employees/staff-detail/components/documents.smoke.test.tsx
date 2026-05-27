@@ -6,7 +6,7 @@ import { AuthContext } from '@/auth/context/auth-context';
 
 // Mock Hooks
 vi.mock('@/hooks/use-staff-documents', () => ({
-  useStaffDocuments: vi.fn(() => ({ data: [{ id: '1', file_name: 'Test Doc', file_path: 'test.pdf', staff_id: 'part-1' }], isLoading: false })),
+  useStaffDocuments: vi.fn(() => ({ data: [{ id: '1', file_name: 'Test Staff Doc', file_path: 'staff-1/documents/test.pdf', staff_id: 'staff-1' }], isLoading: false })),
   getStaffFileUrl: vi.fn(() => Promise.resolve('https://test.com')),
   useUpdateStaffDocument: vi.fn(() => ({ mutateAsync: vi.fn() })),
 }));
@@ -19,10 +19,10 @@ vi.mock('@/hooks/use-role-permissions', () => ({
   useAllRolePermissions: vi.fn(() => ({ data: [], isLoading: false })),
 }));
 
-vi.mock('@/hooks/use-document-role-permissions', () => ({
-  useDocumentRolePermissions: vi.fn(() => ({ data: [], isLoading: false })),
+vi.mock('@/hooks/use-staff-document-role-permissions', () => ({
+  useStaffDocumentRolePermissions: vi.fn(() => ({ data: [], isLoading: false })),
   useAllStaffDocumentOverrides: vi.fn(() => ({ data: [], isLoading: false })),
-  useUpdateDocumentRolePermissions: vi.fn(() => ({ mutateAsync: vi.fn() })),
+  useUpdateStaffDocumentRolePermissions: vi.fn(() => ({ mutateAsync: vi.fn() })),
 }));
 
 vi.mock('@/hooks/useRBAC', () => ({
@@ -74,13 +74,13 @@ const createWrapper = () => {
   );
 };
 
-describe('Documents Smoke Test', () => {
+describe('Staff Documents Smoke Test', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it('renders the documents card', () => {
-    render(<Documents staffId="part-1" canAdd={true} canDelete={true} canEdit={true} />, {
+    render(<Documents staffId="staff-1" canAdd={true} canDelete={true} />, {
       wrapper: createWrapper(),
     });
 
@@ -89,7 +89,7 @@ describe('Documents Smoke Test', () => {
   });
 
   it('opens the upload sheet when clicking upload', async () => {
-    render(<Documents staffId="part-1" canAdd={true} canDelete={true} canEdit={true} />, {
+    render(<Documents staffId="staff-1" canAdd={true} canDelete={true} />, {
       wrapper: createWrapper(),
     });
 
@@ -103,7 +103,7 @@ describe('Documents Smoke Test', () => {
   });
 
   it('allows switching between grid and table views for Admins', () => {
-    render(<Documents staffId="part-1" canAdd={true} canDelete={true} canEdit={true} />, {
+    render(<Documents staffId="staff-1" canAdd={true} canDelete={true} />, {
       wrapper: createWrapper(),
     });
 

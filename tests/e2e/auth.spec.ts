@@ -23,7 +23,7 @@ test.describe('Authentication & Access Control', () => {
     const context = await browser.newContext({ storageState: 'playwright/.auth/staff.json' });
     const staffPage = await context.newPage();
     
-    await staffPage.goto('/admin/roles');
+    await staffPage.goto('/access-control');
     // Should be redirected to 403 error page
     await expect(staffPage).toHaveURL(/\/error\/403/);
     

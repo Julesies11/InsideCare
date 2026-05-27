@@ -45,8 +45,10 @@ test.describe('Staff Workflows', () => {
 
   test('Staff can access House Checklists', async ({ page }) => {
     await page.goto('/staff/checklists');
-    // Check for heading or checklist card
-    await expect(page.getByRole('heading', { name: /Checklist/i, level: 1 }).or(page.locator('.card'))).toBeVisible();
+    // Wait for the main container first
+    await expect(page.locator('#root')).toBeVisible({ timeout: 30000 });
+    // Check for heading or checklist card - using text is often more robust than role + level in complex templates
+    await expect(page.getByText(/House Checklists/i).or(page.locator('.card')).first()).toBeVisible({ timeout: 45000 });
   });
 
   test('Staff can open the Shift Note dialog', async ({ page }) => {

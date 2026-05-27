@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -8,11 +8,11 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Download, Trash2, FileText, Clock, MapPin, Phone, Edit } from 'lucide-react';
+import { Plus, Download, Trash2, FileText, Clock, MapPin, Phone, Edit, Upload, X } from 'lucide-react';
 import { useHouseResources } from '@/hooks/useHouseResources';
-import { useAuth } from '@/auth/context/auth-context';
 import { cn } from '@/lib/utils';
 import { KeenIcon } from '@/components/keenicons';
+import { HousePendingChanges } from '@/models/house-pending-changes';
 import {
   ContextMenu,
   ContextMenuContent,
@@ -37,7 +37,8 @@ export function HouseResources({
   onPendingChangesChange 
 }: HouseResourcesProps) {
   const [showResourceDialog, setShowResourceDialog] = useState(false);
-  const [editingResource, setEditingResource] = useState<{ id?: string; tempId?: string; title: string; category: string; type: string; description?: string; priority?: string; phone?: string; address?: string; notes?: string } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [editingResource, setEditingResource] = useState<{ id?: string; tempId?: string; title: string; category: string; type: string; description?: string; priority?: string; phone?: string; address?: string; notes?: string; file_url?: string; file_name?: string } | null>(null);
   const [formData, setFormData] = useState({
     title: '',
     category: '',
@@ -47,6 +48,9 @@ export function HouseResources({
     phone: '',
     address: '',
     notes: '',
+    file: null as File | null,
+    fileName: '',
+    toDeleteFile: false,
   });
 
   const { houseResources, loading, getFileUrl } = useHouseResources(houseId);
@@ -62,11 +66,14 @@ export function HouseResources({
       phone: '',
       address: '',
       notes: '',
+      file: null,
+      fileName: '',
+      toDeleteFile: false,
     });
     setShowResourceDialog(true);
   };
 
-  const handleEdit = (resource: { id?: string; tempId?: string; title: string; category: string; type: string; description?: string; priority?: string; phone?: string; address?: string; notes?: string }) => {
+  const handleEdit = (resource: { id?: string; tempId?: string; title: string; category: string; type: string; description?: string; priority?: string; phone?: string; address?: string; notes?: string; file_url?: string; file_name?: string }) => {
     setEditingResource(resource);
     setFormData({
       title: resource.title,
@@ -77,8 +84,35 @@ export function HouseResources({
       phone: resource.phone || '',
       address: resource.address || '',
       notes: resource.notes || '',
+      file: null,
+      fileName: resource.file_name || '',
+      toDeleteFile: false,
     });
     setShowResourceDialog(true);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFormData(prev => ({
+        ...prev,
+        file: file,
+        fileName: file.name,
+        toDeleteFile: false
+      }));
+    }
+  };
+
+  const handleRemoveFile = () => {
+    setFormData(prev => ({
+      ...prev,
+      file: null,
+      fileName: '',
+      toDeleteFile: !!editingResource?.file_url
+    }));
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleSave = () => {
@@ -88,7 +122,19 @@ export function HouseResources({
     if (!pendingChanges || !onPendingChangesChange) return;
 
     const resourceData = {
-      ...formData,
+      title: formData.title,
+      category: formData.category,
+      type: formData.type,
+      description: formData.description,
+      priority: formData.priority,
+      phone: formData.phone,
+      address: formData.address,
+      notes: formData.notes,
+      file: formData.file || undefined,
+      file_url: formData.file ? undefined : (formData.toDeleteFile ? null : editingResource?.file_url),
+      file_name: formData.file ? formData.file.name : (formData.toDeleteFile ? undefined : formData.fileName),
+      file_size: formData.file ? formData.file.size : undefined,
+      toDeleteFile: formData.toDeleteFile,
       house_id: houseId,
     };
 
@@ -114,7 +160,7 @@ export function HouseResources({
             ...pendingChanges.resources,
             toUpdate: [
               ...pendingChanges.resources.toUpdate.filter(r => r.id !== editingResource.id),
-              { id: editingResource.id, ...resourceData },
+              { id: editingResource.id!, ...resourceData },
             ],
           },
         };
@@ -138,7 +184,7 @@ export function HouseResources({
     setShowResourceDialog(false);
   };
 
-  const handleDelete = (resource: { id: string; tempId?: string }) => {
+  const handleDelete = (resource: { id: string; tempId?: string; file_url?: string }) => {
     if (!pendingChanges || !onPendingChangesChange) return;
 
     // If it's a pending add, just remove it from the pending adds list
@@ -153,7 +199,7 @@ export function HouseResources({
         ...pendingChanges,
         resources: {
           ...pendingChanges.resources,
-          toDelete: [...pendingChanges.resources.toDelete, resource.id],
+          toDelete: [...pendingChanges.resources.toDelete, { id: resource.id, filePath: resource.file_url }],
         },
       };
       onPendingChangesChange(newPending);
@@ -193,7 +239,7 @@ export function HouseResources({
       ...pendingChanges,
       resources: {
         ...pendingChanges.resources,
-        toDelete: pendingChanges.resources.toDelete.filter(resourceId => resourceId !== id),
+        toDelete: pendingChanges.resources.toDelete.filter(resource => resource.id !== id),
       },
     };
     onPendingChangesChange(newPending);
@@ -206,7 +252,7 @@ export function HouseResources({
 
   // Filter out resources marked for deletion
   const visibleResources = [
-    ...houseResources.filter(resource => !pendingChanges?.resources.toDelete.includes(resource.id)),
+    ...houseResources.filter(resource => !pendingChanges?.resources.toDelete.some(r => r.id === resource.id)),
     ...(pendingChanges?.resources.toAdd || []),
   ];
 
@@ -283,8 +329,11 @@ export function HouseResources({
                 {visibleResources.map((resource) => {
                   const isPendingAdd = 'tempId' in resource;
                   const isPendingUpdate = pendingChanges?.resources.toUpdate.some(r => r.id === resource.id);
-                  const isPendingDelete = pendingChanges?.resources.toDelete.includes(resource.id);
-                  
+                  const isPendingDelete = pendingChanges?.resources.toDelete.some(r => r.id === resource.id);
+                  const currentFile = isPendingAdd ? resource.file : null;
+                  const fileName = currentFile ? currentFile.name : resource.file_name;
+                  const fileSize = currentFile ? currentFile.size : resource.file_size;
+
                   return (
                     <ContextMenu key={resource.id || resource.tempId}>
                       <ContextMenuTrigger asChild>
@@ -358,13 +407,13 @@ export function HouseResources({
                           </TableCell>
                           <TableCell>
                             <div className="text-sm">
-                              {resource.file_name ? (
+                              {fileName ? (
                                 <div className="flex items-center gap-2">
                                   <FileText className="size-4 text-muted-foreground" />
                                   <div>
-                                    <div className="line-clamp-1">{resource.file_name}</div>
+                                    <div className="line-clamp-1">{fileName}</div>
                                     <div className="text-xs text-muted-foreground">
-                                      {formatFileSize(resource.file_size)}
+                                      {formatFileSize(fileSize)}
                                     </div>
                                   </div>
                                 </div>
@@ -568,6 +617,51 @@ export function HouseResources({
                 placeholder="Additional notes"
                 rows={3}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Attachment</Label>
+              <div className="flex flex-col gap-2">
+                {formData.fileName ? (
+                  <div className="flex items-center justify-between p-3 border rounded-lg bg-gray-50">
+                    <div className="flex items-center gap-3 overflow-hidden">
+                      <FileText className="size-5 text-muted-foreground shrink-0" />
+                      <div className="flex flex-col overflow-hidden">
+                        <span className="text-sm font-medium truncate">{formData.fileName}</span>
+                        {formData.file && (
+                          <span className="text-xs text-muted-foreground">
+                            {formatFileSize(formData.file.size)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="text-destructive hover:bg-destructive/10 shrink-0"
+                      onClick={handleRemoveFile}
+                    >
+                      <X className="size-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div 
+                    className="flex flex-col items-center justify-center py-8 border-2 border-dashed rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <Upload className="size-8 text-muted-foreground mb-2" />
+                    <span className="text-sm font-medium">Click to upload or drag and drop</span>
+                    <span className="text-xs text-muted-foreground mt-1">PDF, DOC, DOCX, JPG, PNG up to 10MB</span>
+                  </div>
+                )}
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
+              </div>
             </div>
           </div>
           <DialogFooter>

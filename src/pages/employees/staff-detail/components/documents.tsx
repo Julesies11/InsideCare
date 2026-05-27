@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardToolbar } from '@/components/ui/card';
 import { Sheet, SheetBody, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Plus, CloudUpload, TriangleAlert, Trash2, X, Shield, Info, LayoutGrid, List } from 'lucide-react';
-import { useStaffDocuments, getStaffFileUrl as getFileUrl, StaffDocument } from '@/hooks/use-staff-documents';
+import { useStaffDocuments, getStaffFileUrl as getFileUrl, useUpdateStaffDocument, StaffDocument } from '@/hooks/use-staff-documents';
 import { useRoles } from '@/hooks/use-roles';
 import { useStaffDocumentRolePermissions, useUpdateStaffDocumentRolePermissions, useAllStaffDocumentOverrides } from '@/hooks/use-staff-document-role-permissions';
 import { useAllRolePermissions } from '@/hooks/use-role-permissions';
@@ -14,7 +14,7 @@ import { useFileUpload, formatBytes } from '@/hooks/use-file-upload';
 import { Alert, AlertContent, AlertDescription, AlertIcon, AlertTitle } from '@/components/ui/alert';
 import { toast } from 'sonner';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Search, UserPlus, UserMinus, Users } from 'lucide-react';
+import { Search, Users } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useRBAC, AccessLevel, ACCESS_LEVEL } from '@/hooks/useRBAC';
@@ -56,19 +56,15 @@ import {
 
 import { Label } from '@/components/ui/label';
 
-interface DocumentPendingChanges {
-  toAdd: any[];
-  toDelete: any[];
-}
+import { StaffPendingChanges, PendingDocument, PendingDocumentDelete } from '@/models/staff-pending-changes';
 
 interface DocumentsProps {
   staffId?: string;
   staffName?: string;
   canAdd: boolean;
   canDelete: boolean;
-  canEdit: boolean;
-  pendingChanges?: DocumentPendingChanges;
-  onPendingChangesChange?: (changes: DocumentPendingChanges) => void;
+  pendingChanges?: StaffPendingChanges;
+  onPendingChangesChange?: (changes: StaffPendingChanges) => void;
 }
 
 const getFileIcon = (fileName: string) => {
@@ -118,6 +114,7 @@ export function Documents({
   const { data: documents = [], isLoading: loading } = useStaffDocuments(staffId);
   const documentIds = useMemo(() => documents.map(d => d.id), [documents]);
   const { data: allOverrides = [] } = useAllStaffDocumentOverrides(documentIds);
+  const updateDoc = useUpdateStaffDocument();
   const { roles: allRoles } = useRoles();
   const { data: globalPermissions = [] } = useAllRolePermissions();
   const { data: existingOverrides, isLoading: permissionsLoading } = useStaffDocumentRolePermissions(selectedDoc?.id);
@@ -238,10 +235,13 @@ export function Documents({
 
     const newPending = {
       ...pendingChanges,
-      toAdd: [
-        ...pendingChanges.documents.toAdd,
-        ...newPendingToAdd,
-      ],
+      documents: {
+        ...pendingChanges.documents,
+        toAdd: [
+          ...pendingChanges.documents.toAdd,
+          ...newPendingToAdd,
+        ],
+      }
     };
     
     onPendingChangesChange(newPending);
@@ -258,13 +258,15 @@ export function Documents({
     if (!pendingChanges || !onPendingChangesChange) return;
     
     if (confirm(`Mark document "${fileName}" for deletion? It will be removed when you click Save Changes.`)) {
-      // Add to pending deletes instead of immediate delete
       const newPending = {
         ...pendingChanges,
-        toDelete: [
-          ...pendingChanges.toDelete,
-          { id, filePath, fileName },
-        ],
+        documents: {
+          ...pendingChanges.documents,
+          toDelete: [
+            ...pendingChanges.documents.toDelete,
+            { id, filePath, fileName },
+          ],
+        }
       };
       
       onPendingChangesChange(newPending);
@@ -276,7 +278,10 @@ export function Documents({
     
     const newPending = {
       ...pendingChanges,
-      toAdd: pendingChanges.documents.toAdd.filter(doc => doc.tempId !== tempId),
+      documents: {
+        ...pendingChanges.documents,
+        toAdd: pendingChanges.documents.toAdd.filter(doc => doc.tempId !== tempId),
+      }
     };
     
     onPendingChangesChange(newPending);
@@ -287,7 +292,10 @@ export function Documents({
     
     const newPending = {
       ...pendingChanges,
-      toDelete: pendingChanges.toDelete.filter(doc => doc.id !== id),
+      documents: {
+        ...pendingChanges.documents,
+        toDelete: pendingChanges.documents.toDelete.filter(doc => doc.id !== id),
+      }
     };
     
     onPendingChangesChange(newPending);
@@ -300,7 +308,7 @@ export function Documents({
 
   return (
     <>
-      <Card className="pb-2.5" id="documents">
+      <Card className="pb-2.5" id="staff_documents">
         <CardHeader>
           <CardTitle>Documents</CardTitle>
           <CardToolbar className="gap-2">
@@ -643,7 +651,6 @@ export function Documents({
             </SheetDescription>
           </SheetHeader>
           <SheetBody className="flex-1 overflow-y-auto space-y-6 py-6 -mx-6 px-6">
-            {/* Drag & Drop Zone */}
             <div
               className={cn(
                 'relative rounded-xl border-2 border-dashed p-10 text-center transition-all cursor-pointer group',
@@ -683,7 +690,6 @@ export function Documents({
               </div>
             </div>
 
-            {/* Upload Queue */}
             {uploadQueue.length > 0 && (
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -737,7 +743,6 @@ export function Documents({
               </div>
             )}
 
-            {/* Error Messages */}
             {errors.length > 0 && (
               <Alert variant="destructive" appearance="light" className="rounded-xl border-destructive/20">
                 <AlertIcon>
@@ -772,7 +777,6 @@ export function Documents({
         </SheetContent>
       </Sheet>
 
-      {/* Assign Access Dialog */}
       <Dialog open={accessDialogOpen} onOpenChange={setAccessDialogOpen}>
         <DialogContent className="sm:max-w-[550px] max-h-[90vh] flex flex-col">
           <DialogHeader>
@@ -786,7 +790,6 @@ export function Documents({
           </DialogHeader>
 
           <div className="flex flex-col flex-1 overflow-hidden py-4 gap-4">
-            {/* Admin Notice */}
             <Alert appearance="light" className="bg-blue-50 border-blue-100 py-3 rounded-xl">
               <AlertIcon>
                 <Info className="size-4 text-blue-600" />
@@ -798,14 +801,12 @@ export function Documents({
               </AlertContent>
             </Alert>
 
-            {/* Role Matrix Section */}
             <div className="flex flex-col flex-1 min-h-0 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex flex-col">
                   <Label className="text-xs font-bold uppercase text-gray-500">Permission Matrix</Label>
                   <p className="text-[10px] text-muted-foreground">Modify access for individual roles.</p>
                 </div>
-                {/* Search Bar */}
                 <div className="relative w-48">
                   <Search className="absolute left-2.5 top-2.5 size-3.5 text-gray-400" />
                   <Input
@@ -817,7 +818,6 @@ export function Documents({
                 </div>
               </div>
 
-              {/* Role List */}
               <ScrollArea className="h-[300px] rounded-xl border bg-gray-50/30">
                 <div className="divide-y">
                   {permissionsLoading ? (

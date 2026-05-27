@@ -51,7 +51,7 @@ export function useUploadStaffDocument() {
   return useMutation({
     mutationFn: async ({ file, staffId, uploadedBy }: { file: File; staffId: string; uploadedBy?: string }) => {
       const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-      const filePath = `${staffId}/${fileName}`;
+      const filePath = `${staffId}/documents/${fileName}`;
       
       const { error: uploadError } = await supabase.storage
         .from(STORAGE_BUCKETS.STAFF_DOCUMENTS)
@@ -84,6 +84,27 @@ export function useUploadStaffDocument() {
       if (!data) {
         throw new Error('You do not have permission to upload documents for this staff member.');
       }
+      return data as StaffDocument;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF_DOCUMENTS, data.staff_id] });
+    },
+  });
+}
+
+export function useUpdateStaffDocument() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, staffId, updates }: { id: string; staffId: string; updates: Partial<StaffDocument> }) => {
+      const { data, error } = await supabase
+        .from(TABLES.STAFF_DOCUMENTS)
+        .update(updates)
+        .eq('id', id)
+        .select(STAFF_DOCUMENT_COLUMNS)
+        .single();
+
+      if (error) throw error;
       return data as StaffDocument;
     },
     onSuccess: (data) => {

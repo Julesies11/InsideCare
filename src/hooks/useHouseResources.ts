@@ -70,7 +70,7 @@ export function useHouseResources(houseId?: string) {
 
   const getFileUrl = async (filePath: string, downloadName?: string) => {
     const { data, error } = await supabase.storage
-      .from(STORAGE_BUCKETS.HOUSE_RESOURCES)
+      .from(STORAGE_BUCKETS.HOUSE_DOCUMENTS)
       .createSignedUrl(filePath, 3600, {
         download: downloadName || true
       });

@@ -52,7 +52,7 @@ test.describe('House & Participant Management', () => {
   });
 
   test('Navigate to House Profiles and search', async ({ page }) => {
-    await page.goto('/houses/profiles');
+    await page.goto('/houses');
     const search = page.getByPlaceholder(/Search Houses/i);
     await expect(search).toBeVisible({ timeout: 15000 });
     await search.fill('Demo House');

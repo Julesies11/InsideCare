@@ -17,13 +17,13 @@ test.describe('Admin Workflows', () => {
   });
 
   test('Admin can access Role Management', async ({ page }) => {
-    await page.goto('/admin/roles');
+    await page.goto('/access-control');
     await expect(page.getByRole('heading', { name: /Roles/i, level: 1 })).toBeVisible();
     await expect(page.getByRole('button', { name: /Add Role/i })).toBeVisible();
   });
 
   test('Admin can view Staff Profiles table', async ({ page }) => {
-    await page.goto('/employees/staff-profiles');
+    await page.goto('/staff');
     await expect(page.getByPlaceholder(/Search staff/i)).toBeVisible({ timeout: 15000 });
     await expect(page.getByRole('table')).toBeVisible();
   });

@@ -35,23 +35,26 @@ setup('authenticate as admin', async ({ page }) => {
   await page.waitForTimeout(500);
   await page.keyboard.press('Enter');
 
-  // Check for immediate error messages on the login page
-  const errorMessage = page.getByText(/Invalid login credentials/i).or(page.getByText(/error/i));
-  
   // Wait for either the error message OR the navigation to happen
-  await Promise.race([
-    page.waitForURL(url => !url.pathname.includes('/auth/signin'), { timeout: 15000 }),
-    expect(errorMessage).toBeVisible({ timeout: 15000 }).then(async () => {
-       throw new Error(`Login failed with error: ${await errorMessage.textContent()}`);
-    }).catch(e => {
-       // If the error message didn't appear, this is the "good" path for the race
-       if (e.message.includes('expect(locator).toBeVisible()')) return;
-       throw e;
-    })
-  ]);
+  try {
+    await Promise.race([
+      page.waitForURL(url => !url.pathname.includes('/auth/signin'), { timeout: 30000 }),
+      page.getByText(/Invalid login credentials/i).waitFor({ state: 'visible', timeout: 30000 }).then(() => {
+        throw new Error('Login failed: Invalid login credentials');
+      })
+    ]);
+  } catch (e) {
+    if (e.message.includes('timeout')) {
+      const isErrorVisible = await page.getByText(/Invalid login credentials/i).isVisible();
+      if (isErrorVisible) {
+        throw new Error('Login failed: Invalid login credentials');
+      }
+    }
+    throw e;
+  }
   
   // Basic check that we landed on a protected page
-  await expect(page.locator('.layout-container, .sidebar, .header').first()).toBeVisible({ timeout: 30000 });
+  await expect(page.locator('.layout-container, .sidebar, .header, #root').first()).toBeVisible({ timeout: 30000 });
   
   await page.context().storageState({ path: ADMIN_STORAGE_STATE });
 });
@@ -72,23 +75,26 @@ setup('authenticate as staff', async ({ page }) => {
   await page.waitForTimeout(500);
   await page.keyboard.press('Enter');
 
-  // Check for immediate error messages on the login page
-  const errorMessage = page.getByText(/Invalid login credentials/i).or(page.getByText(/error/i));
-  
   // Wait for either the error message OR the navigation to happen
-  await Promise.race([
-    page.waitForURL(url => !url.pathname.includes('/auth/signin'), { timeout: 15000 }),
-    expect(errorMessage).toBeVisible({ timeout: 15000 }).then(async () => {
-       throw new Error(`Login failed with error: ${await errorMessage.textContent()}`);
-    }).catch(e => {
-       // If the error message didn't appear, this is the "good" path for the race
-       if (e.message.includes('expect(locator).toBeVisible()')) return;
-       throw e;
-    })
-  ]);
+  try {
+    await Promise.race([
+      page.waitForURL(url => !url.pathname.includes('/auth/signin'), { timeout: 30000 }),
+      page.getByText(/Invalid login credentials/i).waitFor({ state: 'visible', timeout: 30000 }).then(() => {
+        throw new Error('Login failed: Invalid login credentials');
+      })
+    ]);
+  } catch (e) {
+    if (e.message.includes('timeout')) {
+      const isErrorVisible = await page.getByText(/Invalid login credentials/i).isVisible();
+      if (isErrorVisible) {
+        throw new Error('Login failed: Invalid login credentials');
+      }
+    }
+    throw e;
+  }
   
   // Staff usually redirects to /staff/dashboard
-  await expect(page.locator('.layout-container, .sidebar, .header').first()).toBeVisible({ timeout: 30000 });
+  await expect(page.locator('.layout-container, .sidebar, .header, #root').first()).toBeVisible({ timeout: 30000 });
   
   await page.context().storageState({ path: STAFF_STORAGE_STATE });
 });

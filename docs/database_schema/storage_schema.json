@@ -25,18 +25,26 @@
   },
   {
     "bucket_context": "ic_house_documents",
+    "policyname": "RBAC house_documents ALL",
+    "operation": "ALL",
+    "roles": "{authenticated}",
+    "using_expression": "((bucket_id = 'ic_house_documents'::text) AND (ic_jwt_is_admin() OR (ic_jwt_has_house((split_part(name, '/'::text, 1))::uuid) AND ((ic_jwt_get_perm('houses'::text) = 'full'::text) OR (ic_jwt_get_perm('house_resources'::text) = 'full'::text)))))",
+    "with_check_expression": null
+  },
+  {
+    "bucket_context": "ic_house_documents",
     "policyname": "RBAC house_documents INSERT",
     "operation": "INSERT",
     "roles": "{authenticated}",
     "using_expression": null,
-    "with_check_expression": "((bucket_id = 'ic_house_documents'::text) AND (ic_jwt_is_admin() OR (ic_jwt_has_house((split_part(name, '/'::text, 1))::uuid) AND (ic_jwt_get_perm('houses'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text])))))"
+    "with_check_expression": "((bucket_id = 'ic_house_documents'::text) AND (ic_jwt_is_admin() OR (ic_jwt_has_house((split_part(name, '/'::text, 1))::uuid) AND ((ic_jwt_get_perm('houses'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text])) OR (ic_jwt_get_perm('house_resources'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text]))))))"
   },
   {
     "bucket_context": "ic_house_documents",
     "policyname": "RBAC house_documents SELECT",
     "operation": "SELECT",
     "roles": "{authenticated}",
-    "using_expression": "((bucket_id = 'ic_house_documents'::text) AND (ic_jwt_is_admin() OR ic_jwt_has_house((split_part(name, '/'::text, 1))::uuid) OR (ic_jwt_get_perm('houses'::text) = ANY (ARRAY['full'::text, 'read_only'::text]))))",
+    "using_expression": "((bucket_id = 'ic_house_documents'::text) AND (ic_jwt_is_admin() OR ic_jwt_has_house((split_part(name, '/'::text, 1))::uuid) OR (ic_jwt_get_perm('houses'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text])) OR (ic_jwt_get_perm('house_resources'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text]))))",
     "with_check_expression": null
   },
   {
@@ -52,7 +60,7 @@
     "policyname": "RBAC participant_documents SELECT",
     "operation": "SELECT",
     "roles": "{authenticated}",
-    "using_expression": "((bucket_id = 'ic_participant_documents'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR ((ic_jwt_get_perm('participants'::text) = ANY (ARRAY['context_read_write'::text, 'context_read_only'::text])) AND (EXISTS ( SELECT 1\n   FROM ic_participants p\n  WHERE (((p.id)::text = split_part(objects.name, '/'::text, 1)) AND ic_jwt_has_house(p.house_id)))))))",
+    "using_expression": "((bucket_id = 'ic_participant_documents'::text) AND (ic_jwt_is_admin() OR (EXISTS ( SELECT 1\n   FROM ic_participant_documents doc\n  WHERE (doc.file_path = objects.name)))))",
     "with_check_expression": null
   },
   {
@@ -108,7 +116,7 @@
     "policyname": "RBAC storage staff_documents ALL",
     "operation": "ALL",
     "roles": "{authenticated}",
-    "using_expression": "((bucket_id = 'ic_staff_documents'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('staff_documents'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text])) OR (split_part(name, '/'::text, 1) = (ic_jwt_get_staff_id())::text)))",
+    "using_expression": "((bucket_id = 'ic_staff_documents'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('staff_documents'::text) = 'full'::text) OR ((ic_jwt_get_perm('staff_documents'::text) = 'context_read_write'::text) AND ic_jwt_manages_staff((split_part(name, '/'::text, 1))::uuid)) OR (split_part(name, '/'::text, 1) = (ic_jwt_get_staff_id())::text)))",
     "with_check_expression": null
   },
   {
@@ -116,7 +124,7 @@
     "policyname": "RBAC storage staff_documents SELECT",
     "operation": "SELECT",
     "roles": "{authenticated}",
-    "using_expression": "((bucket_id = 'ic_staff_documents'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('staff_documents'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text])) OR (split_part(name, '/'::text, 1) = (ic_jwt_get_staff_id())::text)))",
+    "using_expression": "((bucket_id = 'ic_staff_documents'::text) AND (ic_jwt_is_admin() OR (EXISTS ( SELECT 1\n   FROM ic_staff_documents doc\n  WHERE (doc.file_path = objects.name)))))",
     "with_check_expression": null
   },
   {
@@ -150,5 +158,93 @@
     "roles": "{authenticated}",
     "using_expression": "((bucket_id = 'ic_staff_photos'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('employees'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text])) OR (split_part(name, '/'::text, 1) = (ic_jwt_get_staff_id())::text)))",
     "with_check_expression": null
+  },
+  {
+    "bucket_context": "mp-avatars",
+    "policyname": "avatars_privileged_manage",
+    "operation": "ALL",
+    "roles": "{authenticated}",
+    "using_expression": "((bucket_id = 'mp-avatars'::text) AND is_privileged())",
+    "with_check_expression": null
+  },
+  {
+    "bucket_context": "mp-avatars",
+    "policyname": "avatars_self_manage",
+    "operation": "ALL",
+    "roles": "{authenticated}",
+    "using_expression": "((bucket_id = 'mp-avatars'::text) AND ((storage.foldername(name))[1] = (auth.uid())::text))",
+    "with_check_expression": null
+  },
+  {
+    "bucket_context": "mp-avatars",
+    "policyname": "avatars_view",
+    "operation": "SELECT",
+    "roles": "{authenticated}",
+    "using_expression": "(bucket_id = 'mp-avatars'::text)",
+    "with_check_expression": null
+  },
+  {
+    "bucket_context": "mp-evidence-photos",
+    "policyname": "evidence_files_manage",
+    "operation": "ALL",
+    "roles": "{authenticated}",
+    "using_expression": "((bucket_id = 'mp-evidence-photos'::text) AND (is_privileged() OR is_pair_member(((storage.foldername(name))[1])::uuid)))",
+    "with_check_expression": null
+  },
+  {
+    "bucket_context": "mp-evidence-photos",
+    "policyname": "evidence_files_view",
+    "operation": "SELECT",
+    "roles": "{authenticated}",
+    "using_expression": "((bucket_id = 'mp-evidence-photos'::text) AND (is_privileged() OR is_pair_member(((storage.foldername(name))[1])::uuid)))",
+    "with_check_expression": null
+  },
+  {
+    "bucket_context": "mp-logos",
+    "policyname": "logos_admin_manage",
+    "operation": "ALL",
+    "roles": "{authenticated}",
+    "using_expression": "((bucket_id = 'mp-logos'::text) AND is_sys_admin())",
+    "with_check_expression": null
+  },
+  {
+    "bucket_context": "mp-logos",
+    "policyname": "logos_view",
+    "operation": "SELECT",
+    "roles": "{authenticated}",
+    "using_expression": "(bucket_id = 'mp-logos'::text)",
+    "with_check_expression": null
+  },
+  {
+    "bucket_context": "tf_avatars",
+    "policyname": "Avatar images are publicly accessible",
+    "operation": "SELECT",
+    "roles": "{public}",
+    "using_expression": "(bucket_id = 'tf_avatars'::text)",
+    "with_check_expression": null
+  },
+  {
+    "bucket_context": "tf_avatars",
+    "policyname": "Users can delete their own avatars",
+    "operation": "DELETE",
+    "roles": "{public}",
+    "using_expression": "((bucket_id = 'tf_avatars'::text) AND ((auth.uid())::text = (storage.foldername(name))[1]))",
+    "with_check_expression": null
+  },
+  {
+    "bucket_context": "tf_avatars",
+    "policyname": "Users can update their own avatars",
+    "operation": "UPDATE",
+    "roles": "{public}",
+    "using_expression": "((bucket_id = 'tf_avatars'::text) AND ((auth.uid())::text = (storage.foldername(name))[1]))",
+    "with_check_expression": null
+  },
+  {
+    "bucket_context": "tf_avatars",
+    "policyname": "Users can upload their own avatars",
+    "operation": "INSERT",
+    "roles": "{public}",
+    "using_expression": null,
+    "with_check_expression": "((bucket_id = 'tf_avatars'::text) AND ((auth.uid())::text = (storage.foldername(name))[1]))"
   }
 ]

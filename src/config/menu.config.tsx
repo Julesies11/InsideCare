@@ -17,7 +17,7 @@ export const MENU_SIDEBAR: MenuItemConfig[] = [
   {
     title: 'My Dashboard',
     icon: Home,
-    path: '/my-dashboard',
+    path: '/staff/dashboard',
   },
   {
     heading: 'Staff Portal',
@@ -26,25 +26,25 @@ export const MENU_SIDEBAR: MenuItemConfig[] = [
   {
     title: 'House Checklists',
     icon: CheckSquare,
-    path: '/house-checklists',
+    path: '/staff/checklists',
     permission: RBAC_MODULES.HOUSE_CHECKLISTS,
   },
   {
     title: 'My Roster',
     icon: Calendar,
-    path: '/my-roster',
+    path: '/staff/roster',
     permission: RBAC_MODULES.MY_ROSTER,
   },
   {
     title: 'My Leave',
     icon: LogOut,
-    path: '/my-leave',
+    path: '/staff/leave',
     permission: RBAC_MODULES.MY_LEAVE,
   },
   {
     title: 'My Timesheets',
     icon: Clock,
-    path: '/my-timesheets',
+    path: '/staff/timesheets',
     permission: RBAC_MODULES.MY_TIMESHEETS,
   },
   {

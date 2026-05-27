@@ -253,6 +253,12 @@ The `src/lib/api/storage.ts` module acts as the orchestrator for all storage ope
 - **Validation**: Enforces a 10MB pre-compression hard limit and valid MIME types (JPG, PNG, WebP).
 - **Atomic Operations**: `uploadFile` handles validation -> compression -> upload in a single async operation.
 - **Path-Based Storage**: The system stores relative file paths in the database (e.g., `staffId/avatar.jpg`) instead of full URLs, ensuring compatibility across local/staging/production environments.
+- **House Isolation Strategy**: To leverage existing RLS policies in shared buckets (like `ic_house_documents`), all files must be prefixed with the House ID (e.g., `{houseId}/{fileName}`). This allows the database to isolate access by house without needing per-bucket policies.
+- **"Safe Swap" Persistence Pattern**: When replacing existing files, the application implements a fail-safe sequence:
+    1.  **Upload** the new file to storage.
+    2.  **Update** the database record with the new file path.
+    3.  **Delete** the old file from storage ONLY after the database update succeeds.
+    This prevents data loss where an old file is deleted but a new one fails to upload.
 ## 8. Centralized Maintainability (Constants)
 To ensure long-term maintainability and enforce project standards (like the `ic_` prefixing requirement), the application uses centralized constants located in `src/config/`:
 
