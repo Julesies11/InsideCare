@@ -8,7 +8,7 @@ test.describe('Authentication & Access Control', () => {
     await page.keyboard.press('Enter');
     
     // Validate error message appearance using the Alert component
-    const alert = page.locator('[role="alert"]');
+    const alert = page.locator('[role="alert"]').filter({ hasText: /invalid|credentials|error/i });
     await expect(alert).toBeVisible({ timeout: 10000 });
     await expect(alert).toContainText(/invalid|credentials|error/i);
   });

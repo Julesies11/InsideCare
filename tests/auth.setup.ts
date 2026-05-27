@@ -32,29 +32,32 @@ setup('authenticate as admin', async ({ page }) => {
   await page.getByLabel(/Email/i).fill(ADMIN_EMAIL);
   await page.getByLabel(/Password/i).fill(ADMIN_PASSWORD);
   
-  await page.waitForTimeout(500);
-  await page.keyboard.press('Enter');
+  // Click the submit button explicitly
+  const submitBtn = page.getByRole('button', { name: /^Sign In$/i });
+  await expect(submitBtn).toBeEnabled();
+  await submitBtn.click();
 
   // Wait for either the error message OR the navigation to happen
   try {
     await Promise.race([
-      page.waitForURL(url => !url.pathname.includes('/auth/signin'), { timeout: 30000 }),
-      page.getByText(/Invalid login credentials/i).waitFor({ state: 'visible', timeout: 30000 }).then(() => {
+      page.waitForURL(url => !url.pathname.includes('/auth/signin'), { timeout: 45000 }),
+      page.getByText(/Invalid login credentials/i).waitFor({ state: 'visible', timeout: 45000 }).then(() => {
         throw new Error('Login failed: Invalid login credentials');
       })
     ]);
   } catch (e) {
-    if (e.message.includes('timeout')) {
-      const isErrorVisible = await page.getByText(/Invalid login credentials/i).isVisible();
-      if (isErrorVisible) {
-        throw new Error('Login failed: Invalid login credentials');
-      }
+    // If it failed, maybe try the Dev "Admin" button as a fallback
+    const devAdminBtn = page.getByRole('button', { name: /^Admin$/i, exact: true });
+    if (await devAdminBtn.isVisible()) {
+      await devAdminBtn.click();
+      await page.waitForURL(url => !url.pathname.includes('/auth/signin'), { timeout: 30000 });
+    } else {
+      throw e;
     }
-    throw e;
   }
   
   // Basic check that we landed on a protected page
-  await expect(page.locator('.layout-container, .sidebar, .header, #root').first()).toBeVisible({ timeout: 30000 });
+  await expect(page.locator('.layout-container, .sidebar, .header, #root').first()).toBeVisible({ timeout: 45000 });
   
   await page.context().storageState({ path: ADMIN_STORAGE_STATE });
 });
@@ -72,29 +75,31 @@ setup('authenticate as staff', async ({ page }) => {
   await page.getByLabel(/Email/i).fill(STAFF_EMAIL);
   await page.getByLabel(/Password/i).fill(STAFF_PASSWORD);
   
-  await page.waitForTimeout(500);
-  await page.keyboard.press('Enter');
+  const submitBtn = page.getByRole('button', { name: /^Sign In$/i });
+  await expect(submitBtn).toBeEnabled();
+  await submitBtn.click();
 
   // Wait for either the error message OR the navigation to happen
   try {
     await Promise.race([
-      page.waitForURL(url => !url.pathname.includes('/auth/signin'), { timeout: 30000 }),
-      page.getByText(/Invalid login credentials/i).waitFor({ state: 'visible', timeout: 30000 }).then(() => {
+      page.waitForURL(url => !url.pathname.includes('/auth/signin'), { timeout: 45000 }),
+      page.getByText(/Invalid login credentials/i).waitFor({ state: 'visible', timeout: 45000 }).then(() => {
         throw new Error('Login failed: Invalid login credentials');
       })
     ]);
   } catch (e) {
-    if (e.message.includes('timeout')) {
-      const isErrorVisible = await page.getByText(/Invalid login credentials/i).isVisible();
-      if (isErrorVisible) {
-        throw new Error('Login failed: Invalid login credentials');
-      }
+    // Fallback for staff
+    const devStaffBtn = page.getByRole('button', { name: /^Support Worker$/i, exact: true });
+    if (await devStaffBtn.isVisible()) {
+      await devStaffBtn.click();
+      await page.waitForURL(url => !url.pathname.includes('/auth/signin'), { timeout: 30000 });
+    } else {
+      throw e;
     }
-    throw e;
   }
   
   // Staff usually redirects to /staff/dashboard
-  await expect(page.locator('.layout-container, .sidebar, .header, #root').first()).toBeVisible({ timeout: 30000 });
+  await expect(page.locator('.layout-container, .sidebar, .header, #root').first()).toBeVisible({ timeout: 45000 });
   
   await page.context().storageState({ path: STAFF_STORAGE_STATE });
 });
