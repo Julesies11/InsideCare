@@ -105,6 +105,7 @@ The care facilities/locations.
 - **`participant_goals` & `participant_goal_progress`**: Tracks care goals and their progress.
 - **`participant_notes`**: General and important notes about the participant.
 - **`participant_documents`**: Files uploaded for the participant.
+    - **Security**: Uses a granular "Direct Override > Global Baseline" permission model. The `is_restricted` column has been removed. Permissions are handled via `ic_participant_document_roles` where Admins can set specific `Edit`, `Read-only`, or `No Access` overrides for individual roles per document.
 - **`participant_contacts`**: External contacts (GP, Pharmacy, Support Coordinator).
 - **`participant_funding`**: Tracks NDIS or other funding sources and balances.
 - **`participant_hygiene_routines`**: Specific care routines.

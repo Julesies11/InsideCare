@@ -2531,7 +2531,6 @@ export type Database = {
           file_path: string
           file_size: number | null
           id: string
-          is_restricted: boolean | null
           mime_type: string | null
           participant_id: string
           updated_at: string | null
@@ -2545,7 +2544,6 @@ export type Database = {
           file_path: string
           file_size?: number | null
           id?: string
-          is_restricted?: boolean | null
           mime_type?: string | null
           participant_id: string
           updated_at?: string | null
@@ -2559,7 +2557,6 @@ export type Database = {
           file_path?: string
           file_size?: number | null
           id?: string
-          is_restricted?: boolean | null
           mime_type?: string | null
           participant_id?: string
           updated_at?: string | null
@@ -4144,7 +4141,6 @@ export type Database = {
           file_path: string
           file_size: number | null
           id: string
-          is_restricted: boolean | null
           mime_type: string | null
           staff_id: string
           updated_at: string | null
@@ -4158,7 +4154,6 @@ export type Database = {
           file_path: string
           file_size?: number | null
           id?: string
-          is_restricted?: boolean | null
           mime_type?: string | null
           staff_id: string
           updated_at?: string | null
@@ -4172,7 +4167,6 @@ export type Database = {
           file_path?: string
           file_size?: number | null
           id?: string
-          is_restricted?: boolean | null
           mime_type?: string | null
           staff_id?: string
           updated_at?: string | null

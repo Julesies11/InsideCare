@@ -3,9 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardToolbar } from '@/components/ui/card';
 import { Sheet, SheetBody, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Plus, CloudUpload, TriangleAlert, Trash2, X, Shield, Info, LayoutGrid, List } from 'lucide-react';
-import { useParticipantDocuments, getParticipantFileUrl as getFileUrl, useUpdateParticipantDocument, ParticipantDocument } from '@/hooks/use-participant-documents';
+import { useStaffDocuments, getStaffFileUrl as getFileUrl, useUpdateStaffDocument, StaffDocument } from '@/hooks/use-staff-documents';
 import { useRoles } from '@/hooks/use-roles';
-import { useDocumentRolePermissions, useUpdateDocumentRolePermissions, useAllParticipantDocumentOverrides } from '@/hooks/use-document-role-permissions';
+import { useDocumentRolePermissions, useUpdateDocumentRolePermissions, useAllStaffDocumentOverrides } from '@/hooks/use-document-role-permissions';
 import { useAllRolePermissions } from '@/hooks/use-role-permissions';
 import { KeenIcon } from '@/components/keenicons';
 import { toAbsoluteUrl } from '@/lib/helpers';
@@ -62,8 +62,8 @@ interface DocumentPendingChanges {
 }
 
 interface DocumentsProps {
-  participantId?: string;
-  participantName?: string;
+  staffId?: string;
+  staffName?: string;
   canAdd: boolean;
   canDelete: boolean;
   canEdit: boolean;
@@ -100,7 +100,7 @@ const getFileIcon = (fileName: string) => {
 };
 
 export function Documents({ 
-  participantId, 
+  staffId, 
   canAdd, 
   canDelete,
   pendingChanges,
@@ -108,17 +108,17 @@ export function Documents({
 }: DocumentsProps) {
   const [showUploadSheet, setShowUploadSheet] = useState(false);
   const [accessDialogOpen, setAccessDialogOpen] = useState(false);
-  const [selectedDoc, setSelectedDoc] = useState<ParticipantDocument | null>(null);
+  const [selectedDoc, setSelectedDoc] = useState<StaffDocument | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   
   // Access state for the dialog
   const [searchTerm, setSearchTerm] = useState('');
   const [overrides, setOverrides] = useState<Record<string, AccessLevel>>({});
 
-  const { data: documents = [], isLoading: loading } = useParticipantDocuments(participantId);
+  const { data: documents = [], isLoading: loading } = useStaffDocuments(staffId);
   const documentIds = useMemo(() => documents.map(d => d.id), [documents]);
-  const { data: allOverrides = [] } = useAllParticipantDocumentOverrides(documentIds);
-  const updateDoc = useUpdateParticipantDocument();
+  const { data: allOverrides = [] } = useAllStaffDocumentOverrides(documentIds);
+  const updateDoc = useUpdateStaffDocument();
   const { roles: allRoles } = useRoles();
   const { data: globalPermissions = [] } = useAllRolePermissions();
   const { data: existingOverrides, isLoading: permissionsLoading } = useDocumentRolePermissions(selectedDoc?.id);
@@ -126,7 +126,7 @@ export function Documents({
   const { isAdmin, hasAccess } = useRBAC();
 
   const isAccessAdmin = isAdmin || hasAccess({
-    resource: RBAC_MODULES.PARTICIPANT_DOCUMENTS,
+    resource: RBAC_MODULES.STAFF_DOCUMENTS,
     requiredLevel: ACCESS_LEVEL.FULL
   });
 
@@ -141,14 +141,14 @@ export function Documents({
     }
   }, [existingOverrides, accessDialogOpen]);
 
-  const handleOpenAccessDialog = (doc: ParticipantDocument) => {
+  const handleOpenAccessDialog = (doc: StaffDocument) => {
     setSelectedDoc(doc);
     setOverrides({}); // Clear until query fetches fresh data
     setAccessDialogOpen(true);
   };
 
   const handleUpdateAccess = async () => {
-    if (!selectedDoc || !participantId) return;
+    if (!selectedDoc || !staffId) return;
 
     try {
       // Update the role-based permissions (overrides)
@@ -173,7 +173,7 @@ export function Documents({
     const rolePerms = globalPermissions.find(p => p.role_id === roleId);
     if (!rolePerms) return ACCESS_LEVEL.NONE;
     if ((rolePerms as any).access_control === ACCESS_LEVEL.FULL) return ACCESS_LEVEL.FULL;
-    return (rolePerms as any).participant_documents || ACCESS_LEVEL.NONE;
+    return (rolePerms as any).staff_documents || ACCESS_LEVEL.NONE;
   };
 
   const getEffectiveLevel = (roleId: string): AccessLevel => {
@@ -327,7 +327,7 @@ export function Documents({
                 </Button>
               </div>
             )}
-            <Button variant="secondary" size="sm" className="border border-gray-300" onClick={() => setShowUploadSheet(true)} disabled={!participantId || !canAdd}>
+            <Button variant="secondary" size="sm" className="border border-gray-300" onClick={() => setShowUploadSheet(true)} disabled={!staffId || !canAdd}>
               <Plus className="size-4 me-1.5" />
               Upload Document
             </Button>

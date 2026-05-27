@@ -17,7 +17,7 @@ export const MENU_SIDEBAR: MenuItemConfig[] = [
   {
     title: 'My Dashboard',
     icon: Home,
-    path: '/staff/dashboard',
+    path: '/my-dashboard',
   },
   {
     heading: 'Staff Portal',
@@ -26,65 +26,41 @@ export const MENU_SIDEBAR: MenuItemConfig[] = [
   {
     title: 'House Checklists',
     icon: CheckSquare,
-    path: '/staff/checklists',
+    path: '/house-checklists',
     permission: RBAC_MODULES.HOUSE_CHECKLISTS,
   },
   {
     title: 'My Roster',
     icon: Calendar,
-    path: '/staff/roster',
+    path: '/my-roster',
     permission: RBAC_MODULES.MY_ROSTER,
   },
   {
     title: 'My Leave',
     icon: LogOut,
-    path: '/staff/leave',
+    path: '/my-leave',
     permission: RBAC_MODULES.MY_LEAVE,
   },
   {
     title: 'My Timesheets',
     icon: Clock,
-    path: '/staff/timesheets',
+    path: '/my-timesheets',
     permission: RBAC_MODULES.MY_TIMESHEETS,
   },
   {
     heading: 'People & Houses',
   },
   {
-    title: 'Employees',
+    title: 'Staff',
     icon: UserCheck,
+    path: '/staff',
     permission: RBAC_MODULES.EMPLOYEES,
-    children: [
-      { title: 'Staff Profiles', path: '/employees/staff-profiles', permission: RBAC_MODULES.EMPLOYEES },
-      { title: 'Timesheets', path: '/employees/timesheets', permission: RBAC_MODULES.TIMESHEETS },
-      { title: 'Leave Requests', path: '/employees/leave-requests', permission: RBAC_MODULES.LEAVE_REQUESTS },
-    ],
   },
   {
     title: 'Houses',
     icon: Home,
-    permission: [
-      RBAC_MODULES.HOUSES, 
-      RBAC_MODULES.HOUSE_MANAGEMENT, 
-      RBAC_MODULES.HOUSE_OPERATIONS,
-      RBAC_MODULES.HOUSE_CHECKLISTS,
-      RBAC_MODULES.HOUSE_CHECKLIST_HISTORY,
-      RBAC_MODULES.HOUSE_RESOURCES,
-      RBAC_MODULES.HOUSE_STAFF,
-      RBAC_MODULES.HOUSE_ACTIVITY_LOG
-    ],
-    children: [
-      { title: 'House Profiles', path: '/houses/profiles', permission: [
-        RBAC_MODULES.HOUSES, 
-        RBAC_MODULES.HOUSE_MANAGEMENT, 
-        RBAC_MODULES.HOUSE_OPERATIONS,
-        RBAC_MODULES.HOUSE_CHECKLISTS,
-        RBAC_MODULES.HOUSE_CHECKLIST_HISTORY,
-        RBAC_MODULES.HOUSE_RESOURCES,
-        RBAC_MODULES.HOUSE_STAFF,
-        RBAC_MODULES.HOUSE_ACTIVITY_LOG
-      ] },
-    ],
+    path: '/houses',
+    permission: RBAC_MODULES.HOUSES,
   },
   {
     title: 'Participants',
@@ -97,13 +73,7 @@ export const MENU_SIDEBAR: MenuItemConfig[] = [
     ],
   },
   {
-    heading: 'Shifts',
-  },
-  {
-    title: 'Shift Setup',
-    icon: ClipboardList,
-    path: '/roster-board/shift-templates',
-    permission: RBAC_MODULES.ROSTER_BOARD,
+    heading: 'Roster & Staff Scheduling',
   },
   {
     title: 'Roster Board',
@@ -111,17 +81,35 @@ export const MENU_SIDEBAR: MenuItemConfig[] = [
     path: '/roster-board',
     permission: RBAC_MODULES.ROSTER_BOARD,
   },
+  {
+    title: 'Shift Setup',
+    icon: ClipboardList,
+    path: '/shift-setup',
+    permission: RBAC_MODULES.ROSTER_BOARD,
+  },
+  {
+    title: 'Timesheet Approvals',
+    icon: ClipboardList,
+    path: '/timesheet-approvals',
+    permission: RBAC_MODULES.TIMESHEETS,
+  },
+  {
+    title: 'Leave Approvals',
+    icon: ClipboardList,
+    path: '/leave-approvals',
+    permission: RBAC_MODULES.LEAVE_REQUESTS,
+  },
   { heading: 'Administration', permission: RBAC_MODULES.ACCESS_CONTROL },
   {
     title: 'Access Control',
     icon: Settings,
-    path: '/admin/roles',
+    path: '/access-control',
     permission: RBAC_MODULES.ACCESS_CONTROL,
   },
   {
     title: 'Checklist Templates',
     icon: ClipboardList,
-    path: '/admin/checklist-templates',
+    path: '/checklist-templates',
     permission: RBAC_MODULES.ACCESS_CONTROL,
   },
   {

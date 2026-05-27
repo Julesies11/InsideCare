@@ -12,12 +12,11 @@ export interface ParticipantDocument {
   file_size?: number;
   mime_type?: string;
   uploaded_by?: string;
-  is_restricted?: boolean;
   created_at?: string;
   updated_at?: string;
 }
 
-const PARTICIPANT_DOCUMENT_COLUMNS = 'id, participant_id, file_name, file_path, file_size, mime_type, uploaded_by, is_restricted, created_at, updated_at';
+const PARTICIPANT_DOCUMENT_COLUMNS = 'id, participant_id, file_name, file_path, file_size, mime_type, uploaded_by, created_at, updated_at';
 
 export function useParticipantDocuments(participantId?: string) {
   return useQuery({

@@ -12,12 +12,11 @@ export interface StaffDocument {
   file_size?: number;
   mime_type?: string;
   uploaded_by?: string;
-  is_restricted?: boolean;
   created_at?: string;
   updated_at?: string;
 }
 
-const STAFF_DOCUMENT_COLUMNS = 'id, staff_id, file_name, file_path, file_size, mime_type, uploaded_by, is_restricted, created_at, updated_at';
+const STAFF_DOCUMENT_COLUMNS = 'id, staff_id, file_name, file_path, file_size, mime_type, uploaded_by, created_at, updated_at';
 
 export function useStaffDocuments(staffId?: string) {
   const query = useQuery({

@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useRoles } from '@/hooks/use-roles';
@@ -49,9 +50,11 @@ const GROUPS: GroupConfig[] = [
       { id: RBAC_MODULES.PARTICIPANT_DOCUMENTS, label: 'Documents', isChild: true },
       { id: RBAC_MODULES.PARTICIPANT_SHIFT_NOTES, label: 'Shift Notes', isChild: true },
       { id: RBAC_MODULES.PARTICIPANT_ACTIVITY_LOG, label: 'Activity Log', isChild: true },
-    {
-      title: 'Employees & HR',
-      modules: [
+    ],
+  },
+  {
+    title: 'Employees',
+    modules: [
         { id: RBAC_MODULES.EMPLOYEES, label: 'Staff Profiles' },
         { id: RBAC_MODULES.STAFF_EMPLOYMENT, label: 'Employment Details', isChild: true },
         { id: RBAC_MODULES.STAFF_AVAILABILITY, label: 'Availability', isChild: true },
@@ -63,12 +66,15 @@ const GROUPS: GroupConfig[] = [
         { id: RBAC_MODULES.STAFF_LEAVE, label: 'Leave (Detail View)', isChild: true },
         { id: RBAC_MODULES.STAFF_WARNINGS, label: 'Warnings', isChild: true },
         { id: RBAC_MODULES.STAFF_ACTIVITY_LOG, label: 'Activity Log', isChild: true },
+    ],
+  },
+  {
+    title: 'Roster & Staff Scheduling',
+    modules: [
+        { id: RBAC_MODULES.ROSTER_BOARD, label: 'Roster Board' },
+        { id: RBAC_MODULES.SHIFT_TEMPLATES, label: 'Shift Setup' },
         { id: RBAC_MODULES.TIMESHEETS, label: 'Timesheet Approvals' },
         { id: RBAC_MODULES.LEAVE_REQUESTS, label: 'Leave Approvals' },
-      ],
-    },
-
-      { id: RBAC_MODULES.ROSTER_BOARD, label: 'Roster Board' },
     ],
   },
   {
@@ -258,18 +264,11 @@ export function RolePermissionsMatrix() {
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-2 py-5 border-b mb-4">
-        <div className="flex flex-col gap-1">
-          <CardTitle className="text-lg font-semibold">
-            Role Permissions
-          </CardTitle>
-          <p className="text-sm text-gray-500">
-            Select the access level for each module for the selected role.
-          </p>
-        </div>
-        <div className="w-[250px]">
+        <div className="flex flex-col gap-2 w-[350px]">
+          <Label className="text-sm font-bold text-gray-700">Select Role to Edit</Label>
           <Select value={selectedRoleId} onValueChange={setSelectedRoleId}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select a role" />
+            <SelectTrigger className="h-10 border-primary focus:ring-primary">
+              <SelectValue placeholder="-- Select a role to configure --" />
             </SelectTrigger>
             <SelectContent>
               {activeRoles.map(role => (

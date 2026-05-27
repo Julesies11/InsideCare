@@ -5,10 +5,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AuthContext } from '@/auth/context/auth-context';
 
 // Mock Hooks
-vi.mock('@/hooks/use-participant-documents', () => ({
-  useParticipantDocuments: vi.fn(() => ({ data: [{ id: '1', file_name: 'Test Doc', file_path: 'test.pdf', participant_id: 'part-1' }], isLoading: false })),
-  getParticipantFileUrl: vi.fn(() => Promise.resolve('https://test.com')),
-  useUpdateParticipantDocument: vi.fn(() => ({ mutateAsync: vi.fn() })),
+vi.mock('@/hooks/use-staff-documents', () => ({
+  useStaffDocuments: vi.fn(() => ({ data: [{ id: '1', file_name: 'Test Doc', file_path: 'test.pdf', staff_id: 'part-1' }], isLoading: false })),
+  getStaffFileUrl: vi.fn(() => Promise.resolve('https://test.com')),
+  useUpdateStaffDocument: vi.fn(() => ({ mutateAsync: vi.fn() })),
 }));
 
 vi.mock('@/hooks/use-roles', () => ({
@@ -21,7 +21,7 @@ vi.mock('@/hooks/use-role-permissions', () => ({
 
 vi.mock('@/hooks/use-document-role-permissions', () => ({
   useDocumentRolePermissions: vi.fn(() => ({ data: [], isLoading: false })),
-  useAllParticipantDocumentOverrides: vi.fn(() => ({ data: [], isLoading: false })),
+  useAllStaffDocumentOverrides: vi.fn(() => ({ data: [], isLoading: false })),
   useUpdateDocumentRolePermissions: vi.fn(() => ({ mutateAsync: vi.fn() })),
 }));
 
@@ -80,7 +80,7 @@ describe('Documents Smoke Test', () => {
   });
 
   it('renders the documents card', () => {
-    render(<Documents participantId="part-1" canAdd={true} canDelete={true} canEdit={true} />, {
+    render(<Documents staffId="part-1" canAdd={true} canDelete={true} canEdit={true} />, {
       wrapper: createWrapper(),
     });
 
@@ -89,7 +89,7 @@ describe('Documents Smoke Test', () => {
   });
 
   it('opens the upload sheet when clicking upload', async () => {
-    render(<Documents participantId="part-1" canAdd={true} canDelete={true} canEdit={true} />, {
+    render(<Documents staffId="part-1" canAdd={true} canDelete={true} canEdit={true} />, {
       wrapper: createWrapper(),
     });
 
@@ -103,7 +103,7 @@ describe('Documents Smoke Test', () => {
   });
 
   it('allows switching between grid and table views for Admins', () => {
-    render(<Documents participantId="part-1" canAdd={true} canDelete={true} canEdit={true} />, {
+    render(<Documents staffId="part-1" canAdd={true} canDelete={true} canEdit={true} />, {
       wrapper: createWrapper(),
     });
 
