@@ -21,6 +21,7 @@ interface StaffDetailFormProps {
   canEditCompliance?: boolean;
   canEditTraining?: boolean;
   canEditDocuments?: boolean;
+  canDeleteDocuments?: boolean;
   canEditRoster?: boolean;
   canEditLeave?: boolean;
   canEditWarnings?: boolean;

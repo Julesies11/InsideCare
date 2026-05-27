@@ -51,7 +51,7 @@ const PUBLIC_PAGES = [
   '/error/500',
 ];
 
-// Pages accessible by both Staff and Admins
+// Pages accessible by both Staff and Admins (Staff Portal & Shared Care)
 const STAFF_PAGES = [
   '/',
   '/staff/dashboard',
@@ -68,18 +68,19 @@ const STAFF_PAGES = [
   '/account/notifications',
 ];
 
-// Pages accessible only by Admins
+// Pages accessible only by Admins (Management & Operations)
 const ADMIN_PAGES = [
-  '/employees/staff-profiles',
-  '/employees/timesheets',
-  '/employees/leave-requests',
-  '/admin/checklist-templates',
-  '/admin/roles',
-  '/houses/profiles',
+  '/staff',
+  '/timesheet-approvals',
+  '/leave-approvals',
+  '/checklist-templates',
+  '/access-control',
+  '/houses',
   '/participants/medication-register',
   '/roster-board',
-  '/roster-board/shift-templates',
+  '/shift-setup',
   '/activity-log',
+  '/admin/leave-types',
 ];
 
 // Helper to check for White Screen of Death or major rendering errors
@@ -92,7 +93,7 @@ async function checkNoWSoD(page) {
   const errorText = page.getByText(/Something went wrong/i);
   await expect(errorText).not.toBeVisible();
 
-  // 3. Ensure no React error overlay (in dev mode)
+  // 3. Ensure no Vite crash overlay (in dev mode)
   const viteError = page.locator('vite-error-overlay');
   await expect(viteError).not.toBeAttached();
 
@@ -126,19 +127,93 @@ for (const path of ADMIN_PAGES) {
 }
 
 // Detail & Edit Pages (Using placeholder IDs for smoke testing)
-// Note: In local/Prod environments, these IDs may need adjustment.
 const MOCK_PARTICIPANT_ID = 'participant-1';
 const MOCK_STAFF_ID = 'staff-1';
 const MOCK_HOUSE_ID = 'house-1';
 const MOCK_SHIFT_ID = 'shift-1';
+const MOCK_MEDICATION_ID = 'med-1';
+const MOCK_LEAVE_ID = 'leave-1';
+const MOCK_SHIFT_TEMPLATE_ID = 'template-1';
 
-staffTest(`Participant Detail page loads`, async ({ page }) => {
-  await page.goto(`/participants/detail/${MOCK_PARTICIPANT_ID}`);
-  await checkNoWSoD(page);
-});
+// Participant Tabs
+const PARTICIPANT_TABS = [
+  'personal_details',
+  'goals',
+  'behaviour',
+  'support-needs',
+  'mealtime',
+  'medical-routine',
+  'medications',
+  'emergency-management',
+  'contacts',
+  'documents',
+  'shift_notes',
+  'activity_log'
+];
 
-staffTest(`Participant Edit page loads`, async ({ page }) => {
-  await page.goto(`/participants/detail/${MOCK_PARTICIPANT_ID}/edit`);
+for (const tab of PARTICIPANT_TABS) {
+  staffTest(`Participant Detail tab ${tab} loads`, async ({ page }) => {
+    await page.goto(`/participants/detail/${MOCK_PARTICIPANT_ID}?tab=${tab}`);
+    await checkNoWSoD(page);
+    // Verify specific section anchor is present
+    await expect(page.locator(`#${tab}`)).toBeAttached();
+  });
+}
+
+// House Tabs
+const HOUSE_TABS = [
+  'house_details',
+  'house_management',
+  'house_participants',
+  'house_general_details',
+  'house_individuals_breakdown',
+  'house_participant_dynamics',
+  'house_risk_management',
+  'house_observations',
+  'daily_operations',
+  'calendar_events',
+  'house_comms',
+  'checklists',
+  'checklist_history',
+  'resources',
+  'staff',
+  'activity_log'
+];
+
+for (const tab of HOUSE_TABS) {
+  adminTest(`House Detail tab ${tab} loads`, async ({ page }) => {
+    await page.goto(`/houses/detail/${MOCK_HOUSE_ID}?tab=${tab}`);
+    await checkNoWSoD(page);
+    await expect(page.locator(`#${tab}`)).toBeAttached();
+  });
+}
+
+// Staff Detail Tabs
+const STAFF_TABS = [
+  'personal_details',
+  'employment_details',
+  'staff_availability',
+  'emergency_contact',
+  'staff_compliance',
+  'staff_training',
+  'staff_documents',
+  'staff_roster',
+  'staff_leave',
+  'staff_warnings',
+  'staff_activity_log'
+];
+
+for (const tab of STAFF_TABS) {
+  adminTest(`Staff Detail tab ${tab} loads`, async ({ page }) => {
+    await page.goto(`/employees/staff-detail/${MOCK_STAFF_ID}?tab=${tab}`);
+    await checkNoWSoD(page);
+    await expect(page.locator(`#${tab}`)).toBeAttached();
+  });
+}
+
+// Specialized Routes
+adminTest(`Medication Detail page loads`, async ({ page }) => {
+  await page.goto(`/participants/medication-register/${MOCK_MEDICATION_ID}`);
   await checkNoWSoD(page);
 });
 
@@ -147,14 +222,13 @@ staffTest(`Staff Timesheet Form page loads`, async ({ page }) => {
   await checkNoWSoD(page);
 });
 
-// Deep Link & Tab Smoke Tests
-staffTest(`Participant Detail Medications tab loads`, async ({ page }) => {
-  await page.goto(`/participants/detail/${MOCK_PARTICIPANT_ID}?tab=medications`);
+staffTest(`Staff Leave Edit page loads`, async ({ page }) => {
+  await page.goto(`/staff/leave/${MOCK_LEAVE_ID}/edit`);
   await checkNoWSoD(page);
 });
 
-staffTest(`Participant Detail Documents tab loads`, async ({ page }) => {
-  await page.goto(`/participants/detail/${MOCK_PARTICIPANT_ID}?tab=documents`);
+adminTest(`Shift Template Edit page loads`, async ({ page }) => {
+  await page.goto(`/shift-setup/${MOCK_SHIFT_TEMPLATE_ID}`);
   await checkNoWSoD(page);
 });
 
@@ -166,30 +240,10 @@ publicTest(`Public user is redirected from protected page to signin`, async ({ p
 
 staffTest(`Staff member is blocked from Admin Roster Board`, async ({ page }) => {
   await page.goto('/roster-board');
-  // RequirePermission redirects to 403
   await expect(page).toHaveURL(/\/error\/403/);
 });
 
 staffTest(`Staff member is blocked from Admin Activity Log`, async ({ page }) => {
   await page.goto('/activity-log');
   await expect(page).toHaveURL(/\/error\/403/);
-});
-
-adminTest(`Staff Detail page loads`, async ({ page }) => {
-  await page.goto(`/employees/staff-detail/${MOCK_STAFF_ID}`);
-  await checkNoWSoD(page);
-});
-
-adminTest(`House Detail page loads`, async ({ page }) => {
-  await page.goto(`/houses/detail/${MOCK_HOUSE_ID}`);
-  await checkNoWSoD(page);
-});
-
-staffTest(`Staff Leave Edit page loads`, async ({ page }) => {
-  // Using a mock ID, this might fail if the record doesn't exist,
-  // but for a smoke test, we check if the layout at least loads.
-  await page.goto(`/staff/leave/mock-id/edit`);
-  // If we get a 404 or redirect, that's also technically not a WSoD,
-  // but here we just check for basic layout integrity.
-  await checkNoWSoD(page);
 });

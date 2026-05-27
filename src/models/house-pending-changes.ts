@@ -186,6 +186,7 @@ export interface HousePendingChanges {
       priority: string;
       phone?: string;
       address?: string;
+      file?: File;
       file_url?: string;
       file_name?: string;
       file_size?: number;
@@ -200,12 +201,14 @@ export interface HousePendingChanges {
       priority?: string;
       phone?: string;
       address?: string;
+      file?: File;
+      toDeleteFile?: boolean;
       file_url?: string;
       file_name?: string;
       file_size?: number;
       notes?: string;
     }>;
-    toDelete: string[];
+    toDelete: Array<{ id: string; filePath?: string }>;
   };
   comms: {
     toAdd: Array<{

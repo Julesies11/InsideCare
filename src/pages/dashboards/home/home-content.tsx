@@ -30,7 +30,7 @@ export function HomeContent() {
           value={staffCount}
           icon={UserCheck}
           color="bg-green-500"
-          onClick={() => navigate('/employees/staff-profiles')}
+          onClick={() => navigate('/staff')}
         />
         {isAdmin && (
           <>
@@ -39,14 +39,14 @@ export function HomeContent() {
               value="8"
               icon={ClipboardList}
               color="bg-orange-500"
-              onClick={() => navigate('/employees/timesheets')}
+              onClick={() => navigate('/timesheet-approvals')}
             />
             <StatCard
               title="Leave Requests"
               value="3"
               icon={CheckSquare}
               color="bg-purple-500"
-              onClick={() => navigate('/employees/leave-requests')}
+              onClick={() => navigate('/leave-approvals')}
             />
           </>
         )}

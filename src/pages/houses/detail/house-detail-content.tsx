@@ -29,7 +29,6 @@ import { syncUserPermissionsByStaffId } from '@/lib/rbac-sync';
 import { TABLES } from '@/config/db-tables';
 import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 import { QUERY_KEYS } from '@/config/query-keys';
-import { STATUS } from '@/config/enums';
 import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
 import { RBAC_MODULES } from '@/config/rbac-modules';
 
@@ -392,7 +391,7 @@ export function HouseDetailContent({
           for (const doc of currentPending.documents.toAdd) {
             const fileExt = doc.file.name.split('.').pop();
             const fileName = `${id}-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-            const filePath = `${STORAGE_BUCKETS.HOUSE_DOCUMENTS}/${fileName}`;
+            const filePath = `${id}/${fileName}`;
 
             const { error: uploadError } = await supabase.storage
               .from(STORAGE_BUCKETS.HOUSE_DOCUMENTS)
@@ -618,26 +617,77 @@ export function HouseDetailContent({
       // Step 10: Process pending resources
       if (canEditResources) {
         if (currentPending.resources.toAdd.length > 0) {
-          const toInsert = currentPending.resources.toAdd.map(resource => ({
-            house_id: id,
-            title: resource.title,
-            category: resource.category,
-            type: resource.type,
-            description: resource.description || null,
-            priority: resource.priority,
-            phone: resource.phone || null,
-            address: resource.address || null,
-            file_url: resource.file_url || null,
-            file_name: resource.file_name || null,
-            file_size: resource.file_size || null,
-            notes: resource.notes || null,
-          }));
-          const { error } = await supabase.from(TABLES.HOUSE_RESOURCES).insert(toInsert);
-          if (error) throw new Error(`Failed to add resources: ${error.message}`);
+          for (const resource of currentPending.resources.toAdd) {
+            let fileUrl = resource.file_url || null;
+            let fileName = resource.file_name || null;
+            let fileSize = resource.file_size || null;
+
+            if (resource.file) {
+              const fileExt = resource.file.name.split('.').pop();
+              const uniqueFileName = `res-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+              const filePath = `${id}/${uniqueFileName}`;
+
+              const { error: uploadError } = await supabase.storage
+                .from(STORAGE_BUCKETS.HOUSE_DOCUMENTS)
+                .upload(filePath, resource.file);
+
+              if (uploadError) throw new Error(`Failed to upload resource file: ${uploadError.message}`);
+              fileUrl = filePath;
+              fileName = resource.file.name;
+              fileSize = resource.file.size;
+            }
+
+            const { error } = await supabase.from(TABLES.HOUSE_RESOURCES).insert({
+              house_id: id,
+              title: resource.title,
+              category: resource.category,
+              type: resource.type,
+              description: resource.description || null,
+              priority: resource.priority,
+              phone: resource.phone || null,
+              address: resource.address || null,
+              file_url: fileUrl,
+              file_name: fileName,
+              file_size: fileSize,
+              notes: resource.notes || null,
+            });
+
+            if (error) throw new Error(`Failed to add resource: ${error.message}`);
+          }
         }
 
         if (currentPending.resources.toUpdate.length > 0) {
           for (const resource of currentPending.resources.toUpdate) {
+            let fileUrl = resource.file_url;
+            let fileName = resource.file_name;
+            let fileSize = resource.file_size;
+            let oldFileToDelete: string | null = null;
+
+            if (resource.toDeleteFile) {
+              // Mark old file for deletion after DB update
+              oldFileToDelete = resource.file_url || null;
+              fileUrl = null;
+              fileName = null;
+              fileSize = null;
+            } else if (resource.file) {
+              // Safe Swap: Upload new file first
+              const fileExt = resource.file.name.split('.').pop();
+              const uniqueFileName = `res-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+              const filePath = `${id}/${uniqueFileName}`;
+
+              const { error: uploadError } = await supabase.storage
+                .from(STORAGE_BUCKETS.HOUSE_DOCUMENTS)
+                .upload(filePath, resource.file);
+
+              if (uploadError) throw new Error(`Failed to upload new resource file: ${uploadError.message}`);
+              
+              // Mark old file for deletion after successful DB update
+              oldFileToDelete = resource.file_url || null;
+              fileUrl = filePath;
+              fileName = resource.file.name;
+              fileSize = resource.file.size;
+            }
+
             const { error } = await supabase
               .from(TABLES.HOUSE_RESOURCES)
               .update({
@@ -648,21 +698,40 @@ export function HouseDetailContent({
                 priority: resource.priority,
                 phone: resource.phone || null,
                 address: resource.address || null,
-                file_url: resource.file_url || null,
-                file_name: resource.file_name || null,
-                file_size: resource.file_size || null,
+                file_url: fileUrl === undefined ? undefined : fileUrl,
+                file_name: fileName === undefined ? undefined : fileName,
+                file_size: fileSize === undefined ? undefined : fileSize,
                 notes: resource.notes || null,
               })
               .eq('id', resource.id);
+
             if (error) throw new Error(`Failed to update resource: ${error.message}`);
+
+            // Clean up old file ONLY after DB update is successful
+            if (oldFileToDelete) {
+              await supabase.storage
+                .from(STORAGE_BUCKETS.HOUSE_DOCUMENTS)
+                .remove([oldFileToDelete]);
+            }
           }
         }
 
         if (currentPending.resources.toDelete.length > 0) {
+          const filePaths = currentPending.resources.toDelete
+            .filter(r => r.filePath)
+            .map(r => r.filePath!);
+
+          if (filePaths.length > 0) {
+            const { error: storageError } = await supabase.storage
+              .from(STORAGE_BUCKETS.HOUSE_DOCUMENTS)
+              .remove(filePaths);
+            if (storageError) console.warn('Failed to delete resource files from storage:', storageError);
+          }
+
           const { error } = await supabase
             .from(TABLES.HOUSE_RESOURCES)
             .delete()
-            .in('id', currentPending.resources.toDelete);
+            .in('id', currentPending.resources.toDelete.map(r => r.id));
           if (error) throw new Error(`Failed to delete resources: ${error.message}`);
         }
       }

@@ -27,7 +27,12 @@ const TEST_HOUSE_MANAGER = { email: 'julian.gibbings+housemanager@gmail.com', pa
 const TEST_DIRECTOR = { email: 'julian.gibbings+director@gmail.com', password: 'Password123!' };
 const TEST_FINANCE = { email: 'julian.gibbings+finance@gmail.com', password: 'Password123!' };
 
+const PROD_ADMIN = { email: 'demo@kt.com', password: 'demo123' };
+const PROD_SUPPORT_WORKER = { email: 'staff@kt.com', password: 'demo123' };
+
 export function SignInPage() {
+  const isDev = import.meta.env.DEV;
+  const isProd = import.meta.env.PROD;
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { login, getUser, logout } = useAuth();
@@ -170,6 +175,20 @@ export function SignInPage() {
           </p>
         </div>
 
+        {isDev && (
+          <Alert
+            variant="warning"
+            appearance="light"
+          >
+            <AlertIcon>
+              <AlertCircle />
+            </AlertIcon>
+            <AlertTitle className="text-center">
+              Development Environment - For testing only
+            </AlertTitle>
+          </Alert>
+        )}
+
         {error && (
           <Alert
             variant="destructive"
@@ -280,14 +299,38 @@ export function SignInPage() {
         </Button>
 
         <div className="border-t pt-4 mt-2">
-          <p className="text-xs text-center text-muted-foreground mb-3 font-medium uppercase tracking-wide">Development</p>
+          <p className="text-xs text-center text-muted-foreground mb-3 font-medium uppercase tracking-wide">Live Production</p>
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              type="button"
+              className="bg-purple-800 text-white hover:bg-purple-900 border-none"
+              size="sm"
+              onClick={() => loginAs(PROD_ADMIN)}
+              disabled={isProcessing || !isProd}
+            >
+              Prod Admin
+            </Button>
+            <Button
+              type="button"
+              className="bg-blue-800 text-white hover:bg-blue-900 border-none"
+              size="sm"
+              onClick={() => loginAs(PROD_SUPPORT_WORKER)}
+              disabled={isProcessing || !isProd}
+            >
+              Prod Support
+            </Button>
+          </div>
+        </div>
+
+        <div className="border-t pt-4 mt-2">
+          <p className="text-xs text-center text-muted-foreground mb-3 font-medium uppercase tracking-wide">Testing & Development</p>
           <div className="grid grid-cols-2 gap-2">
             <Button
               type="button"
               className="bg-purple-600 text-white hover:bg-purple-700 border-none"
               size="sm"
               onClick={() => loginAs(TEST_ADMIN)}
-              disabled={isProcessing}
+              disabled={isProcessing || !isDev}
             >
               Admin
             </Button>
@@ -296,7 +339,7 @@ export function SignInPage() {
               className="bg-blue-600 text-white hover:bg-blue-700 border-none"
               size="sm"
               onClick={() => loginAs(TEST_SUPPORT_WORKER)}
-              disabled={isProcessing}
+              disabled={isProcessing || !isDev}
             >
               Support Worker
             </Button>
@@ -305,7 +348,7 @@ export function SignInPage() {
               className="bg-emerald-600 text-white hover:bg-emerald-700 border-none"
               size="sm"
               onClick={() => loginAs(TEST_SUPERVISOR)}
-              disabled={isProcessing}
+              disabled={isProcessing || !isDev}
             >
               Supervisor
             </Button>
@@ -314,7 +357,7 @@ export function SignInPage() {
               className="bg-orange-600 text-white hover:bg-orange-700 border-none"
               size="sm"
               onClick={() => loginAs(TEST_HOUSE_MANAGER)}
-              disabled={isProcessing}
+              disabled={isProcessing || !isDev}
             >
               House Manager
             </Button>
@@ -323,7 +366,7 @@ export function SignInPage() {
               className="bg-cyan-600 text-white hover:bg-cyan-700 border-none"
               size="sm"
               onClick={() => loginAs(TEST_DIRECTOR)}
-              disabled={isProcessing}
+              disabled={isProcessing || !isDev}
             >
               Director
             </Button>
@@ -332,7 +375,7 @@ export function SignInPage() {
               className="bg-rose-600 text-white hover:bg-rose-700 border-none"
               size="sm"
               onClick={() => loginAs(TEST_FINANCE)}
-              disabled={isProcessing}
+              disabled={isProcessing || !isDev}
             >
               Finance Manager
             </Button>

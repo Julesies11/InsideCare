@@ -19,7 +19,11 @@ Management of care providers and support staff.
     - **Staff Shift View**: Dedicated read-only dashboard for staff to view their assigned shifts with checklist previews and scheduler instructions.
 - **Compliance Tracking**: Monitoring of mandatory NDIS checks and their expiry dates.
 - **Training Records**: Tracking of staff training sessions and certifications.
-- **Document Management**: Management of employee documents (ID, insurance, etc.).
+- **Granular Document Management**: New document management system aligned with Participant Documents.
+    - **Secure Storage**: Files are stored in `${staffId}/documents/` with strict RLS policies.
+    - **Role-Based Overrides**: Administrators can override global role permissions for specific documents (e.g., restricting access to disciplinary records).
+    - **Staged Uploads**: Documents are staged in a "Pending Changes" model, ensuring atomic-like updates during the staff saving process.
+    - **Audit Trail**: Metadata such as `uploaded_by`, `file_size`, and `mime_type` are captured for all records.
 
 ## 3. Roster & Operations
 The core operational engine of the care system.
@@ -51,13 +55,13 @@ Management of the physical locations where care is provided.
     - **Risk Management**: Dedicated section for tracking house-level risks, environmental alerts, and interaction strategies.
     - **Participant Context**: Qualitative breakdown of individuals and social dynamics within the house to improve care quality and safety.
     - **House Intelligence**: Consolidated views for general house details, routines, and staff observations.
+    - **Resources**: Repository for house-specific contacts, emergency procedures, and operational guides. Supports document attachments (PDF, Docs, Images) stored securely in Supabase.
 - **Setup Wizard**: Interactive guide for configuring shift templates and facility routines.
 - **House Directory**: Searchable list view with real-time occupancy tracking and deep links to participant profiles.
 - **Checklists**: Recurring operational tasks for house maintenance and compliance.
 - **House Calendar**: Centralized hub for all house activities.
-    - **Focused View**: Exclusively displays house-specific activities such as meetings, appointments, and scheduled clinical events. Rostered shifts are handled separately via the Roster Board to maintain visual clarity.
-    - **Multi-Assignment**: General events support multiple assigned staff and participants using a robust many-to-many junction table architecture.
 - **Forms**: Data collection forms for various house-related activities.
+- **House Files**: General document management for regulatory and facility records.
 
 ## 5. Compliance & Audit
 System-wide tools for ensuring regulatory and operational standards.

@@ -38,3 +38,12 @@ supabase/.temp/
 .vscode/
 .claude/
 *.log
+.env.production
+
+# Playwright test artifacts
+playwright/.auth/admin.json
+playwright/.auth/staff.json
+playwright-report/index.html
+test-results/.last-run.json
+test-results/*
+

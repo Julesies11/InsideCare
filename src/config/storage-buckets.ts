@@ -10,7 +10,6 @@ export const STORAGE_BUCKETS = {
   CHECKLIST_ATTACHMENTS: 'ic_checklist_attachments',
   STAFF_PHOTOS: 'ic_staff_photos',
   PARTICIPANT_PHOTOS: 'ic_participant_photos',
-  HOUSE_RESOURCES: 'ic_house_resources',
 } as const;
 
 export type StorageBucket = typeof STORAGE_BUCKETS[keyof typeof STORAGE_BUCKETS];
