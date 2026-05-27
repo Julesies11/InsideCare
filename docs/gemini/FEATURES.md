@@ -5,6 +5,7 @@ This document provides a brief overview of the major modules and features in the
 ## 1. Participant Management
 Central hub for all information related to care recipients.
 - **Profiles**: Comprehensive views of personal information, medical history, and goals.
+- **Medication Register**: Centralized master list of all medications used in care. Supports server-side pagination (50 per page), remote sorting, and category filtering. Provides an administrative interface for clinical guidance (side effects, interactions).
 - **Child Entities**: Detailed management of medications, documents, goals, notes, funding, contacts, hygiene routines, and restrictive practices.
 - **Optimized Saving**: Uses `json-diff-ts` to only update changed fields.
 
@@ -22,7 +23,7 @@ Management of care providers and support staff.
 
 ## 3. Roster & Operations
 The core operational engine of the care system.
-- **House Shift Templates**: Define recurring house structures (Morning, Day, Night, etc.) with custom times, icons, and pre-linked checklist routines (e.g., "Morning Protocol + Handover").
+- **House Shift Templates**: Define recurring house structures (Morning, Day, Night, etc.) with custom times, icons, and pre-linked checklist routines (e.g., "Morning Protocol + Handover"). Managed centrally via a dedicated administration page under the Roster Board.
 - **Roster Auto-Fill**: Rapidly generate multi-week coverage by deploying house shift templates into the calendar with one click using the "Build Roster" tool.
 - **Schedule Checklists**: Standalone tool to bulk schedule facility-wide checklists (e.g., "Weekly Deep Clean", "Vehicle Check") across multiple weeks independently of specific shifts.
 - **Roster Board**: Visual representation of staff shifts and house assignments with intelligent staff filtering (showing active staff assigned to the house).
@@ -46,13 +47,16 @@ Integrated system for managing staff unavailability and holiday requests.
 
 ## 5. House & Facility Management
 Management of the physical locations where care is provided.
-- **House Profiles**: Information about capacity, occupancy, and facility details.
+- **Enhanced House Profiles**: Centralized management of facility-specific clinical and operational details.
+    - **Risk Management**: Dedicated section for tracking house-level risks, environmental alerts, and interaction strategies.
+    - **Participant Context**: Qualitative breakdown of individuals and social dynamics within the house to improve care quality and safety.
+    - **House Intelligence**: Consolidated views for general house details, routines, and staff observations.
 - **Setup Wizard**: Interactive guide for configuring shift templates and facility routines.
+- **House Directory**: Searchable list view with real-time occupancy tracking and deep links to participant profiles.
 - **Checklists**: Recurring operational tasks for house maintenance and compliance.
 - **House Calendar**: Centralized hub for all house activities.
-    - **Integrated View**: Displays rostered shifts, scheduled checklists, and general events (Meetings, Appointments) in a single unified view.
+    - **Focused View**: Exclusively displays house-specific activities such as meetings, appointments, and scheduled clinical events. Rostered shifts are handled separately via the Roster Board to maintain visual clarity.
     - **Multi-Assignment**: General events support multiple assigned staff and participants using a robust many-to-many junction table architecture.
-    - **Quick Assign**: Ability to assign staff to "Open" shifts directly from the calendar view.
 - **Forms**: Data collection forms for various house-related activities.
 
 ## 5. Compliance & Audit
@@ -74,3 +78,10 @@ Comprehensive alert system for critical updates and workflows.
 - **Role-Based Alerts**: Automated triggers for leave requests, timesheet approvals, roster changes, and compliance expiries.
 - **Real-time Sync**: Uses Supabase Realtime for instant in-app alerts and topbar toasts.
 - **Activity Correlation**: Integrated with the Activity Log to provide context for clinical updates.
+
+## 8. Security & RBAC
+- **Granular Permissions**: System-wide support for module-specific access levels (Full, Context-Read/Write, Context-Read-Only, Read-Only, None).
+- **Hierarchical Module Security**: Specialized grouping for **Houses**, **Participant Records**, and **Staff Profiles**, allowing independent control over specific sections (e.g., Medications, Compliance, Employment).
+- **Inclusive Entry Logic**: Smart routing that allows access to a module if a user has any relevant sub-permission, ensuring they can manage authorized data even if parent access is restricted.
+- **Visual Locking**: Intuitive UI that "ghost-locks" dependent sub-permissions when a parent gateway is disabled, guiding administrators toward logical configurations.
+- **JWT-Driven RLS**: High-performance database security that enforces these granular rules directly at the data layer using Supabase Row Level Security.

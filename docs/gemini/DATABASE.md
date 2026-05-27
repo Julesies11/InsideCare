@@ -23,9 +23,15 @@ The project employs a **Gold Standard RLS architecture**:
 1.  **Explicit Command Separation**: Policies are explicitly separated into `SELECT`, `INSERT`, `UPDATE`, and `DELETE` commands. Broad `ALL` policies for non-admin roles are strictly forbidden to ensure granular control.
 2.  **Delete Restriction (Admin Only)**: All records (clinical, transactional, organizational, master lists) can **only** be deleted by global `Admin` users (defined as `full` access to `access_control`). This enforces the project-wide soft-delete architecture at the database level.
 3.  **Level-Guarded Context**: House or staff-specific access is only granted if the user's permission level for that specific module is at least `context_read_only`.
-4.  **Master List Protection**: Master List tables (e.g., `medications_master`) are restricted to users with the `master_lists` permission.
-5.  **Audit Integrity**: Use of `WITH CHECK` clauses ensures that users can only insert or update records that they own or are authorized to manage (e.g., matching their own `staff_id` or `house_id`).
-6.  **JWT-Driven Performance**: System performance is maintained using memory-resident `auth.jwt()` lookups via `SECURITY DEFINER` helper functions.
+4.  **Hierarchical Module Access**: Permissions are structured hierarchically:
+    - **Houses**: `houses` parent with `house_management`, `house_operations`, etc., as children.
+    - **Participant Records**: `participants` parent with `participant_goals`, `participant_medications`, etc., as children.
+    - **Staff Profiles**: `employees` parent with `staff_compliance`, `staff_employment`, etc., as children.
+    - *Enforcement*: Setting a parent to `none` ghost-locks children in the UI, but database policies are inclusive to prevent logic deadlocks.
+5.  **Inclusive Entry Logic**: Application-level entry guards for complex modules (like Houses) use OR-logic. A user is granted access to a module if they have authorized access to ANY granular sub-module, ensuring they can reach the specific data they are permitted to manage.
+6.  **Master List Protection**: Master List tables (e.g., `medications_master`) are restricted to users with the `master_lists` permission.
+7.  **Audit Integrity**: Use of `WITH CHECK` clauses ensures that users can only insert or update records that they own or are authorized to manage (e.g., matching their own `staff_id` or `house_id`).
+8.  **JWT-Driven Performance**: System performance is maintained using memory-resident `auth.jwt()` lookups via `SECURITY DEFINER` helper functions.
 
 ### Migration Naming Convention
 New migrations must follow the `YYYYMMDDXX_description.sql` format:
@@ -62,12 +68,17 @@ The project uses Postgres Enums for critical columns (e.g., `public.status_enum`
 
 ## Core Entities
 
-### 1. Participants (`public.participants`)
+### 1. Participants (`public.ic_participants`)
 The central entity representing the individuals receiving care.
 - **Key Fields:** `id`, `name`, `email`, `house_id`, `status` (`active`, `draft`, etc.), `ndis_number`, `support_level`.
 - **Relationships:** Belongs to a House (`house_id`). Has many Notes, Medications, Goals, Documents, etc.
 
-### 2. Staff (`public.staff`)
+### 2. Medication Master (`public.ic_medications_master`)
+Centralized register of all medications used in care.
+- **Key Fields:** `id`, `medication_name` (UNIQUE), `category`, `common_dosages`, `side_effects`, `interactions`, `is_active`.
+- **Constraint**: Enforces uniqueness on `medication_name` to ensure register integrity.
+
+### 3. Staff (`public.ic_staff`)
 The employees providing care.
 - **Key Fields:** `id`, `name`, `email`, `role_id`, `status`, `auth_user_id` (links to Supabase Auth).
 - **Relationships:** Belongs to a Department. Assigned to many Houses via `house_staff_assignments`.
@@ -77,17 +88,24 @@ The employees providing care.
     3. The assignment record has no `end_date` OR the `end_date` is in the future.
     4. *This definition must be strictly enforced across all dropdowns, rosters, and house-linked counts.*
 
-### 3. Houses (`public.houses`)
+### 4. Houses (`public.ic_houses`)
 The care facilities/locations.
 - **Key Fields:** `id`, `name`, `branch_id`, `capacity`, `current_occupancy`.
+- **Management Fields:** 
+    - `general_house_details`: Routines, preferences, and general house rules.
+    - `individuals_breakdown`: Qualitative description of each person residing in the house.
+    - `participant_dynamics`: Social dynamics and interactions between participants.
+    - `risk_management`: House-level risk mitigation strategies and alerts.
+    - `observations`: General staff observations regarding the house environment.
 - **Relationships:** Belongs to a Branch. Has many Participants and Staff assignments.
 
 ## Child Entities (Participant-related)
 
-- **`participant_medications`**: Tracks medications, dosage, and frequency. Linked to `medications_master`.
+- **`participant_medications`**: Tracks medications and dosage. Linked to `medications_master`.
 - **`participant_goals` & `participant_goal_progress`**: Tracks care goals and their progress.
 - **`participant_notes`**: General and important notes about the participant.
 - **`participant_documents`**: Files uploaded for the participant.
+    - **Security**: Uses a granular "Direct Override > Global Baseline" permission model. The `is_restricted` column has been removed. Permissions are handled via `ic_participant_document_roles` where Admins can set specific `Edit`, `Read-only`, or `No Access` overrides for individual roles per document.
 - **`participant_contacts`**: External contacts (GP, Pharmacy, Support Coordinator).
 - **`participant_funding`**: Tracks NDIS or other funding sources and balances.
 - **`participant_hygiene_routines`**: Specific care routines.

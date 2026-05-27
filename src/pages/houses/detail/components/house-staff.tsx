@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { SecureAvatar } from '@/components/ui/secure-avatar';
 import { Plus, Edit, Trash2, Clock, Star } from 'lucide-react';
+import { Link } from 'react-router';
 import { useHouseStaffAssignments } from '@/hooks/use-house-staff-assignments';
 import { useStaff } from '@/hooks/use-staff';
 import { StaffCombobox } from './staff-combobox';
@@ -332,7 +333,12 @@ export function HouseStaff({
                             bucket={STORAGE_BUCKETS.STAFF_PHOTOS} 
                           />
                           <div className={`flex flex-col ${isPendingDelete ? 'line-through' : ''}`}>
-                            <span className="font-bold text-gray-900">{getStaffName(staffAssignment)}</span>
+                            <Link 
+                              to={`/employees/staff-detail/${staffAssignment.staff_id}`}
+                              className={`font-bold text-gray-900 hover:underline hover:text-primary ${isPendingDelete ? 'pointer-events-none opacity-50' : ''}`}
+                            >
+                              {getStaffName(staffAssignment)}
+                            </Link>
                             {staffAssignment.is_primary && (
                               <div className="flex items-center gap-1 text-[10px] text-blue-600 font-bold uppercase tracking-tight">
                                 <Star className="size-3 fill-blue-600" />

@@ -2,25 +2,33 @@ import {
   ScrollspyMenu,
   ScrollspyMenuItems,
 } from '@/partials/navbar/scrollspy-menu';
+import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
+import { RBAC_MODULES } from '@/config/rbac-modules';
 
 export function ParticipantDetailSidebar() {
+  const { hasAccess } = useRBAC();
+
   const items: ScrollspyMenuItems = [
     {
       title: 'Personal Details',
       target: 'personal_details',
       active: true,
+      hidden: !hasAccess({ resource: RBAC_MODULES.PARTICIPANTS, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY }),
     },
     {
       title: 'Goals',
       target: 'goals',
+      hidden: !hasAccess({ resource: RBAC_MODULES.PARTICIPANT_GOALS, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY }),
     },
     {
       title: 'Behaviour & Support',
       target: 'behaviour',
+      hidden: !hasAccess({ resource: RBAC_MODULES.PARTICIPANT_BEHAVIOUR, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY }),
     },
     {
       title: 'Support Needs',
       target: 'support-needs',
+      hidden: !hasAccess({ resource: RBAC_MODULES.PARTICIPANT_SUPPORT_NEEDS, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY }),
       children: [
         {
           title: 'Personal Care and Routine',
@@ -63,10 +71,12 @@ export function ParticipantDetailSidebar() {
     {
       title: 'Mealtime Management',
       target: 'mealtime',
+      hidden: !hasAccess({ resource: RBAC_MODULES.PARTICIPANT_MEALTIME, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY }),
     },
     {
       title: 'Medical Routine',
       target: 'medical-routine',
+      hidden: !hasAccess({ resource: RBAC_MODULES.PARTICIPANT_MEDICAL_ROUTINE, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY }),
       children: [
         {
           title: 'Pharmacy',
@@ -85,28 +95,37 @@ export function ParticipantDetailSidebar() {
     {
       title: 'Medications',
       target: 'medications',
+      hidden: !hasAccess({ resource: RBAC_MODULES.PARTICIPANT_MEDICATIONS, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY }),
     },
     {
       title: 'Emergency Management',
       target: 'emergency-management',
+      hidden: !hasAccess({ resource: RBAC_MODULES.PARTICIPANT_EMERGENCY, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY }),
     },
     {
       title: 'Contacts',
       target: 'contacts',
+      hidden: !hasAccess({ resource: RBAC_MODULES.PARTICIPANT_CONTACTS, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY }),
     },
     {
       title: 'Documents',
       target: 'documents',
+      hidden: !hasAccess({ resource: RBAC_MODULES.PARTICIPANT_DOCUMENTS, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY }),
     },
     {
       title: 'Shift Notes',
       target: 'shift_notes',
+      hidden: !hasAccess({ resource: RBAC_MODULES.PARTICIPANT_SHIFT_NOTES, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY }),
     },
     {
       title: 'Activity Log',
       target: 'activity_log',
+      hidden: !hasAccess({ resource: RBAC_MODULES.PARTICIPANT_ACTIVITY_LOG, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY }),
     },
   ];
 
-  return <ScrollspyMenu items={items} />;
+  // Filter out hidden items
+  const filteredItems = items.filter(item => !item.hidden);
+
+  return <ScrollspyMenu items={filteredItems} />;
 }

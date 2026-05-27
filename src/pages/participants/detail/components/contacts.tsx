@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,6 +29,7 @@ interface ContactsProps {
   canEdit: boolean;
   pendingChanges?: ContactPendingChanges;
   onPendingChangesChange?: (changes: ContactPendingChanges) => void;
+  refreshTrigger?: number;
 }
 
 export function Contacts({ 
@@ -37,7 +38,8 @@ export function Contacts({
   canDelete,
   canEdit,
   pendingChanges,
-  onPendingChangesChange 
+  onPendingChangesChange,
+  refreshTrigger,
 }: ContactsProps) {
   const queryClient = useQueryClient();
   const [showDialog, setShowDialog] = useState(false);
@@ -53,8 +55,14 @@ export function Contacts({
     is_active: true,
   });
 
-  const { data: contacts = [], isLoading: loading } = useParticipantContacts(participantId);
+  const { data: contacts = [], isLoading: loading, refetch } = useParticipantContacts(participantId);
   const { data: contactTypes = [] } = useContactTypesMaster();
+
+  useEffect(() => {
+    if (refreshTrigger !== undefined && refreshTrigger > 0) {
+      refetch();
+    }
+  }, [refreshTrigger, refetch]);
 
   const handleAdd = () => {
     setEditingContact(null);
@@ -238,7 +246,7 @@ export function Contacts({
                         <div className="flex justify-end gap-1">
                           {!isPendingDelete && !isPendingAdd && !isPendingUpdate && (
                             <>
-                              <Button variant="ghost" size="sm" onClick={() => handleEdit(contact)} disabled={!canAdd}>
+                              <Button variant="ghost" size="sm" onClick={() => handleEdit(contact)} disabled={!canEdit}>
                                 <Edit className="size-4" />
                               </Button>
                               <Button variant="ghost" size="sm" className="text-destructive" onClick={() => handleDelete(contact)} disabled={!canDelete}>
@@ -256,7 +264,7 @@ export function Contacts({
                               variant="ghost"
                               size="sm"
                               onClick={() => handleCancelPendingUpdate(contact.id)}
-                              disabled={!canAdd}
+                              disabled={!canEdit}
                             >
                               Undo
                             </Button>

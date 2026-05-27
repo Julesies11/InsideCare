@@ -100,7 +100,9 @@ export function ChecklistExecutionDialog({
             if (!attachments[att.item_id]) attachments[att.item_id] = [];
             const { data: urlData, error: urlError } = await supabase.storage
               .from(STORAGE_BUCKETS.CHECKLIST_ATTACHMENTS)
-              .createSignedUrl(att.file_path, 3600);
+              .createSignedUrl(att.file_path, 3600, {
+                download: att.file_name || true
+              });
             
             if (urlError) {
               console.error('Error creating signed URL for attachment:', urlError);

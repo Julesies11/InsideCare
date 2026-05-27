@@ -31,7 +31,6 @@ import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
 import { TABLES } from '@/config/db-tables';
 import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 import { QUERY_KEYS } from '@/config/query-keys';
-import { STATUS } from '@/config/enums';
 
 import { ParticipantPendingChanges, emptyParticipantPendingChanges } from '@/models/participant-pending-changes';
 import { MealtimeManagement } from './components/mealtime-management';
@@ -103,9 +102,52 @@ export function ParticipantDetailContent({
   });
   
   const { hasAccess } = useRBAC();
-  const canEdit = hasAccess({ resource: RBAC_MODULES.PARTICIPANTS, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE });
-  const canAdd = hasAccess({ resource: RBAC_MODULES.PARTICIPANTS, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE });
-  const canDelete = hasAccess({ resource: RBAC_MODULES.PARTICIPANTS, requiredLevel: ACCESS_LEVEL.FULL });
+
+  // Granular RBAC Flags
+  const canViewPersonal = hasAccess({ resource: RBAC_MODULES.PARTICIPANTS, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY });
+  const canEditPersonal = hasAccess({ resource: RBAC_MODULES.PARTICIPANTS, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE });
+
+  const canViewGoals = hasAccess({ resource: RBAC_MODULES.PARTICIPANT_GOALS, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY });
+  const canEditGoals = hasAccess({ resource: RBAC_MODULES.PARTICIPANT_GOALS, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE });
+  const canAddGoals = canEditGoals;
+  const canDeleteGoals = hasAccess({ resource: RBAC_MODULES.PARTICIPANT_GOALS, requiredLevel: ACCESS_LEVEL.FULL });
+
+  const canViewBehaviour = hasAccess({ resource: RBAC_MODULES.PARTICIPANT_BEHAVIOUR, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY });
+  const canEditBehaviour = hasAccess({ resource: RBAC_MODULES.PARTICIPANT_BEHAVIOUR, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE });
+
+  const canViewSupportNeeds = hasAccess({ resource: RBAC_MODULES.PARTICIPANT_SUPPORT_NEEDS, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY });
+  const canEditSupportNeeds = hasAccess({ resource: RBAC_MODULES.PARTICIPANT_SUPPORT_NEEDS, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE });
+
+  const canViewMealtime = hasAccess({ resource: RBAC_MODULES.PARTICIPANT_MEALTIME, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY });
+  const canEditMealtime = hasAccess({ resource: RBAC_MODULES.PARTICIPANT_MEALTIME, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE });
+
+  const canViewMedicalRoutine = hasAccess({ resource: RBAC_MODULES.PARTICIPANT_MEDICAL_ROUTINE, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY });
+  const canEditMedicalRoutine = hasAccess({ resource: RBAC_MODULES.PARTICIPANT_MEDICAL_ROUTINE, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE });
+
+  const canViewMedications = hasAccess({ resource: RBAC_MODULES.PARTICIPANT_MEDICATIONS, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY });
+  const canEditMedications = hasAccess({ resource: RBAC_MODULES.PARTICIPANT_MEDICATIONS, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE });
+  const canAddMedications = canEditMedications;
+  const canDeleteMedications = hasAccess({ resource: RBAC_MODULES.PARTICIPANT_MEDICATIONS, requiredLevel: ACCESS_LEVEL.FULL });
+
+  const canViewEmergency = hasAccess({ resource: RBAC_MODULES.PARTICIPANT_EMERGENCY, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY });
+  const canEditEmergency = hasAccess({ resource: RBAC_MODULES.PARTICIPANT_EMERGENCY, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE });
+
+  const canViewContacts = hasAccess({ resource: RBAC_MODULES.PARTICIPANT_CONTACTS, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY });
+  const canEditContacts = hasAccess({ resource: RBAC_MODULES.PARTICIPANT_CONTACTS, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE });
+  const canAddContacts = canEditContacts;
+  const canDeleteContacts = hasAccess({ resource: RBAC_MODULES.PARTICIPANT_CONTACTS, requiredLevel: ACCESS_LEVEL.FULL });
+
+  const canViewDocuments = hasAccess({ resource: RBAC_MODULES.PARTICIPANT_DOCUMENTS, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY });
+  const canEditDocuments = hasAccess({ resource: RBAC_MODULES.PARTICIPANT_DOCUMENTS, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE });
+  const canAddDocuments = canEditDocuments;
+  const canDeleteDocuments = hasAccess({ resource: RBAC_MODULES.PARTICIPANT_DOCUMENTS, requiredLevel: ACCESS_LEVEL.FULL });
+
+  const canViewShiftNotes = hasAccess({ resource: RBAC_MODULES.PARTICIPANT_SHIFT_NOTES, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY });
+  const canEditShiftNotes = hasAccess({ resource: RBAC_MODULES.PARTICIPANT_SHIFT_NOTES, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE });
+  const canAddShiftNotes = canEditShiftNotes;
+  const canDeleteShiftNotes = hasAccess({ resource: RBAC_MODULES.PARTICIPANT_SHIFT_NOTES, requiredLevel: ACCESS_LEVEL.FULL });
+
+  const canViewActivityLog = hasAccess({ resource: RBAC_MODULES.PARTICIPANT_ACTIVITY_LOG, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY });
   
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -188,7 +230,7 @@ export function ParticipantDetailContent({
   useEffect(() => {
     if (participantData && !hasInitialized) {
       setParticipant(participantData);
-      const mappedData: ParticipantFormData = {
+      const mappedData: any = {
         participant_name: participantData.participant_name ?? '',
         email: participantData.email ?? '',
         house_phone: participantData.house_phone ?? '',
@@ -293,197 +335,203 @@ export function ParticipantDetailContent({
 
     try {
       // Step 1: Process pending goals
-      if (currentPending.goals.toAdd.length > 0) {
-        const toInsert = currentPending.goals.toAdd.map(goal => ({
-          participant_id: id,
-          goal_type: goal.goal_type,
-          description: goal.description || null,
-          is_active: goal.is_active,
-        }));
-        
-        const { error } = await supabase.from('ic_participant_goals').insert(toInsert);
-        if (error) throw new Error(`Failed to add goals: ${error.message}`);
-      }
+      if (canEditGoals) {
+        if (currentPending.goals.toAdd.length > 0) {
+          const toInsert = currentPending.goals.toAdd.map(goal => ({
+            participant_id: id,
+            goal_type: goal.goal_type,
+            description: goal.description || null,
+            is_active: goal.is_active,
+          }));
+          
+          const { error } = await supabase.from('ic_participant_goals').insert(toInsert);
+          if (error) throw new Error(`Failed to add goals: ${error.message}`);
+        }
 
-      if (currentPending.goals.toUpdate.length > 0) {
-        for (const goal of currentPending.goals.toUpdate) {
+        if (currentPending.goals.toUpdate.length > 0) {
+          for (const goal of currentPending.goals.toUpdate) {
+            const { error } = await supabase
+              .from('ic_participant_goals')
+              .update({
+                goal_type: goal.goal_type,
+                description: goal.description || null,
+                is_active: goal.is_active,
+              })
+              .eq('id', goal.id);
+            if (error) throw new Error(`Failed to update goal: ${error.message}`);
+          }
+        }
+
+        if (canDeleteGoals && currentPending.goals.toDelete.length > 0) {
           const { error } = await supabase
             .from('ic_participant_goals')
-            .update({
-              goal_type: goal.goal_type,
-              description: goal.description || null,
-              is_active: goal.is_active,
-            })
-            .eq('id', goal.id);
-          if (error) throw new Error(`Failed to update goal: ${error.message}`);
+            .delete()
+            .in('id', currentPending.goals.toDelete);
+          
+          if (error) throw new Error(`Failed to delete goals: ${error.message}`);
         }
-      }
-
-      if (currentPending.goals.toDelete.length > 0) {
-        const { error } = await supabase
-          .from('ic_participant_goals')
-          .delete()
-          .in('id', currentPending.goals.toDelete);
-        
-        if (error) throw new Error(`Failed to delete goals: ${error.message}`);
       }
 
       // Step 2: Process pending medications
-      if (currentPending.medications.toAdd.length > 0) {
-        const toInsert = currentPending.medications.toAdd.map(med => ({
-          participant_id: id,
-          medication_id: med.medication_id,
-          dosage: med.dosage || null,
-          frequency: med.frequency || null,
-          is_active: med.is_active,
-        }));
+      if (canEditMedications) {
+        if (currentPending.medications.toAdd.length > 0) {
+          const toInsert = currentPending.medications.toAdd.map(med => ({
+            participant_id: id,
+            medication_id: med.medication_id,
+            dosage: med.dosage || null,
+            frequency: med.frequency || null,
+            is_active: med.is_active,
+          }));
 
-        const { error } = await supabase.from(TABLES.PARTICIPANT_MEDICATIONS).insert(toInsert);
-        if (error) throw new Error(`Failed to add medications: ${error.message}`);
-        
-        if (participant?.house_id) {
-          await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.participant_name || 'Participant', 'medication');
+          const { error } = await supabase.from(TABLES.PARTICIPANT_MEDICATIONS).insert(toInsert);
+          if (error) throw new Error(`Failed to add medications: ${error.message}`);
+          
+          if (participant?.house_id) {
+            await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.participant_name || 'Participant', 'medication');
+          }
         }
-      }
 
-      if (currentPending.medications.toUpdate.length > 0) {
-        for (const med of currentPending.medications.toUpdate) {
+        if (currentPending.medications.toUpdate.length > 0) {
+          for (const med of currentPending.medications.toUpdate) {
+            const { error } = await supabase
+              .from(TABLES.PARTICIPANT_MEDICATIONS)
+              .update({
+                medication_id: med.medication_id,
+                dosage: med.dosage || null,
+                frequency: med.frequency || null,
+                is_active: med.is_active,
+              })
+              .eq('id', med.id);
+            if (error) throw new Error(`Failed to update medication: ${error.message}`);
+          }
+          if (participant?.house_id) {
+            await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.participant_name || 'Participant', 'medication');
+          }
+        }
+
+        if (canDeleteMedications && currentPending.medications.toDelete.length > 0) {
           const { error } = await supabase
             .from(TABLES.PARTICIPANT_MEDICATIONS)
-            .update({
-              medication_id: med.medication_id,
-              dosage: med.dosage || null,
-              frequency: med.frequency || null,
-              is_active: med.is_active,
-            })
-            .eq('id', med.id);
-          if (error) throw new Error(`Failed to update medication: ${error.message}`);
+            .delete()
+            .in('id', currentPending.medications.toDelete);
+          
+          if (error) throw new Error(`Failed to delete medications: ${error.message}`);
         }
-        if (participant?.house_id) {
-          await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.participant_name || 'Participant', 'medication');
-        }
-      }
-
-      if (currentPending.medications.toDelete.length > 0) {
-        const { error } = await supabase
-          .from(TABLES.PARTICIPANT_MEDICATIONS)
-          .delete()
-          .in('id', currentPending.medications.toDelete);
-        
-        if (error) throw new Error(`Failed to delete medications: ${error.message}`);
       }
 
       // Step 3: Process pending contacts
-      if (currentPending.contacts.toAdd.length > 0) {
-        const toInsert = currentPending.contacts.toAdd.map(contact => ({
-          participant_id: id,
-          contact_name: contact.contact_name,
-          contact_type_id: contact.contact_type_id,
-          phone: contact.phone || null,
-          email: contact.email || null,
-          address: contact.address || null,
-          notes: contact.notes || null,
-          is_active: contact.is_active,
-        }));
+      if (canEditContacts) {
+        if (currentPending.contacts.toAdd.length > 0) {
+          const toInsert = currentPending.contacts.toAdd.map(contact => ({
+            participant_id: id,
+            contact_name: contact.contact_name,
+            contact_type_id: contact.contact_type_id,
+            phone: contact.phone || null,
+            email: contact.email || null,
+            address: contact.address || null,
+            notes: contact.notes || null,
+            is_active: contact.is_active,
+          }));
 
-        const { error } = await supabase.from(TABLES.PARTICIPANT_CONTACTS).insert(toInsert);
-        if (error) throw new Error(`Failed to add contacts: ${error.message}`);
-      }
+          const { error } = await supabase.from(TABLES.PARTICIPANT_CONTACTS).insert(toInsert);
+          if (error) throw new Error(`Failed to add contacts: ${error.message}`);
+        }
 
-      if (currentPending.contacts.toUpdate.length > 0) {
-        for (const contact of currentPending.contacts.toUpdate) {
+        if (currentPending.contacts.toUpdate.length > 0) {
+          for (const contact of currentPending.contacts.toUpdate) {
+            const { error } = await supabase
+              .from(TABLES.PARTICIPANT_CONTACTS)
+              .update({
+                contact_name: contact.contact_name,
+                contact_type_id: contact.contact_type_id,
+                phone: contact.phone || null,
+                email: contact.email || null,
+                address: contact.address || null,
+                notes: contact.notes || null,
+                is_active: contact.is_active,
+              })
+              .eq('id', contact.id);
+            if (error) throw new Error(`Failed to update contact: ${error.message}`);
+          }
+        }
+
+        if (canDeleteContacts && currentPending.contacts.toDelete.length > 0) {
           const { error } = await supabase
             .from(TABLES.PARTICIPANT_CONTACTS)
-            .update({
-              contact_name: contact.contact_name,
-              contact_type_id: contact.contact_type_id,
-              phone: contact.phone || null,
-              email: contact.email || null,
-              address: contact.address || null,
-              notes: contact.notes || null,
-              is_active: contact.is_active,
-            })
-            .eq('id', contact.id);
-          if (error) throw new Error(`Failed to update contact: ${error.message}`);
+            .delete()
+            .in('id', currentPending.contacts.toDelete);
+          
+          if (error) throw new Error(`Failed to delete contacts: ${error.message}`);
         }
-      }
-
-      if (currentPending.contacts.toDelete.length > 0) {
-        const { error } = await supabase
-          .from(TABLES.PARTICIPANT_CONTACTS)
-          .delete()
-          .in('id', currentPending.contacts.toDelete);
-        
-        if (error) throw new Error(`Failed to delete contacts: ${error.message}`);
       }
 
       // Step 4: Process pending documents
-      if (currentPending.documents.toAdd.length > 0) {
-        const toInsert = [];
-        for (const doc of currentPending.documents.toAdd) {
-          const fileExt = doc.file.name.split('.').pop();
-          const fileName = `${id}-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-          const filePath = `${id}/documents/${fileName}`;
+      if (canEditDocuments) {
+        if (currentPending.documents.toAdd.length > 0) {
+          const toInsert = [];
+          for (const doc of currentPending.documents.toAdd) {
+            const fileExt = doc.file.name.split('.').pop();
+            const fileName = `${id}-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+            const filePath = `${id}/documents/${fileName}`;
 
-          const { error: uploadError } = await supabase.storage
-            .from(STORAGE_BUCKETS.PARTICIPANT_DOCUMENTS)
-            .upload(filePath, doc.file);
+            const { error: uploadError } = await supabase.storage
+              .from(STORAGE_BUCKETS.PARTICIPANT_DOCUMENTS)
+              .upload(filePath, doc.file);
 
-          if (uploadError) {
-            throw new Error(`Failed to upload document "${doc.file.name}": ${uploadError.message}`);
+            if (uploadError) {
+              throw new Error(`Failed to upload document "${doc.file.name}": ${uploadError.message}`);
+            }
+
+            toInsert.push({
+              participant_id: id,
+              file_name: doc.file.name,
+              file_path: filePath,
+              file_size: doc.file.size,
+              mime_type: doc.file.type,
+            });
           }
 
-          toInsert.push({
-            participant_id: id,
-            file_name: doc.file.name,
-            file_path: filePath,
-            file_size: doc.file.size,
-            mime_type: doc.file.type,
-          });
+          const { error: dbError } = await supabase.from(TABLES.PARTICIPANT_DOCUMENTS).insert(toInsert);
+          if (dbError) throw new Error(`Failed to create document records: ${dbError.message}`);
         }
 
-        const { error: dbError } = await supabase.from(TABLES.PARTICIPANT_DOCUMENTS).insert(toInsert);
-        if (dbError) throw new Error(`Failed to create document records: ${dbError.message}`);
-      }
+        if (canDeleteDocuments && currentPending.documents.toDelete.length > 0) {
+          const ids = currentPending.documents.toDelete.map(d => d.id);
+          const filePaths = currentPending.documents.toDelete.map(d => d.filePath);
 
-      if (currentPending.documents.toDelete.length > 0) {
-        const ids = currentPending.documents.toDelete.map(d => d.id);
-        const filePaths = currentPending.documents.toDelete.map(d => d.filePath);
+          await supabase.storage.from(STORAGE_BUCKETS.PARTICIPANT_DOCUMENTS).remove(filePaths);
 
-        await supabase.storage.from(STORAGE_BUCKETS.PARTICIPANT_DOCUMENTS).remove(filePaths);
-
-        const { error: dbError } = await supabase.from(TABLES.PARTICIPANT_DOCUMENTS).delete().in('id', ids);
-        if (dbError) throw new Error(`Failed to delete document records: ${dbError.message}`);
+          const { error: dbError } = await supabase.from(TABLES.PARTICIPANT_DOCUMENTS).delete().in('id', ids);
+          if (dbError) throw new Error(`Failed to delete document records: ${dbError.message}`);
+        }
       }
 
       // Profile Photo handling
-      if (photoFile) {
-        // Use the new handleAvatarUpload utility for resizing and processing
-        const newPhotoUrl = await handleAvatarUpload(photoFile, STORAGE_BUCKETS.PARTICIPANT_PHOTOS, id);
+      if (canEditPersonal) {
+        if (photoFile) {
+          // Use the new handleAvatarUpload utility for resizing and processing
+          const newPhotoUrl = await handleAvatarUpload(photoFile, STORAGE_BUCKETS.PARTICIPANT_PHOTOS, id);
 
-        const { error: photoErr } = await supabase
-          .from(TABLES.PARTICIPANTS)
-          .update({ photo_url: newPhotoUrl })
-          .eq('id', id);
-        if (photoErr) throw photoErr;
-        setOriginalPhotoUrl(newPhotoUrl);
-        setPhotoFile(null);
-        setPhotoPreview(newPhotoUrl);
-        setFormData(prev => ({ ...prev, photo_url: newPhotoUrl }));
-        latestFormData.current = { ...currentFormData, photo_url: newPhotoUrl };
-// Redundant manual logging removed, handled by SQL trigger
-
-      } else if (photoPreview === null && originalPhotoUrl !== null) {
-        const { error: photoErr } = await supabase
-          .from(TABLES.PARTICIPANTS)
-          .update({ photo_url: null, updated_at: new Date().toISOString() })
-          .eq('id', id);
-        if (photoErr) throw photoErr;
-        setOriginalPhotoUrl(null);
-        setFormData(prev => ({ ...prev, photo_url: null }));
-        latestFormData.current = { ...currentFormData, photo_url: null };
-// Redundant manual logging removed, handled by SQL trigger
-
+          const { error: photoErr } = await supabase
+            .from(TABLES.PARTICIPANTS)
+            .update({ photo_url: newPhotoUrl })
+            .eq('id', id);
+          if (photoErr) throw photoErr;
+          setOriginalPhotoUrl(newPhotoUrl);
+          setPhotoFile(null);
+          setPhotoPreview(newPhotoUrl);
+          setFormData(prev => ({ ...prev, photo_url: newPhotoUrl }));
+          latestFormData.current = { ...currentFormData, photo_url: newPhotoUrl };
+        } else if (photoPreview === null && originalPhotoUrl !== null) {
+          const { error: photoErr } = await supabase
+            .from(TABLES.PARTICIPANTS)
+            .update({ photo_url: null, updated_at: new Date().toISOString() })
+            .eq('id', id);
+          if (photoErr) throw photoErr;
+          setOriginalPhotoUrl(null);
+          setFormData(prev => ({ ...prev, photo_url: null }));
+          latestFormData.current = { ...currentFormData, photo_url: null };
+        }
       }
 
       // Step 4: Save main participant form data
@@ -503,11 +551,29 @@ export function ParticipantDetailContent({
       Object.keys(normalizedFormData).forEach((key) => {
         const newValue = normalizedFormData[key];
         const oldValue = currentOriginalData[key];
-        if (newValue !== oldValue) changedFields[key] = newValue;
+        
+        // Granular protection for fields on ic_participants
+        let canUpdateField = false;
+        
+        const personalFields = ['participant_name', 'email', 'house_phone', 'personal_mobile', 'address', 'date_of_birth', 'move_in_date', 'ndis_number', 'house_id', 'status', 'support_level', 'support_coordinator'];
+        const behaviourFields = ['behaviour_of_concern', 'pbsp_engaged', 'bsp_available', 'restrictive_practices_yn', 'specialist_name', 'specialist_phone', 'specialist_email', 'restrictive_practice_authorisation', 'restrictive_practice_details'];
+        const supportNeedsFields = ['routine', 'hygiene_support', 'mobility_support', 'meal_prep_support', 'household_support', 'communication_type', 'communication_notes', 'communication_language_needs', 'finance_support', 'health_wellbeing_support', 'cultural_religious_support', 'other_support'];
+        const mealtimeFields = ['mtmp_required', 'mtmp_details'];
+        const medicalRoutineFields = ['pharmacy_name', 'pharmacy_contact', 'pharmacy_location', 'gp_name', 'gp_contact', 'gp_location', 'psychiatrist_name', 'psychiatrist_contact', 'psychiatrist_location', 'medical_routine_other', 'medical_routine_general_process', 'mental_health_plan', 'medical_plan', 'primary_diagnosis', 'secondary_diagnosis', 'allergies'];
+        const emergencyFields = ['natural_disaster_plan'];
+
+        if (personalFields.includes(key)) canUpdateField = canEditPersonal;
+        else if (behaviourFields.includes(key)) canUpdateField = canEditBehaviour;
+        else if (supportNeedsFields.includes(key)) canUpdateField = canEditSupportNeeds;
+        else if (mealtimeFields.includes(key)) canUpdateField = canEditMealtime;
+        else if (medicalRoutineFields.includes(key)) canUpdateField = canEditMedicalRoutine;
+        else if (emergencyFields.includes(key)) canUpdateField = canEditEmergency;
+
+        if (newValue !== oldValue && canUpdateField) changedFields[key] = newValue;
       });
 
       if (Object.keys(changedFields).length > 0) {
-        if (!currentFormData.participant_name) {
+        if (!currentFormData.participant_name && changedFields.participant_name !== undefined) {
           setFieldError('participant_name', 'Name is required');
           scrollToField('participant_name');
           toast.error('Validation Error', { description: 'Name is required' });
@@ -525,47 +591,49 @@ export function ParticipantDetailContent({
       }
 
       // Step 5: Process pending shift notes
-      if (currentPending.shiftNotes.toAdd.length > 0) {
-        const toInsert = currentPending.shiftNotes.toAdd.map(note => ({
-          participant_id: id,
-          staff_id: note.staff_id,
-          start_date: note.start_date,
-          shift_time: note.shift_time || null,
-          full_note: note.full_note,
-        }));
-        
-        const { error } = await supabase.from('ic_shift_notes').insert(toInsert);
-        if (error) throw new Error(`Failed to add shift notes: ${error.message}`);
-        
-        if (participant?.house_id) {
-          await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.participant_name || 'Participant', 'note');
+      if (canEditShiftNotes) {
+        if (currentPending.shiftNotes.toAdd.length > 0) {
+          const toInsert = currentPending.shiftNotes.toAdd.map(note => ({
+            participant_id: id,
+            staff_id: note.staff_id,
+            start_date: note.start_date,
+            shift_time: note.shift_time || null,
+            full_note: note.full_note,
+          }));
+          
+          const { error } = await supabase.from('ic_shift_notes').insert(toInsert);
+          if (error) throw new Error(`Failed to add shift notes: ${error.message}`);
+          
+          if (participant?.house_id) {
+            await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.participant_name || 'Participant', 'note');
+          }
         }
-      }
 
-      if (currentPending.shiftNotes.toUpdate.length > 0) {
-        for (const note of currentPending.shiftNotes.toUpdate) {
+        if (currentPending.shiftNotes.toUpdate.length > 0) {
+          for (const note of currentPending.shiftNotes.toUpdate) {
+            const { error } = await supabase
+              .from('ic_shift_notes')
+              .update({
+                staff_id: note.staff_id,
+                start_date: note.start_date,
+                shift_time: note.shift_time || null,
+                full_note: note.full_note,
+              })
+              .eq('id', note.id);
+            if (error) throw new Error(`Failed to update shift note: ${error.message}`);
+          }
+          if (participant?.house_id) {
+            await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.participant_name || 'Participant', 'note');
+          }
+        }
+
+        if (canDeleteShiftNotes && currentPending.shiftNotes.toDelete.length > 0) {
           const { error } = await supabase
             .from('ic_shift_notes')
-            .update({
-              staff_id: note.staff_id,
-              start_date: note.start_date,
-              shift_time: note.shift_time || null,
-              full_note: note.full_note,
-            })
-            .eq('id', note.id);
-          if (error) throw new Error(`Failed to update shift note: ${error.message}`);
+            .delete()
+            .in('id', currentPending.shiftNotes.toDelete);
+          if (error) throw new Error(`Failed to delete shift notes: ${error.message}`);
         }
-        if (participant?.house_id) {
-          await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.participant_name || 'Participant', 'note');
-        }
-      }
-
-      if (currentPending.shiftNotes.toDelete.length > 0) {
-        const { error } = await supabase
-          .from('ic_shift_notes')
-          .delete()
-          .in('id', currentPending.shiftNotes.toDelete);
-        if (error) throw new Error(`Failed to delete shift notes: ${error.message}`);
       }
 
       // Reset state and refs
@@ -605,7 +673,7 @@ export function ParticipantDetailContent({
     } finally {
       if (onSavingChange) onSavingChange(false);
     }
-  }, [id, participant, userName, updateParticipantFn, onSavingChange, onOriginalDataChange, onPendingChangesChange, onSaveSuccess, setFieldError, scrollToField, photoFile, photoPreview, originalPhotoUrl, queryClient, onFormDataChange]);
+  }, [id, participant, updateParticipantFn, onSavingChange, onOriginalDataChange, onPendingChangesChange, onSaveSuccess, setFieldError, scrollToField, photoFile, photoPreview, originalPhotoUrl, queryClient, onFormDataChange, canEditPersonal, canEditGoals, canDeleteGoals, canEditBehaviour, canEditSupportNeeds, canEditMealtime, canEditMedicalRoutine, canEditMedications, canDeleteMedications, canEditEmergency, canEditContacts, canDeleteContacts, canEditDocuments, canDeleteDocuments, canEditShiftNotes, canDeleteShiftNotes]);
 
   useEffect(() => {
     if (saveHandlerRef) {
@@ -647,84 +715,109 @@ export function ParticipantDetailContent({
       )}
 
       <div className="flex flex-col items-stretch grow gap-5 lg:gap-7.5">
-        <PersonalDetails
-          formData={{ ...formData, photo_url_preview: photoPreview }}
-          onFormChange={handleFormChange}          validationErrors={validationErrors}
-          canEdit={canEdit}
-          onSave={handleSave}
-        />
+        {canViewPersonal && (
+          <PersonalDetails
+            formData={{ ...formData, photo_url_preview: photoPreview }}
+            onFormChange={handleFormChange}
+            validationErrors={validationErrors}
+            canEdit={canEditPersonal}
+            onSave={handleSave}
+          />
+        )}
 
-        <Goals 
-          participantId={id} 
-          canAdd={canAdd}
-          canDelete={canDelete}
-          canEdit={canEdit}
-          pendingChanges={pendingChanges?.goals}
-          onPendingChangesChange={(goalsChanges) => 
-            pendingChanges && onPendingChangesChange?.({ ...pendingChanges, goals: goalsChanges })
-          }
-          refreshTrigger={refreshKeys.goals}
-        />
+        {canViewGoals && (
+          <Goals 
+            participantId={id} 
+            canAdd={canAddGoals}
+            canDelete={canDeleteGoals}
+            canEdit={canEditGoals}
+            pendingChanges={pendingChanges?.goals}
+            onPendingChangesChange={(goalsChanges) => 
+              pendingChanges && onPendingChangesChange?.({ ...pendingChanges, goals: goalsChanges })
+            }
+            refreshTrigger={refreshKeys.goals}
+          />
+        )}
 
-        <BehaviourSupport formData={formData} onFormChange={handleFormChange} canEdit={canEdit} onSave={handleSave} />
+        {canViewBehaviour && (
+          <BehaviourSupport formData={formData} onFormChange={handleFormChange} canEdit={canEditBehaviour} onSave={handleSave} />
+        )}
         
-        <SupportNeeds formData={formData} onFormChange={handleFormChange} canEdit={canEdit} />
+        {canViewSupportNeeds && (
+          <SupportNeeds formData={formData} onFormChange={handleFormChange} canEdit={canEditSupportNeeds} />
+        )}
         
-        <MealtimeManagement formData={formData} onFormChange={handleFormChange} canEdit={canEdit} />
+        {canViewMealtime && (
+          <MealtimeManagement formData={formData} onFormChange={handleFormChange} canEdit={canEditMealtime} />
+        )}
         
-        <MedicalRoutine formData={formData} onFormChange={handleFormChange} canEdit={canEdit} />
+        {canViewMedicalRoutine && (
+          <MedicalRoutine formData={formData} onFormChange={handleFormChange} canEdit={canEditMedicalRoutine} />
+        )}
 
-        <Medications 
-          participantId={id} 
-          canAdd={canAdd}
-          canDelete={canDelete}
-          canEdit={canEdit}
-          pendingChanges={pendingChanges?.medications}
-          onPendingChangesChange={(medsChanges) => 
-            pendingChanges && onPendingChangesChange?.({ ...pendingChanges, medications: medsChanges })
-          }
-        />
+        {canViewMedications && (
+          <Medications 
+            participantId={id} 
+            canAdd={canAddMedications}
+            canDelete={canDeleteMedications}
+            canEdit={canEditMedications}
+            pendingChanges={pendingChanges?.medications}
+            onPendingChangesChange={(medsChanges) => 
+              pendingChanges && onPendingChangesChange?.({ ...pendingChanges, medications: medsChanges })
+            }
+          />
+        )}
 
-        <EmergencyManagement formData={formData} onFormChange={handleFormChange} canEdit={canEdit} />
+        {canViewEmergency && (
+          <EmergencyManagement formData={formData} onFormChange={handleFormChange} canEdit={canEditEmergency} />
+        )}
 
-        <Contacts 
-          participantId={id} 
-          canAdd={canAdd}
-          canDelete={canDelete}
-          canEdit={canEdit}
-          pendingChanges={pendingChanges?.contacts}
-          onPendingChangesChange={(contactsChanges) => 
-            pendingChanges && onPendingChangesChange?.({ ...pendingChanges, contacts: contactsChanges })
-          }
-        />
+        {canViewContacts && (
+          <Contacts 
+            participantId={id} 
+            canAdd={canAddContacts}
+            canDelete={canDeleteContacts}
+            canEdit={canEditContacts}
+            pendingChanges={pendingChanges?.contacts}
+            onPendingChangesChange={(contactsChanges) => 
+              pendingChanges && onPendingChangesChange?.({ ...pendingChanges, contacts: contactsChanges })
+            }
+          />
+        )}
 
-        <Documents 
-          participantId={id} 
-          canAdd={canAdd}
-          canDelete={canDelete}
-          canEdit={canEdit}
-          pendingChanges={pendingChanges?.documents}
-          onPendingChangesChange={(docsChanges) => 
-            pendingChanges && onPendingChangesChange?.({ ...pendingChanges, documents: docsChanges })
-          }
-        />
+        {canViewDocuments && (
+          <Documents 
+            participantId={id} 
+            canAdd={canAddDocuments}
+            canDelete={canDeleteDocuments}
+            canEdit={canEditDocuments}
+            pendingChanges={pendingChanges?.documents}
+            onPendingChangesChange={(docsChanges) => 
+              pendingChanges && onPendingChangesChange?.({ ...pendingChanges, documents: docsChanges })
+            }
+          />
+        )}
 
-        <ShiftNotes 
-          participantId={id} 
-          canAdd={canAdd} 
-          canDelete={canDelete}
-          canEdit={canEdit}
-          pendingChanges={pendingChanges?.shiftNotes}
-          onPendingChangesChange={(notesChanges) => 
-            pendingChanges && onPendingChangesChange?.({ ...pendingChanges, shiftNotes: notesChanges })
-          }
-        />
+        {canViewShiftNotes && (
+          <ShiftNotes 
+            participantId={id} 
+            canAdd={canAddShiftNotes} 
+            canDelete={canDeleteShiftNotes}
+            canEdit={canEditShiftNotes}
+            pendingChanges={pendingChanges?.shiftNotes}
+            onPendingChangesChange={(notesChanges) => 
+              pendingChanges && onPendingChangesChange?.({ ...pendingChanges, shiftNotes: notesChanges })
+            }
+          />
+        )}
 
-        <ActivityLog 
-          entityId={id} 
-          entityType="participant" 
-          refreshTrigger={refreshKeys.activityLog}
-        />
+        {canViewActivityLog && (
+          <ActivityLog 
+            entityId={id} 
+            entityType="participant" 
+            refreshTrigger={refreshKeys.activityLog}
+          />
+        )}
       </div>
     </div>
   );

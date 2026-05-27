@@ -7,6 +7,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Plus, Download, Trash2, FileText, Clock } from 'lucide-react';
 import { useHouseDocuments, getHouseFileUrl as getFileUrl } from '@/hooks/use-house-documents';
+import { KeenIcon } from '@/components/keenicons';
+import { cn } from '@/lib/utils';
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from '@/components/ui/context-menu';
 
 interface HouseDocumentsProps {
   houseId?: string;
@@ -61,8 +70,8 @@ export function HouseDocuments({
     setSelectedFile(null);
   };
 
-  const handleDownload = async (filePath: string) => {
-    const url = await getFileUrl(filePath);
+  const handleDownload = async (filePath: string, fileName: string) => {
+    const url = await getFileUrl(filePath, fileName);
     if (url) window.open(url, '_blank');
   };
 
@@ -158,65 +167,92 @@ export function HouseDocuments({
                 {visibleDocuments.map((doc) => {
                   const isPendingDelete = pendingChanges?.documents.toDelete.some(pending => pending.id === doc.id);
                   return (
-                    <TableRow key={doc.id} className={isPendingDelete ? 'opacity-50 bg-destructive/5' : ''}>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <FileText className="size-4 text-muted-foreground" />
-                          <span className={isPendingDelete ? 'line-through' : ''}>{doc.file_name}</span>
-                          {isPendingDelete && (
-                            <span className="text-xs text-destructive flex items-center gap-1">
-                              <Clock className="size-3" />
-                              Pending deletion
+                    <ContextMenu key={doc.id}>
+                      <ContextMenuTrigger asChild>
+                        <TableRow className={cn(
+                          "cursor-context-menu",
+                          isPendingDelete && 'opacity-50 bg-destructive/5'
+                        )}>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <FileText className="size-4 text-muted-foreground" />
+                              <span className={isPendingDelete ? 'line-through' : ''}>{doc.file_name}</span>
+                              {isPendingDelete && (
+                                <span className="text-xs text-destructive flex items-center gap-1">
+                                  <Clock className="size-3" />
+                                  Pending deletion
+                                </span>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-sm">{doc.category || 'General'}</span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-sm">{formatFileSize(doc.file_size)}</span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-sm">
+                              {doc.created_at ? new Date(doc.created_at).toLocaleDateString('en-AU') : 'N/A'}
                             </span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm">{doc.category || 'General'}</span>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm">{formatFileSize(doc.file_size)}</span>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm">
-                          {doc.created_at ? new Date(doc.created_at).toLocaleDateString('en-AU') : 'N/A'}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex justify-end gap-1">
-                          {!isPendingDelete && (
-                            <>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleDownload(doc.file_path)}
-                              >
-                                <Download className="size-4" />
-                              </Button>
-                              {canDelete && (
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex justify-end gap-1">
+                              {!isPendingDelete && (
+                                <>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleDownload(doc.file_path, doc.file_name)}
+                                  >
+                                    <Download className="size-4" />
+                                  </Button>
+                                  {canDelete && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="text-destructive"
+                                      onClick={() => handleDelete(doc.id, doc.file_path, doc.file_name)}
+                                    >
+                                      <Trash2 className="size-4" />
+                                    </Button>
+                                  )}
+                                </>
+                              )}
+                              {isPendingDelete && (
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className="text-destructive"
-                                  onClick={() => handleDelete(doc.id, doc.file_path, doc.file_name)}
+                                  onClick={() => handleCancelPendingDelete(doc.id)}
                                 >
-                                  <Trash2 className="size-4" />
+                                  Undo
                                 </Button>
                               )}
-                            </>
-                          )}
-                          {isPendingDelete && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleCancelPendingDelete(doc.id)}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      </ContextMenuTrigger>
+                      
+                      <ContextMenuContent className="w-48">
+                        <ContextMenuItem onClick={() => handleDownload(doc.file_path, doc.file_name)}>
+                          <KeenIcon icon="cloud-download" className="me-2" />
+                          Download
+                        </ContextMenuItem>
+                        
+                        {canDelete && !isPendingDelete && (
+                          <>
+                            <ContextMenuSeparator />
+                            <ContextMenuItem 
+                              variant="destructive"
+                              onClick={() => handleDelete(doc.id, doc.file_path, doc.file_name)}
                             >
-                              Undo
-                            </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
+                              <KeenIcon icon="trash" className="me-2" />
+                              Delete
+                            </ContextMenuItem>
+                          </>
+                        )}
+                      </ContextMenuContent>
+                    </ContextMenu>
                   );
                 })}
                 

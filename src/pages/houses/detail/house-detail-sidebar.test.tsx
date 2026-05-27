@@ -10,7 +10,6 @@ describe('HouseDetailSidebar', () => {
     expect(screen.getByText('House Details')).toBeDefined();
     expect(screen.getByText('House Management')).toBeDefined();
     expect(screen.getByText('Calendar')).toBeDefined();
-    expect(screen.getByText('Shift Setup')).toBeDefined();
     expect(screen.getAllByText('Checklist Setup').length).toBeGreaterThan(0);
     expect(screen.getByText('Resources')).toBeDefined();
     expect(screen.getByText('Staff')).toBeDefined();

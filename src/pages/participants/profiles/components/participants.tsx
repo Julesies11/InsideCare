@@ -54,7 +54,7 @@ import { Participant, ParticipantWithHouse }  from '@/models/participant';
 import { Archive, Edit } from 'lucide-react';
 import { useParticipants, useUpdateParticipant } from '@/hooks/use-participants';
 import { useHouses } from '@/hooks/use-houses';
-import { useNavigate } from 'react-router';
+import { useNavigate, Link } from 'react-router';
 import { useAuth } from '@/auth/context/auth-context';
 import { parseSupabaseError } from '@/lib/error-parser';
 
@@ -281,9 +281,12 @@ const Participants = () => {
             />
 
             <div className="flex flex-col gap-0.5">
-              <span className="leading-none font-medium text-sm text-mono hover:text-primary">
+              <Link 
+                to={`/participants/detail/${row.original.id}`}
+                className="leading-none font-bold text-sm text-gray-900 hover:text-primary hover:underline transition-colors"
+              >
                 {row.original.participant_name || '-'}
-              </span>
+              </Link>
               {row.original.date_of_birth && (
                 <span className="text-sm text-secondary-foreground font-normal">
                   DOB: {row.original.date_of_birth}

@@ -14,7 +14,6 @@ export interface ParticipantMedication {
     common_dosages?: string;
   };
   dosage?: string;
-  frequency?: string;
   is_active?: boolean;
   created_at?: string;
   updated_at?: string;
@@ -25,7 +24,6 @@ const PARTICIPANT_MEDICATION_COLUMNS = `
   participant_id,
   medication_id,
   dosage,
-  frequency,
   is_active,
   created_at,
   updated_at,

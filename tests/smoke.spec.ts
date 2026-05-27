@@ -76,7 +76,9 @@ const ADMIN_PAGES = [
   '/admin/checklist-templates',
   '/admin/roles',
   '/houses/profiles',
+  '/participants/medication-register',
   '/roster-board',
+  '/roster-board/shift-templates',
   '/activity-log',
 ];
 

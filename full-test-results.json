@@ -1,0 +1,5939 @@
+◇ injected env (0) from .env.local // tip: ⌘ suppress logs { quiet: true }
+◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+◇ injected env (0) from .env.local // tip: ⌘ suppress logs { quiet: true }
+◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+{
+  "config": {
+    "configFile": "/Users/juliangibbings/Documents/Code/InsideCare/playwright.config.ts",
+    "rootDir": "/Users/juliangibbings/Documents/Code/InsideCare/tests",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 2
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/juliangibbings/Documents/Code/InsideCare/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "setup",
+        "name": "setup",
+        "testDir": "/Users/juliangibbings/Documents/Code/InsideCare/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "/.*\\.setup\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/juliangibbings/Documents/Code/InsideCare/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/Users/juliangibbings/Documents/Code/InsideCare/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/juliangibbings/Documents/Code/InsideCare/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "firefox",
+        "name": "firefox",
+        "testDir": "/Users/juliangibbings/Documents/Code/InsideCare/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/juliangibbings/Documents/Code/InsideCare/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "Mobile Chrome",
+        "name": "Mobile Chrome",
+        "testDir": "/Users/juliangibbings/Documents/Code/InsideCare/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/juliangibbings/Documents/Code/InsideCare/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "Mobile Safari",
+        "name": "Mobile Safari",
+        "testDir": "/Users/juliangibbings/Documents/Code/InsideCare/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.60.0",
+    "workers": 2,
+    "webServer": {
+      "command": "npm run dev",
+      "url": "http://localhost:5173",
+      "reuseExistingServer": true,
+      "env": {
+        "VITE_SUPABASE_URL": "https://rdnaqrzqpcicskylmsyl.supabase.co",
+        "VITE_SUPABASE_ANON_KEY": "sb_publishable_zLUSQl5cNJleWzZNa8rAlw_JvGbZYYG"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "auth.setup.ts",
+      "file": "auth.setup.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "authenticate as admin",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "setup",
+              "projectName": "setup",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 14225,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-05-26T07:43:18.676Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "17e3fe6f4d9d8bd79c6b-1580989d32f149e984ed",
+          "file": "auth.setup.ts",
+          "line": 22,
+          "column": 1
+        },
+        {
+          "title": "authenticate as staff",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "setup",
+              "projectName": "setup",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "failed",
+                  "duration": 10730,
+                  "error": {
+                    "message": "Error: Login failed with error: Invalid login credentials",
+                    "stack": "Error: Login failed with error: Invalid login credentials\n    at /Users/juliangibbings/Documents/Code/InsideCare/tests/auth.setup.ts:71:14\n    at /Users/juliangibbings/Documents/Code/InsideCare/tests/auth.setup.ts:68:3",
+                    "location": {
+                      "file": "/Users/juliangibbings/Documents/Code/InsideCare/tests/auth.setup.ts",
+                      "column": 14,
+                      "line": 71
+                    },
+                    "snippet": "  69 |     page.waitForURL(url => !url.pathname.includes('/auth/signin'), { timeout: 15000 }),\n  70 |     expect(errorMessage).toBeVisible({ timeout: 15000 }).then(async () => {\n> 71 |        throw new Error(`Login failed with error: ${await errorMessage.textContent()}`);\n     |              ^\n  72 |     }).catch(e => {\n  73 |        // If the error message didn't appear, this is the \"good\" path for the race\n  74 |        if (e.message.includes('expect(locator).toBeVisible()')) return;"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/juliangibbings/Documents/Code/InsideCare/tests/auth.setup.ts",
+                        "column": 14,
+                        "line": 71
+                      },
+                      "message": "Error: Login failed with error: Invalid login credentials\n\n  69 |     page.waitForURL(url => !url.pathname.includes('/auth/signin'), { timeout: 15000 }),\n  70 |     expect(errorMessage).toBeVisible({ timeout: 15000 }).then(async () => {\n> 71 |        throw new Error(`Login failed with error: ${await errorMessage.textContent()}`);\n     |              ^\n  72 |     }).catch(e => {\n  73 |        // If the error message didn't appear, this is the \"good\" path for the race\n  74 |        if (e.message.includes('expect(locator).toBeVisible()')) return;\n    at /Users/juliangibbings/Documents/Code/InsideCare/tests/auth.setup.ts:71:14\n    at /Users/juliangibbings/Documents/Code/InsideCare/tests/auth.setup.ts:68:3"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-05-26T07:43:19.442Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/juliangibbings/Documents/Code/InsideCare/test-results/auth.setup.ts-authenticate-as-staff-setup/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/juliangibbings/Documents/Code/InsideCare/tests/auth.setup.ts",
+                    "column": 14,
+                    "line": 71
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "17e3fe6f4d9d8bd79c6b-375a64caaeb879e02dd8",
+          "file": "auth.setup.ts",
+          "line": 52,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "e2e/admin.spec.ts",
+      "file": "e2e/admin.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Admin Workflows",
+          "file": "e2e/admin.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Admin can access Roster Board and see management tools",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "983b657bd7deb1473d24-c1cd7c93c26630c9ab5c",
+              "file": "e2e/admin.spec.ts",
+              "line": 6,
+              "column": 3
+            },
+            {
+              "title": "Admin can view Activity Log",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "983b657bd7deb1473d24-8d0ed4415060d981d19b",
+              "file": "e2e/admin.spec.ts",
+              "line": 12,
+              "column": 3
+            },
+            {
+              "title": "Admin can access Role Management",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "983b657bd7deb1473d24-2546168959abb1925063",
+              "file": "e2e/admin.spec.ts",
+              "line": 19,
+              "column": 3
+            },
+            {
+              "title": "Admin can view Staff Profiles table",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "983b657bd7deb1473d24-6bba71e4e1aea61a5ae3",
+              "file": "e2e/admin.spec.ts",
+              "line": 25,
+              "column": 3
+            },
+            {
+              "title": "Admin can access Roster Board and see management tools",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "983b657bd7deb1473d24-170cfc279dec0a1a7f98",
+              "file": "e2e/admin.spec.ts",
+              "line": 6,
+              "column": 3
+            },
+            {
+              "title": "Admin can view Activity Log",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "983b657bd7deb1473d24-41abdcacb9265b989afd",
+              "file": "e2e/admin.spec.ts",
+              "line": 12,
+              "column": 3
+            },
+            {
+              "title": "Admin can access Role Management",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "983b657bd7deb1473d24-f2653e6c83568277cb7e",
+              "file": "e2e/admin.spec.ts",
+              "line": 19,
+              "column": 3
+            },
+            {
+              "title": "Admin can view Staff Profiles table",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "983b657bd7deb1473d24-f72bb62c0c56f1ad85c7",
+              "file": "e2e/admin.spec.ts",
+              "line": 25,
+              "column": 3
+            },
+            {
+              "title": "Admin can access Roster Board and see management tools",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "983b657bd7deb1473d24-a95616e39eb4de6f648b",
+              "file": "e2e/admin.spec.ts",
+              "line": 6,
+              "column": 3
+            },
+            {
+              "title": "Admin can view Activity Log",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "983b657bd7deb1473d24-2a3d55ec56d5ee57d1a3",
+              "file": "e2e/admin.spec.ts",
+              "line": 12,
+              "column": 3
+            },
+            {
+              "title": "Admin can access Role Management",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "983b657bd7deb1473d24-da28519ba999b41bc5fb",
+              "file": "e2e/admin.spec.ts",
+              "line": 19,
+              "column": 3
+            },
+            {
+              "title": "Admin can view Staff Profiles table",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "983b657bd7deb1473d24-44d8dc48755854c27ca9",
+              "file": "e2e/admin.spec.ts",
+              "line": 25,
+              "column": 3
+            },
+            {
+              "title": "Admin can access Roster Board and see management tools",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "983b657bd7deb1473d24-9f5be19665ed226cf6e7",
+              "file": "e2e/admin.spec.ts",
+              "line": 6,
+              "column": 3
+            },
+            {
+              "title": "Admin can view Activity Log",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "983b657bd7deb1473d24-82bf98d9d11ae7ceeaca",
+              "file": "e2e/admin.spec.ts",
+              "line": 12,
+              "column": 3
+            },
+            {
+              "title": "Admin can access Role Management",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "983b657bd7deb1473d24-e3feecff84d68a82075f",
+              "file": "e2e/admin.spec.ts",
+              "line": 19,
+              "column": 3
+            },
+            {
+              "title": "Admin can view Staff Profiles table",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "983b657bd7deb1473d24-b40d0498d36549782d25",
+              "file": "e2e/admin.spec.ts",
+              "line": 25,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "e2e/auth.spec.ts",
+      "file": "e2e/auth.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Authentication & Access Control",
+          "file": "e2e/auth.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Login failure shows descriptive error",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "9563bb343517399bdb94-5d0a6c198ff5b619e911",
+              "file": "e2e/auth.spec.ts",
+              "line": 4,
+              "column": 3
+            },
+            {
+              "title": "Public user is redirected from dashboard to signin",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "9563bb343517399bdb94-0c24076698198c8e8b8b",
+              "file": "e2e/auth.spec.ts",
+              "line": 16,
+              "column": 3
+            },
+            {
+              "title": "RBAC: Staff cannot access Admin Role management",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "9563bb343517399bdb94-8cc5d1049c4345387410",
+              "file": "e2e/auth.spec.ts",
+              "line": 21,
+              "column": 3
+            },
+            {
+              "title": "Login failure shows descriptive error",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "9563bb343517399bdb94-6224dddcb8ce22525275",
+              "file": "e2e/auth.spec.ts",
+              "line": 4,
+              "column": 3
+            },
+            {
+              "title": "Public user is redirected from dashboard to signin",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "9563bb343517399bdb94-aa750a4e465c78b9501a",
+              "file": "e2e/auth.spec.ts",
+              "line": 16,
+              "column": 3
+            },
+            {
+              "title": "RBAC: Staff cannot access Admin Role management",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "9563bb343517399bdb94-4878c07909b54b6527a9",
+              "file": "e2e/auth.spec.ts",
+              "line": 21,
+              "column": 3
+            },
+            {
+              "title": "Login failure shows descriptive error",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "9563bb343517399bdb94-20ce39790133e27b8c9c",
+              "file": "e2e/auth.spec.ts",
+              "line": 4,
+              "column": 3
+            },
+            {
+              "title": "Public user is redirected from dashboard to signin",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "9563bb343517399bdb94-9dd30c0b2cb334e01618",
+              "file": "e2e/auth.spec.ts",
+              "line": 16,
+              "column": 3
+            },
+            {
+              "title": "RBAC: Staff cannot access Admin Role management",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "9563bb343517399bdb94-c3dadea707ef022b8ad5",
+              "file": "e2e/auth.spec.ts",
+              "line": 21,
+              "column": 3
+            },
+            {
+              "title": "Login failure shows descriptive error",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "9563bb343517399bdb94-d74800b24eec74895d6d",
+              "file": "e2e/auth.spec.ts",
+              "line": 4,
+              "column": 3
+            },
+            {
+              "title": "Public user is redirected from dashboard to signin",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "9563bb343517399bdb94-70303359f67abee25d32",
+              "file": "e2e/auth.spec.ts",
+              "line": 16,
+              "column": 3
+            },
+            {
+              "title": "RBAC: Staff cannot access Admin Role management",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "9563bb343517399bdb94-6c868a7d0765902e49c1",
+              "file": "e2e/auth.spec.ts",
+              "line": 21,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "e2e/house-participant.spec.ts",
+      "file": "e2e/house-participant.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "House & Participant Management",
+          "file": "e2e/house-participant.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Search participants filters profiles",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "807ff8106cdbdfe25a44-12c1063f0cc31379822e",
+              "file": "e2e/house-participant.spec.ts",
+              "line": 7,
+              "column": 3
+            },
+            {
+              "title": "Deep linking to Participant Medications tab",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "807ff8106cdbdfe25a44-3dd1bcb1fd80e85f8e99",
+              "file": "e2e/house-participant.spec.ts",
+              "line": 16,
+              "column": 3
+            },
+            {
+              "title": "Navigate to House Profiles and search",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "807ff8106cdbdfe25a44-5aeae08e36e317cd4d1a",
+              "file": "e2e/house-participant.spec.ts",
+              "line": 48,
+              "column": 3
+            },
+            {
+              "title": "Search participants filters profiles",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "807ff8106cdbdfe25a44-f390cc260ea3630d689f",
+              "file": "e2e/house-participant.spec.ts",
+              "line": 7,
+              "column": 3
+            },
+            {
+              "title": "Deep linking to Participant Medications tab",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "807ff8106cdbdfe25a44-28b4e38e89c296156fbc",
+              "file": "e2e/house-participant.spec.ts",
+              "line": 16,
+              "column": 3
+            },
+            {
+              "title": "Navigate to House Profiles and search",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "807ff8106cdbdfe25a44-333d631b6634541ce2da",
+              "file": "e2e/house-participant.spec.ts",
+              "line": 48,
+              "column": 3
+            },
+            {
+              "title": "Search participants filters profiles",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "807ff8106cdbdfe25a44-39ea1b7f99ebf247e418",
+              "file": "e2e/house-participant.spec.ts",
+              "line": 7,
+              "column": 3
+            },
+            {
+              "title": "Deep linking to Participant Medications tab",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "807ff8106cdbdfe25a44-affbfb1c4486e0ad6aff",
+              "file": "e2e/house-participant.spec.ts",
+              "line": 16,
+              "column": 3
+            },
+            {
+              "title": "Navigate to House Profiles and search",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "807ff8106cdbdfe25a44-b0e0416901aeb3d8abc1",
+              "file": "e2e/house-participant.spec.ts",
+              "line": 48,
+              "column": 3
+            },
+            {
+              "title": "Search participants filters profiles",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "807ff8106cdbdfe25a44-b83d01c6e94a67a06df0",
+              "file": "e2e/house-participant.spec.ts",
+              "line": 7,
+              "column": 3
+            },
+            {
+              "title": "Deep linking to Participant Medications tab",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "807ff8106cdbdfe25a44-ee9a23564262113679e7",
+              "file": "e2e/house-participant.spec.ts",
+              "line": 16,
+              "column": 3
+            },
+            {
+              "title": "Navigate to House Profiles and search",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "807ff8106cdbdfe25a44-e077894b54da73b45efb",
+              "file": "e2e/house-participant.spec.ts",
+              "line": 48,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "e2e/leave-types.spec.ts",
+      "file": "e2e/leave-types.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Leave Types Management",
+          "file": "e2e/leave-types.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Admin can access Leave Types page and manage list",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "9112d31b01f44c767245-07a04779cdeb8d8a23ce",
+              "file": "e2e/leave-types.spec.ts",
+              "line": 6,
+              "column": 3
+            },
+            {
+              "title": "Admin can access Leave Types page and manage list",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "9112d31b01f44c767245-ba460721eac171df458c",
+              "file": "e2e/leave-types.spec.ts",
+              "line": 6,
+              "column": 3
+            },
+            {
+              "title": "Admin can access Leave Types page and manage list",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "9112d31b01f44c767245-620e3dabda29eef8bf91",
+              "file": "e2e/leave-types.spec.ts",
+              "line": 6,
+              "column": 3
+            },
+            {
+              "title": "Admin can access Leave Types page and manage list",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "9112d31b01f44c767245-b601cd48a125cda0eb1d",
+              "file": "e2e/leave-types.spec.ts",
+              "line": 6,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "e2e/staff.spec.ts",
+      "file": "e2e/staff.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Staff Workflows",
+          "file": "e2e/staff.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Staff can initiate a Leave Request",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a7dc4140d8bca49b7bc8-f385a623c7a489b62679",
+              "file": "e2e/staff.spec.ts",
+              "line": 6,
+              "column": 3
+            },
+            {
+              "title": "Staff can view their Leave Requests",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a7dc4140d8bca49b7bc8-ceb3c3ccb351727a9cfb",
+              "file": "e2e/staff.spec.ts",
+              "line": 34,
+              "column": 3
+            },
+            {
+              "title": "Staff can view their Roster",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a7dc4140d8bca49b7bc8-2ee046267efdae029344",
+              "file": "e2e/staff.spec.ts",
+              "line": 41,
+              "column": 3
+            },
+            {
+              "title": "Staff can access House Checklists",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a7dc4140d8bca49b7bc8-0ab564a024fa205439b4",
+              "file": "e2e/staff.spec.ts",
+              "line": 46,
+              "column": 3
+            },
+            {
+              "title": "Staff can open the Shift Note dialog",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a7dc4140d8bca49b7bc8-7420cea2b2fb47ed5971",
+              "file": "e2e/staff.spec.ts",
+              "line": 52,
+              "column": 3
+            },
+            {
+              "title": "Staff can initiate a Leave Request",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a7dc4140d8bca49b7bc8-b691f2327ba61d20bf25",
+              "file": "e2e/staff.spec.ts",
+              "line": 6,
+              "column": 3
+            },
+            {
+              "title": "Staff can view their Leave Requests",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a7dc4140d8bca49b7bc8-dfff21b54ce25b301777",
+              "file": "e2e/staff.spec.ts",
+              "line": 34,
+              "column": 3
+            },
+            {
+              "title": "Staff can view their Roster",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a7dc4140d8bca49b7bc8-3decff4ee214456b1a10",
+              "file": "e2e/staff.spec.ts",
+              "line": 41,
+              "column": 3
+            },
+            {
+              "title": "Staff can access House Checklists",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a7dc4140d8bca49b7bc8-b9b347f8b2d30fa1c166",
+              "file": "e2e/staff.spec.ts",
+              "line": 46,
+              "column": 3
+            },
+            {
+              "title": "Staff can open the Shift Note dialog",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a7dc4140d8bca49b7bc8-d1f28380e9acd4b3f190",
+              "file": "e2e/staff.spec.ts",
+              "line": 52,
+              "column": 3
+            },
+            {
+              "title": "Staff can initiate a Leave Request",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a7dc4140d8bca49b7bc8-ce9d963edd30968631b6",
+              "file": "e2e/staff.spec.ts",
+              "line": 6,
+              "column": 3
+            },
+            {
+              "title": "Staff can view their Leave Requests",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a7dc4140d8bca49b7bc8-8a8bca86a067c32cc57c",
+              "file": "e2e/staff.spec.ts",
+              "line": 34,
+              "column": 3
+            },
+            {
+              "title": "Staff can view their Roster",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a7dc4140d8bca49b7bc8-9ac6c47d7fd35855db4f",
+              "file": "e2e/staff.spec.ts",
+              "line": 41,
+              "column": 3
+            },
+            {
+              "title": "Staff can access House Checklists",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a7dc4140d8bca49b7bc8-f0dd420822a0abafabe9",
+              "file": "e2e/staff.spec.ts",
+              "line": 46,
+              "column": 3
+            },
+            {
+              "title": "Staff can open the Shift Note dialog",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a7dc4140d8bca49b7bc8-794e27cb08a1c54b4c0e",
+              "file": "e2e/staff.spec.ts",
+              "line": 52,
+              "column": 3
+            },
+            {
+              "title": "Staff can initiate a Leave Request",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a7dc4140d8bca49b7bc8-97e38b603f618caf24cf",
+              "file": "e2e/staff.spec.ts",
+              "line": 6,
+              "column": 3
+            },
+            {
+              "title": "Staff can view their Leave Requests",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a7dc4140d8bca49b7bc8-208b1f71c6b217a5bb3f",
+              "file": "e2e/staff.spec.ts",
+              "line": 34,
+              "column": 3
+            },
+            {
+              "title": "Staff can view their Roster",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a7dc4140d8bca49b7bc8-2cea4300647aa3f2a673",
+              "file": "e2e/staff.spec.ts",
+              "line": 41,
+              "column": 3
+            },
+            {
+              "title": "Staff can access House Checklists",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a7dc4140d8bca49b7bc8-d191b6fdd50dd43cacec",
+              "file": "e2e/staff.spec.ts",
+              "line": 46,
+              "column": 3
+            },
+            {
+              "title": "Staff can open the Shift Note dialog",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a7dc4140d8bca49b7bc8-7d89d7e5bf24ff0f7c06",
+              "file": "e2e/staff.spec.ts",
+              "line": 52,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "smoke.spec.ts",
+      "file": "smoke.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Public Page /auth/signin loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-920ae910cb827187c41e",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/signup loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-e2793a1145a134679d8e",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/reset-password loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-2ab2ce4272c1e433793b",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/check-email loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-27c7e0bdfa08ef056558",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/change-password loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-8ae730ee1a08324b4b82",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/2fa loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-ea75bc2341f1ef761e43",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/reset-password/check-email loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-bb682f599628f648ded3",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/reset-password/changed loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-5f9a7be93bae0a3cf59b",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/signin loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-63cfa20a738fd0fc2574",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/signup loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-f7ef48fb3b52dd4b176e",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/change-password loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-e150fbc58011e87f215c",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/reset-password loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-a94fae6beecc5c9c739b",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/2fa loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-95506f4caf5d70fb7e63",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/check-email loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-70f4482ae0c7594b4ffa",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/reset-password/check-email loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-1ffc1316fd9358936077",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/reset-password/changed loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-e97511854b2c13247fb1",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/callback loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-e4b3cfca7b3a3a54b92d",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /error/404 loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-93694f71a157f16ea3d8",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /error/403 loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-e6c92398cda181cf73f1",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /error/500 loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-c3a399720a69172014a3",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Staff Page / loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-f964444654bb25657f03",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /staff/dashboard loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-2a37d51d19361309f83c",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /staff/checklists loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-490b84eca9fb3a4f9f4b",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /staff/roster loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-e1fd001a3773739b67cb",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /staff/timesheets loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-70ba5b4db89602ea6395",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /staff/leave loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-8a45855b3ac272973418",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /staff/leave/new loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-7a081b5951770603631a",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /staff/profile loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-b979b6518dc66e0823b7",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /participants/profiles loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-6abc6cb2f46c96275eed",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /participants/shift-notes loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-ae5f0f66166c6bd506d4",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /auth/welcome-message loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-9b8812f18ecd8086317d",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /auth/account-deactivated loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-b1dde1e901e1c30d13d7",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /account/notifications loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-391ad89509b1a852fe51",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Admin Page /employees/staff-profiles loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-a8dce35245501db2b15e",
+          "file": "smoke.spec.ts",
+          "line": 122,
+          "column": 3
+        },
+        {
+          "title": "Admin Page /employees/timesheets loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-24dc52686c9873dc1660",
+          "file": "smoke.spec.ts",
+          "line": 122,
+          "column": 3
+        },
+        {
+          "title": "Admin Page /employees/leave-requests loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-9efd8d5060c8c2c6b87f",
+          "file": "smoke.spec.ts",
+          "line": 122,
+          "column": 3
+        },
+        {
+          "title": "Admin Page /admin/checklist-templates loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-ab6814e1cb23a59b8966",
+          "file": "smoke.spec.ts",
+          "line": 122,
+          "column": 3
+        },
+        {
+          "title": "Admin Page /admin/roles loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-ba19496419ad89035dfd",
+          "file": "smoke.spec.ts",
+          "line": 122,
+          "column": 3
+        },
+        {
+          "title": "Admin Page /houses/profiles loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-11c3695030096bede32d",
+          "file": "smoke.spec.ts",
+          "line": 122,
+          "column": 3
+        },
+        {
+          "title": "Admin Page /participants/medication-register loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-bc4b37ae2fdb989a166c",
+          "file": "smoke.spec.ts",
+          "line": 122,
+          "column": 3
+        },
+        {
+          "title": "Admin Page /roster-board loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-145c084a1d3b801489ab",
+          "file": "smoke.spec.ts",
+          "line": 122,
+          "column": 3
+        },
+        {
+          "title": "Admin Page /roster-board/shift-templates loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-c0372b9c4d959caa8b1b",
+          "file": "smoke.spec.ts",
+          "line": 122,
+          "column": 3
+        },
+        {
+          "title": "Admin Page /activity-log loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-512b13a9c54554e83059",
+          "file": "smoke.spec.ts",
+          "line": 122,
+          "column": 3
+        },
+        {
+          "title": "Participant Detail page loads",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-bab5df54bc9acd8e682c",
+          "file": "smoke.spec.ts",
+          "line": 135,
+          "column": 1
+        },
+        {
+          "title": "Participant Edit page loads",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-2c4126f2b0e2bfbb7b33",
+          "file": "smoke.spec.ts",
+          "line": 140,
+          "column": 1
+        },
+        {
+          "title": "Staff Timesheet Form page loads",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-b90350cadee5149bfc83",
+          "file": "smoke.spec.ts",
+          "line": 145,
+          "column": 1
+        },
+        {
+          "title": "Participant Detail Medications tab loads",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-255a96a7bd92034b5b9a",
+          "file": "smoke.spec.ts",
+          "line": 151,
+          "column": 1
+        },
+        {
+          "title": "Participant Detail Documents tab loads",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-7aabe91a2da698a6a888",
+          "file": "smoke.spec.ts",
+          "line": 156,
+          "column": 1
+        },
+        {
+          "title": "Public user is redirected from protected page to signin",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-4fc4a4ac2cd59bc26400",
+          "file": "smoke.spec.ts",
+          "line": 162,
+          "column": 1
+        },
+        {
+          "title": "Staff member is blocked from Admin Roster Board",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-2d92014c2d1fb73468f0",
+          "file": "smoke.spec.ts",
+          "line": 167,
+          "column": 1
+        },
+        {
+          "title": "Staff member is blocked from Admin Activity Log",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-1e1881b0e9585e01930d",
+          "file": "smoke.spec.ts",
+          "line": 173,
+          "column": 1
+        },
+        {
+          "title": "Staff Detail page loads",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-cafb196c29baed7b9086",
+          "file": "smoke.spec.ts",
+          "line": 178,
+          "column": 1
+        },
+        {
+          "title": "House Detail page loads",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-2a537619a551d8f1d737",
+          "file": "smoke.spec.ts",
+          "line": 183,
+          "column": 1
+        },
+        {
+          "title": "Staff Leave Edit page loads",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-2f8918fc3d74d88b1a7e",
+          "file": "smoke.spec.ts",
+          "line": 188,
+          "column": 1
+        },
+        {
+          "title": "Public Page /auth/signin loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-43cca30a36cf5d59db56",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/signup loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-771cbeb61cb9f0624fd8",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/reset-password loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-b9d57b13e06c01d53223",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/check-email loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-706320c13caa862bd8c8",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/change-password loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-1c4e49ad43b646742926",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/2fa loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-e3b6997b693fb84343a1",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/reset-password/check-email loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-ad02db9a7b48d0c348cd",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/reset-password/changed loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-5f174779001ea6aada15",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/signin loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-2363f2f0ad1166e8c103",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/signup loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-7287db70cde7c6abbc11",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/change-password loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-330cf2dbc9709b8bcd3c",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/reset-password loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-1ed74cc8a91614fff353",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/2fa loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-dda2abfb2eeb6e87f252",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/check-email loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-ab0028ff7751bbf32f5e",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/reset-password/check-email loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-5a54543d413beade1f4b",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/reset-password/changed loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-28c27ca6dcc2c108a12a",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/callback loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-6cc181e6a904cbebc4d2",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /error/404 loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-55a9732569ffc06b0187",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /error/403 loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-713bfe3ad87b5591a4b7",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /error/500 loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-55ca82d109015699ff45",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Staff Page / loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-9a97db9cf10e3b7d06a9",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /staff/dashboard loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-f6dd9fa5c8d93db51dd6",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /staff/checklists loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-96c80ebfd14b811caa61",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /staff/roster loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-6d1ac1afc4768870556c",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /staff/timesheets loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-e737a6623c06cb83c245",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /staff/leave loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-82548acc9eaf997ed8ed",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /staff/leave/new loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-a7f8e3baa61cf58ee00c",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /staff/profile loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-ddcd8a04be5e1e60827a",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /participants/profiles loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-6690fa570db553385f91",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /participants/shift-notes loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-b9d347cc43329b122a1c",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /auth/welcome-message loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-40f0c20f2a665b08f4a8",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /auth/account-deactivated loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-bc53cc5e03a5cd40701c",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /account/notifications loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-8add33446ee84cd637e7",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Admin Page /employees/staff-profiles loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-433449f8cda50d08dc65",
+          "file": "smoke.spec.ts",
+          "line": 122,
+          "column": 3
+        },
+        {
+          "title": "Admin Page /employees/timesheets loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-43897b8e3197e2cea27b",
+          "file": "smoke.spec.ts",
+          "line": 122,
+          "column": 3
+        },
+        {
+          "title": "Admin Page /employees/leave-requests loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-faf9b39b0cb505c2ffd3",
+          "file": "smoke.spec.ts",
+          "line": 122,
+          "column": 3
+        },
+        {
+          "title": "Admin Page /admin/checklist-templates loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-465809a36d018bf30781",
+          "file": "smoke.spec.ts",
+          "line": 122,
+          "column": 3
+        },
+        {
+          "title": "Admin Page /admin/roles loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-1e846c390379cc4536c3",
+          "file": "smoke.spec.ts",
+          "line": 122,
+          "column": 3
+        },
+        {
+          "title": "Admin Page /houses/profiles loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-72f368363ffa44c81572",
+          "file": "smoke.spec.ts",
+          "line": 122,
+          "column": 3
+        },
+        {
+          "title": "Admin Page /participants/medication-register loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-8f459549a22bf68b2cf0",
+          "file": "smoke.spec.ts",
+          "line": 122,
+          "column": 3
+        },
+        {
+          "title": "Admin Page /roster-board loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-b03b75e78d28d8cbb0f5",
+          "file": "smoke.spec.ts",
+          "line": 122,
+          "column": 3
+        },
+        {
+          "title": "Admin Page /roster-board/shift-templates loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-5d529cb0a3a75153acb4",
+          "file": "smoke.spec.ts",
+          "line": 122,
+          "column": 3
+        },
+        {
+          "title": "Admin Page /activity-log loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-e5aa025cb44dd6cefee6",
+          "file": "smoke.spec.ts",
+          "line": 122,
+          "column": 3
+        },
+        {
+          "title": "Participant Detail page loads",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-98266980a5bebe25646f",
+          "file": "smoke.spec.ts",
+          "line": 135,
+          "column": 1
+        },
+        {
+          "title": "Participant Edit page loads",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-eb1dc3769139c9144266",
+          "file": "smoke.spec.ts",
+          "line": 140,
+          "column": 1
+        },
+        {
+          "title": "Staff Timesheet Form page loads",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-1103b6da3141842a2399",
+          "file": "smoke.spec.ts",
+          "line": 145,
+          "column": 1
+        },
+        {
+          "title": "Participant Detail Medications tab loads",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-d90f376227f785731896",
+          "file": "smoke.spec.ts",
+          "line": 151,
+          "column": 1
+        },
+        {
+          "title": "Participant Detail Documents tab loads",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-71c0f462071416973644",
+          "file": "smoke.spec.ts",
+          "line": 156,
+          "column": 1
+        },
+        {
+          "title": "Public user is redirected from protected page to signin",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-42fed3145640c74abb4f",
+          "file": "smoke.spec.ts",
+          "line": 162,
+          "column": 1
+        },
+        {
+          "title": "Staff member is blocked from Admin Roster Board",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-9349a80e00ab1f2ec2d8",
+          "file": "smoke.spec.ts",
+          "line": 167,
+          "column": 1
+        },
+        {
+          "title": "Staff member is blocked from Admin Activity Log",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-adabb67d5ecbb5abd0fa",
+          "file": "smoke.spec.ts",
+          "line": 173,
+          "column": 1
+        },
+        {
+          "title": "Staff Detail page loads",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-a8fca99da797a1e9687c",
+          "file": "smoke.spec.ts",
+          "line": 178,
+          "column": 1
+        },
+        {
+          "title": "House Detail page loads",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-4c7a2bf6f048e79d92a4",
+          "file": "smoke.spec.ts",
+          "line": 183,
+          "column": 1
+        },
+        {
+          "title": "Staff Leave Edit page loads",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-65c42a1ec23ccf9c6ab5",
+          "file": "smoke.spec.ts",
+          "line": 188,
+          "column": 1
+        },
+        {
+          "title": "Public Page /auth/signin loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-723fef000bf9ff37261b",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/signup loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-5512d8fce666951bc274",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/reset-password loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-75cd7ca81c19f6e2f829",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/check-email loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-630954a4f12740d15e32",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/change-password loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-eadef641b243f87a0afb",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/2fa loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-2e5a4cf23ae70d2c00bf",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/reset-password/check-email loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-7c0d1ae1ee247efc49de",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/reset-password/changed loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-2d6fd2c3e4e7aa1d9bf8",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/signin loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-a8f9bdf99d4630b28c9c",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/signup loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-ace33cd0f13771380f2c",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/change-password loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-7ce7f42c5915e3e4459e",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/reset-password loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-b59cc8fdd036caf6b6d8",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/2fa loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-6698018a4b108a85e5f3",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/check-email loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-000d4c1250499becb717",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/reset-password/check-email loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-cdb3aabae0e153cfbac0",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/reset-password/changed loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-5c4b9f328c4d60a54e96",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/callback loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-e039a5ecddb2bb95664b",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /error/404 loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-06533c4e51ad32d1fd49",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /error/403 loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-c532c38d779c87f518e7",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /error/500 loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-6e330ce1dd3a77fa0a18",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Staff Page / loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-bf8b2d339d40d4ddbd1f",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /staff/dashboard loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-6d3040072260616d305c",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /staff/checklists loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-ac6a28896e0f803f2c13",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /staff/roster loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-aa40cf13934ad23d6486",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /staff/timesheets loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-d0e9dff1a39f4016d6fe",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /staff/leave loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-ae08a76a5046761d6fbe",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /staff/leave/new loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-012d99becfb87de347a5",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /staff/profile loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-e85f80ffecaa737c2778",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /participants/profiles loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-01a167afa3364f00dd07",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /participants/shift-notes loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-c2053ddb2a4225e9dbf1",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /auth/welcome-message loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-0a11781c3c9014333c19",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /auth/account-deactivated loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-a1ae35c546bd230387d4",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /account/notifications loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-f24d248d1bf6c56a9cb5",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Admin Page /employees/staff-profiles loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-36bf41c10b645e66d15b",
+          "file": "smoke.spec.ts",
+          "line": 122,
+          "column": 3
+        },
+        {
+          "title": "Admin Page /employees/timesheets loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-95d8195b3c89a5f71792",
+          "file": "smoke.spec.ts",
+          "line": 122,
+          "column": 3
+        },
+        {
+          "title": "Admin Page /employees/leave-requests loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-22ce9c1d376f35817877",
+          "file": "smoke.spec.ts",
+          "line": 122,
+          "column": 3
+        },
+        {
+          "title": "Admin Page /admin/checklist-templates loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-11a7c82fce6ec5d53ed7",
+          "file": "smoke.spec.ts",
+          "line": 122,
+          "column": 3
+        },
+        {
+          "title": "Admin Page /admin/roles loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-78925c74c4426502e34c",
+          "file": "smoke.spec.ts",
+          "line": 122,
+          "column": 3
+        },
+        {
+          "title": "Admin Page /houses/profiles loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-c177ab1ed884030efe29",
+          "file": "smoke.spec.ts",
+          "line": 122,
+          "column": 3
+        },
+        {
+          "title": "Admin Page /participants/medication-register loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-d9ca2a899ccb6dfcd49d",
+          "file": "smoke.spec.ts",
+          "line": 122,
+          "column": 3
+        },
+        {
+          "title": "Admin Page /roster-board loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-29aef367838b163ed2f1",
+          "file": "smoke.spec.ts",
+          "line": 122,
+          "column": 3
+        },
+        {
+          "title": "Admin Page /roster-board/shift-templates loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-de9cd3e3c532c4b31f21",
+          "file": "smoke.spec.ts",
+          "line": 122,
+          "column": 3
+        },
+        {
+          "title": "Admin Page /activity-log loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-8329425faa924b6b1eb6",
+          "file": "smoke.spec.ts",
+          "line": 122,
+          "column": 3
+        },
+        {
+          "title": "Participant Detail page loads",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-9b51e65df95241587f21",
+          "file": "smoke.spec.ts",
+          "line": 135,
+          "column": 1
+        },
+        {
+          "title": "Participant Edit page loads",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-4cf9b761ff3f8b97f9e3",
+          "file": "smoke.spec.ts",
+          "line": 140,
+          "column": 1
+        },
+        {
+          "title": "Staff Timesheet Form page loads",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-e8a20d96827978f53d5c",
+          "file": "smoke.spec.ts",
+          "line": 145,
+          "column": 1
+        },
+        {
+          "title": "Participant Detail Medications tab loads",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-9e7aebb9a31be2985252",
+          "file": "smoke.spec.ts",
+          "line": 151,
+          "column": 1
+        },
+        {
+          "title": "Participant Detail Documents tab loads",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-34c6a365b0947cd3a227",
+          "file": "smoke.spec.ts",
+          "line": 156,
+          "column": 1
+        },
+        {
+          "title": "Public user is redirected from protected page to signin",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-fd7194e5948ea9ab0431",
+          "file": "smoke.spec.ts",
+          "line": 162,
+          "column": 1
+        },
+        {
+          "title": "Staff member is blocked from Admin Roster Board",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-beff646b0efd82bb212b",
+          "file": "smoke.spec.ts",
+          "line": 167,
+          "column": 1
+        },
+        {
+          "title": "Staff member is blocked from Admin Activity Log",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-98bc767f7232c4e4d9cb",
+          "file": "smoke.spec.ts",
+          "line": 173,
+          "column": 1
+        },
+        {
+          "title": "Staff Detail page loads",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-dd2c832fece293864e55",
+          "file": "smoke.spec.ts",
+          "line": 178,
+          "column": 1
+        },
+        {
+          "title": "House Detail page loads",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-33adf5881f895c487481",
+          "file": "smoke.spec.ts",
+          "line": 183,
+          "column": 1
+        },
+        {
+          "title": "Staff Leave Edit page loads",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-4b4fb44010e5d5d1248a",
+          "file": "smoke.spec.ts",
+          "line": 188,
+          "column": 1
+        },
+        {
+          "title": "Public Page /auth/signin loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-5d6de73777a4d73433db",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/signup loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-e7dac7a65e862454cb1d",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/reset-password loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-fa5af5f1c525d2a3b732",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/check-email loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-07b5a9af767a66d91ecf",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/change-password loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-79f8f026010c060179c9",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/2fa loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-531d7b11ce08c889379a",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/reset-password/check-email loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-5ed63c20065b433011eb",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/reset-password/changed loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-5ae2f1a6d353b71744fb",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/signin loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-987008984abe82aa9ce9",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/signup loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-4efa405bf28610fc484d",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/change-password loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-49b416f9f2c4c3060a2c",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/reset-password loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-43ba6aac768727a765f5",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/2fa loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-b967e217ab9f827fc8a4",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/check-email loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-e607e1c8186759eb35b7",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/reset-password/check-email loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-1b2c3fccb703859c79d3",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/reset-password/changed loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-8c7f261b80f5729a5acb",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/callback loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-c4d6db558903e6178c88",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /error/404 loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-51d7e3e76711fd3ae029",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /error/403 loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-d0a44f57730d75ee9881",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /error/500 loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-b1cccdd93126901d0472",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Staff Page / loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-04a8af7091b8e8dcfb5f",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /staff/dashboard loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-01e12f8013f2262a1b86",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /staff/checklists loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-6ba72425dc47ea84b1fd",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /staff/roster loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-ac4ab01a47b2460ca6de",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /staff/timesheets loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-0303e3930c7e10ca7cc1",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /staff/leave loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-b8ef0018dcfa49fa3044",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /staff/leave/new loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-c61fc358013821475f1a",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /staff/profile loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-583a6af2b939f393f85a",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /participants/profiles loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-7f61174972dc34faed83",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /participants/shift-notes loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-6fdbf21fa5da0e01ada2",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /auth/welcome-message loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-da573c4d973faa54dd9d",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /auth/account-deactivated loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-2b3bb5bb99bba71bcece",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Staff Page /account/notifications loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-fd81007d7da61f41699a",
+          "file": "smoke.spec.ts",
+          "line": 114,
+          "column": 3
+        },
+        {
+          "title": "Admin Page /employees/staff-profiles loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-5d81b41d44a29a24d9bd",
+          "file": "smoke.spec.ts",
+          "line": 122,
+          "column": 3
+        },
+        {
+          "title": "Admin Page /employees/timesheets loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-68808716b11cabb6a9d9",
+          "file": "smoke.spec.ts",
+          "line": 122,
+          "column": 3
+        },
+        {
+          "title": "Admin Page /employees/leave-requests loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-8763caadb6670a2026ef",
+          "file": "smoke.spec.ts",
+          "line": 122,
+          "column": 3
+        },
+        {
+          "title": "Admin Page /admin/checklist-templates loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-61052ceffd76f977b836",
+          "file": "smoke.spec.ts",
+          "line": 122,
+          "column": 3
+        },
+        {
+          "title": "Admin Page /admin/roles loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-9eb160b4f7be1fc5af24",
+          "file": "smoke.spec.ts",
+          "line": 122,
+          "column": 3
+        },
+        {
+          "title": "Admin Page /houses/profiles loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-fd5c88231929b4207be3",
+          "file": "smoke.spec.ts",
+          "line": 122,
+          "column": 3
+        },
+        {
+          "title": "Admin Page /participants/medication-register loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-16d14c44382623778eda",
+          "file": "smoke.spec.ts",
+          "line": 122,
+          "column": 3
+        },
+        {
+          "title": "Admin Page /roster-board loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-1f169db7a1b25589552b",
+          "file": "smoke.spec.ts",
+          "line": 122,
+          "column": 3
+        },
+        {
+          "title": "Admin Page /roster-board/shift-templates loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-6cd491a06e08ba7ea56a",
+          "file": "smoke.spec.ts",
+          "line": 122,
+          "column": 3
+        },
+        {
+          "title": "Admin Page /activity-log loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-44e73bb2a6dab758d309",
+          "file": "smoke.spec.ts",
+          "line": 122,
+          "column": 3
+        },
+        {
+          "title": "Participant Detail page loads",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-ef6348cdfe2c8f897617",
+          "file": "smoke.spec.ts",
+          "line": 135,
+          "column": 1
+        },
+        {
+          "title": "Participant Edit page loads",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-e8c48e42d7a085f9603e",
+          "file": "smoke.spec.ts",
+          "line": 140,
+          "column": 1
+        },
+        {
+          "title": "Staff Timesheet Form page loads",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-ef8db0a83bbe07b67cdf",
+          "file": "smoke.spec.ts",
+          "line": 145,
+          "column": 1
+        },
+        {
+          "title": "Participant Detail Medications tab loads",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-f7aef029ebb6ba448611",
+          "file": "smoke.spec.ts",
+          "line": 151,
+          "column": 1
+        },
+        {
+          "title": "Participant Detail Documents tab loads",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-5543b483470ec15f6120",
+          "file": "smoke.spec.ts",
+          "line": 156,
+          "column": 1
+        },
+        {
+          "title": "Public user is redirected from protected page to signin",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-b0b6dd5e74ca241fbee4",
+          "file": "smoke.spec.ts",
+          "line": 162,
+          "column": 1
+        },
+        {
+          "title": "Staff member is blocked from Admin Roster Board",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-b5bebf9f771c351044d2",
+          "file": "smoke.spec.ts",
+          "line": 167,
+          "column": 1
+        },
+        {
+          "title": "Staff member is blocked from Admin Activity Log",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-6d0f784cf2b77089777d",
+          "file": "smoke.spec.ts",
+          "line": 173,
+          "column": 1
+        },
+        {
+          "title": "Staff Detail page loads",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-5bd79f96d03944c91300",
+          "file": "smoke.spec.ts",
+          "line": 178,
+          "column": 1
+        },
+        {
+          "title": "House Detail page loads",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-6b461be9902c43f91a59",
+          "file": "smoke.spec.ts",
+          "line": 183,
+          "column": 1
+        },
+        {
+          "title": "Staff Leave Edit page loads",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-1cf36d605a53f2a2b988",
+          "file": "smoke.spec.ts",
+          "line": 188,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-05-26T07:43:13.881Z",
+    "duration": 20787.947,
+    "expected": 1,
+    "skipped": 280,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

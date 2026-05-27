@@ -6,7 +6,7 @@ import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
 /**
  * Protects routes based on granular permissions.
  */
-export const RequirePermission = ({ module }: { module: string }) => {
+export const RequirePermission = ({ module }: { module: string | string[] }) => {
   const { auth, user, loading } = useAuth();
   const { hasAccess } = useRBAC();
 
@@ -23,7 +23,14 @@ export const RequirePermission = ({ module }: { module: string }) => {
   // A user is allowed to enter a route section if their permission is not 'none'.
   // We use ACCESS_LEVEL.CONTEXT_READ_ONLY as the base check level (Level 1), allowing 
   // users with contextual or global access to enter.
-  if (!hasAccess({ resource: module, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY })) {
+  const checkAccess = () => {
+    if (Array.isArray(module)) {
+      return module.some(m => hasAccess({ resource: m, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY }));
+    }
+    return hasAccess({ resource: module, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY });
+  };
+
+  if (!checkAccess()) {
     return <Navigate to="/error/403" replace />;
   }
 

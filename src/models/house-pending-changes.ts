@@ -134,31 +134,6 @@ export interface HousePendingChanges {
       toDelete: string[];
     };
   };
-  shiftTemplates: {
-    toAdd: Array<{
-      tempId: string;
-      shift_template_name: string;
-      short_name?: string;
-      color_theme?: string;
-      default_start_time?: string;
-      default_end_time?: string;
-      sort_order: number;
-      is_active: boolean;
-      default_checklists: string[]; // checklist IDs
-    }>;
-    toUpdate: Array<{
-      id: string;
-      shift_template_name?: string;
-      short_name?: string;
-      color_theme?: string;
-      default_start_time?: string;
-      default_end_time?: string;
-      sort_order?: number;
-      is_active?: boolean;
-      default_checklists?: string[];
-    }>;
-    toDelete: string[];
-  };
   forms: {
     toAdd: Array<{
       tempId: string;
@@ -274,11 +249,6 @@ export const emptyHousePendingChanges: HousePendingChanges = {
       toDelete: [],
     },
   },
-  shiftTemplates: {
-    toAdd: [],
-    toUpdate: [],
-    toDelete: [],
-  },
   forms: {
     toAdd: [],
     toUpdate: [],
@@ -320,9 +290,6 @@ export function hasHousePendingChanges(pending: HousePendingChanges): boolean {
     pending.checklists.checklistItems.toAdd.length > 0 ||
     pending.checklists.checklistItems.toUpdate.length > 0 ||
     pending.checklists.checklistItems.toDelete.length > 0 ||
-    pending.shiftTemplates.toAdd.length > 0 ||
-    pending.shiftTemplates.toUpdate.length > 0 ||
-    pending.shiftTemplates.toDelete.length > 0 ||
     pending.forms.toAdd.length > 0 ||
     pending.forms.toUpdate.length > 0 ||
     pending.forms.toDelete.length > 0 ||
@@ -357,9 +324,6 @@ export function countHousePendingChanges(pending: HousePendingChanges): number {
     pending.checklists.checklistItems.toAdd.length +
     pending.checklists.checklistItems.toUpdate.length +
     pending.checklists.checklistItems.toDelete.length +
-    pending.shiftTemplates.toAdd.length +
-    pending.shiftTemplates.toUpdate.length +
-    pending.shiftTemplates.toDelete.length +
     pending.forms.toAdd.length +
     pending.forms.toUpdate.length +
     pending.forms.toDelete.length +

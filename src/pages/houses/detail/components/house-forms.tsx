@@ -15,6 +15,7 @@ import { useStaff } from '@/hooks/use-staff';
 import { useAuth } from '@/auth/context/auth-context';
 import { HousePendingChanges } from '@/models/house-pending-changes';
 import { useForm } from 'react-hook-form';
+import { Link } from 'react-router';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
@@ -538,9 +539,25 @@ export function HouseForms({
                                       <div className="flex items-center gap-2">
                                         <User className="size-4 text-muted-foreground" />
                                         <div>
-                                          <div className={`text-sm font-medium ${isAssignmentPendingDelete ? 'line-through' : ''}`}>
-                                            {assignedTo}
-                                          </div>
+                                          {assignment.participant_id ? (
+                                            <Link 
+                                              to={`/participants/detail/${assignment.participant_id}`}
+                                              className={`text-sm font-bold text-gray-900 hover:underline hover:text-primary transition-colors ${isAssignmentPendingDelete ? 'line-through opacity-50 pointer-events-none' : ''}`}
+                                            >
+                                              {assignedTo}
+                                            </Link>
+                                          ) : assignment.staff_id ? (
+                                            <Link 
+                                              to={`/employees/staff-detail/${assignment.staff_id}`}
+                                              className={`text-sm font-bold text-gray-900 hover:underline hover:text-primary transition-colors ${isAssignmentPendingDelete ? 'line-through opacity-50 pointer-events-none' : ''}`}
+                                            >
+                                              {assignedTo}
+                                            </Link>
+                                          ) : (
+                                            <div className={`text-sm font-medium ${isAssignmentPendingDelete ? 'line-through' : ''}`}>
+                                              {assignedTo}
+                                            </div>
+                                          )}
                                           <div className="text-xs text-muted-foreground">{assignedType}</div>
                                         </div>
                                         {isAssignmentPendingAdd && (

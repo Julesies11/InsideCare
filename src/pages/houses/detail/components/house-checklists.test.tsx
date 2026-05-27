@@ -43,8 +43,8 @@ describe('HouseChecklistSetup Component', () => {
       />
     );
 
-    expect(screen.getByText(/House Checklists/i)).toBeDefined();
-    expect(screen.getByText(/Import Checklists/i)).toBeDefined();
+    expect(screen.getByText(/Checklist Setup/i)).toBeDefined();
+    expect(screen.getByText(/Import/i)).toBeDefined();
     expect(screen.getByText(/Add Checklist/i)).toBeDefined();
   });
 
@@ -58,7 +58,7 @@ describe('HouseChecklistSetup Component', () => {
       />
     );
 
-    const importBtn = screen.getByRole('button', { name: /Import Checklists/i });
+    const importBtn = screen.getByRole('button', { name: /Import/i });
     await user.click(importBtn);
 
     // Dialog title check

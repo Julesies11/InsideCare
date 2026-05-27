@@ -15,7 +15,7 @@ export interface HousesSort {
   desc: boolean;
 }
 
-const HOUSE_COLUMNS = 'id, house_name, branch_id, address, phone, capacity, current_occupancy, house_manager, status, notes, created_by, updated_by, created_at, updated_at';
+const HOUSE_COLUMNS = 'id, house_name, branch_id, address, phone, capacity, current_occupancy, house_manager, status, notes, individuals_breakdown, participant_dynamics, observations, general_house_details, risk_management, created_by, updated_by, created_at, updated_at';
 
 // Define the query so we can extract its return type
 const getHousesQuery = () => supabase

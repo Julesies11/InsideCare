@@ -167,7 +167,7 @@ export function ScheduleChecklistsModal({ open, onOpenChange, houseId, houseName
             <div>
               <DialogTitle className="text-xl sm:text-2xl font-black uppercase tracking-tight leading-none mb-1">Schedule Checklists</DialogTitle>
               <DialogDescription className="text-xs sm:text-sm font-medium">
-                Bulk schedule House Checklists on specific days for {houseName}.
+                Bulk schedule Checklists on specific days for {houseName}.
               </DialogDescription>
             </div>
           </div>

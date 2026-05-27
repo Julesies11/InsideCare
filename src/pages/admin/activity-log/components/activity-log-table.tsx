@@ -359,7 +359,7 @@ export function ActivityLogTable() {
   return (
     <>
       <DataGrid table={table} recordCount={count} isLoading={loading}>
-        <Card>
+        <Card id="activity_log">
           <CardToolbar className="flex flex-col gap-4 p-5">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 w-full">
               <Tabs value={category} onValueChange={(v) => updateUrlParams({ category: v })}>

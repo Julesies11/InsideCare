@@ -89,15 +89,15 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
   // --- Visibility Logic (Merging current and pending) ---
 
   const visibleShiftTemplates = useMemo(() => {
-    if (directSave || !pendingChanges) return shiftTemplates;
+    if (directSave || !pendingChanges?.shiftTemplates) return shiftTemplates;
     
-    const dbTypes = shiftTemplates.filter(st => !pendingChanges.shiftTemplates.toDelete.includes(st.id));
+    const dbTypes = shiftTemplates.filter(st => !pendingChanges.shiftTemplates?.toDelete?.includes(st.id));
     const merged = dbTypes.map(st => {
-      const update = pendingChanges.shiftTemplates.toUpdate.find(u => u.id === st.id);
+      const update = pendingChanges.shiftTemplates?.toUpdate?.find(u => u.id === st.id);
       return update ? { ...st, ...update } : st;
     });
     
-    return [...merged, ...pendingChanges.shiftTemplates.toAdd];
+    return [...merged, ...(pendingChanges.shiftTemplates?.toAdd || [])];
   }, [shiftTemplates, pendingChanges, directSave]);
 
   const getVisibleDefaults = (shiftTemplateId: string) => {
@@ -133,7 +133,7 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
       setEditingType(type);
       const checklists = getVisibleDefaults(type.id || type.tempId);
       setTypeFormData({
-        name: type.shift_template_name,
+        shift_template_name: type.shift_template_name || '',
         short_name: type.short_name || '',
         icon_name: type.icon_name || 'Clock',
         color_theme: type.color_theme || 'morning',
@@ -161,6 +161,11 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
   };
 
   const handleSaveType = async () => {
+    if (!typeFormData.shift_template_name.trim()) {
+      toast.error('Template name is required');
+      return;
+    }
+
     if (directSave) {
       try {
         let typeId = editingType?.id;
@@ -365,7 +370,7 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
           const theme = getPeriodTheme(st.shift_template_name, st.color_theme, st.icon_name);
           const typeDefaults = getVisibleDefaults(st.id || st.tempId);
           const isPendingAdd = !!st.tempId;
-          const isPendingUpdate = pendingChanges?.shiftTemplates.toUpdate.some(u => u.id === st.id);
+          const isPendingUpdate = pendingChanges?.shiftTemplates?.toUpdate?.some(u => u.id === st.id);
 
           return (
             <div key={st.id || st.tempId} className={cn(
@@ -478,7 +483,7 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
                 <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">Template Name</Label>
                 <Input 
                   value={typeFormData.shift_template_name} 
-                  onChange={e => setTypeFormData({...typeFormData, name: e.target.value})} 
+                  onChange={e => setTypeFormData({...typeFormData, shift_template_name: e.target.value})} 
                   placeholder="e.g. Morning" 
                   className="h-9 text-sm bg-white" 
                 />

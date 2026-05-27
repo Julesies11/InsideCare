@@ -10,6 +10,8 @@ import { Loader2 } from 'lucide-react';
 // Lazy load pages
 const ParticipantsProfilesPage = lazy(() => import('@/pages/participants').then(m => ({ default: m.ParticipantsProfilesPage })));
 const ParticipantDetailPage = lazy(() => import('@/pages/participants').then(m => ({ default: m.ParticipantDetailPage })));
+const MedicationRegisterPage = lazy(() => import('@/pages/participants/medication-register/medication-register-page').then(m => ({ default: m.MedicationRegisterPage })));
+const MedicationDetailPage = lazy(() => import('@/pages/participants/medication-register/medication-detail-page').then(m => ({ default: m.MedicationDetailPage })));
 const ShiftNotesPage = lazy(() => import('@/pages/participants').then(m => ({ default: m.ShiftNotesPage })));
 
 const HousesProfilesPage = lazy(() => import('@/pages/houses').then(m => ({ default: m.HousesProfilesPage })));
@@ -17,6 +19,8 @@ const HouseDetailPage = lazy(() => import('@/pages/houses').then(m => ({ default
 
 const StaffProfilesPage = lazy(() => import('@/pages/employees').then(m => ({ default: m.StaffProfilesPage })));
 const StaffDetailPage = lazy(() => import('@/pages/employees').then(m => ({ default: m.StaffDetailPage })));
+const ShiftTemplatesPage = lazy(() => import('@/pages/roster-board/shift-templates').then(m => ({ default: m.ShiftTemplatesPage })));
+const ShiftTemplatesEditPage = lazy(() => import('@/pages/roster-board/shift-templates-edit').then(m => ({ default: m.ShiftTemplatesEditPage })));
 const AdminTimesheetsPage = lazy(() => import('@/pages/employees').then(m => ({ default: m.AdminTimesheetsPage })));
 const AdminLeaveRequestsPage = lazy(() => import('@/pages/employees').then(m => ({ default: m.AdminLeaveRequestsPage })));
 
@@ -57,24 +61,24 @@ export function AppRoutingSetup() {
             <Route path="/account/notifications" element={<NotificationCenter />} />
 
             <Route element={<RequirePermission module={RBAC_MODULES.SHIFT_ROUTINES} />}>
-              <Route path="/staff/dashboard" element={<StaffDashboard />} />
+              <Route path="/my-dashboard" element={<StaffDashboard />} />
             </Route>
 
             <Route element={<RequirePermission module={RBAC_MODULES.HOUSE_CHECKLISTS} />}>
-              <Route path="/staff/checklists" element={<StaffChecklists />} />
+              <Route path="/house-checklists" element={<StaffChecklists />} />
             </Route>
 
             <Route element={<RequirePermission module={RBAC_MODULES.MY_ROSTER} />}>
-              <Route path="/staff/roster" element={<StaffRoster />} />
+              <Route path="/my-roster" element={<StaffRoster />} />
             </Route>
 
             <Route element={<RequirePermission module={RBAC_MODULES.MY_TIMESHEETS} />}>
               <Route path="/staff/roster/:shiftId/timesheet" element={<StaffTimesheetForm />} />
-              <Route path="/staff/timesheets" element={<StaffTimesheetList />} />
+              <Route path="/my-timesheets" element={<StaffTimesheetList />} />
             </Route>
 
             <Route element={<RequirePermission module={RBAC_MODULES.MY_LEAVE} />}>
-              <Route path="/staff/leave" element={<StaffLeaveList />} />
+              <Route path="/my-leave" element={<StaffLeaveList />} />
               <Route path="/staff/leave/new" element={<StaffLeaveForm />} />
               <Route path="/staff/leave/:id/edit" element={<StaffLeaveForm />} />
             </Route>
@@ -98,6 +102,17 @@ export function AppRoutingSetup() {
               />
             </Route>
 
+            <Route element={<RequirePermission module={RBAC_MODULES.MASTER_LISTS} />}>
+              <Route
+                path="/participants/medication-register"
+                element={<MedicationRegisterPage />}
+              />
+              <Route
+                path="/participants/medication-register/:id"
+                element={<MedicationDetailPage />}
+              />
+            </Route>
+
             <Route element={<RequirePermission module={RBAC_MODULES.SHIFT_NOTES} />}>
               <Route
                 path="/participants/shift-notes"
@@ -106,39 +121,21 @@ export function AppRoutingSetup() {
             </Route>
 
             <Route element={<RequirePermission module={RBAC_MODULES.HOUSES} />}>
-              <Route
-                path="/houses/profiles"
-                element={<HousesProfilesPage />}
-              />
-              <Route
-                path="/houses/detail/:id"
-                element={<HouseDetailPage />}
-              />
+              <Route path="/houses" element={<HousesProfilesPage />} />
+              <Route path="/houses/detail/:id" element={<HouseDetailPage />} />
             </Route>
 
             <Route element={<RequirePermission module={RBAC_MODULES.EMPLOYEES} />}>
-              <Route
-                path="/employees/staff-profiles"
-                element={<StaffProfilesPage />}
-              />
-              <Route
-                path="/employees/staff-detail/:id"
-                element={<StaffDetailPage />}
-              />
+              <Route path="/staff" element={<StaffProfilesPage />} />
+              <Route path="/employees/staff-detail/:id" element={<StaffDetailPage />} />
             </Route>
 
             <Route element={<RequirePermission module={RBAC_MODULES.TIMESHEETS} />}>
-              <Route
-                path="/employees/timesheets"
-                element={<AdminTimesheetsPage />}
-              />
+              <Route path="/timesheet-approvals" element={<AdminTimesheetsPage />} />
             </Route>
 
             <Route element={<RequirePermission module={RBAC_MODULES.LEAVE_REQUESTS} />}>
-              <Route
-                path="/employees/leave-requests"
-                element={<AdminLeaveRequestsPage />}
-              />
+              <Route path="/leave-approvals" element={<AdminLeaveRequestsPage />} />
             </Route>
 
             <Route element={<RequirePermission module={RBAC_MODULES.ROSTER_BOARD} />}>
@@ -146,8 +143,14 @@ export function AppRoutingSetup() {
                 path="/roster-board"
                 element={<RosterBoard />}
               />
-            </Route>
-
+              <Route
+                path="/shift-setup"
+                element={<ShiftTemplatesPage />}
+              />
+              <Route
+                path="/shift-setup/:id"
+                element={<ShiftTemplatesEditPage />}
+              />            </Route>
             <Route element={<RequirePermission module={RBAC_MODULES.ACTIVITY_LOG} />}>
               <Route
                 path="/activity-log"
@@ -157,7 +160,7 @@ export function AppRoutingSetup() {
 
             <Route element={<RequireAdmin />}>
               <Route
-                path="/admin/checklist-templates"
+                path="/checklist-templates"
                 element={<ChecklistMasterPage />}
               />
               <Route element={<RequirePermission module={RBAC_MODULES.MASTER_LISTS} />}>
@@ -167,7 +170,7 @@ export function AppRoutingSetup() {
                 />
               </Route>
               <Route
-                path="/admin/roles"
+                path="/access-control"
                 element={<RolesPage />}
               />
             </Route>

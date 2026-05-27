@@ -45,8 +45,8 @@ test.describe('Staff Workflows', () => {
 
   test('Staff can access House Checklists', async ({ page }) => {
     await page.goto('/staff/checklists');
-    // Check for a checklist card or list item
-    await expect(page.locator('.card, .list-item, body')).toContainText(/Checklist/i);
+    // Check for heading or checklist card
+    await expect(page.getByRole('heading', { name: /Checklist/i, level: 1 }).or(page.locator('.card'))).toBeVisible();
   });
 
   test('Staff can open the Shift Note dialog', async ({ page }) => {

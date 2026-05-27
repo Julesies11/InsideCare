@@ -15,6 +15,9 @@ export default defineConfig({
       brotliSize: true,
     })
   ],
+  server: {
+    strictPort: true,
+  },
   base: '/',
   resolve: {
     alias: {

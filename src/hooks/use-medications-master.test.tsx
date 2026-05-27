@@ -38,7 +38,7 @@ describe('useMedicationsMaster', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(result.current.data).toHaveLength(2);
-    expect(result.current.data?.[0].medication_name).toBe('Paracetamol');
+    expect(result.current.data?.data).toHaveLength(2);
+    expect(result.current.data?.data?.[0].medication_name).toBe('Paracetamol');
   });
 });

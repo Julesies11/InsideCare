@@ -27,14 +27,26 @@ export function usePermissions() {
   const { user, isAdmin } = useAuth();
   const { hasAccess } = useRBAC();
 
-  const canView = (module: string) => {
+  const canView = (module: string | string[]) => {
+    if (Array.isArray(module)) {
+      return module.some(m => hasAccess({ 
+        resource: m, 
+        requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY
+      }));
+    }
     return hasAccess({ 
       resource: module, 
       requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY
     });
   };
 
-  const canEdit = (module: string) => {
+  const canEdit = (module: string | string[]) => {
+    if (Array.isArray(module)) {
+      return module.some(m => hasAccess({ 
+        resource: m, 
+        requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE
+      }));
+    }
     return hasAccess({ 
       resource: module, 
       requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE

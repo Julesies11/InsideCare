@@ -47,8 +47,13 @@ async function debugAuth() {
 
     // Test authentication with demo credentials
     console.log('🔐 Testing Demo User Authentication:');
-    const demoEmail = 'demo@kt.com';
-    const demoPassword = 'demo123';
+    const demoEmail = process.env.PLAYWRIGHT_ADMIN_EMAIL;
+    const demoPassword = process.env.PLAYWRIGHT_ADMIN_PASSWORD;
+
+    if (!demoEmail || !demoPassword) {
+      console.log('⚠️  PLAYWRIGHT_ADMIN_EMAIL/PASSWORD not set, skipping auth test');
+      return;
+    }
 
     const { data: authData, error: authError } = await anonClient.auth.signInWithPassword({
       email: demoEmail,

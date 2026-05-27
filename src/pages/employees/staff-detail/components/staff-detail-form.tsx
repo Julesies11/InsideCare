@@ -14,7 +14,27 @@ interface StaffDetailFormProps {
   staffId: string;
   formData: Record<string, any>;
   onFormDataChange: (data: Record<string, any>) => void;
-  canEdit: boolean;
+  canEditPersonal?: boolean;
+  canEditEmployment?: boolean;
+  canEditAvailability?: boolean;
+  canEditEmergency?: boolean;
+  canEditCompliance?: boolean;
+  canEditTraining?: boolean;
+  canEditDocuments?: boolean;
+  canEditRoster?: boolean;
+  canEditLeave?: boolean;
+  canEditWarnings?: boolean;
+  canViewPersonal?: boolean;
+  canViewEmployment?: boolean;
+  canViewAvailability?: boolean;
+  canViewEmergency?: boolean;
+  canViewCompliance?: boolean;
+  canViewTraining?: boolean;
+  canViewDocuments?: boolean;
+  canViewRoster?: boolean;
+  canViewLeave?: boolean;
+  canViewWarnings?: boolean;
+  canViewActivityLog?: boolean;
   pendingChanges?: StaffPendingChanges;
   onPendingChangesChange?: (changes: StaffPendingChanges) => void;
   activityRefreshTrigger?: number;
@@ -28,7 +48,27 @@ export function StaffDetailForm({
   staffId,
   formData,
   onFormDataChange,
-  canEdit,
+  canEditPersonal = false,
+  canEditEmployment = false,
+  canEditAvailability = false,
+  canEditEmergency = false,
+  canEditCompliance = false,
+  canEditTraining = false,
+  canEditDocuments = false,
+  canEditRoster = false,
+  canEditLeave = false,
+  canEditWarnings = false,
+  canViewPersonal = false,
+  canViewEmployment = false,
+  canViewAvailability = false,
+  canViewEmergency = false,
+  canViewCompliance = false,
+  canViewTraining = false,
+  canViewDocuments = false,
+  canViewRoster = false,
+  canViewLeave = false,
+  canViewWarnings = false,
+  canViewActivityLog = false,
   pendingChanges,
   onPendingChangesChange,
   activityRefreshTrigger,
@@ -47,96 +87,121 @@ export function StaffDetailForm({
   return (
     <div className="grid gap-2.5 lg:gap-7.5">
       {/* 1. Personal Details */}
-      <PersonalDetails
-        formData={formData}
-        onFormChange={handleFormChange}
-        canEdit={canEdit}
-        validationErrors={validationErrors}
-      />
+      {canViewPersonal && (
+        <PersonalDetails
+          formData={formData}
+          onFormChange={handleFormChange}
+          canEdit={canEditPersonal}
+          validationErrors={validationErrors}
+          onSave={() => {}} // Pass a dummy for now as parent handles save
+        />
+      )}
 
       {/* 2. Employment Details */}
-      <EmploymentDetails
-        formData={formData}
-        onFormChange={handleFormChange}
-        canEdit={canEdit}
-        validationErrors={validationErrors}
-        currentStaffId={staffId}
-      />
+      {canViewEmployment && (
+        <EmploymentDetails
+          formData={formData}
+          onFormChange={handleFormChange}
+          canEdit={canEditEmployment}
+          validationErrors={validationErrors}
+          currentStaffId={staffId}
+        />
+      )}
 
       {/* 3. Availability */}
-      <StaffAvailability
-        formData={formData}
-        onFormChange={handleFormChange}
-        canEdit={canEdit}
-      />
+      {canViewAvailability && (
+        <StaffAvailability
+          formData={formData}
+          onFormChange={handleFormChange}
+          canEdit={canEditAvailability}
+        />
+      )}
 
       {/* 4. Emergency Contact */}
-      <EmergencyContact
-        formData={formData}
-        onFormChange={handleFormChange}
-        canEdit={canEdit}
-      />
+      {canViewEmergency && (
+        <EmergencyContact
+          formData={formData}
+          onFormChange={handleFormChange}
+          canEdit={canEditEmergency}
+        />
+      )}
 
       {/* 5. Compliance */}
-      <StaffComplianceSection
-        formData={formData}
-        onFormChange={handleFormChange}
-        canEdit={canEdit}
-      />
+      {canViewCompliance && (
+        <StaffComplianceSection
+          formData={formData}
+          onFormChange={handleFormChange}
+          canEdit={canEditCompliance}
+        />
+      )}
 
       {/* 6. Training */}
-      <StaffTrainingSection
-        key={`training-${trainingRefreshKey}`}
-        staffId={staffId}
-        canEdit={canEdit}
-        pendingChanges={pendingChanges}
-        onPendingChangesChange={onPendingChangesChange}
-        refreshKey={trainingRefreshKey}
-      />
+      {canViewTraining && (
+        <StaffTrainingSection
+          key={`training-${trainingRefreshKey}`}
+          staffId={staffId}
+          canEdit={canEditTraining}
+          pendingChanges={pendingChanges}
+          onPendingChangesChange={onPendingChangesChange}
+          refreshKey={trainingRefreshKey}
+        />
+      )}
 
       {/* 7. Documents */}
-      <Documents
-        key={`documents-${documentsRefreshKey}`}
-        staffId={staffId}
-        staffName={staffName}
-        canAdd={canEdit}
-        canDelete={canEdit}
-        pendingChanges={pendingChanges}
-        onPendingChangesChange={onPendingChangesChange}
-      />
+      {canViewDocuments && (
+        <Documents
+          key={`documents-${documentsRefreshKey}`}
+          staffId={staffId}
+          staffName={staffName}
+          canAdd={canEditDocuments}
+          canDelete={canEditDocuments}
+          pendingChanges={pendingChanges}
+          onPendingChangesChange={onPendingChangesChange}
+        />
+      )}
 
       {/* 8. Roster */}
-      <StaffRoster
-        staffId={staffId}
-        canEdit={canEdit}
-      />
+      {canViewRoster && (
+        <StaffRoster
+          staffId={staffId}
+          canEdit={canEditRoster}
+        />
+      )}
 
       {/* 9. Leave */}
-      <Card className="pb-2.5" id="staff_leave">
-        <CardHeader>
-          <CardTitle>Leave</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col items-center justify-center py-10 text-muted-foreground border-2 border-dashed rounded-lg">
-            <p className="text-sm font-medium">Leave Management section coming soon.</p>
-          </div>
-        </CardContent>
-      </Card>
+      {canViewLeave && (
+        <Card className="pb-2.5" id="staff_leave">
+          <CardHeader>
+            <CardTitle>Leave</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col items-center justify-center py-10 text-muted-foreground border-2 border-dashed rounded-lg">
+              <p className="text-sm font-medium">Leave Management section coming soon.</p>
+              {!canEditLeave && <p className="text-xs italic">(Read Only)</p>}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* 10. Warnings */}
-      <Card className="pb-2.5" id="staff_warnings">
-        <CardHeader>
-          <CardTitle>Warnings</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col items-center justify-center py-10 text-muted-foreground border-2 border-dashed rounded-lg">
-            <p className="text-sm font-medium">Staff Warnings section coming soon.</p>
-          </div>
-        </CardContent>
-      </Card>
+      {canViewWarnings && (
+        <Card className="pb-2.5" id="staff_warnings">
+          <CardHeader>
+            <CardTitle>Warnings</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col items-center justify-center py-10 text-muted-foreground border-2 border-dashed rounded-lg">
+              <p className="text-sm font-medium">Staff Warnings section coming soon.</p>
+              {!canEditWarnings && <p className="text-xs italic">(Read Only)</p>}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* 11. Activity Log */}
-      <StaffActivityLog staffId={staffId} refreshTrigger={activityRefreshTrigger} />
+      {canViewActivityLog && (
+        <StaffActivityLog staffId={staffId} refreshTrigger={activityRefreshTrigger} />
+      )}
     </div>
   );
 }

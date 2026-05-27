@@ -25,10 +25,13 @@ export function HouseDetailPage() {
   const { mutateAsync: _updateHouse } = useUpdateHouse();
   const { hasAccess } = useRBAC();
   
-  const canEdit = hasAccess({ 
-    resource: RBAC_MODULES.HOUSES, 
-    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE 
-  });
+  const canEdit = 
+    hasAccess({ resource: RBAC_MODULES.HOUSES, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE }) ||
+    hasAccess({ resource: RBAC_MODULES.HOUSE_MANAGEMENT, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE }) ||
+    hasAccess({ resource: RBAC_MODULES.HOUSE_OPERATIONS, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE }) ||
+    hasAccess({ resource: RBAC_MODULES.HOUSE_CHECKLISTS, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE }) ||
+    hasAccess({ resource: RBAC_MODULES.HOUSE_RESOURCES, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE }) ||
+    hasAccess({ resource: RBAC_MODULES.HOUSE_STAFF, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE });
   
   const [formData, setFormData] = useState<Record<string, any> | null>(null);
   const [originalData, setOriginalData] = useState<Record<string, any> | null>(null);

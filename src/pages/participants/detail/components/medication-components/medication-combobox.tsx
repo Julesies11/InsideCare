@@ -33,7 +33,7 @@ export function MedicationCombobox({
   onManageList,
 }: MedicationComboboxProps) {
   const [open, setOpen] = useState(false);
-  const { data: medications = [], isLoading: loading } = useMedicationsMaster();
+  const { medications = [], isLoading: loading } = useMedicationsMaster();
 
   const activeMedications = medications.filter((med) => med.is_active);
   const selectedMedication = medications.find((med) => med.id === value);

@@ -70,4 +70,30 @@ describe('useRBAC Hook', () => {
 
     expect(result.current.hasAccess({ resource: 'unknown_resource' as any, requiredLevel: ACCESS_LEVEL.READ_ONLY })).toBe(false);
   });
+
+  it('should handle granular house permissions independently', () => {
+    const mockAuth = { 
+      isAdmin: false, 
+      user: { 
+        permissions: { 
+          [RBAC_MODULES.HOUSES]: ACCESS_LEVEL.READ_ONLY,
+          [RBAC_MODULES.HOUSE_MANAGEMENT]: ACCESS_LEVEL.CONTEXT_READ_WRITE,
+          [RBAC_MODULES.HOUSE_OPERATIONS]: ACCESS_LEVEL.NONE
+        } 
+      } 
+    };
+    const { result } = renderHook(() => useRBAC(), {
+      wrapper: ({ children }) => <AuthWrapper value={mockAuth as any}>{children}</AuthWrapper>,
+    });
+
+    // Basics: Read Only
+    expect(result.current.hasAccess({ resource: RBAC_MODULES.HOUSES, requiredLevel: ACCESS_LEVEL.READ_ONLY })).toBe(true);
+    expect(result.current.hasAccess({ resource: RBAC_MODULES.HOUSES, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE })).toBe(false);
+
+    // Management: Write Access
+    expect(result.current.hasAccess({ resource: RBAC_MODULES.HOUSE_MANAGEMENT, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE })).toBe(true);
+
+    // Operations: No Access
+    expect(result.current.hasAccess({ resource: RBAC_MODULES.HOUSE_OPERATIONS, requiredLevel: ACCESS_LEVEL.READ_ONLY })).toBe(false);
+  });
 });

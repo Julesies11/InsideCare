@@ -11,7 +11,15 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Download, Trash2, FileText, Clock, MapPin, Phone, Edit } from 'lucide-react';
 import { useHouseResources } from '@/hooks/useHouseResources';
 import { useAuth } from '@/auth/context/auth-context';
-import { HousePendingChanges } from '@/models/house-pending-changes';
+import { cn } from '@/lib/utils';
+import { KeenIcon } from '@/components/keenicons';
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from '@/components/ui/context-menu';
 
 interface HouseResourcesProps {
   houseId?: string;
@@ -41,8 +49,7 @@ export function HouseResources({
     notes: '',
   });
 
-  const { houseResources, loading } = useHouseResources(houseId);
-  const { user } = useAuth();
+  const { houseResources, loading, getFileUrl } = useHouseResources(houseId);
 
   const handleAdd = () => {
     setEditingResource(null);
@@ -192,6 +199,11 @@ export function HouseResources({
     onPendingChangesChange(newPending);
   };
 
+  const handleDownload = async (filePath: string, fileName: string) => {
+    const url = await getFileUrl(filePath, fileName);
+    if (url) window.open(url, '_blank');
+  };
+
   // Filter out resources marked for deletion
   const visibleResources = [
     ...houseResources.filter(resource => !pendingChanges?.resources.toDelete.includes(resource.id)),
@@ -274,148 +286,178 @@ export function HouseResources({
                   const isPendingDelete = pendingChanges?.resources.toDelete.includes(resource.id);
                   
                   return (
-                    <TableRow 
-                      key={resource.id || resource.tempId} 
-                      className={
-                        isPendingAdd ? 'bg-primary/5' : 
-                        isPendingDelete ? 'opacity-50 bg-destructive/5' : 
-                        isPendingUpdate ? 'bg-warning/5' : ''
-                      }
-                    >
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <FileText className="size-4 text-muted-foreground" />
-                          <div className={`flex flex-col ${isPendingDelete ? 'line-through' : ''}`}>
-                            <span className="font-medium">{resource.title}</span>
-                            {resource.description && (
-                              <span className="text-xs text-muted-foreground line-clamp-2">
-                                {resource.description}
-                              </span>
-                            )}
-                          </div>
-                          {isPendingAdd && (
-                            <span className="text-xs text-primary flex items-center gap-1">
-                              <Clock className="size-3" />
-                              Pending add
-                            </span>
+                    <ContextMenu key={resource.id || resource.tempId}>
+                      <ContextMenuTrigger asChild>
+                        <TableRow 
+                          className={cn(
+                            "cursor-context-menu",
+                            isPendingAdd ? 'bg-primary/5' : 
+                            isPendingDelete ? 'opacity-50 bg-destructive/5' : 
+                            isPendingUpdate ? 'bg-warning/5' : ''
                           )}
-                          {isPendingUpdate && (
-                            <span className="text-xs text-warning flex items-center gap-1">
-                              <Clock className="size-3" />
-                              Pending update
-                            </span>
-                          )}
-                          {isPendingDelete && (
-                            <span className="text-xs text-destructive flex items-center gap-1">
-                              <Clock className="size-3" />
-                              Pending deletion
-                            </span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className={`text-xs border-${getCategoryColor(resource.category)}-500 text-${getCategoryColor(resource.category)}-700`}>
-                          {resource.category}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm">{resource.type}</span>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className={`text-xs border-${getPriorityColor(resource.priority)}-500 text-${getPriorityColor(resource.priority)}-700`}>
-                          {resource.priority}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm space-y-1">
-                          {resource.phone && (
-                            <div className="flex items-center gap-2">
-                              <Phone className="size-4 text-muted-foreground" />
-                              <span>{resource.phone}</span>
-                            </div>
-                          )}
-                          {resource.address && (
-                            <div className="flex items-center gap-2">
-                              <MapPin className="size-4 text-muted-foreground" />
-                              <span className="line-clamp-2">{resource.address}</span>
-                            </div>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm">
-                          {resource.file_name ? (
+                        >
+                          <TableCell>
                             <div className="flex items-center gap-2">
                               <FileText className="size-4 text-muted-foreground" />
-                              <div>
-                                <div className="line-clamp-1">{resource.file_name}</div>
-                                <div className="text-xs text-muted-foreground">
-                                  {formatFileSize(resource.file_size)}
-                                </div>
+                              <div className={`flex flex-col ${isPendingDelete ? 'line-through' : ''}`}>
+                                <span className="font-medium">{resource.title}</span>
+                                {resource.description && (
+                                  <span className="text-xs text-muted-foreground line-clamp-2">
+                                    {resource.description}
+                                  </span>
+                                )}
                               </div>
+                              {isPendingAdd && (
+                                <span className="text-xs text-primary flex items-center gap-1">
+                                  <Clock className="size-3" />
+                                  Pending add
+                                </span>
+                              )}
+                              {isPendingUpdate && (
+                                <span className="text-xs text-warning flex items-center gap-1">
+                                  <Clock className="size-3" />
+                                  Pending update
+                                </span>
+                              )}
+                              {isPendingDelete && (
+                                <span className="text-xs text-destructive flex items-center gap-1">
+                                  <Clock className="size-3" />
+                                  Pending deletion
+                                </span>
+                              )}
                             </div>
-                          ) : (
-                            <span className="text-muted-foreground">No file</span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex justify-end gap-1">
-                          {!isPendingDelete && (
-                            <>
-                              {resource.file_url && (
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className={`text-xs border-${getCategoryColor(resource.category)}-500 text-${getCategoryColor(resource.category)}-700`}>
+                              {resource.category}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-sm">{resource.type}</span>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className={`text-xs border-${getPriorityColor(resource.priority)}-500 text-${getPriorityColor(resource.priority)}-700`}>
+                              {resource.priority}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-sm space-y-1">
+                              {resource.phone && (
+                                <div className="flex items-center gap-2">
+                                  <Phone className="size-4 text-muted-foreground" />
+                                  <span>{resource.phone}</span>
+                                </div>
+                              )}
+                              {resource.address && (
+                                <div className="flex items-center gap-2">
+                                  <MapPin className="size-4 text-muted-foreground" />
+                                  <span className="line-clamp-2">{resource.address}</span>
+                                </div>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-sm">
+                              {resource.file_name ? (
+                                <div className="flex items-center gap-2">
+                                  <FileText className="size-4 text-muted-foreground" />
+                                  <div>
+                                    <div className="line-clamp-1">{resource.file_name}</div>
+                                    <div className="text-xs text-muted-foreground">
+                                      {formatFileSize(resource.file_size)}
+                                    </div>
+                                  </div>
+                                </div>
+                              ) : (
+                                <span className="text-muted-foreground">No file</span>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex justify-end gap-1">
+                              {!isPendingDelete && (
+                                <>
+                                  {resource.file_url && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleDownload(resource.file_url!, resource.file_name || 'resource')}
+                                    >
+                                      <Download className="size-4" />
+                                    </Button>
+                                  )}
+                                  <Button variant="ghost" size="sm" onClick={() => handleEdit(resource)} disabled={!canAdd}>
+                                   <Edit className="size-4" />
+                                  </Button>                              {canDelete && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="text-destructive"
+                                      onClick={() => handleDelete(resource)}
+                                    >
+                                      <Trash2 className="size-4" />
+                                    </Button>
+                                  )}
+                                </>
+                              )}
+                              {isPendingAdd && (
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  onClick={() => window.open(resource.file_url, '_blank')}
+                                  onClick={() => handleCancelPendingAdd(resource.tempId!)}
                                 >
-                                  <Download className="size-4" />
+                                  Remove
                                 </Button>
                               )}
-                              <Button variant="ghost" size="sm" onClick={() => handleEdit(resource)} disabled={!canAdd}>
-                               <Edit className="size-4" />
-                              </Button>                              {canDelete && (
+                              {isPendingUpdate && (
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className="text-destructive"
-                                  onClick={() => handleDelete(resource)}
+                                  onClick={() => handleCancelPendingUpdate(resource.id)}
                                 >
-                                  <Trash2 className="size-4" />
+                                  Undo
                                 </Button>
                               )}
-                            </>
-                          )}
-                          {isPendingAdd && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleCancelPendingAdd(resource.tempId!)}
+                              {isPendingDelete && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleCancelPendingDelete(resource.id)}
+                                >
+                                  Undo
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      </ContextMenuTrigger>
+                      
+                      <ContextMenuContent className="w-48">
+                        {resource.file_url && (
+                          <ContextMenuItem onClick={() => handleDownload(resource.file_url!, resource.file_name || 'resource')}>
+                            <KeenIcon icon="cloud-download" className="me-2" />
+                            Download File
+                          </ContextMenuItem>
+                        )}
+                        <ContextMenuItem onClick={() => handleEdit(resource)} disabled={!canAdd}>
+                          <KeenIcon icon="pencil" className="me-2" />
+                          Edit Resource
+                        </ContextMenuItem>
+                        
+                        {canDelete && !isPendingDelete && (
+                          <>
+                            <ContextMenuSeparator />
+                            <ContextMenuItem 
+                              variant="destructive"
+                              onClick={() => handleDelete(resource)}
                             >
-                              Remove
-                            </Button>
-                          )}
-                          {isPendingUpdate && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleCancelPendingUpdate(resource.id)}
-                            >
-                              Undo
-                            </Button>
-                          )}
-                          {isPendingDelete && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleCancelPendingDelete(resource.id)}
-                            >
-                              Undo
-                            </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
+                              <KeenIcon icon="trash" className="me-2" />
+                              Delete
+                            </ContextMenuItem>
+                          </>
+                        )}
+                      </ContextMenuContent>
+                    </ContextMenu>
                   );
                 })}
               </TableBody>

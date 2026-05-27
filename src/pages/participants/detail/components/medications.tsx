@@ -31,12 +31,12 @@ interface MedicationsProps {
   canEdit: boolean;
   pendingChanges?: MedicationPendingChanges;
   onPendingChangesChange?: (changes: MedicationPendingChanges) => void;
+  refreshTrigger?: number;
 }
 
 const medicationSchema = z.object({
   medication_id: z.string().min(1, 'Medication is required'),
   dosage: z.string().optional().default(''),
-  frequency: z.string().optional().default(''),
   is_active: z.boolean().default(true),
 });
 
@@ -48,21 +48,27 @@ export function Medications({
   canDelete,
   canEdit,
   pendingChanges,
-  onPendingChangesChange 
+  onPendingChangesChange,
+  refreshTrigger,
 }: MedicationsProps) {
   const [showDialog, setShowDialog] = useState(false);
-  const [editingMedication, setEditingMedication] = useState<{ id?: string; tempId?: string; medication_id: string; dosage?: string; frequency?: string; is_active: boolean } | null>(null);
+  const [editingMedication, setEditingMedication] = useState<{ id?: string; tempId?: string; medication_id: string; dosage?: string; is_active: boolean } | null>(null);
   const [showMasterDialog, setShowMasterDialog] = useState(false);
 
-  const { data: medications = [], isLoading: loading } = useParticipantMedications(participantId);
-  const { data: medicationsMaster = [] } = useMedicationsMaster();
+  const { data: medications = [], isLoading: loading, refetch } = useParticipantMedications(participantId);
+  const { medications: medicationsMaster = [] } = useMedicationsMaster();
+
+  useEffect(() => {
+    if (refreshTrigger !== undefined && refreshTrigger > 0) {
+      refetch();
+    }
+  }, [refreshTrigger, refetch]);
 
   const form = useForm<MedicationFormValues>({
     resolver: zodResolver(medicationSchema),
     defaultValues: {
       medication_id: '',
       dosage: '',
-      frequency: '',
       is_active: true,
     },
   });
@@ -72,14 +78,12 @@ export function Medications({
       form.reset({
         medication_id: editingMedication.medication_id,
         dosage: editingMedication.dosage || '',
-        frequency: editingMedication.frequency || '',
         is_active: editingMedication.is_active,
       });
     } else if (showDialog) {
       form.reset({
         medication_id: '',
         dosage: '',
-        frequency: '',
         is_active: true,
       });
     }
@@ -214,7 +218,6 @@ export function Medications({
                 <TableRow>
                   <TableHead>Medication</TableHead>
                   <TableHead>Dosage</TableHead>
-                  <TableHead>Frequency</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -246,7 +249,6 @@ export function Medications({
                         </div>
                       </TableCell>
                       <TableCell className={cn(isPendingDelete && 'line-through')}>{med.dosage}</TableCell>
-                      <TableCell className={cn(isPendingDelete && 'line-through')}>{med.frequency}</TableCell>
                       <TableCell>
                         <Badge variant={med.is_active ? 'success' : 'secondary'}>
                           {med.is_active ? 'Active' : 'Inactive'}
@@ -256,7 +258,7 @@ export function Medications({
                         <div className="flex justify-end gap-1">
                           {!isPendingDelete && !isPendingAdd && !isPendingUpdate && (
                             <>
-                              <Button variant="ghost" size="sm" onClick={() => handleEdit(med)} disabled={!canAdd}>
+                              <Button variant="ghost" size="sm" onClick={() => handleEdit(med)} disabled={!canEdit}>
                                 <Edit className="size-4" />
                               </Button>
                               <Button variant="ghost" size="sm" className="text-destructive" onClick={() => handleDelete(med)} disabled={!canDelete}>
@@ -274,7 +276,7 @@ export function Medications({
                               variant="ghost"
                               size="sm"
                               onClick={() => handleCancelPendingUpdate(med.id)}
-                              disabled={!canAdd}
+                              disabled={!canEdit}
                             >
                               Undo
                             </Button>
@@ -340,7 +342,7 @@ export function Medications({
                 )}
               />
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <FormField
                   control={form.control}
                   name="dosage"
@@ -349,20 +351,6 @@ export function Medications({
                       <FormLabel>Dosage</FormLabel>
                       <FormControl>
                         <Input {...field} placeholder="e.g. 500mg" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="frequency"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Frequency</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="e.g. Twice daily" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

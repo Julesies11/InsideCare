@@ -77,8 +77,8 @@ async function setupUsers() {
 
     // 2. Users
     const users = [
-      { email: 'demo@kt.com', pass: 'demo123', name: 'Demo Admin', role: 'Admin' },
-      { email: 'staff@kt.com', pass: 'demo123', name: 'Demo Staff', role: 'Support Worker' }
+      { email: 'demo@kt.com', pass: process.env.PLAYWRIGHT_ADMIN_PASSWORD || 'demo123', name: 'Demo Admin', role: 'Admin' },
+      { email: 'staff@kt.com', pass: process.env.PLAYWRIGHT_STAFF_PASSWORD || 'demo123', name: 'Demo Staff', role: 'Support Worker' }
     ];
 
     for (const u of users) {

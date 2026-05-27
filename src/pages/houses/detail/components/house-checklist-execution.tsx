@@ -7,6 +7,14 @@ import { Badge } from '@/components/ui/badge';
 import { Save, AlertCircle, Paperclip, X, Download, FileText, Loader2, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn, getPeriodTheme } from '@/lib/utils';
+import { KeenIcon } from '@/components/keenicons';
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from '@/components/ui/context-menu';
 
 interface ChecklistItem {
   id: string;
@@ -430,21 +438,44 @@ export function HouseChecklistExecution({
                     <div className="flex flex-col items-end gap-1.5 w-full">
                       {/* Existing Attachments */}
                       {initialData?.attachments?.[item.id]?.filter(a => !toDeleteAttachments.includes(a.id)).map((file) => (
-                        <div key={file.id} className="flex items-center gap-2 max-w-full bg-gray-50/80 px-2 py-1 rounded border border-gray-100 group/file">
-                          <span className="text-[11px] font-medium text-gray-700 truncate max-w-[150px]">{file.file_name}</span>
-                          <div className="flex items-center gap-1">
-                            <Download 
-                              className="size-3 text-blue-500 cursor-pointer hover:text-blue-700" 
-                              onClick={() => window.open(file.file_path, '_blank')} 
-                            />
+                        <ContextMenu key={file.id}>
+                          <ContextMenuTrigger asChild>
+                            <div className="flex items-center gap-2 max-w-full bg-gray-50/80 px-2 py-1 rounded border border-gray-100 group/file cursor-context-menu">
+                              <span className="text-[11px] font-medium text-gray-700 truncate max-w-[150px]">{file.file_name}</span>
+                              <div className="flex items-center gap-1">
+                                <Download 
+                                  className="size-3 text-blue-500 cursor-pointer hover:text-blue-700" 
+                                  onClick={() => window.open(file.file_path, '_blank')} 
+                                />
+                                {!isReadOnly && (
+                                  <Trash2 
+                                    className="size-3 text-gray-400 cursor-pointer hover:text-red-500" 
+                                    onClick={() => markAttachmentForDeletion(file.id)}
+                                  />
+                                )}
+                              </div>
+                            </div>
+                          </ContextMenuTrigger>
+                          
+                          <ContextMenuContent className="w-48">
+                            <ContextMenuItem onClick={() => window.open(file.file_path, '_blank')}>
+                              <KeenIcon icon="cloud-download" className="me-2" />
+                              Download
+                            </ContextMenuItem>
                             {!isReadOnly && (
-                              <Trash2 
-                                className="size-3 text-gray-400 cursor-pointer hover:text-red-500" 
-                                onClick={() => markAttachmentForDeletion(file.id)}
-                              />
+                              <>
+                                <ContextMenuSeparator />
+                                <ContextMenuItem 
+                                  variant="destructive"
+                                  onClick={() => markAttachmentForDeletion(file.id)}
+                                >
+                                  <KeenIcon icon="trash" className="me-2" />
+                                  Remove
+                                </ContextMenuItem>
+                              </>
                             )}
-                          </div>
-                        </div>
+                          </ContextMenuContent>
+                        </ContextMenu>
                       ))}
                       
                       {/* Queued Attachments */}

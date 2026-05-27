@@ -1,0 +1,1854 @@
+◇ injected env (0) from .env.local // tip: ⌘ suppress logs { quiet: true }
+◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+◇ injected env (0) from .env.local // tip: ⌁ auth for agents [www.vestauth.com]
+◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+{
+  "config": {
+    "configFile": "/Users/juliangibbings/Documents/Code/InsideCare/playwright.config.ts",
+    "rootDir": "/Users/juliangibbings/Documents/Code/InsideCare/tests",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 2
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/juliangibbings/Documents/Code/InsideCare/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "setup",
+        "name": "setup",
+        "testDir": "/Users/juliangibbings/Documents/Code/InsideCare/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "/.*\\.setup\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/juliangibbings/Documents/Code/InsideCare/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/Users/juliangibbings/Documents/Code/InsideCare/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/juliangibbings/Documents/Code/InsideCare/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "firefox",
+        "name": "firefox",
+        "testDir": "/Users/juliangibbings/Documents/Code/InsideCare/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/juliangibbings/Documents/Code/InsideCare/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "Mobile Chrome",
+        "name": "Mobile Chrome",
+        "testDir": "/Users/juliangibbings/Documents/Code/InsideCare/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/juliangibbings/Documents/Code/InsideCare/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "Mobile Safari",
+        "name": "Mobile Safari",
+        "testDir": "/Users/juliangibbings/Documents/Code/InsideCare/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.60.0",
+    "workers": 2,
+    "webServer": {
+      "command": "npm run dev",
+      "url": "http://localhost:5173",
+      "reuseExistingServer": true,
+      "env": {
+        "VITE_SUPABASE_URL": "https://rdnaqrzqpcicskylmsyl.supabase.co",
+        "VITE_SUPABASE_ANON_KEY": "sb_publishable_zLUSQl5cNJleWzZNa8rAlw_JvGbZYYG"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "auth.setup.ts",
+      "file": "auth.setup.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "authenticate as admin",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "setup",
+              "projectName": "setup",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7528,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-05-26T07:46:53.402Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "17e3fe6f4d9d8bd79c6b-1580989d32f149e984ed",
+          "file": "auth.setup.ts",
+          "line": 22,
+          "column": 1
+        },
+        {
+          "title": "authenticate as staff",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "setup",
+              "projectName": "setup",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "failed",
+                  "duration": 5517,
+                  "error": {
+                    "message": "Error: Login failed with error: Invalid login credentials",
+                    "stack": "Error: Login failed with error: Invalid login credentials\n    at /Users/juliangibbings/Documents/Code/InsideCare/tests/auth.setup.ts:71:14\n    at /Users/juliangibbings/Documents/Code/InsideCare/tests/auth.setup.ts:68:3",
+                    "location": {
+                      "file": "/Users/juliangibbings/Documents/Code/InsideCare/tests/auth.setup.ts",
+                      "column": 14,
+                      "line": 71
+                    },
+                    "snippet": "  69 |     page.waitForURL(url => !url.pathname.includes('/auth/signin'), { timeout: 15000 }),\n  70 |     expect(errorMessage).toBeVisible({ timeout: 15000 }).then(async () => {\n> 71 |        throw new Error(`Login failed with error: ${await errorMessage.textContent()}`);\n     |              ^\n  72 |     }).catch(e => {\n  73 |        // If the error message didn't appear, this is the \"good\" path for the race\n  74 |        if (e.message.includes('expect(locator).toBeVisible()')) return;"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/juliangibbings/Documents/Code/InsideCare/tests/auth.setup.ts",
+                        "column": 14,
+                        "line": 71
+                      },
+                      "message": "Error: Login failed with error: Invalid login credentials\n\n  69 |     page.waitForURL(url => !url.pathname.includes('/auth/signin'), { timeout: 15000 }),\n  70 |     expect(errorMessage).toBeVisible({ timeout: 15000 }).then(async () => {\n> 71 |        throw new Error(`Login failed with error: ${await errorMessage.textContent()}`);\n     |              ^\n  72 |     }).catch(e => {\n  73 |        // If the error message didn't appear, this is the \"good\" path for the race\n  74 |        if (e.message.includes('expect(locator).toBeVisible()')) return;\n    at /Users/juliangibbings/Documents/Code/InsideCare/tests/auth.setup.ts:71:14\n    at /Users/juliangibbings/Documents/Code/InsideCare/tests/auth.setup.ts:68:3"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-05-26T07:46:53.434Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/juliangibbings/Documents/Code/InsideCare/test-results/auth.setup.ts-authenticate-as-staff-setup/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/juliangibbings/Documents/Code/InsideCare/tests/auth.setup.ts",
+                    "column": 14,
+                    "line": 71
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "17e3fe6f4d9d8bd79c6b-375a64caaeb879e02dd8",
+          "file": "auth.setup.ts",
+          "line": 52,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "smoke.spec.ts",
+      "file": "smoke.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Public Page /auth/signin loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-920ae910cb827187c41e",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/signup loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-e2793a1145a134679d8e",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/reset-password loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-2ab2ce4272c1e433793b",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/check-email loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-27c7e0bdfa08ef056558",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/change-password loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-8ae730ee1a08324b4b82",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/2fa loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-ea75bc2341f1ef761e43",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/reset-password/check-email loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-bb682f599628f648ded3",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/reset-password/changed loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-5f9a7be93bae0a3cf59b",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/signin loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-63cfa20a738fd0fc2574",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/signup loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-f7ef48fb3b52dd4b176e",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/change-password loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-e150fbc58011e87f215c",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/reset-password loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-a94fae6beecc5c9c739b",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/2fa loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-95506f4caf5d70fb7e63",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/check-email loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-70f4482ae0c7594b4ffa",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/reset-password/check-email loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-1ffc1316fd9358936077",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/reset-password/changed loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-e97511854b2c13247fb1",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/callback loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-e4b3cfca7b3a3a54b92d",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /error/404 loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-93694f71a157f16ea3d8",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /error/403 loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-e6c92398cda181cf73f1",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /error/500 loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-c3a399720a69172014a3",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/signin loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-43cca30a36cf5d59db56",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/signup loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-771cbeb61cb9f0624fd8",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/reset-password loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-b9d57b13e06c01d53223",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/check-email loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-706320c13caa862bd8c8",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/change-password loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-1c4e49ad43b646742926",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/2fa loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-e3b6997b693fb84343a1",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/reset-password/check-email loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-ad02db9a7b48d0c348cd",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/reset-password/changed loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-5f174779001ea6aada15",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/signin loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-2363f2f0ad1166e8c103",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/signup loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-7287db70cde7c6abbc11",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/change-password loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-330cf2dbc9709b8bcd3c",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/reset-password loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-1ed74cc8a91614fff353",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/2fa loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-dda2abfb2eeb6e87f252",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/check-email loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-ab0028ff7751bbf32f5e",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/reset-password/check-email loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-5a54543d413beade1f4b",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/reset-password/changed loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-28c27ca6dcc2c108a12a",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/callback loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-6cc181e6a904cbebc4d2",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /error/404 loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-55a9732569ffc06b0187",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /error/403 loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-713bfe3ad87b5591a4b7",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /error/500 loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-55ca82d109015699ff45",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/signin loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-723fef000bf9ff37261b",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/signup loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-5512d8fce666951bc274",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/reset-password loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-75cd7ca81c19f6e2f829",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/check-email loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-630954a4f12740d15e32",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/change-password loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-eadef641b243f87a0afb",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/2fa loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-2e5a4cf23ae70d2c00bf",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/reset-password/check-email loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-7c0d1ae1ee247efc49de",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/reset-password/changed loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-2d6fd2c3e4e7aa1d9bf8",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/signin loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-a8f9bdf99d4630b28c9c",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/signup loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-ace33cd0f13771380f2c",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/change-password loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-7ce7f42c5915e3e4459e",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/reset-password loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-b59cc8fdd036caf6b6d8",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/2fa loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-6698018a4b108a85e5f3",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/check-email loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-000d4c1250499becb717",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/reset-password/check-email loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-cdb3aabae0e153cfbac0",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/reset-password/changed loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-5c4b9f328c4d60a54e96",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/callback loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-e039a5ecddb2bb95664b",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /error/404 loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-06533c4e51ad32d1fd49",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /error/403 loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-c532c38d779c87f518e7",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /error/500 loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-6e330ce1dd3a77fa0a18",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/signin loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-5d6de73777a4d73433db",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/signup loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-e7dac7a65e862454cb1d",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/reset-password loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-fa5af5f1c525d2a3b732",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/check-email loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-07b5a9af767a66d91ecf",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/change-password loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-79f8f026010c060179c9",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/2fa loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-531d7b11ce08c889379a",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/reset-password/check-email loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-5ed63c20065b433011eb",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/reset-password/changed loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-5ae2f1a6d353b71744fb",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/signin loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-987008984abe82aa9ce9",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/signup loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-4efa405bf28610fc484d",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/change-password loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-49b416f9f2c4c3060a2c",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/reset-password loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-43ba6aac768727a765f5",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/2fa loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-b967e217ab9f827fc8a4",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/check-email loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-e607e1c8186759eb35b7",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/reset-password/check-email loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-1b2c3fccb703859c79d3",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/branded/reset-password/changed loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-8c7f261b80f5729a5acb",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /auth/callback loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-c4d6db558903e6178c88",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /error/404 loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-51d7e3e76711fd3ae029",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /error/403 loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-d0a44f57730d75ee9881",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        },
+        {
+          "title": "Public Page /error/500 loads without WSoD",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-b1cccdd93126901d0472",
+          "file": "smoke.spec.ts",
+          "line": 106,
+          "column": 3
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-05-26T07:46:44.191Z",
+    "duration": 17278.722,
+    "expected": 1,
+    "skipped": 80,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

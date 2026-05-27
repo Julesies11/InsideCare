@@ -47,8 +47,6 @@ export interface HouseCalendarEvent {
   is_checklist_event?: boolean;
   house_checklist_id?: string;
   checklist_schedule_id?: string;
-  shift_template?: string;
-  shift_template_id?: string;
   type_details?: {
     color_theme?: string;
     icon_name?: string;
@@ -144,76 +142,6 @@ export function useHouseCalendarEvents(houseId?: string, staffId?: string) {
           type
         };
       });
-
-      // 2. Fetch shifts at this house (+/- 60 days)
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - 30);
-      const endDate = new Date();
-      endDate.setDate(endDate.getDate() + 90);
-
-      let shiftQuery = supabase
-        .from(TABLES.STAFF_SHIFTS)
-        .select(`
-          id, 
-          start_date,
-          start_time,
-          end_time,
-          staff_id,
-          shift_template,
-          shift_template_id,
-          type_details:ic_house_shift_templates(color_theme, icon_name),
-          staff:staff_id(id, staff_name),
-          participants:ic_shift_participants(participant:ic_participants(id, participant_name)),
-          assigned_checklists:ic_shift_assigned_checklists(
-            id, 
-            checklist_id, 
-            assignment_title,
-            submissions:ic_house_checklist_submissions(id, status, completed_at)
-          )
-        `)
-        .eq('house_id', houseId)
-        .gte('start_date', startDate.toISOString().split('T')[0])
-        .lte('start_date', endDate.toISOString().split('T')[0]);
-
-      if (staffId) {
-        shiftQuery = shiftQuery.eq('staff_id', staffId);
-      }
-
-      const { data: shifts } = await shiftQuery;
-
-      if (shifts) {
-        for (const shift of shifts) {
-          // A. Add the shift itself as a calendar entry
-          combinedEvents.push({
-            id: `shift-${shift.id}`,
-            house_id: houseId,
-            title: `${shift.shift_template || 'Shift'} - ${shift.staff?.staff_name || 'Unassigned'}`,
-            type: 'shift',
-            shift_template: shift.shift_template,
-            shift_template_id: shift.shift_template_id,
-            type_details: shift.type_details,
-            event_date: shift.start_date,
-            start_time: shift.start_time,
-            end_time: shift.end_time,
-            event_staff: shift.staff_id ? [{ staff: shift.staff_id }] : [],
-            event_participants: (shift.participants || shift.ic_shift_participants || [])?.map((p: any) => {
-              const part = p.participant || p.participants || p;
-              const actualPart = Array.isArray(part) ? part[0] : part;
-              return {
-                participant: {
-                  id: actualPart?.id || p.id || p.participant_id,
-                  participant_name: actualPart?.participant_name || p.participant_name
-                }
-              };
-            }).filter((p: any) => p.participant.id && p.participant.participant_name) || [],
-            assigned_checklists: shift.assigned_checklists,
-            status: 'scheduled'
-          } as any);
-
-          // Shift-assigned checklists are rendered inside the Shift component itself
-          // We no longer duplicate them as standalone calendar events.
-        }
-      }
 
       setHouseCalendarEvents(combinedEvents);
       setError(null);

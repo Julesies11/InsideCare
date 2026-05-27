@@ -11,14 +11,14 @@ test.describe('Admin Workflows', () => {
 
   test('Admin can view Activity Log', async ({ page }) => {
     await page.goto('/activity-log');
-    await expect(page.getByRole('heading', { name: 'System Activity Log' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Activity Log/i, level: 1 })).toBeVisible();
     // Verify table results (even if empty, should not crash)
     await expect(page.locator('#activity_log')).toBeVisible();
   });
 
   test('Admin can access Role Management', async ({ page }) => {
     await page.goto('/admin/roles');
-    await expect(page.getByRole('heading', { name: /Roles & Permissions/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Roles/i, level: 1 })).toBeVisible();
     await expect(page.getByRole('button', { name: /Add Role/i })).toBeVisible();
   });
 

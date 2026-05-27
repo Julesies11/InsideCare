@@ -82,7 +82,7 @@ describe('SidebarMenu', () => {
 
     renderSidebar();
 
-    expect(screen.getByText('Employees')).toBeInTheDocument();
+    expect(screen.getByText('Staff')).toBeInTheDocument();
     expect(screen.getByText('Roster Board')).toBeInTheDocument();
     
     // Personal items should be hidden (if not granted)
@@ -103,7 +103,7 @@ describe('SidebarMenu', () => {
     renderSidebar();
 
     expect(screen.getByText('My Roster')).toBeInTheDocument();
-    expect(screen.getByText('Employees')).toBeInTheDocument();
+    expect(screen.getByText('Staff')).toBeInTheDocument();
     expect(screen.getByText('Houses')).toBeInTheDocument();
     expect(screen.getByText('Roster Board')).toBeInTheDocument();
     expect(screen.getByText('Access Control')).toBeInTheDocument();

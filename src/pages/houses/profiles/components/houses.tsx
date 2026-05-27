@@ -44,7 +44,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { House } from '@/models/house';
 import { useHouses, useUpdateHouse } from '@/hooks/use-houses';
 import { useParticipants } from '@/hooks/use-participants';
-import { useNavigate } from 'react-router';
+import { useNavigate, Link } from 'react-router';
 import { useAuth } from '@/auth/context/auth-context';
 import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
 import { RBAC_MODULES } from '@/config/rbac-modules';
@@ -64,8 +64,8 @@ const HOUSE_STATUS_OPTIONS: StatusOption[] = [
 function getHouseParticipants(houseId: string, allParticipants: Array<{ id: string; participant_name: string; house_id?: string; status: string }>) {
   return allParticipants
     .filter(participant => participant.house_id === houseId && participant.status === 'active')
-    .map(participant => participant.participant_name)
-    .filter(name => name);
+    .map(participant => ({ id: participant.id, name: participant.participant_name }))
+    .filter(p => p.name);
 }
 
 // Helper function to create Google Maps URL from address
@@ -428,11 +428,15 @@ export function Houses() {
           return (
             <div className="text-sm text-gray-900 dark:text-gray-100">
               {participantsForHouse.length > 0 ? (
-                <div className="space-y-1">
-                  {participantsForHouse.map((name, index) => (
-                    <div key={index} className="text-xs">
-                      {name}
-                    </div>
+                <div className="flex flex-col gap-1">
+                  {participantsForHouse.map((p) => (
+                    <Link
+                      key={p.id}
+                      to={`/participants/detail/${p.id}`}
+                      className="text-xs font-medium text-gray-700 hover:text-primary hover:underline transition-colors"
+                    >
+                      {p.name}
+                    </Link>
                   ))}
                 </div>
               ) : (
@@ -507,7 +511,7 @@ export function Houses() {
         cellBorder: true,
       }}
     >
-      <Card>
+      <Card id="houses_table">
         <CardHeader>
           <div className="flex items-center gap-2.5">
             <div className="relative">
