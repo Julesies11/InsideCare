@@ -263,6 +263,7 @@ export function HouseDetailContent({
             start_date: s.start_date || null,
             end_date: s.end_date || null,
             notes: s.notes || null,
+            created_by: user?.staff_id || null,
           }));
           const { error: dbError } = await supabase.from(TABLES.HOUSE_STAFF_ASSIGNMENTS).insert(toInsert);
           if (dbError) throw new Error(`Failed to add staff assignments: ${dbError.message}`);
@@ -312,6 +313,7 @@ export function HouseDetailContent({
                 is_checklist_event: !!event.is_checklist_event,
                 house_checklist_id: event.house_checklist_id || null,
                 checklist_schedule_id: event.checklist_schedule_id || null,
+                created_by: user?.staff_id || null,
               })
               .select('id')
               .maybeSingle();
@@ -352,6 +354,7 @@ export function HouseDetailContent({
                 is_checklist_event: !!event.is_checklist_event,
                 house_checklist_id: event.house_checklist_id || null,
                 checklist_schedule_id: event.checklist_schedule_id || null,
+                created_by: user?.staff_id || null,
               })
               .eq('id', event.id);
 
@@ -408,6 +411,7 @@ export function HouseDetailContent({
                 file_path: filePath,
                 file_size: doc.file.size,
                 file_type: doc.file.type,
+                created_by: user?.staff_id || null,
               });
 
             if (error) throw new Error(`Failed to save document record: ${error.message}`);
@@ -650,6 +654,7 @@ export function HouseDetailContent({
               file_name: fileName,
               file_size: fileSize,
               notes: resource.notes || null,
+              created_by: user?.staff_id || null,
             });
 
             if (error) throw new Error(`Failed to add resource: ${error.message}`);
@@ -844,7 +849,7 @@ export function HouseDetailContent({
       await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.HOUSE_DOCUMENTS, id] });
       await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.CHECKLISTS, id] });
       await queryClient.invalidateQueries({ queryKey: ['house-forms', id] });
-      await queryClient.invalidateQueries({ queryKey: ['house-resources', id] });
+      await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.HOUSE_RESOURCES, id] });
       await queryClient.invalidateQueries({ queryKey: ['house_comms', { houseId: id }] });
       await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.HOUSE_SHIFT_TEMPLATES, id] });
       await queryClient.invalidateQueries({ queryKey: ['shift-template-defaults', id] });
@@ -1013,7 +1018,6 @@ export function HouseDetailContent({
                 pendingChanges={pendingChanges}
                 onPendingChangesChange={onPendingChangesChange}
                 canEdit={canEditOperations}
-                refreshKey={refreshKeys.calendarEvents}
               />
 
               <HouseComms 

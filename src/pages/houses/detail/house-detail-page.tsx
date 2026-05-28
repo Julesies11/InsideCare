@@ -44,7 +44,12 @@ export function HouseDetailPage() {
 
   const handleSave = async () => {
     if (saveHandlerRef.current) {
-      await saveHandlerRef.current();
+      setSaving(true);
+      try {
+        await saveHandlerRef.current();
+      } finally {
+        setSaving(false);
+      }
     }
   };
 

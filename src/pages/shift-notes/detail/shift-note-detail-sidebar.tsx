@@ -12,7 +12,6 @@ export function ShiftNoteDetailSidebar({ formData }: ShiftNoteDetailSidebarProps
     {
       title: 'Overview',
       target: 'shift_note_overview',
-      active: true,
     },
     {
       title: 'Supports',
@@ -42,7 +41,7 @@ export function ShiftNoteDetailSidebar({ formData }: ShiftNoteDetailSidebarProps
     },
   ];
 
-  // Filter out hidden tracker sub-children for cleaner menu
+  // Process items: filter out hidden children
   const processedItems = items.map(item => {
     if (item.children) {
       return {

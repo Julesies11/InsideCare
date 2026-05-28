@@ -106,10 +106,9 @@ describe('ShiftNotes', () => {
     const editButton = screen.getAllByRole('button', { name: /Edit/i })[0];
     await user.click(editButton);
 
-    await waitFor(() => {
-    const dialog = screen.getByRole('dialog');
+    // Use findByRole which automatically waits
+    const dialog = await screen.findByRole('dialog', {}, { timeout: 5000 });
     expect(dialog).toBeInTheDocument();
-  }, { timeout: 5000 });
   });
 
   it('filters by house using popover', async () => {

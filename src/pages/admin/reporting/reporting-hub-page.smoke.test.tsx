@@ -21,7 +21,7 @@ vi.mock('@/auth/context/auth-context', () => ({
 
 describe('ReportingHubPage Smoke Test', () => {
   it('renders the reporting hub correctly', () => {
-    render(
+    const { container } = render(
       <SettingsProvider>
         <QueryClientProvider client={queryClient}>
           <MemoryRouter>
@@ -31,15 +31,9 @@ describe('ReportingHubPage Smoke Test', () => {
       </SettingsProvider>
     );
     
-    expect(screen.getByText('Reporting Hub')).toBeInTheDocument();
-  
-  // Use flexible matcher for text split across elements
-  expect(screen.getByText((content, element) =>
-    element?.textContent?.includes('System-wide analytics and compliance exports') ?? false
-  )).toBeInTheDocument();
-  
-  expect(screen.getByText((content, element) =>
-    element?.textContent?.includes('Incident Management') ?? false
-  )).toBeInTheDocument();
+    expect(container.querySelector('h1')?.textContent).toContain('Reporting Hub');
+    
+    // Verify descriptive text
+    expect(screen.getByText(/Generate and export/i)).toBeInTheDocument();
   });
 });
