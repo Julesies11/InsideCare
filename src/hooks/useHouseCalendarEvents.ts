@@ -64,12 +64,12 @@ export interface HouseCalendarEvent {
   };
 }
 
-export function useHouseCalendarEvents(houseId?: string, staffId?: string) {
+export function useHouseCalendarEvents(houseId?: string, staffId?: string, startDate?: string, endDate?: string) {
   const [houseCalendarEvents, setHouseCalendarEvents] = useState<HouseCalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchHouseCalendarEvents = async () => {
+  const fetchHouseCalendarEvents = async (signal?: AbortSignal): Promise<void> => {
     if (!houseId) {
       setHouseCalendarEvents([]);
       setLoading(false);
@@ -79,8 +79,7 @@ export function useHouseCalendarEvents(houseId?: string, staffId?: string) {
     try {
       setLoading(true);
       
-      // 1. Fetch regular calendar events including junction data
-      const { data: events, error: eventError } = await supabase
+      let query = supabase
         .from(TABLES.HOUSE_CALENDAR_EVENTS)
         .select(`
           id,
@@ -118,10 +117,19 @@ export function useHouseCalendarEvents(houseId?: string, staffId?: string) {
           event_participants:ic_house_calendar_event_participants(participant:ic_participants(id, participant_name)),
           event_staff:ic_house_calendar_event_staff(staff:ic_staff(id, staff_name))
         `)
-        .eq('house_id', houseId)
-        .order('event_date', { ascending: true });
+        .eq('house_id', houseId);
+        
+      if (startDate) query = query.gte('event_date', startDate);
+      if (endDate) query = query.lte('event_date', endDate);
+        
+      const { data: events, error: eventError } = await query
+        .order('event_date', { ascending: true })
+        .abortSignal(signal as any);
 
-      if (eventError) throw eventError;
+      if (eventError) {
+        if (eventError.code === 'PGRST100') return;
+        throw eventError;
+      }
 
       const combinedEvents = (events || []).map((e: any) => {
         let type = 'other';
@@ -145,18 +153,23 @@ export function useHouseCalendarEvents(houseId?: string, staffId?: string) {
 
       setHouseCalendarEvents(combinedEvents);
       setError(null);
-    } catch (err) {
+    } catch (err: any) {
+      if (err.name === 'AbortError') return;
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch house calendar events';
       console.error('Error fetching house calendar events:', err);
       setError(errorMessage);
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) {
+        setLoading(false);
+      }
     }
   };
 
   useEffect(() => {
-    fetchHouseCalendarEvents();
-  }, [houseId, staffId]);
+    const controller = new AbortController();
+    fetchHouseCalendarEvents(controller.signal);
+    return () => controller.abort();
+  }, [houseId, staffId, startDate, endDate]);
 
   return {
     houseCalendarEvents,

@@ -34,7 +34,9 @@ describe('HouseResources Component', () => {
     vi.mocked(useHouseResourcesModule.useHouseResources).mockReturnValue({
       houseResources: [],
       loading: false,
+      error: null,
       getFileUrl: vi.fn().mockResolvedValue('http://mock-url.com'),
+      refetch: vi.fn(),
     });
   });
 
@@ -110,7 +112,9 @@ describe('HouseResources Component', () => {
     vi.mocked(useHouseResourcesModule.useHouseResources).mockReturnValue({
       houseResources: mockResources,
       loading: false,
+      error: null,
       getFileUrl: vi.fn(),
+      refetch: vi.fn(),
     });
 
     // Mock confirm dialog

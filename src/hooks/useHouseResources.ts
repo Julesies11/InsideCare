@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { TABLES } from '@/config/db-tables';
 import { STORAGE_BUCKETS } from '@/config/storage-buckets';
+import { QUERY_KEYS } from '@/config/query-keys';
 
 export interface HouseResource {
   id: string;
@@ -28,45 +29,26 @@ export interface HouseResource {
 }
 
 export function useHouseResources(houseId?: string) {
-  const [houseResources, setHouseResources] = useState<HouseResource[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const query = useQuery({
+    queryKey: [QUERY_KEYS.HOUSE_RESOURCES, houseId],
+    queryFn: async () => {
+      if (!houseId) return [];
+      
+      const { data, error } = await supabase
+        .from(TABLES.HOUSE_RESOURCES)
+        .select(`
+          *,
+          creator:ic_staff!created_by(id, staff_name, email)
+        `)
+        .eq('house_id', houseId)
+        .order('created_at', { ascending: false });
 
-  useEffect(() => {
-    if (!houseId) {
-      setHouseResources([]);
-      setLoading(false);
-      return;
-    }
-
-    const fetchHouseResources = async () => {
-      try {
-        setLoading(true);
-        
-        const { data, error } = await supabase
-          .from(TABLES.HOUSE_RESOURCES)
-          .select(`
-            *,
-            creator:ic_staff!created_by(id, staff_name, email)
-          `)
-          .eq('house_id', houseId)
-          .order('created_at', { ascending: false });
-
-        if (error) throw error;
-
-        setHouseResources(data || []);
-        setError(null);
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to fetch house resources';
-        console.error('Error fetching house resources:', err);
-        setError(errorMessage);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchHouseResources();
-  }, [houseId]);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!houseId,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
 
   const getFileUrl = async (filePath: string, downloadName?: string) => {
     const { data, error } = await supabase.storage
@@ -83,9 +65,10 @@ export function useHouseResources(houseId?: string) {
   };
 
   return {
-    houseResources,
-    loading,
-    error,
+    houseResources: query.data || [],
+    loading: query.isLoading,
+    error: query.error ? (query.error as Error).message : null,
     getFileUrl,
+    refetch: query.refetch,
   };
 }

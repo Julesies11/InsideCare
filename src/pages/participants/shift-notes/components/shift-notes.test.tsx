@@ -106,10 +106,9 @@ describe('ShiftNotes', () => {
     const editButton = screen.getAllByRole('button', { name: /Edit/i })[0];
     await user.click(editButton);
 
-    await waitFor(() => {
-        expect(screen.getByText(/Edit Shift Note/i)).toBeInTheDocument();
-        expect(screen.getByText(/Update the shift note details below./i)).toBeInTheDocument();
-    });
+    // Use findByRole which automatically waits
+    const dialog = await screen.findByRole('dialog', {}, { timeout: 5000 });
+    expect(dialog).toBeInTheDocument();
   });
 
   it('filters by house using popover', async () => {

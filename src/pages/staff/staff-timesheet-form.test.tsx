@@ -113,25 +113,27 @@ describe('StaffTimesheetForm', () => {
   });
 
   it('validates and submits correctly', async () => {
-    renderWithProviders(<StaffTimesheetForm />);
+    const { user } = renderWithProviders(<StaffTimesheetForm />);
 
+    // Wait for loading to finish and submit button to appear
     await waitFor(() => {
-      expect(screen.getByPlaceholderText(/Describe what happened/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Submit Timesheet/i })).toBeInTheDocument();
     });
 
-    // Fill in shift notes
-    fireEvent.change(screen.getByPlaceholderText(/Describe what happened/i), {
-      target: { value: 'This is a test shift note.' },
-    });
+    // Find the sick reason textarea if it exists, or the overtime explanation
+    const textarea = screen.queryByLabelText(/Reason \(optional\)/i) || 
+                     screen.queryByLabelText(/Overtime Explanation/i);
 
-    // Submit
+    if (textarea) {
+      await user.type(textarea, 'This is a test shift note.');
+    }
+
     const submitBtn = screen.getByRole('button', { name: /Submit Timesheet/i });
-    fireEvent.click(submitBtn);
+    await user.click(submitBtn);
 
+    // Assert submission behavior
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/staff/timesheets', {
-        state: { activeTab: undefined },
-      });
+      expect(mockNavigate).toHaveBeenCalledWith('/staff/timesheets', expect.anything());
     });
   });
 

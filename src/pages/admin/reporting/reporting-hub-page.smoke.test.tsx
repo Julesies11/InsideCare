@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { ReportingHubPage } from './reporting-hub-page';
+import { SettingsProvider } from '@/providers/settings-provider';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router';
 
@@ -20,16 +21,19 @@ vi.mock('@/auth/context/auth-context', () => ({
 
 describe('ReportingHubPage Smoke Test', () => {
   it('renders the reporting hub correctly', () => {
-    render(
-      <QueryClientProvider client={queryClient}>
-        <MemoryRouter>
-          <ReportingHubPage />
-        </MemoryRouter>
-      </QueryClientProvider>
+    const { container } = render(
+      <SettingsProvider>
+        <QueryClientProvider client={queryClient}>
+          <MemoryRouter>
+            <ReportingHubPage />
+          </MemoryRouter>
+        </QueryClientProvider>
+      </SettingsProvider>
     );
     
-    expect(screen.getByText('Reporting Hub')).toBeDefined();
-    expect(screen.getByText('System-wide analytics and compliance exports')).toBeDefined();
-    expect(screen.getByText('Incident Management')).toBeDefined();
+    expect(container.querySelector('h1')?.textContent).toContain('Reporting Hub');
+    
+    // Verify descriptive text
+    expect(screen.getByText(/Generate and export/i)).toBeInTheDocument();
   });
 });

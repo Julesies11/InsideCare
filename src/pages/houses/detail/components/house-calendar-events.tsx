@@ -33,6 +33,7 @@ import { QUERY_KEYS } from '@/config/query-keys';
 import { STATUS, CHECKLIST_STATUS } from '@/config/enums';
 import { BulkDeleteCalendarModal } from './BulkDeleteCalendarModal';
 import { ScheduleChecklistsModal } from './ScheduleChecklistsModal';
+import { useHouseCalendarEventTypesMaster } from '@/hooks/use-house-calendar-event-types-master';
 import { useQueryClient } from '@tanstack/react-query';
 
 export interface HouseCalendarEventsProps {
@@ -44,7 +45,7 @@ export interface HouseCalendarEventsProps {
   pendingChanges?: HousePendingChanges;
   onPendingChangesChange?: (changes: HousePendingChanges) => void;
   onRefreshNeeded?: () => void;
-  refreshKey?: number;
+  // refreshKey?: number;
   hideCalendar?: boolean;
 }
 
@@ -59,7 +60,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
   pendingChanges,
   onPendingChangesChange,
   onRefreshNeeded,
-  refreshKey,
+  // refreshKey,
   hideCalendar
 }, ref) => {
   const [viewMode, setViewMode] = useState<ViewMode>('week');
@@ -71,7 +72,18 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
   
   // Filtering state
-  const [filterTypes, setFilterTypes] = useState<string[]>(['checklist', 'meeting', 'appointment', 'clinical', 'other']);
+  const [filterTypes, setFilterTypes] = useState<string[]>([]);
+  const { data: eventTypesMaster } = useHouseCalendarEventTypesMaster();
+
+  useEffect(() => {
+    if (eventTypesMaster) {
+      // Initialize with dynamic IDs AND legacy types
+      setFilterTypes([
+        ...eventTypesMaster.map(type => type.id),
+        'meeting', 'appointment', 'clinical', 'other'
+      ]);
+    }
+  }, [eventTypesMaster]);
   const [showDeleteChoice, setShowDeleteChoice] = useState(false);
   const [eventToDeleteInstance, setEventToDeleteInstance] = useState<any>(null);
   const [executingChecklist, setExecutingChecklist] = useState<any>(null);
@@ -82,7 +94,6 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
     event_type_id: '',
     description: '',
     event_date: '',
-    end_date: '',
     start_time: '',
     end_time: '',
     participant_ids: [] as string[],
@@ -96,8 +107,6 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
   });
 
   const queryClient = useQueryClient();
-  const { houseCalendarEvents, loading, refresh } = useHouseCalendarEvents(houseId, staffId);
-  const { houseChecklists } = useHouseChecklists(houseId);
   
   const { startDate, endDate } = useMemo(() => {
     let start, end;
@@ -114,6 +123,9 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
     };
   }, [currentDate, viewMode]);
 
+  const { houseCalendarEvents, loading, refresh } = useHouseCalendarEvents(houseId, staffId, startDate, endDate);
+  const { houseChecklists } = useHouseChecklists(houseId);
+
   const { deleteSchedule, deleteEvent, loading: deleting } = useChecklistSchedules(houseId);
   const { participants } = useParticipants(0, 1000);
   const { staff: systemStaff } = useStaff(0, 1000, [], { statuses: ['active'] }); // Fetch more staff for general events
@@ -121,9 +133,9 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
   const { user, isAdmin = false } = useAuth();
   
   // Refresh when refreshKey changes
-  useEffect(() => {
-    if (refreshKey) refresh();
-  }, [refreshKey, refresh]);
+  // useEffect(() => {
+  //   if (refreshKey) refresh();
+  // }, [refreshKey, refresh]);
 
   const handleBulkDelete = async ({ startDate, endDate, deleteEvents, deleteChecklists }: any) => {
     if (!houseId) return;
@@ -173,9 +185,11 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
   // Apply filtering
   const filteredEvents = useMemo(() => {
     return houseCalendarEvents.filter(event => {
-      const type = (event.type || 'other').toLowerCase();
-      if (event.is_checklist_event) return filterTypes.includes('checklist');
-      return filterTypes.includes(type);
+      // Use event_type_id if available, otherwise fall back to legacy 'type'
+      if (event.event_type_id) {
+        return filterTypes.includes(event.event_type_id);
+      }
+      return filterTypes.includes(event.type || 'other');
     });
   }, [houseCalendarEvents, filterTypes]);
 
@@ -531,7 +545,6 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
         event_type_id: formData.event_type_id || null,
         description: formData.description || null,
         event_date: formData.event_date,
-        end_date: formData.end_date || formData.event_date,
         start_time: formData.start_time || null,
         end_time: formData.end_time || null,
         participant_ids: formData.participant_ids || [],
@@ -540,6 +553,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
         location: formData.location || null,
         is_checklist_event: !!formData.house_checklist_id,
         house_checklist_id: formData.house_checklist_id || null,
+        created_by: user?.staff_id || null,
       };
 
       let finalEventId: string | null = null;
@@ -556,7 +570,9 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
             },
           };
           onPendingChangesChange(newPending);
-        } else {
+          setShowEventDialog(false);
+          await refresh();
+          } else {
           finalEventId = selectedEvent.id;
           const newPending = {
             ...pendingChanges,
@@ -569,8 +585,10 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
             },
           };
           onPendingChangesChange(newPending);
-        }
-      } else {
+          setShowEventDialog(false);
+          await refresh();
+          }
+          } else {
         if (formData.queuedAttachments.length > 0) {
           toast.loading('Creating event and uploading attachments...');
           const { participant_ids, assigned_staff_ids, ...directTableData } = eventData;
@@ -647,6 +665,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
         }
       }
       setShowEventDialog(false);
+      await refresh();
     } catch (error: any) {
       console.error('Error saving event attachments:', error);
       toast.error('Failed to process attachments: ' + error.message);
@@ -781,6 +800,21 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
     return 'gray';
   };
 
+  const eventTypeColors: Record<string, string> = {
+    amber: 'bg-amber-500',
+    purple: 'bg-purple-500',
+    orange: 'bg-orange-500',
+    green: 'bg-green-500',
+    blue: 'bg-blue-500',
+    red: 'bg-red-500',
+    gray: 'bg-gray-500',
+  };
+
+  const getButtonClass = (color: string, isActive: boolean) => {
+    if (!isActive) return "text-gray-500 hover:text-gray-700";
+    return `${eventTypeColors[color] || 'bg-gray-500'} text-white shadow-sm`;
+  };
+
   useImperativeHandle(ref, () => ({
     handleEditEvent,
     refresh
@@ -799,44 +833,18 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
 
             <div className="flex items-center gap-2 flex-wrap">
               <div className="flex items-center bg-gray-100 rounded-lg p-1 mr-4">
-                {[
-                  { id: 'checklist', label: 'Checklists', color: 'amber' },
-                  { id: 'meeting', label: 'Meetings', color: 'purple' },
-                  { id: 'appointment', label: 'Appts', color: 'orange' },
-                ].map(filter => (
+                {eventTypesMaster?.map(type => (
                   <button
-                    key={filter.id}
-                    onClick={() => toggleFilter(filter.id)}
+                    key={type.id}
+                    onClick={() => toggleFilter(type.id)}
                     className={cn(
                       "px-2.5 py-1 text-[10px] font-bold rounded-md transition-all",
-                      filterTypes.includes(filter.id)
-                        ? `bg-${filter.color}-500 text-white shadow-sm`
-                        : "text-gray-500 hover:text-gray-700"
+                      getButtonClass(type.color, filterTypes.includes(type.id))
                     )}
                   >
-                    {filter.label}
+                    {type.event_type_name}
                   </button>
                 ))}
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowScheduleChecklistsModal(true)}
-                  className="gap-2 font-bold border-primary/30 text-primary hover:bg-primary/5"
-                >
-                  <CalendarCheck className="size-4 text-primary" />
-                  Schedule Checklists
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowBulkDeleteModal(true)}
-                  className="gap-2 font-bold border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 shadow-sm bg-white"
-                >
-                  <Trash2 className="size-4" />
-                  Bulk Delete
-                </Button>
               </div>
             </div>
           </div>
@@ -875,7 +883,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
               <p className="text-sm">Loading calendar events...</p>
             </div>
           ) : (
-            <div className={`space-y-6 transition-opacity ${loading ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
+            <div className="space-y-6 transition-opacity opacity-100">
               {/* Visual Calendar View */}
               <div className="border rounded-xl overflow-hidden bg-background">
                 {viewMode === 'week' ? (
@@ -1173,24 +1181,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
                   id="event_date"
                   type="date"
                   value={formData.event_date}
-                  onChange={(e) => {
-                    const newStart = e.target.value;
-                    setFormData(prev => ({
-                      ...prev,
-                      event_date: newStart,
-                      end_date: prev.end_date < newStart ? newStart : prev.end_date,
-                    }));
-                  }}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="end_date">End Date</Label>
-                <Input
-                  id="end_date"
-                  type="date"
-                  value={formData.end_date}
-                  min={formData.event_date}
-                  onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                  onChange={(e) => setFormData(prev => ({ ...prev, event_date: e.target.value }))}
                 />
               </div>
               <div className="space-y-2">

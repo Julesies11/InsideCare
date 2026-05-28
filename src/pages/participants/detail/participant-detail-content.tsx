@@ -342,6 +342,7 @@ export function ParticipantDetailContent({
             goal_type: goal.goal_type,
             description: goal.description || null,
             is_active: goal.is_active,
+            created_by: user?.staff_id || null,
           }));
           
           const { error } = await supabase.from('ic_participant_goals').insert(toInsert);
@@ -381,7 +382,8 @@ export function ParticipantDetailContent({
             dosage: med.dosage || null,
             frequency: med.frequency || null,
             is_active: med.is_active,
-          }));
+            created_by: user?.staff_id || null,
+            }));
 
           const { error } = await supabase.from(TABLES.PARTICIPANT_MEDICATIONS).insert(toInsert);
           if (error) throw new Error(`Failed to add medications: ${error.message}`);
@@ -431,7 +433,8 @@ export function ParticipantDetailContent({
             address: contact.address || null,
             notes: contact.notes || null,
             is_active: contact.is_active,
-          }));
+            created_by: user?.staff_id || null,
+            }));
 
           const { error } = await supabase.from(TABLES.PARTICIPANT_CONTACTS).insert(toInsert);
           if (error) throw new Error(`Failed to add contacts: ${error.message}`);
@@ -488,7 +491,8 @@ export function ParticipantDetailContent({
               file_path: filePath,
               file_size: doc.file.size,
               mime_type: doc.file.type,
-            });
+              created_by: user?.staff_id || null,
+              });
           }
 
           const { error: dbError } = await supabase.from(TABLES.PARTICIPANT_DOCUMENTS).insert(toInsert);
