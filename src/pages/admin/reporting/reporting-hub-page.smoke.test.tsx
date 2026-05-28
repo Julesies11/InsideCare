@@ -31,8 +31,8 @@ describe('ReportingHubPage Smoke Test', () => {
       </SettingsProvider>
     );
     
-    expect(screen.getByText('Reporting Hub')).toBeDefined();
-    expect(screen.getByText('System-wide analytics and compliance exports')).toBeDefined();
-    expect(screen.getByText('Incident Management')).toBeDefined();
+    expect(screen.getByText('Reporting Hub')).toBeInTheDocument();
+    expect(screen.getByText('System-wide analytics and compliance exports')).toBeInTheDocument();
+    expect(screen.getByText('Incident Management')).toBeInTheDocument();
   });
 });

@@ -35,8 +35,8 @@ describe('IncidentManagementReportPage Smoke Test', () => {
       </SettingsProvider>
     );
     
-    expect(screen.getByText('Incident Management')).toBeDefined();
-    expect(screen.getByText('Clinical incident documentation and tracking')).toBeDefined();
-    expect(screen.getByText('Print Preview')).toBeDefined();
+    expect(screen.getByText('Incident Management')).toBeInTheDocument();
+    expect(screen.getByText('Clinical incident documentation and tracking')).toBeInTheDocument();
+    expect(screen.getByText('Print Preview')).toBeInTheDocument();
   });
 });

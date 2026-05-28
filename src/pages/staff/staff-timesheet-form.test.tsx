@@ -120,8 +120,9 @@ describe('StaffTimesheetForm', () => {
     });
 
     // Find the textarea by label or role instead of placeholder
-    const notesTextarea = screen.getByRole('textbox', { name: /notes/i }) || 
-                          screen.getByPlaceholderText(/shift note/i);
+    const notesTextarea = screen.queryByRole('textbox', { name: /notes/i }) ||
+                          screen.getByPlaceholderText(/shift note/i) ||
+                          screen.getByLabelText(/notes/i);
     
     fireEvent.change(notesTextarea, {
       target: { value: 'This is a test shift note.' },

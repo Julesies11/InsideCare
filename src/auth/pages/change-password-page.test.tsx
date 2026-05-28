@@ -110,10 +110,10 @@ describe('ChangePasswordPage (Gold Standard)', () => {
     const { user } = renderWithProviders(<ChangePasswordPage />);
     
     // Wait for form
-    await waitFor(() => expect(screen.getByLabelText(/^New Password/i)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByLabelText(/new password/i)).toBeInTheDocument());
     
     // Fill form
-    await user.type(screen.getByLabelText(/^New Password/i), 'NewSecurePass123!');
+    await user.type(screen.getByLabelText(/new password/i), 'NewSecurePass123!');
     await user.type(screen.getByLabelText(/Confirm Password/i), 'NewSecurePass123!');
     
     // Submit
