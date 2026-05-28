@@ -68,7 +68,7 @@ describe('Staff Pages Smoke Tests', () => {
     renderWithProviders(<StaffChecklists />);
     await waitFor(() => {
       // Look for page title or section header
-      expect(screen.getByText(/My Roster/i)).toBeInTheDocument();
+      expect(screen.getByText(/House Checklists/i)).toBeInTheDocument();
       expect(screen.getByText(/Today's Tasks/i)).toBeInTheDocument();
     });
   });

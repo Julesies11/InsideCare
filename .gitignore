@@ -46,4 +46,5 @@ playwright/.auth/staff.json
 playwright-report/index.html
 test-results/.last-run.json
 test-results/*
+playwright/.auth*
 

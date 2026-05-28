@@ -104,10 +104,10 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
     const dbDefaults = (defaults || []).filter(d => d.shift_template_id === shiftTemplateId).map(d => d.checklist_id);
     if (directSave || !pendingChanges) return dbDefaults;
     
-    const update = pendingChanges.shiftTemplates.toUpdate.find(u => u.id === shiftTemplateId);
+    const update = pendingChanges.shiftTemplates?.toUpdate?.find(u => u.id === shiftTemplateId);
     if (update && update.default_checklists) return update.default_checklists;
     
-    const add = pendingChanges.shiftTemplates.toAdd.find(a => a.tempId === shiftTemplateId);
+    const add = pendingChanges.shiftTemplates?.toAdd?.find(a => a.tempId === shiftTemplateId);
     if (add) return add.default_checklists;
     
     return dbDefaults;
