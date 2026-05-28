@@ -59,7 +59,7 @@ describe('RolePermissionsMatrix Hierarchical & Locking Logic', () => {
       expect(lockedBadges.length).toBeGreaterThan(0);
       
       // Verify the description for the locked child
-      const descriptions = screen.getAllByText(/Requires 'House Profiles' access to be active/i);
+      const descriptions = screen.getAllByText(/Requires 'Houses' access to be active/i);
       expect(descriptions.length).toBeGreaterThan(0);
     });
   });
@@ -82,7 +82,7 @@ describe('RolePermissionsMatrix Hierarchical & Locking Logic', () => {
       expect(screen.queryAllByText('LOCKED')).toHaveLength(0);
       
       // Verify the standard context description is present
-      expect(screen.queryByText(/Requires 'House Profiles' access to be active/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Requires 'Houses' access to be active/i)).not.toBeInTheDocument();
     });
   });
 });

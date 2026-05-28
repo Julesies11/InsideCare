@@ -8,7 +8,8 @@ import {
   Settings, 
   ClipboardList,
   Activity,
-  UserCheck
+  UserCheck,
+  BarChart3
 } from 'lucide-react';
 import { MenuItemConfig } from '@/layouts/demo1/sidebar/SidebarMenu';
 import { RBAC_MODULES } from './rbac-modules';
@@ -111,6 +112,12 @@ export const MENU_SIDEBAR: MenuItemConfig[] = [
     icon: ClipboardList,
     path: '/checklist-templates',
     permission: RBAC_MODULES.ACCESS_CONTROL,
+  },
+  {
+    title: 'Reporting',
+    icon: BarChart3,
+    path: '/reporting',
+    permission: [RBAC_MODULES.REPORTING_CLINICAL, RBAC_MODULES.REPORTING_OPERATIONAL, RBAC_MODULES.REPORTING_COMPLIANCE],
   },
   {
     title: 'Activity Log',

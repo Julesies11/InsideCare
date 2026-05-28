@@ -119,7 +119,7 @@ export function ShiftTemplatesTable() {
             variant="ghost" 
             size="sm" 
             className="h-8 gap-2 font-bold text-primary hover:text-primary hover:bg-primary/5"
-            onClick={() => navigate(`/roster-board/shift-templates/${row.original.id}`)}
+            onClick={() => navigate(`/shift-setup/${row.original.id}`)}
           >
             <Edit className="size-3.5" />
             Edit

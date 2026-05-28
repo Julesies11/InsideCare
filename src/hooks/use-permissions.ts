@@ -21,7 +21,11 @@ export type PermissionModule =
   // System Administration
   | 'access_control'
   | 'master_lists'
-  | 'activity_log';
+  | 'activity_log'
+  // Reporting
+  | 'reporting_clinical'
+  | 'reporting_operational'
+  | 'reporting_compliance';
 
 export function usePermissions() {
   const { user, isAdmin } = useAuth();

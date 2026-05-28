@@ -13,6 +13,7 @@ const ParticipantDetailPage = lazy(() => import('@/pages/participants').then(m =
 const MedicationRegisterPage = lazy(() => import('@/pages/participants/medication-register/medication-register-page').then(m => ({ default: m.MedicationRegisterPage })));
 const MedicationDetailPage = lazy(() => import('@/pages/participants/medication-register/medication-detail-page').then(m => ({ default: m.MedicationDetailPage })));
 const ShiftNotesPage = lazy(() => import('@/pages/participants').then(m => ({ default: m.ShiftNotesPage })));
+const ShiftNoteDetailPage = lazy(() => import('@/pages/shift-notes').then(m => ({ default: m.ShiftNoteDetailPage })));
 
 const HousesProfilesPage = lazy(() => import('@/pages/houses').then(m => ({ default: m.HousesProfilesPage })));
 const HouseDetailPage = lazy(() => import('@/pages/houses').then(m => ({ default: m.HouseDetailPage })));
@@ -44,6 +45,8 @@ const ChecklistMasterPage = lazy(() => import('@/pages/admin/checklists/checklis
 const LeaveTypeMasterPage = lazy(() => import('@/pages/admin/leave-types/leave-type-master-page').then(m => ({ default: m.LeaveTypeMasterPage })));
 const RolesPage = lazy(() => import('@/pages/admin/roles/roles-page').then(m => ({ default: m.RolesPage })));
 const ActivityLogPage = lazy(() => import('@/pages/admin/activity-log/activity-log-page').then(m => ({ default: m.ActivityLogPage })));
+const ReportingHubPage = lazy(() => import('@/pages/admin/reporting/reporting-hub-page').then(m => ({ default: m.ReportingHubPage })));
+const IncidentManagementReportPage = lazy(() => import('@/pages/admin/reporting/incident-management-report-page').then(m => ({ default: m.IncidentManagementReportPage })));
 const NotificationCenter = lazy(() => import('@/pages/account/notifications/notification-center').then(m => ({ default: m.NotificationCenter })));
 
 const PageLoader = () => (
@@ -118,6 +121,10 @@ export function AppRoutingSetup() {
                 path="/participants/shift-notes"
                 element={<ShiftNotesPage />}
               />
+              <Route
+                path="/shift-notes/detail/:id"
+                element={<ShiftNoteDetailPage />}
+              />
             </Route>
 
             <Route element={<RequirePermission module={RBAC_MODULES.HOUSES} />}>
@@ -156,6 +163,11 @@ export function AppRoutingSetup() {
                 path="/activity-log"
                 element={<ActivityLogPage />}
               />
+            </Route>
+
+            <Route path="/reporting" element={<ReportingHubPage />} />
+            <Route element={<RequirePermission module={RBAC_MODULES.REPORTING_CLINICAL} />}>
+              <Route path="/reporting/clinical/incidents" element={<IncidentManagementReportPage />} />
             </Route>
 
             <Route element={<RequireAdmin />}>

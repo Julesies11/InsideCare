@@ -4,6 +4,11 @@ import { Container } from '@/components/common/container';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { ShiftNoteDetailContent } from './shift-note-detail-content';
+import { ShiftNoteDetailSidebar } from './shift-note-detail-sidebar';
+import { Scrollspy } from '@/components/ui/scrollspy';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useScrollPosition } from '@/hooks/use-scroll-position';
+import { cn } from '@/lib/utils';
 import {
   Toolbar,
   ToolbarActions,
@@ -16,19 +21,36 @@ import { useDirtyTracker } from '@/hooks/useDirtyTracker';
 import { RBAC_MODULES } from '@/config/rbac-modules';
 import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
 
+const stickySidebarClasses: Record<string, string> = {
+  'demo1-layout': 'top-[calc(var(--header-height)+1rem)]',
+  'demo2-layout': 'top-[calc(var(--header-height)+1rem)]',
+  'demo3-layout': 'top-[calc(var(--header-height)+var(--navbar-height)+1rem)]',
+  'demo4-layout': 'top-[3rem]',
+  'demo5-layout': 'top-[calc(var(--header-height)+1.5rem)]',
+  'demo6-layout': 'top-[3rem]',
+  'demo7-layout': 'top-[calc(var(--header-height)+1rem)]',
+  'demo8-layout': 'top-[3rem]',
+  'demo9-layout': 'top-[calc(var(--header-height)+1rem)]',
+  'demo10-layout': 'top-[1.5rem]',
+};
+
 export function ShiftNoteDetailPage() {
   const navigate = useNavigate();
   const { settings } = useSettings();
   const { id } = useParams();
   const { hasAccess } = useRBAC();
+  const isMobile = useIsMobile();
+  const parentRef = useRef<HTMLElement | Document>(document);
+  const scrollPosition = useScrollPosition({ targetRef: parentRef });
+  const [sidebarSticky, setSidebarSticky] = useState(false);
   
   const canEdit = hasAccess({ 
     resource: RBAC_MODULES.SHIFT_NOTES, 
     requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE 
   });
 
-  const [formData, setFormData] = useState<Record<string, any> | null>(null);
-  const [originalData, setOriginalData] = useState<Record<string, any> | null>(null);
+  const [formData, setFormData] = useState<Record<string, unknown> | null>(null);
+  const [originalData, setOriginalData] = useState<Record<string, unknown> | null>(null);
   const [saving, setSaving] = useState(false);
   const saveHandlerRef = useRef<(() => Promise<void>) | null>(null);
 
@@ -51,12 +73,22 @@ export function ShiftNoteDetailPage() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [isDirty]);
 
+  useEffect(() => {
+    setSidebarSticky(scrollPosition > 100);
+  }, [scrollPosition]);
+
   const handleBack = useCallback(() => {
     if (isDirty) {
       const confirmLeave = window.confirm('You have unsaved changes. Are you sure you want to leave?');
       if (!confirmLeave) return;
     }
-    navigate('/shift-notes/profiles');
+    
+    // Navigate back if possible, otherwise to the shift notes list
+    if (window.history.length > 2) {
+      navigate(-1);
+    } else {
+      navigate('/participants/shift-notes');
+    }
   }, [navigate, isDirty]);
 
   const handleSave = async () => {
@@ -66,6 +98,11 @@ export function ShiftNoteDetailPage() {
   };
 
   const isNewNote = id === 'new';
+
+  const stickyClass = settings?.layout
+    ? stickySidebarClasses[`${settings?.layout}-layout`] ||
+      'top-[calc(var(--header-height)+1rem)]'
+    : 'top-[calc(var(--header-height)+1rem)]';
 
   return (
     <Fragment>
@@ -100,14 +137,26 @@ export function ShiftNoteDetailPage() {
           </Container>
         </div>
       )}
-      <Container>
-        <ShiftNoteDetailContent 
-          onFormDataChange={setFormData}
-          onOriginalDataChange={setOriginalData}
-          onSavingChange={setSaving}
-          saveHandlerRef={saveHandlerRef}
-          canEdit={canEdit}
-        />
+      <Container className="py-6">
+        <div className="flex grow gap-5 lg:gap-7.5">
+          {!isMobile && (
+            <div className="w-[230px] shrink-0">
+              <div className={cn('w-[230px]', sidebarSticky && `fixed z-10 start-auto ${stickyClass}`)}>
+                <Scrollspy offset={100} targetRef={parentRef}>
+                  <ShiftNoteDetailSidebar formData={formData as Record<string, unknown>} />
+                </Scrollspy>
+              </div>
+            </div>
+          )}
+
+          <ShiftNoteDetailContent 
+            onFormDataChange={setFormData}
+            onOriginalDataChange={setOriginalData}
+            onSavingChange={setSaving}
+            saveHandlerRef={saveHandlerRef}
+            canEdit={canEdit}
+          />
+        </div>
       </Container>
     </Fragment>
   );

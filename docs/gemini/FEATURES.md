@@ -32,11 +32,24 @@ The core operational engine of the care system.
 - **Schedule Checklists**: Standalone tool to bulk schedule facility-wide checklists (e.g., "Weekly Deep Clean", "Vehicle Check") across multiple weeks independently of specific shifts.
 - **Roster Board**: Visual representation of staff shifts and house assignments with intelligent staff filtering (showing active staff assigned to the house).
 - **Shift Routines**: Automated, shift-locked task lists that staff must complete and sign off on during their active shift. Completion is enforced; staff cannot submit timesheets if mandatory shift routines are incomplete.
-- **Enhanced Clinical Notes**: Streamlined "Write Shift Note" experience for staff with locked context (Staff, House, Date) and filtered participant selection. Includes automatic synchronization between mid-shift notes and end-of-shift timesheets.
+- **Enhanced Clinical Notes**: Comprehensive clinical documentation completed at the end of every shift. Includes:
+    - **Structured Tracking**: Dedicated sections for Risks, Overall Presentation, ADL Supports, Domestic Tasks, and Capacity Building goals.
+    - **Health & Medication**: Integrated logging of regular and PRN medication statuses with prompt-based guidance.
+    - **Positive Behaviour Support (PBS)**: Detailed tracking of PBS strategies, timing, and outcomes.
+    - **Modular Clinical Trackers**: Toggleable, event-based trackers for:
+        - **Bowel Tracking**: Featuring a visual Bristol Scale picker (1-7), time, and amount logging.
+        - **Seizure Activity**: Detailed logs of time, duration, and type (linked to master list).
+        - **Sleep Tracking**: Day/Night quality and support needs.
+        - **Behaviour Observations**: Intensity and type tracking (linked to master list).
+        - **Nutrition & Mealtime**: Detailed intake tracking and auto-population of Mealtime Management plans from participant profiles.
+        - **Hygiene & Community**: Support levels and engagement tracking.
+    - **Master List Management**: Integrated administrative dialogs to manage Seizure and Behaviour types (matching Medication Register patterns).
+    - **Automation**: Automatic shift type detection from roster templates and Care Plan data injection.
 - **Overnight Shift Logic**: Intelligent date-range querying ensures that overnight shifts (starting yesterday but ending today) are correctly recognized in "Today's" views and "Active Shift" detection.
 - **Smart Timesheets**: Proactive timesheet management system.
     - **Missing Shift Detection**: Automatically identifies completed shifts that are missing timesheets and flags them for creation.
     - **Robust Submission**: Optimized submission flow prevents autosave race conditions, ensuring a single click successfully transitions a timesheet from draft to pending.
+    - **Clinical Documentation Blocking**: Enforces completion of comprehensive Shift Notes before a timesheet can be submitted, guaranteeing critical clinical context is always recorded.
     - **Audit Trail Visibility**: Staff can now view a full read-only version of their submitted timesheets exactly as they were reported.
     - **Action-Oriented Alerts**: The Staff Dashboard displays high-visibility prompts when timesheets are required for past work.
     - **Consolidated Tracking**: Real-time visibility across Needs Submission (Drafts/Missing), Awaiting Approval, Approved, and Rejected states with tab state persistence.
@@ -89,3 +102,8 @@ Comprehensive alert system for critical updates and workflows.
 - **Inclusive Entry Logic**: Smart routing that allows access to a module if a user has any relevant sub-permission, ensuring they can manage authorized data even if parent access is restricted.
 - **Visual Locking**: Intuitive UI that "ghost-locks" dependent sub-permissions when a parent gateway is disabled, guiding administrators toward logical configurations.
 - **JWT-Driven RLS**: High-performance database security that enforces these granular rules directly at the data layer using Supabase Row Level Security.
+
+## 9. Reporting Hub
+Central registry for system-wide analytics and compliance exports.
+- **Incident Management Report**: Provides a comprehensive, chronological view of all clinical incidents with advanced date filtering (preset periods and custom ranges) and print-optimized PDF layouts. Cleanly links incidents to specific participants and staff.
+- **Extensible Architecture**: Designed to seamlessly integrate future clinical, operational, and financial reports, utilizing visual locks for reports currently under development.

@@ -87,7 +87,7 @@ describe('HouseCalendarEvents Smoke Test', () => {
     // For testing, let's just check the header since dynamic date logic in week/month 
     // views is notoriously difficult to mock reliably without full system time control.
     expect(screen.getByText('House Calendar')).toBeDefined();
-    expect(screen.getByText('Build Roster')).toBeDefined();
     expect(screen.getByText('Schedule Checklists')).toBeDefined();
+    expect(screen.getByText('Bulk Delete')).toBeDefined();
   });
 });

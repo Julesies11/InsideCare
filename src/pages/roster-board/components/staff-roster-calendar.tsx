@@ -7,12 +7,10 @@ import { ViewShiftDialog } from '@/components/roster/view-shift-dialog';
 import { LeaveDialog } from '@/components/roster/leave-dialog';
 import { StaffShift, useRosterData, useShiftsQuery, useLeaveRequestsQuery } from '@/components/roster/use-roster-data';
 import { getDateRange, ViewMode } from '@/components/roster/roster-utils';
-import { EditShiftNoteDialog } from '@/pages/participants/shift-notes/components/edit-shift-note-dialog';
-import { StaffShiftNoteDialog } from '@/components/roster/staff-shift-note-dialog';
-import { useShiftNotes } from '@/hooks/use-shift-notes';
 import { supabase } from '@/lib/supabase';
 import { useHouseShiftTemplates } from '@/hooks/use-house-shift-templates';
 import { useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router';
 
 export interface LeaveBlock {
   id: string;
@@ -65,6 +63,7 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
   includeEvents = false,
 }, ref) => {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [showShiftDialog, setShowShiftDialog] = useState(false);
   const [isCopying, setIsCopying] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -74,21 +73,6 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
   const [preSelectedDate, setPreSelectedDate] = useState<Date | undefined>(undefined);
   const [preSelectedHouseId, setPreSelectedHouseId] = useState<string | undefined>(undefined);
   const [preSelectedShiftTemplateId, setPreSelectedShiftTemplateId] = useState<string | undefined>(undefined);
-
-  // Write Note state
-  const [showNoteDialog, setShowNoteDialog] = useState(false);
-  const [notePreFillShiftId, setNotePreFillShiftId] = useState<string | null>(null);
-  const [notePreFillLinkedShift, setNotePreFillLinkedShift] = useState<{
-    id: string; start_time: string; end_time: string; shift_template: string; status: string;
-  } | null>(null);
-  const [notePreFillData, setNotePreFillData] = useState<{
-    staff_id?: string | null;
-    start_date?: string;
-    house_id?: string | null;
-    shift_time?: string | null;
-  }>({});
-
-  const { createShiftNote, refetch: refetchNotes } = useShiftNotes();
 
   const { shiftTemplates } = useHouseShiftTemplates(houseFilter !== 'all' ? houseFilter : undefined);
 
@@ -151,15 +135,7 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
   };
 
   const handleWriteNote = (shift: any) => {
-    setNotePreFillShiftId(shift.id);
-    setNotePreFillLinkedShift(shift);
-    setNotePreFillData({
-      staff_id: shift.staff_id,
-      start_date: shift.start_date,
-      house_id: shift.house_id,
-      shift_time: shift.start_time,
-    });
-    setShowNoteDialog(true);
+    navigate(`/shift-notes/detail/new?shiftId=${shift.id}`);
   };
 
   const handleNotesClick = (shift: StaffShift) => {
@@ -461,33 +437,6 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
           onOpenChange={setShowShiftDialog}
           shift={selectedShift}
           onWriteNote={handleWriteNote}
-        />
-      )}
-
-      {canEdit ? (
-        <EditShiftNoteDialog
-          open={showNoteDialog}
-          onOpenChange={setShowNoteDialog}
-          shiftNote={null}
-          onCreate={async (data) => createShiftNote({ ...data, ...notePreFillData, shift_id: notePreFillShiftId })}
-          onSave={async () => ({ data: null, error: 'Not applicable' })}
-          onSuccess={() => refetchNotes(true)}
-          mode="create"
-          initialShiftId={notePreFillShiftId}
-          initialLinkedShift={notePreFillLinkedShift}
-        />
-      ) : (
-        <StaffShiftNoteDialog
-          open={showNoteDialog}
-          onOpenChange={setShowNoteDialog}
-          shift={notePreFillLinkedShift ? { 
-            ...notePreFillLinkedShift, 
-            house_id: notePreFillLinkedShift.house_id || (selectedShift?.house_id ?? ''), 
-            staff_id: staffId !== 'all' ? staffId : (selectedShift?.staff_id ?? ''), 
-            start_date: notePreFillLinkedShift.start_date || (selectedShift?.start_date ?? format(new Date(), 'yyyy-MM-dd')),
-            house: notePreFillLinkedShift.house || selectedShift?.house
-          } as any : selectedShift}
-          onSuccess={() => refetchNotes(true)}
         />
       )}
     </>

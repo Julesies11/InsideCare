@@ -41,7 +41,7 @@ export function ShiftTemplatesEditPage() {
     enabled: !!id
   });
 
-  const handleBack = () => navigate('/roster-board/shift-templates');
+  const handleBack = () => navigate('/shift-setup');
 
   if (!canEdit) {
     return (

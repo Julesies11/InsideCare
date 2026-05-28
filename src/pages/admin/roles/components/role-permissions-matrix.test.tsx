@@ -33,6 +33,6 @@ describe('RolePermissionsMatrix Smoke Test', () => {
     expect(screen.getByText('No Access')).toBeInTheDocument();
 
     // Check if a module is rendered
-    expect(screen.getByText('Participants')).toBeInTheDocument();
+    expect(screen.getByText('Participant Profiles')).toBeInTheDocument();
   });
 });

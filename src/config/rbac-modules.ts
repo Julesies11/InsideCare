@@ -54,6 +54,11 @@ export const RBAC_MODULES = {
   MASTER_LISTS: 'master_lists',
   ACTIVITY_LOG: 'activity_log',
   HOUSE_ACTIVITY_LOG: 'house_activity_log',
+
+  // Reporting
+  REPORTING_CLINICAL: 'reporting_clinical',
+  REPORTING_OPERATIONAL: 'reporting_operational',
+  REPORTING_COMPLIANCE: 'reporting_compliance',
 } as const;
 
 export type RBACModule = typeof RBAC_MODULES[keyof typeof RBAC_MODULES];

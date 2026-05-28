@@ -12,7 +12,8 @@ const PERMISSION_COLUMNS = [
   'my_roster', 'my_timesheets', 'my_leave', 'shift_routines',
   'participants', 'shift_notes', 'employees', 'timesheets',
   'leave_requests', 'roster_board', 'houses', 'house_checklists',
-  'access_control', 'master_lists', 'activity_log'
+  'access_control', 'master_lists', 'activity_log',
+  'reporting_clinical', 'reporting_operational', 'reporting_compliance'
 ];
 
 serve(async (req) => {
