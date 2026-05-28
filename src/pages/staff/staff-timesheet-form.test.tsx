@@ -116,15 +116,17 @@ describe('StaffTimesheetForm', () => {
     renderWithProviders(<StaffTimesheetForm />);
 
     await waitFor(() => {
-      expect(screen.getByPlaceholderText(/Describe what happened/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Submit Timesheet/i })).toBeInTheDocument();
     });
 
-    // Fill in shift notes
-    fireEvent.change(screen.getByPlaceholderText(/Describe what happened/i), {
+    // Find the textarea by label or role instead of placeholder
+    const notesTextarea = screen.getByRole('textbox', { name: /notes/i }) || 
+                          screen.getByPlaceholderText(/shift note/i);
+    
+    fireEvent.change(notesTextarea, {
       target: { value: 'This is a test shift note.' },
     });
 
-    // Submit
     const submitBtn = screen.getByRole('button', { name: /Submit Timesheet/i });
     fireEvent.click(submitBtn);
 

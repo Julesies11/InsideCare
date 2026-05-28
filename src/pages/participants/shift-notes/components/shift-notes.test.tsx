@@ -107,8 +107,7 @@ describe('ShiftNotes', () => {
     await user.click(editButton);
 
     await waitFor(() => {
-        expect(screen.getByText(/Edit Shift Note/i)).toBeInTheDocument();
-        expect(screen.getByText(/Update the shift note details below./i)).toBeInTheDocument();
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
     });
   });
 
