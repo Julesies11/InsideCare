@@ -11,12 +11,11 @@ export interface ParticipantDocument {
   file_path: string;
   file_size?: number;
   mime_type?: string;
-  uploaded_by?: string;
   created_at?: string;
   updated_at?: string;
 }
 
-const PARTICIPANT_DOCUMENT_COLUMNS = 'id, participant_id, file_name, file_path, file_size, mime_type, uploaded_by, created_at, updated_at';
+const PARTICIPANT_DOCUMENT_COLUMNS = 'id, participant_id, file_name, file_path, file_size, mime_type, created_at, updated_at';
 
 export function useParticipantDocuments(participantId?: string) {
   return useQuery({
@@ -41,7 +40,7 @@ export function useUploadParticipantDocument() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ file, participantId, uploadedBy }: { file: File; participantId: string; uploadedBy?: string }) => {
+    mutationFn: async ({ file, participantId }: { file: File; participantId: string }) => {
       const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
       const filePath = `${participantId}/${fileName}`;
       
@@ -64,7 +63,6 @@ export function useUploadParticipantDocument() {
           file_path: filePath,
           file_size: file.size,
           mime_type: file.type || 'application/octet-stream',
-          uploaded_by: uploadedBy || null
         })
         .select(PARTICIPANT_DOCUMENT_COLUMNS)
         .maybeSingle();
