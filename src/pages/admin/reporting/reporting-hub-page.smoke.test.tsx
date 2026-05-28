@@ -32,7 +32,14 @@ describe('ReportingHubPage Smoke Test', () => {
     );
     
     expect(screen.getByText('Reporting Hub')).toBeInTheDocument();
-    expect(screen.getByText('System-wide analytics and compliance exports')).toBeInTheDocument();
-    expect(screen.getByText('Incident Management')).toBeInTheDocument();
+  
+  // Use flexible matcher for text split across elements
+  expect(screen.getByText((content, element) =>
+    element?.textContent?.includes('System-wide analytics and compliance exports') ?? false
+  )).toBeInTheDocument();
+  
+  expect(screen.getByText((content, element) =>
+    element?.textContent?.includes('Incident Management') ?? false
+  )).toBeInTheDocument();
   });
 });

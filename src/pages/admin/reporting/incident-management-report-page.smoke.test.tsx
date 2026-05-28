@@ -35,8 +35,15 @@ describe('IncidentManagementReportPage Smoke Test', () => {
       </SettingsProvider>
     );
     
-    expect(screen.getByText('Incident Management')).toBeInTheDocument();
-    expect(screen.getByText('Clinical incident documentation and tracking')).toBeInTheDocument();
-    expect(screen.getByText('Print Preview')).toBeInTheDocument();
+  // Use a function matcher for text broken across elements
+  expect(screen.getByText((content, element) => 
+    element?.textContent?.includes('Incident Management') ?? false
+  )).toBeInTheDocument();
+  
+  expect(screen.getByText((content, element) =>
+    element?.textContent?.includes('Clinical incident documentation and tracking') ?? false
+  )).toBeInTheDocument();
+  
+  expect(screen.getByText('Print Preview')).toBeInTheDocument();
   });
 });

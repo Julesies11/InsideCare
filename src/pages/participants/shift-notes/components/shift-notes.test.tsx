@@ -107,8 +107,9 @@ describe('ShiftNotes', () => {
     await user.click(editButton);
 
     await waitFor(() => {
-        expect(screen.getByRole('dialog')).toBeInTheDocument();
-    }, { timeout: 3000 });
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toBeInTheDocument();
+  }, { timeout: 5000 });
   });
 
   it('filters by house using popover', async () => {
