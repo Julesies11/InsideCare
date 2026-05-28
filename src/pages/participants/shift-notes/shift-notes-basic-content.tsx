@@ -1,47 +1,8 @@
-import { useState } from 'react';
-import { ClipboardList, Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { ClipboardList } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { ShiftNotes, EditShiftNoteDialog } from './components';
-import { useShiftNotes } from '@/hooks/use-shift-notes';
-import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
-import { RBAC_MODULES } from '@/config/rbac-modules';
+import { ShiftNotes } from './components';
 
 export function ShiftNotesContent() {
-  const { createShiftNote, updateShiftNote, refetch } = useShiftNotes();
-  const { hasAccess } = useRBAC();
-
-  const canAdd = hasAccess({ 
-    resource: RBAC_MODULES.SHIFT_NOTES, 
-    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE 
-  });
-
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-
-  const handleAddShiftNote = () => {
-    setIsAddDialogOpen(true);
-  };
-
-  const handleUpdateNote = async (id: string, updates: any) => {
-    try {
-      await updateShiftNote({ id, updates });
-      return { data: null, error: null };
-    } catch (err: any) {
-      console.error('Error updating shift note:', err);
-      return { data: null, error: err.message || 'Failed to update shift note' };
-    }
-  };
-
-  const handleCreateNote = async (updates: any) => {
-    try {
-      await createShiftNote(updates);
-      return { data: null, error: null };
-    } catch (err: any) {
-      console.error('Error creating shift note:', err);
-      return { data: null, error: err.message || 'Failed to create shift note' };
-    }
-  };
-
   return (
     <div className="grid gap-5 lg:gap-7.5">
       {/* Page Header */}
@@ -54,12 +15,6 @@ export function ShiftNotesContent() {
             View and manage daily shift documentation
           </p>
         </div>
-        {canAdd && (
-          <Button onClick={handleAddShiftNote}>
-            <Plus className="size-4" />
-            Add Shift Note
-          </Button>
-        )}
       </div>
 
       {/* Shift Notes Banner */}
@@ -84,17 +39,6 @@ export function ShiftNotesContent() {
 
       {/* Shift Notes Table */}
       <ShiftNotes />
-
-      {/* Add Shift Note Dialog */}
-      <EditShiftNoteDialog
-        open={isAddDialogOpen}
-        onOpenChange={setIsAddDialogOpen}
-        shiftNote={null}
-        onSave={handleUpdateNote}
-        onCreate={handleCreateNote}
-        onSuccess={() => refetch(true)}
-        mode="create"
-      />
     </div>
   );
 }

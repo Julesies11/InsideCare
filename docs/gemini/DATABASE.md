@@ -78,7 +78,13 @@ Centralized register of all medications used in care.
 - **Key Fields:** `id`, `medication_name` (UNIQUE), `category`, `common_dosages`, `side_effects`, `interactions`, `is_active`.
 - **Constraint**: Enforces uniqueness on `medication_name` to ensure register integrity.
 
-### 3. Staff (`public.ic_staff`)
+### 3. Clinical Master Lists
+Centralized registers for clinical categorization.
+- **`ic_seizure_types_master`**: Managed list of seizure types (e.g., Tonic-Clonic, Absence).
+- **`ic_behaviour_types_master`**: Managed list of behaviour types and support strategies.
+- **Standards**: Follow the same UNIQUE name and Admin-only edit rules as the Medication Master.
+
+### 4. Staff (`public.ic_staff`)
 The employees providing care.
 - **Key Fields:** `id`, `name`, `email`, `role_id`, `status`, `auth_user_id` (links to Supabase Auth).
 - **Relationships:** Belongs to a Department. Assigned to many Houses via `house_staff_assignments`.
@@ -112,6 +118,12 @@ The care facilities/locations.
 - **`participant_restrictive_practices`**: Compliance-critical care instructions.
 
 ## Operational Tables
+
+### Operations & Documentation
+- **`ic_shift_notes`**: Comprehensive clinical documentation completed at the end of every shift.
+    - **Flat Normalization**: Over 70 columns covering Risks, Supports, Health, PBS, and clinical trackers (Bowel, Seizure, Sleep, etc.).
+    - **Linking**: Explicitly linked to `participant_id`, `staff_id`, `house_id`, and optionally `shift_id`.
+    - **Data Integrity**: Uses structured types (BOOLEAN, TIME, INTEGER) instead of JSONB for all tracking fields.
 
 ### Roster & Shifts
 - **`house_shift_templates`**: Defines house-specific shift periods (Morning, Day, etc.) with custom icons, colors, and default times.

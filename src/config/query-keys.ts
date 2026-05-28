@@ -16,6 +16,7 @@ export const QUERY_KEYS = {
   SHIFT_NOTES: 'shift-notes',
   TIMESHEETS: 'timesheets',
   LEAVE_REQUESTS: 'leave-requests',
+  INCIDENT_REPORTS: 'incident-reports',
   CHECKLISTS: 'checklists',
   CHECKLIST_HISTORY: 'checklist-history',
   CALENDAR_EVENTS: 'calendar-events',
@@ -39,6 +40,8 @@ export const QUERY_KEYS = {
   LEAVE_TYPES: 'leave-types',
   SHIFT_TEMPLATES: 'global-shift-templates',
   HOUSE_SHIFT_TEMPLATES: 'house-shift-templates',
+  SEIZURE_TYPES_MASTER: 'seizure-types-master',
+  BEHAVIOUR_TYPES_MASTER: 'behaviour-types-master',
 
   // Sub-entities
   STAFF_COMPLIANCE: 'staff-compliance',

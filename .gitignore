@@ -48,3 +48,4 @@ test-results/.last-run.json
 test-results/*
 playwright/.auth*
 
+stats.html

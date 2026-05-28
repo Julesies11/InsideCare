@@ -220,6 +220,31 @@ export interface HousePendingChanges {
     }>;
     toDelete: string[];
   };
+  shiftTemplates: {
+    toAdd: Array<{
+      tempId: string;
+      shift_template_name: string;
+      short_name: string;
+      icon_name: string;
+      color_theme: string;
+      start_time: string;
+      end_time: string;
+      sort_order: number;
+      default_checklists?: string[];
+    }>;
+    toUpdate: Array<{
+      id: string;
+      shift_template_name?: string;
+      short_name?: string;
+      icon_name?: string;
+      color_theme?: string;
+      start_time?: string;
+      end_time?: string;
+      sort_order?: number;
+      default_checklists?: string[];
+    }>;
+    toDelete: string[];
+  };
 }
 
 export const emptyHousePendingChanges: HousePendingChanges = {
@@ -271,6 +296,11 @@ export const emptyHousePendingChanges: HousePendingChanges = {
     toAdd: [],
     toDelete: [],
   },
+  shiftTemplates: {
+    toAdd: [],
+    toUpdate: [],
+    toDelete: [],
+  },
 };
 
 // Helper to check if there are any pending changes for houses
@@ -303,7 +333,10 @@ export function hasHousePendingChanges(pending: HousePendingChanges): boolean {
     pending.resources.toUpdate.length > 0 ||
     pending.resources.toDelete.length > 0 ||
     pending.comms.toAdd.length > 0 ||
-    pending.comms.toDelete.length > 0
+    pending.comms.toDelete.length > 0 ||
+    pending.shiftTemplates.toAdd.length > 0 ||
+    pending.shiftTemplates.toUpdate.length > 0 ||
+    pending.shiftTemplates.toDelete.length > 0
   );
 }
 
@@ -337,6 +370,9 @@ export function countHousePendingChanges(pending: HousePendingChanges): number {
     pending.resources.toUpdate.length +
     pending.resources.toDelete.length +
     pending.comms.toAdd.length +
-    pending.comms.toDelete.length
+    pending.comms.toDelete.length +
+    pending.shiftTemplates.toAdd.length +
+    pending.shiftTemplates.toUpdate.length +
+    pending.shiftTemplates.toDelete.length
   );
 }

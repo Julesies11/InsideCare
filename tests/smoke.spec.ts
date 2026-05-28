@@ -81,6 +81,8 @@ const ADMIN_PAGES = [
   '/shift-setup',
   '/activity-log',
   '/admin/leave-types',
+  '/reporting',
+  '/reporting/clinical/incidents',
 ];
 
 // Helper to check for White Screen of Death or major rendering errors
@@ -151,9 +153,9 @@ async function discoverId(page, listPath, linkPattern) {
 }
 
 // Detail & Edit Pages (Placeholders, will be attempted to be replaced dynamically)
-let ACTIVE_PARTICIPANT_ID = 'participant-1';
-let ACTIVE_STAFF_ID = 'staff-1';
-let ACTIVE_HOUSE_ID = 'house-1';
+const ACTIVE_PARTICIPANT_ID = 'participant-1';
+const ACTIVE_STAFF_ID = 'staff-1';
+const ACTIVE_HOUSE_ID = 'house-1';
 const MOCK_SHIFT_ID = 'shift-1';
 const MOCK_MEDICATION_ID = 'med-1';
 const MOCK_LEAVE_ID = 'leave-1';

@@ -502,6 +502,39 @@ export type Database = {
         }
         Relationships: []
       }
+      ic_behaviour_types_master: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       ic_branch_policies: {
         Row: {
           approved_by: string | null
@@ -2286,6 +2319,89 @@ export type Database = {
           },
         ]
       }
+      ic_incident_reports: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string
+          follow_up_required: boolean
+          house_id: string | null
+          id: string
+          incident_date: string
+          incident_type: string
+          involved_participant_id: string | null
+          involved_staff_id: string | null
+          priority: string
+          reported_by: string
+          status: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description: string
+          follow_up_required?: boolean
+          house_id?: string | null
+          id?: string
+          incident_date: string
+          incident_type: string
+          involved_participant_id?: string | null
+          involved_staff_id?: string | null
+          priority?: string
+          reported_by: string
+          status?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string
+          follow_up_required?: boolean
+          house_id?: string | null
+          id?: string
+          incident_date?: string
+          incident_type?: string
+          involved_participant_id?: string | null
+          involved_staff_id?: string | null
+          priority?: string
+          reported_by?: string
+          status?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ic_incident_reports_house_id_fkey"
+            columns: ["house_id"]
+            isOneToOne: false
+            referencedRelation: "ic_houses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_incident_reports_involved_participant_id_fkey"
+            columns: ["involved_participant_id"]
+            isOneToOne: false
+            referencedRelation: "ic_participants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_incident_reports_involved_staff_id_fkey"
+            columns: ["involved_staff_id"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_incident_reports_reported_by_fkey"
+            columns: ["reported_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ic_leave_requests: {
         Row: {
           admin_notes: string | null
@@ -2519,6 +2635,54 @@ export type Database = {
             columns: ["participant_id"]
             isOneToOne: false
             referencedRelation: "ic_participants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ic_participant_document_roles: {
+        Row: {
+          access_level: Database["public"]["Enums"]["ic_access_level_enum"]
+          created_at: string | null
+          created_by: string | null
+          document_id: string
+          id: string
+          role_id: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          access_level?: Database["public"]["Enums"]["ic_access_level_enum"]
+          created_at?: string | null
+          created_by?: string | null
+          document_id: string
+          id?: string
+          role_id: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          access_level?: Database["public"]["Enums"]["ic_access_level_enum"]
+          created_at?: string | null
+          created_by?: string | null
+          document_id?: string
+          id?: string
+          role_id?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ic_participant_document_roles_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "ic_participant_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_participant_document_roles_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "ic_roles"
             referencedColumns: ["id"]
           },
         ]
@@ -3438,7 +3602,13 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           employees: Database["public"]["Enums"]["ic_access_level_enum"]
+          house_activity_log: Database["public"]["Enums"]["ic_access_level_enum"]
+          house_checklist_history: Database["public"]["Enums"]["ic_access_level_enum"]
           house_checklists: Database["public"]["Enums"]["ic_access_level_enum"]
+          house_management: Database["public"]["Enums"]["ic_access_level_enum"]
+          house_operations: Database["public"]["Enums"]["ic_access_level_enum"]
+          house_resources: Database["public"]["Enums"]["ic_access_level_enum"]
+          house_staff: Database["public"]["Enums"]["ic_access_level_enum"]
           houses: Database["public"]["Enums"]["ic_access_level_enum"]
           id: string
           leave_requests: Database["public"]["Enums"]["ic_access_level_enum"]
@@ -3446,11 +3616,35 @@ export type Database = {
           my_leave: Database["public"]["Enums"]["ic_access_level_enum"]
           my_roster: Database["public"]["Enums"]["ic_access_level_enum"]
           my_timesheets: Database["public"]["Enums"]["ic_access_level_enum"]
+          participant_activity_log: Database["public"]["Enums"]["ic_access_level_enum"]
+          participant_behaviour: Database["public"]["Enums"]["ic_access_level_enum"]
+          participant_contacts: Database["public"]["Enums"]["ic_access_level_enum"]
+          participant_documents: Database["public"]["Enums"]["ic_access_level_enum"]
+          participant_emergency: Database["public"]["Enums"]["ic_access_level_enum"]
+          participant_goals: Database["public"]["Enums"]["ic_access_level_enum"]
+          participant_mealtime: Database["public"]["Enums"]["ic_access_level_enum"]
+          participant_medical_routine: Database["public"]["Enums"]["ic_access_level_enum"]
+          participant_medications: Database["public"]["Enums"]["ic_access_level_enum"]
+          participant_shift_notes: Database["public"]["Enums"]["ic_access_level_enum"]
+          participant_support_needs: Database["public"]["Enums"]["ic_access_level_enum"]
           participants: Database["public"]["Enums"]["ic_access_level_enum"]
+          reporting_clinical: Database["public"]["Enums"]["ic_access_level_enum"]
+          reporting_compliance: Database["public"]["Enums"]["ic_access_level_enum"]
+          reporting_operational: Database["public"]["Enums"]["ic_access_level_enum"]
           role_id: string
           roster_board: Database["public"]["Enums"]["ic_access_level_enum"]
           shift_notes: Database["public"]["Enums"]["ic_access_level_enum"]
           shift_routines: Database["public"]["Enums"]["ic_access_level_enum"]
+          staff_activity_log: Database["public"]["Enums"]["ic_access_level_enum"]
+          staff_availability: Database["public"]["Enums"]["ic_access_level_enum"]
+          staff_compliance: Database["public"]["Enums"]["ic_access_level_enum"]
+          staff_documents: Database["public"]["Enums"]["ic_access_level_enum"]
+          staff_emergency: Database["public"]["Enums"]["ic_access_level_enum"]
+          staff_employment: Database["public"]["Enums"]["ic_access_level_enum"]
+          staff_leave: Database["public"]["Enums"]["ic_access_level_enum"]
+          staff_roster: Database["public"]["Enums"]["ic_access_level_enum"]
+          staff_training: Database["public"]["Enums"]["ic_access_level_enum"]
+          staff_warnings: Database["public"]["Enums"]["ic_access_level_enum"]
           timesheets: Database["public"]["Enums"]["ic_access_level_enum"]
           updated_at: string | null
           updated_by: string | null
@@ -3461,7 +3655,13 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           employees?: Database["public"]["Enums"]["ic_access_level_enum"]
+          house_activity_log?: Database["public"]["Enums"]["ic_access_level_enum"]
+          house_checklist_history?: Database["public"]["Enums"]["ic_access_level_enum"]
           house_checklists?: Database["public"]["Enums"]["ic_access_level_enum"]
+          house_management?: Database["public"]["Enums"]["ic_access_level_enum"]
+          house_operations?: Database["public"]["Enums"]["ic_access_level_enum"]
+          house_resources?: Database["public"]["Enums"]["ic_access_level_enum"]
+          house_staff?: Database["public"]["Enums"]["ic_access_level_enum"]
           houses?: Database["public"]["Enums"]["ic_access_level_enum"]
           id?: string
           leave_requests?: Database["public"]["Enums"]["ic_access_level_enum"]
@@ -3469,11 +3669,35 @@ export type Database = {
           my_leave?: Database["public"]["Enums"]["ic_access_level_enum"]
           my_roster?: Database["public"]["Enums"]["ic_access_level_enum"]
           my_timesheets?: Database["public"]["Enums"]["ic_access_level_enum"]
+          participant_activity_log?: Database["public"]["Enums"]["ic_access_level_enum"]
+          participant_behaviour?: Database["public"]["Enums"]["ic_access_level_enum"]
+          participant_contacts?: Database["public"]["Enums"]["ic_access_level_enum"]
+          participant_documents?: Database["public"]["Enums"]["ic_access_level_enum"]
+          participant_emergency?: Database["public"]["Enums"]["ic_access_level_enum"]
+          participant_goals?: Database["public"]["Enums"]["ic_access_level_enum"]
+          participant_mealtime?: Database["public"]["Enums"]["ic_access_level_enum"]
+          participant_medical_routine?: Database["public"]["Enums"]["ic_access_level_enum"]
+          participant_medications?: Database["public"]["Enums"]["ic_access_level_enum"]
+          participant_shift_notes?: Database["public"]["Enums"]["ic_access_level_enum"]
+          participant_support_needs?: Database["public"]["Enums"]["ic_access_level_enum"]
           participants?: Database["public"]["Enums"]["ic_access_level_enum"]
+          reporting_clinical?: Database["public"]["Enums"]["ic_access_level_enum"]
+          reporting_compliance?: Database["public"]["Enums"]["ic_access_level_enum"]
+          reporting_operational?: Database["public"]["Enums"]["ic_access_level_enum"]
           role_id: string
           roster_board?: Database["public"]["Enums"]["ic_access_level_enum"]
           shift_notes?: Database["public"]["Enums"]["ic_access_level_enum"]
           shift_routines?: Database["public"]["Enums"]["ic_access_level_enum"]
+          staff_activity_log?: Database["public"]["Enums"]["ic_access_level_enum"]
+          staff_availability?: Database["public"]["Enums"]["ic_access_level_enum"]
+          staff_compliance?: Database["public"]["Enums"]["ic_access_level_enum"]
+          staff_documents?: Database["public"]["Enums"]["ic_access_level_enum"]
+          staff_emergency?: Database["public"]["Enums"]["ic_access_level_enum"]
+          staff_employment?: Database["public"]["Enums"]["ic_access_level_enum"]
+          staff_leave?: Database["public"]["Enums"]["ic_access_level_enum"]
+          staff_roster?: Database["public"]["Enums"]["ic_access_level_enum"]
+          staff_training?: Database["public"]["Enums"]["ic_access_level_enum"]
+          staff_warnings?: Database["public"]["Enums"]["ic_access_level_enum"]
           timesheets?: Database["public"]["Enums"]["ic_access_level_enum"]
           updated_at?: string | null
           updated_by?: string | null
@@ -3484,7 +3708,13 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           employees?: Database["public"]["Enums"]["ic_access_level_enum"]
+          house_activity_log?: Database["public"]["Enums"]["ic_access_level_enum"]
+          house_checklist_history?: Database["public"]["Enums"]["ic_access_level_enum"]
           house_checklists?: Database["public"]["Enums"]["ic_access_level_enum"]
+          house_management?: Database["public"]["Enums"]["ic_access_level_enum"]
+          house_operations?: Database["public"]["Enums"]["ic_access_level_enum"]
+          house_resources?: Database["public"]["Enums"]["ic_access_level_enum"]
+          house_staff?: Database["public"]["Enums"]["ic_access_level_enum"]
           houses?: Database["public"]["Enums"]["ic_access_level_enum"]
           id?: string
           leave_requests?: Database["public"]["Enums"]["ic_access_level_enum"]
@@ -3492,11 +3722,35 @@ export type Database = {
           my_leave?: Database["public"]["Enums"]["ic_access_level_enum"]
           my_roster?: Database["public"]["Enums"]["ic_access_level_enum"]
           my_timesheets?: Database["public"]["Enums"]["ic_access_level_enum"]
+          participant_activity_log?: Database["public"]["Enums"]["ic_access_level_enum"]
+          participant_behaviour?: Database["public"]["Enums"]["ic_access_level_enum"]
+          participant_contacts?: Database["public"]["Enums"]["ic_access_level_enum"]
+          participant_documents?: Database["public"]["Enums"]["ic_access_level_enum"]
+          participant_emergency?: Database["public"]["Enums"]["ic_access_level_enum"]
+          participant_goals?: Database["public"]["Enums"]["ic_access_level_enum"]
+          participant_mealtime?: Database["public"]["Enums"]["ic_access_level_enum"]
+          participant_medical_routine?: Database["public"]["Enums"]["ic_access_level_enum"]
+          participant_medications?: Database["public"]["Enums"]["ic_access_level_enum"]
+          participant_shift_notes?: Database["public"]["Enums"]["ic_access_level_enum"]
+          participant_support_needs?: Database["public"]["Enums"]["ic_access_level_enum"]
           participants?: Database["public"]["Enums"]["ic_access_level_enum"]
+          reporting_clinical?: Database["public"]["Enums"]["ic_access_level_enum"]
+          reporting_compliance?: Database["public"]["Enums"]["ic_access_level_enum"]
+          reporting_operational?: Database["public"]["Enums"]["ic_access_level_enum"]
           role_id?: string
           roster_board?: Database["public"]["Enums"]["ic_access_level_enum"]
           shift_notes?: Database["public"]["Enums"]["ic_access_level_enum"]
           shift_routines?: Database["public"]["Enums"]["ic_access_level_enum"]
+          staff_activity_log?: Database["public"]["Enums"]["ic_access_level_enum"]
+          staff_availability?: Database["public"]["Enums"]["ic_access_level_enum"]
+          staff_compliance?: Database["public"]["Enums"]["ic_access_level_enum"]
+          staff_documents?: Database["public"]["Enums"]["ic_access_level_enum"]
+          staff_emergency?: Database["public"]["Enums"]["ic_access_level_enum"]
+          staff_employment?: Database["public"]["Enums"]["ic_access_level_enum"]
+          staff_leave?: Database["public"]["Enums"]["ic_access_level_enum"]
+          staff_roster?: Database["public"]["Enums"]["ic_access_level_enum"]
+          staff_training?: Database["public"]["Enums"]["ic_access_level_enum"]
+          staff_warnings?: Database["public"]["Enums"]["ic_access_level_enum"]
           timesheets?: Database["public"]["Enums"]["ic_access_level_enum"]
           updated_at?: string | null
           updated_by?: string | null
@@ -3545,6 +3799,39 @@ export type Database = {
           is_active?: boolean
           permissions?: string[] | null
           role_name?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      ic_seizure_types_master: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -3740,51 +4027,291 @@ export type Database = {
       }
       ic_shift_notes: {
         Row: {
+          adl_supports: string | null
+          behaviour_intensity: string | null
+          behaviour_notes: string | null
+          behaviour_observed: boolean | null
+          behaviour_type_id: string | null
+          bowel_amount: string | null
+          bowel_assistance_required: string | null
+          bowel_bristol_scale: number | null
+          bowel_movement_occurred: boolean | null
+          bowel_notes: string | null
+          bowel_time: string | null
+          capacity_building_goals: string | null
+          community_access_occurred: boolean | null
+          community_activity_type: string | null
+          community_engagement_level: string | null
+          community_location: string | null
+          community_notes: string | null
           created_at: string | null
           created_by: string | null
+          domestic_tasks: string | null
           full_note: string | null
           house_id: string | null
+          hygiene_grooming: string | null
+          hygiene_notes: string | null
+          hygiene_observed_concerns: string | null
+          hygiene_oral_care: string | null
+          hygiene_shower: string | null
+          hygiene_support_required: boolean | null
+          hygiene_toileting: string | null
           id: string
+          meal_provided: boolean | null
+          mtm_concerns: string | null
+          mtm_consistency_correct: boolean | null
+          mtm_diet_type: string | null
+          mtm_fluid_intake: string | null
+          mtm_fluid_intake_notes: string | null
+          mtm_fluids: string | null
+          mtm_meal_intake: string | null
+          mtm_meal_intake_notes: string | null
+          mtm_meal_provided: boolean | null
+          mtm_notes: string | null
+          mtm_positioning_appropriate: boolean | null
+          mtm_supervision_required: boolean | null
+          mtm_swallowing_concerns: string | null
+          mtm_texture_correct: boolean | null
           notes: string | null
+          nutrition_assistance_needed: string | null
+          nutrition_fluids_intake: string | null
+          nutrition_intake: string | null
+          nutrition_meal_type: string | null
+          nutrition_notes: string | null
+          nutrition_refusal_alternatives: string | null
+          overall_presentation: string | null
           participant_id: string | null
+          pbs_outcome: string | null
+          pbs_strategies_details: string | null
+          pbs_strategies_used: boolean | null
+          pbs_when_used: string | null
+          prn_description: string | null
+          prn_medication_given: boolean | null
+          regular_medication_status: string | null
+          restrictive_practices_status: string | null
+          risk_description: string | null
+          risks_observed: boolean | null
+          seizure_description: string | null
+          seizure_duration_minutes: number | null
+          seizure_emergency_services: boolean | null
+          seizure_injury_description: string | null
+          seizure_injury_occurred: boolean | null
+          seizure_notes: string | null
+          seizure_occurred: boolean | null
+          seizure_time_started: string | null
+          seizure_type_id: string | null
           shift_id: string | null
+          shift_summary: string | null
           shift_time: string | null
+          shift_type: Database["public"]["Enums"]["ic_shift_period_enum"] | null
+          sleep_occurred: boolean | null
+          sleep_quality: string | null
+          sleep_start_time: string | null
+          sleep_support_required: string | null
+          sleep_type_period: string | null
+          sleep_wake_time: string | null
           staff_id: string | null
           start_date: string
           updated_at: string | null
           updated_by: string | null
         }
         Insert: {
+          adl_supports?: string | null
+          behaviour_intensity?: string | null
+          behaviour_notes?: string | null
+          behaviour_observed?: boolean | null
+          behaviour_type_id?: string | null
+          bowel_amount?: string | null
+          bowel_assistance_required?: string | null
+          bowel_bristol_scale?: number | null
+          bowel_movement_occurred?: boolean | null
+          bowel_notes?: string | null
+          bowel_time?: string | null
+          capacity_building_goals?: string | null
+          community_access_occurred?: boolean | null
+          community_activity_type?: string | null
+          community_engagement_level?: string | null
+          community_location?: string | null
+          community_notes?: string | null
           created_at?: string | null
           created_by?: string | null
+          domestic_tasks?: string | null
           full_note?: string | null
           house_id?: string | null
+          hygiene_grooming?: string | null
+          hygiene_notes?: string | null
+          hygiene_observed_concerns?: string | null
+          hygiene_oral_care?: string | null
+          hygiene_shower?: string | null
+          hygiene_support_required?: boolean | null
+          hygiene_toileting?: string | null
           id?: string
+          meal_provided?: boolean | null
+          mtm_concerns?: string | null
+          mtm_consistency_correct?: boolean | null
+          mtm_diet_type?: string | null
+          mtm_fluid_intake?: string | null
+          mtm_fluid_intake_notes?: string | null
+          mtm_fluids?: string | null
+          mtm_meal_intake?: string | null
+          mtm_meal_intake_notes?: string | null
+          mtm_meal_provided?: boolean | null
+          mtm_notes?: string | null
+          mtm_positioning_appropriate?: boolean | null
+          mtm_supervision_required?: boolean | null
+          mtm_swallowing_concerns?: string | null
+          mtm_texture_correct?: boolean | null
           notes?: string | null
+          nutrition_assistance_needed?: string | null
+          nutrition_fluids_intake?: string | null
+          nutrition_intake?: string | null
+          nutrition_meal_type?: string | null
+          nutrition_notes?: string | null
+          nutrition_refusal_alternatives?: string | null
+          overall_presentation?: string | null
           participant_id?: string | null
+          pbs_outcome?: string | null
+          pbs_strategies_details?: string | null
+          pbs_strategies_used?: boolean | null
+          pbs_when_used?: string | null
+          prn_description?: string | null
+          prn_medication_given?: boolean | null
+          regular_medication_status?: string | null
+          restrictive_practices_status?: string | null
+          risk_description?: string | null
+          risks_observed?: boolean | null
+          seizure_description?: string | null
+          seizure_duration_minutes?: number | null
+          seizure_emergency_services?: boolean | null
+          seizure_injury_description?: string | null
+          seizure_injury_occurred?: boolean | null
+          seizure_notes?: string | null
+          seizure_occurred?: boolean | null
+          seizure_time_started?: string | null
+          seizure_type_id?: string | null
           shift_id?: string | null
+          shift_summary?: string | null
           shift_time?: string | null
+          shift_type?:
+            | Database["public"]["Enums"]["ic_shift_period_enum"]
+            | null
+          sleep_occurred?: boolean | null
+          sleep_quality?: string | null
+          sleep_start_time?: string | null
+          sleep_support_required?: string | null
+          sleep_type_period?: string | null
+          sleep_wake_time?: string | null
           staff_id?: string | null
           start_date: string
           updated_at?: string | null
           updated_by?: string | null
         }
         Update: {
+          adl_supports?: string | null
+          behaviour_intensity?: string | null
+          behaviour_notes?: string | null
+          behaviour_observed?: boolean | null
+          behaviour_type_id?: string | null
+          bowel_amount?: string | null
+          bowel_assistance_required?: string | null
+          bowel_bristol_scale?: number | null
+          bowel_movement_occurred?: boolean | null
+          bowel_notes?: string | null
+          bowel_time?: string | null
+          capacity_building_goals?: string | null
+          community_access_occurred?: boolean | null
+          community_activity_type?: string | null
+          community_engagement_level?: string | null
+          community_location?: string | null
+          community_notes?: string | null
           created_at?: string | null
           created_by?: string | null
+          domestic_tasks?: string | null
           full_note?: string | null
           house_id?: string | null
+          hygiene_grooming?: string | null
+          hygiene_notes?: string | null
+          hygiene_observed_concerns?: string | null
+          hygiene_oral_care?: string | null
+          hygiene_shower?: string | null
+          hygiene_support_required?: boolean | null
+          hygiene_toileting?: string | null
           id?: string
+          meal_provided?: boolean | null
+          mtm_concerns?: string | null
+          mtm_consistency_correct?: boolean | null
+          mtm_diet_type?: string | null
+          mtm_fluid_intake?: string | null
+          mtm_fluid_intake_notes?: string | null
+          mtm_fluids?: string | null
+          mtm_meal_intake?: string | null
+          mtm_meal_intake_notes?: string | null
+          mtm_meal_provided?: boolean | null
+          mtm_notes?: string | null
+          mtm_positioning_appropriate?: boolean | null
+          mtm_supervision_required?: boolean | null
+          mtm_swallowing_concerns?: string | null
+          mtm_texture_correct?: boolean | null
           notes?: string | null
+          nutrition_assistance_needed?: string | null
+          nutrition_fluids_intake?: string | null
+          nutrition_intake?: string | null
+          nutrition_meal_type?: string | null
+          nutrition_notes?: string | null
+          nutrition_refusal_alternatives?: string | null
+          overall_presentation?: string | null
           participant_id?: string | null
+          pbs_outcome?: string | null
+          pbs_strategies_details?: string | null
+          pbs_strategies_used?: boolean | null
+          pbs_when_used?: string | null
+          prn_description?: string | null
+          prn_medication_given?: boolean | null
+          regular_medication_status?: string | null
+          restrictive_practices_status?: string | null
+          risk_description?: string | null
+          risks_observed?: boolean | null
+          seizure_description?: string | null
+          seizure_duration_minutes?: number | null
+          seizure_emergency_services?: boolean | null
+          seizure_injury_description?: string | null
+          seizure_injury_occurred?: boolean | null
+          seizure_notes?: string | null
+          seizure_occurred?: boolean | null
+          seizure_time_started?: string | null
+          seizure_type_id?: string | null
           shift_id?: string | null
+          shift_summary?: string | null
           shift_time?: string | null
+          shift_type?:
+            | Database["public"]["Enums"]["ic_shift_period_enum"]
+            | null
+          sleep_occurred?: boolean | null
+          sleep_quality?: string | null
+          sleep_start_time?: string | null
+          sleep_support_required?: string | null
+          sleep_type_period?: string | null
+          sleep_wake_time?: string | null
           staff_id?: string | null
           start_date?: string
           updated_at?: string | null
           updated_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "ic_shift_notes_behaviour_type_id_fkey"
+            columns: ["behaviour_type_id"]
+            isOneToOne: false
+            referencedRelation: "ic_behaviour_types_master"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_shift_notes_seizure_type_id_fkey"
+            columns: ["seizure_type_id"]
+            isOneToOne: false
+            referencedRelation: "ic_seizure_types_master"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "shift_notes_house_id_fkey"
             columns: ["house_id"]
@@ -4129,6 +4656,54 @@ export type Database = {
             columns: ["staff_id"]
             isOneToOne: false
             referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ic_staff_document_roles: {
+        Row: {
+          access_level: Database["public"]["Enums"]["ic_access_level_enum"]
+          created_at: string | null
+          created_by: string | null
+          document_id: string
+          id: string
+          role_id: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          access_level?: Database["public"]["Enums"]["ic_access_level_enum"]
+          created_at?: string | null
+          created_by?: string | null
+          document_id: string
+          id?: string
+          role_id: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          access_level?: Database["public"]["Enums"]["ic_access_level_enum"]
+          created_at?: string | null
+          created_by?: string | null
+          document_id?: string
+          id?: string
+          role_id?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ic_staff_document_roles_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "ic_staff_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_staff_document_roles_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "ic_roles"
             referencedColumns: ["id"]
           },
         ]
@@ -6350,6 +6925,7 @@ export type Database = {
     }
     Functions: {
       ic_jwt_get_perm: { Args: { p_module: string }; Returns: string }
+      ic_jwt_get_role_id: { Args: never; Returns: string }
       ic_jwt_get_staff_id: { Args: never; Returns: string }
       ic_jwt_has_house: { Args: { p_house_id: string }; Returns: boolean }
       ic_jwt_has_house_internal: {
@@ -6409,7 +6985,14 @@ export type Database = {
         | "context_read_only"
         | "read_only"
         | "none"
-      ic_shift_period_enum: "morning" | "day" | "night" | "all"
+      ic_shift_period_enum:
+        | "morning"
+        | "day"
+        | "night"
+        | "all"
+        | "afternoon"
+        | "evening"
+        | "sleepover"
       ic_status_enum: "draft" | "active" | "inactive" | "archived"
       mp_membership_role: "org-admin" | "supervisor" | "program-member"
       reg_status:
@@ -6556,7 +7139,15 @@ export const Constants = {
         "read_only",
         "none",
       ],
-      ic_shift_period_enum: ["morning", "day", "night", "all"],
+      ic_shift_period_enum: [
+        "morning",
+        "day",
+        "night",
+        "all",
+        "afternoon",
+        "evening",
+        "sleepover",
+      ],
       ic_status_enum: ["draft", "active", "inactive", "archived"],
       mp_membership_role: ["org-admin", "supervisor", "program-member"],
       reg_status: [

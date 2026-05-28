@@ -43,23 +43,24 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
-import { ShiftNote, useShiftNotes } from '@/hooks/use-shift-notes';
+import { useShiftNotes, ShiftNote } from '@/hooks/use-shift-notes';
 import { useHouses } from '@/hooks/use-houses';
 import { format } from 'date-fns';
 import { Alert } from '@/components/ui/alert';
 import { formatTime } from '@/components/roster/roster-utils';
-import { EditShiftNoteDialog } from './edit-shift-note-dialog';
 import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
 import { RBAC_MODULES } from '@/config/rbac-modules';
+import { useNavigate } from 'react-router';
 
 interface ShiftNotesProps {
   participantId?: string;
 }
 
 const ShiftNotes = () => {
-  const { shiftNotes, loading, error, updateShiftNote, createShiftNote, refetch } = useShiftNotes();
+  const { shiftNotes, loading, error } = useShiftNotes();
   const { houses } = useHouses();
   const { hasAccess } = useRBAC();
+  const navigate = useNavigate();
 
   const canEdit = hasAccess({ 
     resource: RBAC_MODULES.SHIFT_NOTES, 
@@ -73,9 +74,6 @@ const ShiftNotes = () => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedHouses, setSelectedHouses] = useState<string[]>([]);
-  const [editNote, setEditNote] = useState<ShiftNote | null>(null);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [dialogMode, setDialogMode] = useState<'edit' | 'create'>('edit');
 
   // Filtered data based on search and house
   const filteredData = useMemo(() => {
@@ -118,14 +116,8 @@ const ShiftNotes = () => {
     );
   };
 
-  const handleEditNote = (note: ShiftNote) => {
-    if (!note.id) {
-      toast.error('Cannot edit shift note: Missing ID');
-      return;
-    }
-    setEditNote(note);
-    setDialogMode('edit');
-    setIsEditDialogOpen(true);
+  const handleEditNote = (noteId: string) => {
+    navigate(`/shift-notes/detail/${noteId}`);
   };
 
   const ActionsCell = useCallback(({ row }: { row: Row<ShiftNote> }) => {
@@ -134,7 +126,7 @@ const ShiftNotes = () => {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => handleEditNote(row.original)}
+          onClick={() => handleEditNote(row.original.id)}
           className="h-8"
         >
           <Edit className="size-4 me-1.5" />
@@ -142,7 +134,7 @@ const ShiftNotes = () => {
         </Button>
       </div>
     );
-  }, [canEdit]);
+  }, [canEdit, navigate, handleEditNote]);
 
   const columns = useMemo<ColumnDef<ShiftNote>[]>(
     () => [
@@ -265,26 +257,6 @@ const ShiftNotes = () => {
     );
   };
 
-  const handleUpdateNote = async (id: string, updates: any) => {
-    try {
-      await updateShiftNote({ id, updates });
-      return { data: null, error: null };
-    } catch (err: any) {
-      console.error('Error updating shift note:', err);
-      return { data: null, error: err.message || 'Failed to update shift note' };
-    }
-  };
-
-  const handleCreateNote = async (updates: any) => {
-    try {
-      await createShiftNote(updates);
-      return { data: null, error: null };
-    } catch (err: any) {
-      console.error('Error creating shift note:', err);
-      return { data: null, error: err.message || 'Failed to create shift note' };
-    }
-  };
-
   return (
     <>
       <DataGrid
@@ -383,16 +355,6 @@ const ShiftNotes = () => {
           </CardFooter>
         </Card>
       </DataGrid>
-
-      <EditShiftNoteDialog
-        open={isEditDialogOpen}
-        onOpenChange={setIsEditDialogOpen}
-        shiftNote={editNote}
-        onSave={handleUpdateNote}
-        onCreate={handleCreateNote}
-        onSuccess={() => refetch(true)}
-        mode={dialogMode}
-      />
     </>
   );
 };

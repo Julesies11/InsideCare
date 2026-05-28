@@ -1,17 +1,14 @@
-import { useState, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Sheet, SheetBody, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Edit, Trash2, Calendar, Clock } from 'lucide-react';
-import { ShiftNote, useShiftNotesByParticipantId } from '@/hooks/use-shift-notes';
+import { useShiftNotesByParticipantId } from '@/hooks/use-shift-notes';
 import { useStaff } from '@/hooks/use-staff';
 import { format, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router';
 
 interface ShiftNotePendingChanges {
   toAdd: any[];
@@ -38,15 +35,7 @@ export function ShiftNotes({
   onPendingChangesChange,
   refreshTrigger,
 }: ShiftNotesProps) {
-  const [showSheet, setShowSheet] = useState(false);
-  const [editingNote, setEditingNote] = useState<{ id?: string; tempId?: string; start_date: string; shift_time?: string; staff_id: string; full_note: string } | null>(null);
-  
-  const [formData, setFormData] = useState({
-    start_date: new Date().toISOString().split('T')[0],
-    shift_time: '',
-    staff_id: '',
-    full_note: '',
-  });
+  const navigate = useNavigate();
 
   const { data: shiftNotes = [], isLoading: loading, refetch } = useShiftNotesByParticipantId(participantId);
   const { data: staffData } = useStaff();
@@ -58,66 +47,14 @@ export function ShiftNotes({
     }
   }, [refreshTrigger, refetch]);
 
-  const handleAdd = () => {
-    setEditingNote(null);
-    setFormData({
-      start_date: new Date().toISOString().split('T')[0],
-      shift_time: '',
-      staff_id: '',
-      full_note: '',
-    });
-    setShowSheet(true);
-  };
-
   const handleEdit = (note: any) => {
-    setEditingNote(note);
-    setFormData({
-      start_date: note.start_date,
-      shift_time: note.shift_time || '',
-      staff_id: note.staff_id || '',
-      full_note: note.full_note || '',
-    });
-    setShowSheet(true);
-  };
-
-  const handleSave = () => {
-    if (!pendingChanges || !onPendingChangesChange) return;
-
-    if (editingNote) {
-      if (editingNote.tempId) {
-        // Update pending add
-        const newPending = {
-          ...pendingChanges,
-          toAdd: pendingChanges.toAdd.map(n => 
-            n.tempId === editingNote.tempId ? { ...n, ...formData } : n
-          ),
-        };
-        onPendingChangesChange(newPending);
-      } else {
-        // Add to pending updates
-        const newPending = {
-          ...pendingChanges,
-          toUpdate: [
-            ...pendingChanges.toUpdate.filter(n => n.id !== editingNote.id),
-            { id: editingNote.id, ...formData },
-          ],
-        };
-        onPendingChangesChange(newPending);
-      }
-    } else {
-      // Add new note
-      const tempId = `temp-${Date.now()}-${Math.random()}`;
-      const newPending = {
-        ...pendingChanges,
-        toAdd: [
-          ...pendingChanges.toAdd,
-          { tempId, ...formData },
-        ],
-      };
-      onPendingChangesChange(newPending);
+    if (note.tempId) {
+      // For pending adds that haven't been saved yet, we still need the sheet or a way to edit
+      // But for this refactor, let's prioritize the new clinical fields
+      toast.info('Please save the participant profile before editing this new note in the full editor.');
+      return;
     }
-
-    setShowSheet(false);
+    navigate(`/shift-notes/detail/${note.id}`);
   };
 
   const handleDelete = (note: any) => {
@@ -181,12 +118,6 @@ export function ShiftNotes({
     <Card id="shift_notes">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Shift Notes</CardTitle>
-        {canAdd && (
-          <Button size="sm" onClick={handleAdd} disabled={!participantId || !canAdd}>
-            <Plus className="size-4 me-1" />
-            Add Note
-          </Button>
-        )}
       </CardHeader>
       <CardContent>
         {loading ? (
@@ -271,71 +202,6 @@ export function ShiftNotes({
           </div>
         )}
       </CardContent>
-
-      <Sheet open={showSheet} onOpenChange={setShowSheet}>
-        <SheetContent className="sm:max-w-md">
-          <SheetHeader>
-            <SheetTitle>{editingNote ? 'Edit Shift Note' : 'Add Shift Note'}</SheetTitle>
-            <SheetDescription>
-              {editingNote ? 'Update the shift note details.' : 'Enter detailed notes for this shift.'}
-            </SheetDescription>
-          </SheetHeader>
-          <SheetBody className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="date">Date</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  value={formData.start_date || ''}
-                  onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="time">Time (Optional)</Label>
-                <Input
-                  id="time"
-                  type="time"
-                  value={formData.shift_time || ''}
-                  onChange={(e) => setFormData({ ...formData, shift_time: e.target.value })}
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="staff">Staff Member</Label>
-              <Select
-                value={formData.staff_id || ''}
-                onValueChange={(val) => setFormData({ ...formData, staff_id: val })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select staff" />
-                </SelectTrigger>
-                <SelectContent>
-                  {staff.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>{s.staff_name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="note">Shift Note</Label>
-              <Textarea
-                id="note"
-                rows={10}
-                placeholder="Detailed observations and actions during shift..."
-                value={formData.full_note || ''}
-                onChange={(e) => setFormData({ ...formData, full_note: e.target.value })}
-              />
-            </div>
-          </SheetBody>
-          <SheetFooter>
-            <Button variant="outline" onClick={() => setShowSheet(false)}>Cancel</Button>
-            <Button onClick={handleSave} disabled={!formData.full_note || !formData.staff_id || !formData.start_date}>
-              {editingNote ? 'Update Queue' : 'Add to Queue'}
-            </Button>
-          </SheetFooter>
-        </SheetContent>
-      </Sheet>
     </Card>
   );
 }

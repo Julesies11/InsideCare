@@ -49,6 +49,7 @@ export const TABLES = {
   // Operations
   SHIFT_PARTICIPANTS: 'ic_shift_participants',
   SHIFT_NOTES: 'ic_shift_notes',
+  INCIDENT_REPORTS: 'ic_incident_reports',
   SHIFT_ASSIGNED_CHECKLISTS: 'ic_shift_assigned_checklists',
   SHIFT_TEMPLATE_DEFAULT_CHECKLISTS: 'ic_shift_template_default_checklists',
   TIMESHEETS: 'ic_timesheets',
@@ -66,6 +67,8 @@ export const TABLES = {
   FUNDING_SOURCES_MASTER: 'ic_funding_sources_master',
   FUNDING_TYPES_MASTER: 'ic_funding_types_master',
   LEAVE_TYPES: 'ic_leave_types',
+  SEIZURE_TYPES_MASTER: 'ic_seizure_types_master',
+  BEHAVIOUR_TYPES_MASTER: 'ic_behaviour_types_master',
   
   // Enums (PostgreSQL Enums don't need 'ic_' prefix in queries but might be useful to track)
   SHIFT_PERIOD_ENUM: 'ic_shift_period_enum',

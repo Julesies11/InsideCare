@@ -68,13 +68,13 @@ export function StaffTimesheetForm() {
     navigate('/staff/timesheets', { state: { activeTab: fromTab } });
   };
 
-  const [shiftNotes, setShiftNotes]                   = useState('');
+  const [shiftNoteStatus, setShiftNoteStatus]         = useState<'not_started' | 'draft' | 'completed'>('not_started');
+  const [shiftNoteId, setShiftNoteId]                 = useState<string | null>(null);
   const [actualStart, setActualStart]                 = useState('');
   const [actualEnd, setActualEnd]                     = useState('');
   const [breakMins, setBreakMins]                     = useState('0');
   const [overtimeExplanation, setOvertimeExplanation] = useState('');
   const [travelKm, setTravelKm]                       = useState('');
-  const [incidentTag, setIncidentTag]                 = useState(false);
   const [sickShift, setSickShift]                     = useState(false);
   const [sickReason, setSickReason]                   = useState('');
 
@@ -106,7 +106,7 @@ export function StaffTimesheetForm() {
         user?.staff_id
           ? supabase
               .from(TABLES.TIMESHEETS)
-              .select('id, actual_start, actual_end, break_minutes, shift_notes_text, overtime_explanation, travel_km, incident_tag, sick_shift, notes, status')
+              .select('id, actual_start, actual_end, break_minutes, overtime_explanation, travel_km, sick_shift, notes, status')
               .eq('shift_id', shiftId)
               .eq('staff_id', user.staff_id)
               .maybeSingle()
@@ -114,7 +114,7 @@ export function StaffTimesheetForm() {
         user?.staff_id
           ? supabase
               .from('ic_shift_notes')
-              .select('id, full_note, participant_id')
+              .select('id, full_note, overall_presentation, shift_summary')
               .eq('shift_id', shiftId)
               .eq('staff_id', user.staff_id)
               .maybeSingle()
@@ -136,14 +136,17 @@ export function StaffTimesheetForm() {
         setActualEnd(`${(s.end_date || s.start_date)}T${s.end_time.slice(0, 5)}`);
       }
 
-      // Keep track of any pre-existing shift note from the mid-shift note dialog
-      let midShiftNoteText = '';
-      if ((shiftNoteRes?.data as ShiftNoteRes | null)?.full_note) {
-        midShiftNoteText = (shiftNoteRes.data as ShiftNoteRes).full_note || '';
+      if (shiftNoteRes?.data) {
+        const note = shiftNoteRes.data as any;
+        setShiftNoteId(note.id);
+        const isCompleted = !!(note.overall_presentation || note.shift_summary || note.full_note);
+        setShiftNoteStatus(isCompleted ? 'completed' : 'draft');
+      } else {
+        setShiftNoteStatus('not_started');
       }
 
       if (tsRes.data) {
-        const d = tsRes.data as { id: string; actual_start?: string; actual_end?: string; break_minutes?: number; shift_notes_text?: string; overtime_explanation?: string; travel_km?: number; incident_tag?: boolean; sick_shift?: boolean; notes?: string; status: string };
+        const d = tsRes.data as { id: string; actual_start?: string; actual_end?: string; break_minutes?: number; overtime_explanation?: string; travel_km?: number; sick_shift?: boolean; notes?: string; status: string };
         setExistingId(d.id);
         setStatus(d.status);
         
@@ -155,22 +158,10 @@ export function StaffTimesheetForm() {
         if (d.actual_start)          setActualStart(d.actual_start.slice(0, 16));
         if (d.actual_end)            setActualEnd(d.actual_end.slice(0, 16));
         if (d.break_minutes != null) setBreakMins(String(d.break_minutes));
-        
-        // Prioritize text saved in the timesheet, fallback to the pre-written shift note
-        if (d.shift_notes_text) {
-          setShiftNotes(d.shift_notes_text);
-        } else if (midShiftNoteText) {
-          setShiftNotes(midShiftNoteText);
-        }
-
         if (d.overtime_explanation)  setOvertimeExplanation(d.overtime_explanation);
         if (d.travel_km)             setTravelKm(String(d.travel_km));
-        if (d.incident_tag)          setIncidentTag(d.incident_tag);
         if (d.sick_shift)            setSickShift(d.sick_shift);
         if (d.notes)                 setSickReason(d.notes);
-      } else if (midShiftNoteText) {
-        // If no timesheet exists yet but a mid-shift note does, pre-fill it!
-        setShiftNotes(midShiftNoteText);
       }
 
       if (checklistsRes.data) {
@@ -207,6 +198,18 @@ export function StaffTimesheetForm() {
       });
       return;
     }
+    
+    // 2. Enforce Clinical Documentation
+    if (shiftNoteStatus !== 'completed') {
+      toast.error('Shift Note Incomplete', {
+        description: 'Please complete your comprehensive Shift Note before submitting your timesheet.',
+        action: {
+          label: 'Complete Note',
+          onClick: () => navigate(`/shift-notes/detail/${shiftNoteId || 'new'}?shiftId=${shiftId}&staffId=${user?.staff_id || ''}`)
+        }
+      });
+      return;
+    }
 
     if (!timesValid) { toast.error('Please enter valid actual start and end times'); return; }
     if (overtimeNeedsReason) { toast.error('Please explain the overtime hours before submitting'); return; }
@@ -238,10 +241,8 @@ export function StaffTimesheetForm() {
       actual_start:         clockIn,
       actual_end:           clockOut,
       break_minutes:        parseInt(breakMins) || 0,
-      shift_notes_text:     shiftNotes.trim(),
       overtime_explanation: overtimeExplanation || null,
       travel_km:            parseFloat(travelKm) || 0,
-      incident_tag:         incidentTag,
       sick_shift:           sickShift,
       notes:                sickShift ? (sickReason || null) : null,
       overtime_hours:       overtimeHours,
@@ -269,15 +270,6 @@ export function StaffTimesheetForm() {
         if (!data) throw new Error("You do not have permission to perform this action");
         tsId = data.id;
       }
-
-      console.log('Timesheet: DB update successful, updating shift notes...');
-      await supabase.from('ic_shift_notes').upsert({
-        staff_id:   user.staff_id,
-        shift_id:   shiftId,
-        start_date: shift.start_date,
-        full_note:  shiftNotes.trim(),
-        notes:      shiftNotes.trim().slice(0, 100),
-      }, { onConflict: 'shift_id,staff_id' });
 
       console.log('Timesheet: Notifying admins...');
       const userName = user?.fullname || user?.email || 'Staff';
@@ -361,59 +353,59 @@ export function StaffTimesheetForm() {
             </div>
           )}
 
-          {/* Section 1 — Shift Notes */}
-          <Card className="border-0 sm:border">
+          {/* Section 1 — Clinical Documentation */}
+          <Card className={cn(
+              "border-0 sm:border",
+              shiftNoteStatus === 'completed' ? "border-green-200 bg-green-50/10" : "border-orange-200 bg-orange-50/10"
+            )}>
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2 text-base">
-                  <FileText className="size-4 text-primary" />
-                  Shift Notes
+                  <FileText className={cn(
+                    "size-4",
+                    shiftNoteStatus === 'completed' ? "text-green-600" : "text-orange-600"
+                  )} />
+                  Clinical Documentation
                 </CardTitle>
-                {!isReadOnly && <Badge variant="destructive" appearance="light" className="text-xs">Required</Badge>}
+                {!isReadOnly && <Badge variant={shiftNoteStatus === 'completed' ? "success" : "warning"} appearance="light" className="text-xs">
+                  {shiftNoteStatus === 'completed' ? 'Completed' : 'Required'}
+                </Badge>}
               </div>
               <p className="text-sm text-muted-foreground mt-1">
-                Document what happened during this shift.
+                You must complete your comprehensive Shift Note before submitting your timesheet.
               </p>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <Textarea
-                id="shiftNotes"
-                value={shiftNotes}
-                onChange={(e) => setShiftNotes(e.target.value)}
-                placeholder="Describe what happened during the shift — participant wellbeing, activities, any concerns or incidents..."
-                rows={6}
-                className=""
-                readOnly={isReadOnly}
-              />
-              <div className="flex items-center justify-between">
-                <label className={cn(
-                  "flex items-center gap-2 select-none",
-                  isReadOnly ? "cursor-default" : "cursor-pointer"
-                )}>
-                  <input
-                    type="checkbox"
-                    checked={incidentTag}
-                    onChange={(e) => setIncidentTag(e.target.checked)}
-                    className="rounded"
-                    disabled={isReadOnly}
-                  />
-                  <span className="text-sm font-medium flex items-center gap-1.5">
-                    <AlertTriangle className="size-3.5 text-orange-500" />
-                    Incident occurred this shift
+            <CardContent>
+              <div className="flex items-center justify-between p-4 bg-white border rounded-lg">
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm font-medium text-gray-900">Shift Note Detail</span>
+                  <span className="text-xs text-gray-500">
+                    {shiftNoteStatus === 'completed' 
+                      ? 'Documentation has been completed and saved.'
+                      : 'Please complete all required fields in the shift note.'}
                   </span>
-                </label>
-                <span className="text-xs text-muted-foreground">
-                  {shiftNotes.length} chars
-                </span>
-              </div>
-              {incidentTag && (
-                <div className="rounded-lg border border-orange-200 bg-orange-50 dark:bg-orange-950/20 dark:border-orange-800 p-3 flex gap-2">
-                  <Info className="size-4 text-orange-600 mt-0.5 shrink-0" />
-                  <p className="text-xs text-orange-700 dark:text-orange-300">
-                    An incident report will be flagged for supervisor review. Ensure your notes clearly describe the incident.
-                  </p>
                 </div>
-              )}
+                {!isReadOnly && (
+                  <Button
+                    type="button"
+                    variant={shiftNoteStatus === 'completed' ? 'outline' : 'primary'}
+                    size="sm"
+                    onClick={() => navigate(`/shift-notes/detail/${shiftNoteId || 'new'}?shiftId=${shiftId}&staffId=${user?.staff_id || ''}`)}
+                  >
+                    {shiftNoteStatus === 'completed' ? 'Edit Note' : 'Complete Note'}
+                  </Button>
+                )}
+                {isReadOnly && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate(`/shift-notes/detail/${shiftNoteId || 'new'}?shiftId=${shiftId}&staffId=${user?.staff_id || ''}`)}
+                  >
+                    View Note
+                  </Button>
+                )}
+              </div>
             </CardContent>
           </Card>
 
@@ -634,7 +626,7 @@ export function StaffTimesheetForm() {
                   disabled={saving} 
                   className={cn(
                     "flex-1 sm:flex-none sm:min-w-[160px]",
-                    assignedChecklists.some(cl => cl.status !== 'completed') && "opacity-50 grayscale cursor-not-allowed"
+                    (assignedChecklists.some(cl => cl.status !== 'completed') || shiftNoteStatus !== 'completed') && "opacity-50 grayscale cursor-not-allowed"
                   )}
                 >
                   {saving ? 'Submitting...' : 'Submit Timesheet'}

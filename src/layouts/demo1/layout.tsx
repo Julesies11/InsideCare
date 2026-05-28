@@ -60,17 +60,31 @@ export function Demo1Layout() {
     <>
       <title>InsideCare</title>
 
-      {!isMobile && <Sidebar />}
+      {!isMobile && (
+        <div className="print:hidden">
+          <Sidebar />
+        </div>
+      )}
 
       <div className="wrapper flex grow flex-col">
-        <Header />
+        <div className="print:hidden">
+          <Header />
+        </div>
 
         <main className={`grow pt-5${showStaffMobileNav ? ' pb-20' : ''}`} role="content">
           <Outlet />
         </main>
 
-        {!showStaffMobileNav && <Footer />}
-        {showStaffMobileNav && <StaffMobileNav />}
+        {!showStaffMobileNav && (
+          <div className="print:hidden">
+            <Footer />
+          </div>
+        )}
+        {showStaffMobileNav && (
+          <div className="print:hidden">
+            <StaffMobileNav />
+          </div>
+        )}
       </div>
     </>
   );

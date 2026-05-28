@@ -1,22 +1,16 @@
-import { useState, useEffect, MutableRefObject } from 'react';
+import { useState, useEffect, useCallback, MutableRefObject } from 'react';
 import { useParams, useNavigate } from 'react-router';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { useStaff } from '@/hooks/use-staff';
-import { useHouses } from '@/hooks/use-houses';
-import { useParticipants } from '@/hooks/use-participants';
+import { ShiftNoteOverviewSection } from '../components/sections/shift-note-overview-section';
+import { ShiftNoteSupportsSection } from '../components/sections/shift-note-supports-section';
+import { ShiftNoteHealthSection } from '../components/sections/shift-note-health-section';
+import { ShiftNoteTrackersSection } from '../components/sections/shift-note-trackers-section';
+import { ShiftNoteSummarySection } from '../components/sections/shift-note-summary-section';
 
 interface ShiftNoteDetailContentProps {
-  onFormDataChange?: (data: Record<string, any>) => void;
-  onOriginalDataChange?: (data: Record<string, any>) => void;
+  onFormDataChange?: (data: Record<string, unknown>) => void;
+  onOriginalDataChange?: (data: Record<string, unknown>) => void;
   onSavingChange?: (saving: boolean) => void;
   saveHandlerRef?: MutableRefObject<(() => Promise<void>) | null>;
   canEdit: boolean;
@@ -31,25 +25,144 @@ export function ShiftNoteDetailContent({
 }: ShiftNoteDetailContentProps) {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { staff } = useStaff();
-  const { houses } = useHouses();
-  const { participants } = useParticipants();
 
   const [loading, setLoading] = useState(true);
-  const [shiftNote, setShiftNote] = useState<any>(null);
-  const [tagInput, setTagInput] = useState('');
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<Record<string, unknown>>({
     start_date: new Date().toISOString().split('T')[0],
     shift_time: '',
     participant_id: '',
     staff_id: '',
     house_id: '',
-    notes: '',
-    full_note: '',
-    tags: [] as string[],
+    shift_id: '',
+    shift_type: null,
+    risks_observed: false,
+    risk_description: '',
+    overall_presentation: '',
+    adl_supports: '',
+    domestic_tasks: '',
+    capacity_building_goals: '',
+    regular_medication_status: 'none',
+    prn_medication_given: false,
+    prn_description: '',
+    pbs_strategies_used: false,
+    pbs_strategies_details: '',
+    pbs_when_used: '',
+    pbs_outcome: '',
+    restrictive_practices_status: 'none',
+    shift_summary: '',
+    // Trackers
+    bowel_movement_occurred: false,
+    bowel_time: null,
+    bowel_bristol_scale: null,
+    bowel_amount: null,
+    bowel_assistance_required: null,
+    bowel_notes: '',
+    seizure_occurred: false,
+    seizure_time_started: null,
+    seizure_duration_minutes: null,
+    seizure_type_id: null,
+    seizure_description: '',
+    seizure_injury_occurred: false,
+    seizure_injury_description: '',
+    seizure_emergency_services: false,
+    seizure_notes: '',
+    sleep_occurred: false,
+    sleep_type_period: null,
+    sleep_start_time: null,
+    sleep_wake_time: null,
+    sleep_quality: '',
+    sleep_support_required: '',
+    behaviour_observed: false,
+    behaviour_type_id: null,
+    behaviour_intensity: null,
+    behaviour_notes: '',
+    community_access_occurred: false,
+    community_activity_type: '',
+    community_location: '',
+    community_engagement_level: '',
+    community_notes: '',
+    meal_provided: false,
+    nutrition_meal_type: null,
+    nutrition_intake: null,
+    nutrition_refusal_alternatives: '',
+    nutrition_assistance_needed: '',
+    nutrition_fluids_intake: '',
+    nutrition_notes: '',
+    mtm_meal_provided: false,
+    mtm_diet_type: null,
+    mtm_fluids: null,
+    mtm_texture_correct: null,
+    mtm_consistency_correct: null,
+    mtm_positioning_appropriate: null,
+    mtm_supervision_required: null,
+    mtm_swallowing_concerns: 'no',
+    mtm_meal_intake: null,
+    mtm_meal_intake_notes: '',
+    mtm_fluid_intake: null,
+    mtm_fluid_intake_notes: '',
+    mtm_concerns: '',
+    mtm_notes: '',
+    hygiene_support_required: false,
+    hygiene_shower: null,
+    hygiene_oral_care: null,
+    hygiene_toileting: null,
+    hygiene_grooming: null,
+    hygiene_observed_concerns: '',
+    hygiene_notes: '',
   });
 
   const isNewNote = id === 'new';
+
+  // Auto-populate Mealtime Management from Participant Profile
+  const fetchParticipantMtm = async (participantId: string) => {
+    if (!participantId || !isNewNote) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('ic_participants')
+        .select('mtmp_required, mtmp_details')
+        .eq('id', participantId)
+        .single();
+
+      if (error) throw error;
+
+      if (data?.mtmp_required) {
+        handleFormChange('mtm_meal_provided', true);
+        handleFormChange('mtm_notes', `Auto-populated from Care Plan: ${data.mtmp_details || ''}`);
+      }
+    } catch (err) {
+      console.error('Error auto-populating MTM:', err);
+    }
+  };
+
+  // Fetch shift details if creating from a shift
+  const fetchShiftDetails = async (shiftId: string) => {
+    if (!shiftId) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('ic_staff_shifts')
+        .select('start_date, start_time, house_id, shift_template')
+        .eq('id', shiftId)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        const mappedType = data.shift_template?.toLowerCase();
+        const validTypes = ['morning', 'afternoon', 'evening', 'sleepover'];
+        
+        handleFormChange('start_date', data.start_date);
+        handleFormChange('shift_time', data.start_time);
+        handleFormChange('house_id', data.house_id);
+        if (validTypes.includes(mappedType)) {
+          handleFormChange('shift_type', mappedType);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching shift details:', err);
+    }
+  };
 
   const fetchShiftNote = useCallback(async () => {
     if (!id || id === 'new') return;
@@ -58,29 +171,16 @@ export function ShiftNoteDetailContent({
       setLoading(true);
       const { data, error } = await supabase
         .from('ic_shift_notes')
-        .select('id, participant_id, staff_id, start_date, shift_time, house_id, shift_id, notes, full_note, tags, created_at, updated_at, participant:ic_participants(id, participant_name), staff:ic_staff(id, staff_name), house:ic_houses(id, house_name), shift:ic_staff_shifts(id, start_time, end_time, shift_template)')
+        .select('*')
         .eq('id', id)
         .maybeSingle();
 
       if (error) throw error;
-      if (!data) throw new Error("You do not have permission to view this shift note");
+      if (!data) throw new Error("Shift note not found");
 
-      setShiftNote(data);
-      
-      const normalizedData = {
-        start_date: data.start_date || new Date().toISOString().split('T')[0],
-        shift_time: data.shift_time || '',
-        participant_id: data.participant_id || '',
-        staff_id: data.staff_id || '',
-        house_id: data.house_id || '',
-        notes: data.notes || '',
-        full_note: data.full_note || '',
-        tags: data.tags || [],
-      };
-
-      setFormData(normalizedData);
-      if (onFormDataChange) onFormDataChange(normalizedData);
-      if (onOriginalDataChange) onOriginalDataChange(normalizedData);
+      setFormData(data);
+      if (onFormDataChange) onFormDataChange(data);
+      if (onOriginalDataChange) onOriginalDataChange(data);
     } catch (err) {
       console.error('Error fetching shift note:', err);
       toast.error('Failed to load shift note');
@@ -92,36 +192,48 @@ export function ShiftNoteDetailContent({
   useEffect(() => {
     if (isNewNote) {
       setLoading(false);
+      // Check for query params (e.g. ?shiftId=... or ?participantId=... or ?staffId=...)
+      const params = new URLSearchParams(window.location.search);
+      const shiftId = params.get('shiftId');
+      const participantId = params.get('participantId');
+      const staffId = params.get('staffId');
+
+      if (shiftId) {
+        handleFormChange('shift_id', shiftId);
+        fetchShiftDetails(shiftId);
+      }
+      
+      if (participantId) {
+        handleFormChange('participant_id', participantId);
+      }
+
+      if (staffId) {
+        handleFormChange('staff_id', staffId);
+      }
+      
       const initialData = { ...formData };
-      setFormData(initialData);
       if (onFormDataChange) onFormDataChange(initialData);
       if (onOriginalDataChange) onOriginalDataChange(initialData);
     } else {
       fetchShiftNote();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, isNewNote, fetchShiftNote, onFormDataChange, onOriginalDataChange]);
+  }, [id, isNewNote, fetchShiftNote]);
 
-  const handleFormChange = (field: string, value: any) => {
+  const handleFormChange = (field: string, value: unknown) => {
     if (!canEdit) return;
-    const updatedData = { ...formData, [field]: value };
-    setFormData(updatedData);
-    if (onFormDataChange) onFormDataChange(updatedData);
-  };
-
-  const handleAddTag = () => {
-    if (!canEdit) return;
-    if (tagInput.trim() && !formData.tags.includes(tagInput.trim())) {
-      const newTags = [...formData.tags, tagInput.trim()];
-      handleFormChange('tags', newTags);
-      setTagInput('');
-    }
-  };
-
-  const handleRemoveTag = (tagToRemove: string) => {
-    if (!canEdit) return;
-    const newTags = formData.tags.filter(tag => tag !== tagToRemove);
-    handleFormChange('tags', newTags);
+    
+    setFormData(prev => {
+      const updated = { ...prev, [field]: value };
+      if (onFormDataChange) onFormDataChange(updated);
+      
+      // Side effect: Auto-populate MTM when participant changes
+      if (field === 'participant_id' && value && isNewNote) {
+        fetchParticipantMtm(value);
+      }
+      
+      return updated;
+    });
   };
 
   const handleSave = useCallback(async () => {
@@ -129,26 +241,22 @@ export function ShiftNoteDetailContent({
     try {
       if (onSavingChange) onSavingChange(true);
 
-      const dataToSave = {
-        start_date: formData.start_date,
-        shift_time: formData.shift_time || null,
-        participant_id: formData.participant_id || null,
-        staff_id: formData.staff_id || null,
-        house_id: formData.house_id || null,
-        notes: formData.notes || null,
-        full_note: formData.full_note || null,
-        tags: formData.tags.length > 0 ? formData.tags : null,
-      };
+      const dataToSave = { ...formData };
+      // Clean up empty strings to null for better DB integrity
+      Object.keys(dataToSave).forEach(key => {
+        if (dataToSave[key] === '' && key !== 'notes') {
+          dataToSave[key] = null;
+        }
+      });
 
       if (isNewNote) {
         const { data, error } = await supabase
           .from('ic_shift_notes')
           .insert([dataToSave])
           .select()
-          .maybeSingle();
+          .single();
 
         if (error) throw error;
-        if (!data) throw new Error("You do not have permission to perform this action");
 
         toast.success('Shift note created successfully');
         navigate(`/shift-notes/detail/${data.id}`);
@@ -161,18 +269,16 @@ export function ShiftNoteDetailContent({
         if (error) throw error;
 
         toast.success('Shift note updated successfully');
-        
-        // Update local state
-        setShiftNote({ ...shiftNote, ...dataToSave });
         if (onOriginalDataChange) onOriginalDataChange(formData);
       }
-    } catch (err) {
-      console.error('Error saving shift note:', err);
-      toast.error('Failed to save shift note');
+    } catch (err: unknown) {
+      const error = err as Error;
+      console.error('Error saving shift note:', error);
+      toast.error(error.message || 'Failed to save shift note');
     } finally {
       if (onSavingChange) onSavingChange(false);
     }
-  }, [canEdit, formData, isNewNote, id, navigate, shiftNote, onOriginalDataChange, onSavingChange]);
+  }, [canEdit, formData, isNewNote, id, navigate, onOriginalDataChange, onSavingChange]);
 
   // Expose save handler to parent
   useEffect(() => {
@@ -183,171 +289,56 @@ export function ShiftNoteDetailContent({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-muted-foreground">Loading...</div>
+      <div className="flex items-center justify-center py-20">
+        <div className="flex flex-col items-center gap-2">
+          <div className="size-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-sm text-muted-foreground font-medium">Loading shift note...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 py-6">
-      {/* Basic Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Basic Information</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="start_date">Shift Date *</Label>
-              <Input
-                id="start_date"
-                type="date"
-                value={formData.start_date}
-                onChange={(e) => handleFormChange('start_date', e.target.value)}
-                required
-                disabled={!canEdit}
-              />
-            </div>
+    <div className="flex flex-col items-stretch grow gap-5 lg:gap-7.5">
+      <div id="shift_note_overview">
+        <ShiftNoteOverviewSection 
+          canEdit={canEdit} 
+          formData={formData} 
+          onFormChange={handleFormChange} 
+        />
+      </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="shift_time">Shift Time</Label>
-              <Input
-                id="shift_time"
-                type="time"
-                value={formData.shift_time}
-                onChange={(e) => handleFormChange('shift_time', e.target.value)}
-                disabled={!canEdit}
-              />
-            </div>
-          </div>
+      <div id="shift_note_supports">
+        <ShiftNoteSupportsSection 
+          canEdit={canEdit} 
+          formData={formData} 
+          onFormChange={handleFormChange} 
+        />
+      </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="participant_id">Participant</Label>
-              <Select
-                value={formData.participant_id || 'none'}
-                onValueChange={(value) => handleFormChange('participant_id', value === 'none' ? '' : value)}
-                disabled={!canEdit}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select participant" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">General Note</SelectItem>
-                  {participants.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>
-                      {p.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+      <div id="shift_note_health">
+        <ShiftNoteHealthSection 
+          canEdit={canEdit} 
+          formData={formData} 
+          onFormChange={handleFormChange} 
+        />
+      </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="staff_id">Staff Member</Label>
-              <Select
-                value={formData.staff_id || 'none'}
-                onValueChange={(value) => handleFormChange('staff_id', value === 'none' ? '' : value)}
-                disabled={!canEdit}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select staff" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Select staff</SelectItem>
-                  {staff.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>
-                      {s.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+      <div id="shift_note_trackers">
+        <ShiftNoteTrackersSection 
+          canEdit={canEdit} 
+          formData={formData} 
+          onFormChange={handleFormChange} 
+        />
+      </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="house_id">House</Label>
-              <Select
-                value={formData.house_id || 'none'}
-                onValueChange={(value) => handleFormChange('house_id', value === 'none' ? '' : value)}
-                disabled={!canEdit}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select house" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Select house</SelectItem>
-                  {houses.map((h) => (
-                    <SelectItem key={h.id} value={h.id}>
-                      {h.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Note Content */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Note Content</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
-            <Input
-              id="notes"
-              value={formData.notes}
-              onChange={(e) => handleFormChange('notes', e.target.value)}
-              placeholder="Brief notes about the shift..."
-              disabled={!canEdit}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="full_note">Full Note *</Label>
-            <Textarea
-              id="full_note"
-              value={formData.full_note}
-              onChange={(e) => handleFormChange('full_note', e.target.value)}
-              placeholder="Detailed shift notes..."
-              rows={10}
-              required
-              disabled={!canEdit}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="tags">Tags</Label>
-            <div className="flex gap-2">
-              <Input
-                id="tags"
-                value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
-                placeholder="Add a tag..."
-                disabled={!canEdit}
-              />
-              <Button type="button" onClick={handleAddTag} variant="outline" disabled={!canEdit}>
-                Add
-              </Button>
-            </div>
-            <div className="flex gap-2 flex-wrap mt-2">
-              {formData.tags.map((tag, index) => (
-                <Badge key={index} variant="secondary" className="gap-1">
-                  {tag}
-                  <X
-                    className={cn("size-3 cursor-pointer", !canEdit && "cursor-not-allowed opacity-50")}
-                    onClick={() => canEdit && handleRemoveTag(tag)}
-                  />
-                </Badge>
-              ))}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <div id="shift_note_summary">
+        <ShiftNoteSummarySection 
+          canEdit={canEdit} 
+          formData={formData} 
+          onFormChange={handleFormChange} 
+        />
+      </div>
     </div>
   );
 }
