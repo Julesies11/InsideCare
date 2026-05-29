@@ -62,7 +62,7 @@ export function ChecklistExecutionDialog({
             is_completed, 
             note, 
             completed_at,
-            completed_by_staff:${TABLES.STAFF}!completed_by(id, staff_name)
+            completed_by_staff:${TABLES.STAFF}!house_checklist_submission_items_completed_by_fkey(id, staff_name)
           )
         `)
         .eq('checklist_id', checklist.id)
@@ -269,7 +269,7 @@ export function ChecklistExecutionDialog({
         <DialogHeader className="p-6 pb-2">
           <DialogTitle className="flex items-center gap-2 text-xl">
             <PlayCircle className="size-5 text-primary" />
-            {checklist?.name}
+            {checklist?.house_checklist_name || checklist?.name}
           </DialogTitle>
           <DialogDescription>
             Complete the required items and save your progress.

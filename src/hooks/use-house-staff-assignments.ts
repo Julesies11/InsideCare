@@ -32,7 +32,7 @@ export interface HouseStaffAssignment {
 
 const HOUSE_STAFF_ASSIGNMENT_COLUMNS = `
   id, house_id, staff_id, is_primary, start_date, end_date, notes, created_at, updated_at,
-  staff:ic_staff(id, staff_name, email, phone, status, separation_date, role_id, photo_url, role:ic_roles!staff_role_id_fkey(id, role_name, description))
+  staff:${TABLES.STAFF}!house_staff_assignments_staff_id_fkey(id, staff_name, email, phone, status, separation_date, role_id, photo_url, role:ic_roles!staff_role_id_fkey(id, role_name, description))
 `;
 
 export function useHouseStaffAssignments(houseId?: string) {

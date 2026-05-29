@@ -248,7 +248,6 @@ export function StaffTimesheetForm() {
       overtime_hours:       overtimeHours,
       status: TIMESHEET_STATUS.PENDING,
       submitted_at:         now,
-      updated_at:           now,
     };
 
     console.log('Timesheet: Submitting payload:', payload);

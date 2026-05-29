@@ -116,10 +116,14 @@ export function useStaffShifts(staffId?: string, startDate?: string, endDate?: s
       return (shifts || []).map((shift) => {
         const shiftParticipants = participants
           ?.filter((p) => p.shift_id === shift.id)
-          .map((p) => p.participant ? {
-            id: (Array.isArray(p.participant) ? p.participant[0] : p.participant).id,
-            participant_name: (Array.isArray(p.participant) ? p.participant[0] : p.participant).participant_name
-          } : null)
+          .map((p) => {
+            const participantData = (Array.isArray(p.participant) ? p.participant[0] : p.participant);
+            return p.participant ? {
+              id: participantData.id,
+              participant_name: participantData.participant_name,
+              name: participantData.participant_name
+            } : null;
+          })
           .filter((p) => p !== null) || [];
 
         return {

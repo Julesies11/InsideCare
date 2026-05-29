@@ -43,10 +43,10 @@ export function useIncidentReports({
         .from(TABLES.INCIDENT_REPORTS)
         .select(`
           *,
-          participant:ic_participants(id, participant_name),
-          staff:ic_staff!involved_staff_id(id, staff_name),
-          reporter:ic_staff!reported_by(id, staff_name),
-          house:ic_houses(id, house_name)
+          participant:ic_participants!ic_incident_reports_involved_participant_id_fkey(id, participant_name),
+          staff:ic_staff!ic_incident_reports_involved_staff_id_fkey(id, staff_name),
+          reporter:ic_staff!ic_incident_reports_reported_by_fkey(id, staff_name),
+          house:ic_houses!ic_incident_reports_house_id_fkey(id, house_name)
         `, { count: 'exact' });
 
       if (participantId) {

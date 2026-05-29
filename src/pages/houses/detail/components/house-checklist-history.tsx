@@ -57,7 +57,8 @@ export interface HouseChecklistHistoryRef {
 }
 
 export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseChecklistHistoryProps>(
-  ({ houseId, onlyHistory = false, assignedHouseIds = [] }, ref) => {
+  (props, ref) => {
+    const { houseId, onlyHistory = false, assignedHouseIds = [] } = props;
     const { user } = useAuth();
     const queryClient = useQueryClient();
     
@@ -162,7 +163,7 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
             status,
             note, 
             completed_at,
-            completed_by_staff:${TABLES.STAFF}!completed_by(id, staff_name)
+            completed_by_staff:${TABLES.STAFF}!house_checklist_submission_items_completed_by_fkey(id, staff_name)
           `)
           .eq('submission_id', submission.id);
 

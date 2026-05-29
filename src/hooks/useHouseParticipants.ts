@@ -41,7 +41,10 @@ export function useHouseParticipants(houseId?: string) {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as HouseParticipant[];
+      return (data || []).map((p: any) => ({
+        ...p,
+        name: p.participant_name
+      })) as HouseParticipant[];
     },
     enabled: !!houseId,
     staleTime: 0, // Real-time RLS enforcement

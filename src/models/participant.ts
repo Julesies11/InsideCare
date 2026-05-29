@@ -8,5 +8,6 @@ export type Participant = ParticipantRow;
 
 // Extended interface with house details for display
 export interface ParticipantWithHouse extends Participant {
+  name?: string | null;
   house_name?: string | null;
 }

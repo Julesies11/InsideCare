@@ -190,7 +190,7 @@ export const NotificationService = {
     // Fetch staff assigned to this house
     const { data: assignments } = await supabase
       .from(TABLES.HOUSE_STAFF_ASSIGNMENTS)
-      .select('staff:staff_id(auth_user_id)')
+      .select('staff:ic_staff!house_staff_assignments_staff_id_fkey(auth_user_id)')
       .eq('house_id', houseId);
 
     if (assignments && assignments.length > 0) {

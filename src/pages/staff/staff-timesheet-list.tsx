@@ -32,6 +32,7 @@ import {
 import { DataGrid } from '@/components/ui/data-grid';
 import { DataGridTable } from '@/components/ui/data-grid-table';
 import { DataGridPagination } from '@/components/ui/data-grid-pagination';
+import { TABLES } from '@/config/db-tables';
 
 interface Timesheet {
   id: string;
@@ -111,23 +112,23 @@ export function StaffTimesheetList() {
 
     // 1. Fetch existing timesheets
     const { data: existingTs } = await supabase
-      .from('ic_timesheets')
+      .from(TABLES.TIMESHEETS)
       .select(`
         id, shift_id, clock_in, clock_out, actual_start, actual_end,
         break_minutes, shift_notes_text, status, admin_notes,
         rejection_reason, submitted_at, incident_tag, sick_shift,
         overtime_hours, travel_km, created_at,
-        shift:ic_staff_shifts(id, start_date, end_date, start_time, end_time, shift_template, house:ic_houses(house_name))
+        shift:ic_staff_shifts!timesheets_shift_id_fkey(id, start_date, end_date, start_time, end_time, shift_template, house:${TABLES.HOUSES}(house_name))
       `)
       .eq('staff_id', user.staff_id)
       .order('created_at', { ascending: false });
 
     // 2. Fetch shifts from the last 30 days
     const { data: pastShifts } = await supabase
-      .from('ic_staff_shifts')
+      .from(TABLES.STAFF_SHIFTS)
       .select(`
         id, start_date, end_date, start_time, end_time, shift_template,
-        house:ic_houses(house_name)
+        house:${TABLES.HOUSES}(house_name)
       `)
       .eq('staff_id', user.staff_id)
       .gte('end_date', thirtyDaysAgo)

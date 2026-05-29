@@ -20,8 +20,8 @@ interface UseActivityLogOptions {
   endDate?: string;
 }
 
-const ACTIVITY_LOG_COLUMNS = 'id, activity_type, entity_type, entity_id, entity_name, description, user_name, metadata, created_at';
-const ACTIVITY_LOG_LIST_COLUMNS = 'id, activity_type, entity_type, entity_id, entity_name, description, user_name, created_at';
+const ACTIVITY_LOG_COLUMNS = 'id, activity_type, entity_type, entity_id, entity_name, description, user_name, user_id, table_name, parent_name, parent_type, metadata, created_at';
+const ACTIVITY_LOG_LIST_COLUMNS = 'id, activity_type, entity_type, entity_id, entity_name, description, user_name, user_id, table_name, parent_name, parent_type, created_at';
 
 export function useActivityLog({ 
   entityId, 

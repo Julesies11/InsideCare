@@ -10,6 +10,7 @@ import { useAuth } from '@/auth/context/auth-context';
 import { format, subDays, addDays, isToday, parseISO } from 'date-fns';
 import { toast } from 'sonner';
 import { HousePendingChanges } from '@/models/house-pending-changes';
+import { TABLES } from '@/config/db-tables';
 
 interface HouseCommEntry {
   id: string;
@@ -47,10 +48,10 @@ export function HouseComms({
     try {
       const dateStr = format(date, 'yyyy-MM-dd');
       const { data, error } = await supabase
-        .from('ic_house_comms')
+        .from(TABLES.HOUSE_COMMS)
         .select(`
           *,
-          creator:ic_staff!created_by(staff_name)
+          creator:ic_staff!fk_ic_house_comms_created_by(staff_name)
         `)
         .eq('house_id', houseId)
         .eq('entry_date', dateStr)

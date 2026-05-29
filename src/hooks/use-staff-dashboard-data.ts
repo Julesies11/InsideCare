@@ -63,7 +63,7 @@ export function useStaffDashboardData(staffId?: string) {
           .limit(3),
         supabase
           .from(TABLES.TIMESHEETS)
-          .select('id, status, clock_in, shift:ic_staff_shifts(start_date)')
+          .select('id, status, clock_in, shift:ic_staff_shifts!timesheets_shift_id_fkey(start_date)')
           .eq('staff_id', staffId)
           .in('status', ['pending'])
           .order('clock_in', { ascending: false })

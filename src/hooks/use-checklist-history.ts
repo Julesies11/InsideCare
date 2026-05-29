@@ -30,9 +30,9 @@ export interface ChecklistHistoryFilters {
 
 const CHECKLIST_SUBMISSION_COLUMNS = `
   id, checklist_id, house_id, submitted_by, status, scheduled_date, started_at, completed_at, created_at, updated_at,
-  house_checklists:ic_house_checklists(house_checklist_name),
-  staff:ic_staff(staff_name),
-  houses:ic_houses(house_name),
+  house_checklists:${TABLES.HOUSE_CHECKLISTS}(house_checklist_name),
+  staff:${TABLES.STAFF}!house_checklist_submissions_submitted_by_fkey(staff_name),
+  houses:${TABLES.HOUSES}(house_name),
   ic_house_checklist_submission_items:ic_house_checklist_submission_items(is_completed)
 `;
 

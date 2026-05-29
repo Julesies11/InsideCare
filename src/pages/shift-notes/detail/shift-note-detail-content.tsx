@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, MutableRefObject } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { TABLES } from '@/config/db-tables';
 import { ShiftNoteOverviewSection } from '../components/sections/shift-note-overview-section';
 import { ShiftNoteSupportsSection } from '../components/sections/shift-note-supports-section';
 import { ShiftNoteHealthSection } from '../components/sections/shift-note-health-section';
@@ -119,7 +120,7 @@ export function ShiftNoteDetailContent({
 
     try {
       const { data, error } = await supabase
-        .from('ic_participants')
+        .from(TABLES.PARTICIPANTS)
         .select('mtmp_required, mtmp_details')
         .eq('id', participantId)
         .single();
@@ -141,7 +142,7 @@ export function ShiftNoteDetailContent({
 
     try {
       const { data, error } = await supabase
-        .from('ic_staff_shifts')
+        .from(TABLES.STAFF_SHIFTS)
         .select('start_date, start_time, house_id, shift_template')
         .eq('id', shiftId)
         .single();
@@ -170,7 +171,7 @@ export function ShiftNoteDetailContent({
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('ic_shift_notes')
+        .from(TABLES.SHIFT_NOTES)
         .select('*')
         .eq('id', id)
         .maybeSingle();
@@ -210,30 +211,34 @@ export function ShiftNoteDetailContent({
       if (staffId) {
         handleFormChange('staff_id', staffId);
       }
-      
-      const initialData = { ...formData };
-      if (onFormDataChange) onFormDataChange(initialData);
-      if (onOriginalDataChange) onOriginalDataChange(initialData);
     } else {
       fetchShiftNote();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, isNewNote, fetchShiftNote]);
 
+  // Sync state to parent on mount or when formData is fully loaded/updated
+  useEffect(() => {
+    if (!loading) {
+      onOriginalDataChange?.(formData);
+    }
+  }, [loading, onOriginalDataChange]);
+
+  useEffect(() => {
+    if (!loading) {
+      onFormDataChange?.(formData);
+    }
+  }, [loading, formData, onFormDataChange]);
+
   const handleFormChange = (field: string, value: unknown) => {
     if (!canEdit) return;
-    
-    setFormData(prev => {
-      const updated = { ...prev, [field]: value };
-      if (onFormDataChange) onFormDataChange(updated);
-      
-      // Side effect: Auto-populate MTM when participant changes
-      if (field === 'participant_id' && value && isNewNote) {
-        fetchParticipantMtm(value);
-      }
-      
-      return updated;
-    });
+
+    setFormData(prev => ({ ...prev, [field]: value }));
+
+    // Side effect: Auto-populate MTM when participant changes
+    if (field === 'participant_id' && value && isNewNote) {
+      fetchParticipantMtm(value as string);
+    }
   };
 
   const handleSave = useCallback(async () => {
@@ -251,7 +256,7 @@ export function ShiftNoteDetailContent({
 
       if (isNewNote) {
         const { data, error } = await supabase
-          .from('ic_shift_notes')
+          .from(TABLES.SHIFT_NOTES)
           .insert([dataToSave])
           .select()
           .single();
@@ -262,7 +267,7 @@ export function ShiftNoteDetailContent({
         navigate(`/shift-notes/detail/${data.id}`);
       } else {
         const { error } = await supabase
-          .from('ic_shift_notes')
+          .from(TABLES.SHIFT_NOTES)
           .update(dataToSave)
           .eq('id', id);
 

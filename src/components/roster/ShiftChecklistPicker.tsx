@@ -56,7 +56,7 @@ export function ShiftChecklistPicker({
               "relative transition-all",
               !readOnly && "cursor-pointer active:scale-[0.98]"
             )}
-            onClick={() => !readOnly && onToggle(cl.id, cl.name)}
+            onClick={() => !readOnly && onToggle(cl.id, cl.house_checklist_name || cl.name || 'Routine Checklist')}
           >
             {/* Overlay Selection Indicator */}
             <div className={cn(

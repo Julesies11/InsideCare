@@ -5,6 +5,7 @@ import { Houses } from './components';
 import { useNavigate } from 'react-router';
 import { supabase } from '@/lib/supabase';
 import { handleSupabaseError } from '@/errors/error-handler';
+import { TABLES } from '@/config/db-tables';
 import { RBAC_MODULES } from '@/config/rbac-modules';
 import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
 
@@ -21,7 +22,7 @@ export function HousesProfilesContent() {
     try {
       // Create a new house with minimal data
       const { data, error } = await supabase
-        .from('ic_houses')
+        .from(TABLES.HOUSES)
         .insert([
           {
             house_name: 'New House',

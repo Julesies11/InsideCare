@@ -111,7 +111,7 @@ export function useShiftsQuery(staffId: string, startDate: string, endDate: stri
         .from(TABLES.STAFF_SHIFTS)
         .select(`
           id, staff_id, start_date, end_date, start_time, end_time, house_id, shift_template, shift_template_id, notes,
-          staff_info:${TABLES.STAFF}(id, staff_name),
+          staff_info:${TABLES.STAFF}!staff_shifts_staff_id_fkey(id, staff_name),
           house_info:${TABLES.HOUSES}(id, house_name),
           type_details:${TABLES.HOUSE_SHIFT_TEMPLATES}(color_theme, icon_name),
           participants:${TABLES.SHIFT_PARTICIPANTS}(
@@ -212,9 +212,11 @@ export function useShiftsQuery(staffId: string, startDate: string, endDate: stri
         const part = p.participant || p.participants || p;
         const actualPart = Array.isArray(part) ? part[0] : part;
 
+        const participantName = actualPart?.participant_name || p.participant_name;
         return {
           id: actualPart?.id || p.id || p.participant_id,
-          participant_name: actualPart?.participant_name || p.participant_name
+          participant_name: participantName,
+          name: participantName
         };
       }).filter((p: any) => p.id && p.participant_name) || [];
 
@@ -307,7 +309,7 @@ export function useRosterData(staffId?: string, options: { includeMetadata?: boo
         .from(TABLES.STAFF)
         .select(`
           id, staff_name, status, email,
-          house_assignments:${TABLES.HOUSE_STAFF_ASSIGNMENTS}(
+          house_assignments:${TABLES.HOUSE_STAFF_ASSIGNMENTS}!house_staff_assignments_staff_id_fkey(
             id,
             house_id,
             end_date,

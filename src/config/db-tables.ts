@@ -17,6 +17,7 @@ export const TABLES = {
   PARTICIPANT_GOAL_PROGRESS: 'ic_participant_goal_progress',
   PARTICIPANT_NOTES: 'ic_participant_notes',
   PARTICIPANT_DOCUMENTS: 'ic_participant_documents',
+  PARTICIPANT_DOCUMENT_ROLES: 'ic_participant_document_roles',
   PARTICIPANT_CONTACTS: 'ic_participant_contacts',
   PARTICIPANT_FUNDING: 'ic_participant_funding',
   PARTICIPANT_HYGIENE_ROUTINES: 'ic_participant_hygiene_routines',
@@ -44,6 +45,7 @@ export const TABLES = {
   STAFF_COMPLIANCE: 'ic_staff_compliance',
   STAFF_TRAINING: 'ic_staff_training',
   STAFF_DOCUMENTS: 'ic_staff_documents',
+  STAFF_DOCUMENT_ROLES: 'ic_staff_document_roles',
   STAFF_SHIFTS: 'ic_staff_shifts',
 
   // Operations

@@ -149,8 +149,8 @@ export function AdminTimesheetsPage() {
         break_minutes, shift_notes_text, notes, status, admin_notes, rejection_reason,
         submitted_at, incident_tag, sick_shift, overtime_hours, travel_km,
         overtime_explanation, created_at,
-        staff:staff_id(id, staff_name, auth_user_id),
-        shift:shift_id(start_date, end_date, start_time, end_time, shift_template, house:house_id(house_name))
+        staff:ic_staff!timesheets_staff_id_fkey(id, staff_name, auth_user_id),
+        shift:ic_staff_shifts!timesheets_shift_id_fkey(start_date, end_date, start_time, end_time, shift_template, house:ic_houses!staff_shifts_house_id_fkey(house_name))
       `)
       .order('submitted_at', { ascending: false, nullsFirst: false });
 
@@ -196,7 +196,7 @@ export function AdminTimesheetsPage() {
     const newStatus = action === 'approve' ? 'approved' : 'rejected';
     const now = new Date().toISOString();
     const updatePayload: Record<string, unknown> = {
-      status: newStatus, admin_notes: adminNotes || null, updated_at: now,
+      status: newStatus, admin_notes: adminNotes || null,
     };
     if (action === 'approve') {
       updatePayload.approved_at = now;

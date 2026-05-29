@@ -65,10 +65,10 @@ const SHIFT_NOTE_COLUMNS = `
   full_note, 
   created_at, 
   updated_at,
-  participant:ic_participants(id, participant_name),
-  staff:ic_staff(id, staff_name),
-  house:ic_houses(id, house_name),
-  shift:ic_staff_shifts(id, start_time, end_time, shift_template)
+  participant:${TABLES.PARTICIPANTS}(id, participant_name),
+  staff:${TABLES.STAFF}!shift_notes_staff_id_fkey(id, staff_name),
+  house:${TABLES.HOUSES}(id, house_name),
+  shift:${TABLES.STAFF_SHIFTS}(id, start_time, end_time, shift_template)
 `;
 
 export function useShiftNotes() {

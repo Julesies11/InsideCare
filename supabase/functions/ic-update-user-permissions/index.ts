@@ -114,7 +114,7 @@ serve(async (req) => {
         role_id, 
         manager_id, 
         auth_user_id,
-        role:ic_roles(role_name)
+        role:ic_roles!staff_role_id_fkey(role_name)
       `)
       .eq('auth_user_id', userId)
       .maybeSingle();
