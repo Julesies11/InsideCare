@@ -40,7 +40,7 @@ export function HouseDetailPage() {
   const [saving, setSaving] = useState(false);
   const saveHandlerRef = useRef<(() => Promise<void>) | null>(null);
 
-  const handleBack = () => navigate('/houses/profiles');
+  const handleBack = () => navigate('/houses');
 
   const handleSave = async () => {
     if (saveHandlerRef.current) {

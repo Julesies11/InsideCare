@@ -150,9 +150,6 @@ export function HouseDetailContent({
         setHouse(data);
         setOriginalData(data);
         setFormData(data);
-        onHouseChange?.(data);
-        onOriginalDataChange?.(data);
-        onFormDataChange?.(data);
       } catch (err) {
         console.error('Error fetching house:', err);
         toast.error('Failed to load house details');
@@ -162,13 +159,26 @@ export function HouseDetailContent({
     };
 
     if (id) fetchHouse();
-  }, [id, onHouseChange, onOriginalDataChange, onFormDataChange]);
+  }, [id]);
+
+  // Sync state to parent on mount or when data is fully loaded/updated
+  useEffect(() => {
+    if (!loading && house) {
+      onHouseChange?.(house);
+      onOriginalDataChange?.(originalData);
+    }
+  }, [loading, house, originalData, onHouseChange, onOriginalDataChange]);
+
+  useEffect(() => {
+    if (!loading && formData) {
+      latestFormData.current = formData;
+      onFormDataChange?.(formData);
+    }
+  }, [loading, formData, onFormDataChange]);
 
 
   const handleFieldChange = (field: string, value: any) => {
-    const newData = { ...formData, [field]: value };
-    setFormData(newData);
-    onFormDataChange?.(newData);
+    setFormData((prev: any) => ({ ...prev, [field]: value }));
   };
 
   const handleSave = useCallback(async () => {
@@ -263,7 +273,6 @@ export function HouseDetailContent({
             start_date: s.start_date || null,
             end_date: s.end_date || null,
             notes: s.notes || null,
-            created_by: user?.staff_id || null,
           }));
           const { error: dbError } = await supabase.from(TABLES.HOUSE_STAFF_ASSIGNMENTS).insert(toInsert);
           if (dbError) throw new Error(`Failed to add staff assignments: ${dbError.message}`);
@@ -313,7 +322,6 @@ export function HouseDetailContent({
                 is_checklist_event: !!event.is_checklist_event,
                 house_checklist_id: event.house_checklist_id || null,
                 checklist_schedule_id: event.checklist_schedule_id || null,
-                created_by: user?.staff_id || null,
               })
               .select('id')
               .maybeSingle();
@@ -354,7 +362,6 @@ export function HouseDetailContent({
                 is_checklist_event: !!event.is_checklist_event,
                 house_checklist_id: event.house_checklist_id || null,
                 checklist_schedule_id: event.checklist_schedule_id || null,
-                created_by: user?.staff_id || null,
               })
               .eq('id', event.id);
 
@@ -411,7 +418,6 @@ export function HouseDetailContent({
                 file_path: filePath,
                 file_size: doc.file.size,
                 file_type: doc.file.type,
-                created_by: user?.staff_id || null,
               });
 
             if (error) throw new Error(`Failed to save document record: ${error.message}`);
@@ -654,7 +660,6 @@ export function HouseDetailContent({
               file_name: fileName,
               file_size: fileSize,
               notes: resource.notes || null,
-              created_by: user?.staff_id || null,
             });
 
             if (error) throw new Error(`Failed to add resource: ${error.message}`);

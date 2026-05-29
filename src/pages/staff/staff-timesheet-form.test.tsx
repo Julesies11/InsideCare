@@ -53,6 +53,9 @@ describe('StaffTimesheetForm', () => {
       http.get(`${SUPABASE_URL}/rest/v1/${TABLES.TIMESHEETS}`, () => {
         return HttpResponse.json([]);
       }),
+      http.get(`${SUPABASE_URL}/rest/v1/ic_shift_notes`, () => {
+        return HttpResponse.json([{ id: 'note-1', full_note: 'Completed note' }]);
+      }),
       http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF}`, () => {
         return HttpResponse.json(mockAdmins);
       }),
@@ -133,7 +136,7 @@ describe('StaffTimesheetForm', () => {
 
     // Assert submission behavior
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/staff/timesheets', expect.anything());
+      expect(mockNavigate).toHaveBeenCalledWith('/my-timesheets', expect.anything());
     });
   });
 

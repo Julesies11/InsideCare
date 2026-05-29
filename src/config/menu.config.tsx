@@ -18,38 +18,45 @@ export const MENU_SIDEBAR: MenuItemConfig[] = [
   {
     title: 'My Dashboard',
     icon: Home,
-    path: '/staff/dashboard',
+    path: '/my-dashboard',
   },
   {
     heading: 'Staff Portal',
-    permission: RBAC_MODULES.SHIFT_ROUTINES,
+    permission: [
+      RBAC_MODULES.SHIFT_ROUTINES, 
+      RBAC_MODULES.HOUSE_CHECKLISTS, 
+      RBAC_MODULES.MY_ROSTER, 
+      RBAC_MODULES.MY_LEAVE, 
+      RBAC_MODULES.MY_TIMESHEETS
+    ],
   },
   {
     title: 'House Checklists',
     icon: CheckSquare,
-    path: '/staff/checklists',
+    path: '/my-checklists',
     permission: RBAC_MODULES.HOUSE_CHECKLISTS,
   },
   {
     title: 'My Roster',
     icon: Calendar,
-    path: '/staff/roster',
+    path: '/my-roster',
     permission: RBAC_MODULES.MY_ROSTER,
   },
   {
     title: 'My Leave',
     icon: LogOut,
-    path: '/staff/leave',
+    path: '/my-leave',
     permission: RBAC_MODULES.MY_LEAVE,
   },
   {
     title: 'My Timesheets',
     icon: Clock,
-    path: '/staff/timesheets',
+    path: '/my-timesheets',
     permission: RBAC_MODULES.MY_TIMESHEETS,
   },
   {
     heading: 'People & Houses',
+    permission: [RBAC_MODULES.EMPLOYEES, RBAC_MODULES.HOUSES, RBAC_MODULES.PARTICIPANTS],
   },
   {
     title: 'Staff',
@@ -75,6 +82,7 @@ export const MENU_SIDEBAR: MenuItemConfig[] = [
   },
   {
     heading: 'Roster & Staff Scheduling',
+    permission: [RBAC_MODULES.ROSTER_BOARD, RBAC_MODULES.TIMESHEETS, RBAC_MODULES.LEAVE_REQUESTS],
   },
   {
     title: 'Roster Board',
@@ -100,7 +108,16 @@ export const MENU_SIDEBAR: MenuItemConfig[] = [
     path: '/leave-approvals',
     permission: RBAC_MODULES.LEAVE_REQUESTS,
   },
-  { heading: 'Administration', permission: RBAC_MODULES.ACCESS_CONTROL },
+  { 
+    heading: 'Administration', 
+    permission: [
+      RBAC_MODULES.ACCESS_CONTROL, 
+      RBAC_MODULES.ACTIVITY_LOG,
+      RBAC_MODULES.REPORTING_CLINICAL,
+      RBAC_MODULES.REPORTING_OPERATIONAL,
+      RBAC_MODULES.REPORTING_COMPLIANCE
+    ] 
+  },
   {
     title: 'Access Control',
     icon: Settings,

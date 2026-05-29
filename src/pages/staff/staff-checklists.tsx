@@ -95,7 +95,7 @@ function HouseChecklistGroup({
                   <div className="flex flex-col gap-1 min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <h4 className="text-sm font-bold text-gray-900 break-words whitespace-normal">
-                        {item.title || checklist.name}
+                        {item.title || checklist.house_checklist_name || checklist.name}
                       </h4>
                       {isMandatory && (
                         <Badge variant="outline" className={cn(

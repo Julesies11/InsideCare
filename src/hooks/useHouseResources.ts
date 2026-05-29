@@ -38,7 +38,7 @@ export function useHouseResources(houseId?: string) {
         .from(TABLES.HOUSE_RESOURCES)
         .select(`
           *,
-          creator:ic_staff!created_by(id, staff_name, email)
+          creator:ic_staff!fk_ic_house_resources_created_by(id, staff_name, email)
         `)
         .eq('house_id', houseId)
         .order('created_at', { ascending: false });

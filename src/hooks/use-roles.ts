@@ -18,7 +18,7 @@ export function useRoles() {
         .from(TABLES.ROLES)
         .select(`
           *,
-          staff:ic_staff(count)
+          staff:${TABLES.STAFF}!staff_role_id_fkey(count)
         `)
         .order('role_name', { ascending: true });
 

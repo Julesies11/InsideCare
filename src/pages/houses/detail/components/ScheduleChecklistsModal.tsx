@@ -119,11 +119,10 @@ export function ScheduleChecklistsModal({ open, onOpenChange, houseId, houseName
 
             eventsToInsert.push({
               house_id: houseId,
-              title: checklist.name,
+              title: checklist.house_checklist_name || checklist.name,
               event_date: eventDate,
               is_checklist_event: true,
               house_checklist_id: checklist.id,
-              created_by: currentStaffId,
             });
           });
         });
@@ -307,8 +306,8 @@ export function ScheduleChecklistsModal({ open, onOpenChange, houseId, houseName
                                       <span className={cn(
                                         "text-[10px] font-bold leading-tight break-words pt-0.5",
                                         isSelected ? "text-gray-900" : "text-gray-400"
-                                      )} title={checklist.name}>
-                                        {checklist.name}
+                                      )} title={checklist.house_checklist_name || checklist.name}>
+                                        {checklist.house_checklist_name || checklist.name}
                                       </span>
                                     </div>
                                   );

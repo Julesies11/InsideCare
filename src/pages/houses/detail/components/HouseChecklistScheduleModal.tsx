@@ -72,7 +72,7 @@ export function HouseChecklistScheduleModal({
             house_id: houseId,
             checklist_id: checklist.id,
             shift_template_id: stId,
-            assignment_title: checklist.name
+            assignment_title: checklist.house_checklist_name || checklist.name || 'Routine Checklist'
           })));
 
         if (error) throw error;
@@ -90,7 +90,7 @@ export function HouseChecklistScheduleModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             <CalendarDays className="size-6 text-primary" />
-            Schedule "{checklist?.name}"
+            Schedule "{checklist?.house_checklist_name || checklist?.name}"
           </DialogTitle>
           <DialogDescription>
             Choose how this checklist should be deployed in the house.

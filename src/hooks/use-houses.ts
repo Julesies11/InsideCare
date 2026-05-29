@@ -26,7 +26,7 @@ const getHousesQuery = () => supabase
     staff_assignments:ic_house_staff_assignments(
       id, 
       end_date,
-      staff:staff_id(status)
+      staff:ic_staff!house_staff_assignments_staff_id_fkey(status)
     )
   `);
 
@@ -54,7 +54,7 @@ export function useHouses(
           staff_assignments:ic_house_staff_assignments(
             id, 
             end_date,
-            staff:staff_id(status)
+            staff:ic_staff!house_staff_assignments_staff_id_fkey(status)
           )
         `, { count: 'exact' });
 

@@ -61,6 +61,21 @@ The following optimized functions are used in RLS policies to query the user's J
 - **`ic_jwt_get_staff_id()`**: Returns the staff UUID associated with the current user.
 - **`ic_jwt_manages_staff(uuid)`**: Returns true if the user manages the given staff member.
 
+## Join Hinting Standards
+When performing joins in Supabase (PostgREST), ambiguity can arise if multiple foreign keys point to the same target table (e.g., `created_by`, `updated_by`, and `staff_id` all pointing to `ic_staff`).
+
+### Standardized Hint Usage:
+1. **Explicit Constraint Hints**: Always use the explicit database constraint name as the hint when ambiguity exists. 
+   - *Example:* `.select(`*, staff:${TABLES.STAFF}!leave_requests_staff_id_fkey(id, staff_name)`)`
+2. **Standard Audit Hints**: Joins on standardized audit columns MUST use the following hint names:
+   - `created_by`: `!fk_ic_[table_name]_created_by`
+   - `updated_by`: `!fk_ic_[table_name]_updated_by`
+   - *Example:* `.select(`*, creator:${TABLES.STAFF}!fk_ic_houses_created_by(staff_name)`)`
+3. **Self-Join Exception**: For self-referential relationships (joining a table to itself, e.g., `ic_staff` to `ic_staff` via `manager_id`), use the **column name** as the hint to ensure schema cache reliability.
+   - *Example:* `.select(`*, manager_info:${TABLES.STAFF}!manager_id(staff_name)`)`
+4. **Non-Ambiguous Joins**: If only one relationship exists between two tables, no hint is required, but explicit naming is preferred for consistency.
+   - *Example:* `.select(`*, house:${TABLES.HOUSES}(house_name)`)`
+
 ## Enum Compatibility & Querying
 The project uses Postgres Enums for critical columns (e.g., `public.status_enum`).
 - **Restriction:** You **cannot** use `.ilike()` or pattern matching operators (`~~*`) on enum columns.
@@ -163,9 +178,13 @@ The care facilities/locations.
 - **Master Tables**: Heavy use of "Master" tables (e.g., `medications_master`, `contact_types_master`) to maintain consistent options across the system.
 - **Soft Delete/Status**: Most entities use a `status` field or `is_active` flag rather than hard deletion.
 - **Activity Logging**: Most `INSERT`/`UPDATE`/`DELETE` operations are accompanied by an entry in the `activity_log`.
-- **Automated Audit Columns**: All tables use automated triggers (`ic_trigger_set_audit_columns`) and column defaults to manage standard audit fields:
-    - `created_at`: Set automatically via column default `now()`.
-    - `updated_at`: Set automatically on every update via `ic_update_updated_at_column` trigger.
-    - `created_by`: Set automatically on insert via `ic_set_audit_columns` trigger using `auth.uid()`.
+- **Automated Audit Columns**: All operational tables use a unified, hardened trigger (`ic_trigger_set_audit_columns`) to manage standard audit fields:
+    - `created_at`: Set automatically via database clock.
+    - `updated_at`: Set automatically on every update.
+    - `created_by`: Set once on insert; immutable thereafter. Linked to `ic_staff(id)`.
+    - `updated_by`: Set on every insert/update. Linked to `ic_staff(id)`.
+    - **Identity Logic**: Identities are resolved via `public.ic_jwt_get_staff_id()`, prioritizing the secure JWT claim injected by the application.
+    - **Note:** Because these are handled at the database level, application code **MUST NOT** manually assign these fields in Supabase mutation calls. This ensures 100% audit coverage and prevents client-side spoofing.
+- `created_by`: Set automatically on insert via `ic_set_audit_columns` trigger using `auth.uid()`.
     - `updated_by`: Set automatically on every insert or update via `ic_set_audit_columns` trigger using `auth.uid()`.
     - **Note:** Because these are handled at the database level, application code **MUST NOT** manually assign these fields in Supabase mutation calls. This ensures 100% audit coverage and prevents client-side spoofing.

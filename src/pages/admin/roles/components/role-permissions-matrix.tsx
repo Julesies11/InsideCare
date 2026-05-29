@@ -313,13 +313,13 @@ export function RolePermissionsMatrix() {
               const participantProfilesDisabled = participantProfilesLevel === ACCESS_LEVEL.NONE;
 
               // Special logic for Employees group dependency
-              const isEmployeesGroup = group.title === 'Employees & HR';
+              const isEmployeesGroup = group.title === 'Employees';
               const staffProfilesLevel = getPermission(RBAC_MODULES.EMPLOYEES);
               const staffProfilesDisabled = staffProfilesLevel === ACCESS_LEVEL.NONE;
 
               return (
                 <Fragment key={group.title}>
-                  <TableRow className="bg-gray-100/30">
+                  <TableRow key={`${group.title}-header`} className="bg-gray-100/30">
                     <TableCell colSpan={ACCESS_LEVELS.length + 1} className="py-2.5 px-4 font-bold text-gray-800 uppercase tracking-wide text-xs">
                       {group.title}
                     </TableCell>
@@ -334,7 +334,7 @@ export function RolePermissionsMatrix() {
 
                     return (
                       <TableRow 
-                        key={module.id} 
+                        key={`${group.title}-${module.id}`} 
                         className={cn(
                           "hover:bg-gray-50/50 transition-colors",
                           isLocked && "opacity-40"

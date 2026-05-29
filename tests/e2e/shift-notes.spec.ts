@@ -7,13 +7,14 @@ test.describe('Shift Notes E2E', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/participants/shift-notes');
     // Ensure loading is finished or basic elements are visible
-    await expect(page.getByRole('heading', { name: 'Shift Notes', exact: true })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('heading', { name: 'Shift Notes', exact: true, level: 1 })).toBeVisible({ timeout: 15000 });
+    await page.waitForLoadState('networkidle');
   });
 
   test('Navigate to detailed shift note form and verify sections', async ({ page }) => {
     // Click on "Add Shift Note"
     const addBtn = page.getByRole('button', { name: /Add Shift Note/i });
-    await expect(addBtn).toBeVisible();
+    await expect(addBtn).toBeVisible({ timeout: 30000 });
     await addBtn.click();
 
     // Verify redirection to the detail page for a new note

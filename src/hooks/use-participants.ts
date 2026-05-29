@@ -18,7 +18,7 @@ export interface ParticipantsSort {
 
 const PARTICIPANT_LIST_COLUMNS = `
   id, participant_name, photo_url, status, house_id, ndis_number, date_of_birth,
-  houses:ic_houses!house_id (
+  houses:ic_houses!participants_house_id_fkey (
     house_name
   )
 `;
@@ -36,7 +36,7 @@ const PARTICIPANT_DETAIL_COLUMNS = `
   pharmacy_contact, pharmacy_location, gp_name, gp_contact, gp_location, psychiatrist_name, 
   psychiatrist_contact, psychiatrist_location, medical_routine_other, medical_routine_general_process, 
   created_by, updated_by, created_at, updated_at,
-  houses:ic_houses!house_id (
+  houses:ic_houses!participants_house_id_fkey (
     house_name
   )
 `;
@@ -84,6 +84,7 @@ export function useParticipants(
 
       const participantsWithHouse = (data || []).map((p: any) => ({
         ...p,
+        name: p.participant_name,
         house_name: p.houses?.house_name || null,
       })) as unknown as ParticipantWithHouse[];
 

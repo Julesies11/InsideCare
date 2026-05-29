@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -10,6 +10,8 @@ import { useAuth } from '@/auth/context/auth-context';
 import { format, subDays, addDays, isToday, parseISO } from 'date-fns';
 import { toast } from 'sonner';
 import { HousePendingChanges } from '@/models/house-pending-changes';
+import { TABLES } from '@/config/db-tables';
+import { useQuery } from '@tanstack/react-query';
 
 interface HouseCommEntry {
   id: string;
@@ -37,40 +39,30 @@ export function HouseComms({
 }: HouseCommsProps) {
   const { user } = useAuth();
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [entries, setEntries] = useState<HouseCommEntry[]>([]);
-  const [loading, setLoading] = useState(true);
   const [newEntryContent, setNewEntryContent] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
 
-  const fetchEntries = useCallback(async (date: Date) => {
-    setLoading(true);
-    try {
-      const dateStr = format(date, 'yyyy-MM-dd');
-      const { data, error } = await supabase
-        .from('ic_house_comms')
-        .select(`
-          *,
-          creator:ic_staff!created_by(staff_name)
-        `)
-        .eq('house_id', houseId)
-        .eq('entry_date', dateStr)
-        .order('created_at', { ascending: false });
+  const fetchEntries = async (date: Date) => {
+    const dateStr = format(date, 'yyyy-MM-dd');
+    const { data, error } = await supabase
+      .from(TABLES.HOUSE_COMMS)
+      .select(`
+        *,
+        creator:ic_staff!fk_ic_house_comms_created_by(staff_name)
+      `)
+      .eq('house_id', houseId)
+      .eq('entry_date', dateStr)
+      .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setEntries(data || []);
-    } catch (error: any) {
-      console.error('Error fetching house comms:', error);
-      toast.error('Failed to load comms entries');
-    } finally {
-      setLoading(false);
-    }
-  }, [houseId]);
+    if (error) throw error;
+    return data || [];
+  };
 
-  useEffect(() => {
-    if (houseId) {
-      fetchEntries(selectedDate);
-    }
-  }, [houseId, selectedDate, fetchEntries]);
+  const { data: entries = [], isLoading: loading } = useQuery({
+    queryKey: ['house_comms', { houseId, date: format(selectedDate, 'yyyy-MM-dd') }],
+    queryFn: () => fetchEntries(selectedDate),
+    enabled: !!houseId,
+  });
 
   const handleAddEntry = () => {
     if (!newEntryContent.trim() || !pendingChanges || !onPendingChangesChange) return;

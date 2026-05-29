@@ -293,7 +293,7 @@ export function StaffRoster() {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  onClick={() => navigate(`/staff/roster/${entry.id}/timesheet`)}
+                                  onClick={() => navigate(`/my-roster/${entry.id}/timesheet`)}
                                 >
                                   <ClipboardList className="size-3.5 me-1.5" />
                                   Timesheet

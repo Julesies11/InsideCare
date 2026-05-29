@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { TABLES } from '@/config/db-tables';
 
 export interface DocumentRolePermission {
   id: string;
@@ -16,13 +17,13 @@ export function useDocumentRolePermissions(documentId?: string) {
     queryFn: async () => {
       if (!documentId) return [];
       const { data, error } = await supabase
-        .from('ic_participant_document_roles')
+        .from(TABLES.PARTICIPANT_DOCUMENT_ROLES)
         .select(`
           id,
           document_id,
           role_id,
           access_level,
-          role:ic_roles(id, role_name)
+          role:${TABLES.ROLES}(id, role_name)
         `)
         .eq('document_id', documentId);
 
@@ -39,13 +40,13 @@ export function useAllParticipantDocumentOverrides(documentIds: string[]) {
     queryFn: async () => {
       if (!documentIds.length) return [];
       const { data, error } = await supabase
-        .from('ic_participant_document_roles')
+        .from(TABLES.PARTICIPANT_DOCUMENT_ROLES)
         .select(`
           id,
           document_id,
           role_id,
           access_level,
-          role:ic_roles(id, role_name)
+          role:${TABLES.ROLES}(id, role_name)
         `)
         .in('document_id', documentIds);
 
@@ -63,7 +64,7 @@ export function useUpdateDocumentRolePermissions() {
     mutationFn: async ({ documentId, roles }: { documentId: string; roles: Array<{ role_id: string; access_level: string }> }) => {
       // 1. Delete existing role permissions for this document
       const { error: deleteError } = await supabase
-        .from('ic_participant_document_roles')
+        .from(TABLES.PARTICIPANT_DOCUMENT_ROLES)
         .delete()
         .eq('document_id', documentId);
 
@@ -72,11 +73,11 @@ export function useUpdateDocumentRolePermissions() {
       // 2. Insert new role permissions if any
       if (roles.length > 0) {
         const { error: insertError } = await supabase
-          .from('ic_participant_document_roles')
+          .from(TABLES.PARTICIPANT_DOCUMENT_ROLES)
           .insert(roles.map(r => ({
             document_id: documentId,
             role_id: r.role_id,
-            access_level: r.access_level,
+            access_level: r.access_level as any,
           })));
 
         if (insertError) throw insertError;

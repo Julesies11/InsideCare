@@ -92,7 +92,7 @@ export const SupabaseAdapter = {
   /**
    * Get user profile from user and app metadata
    */
-  async getUserProfile(passedUser?: any): Promise<UserModel> {
+  async getUserProfile(passedUser?: User): Promise<UserModel> {
     let user = passedUser;
     
     if (!user) {
@@ -114,7 +114,7 @@ export const SupabaseAdapter = {
     try {
       const { data } = await supabase
         .from(TABLES.STAFF)
-        .select('id, staff_name, photo_url, role:ic_roles(role_name)')
+        .select('id, staff_name, photo_url, role:ic_roles!staff_role_id_fkey(role_name)')
         .eq('auth_user_id', user.id)
         .maybeSingle();
       staffRow = data;

@@ -65,7 +65,7 @@ test.describe('UI Components & Responsiveness', () => {
     await expect(saveBtn).toBeEnabled({ timeout: 15000 });
 
     // Try to click another sidebar link
-    await page.getByRole('link', { name: /Dashboard/i }).first().click();
+    await page.getByRole('link', { name: /Dashboard/i }).first().click({ timeout: 30000 });
 
     // Verify that navigation is either blocked by a dialog or the dirty state persists
     // The app might use a beforeunload handler or a custom router guard

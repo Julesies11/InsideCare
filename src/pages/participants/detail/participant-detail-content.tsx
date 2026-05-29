@@ -292,18 +292,27 @@ export function ParticipantDetailContent({
       setOriginalData(mappedData);
       latestFormData.current = mappedData;
       latestOriginalData.current = mappedData;
-
-      requestAnimationFrame(() => {
-        onOriginalDataChange?.(mappedData);
-        onFormDataChange?.(mappedData);
-      });
       
       setOriginalPhotoUrl(participantData.photo_url ?? null);
       if (participantData.photo_url) setPhotoPreview(participantData.photo_url);
       setHasInitialized(true);
       (window as any).entityName = participantData.participant_name;
     }
-  }, [participantData, hasInitialized, onFormDataChange, onOriginalDataChange]);
+  }, [participantData, hasInitialized]);
+
+  // Sync state to parent on mount or when formData is fully loaded/updated
+  useEffect(() => {
+    if (hasInitialized && !participantLoading) {
+      onOriginalDataChange?.(latestOriginalData.current);
+    }
+  }, [hasInitialized, participantLoading, onOriginalDataChange]);
+
+  useEffect(() => {
+    if (hasInitialized && !participantLoading) {
+      latestFormData.current = formData;
+      onFormDataChange?.(formData);
+    }
+  }, [formData, hasInitialized, participantLoading, onFormDataChange]);
 
   const loading = participantLoading && !hasInitialized;
 
@@ -316,13 +325,8 @@ export function ParticipantDetailContent({
     if (field === 'photo_url_preview') { setPhotoPreview(value); return; }
     const normalizedValue = field === 'is_active' ? value === 'true' : value;
     
-    setFormData((prev) => {
-      const newData = { ...prev, [field]: normalizedValue };
-      latestFormData.current = newData;
-      onFormDataChange?.(newData);
-      return newData;
-    });
-  }, [onFormDataChange]);
+    setFormData((prev) => ({ ...prev, [field]: normalizedValue }));
+  }, []);
 
   const handleSave = useCallback(async () => {
     const currentPending = latestPendingChanges.current;
@@ -342,17 +346,16 @@ export function ParticipantDetailContent({
             goal_type: goal.goal_type,
             description: goal.description || null,
             is_active: goal.is_active,
-            created_by: user?.staff_id || null,
           }));
           
-          const { error } = await supabase.from('ic_participant_goals').insert(toInsert);
+          const { error } = await supabase.from(TABLES.PARTICIPANT_GOALS).insert(toInsert);
           if (error) throw new Error(`Failed to add goals: ${error.message}`);
         }
 
         if (currentPending.goals.toUpdate.length > 0) {
           for (const goal of currentPending.goals.toUpdate) {
             const { error } = await supabase
-              .from('ic_participant_goals')
+              .from(TABLES.PARTICIPANT_GOALS)
               .update({
                 goal_type: goal.goal_type,
                 description: goal.description || null,
@@ -365,7 +368,7 @@ export function ParticipantDetailContent({
 
         if (canDeleteGoals && currentPending.goals.toDelete.length > 0) {
           const { error } = await supabase
-            .from('ic_participant_goals')
+            .from(TABLES.PARTICIPANT_GOALS)
             .delete()
             .in('id', currentPending.goals.toDelete);
           
@@ -380,14 +383,12 @@ export function ParticipantDetailContent({
             participant_id: id,
             medication_id: med.medication_id,
             dosage: med.dosage || null,
-            frequency: med.frequency || null,
             is_active: med.is_active,
-            created_by: user?.staff_id || null,
             }));
 
           const { error } = await supabase.from(TABLES.PARTICIPANT_MEDICATIONS).insert(toInsert);
           if (error) throw new Error(`Failed to add medications: ${error.message}`);
-          
+
           if (participant?.house_id) {
             await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.participant_name || 'Participant', 'medication');
           }
@@ -400,7 +401,6 @@ export function ParticipantDetailContent({
               .update({
                 medication_id: med.medication_id,
                 dosage: med.dosage || null,
-                frequency: med.frequency || null,
                 is_active: med.is_active,
               })
               .eq('id', med.id);
@@ -410,7 +410,6 @@ export function ParticipantDetailContent({
             await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.participant_name || 'Participant', 'medication');
           }
         }
-
         if (canDeleteMedications && currentPending.medications.toDelete.length > 0) {
           const { error } = await supabase
             .from(TABLES.PARTICIPANT_MEDICATIONS)
@@ -433,7 +432,6 @@ export function ParticipantDetailContent({
             address: contact.address || null,
             notes: contact.notes || null,
             is_active: contact.is_active,
-            created_by: user?.staff_id || null,
             }));
 
           const { error } = await supabase.from(TABLES.PARTICIPANT_CONTACTS).insert(toInsert);
@@ -491,7 +489,6 @@ export function ParticipantDetailContent({
               file_path: filePath,
               file_size: doc.file.size,
               mime_type: doc.file.type,
-              created_by: user?.staff_id || null,
               });
           }
 
@@ -529,7 +526,7 @@ export function ParticipantDetailContent({
         } else if (photoPreview === null && originalPhotoUrl !== null) {
           const { error: photoErr } = await supabase
             .from(TABLES.PARTICIPANTS)
-            .update({ photo_url: null, updated_at: new Date().toISOString() })
+            .update({ photo_url: null })
             .eq('id', id);
           if (photoErr) throw photoErr;
           setOriginalPhotoUrl(null);
@@ -605,7 +602,7 @@ export function ParticipantDetailContent({
             full_note: note.full_note,
           }));
           
-          const { error } = await supabase.from('ic_shift_notes').insert(toInsert);
+          const { error } = await supabase.from(TABLES.SHIFT_NOTES).insert(toInsert);
           if (error) throw new Error(`Failed to add shift notes: ${error.message}`);
           
           if (participant?.house_id) {
@@ -616,7 +613,7 @@ export function ParticipantDetailContent({
         if (currentPending.shiftNotes.toUpdate.length > 0) {
           for (const note of currentPending.shiftNotes.toUpdate) {
             const { error } = await supabase
-              .from('ic_shift_notes')
+              .from(TABLES.SHIFT_NOTES)
               .update({
                 staff_id: note.staff_id,
                 start_date: note.start_date,
@@ -633,7 +630,7 @@ export function ParticipantDetailContent({
 
         if (canDeleteShiftNotes && currentPending.shiftNotes.toDelete.length > 0) {
           const { error } = await supabase
-            .from('ic_shift_notes')
+            .from(TABLES.SHIFT_NOTES)
             .delete()
             .in('id', currentPending.shiftNotes.toDelete);
           if (error) throw new Error(`Failed to delete shift notes: ${error.message}`);

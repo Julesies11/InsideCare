@@ -4,10 +4,10 @@ import { useAuth } from '@/auth/context/auth-context';
 import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
-  { to: '/staff/dashboard', icon: LayoutDashboard, label: 'Home' },
-  { to: '/staff/roster', icon: Calendar, label: 'Roster' },
-  { to: '/staff/leave', icon: Umbrella, label: 'Leave' },
-  { to: '/staff/timesheets', icon: ClipboardList, label: 'Timesheets' },
+  { to: '/my-dashboard', icon: LayoutDashboard, label: 'Home' },
+  { to: '/my-roster', icon: Calendar, label: 'Roster' },
+  { to: '/my-leave', icon: Umbrella, label: 'Leave' },
+  { to: '/my-timesheets', icon: ClipboardList, label: 'Timesheets' },
 ];
 
 export function StaffLayout() {

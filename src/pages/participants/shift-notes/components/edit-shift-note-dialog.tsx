@@ -36,6 +36,7 @@ import { useStaff } from '@/hooks/use-staff';
 import { useHouses } from '@/hooks/use-houses';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { TABLES } from '@/config/db-tables';
 import { formatTime } from '@/components/roster/roster-utils';
 import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
 import { RBAC_MODULES } from '@/config/rbac-modules';

@@ -25,6 +25,7 @@ import {
   ToolbarDescription,
 } from '@/partials/common/toolbar';
 import { NotificationService } from '@/lib/notification-service';
+import { TABLES } from '@/config/db-tables';
 import { RBAC_MODULES } from '@/config/rbac-modules';
 import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
 
@@ -49,8 +50,7 @@ interface AffectedShift {
   start_date: string;
   start_time: string;
   end_time: string;
-  status: string;
-  house: { name: string } | null;
+  house: { house_name: string } | null;
 }
 
 export function AdminLeaveRequestsPage() {
@@ -92,8 +92,8 @@ export function AdminLeaveRequestsPage() {
   const fetchRequests = useCallback(async () => {
     setLoading(true);
     const { data, error } = await supabase
-      .from('ic_leave_requests')
-      .select('*, staff:ic_staff(id, staff_name, auth_user_id), leave_type:ic_leave_types(leave_type_name)')
+      .from(TABLES.LEAVE_REQUESTS)
+      .select(`*, staff:${TABLES.STAFF}!leave_requests_staff_id_fkey(id, staff_name, auth_user_id), leave_type:${TABLES.LEAVE_TYPES}(leave_type_name)`)
       .order('created_at', { ascending: false });
     if (error) { toast.error('Failed to load leave requests'); setLoading(false); return; }
     const rows = (data as LeaveRequest[]) || [];
@@ -107,7 +107,7 @@ export function AdminLeaveRequestsPage() {
       const maxDate = pending.reduce((max, r) => r.end_date > max ? r.end_date : max, pending[0].end_date);
 
       const { data: allShifts } = await supabase
-        .from('ic_staff_shifts')
+        .from(TABLES.STAFF_SHIFTS)
         .select('id, staff_id, start_date')
         .in('staff_id', staffIds)
         .gte('start_date', minDate)
@@ -135,8 +135,8 @@ export function AdminLeaveRequestsPage() {
     setShiftsLoading(true);
     try {
       const { data, error } = await supabase
-        .from('ic_staff_shifts')
-        .select('id, start_date, start_time, end_time, status, house:house_id(house_name)')
+        .from(TABLES.STAFF_SHIFTS)
+        .select(`id, start_date, start_time, end_time, house:${TABLES.HOUSES}!staff_shifts_house_id_fkey(house_name)`)
         .eq('staff_id', staffId)
         .gte('start_date', startDate)
         .lte('start_date', endDate)
@@ -171,7 +171,7 @@ export function AdminLeaveRequestsPage() {
     try {
       // Update the leave request
       const { error } = await supabase
-        .from('ic_leave_requests')
+        .from(TABLES.LEAVE_REQUESTS)
         .update({ 
           status: newStatus, 
           admin_notes: adminNotes || null,
@@ -185,7 +185,7 @@ export function AdminLeaveRequestsPage() {
         // Option 1: Mark shifts as 'open' (removing staff_id)
         const shiftIds = affectedShifts.map(s => s.id);
         const { error: shiftError } = await supabase
-          .from('ic_staff_shifts')
+          .from(TABLES.STAFF_SHIFTS)
           .update({ 
             staff_id: null,
             notes: `Staff member approved for leave. Previously assigned to ${selected.staff?.staff_name}.` 

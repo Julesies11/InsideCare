@@ -126,7 +126,7 @@ describe('ChangePasswordPage (Gold Standard)', () => {
 
     // Check redirect (after 1500ms timeout in code)
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/staff/dashboard');
+      expect(mockNavigate).toHaveBeenCalledWith('/my-dashboard');
     }, { timeout: 2000 });
   });
 });

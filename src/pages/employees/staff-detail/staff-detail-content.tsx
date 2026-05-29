@@ -209,8 +209,7 @@ export function StaffDetailContent({
       setFormData(initialData);
       latestFormData.current = initialData;
       latestOriginalData.current = initialData;
-      onOriginalDataChange?.(initialData);
-      onFormDataChange?.(initialData);
+      
       // Record original photo URL for deletion dirty tracking
       setOriginalPhotoUrl(staffData.photo_url ?? null);
       if (staffData.photo_url) setPhotoPreview(staffData.photo_url);
@@ -218,7 +217,22 @@ export function StaffDetailContent({
       setHasInitialized(true);
       (window as any).entityName = staffData.staff_name;
     }
-  }, [staffData, hasInitialized, onFormDataChange, onOriginalDataChange]);
+  }, [staffData, hasInitialized]);
+
+  // Sync state to parent on mount or when data is fully loaded/updated
+  useEffect(() => {
+    if (hasInitialized && !staffLoading) {
+      onOriginalDataChange?.(latestOriginalData.current);
+    }
+  }, [hasInitialized, staffLoading, onOriginalDataChange]);
+
+  useEffect(() => {
+    if (hasInitialized && !staffLoading) {
+      latestFormData.current = formData;
+      onFormDataChange?.(formData);
+    }
+  }, [formData, hasInitialized, staffLoading, onFormDataChange]);
+
 
   const loading = staffLoading && !hasInitialized;
 
@@ -373,7 +387,6 @@ export function StaffDetailContent({
               file_path: filePath,
               file_name: fileName,
               file_size: fileSize,
-              created_by: staffId,
             });
           }
 
@@ -650,8 +663,6 @@ export function StaffDetailContent({
             if (photo_file !== undefined) setPhotoFile(photo_file);
             if (photo_url_preview !== undefined) setPhotoPreview(photo_url_preview);
             setFormData(rest);
-            latestFormData.current = rest;
-            onFormDataChange?.(rest);
           }}
           canEditPersonal={canEditPersonal}
           canEditEmployment={canEditEmployment}

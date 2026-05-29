@@ -39,8 +39,13 @@ export function SidebarMenu() {
 
   // Memoize matchPath to prevent unnecessary re-renders
   const matchPath = useCallback(
-    (path: string): boolean =>
-      path === pathname || (path.length > 1 && pathname.startsWith(path)),
+    (path: string): boolean => {
+      if (path === pathname) return true;
+      // If path is root, don't match
+      if (path === '/') return false;
+      // Match if pathname starts with path and is followed by a slash
+      return pathname.startsWith(`${path}/`);
+    },
     [pathname],
   );
 
@@ -234,7 +239,6 @@ export function SidebarMenu() {
     <div className="kt-scrollable-y-hover flex grow shrink-0 py-5 px-5 lg:max-h-[calc(100vh-5.5rem)]">
       <AccordionMenu
         selectedValue={pathname}
-        defaultValue="/participants/profiles"
         matchPath={matchPath}
         type="single"
         collapsible

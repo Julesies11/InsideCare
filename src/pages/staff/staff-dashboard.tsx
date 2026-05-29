@@ -60,7 +60,7 @@ export function StaffDashboard() {
                     variant="outline" 
                     size="sm" 
                     className="w-full sm:w-auto border-orange-200 text-orange-700 hover:bg-orange-100 font-bold text-xs"
-                    onClick={() => navigate('/staff/timesheets')}
+                    onClick={() => navigate('/my-timesheets')}
                   >
                     CREATE NOW <ChevronRight className="size-3.5 ms-1" />
                   </Button>
@@ -120,7 +120,7 @@ export function StaffDashboard() {
                         "flex-1 md:flex-none font-bold shadow-lg shadow-primary/20",
                         currentShift.checklist_stats?.all_done ? "bg-green-600 hover:bg-green-700" : "bg-primary"
                       )} 
-                      onClick={() => navigate('/staff/checklists')}
+                      onClick={() => navigate('/my-checklists')}
                     >
                       <ClipboardList className="size-4 me-2" />
                       {currentShift.checklist_stats?.all_done ? 'Review Checklists' : 'Complete Checklists'}
@@ -137,7 +137,7 @@ export function StaffDashboard() {
               <CardTitle className="text-base flex items-center gap-2">
                 <Calendar className="size-4" /> Upcoming Schedule
               </CardTitle>
-              <Button variant="ghost" size="sm" onClick={() => navigate('/staff/roster')}>
+              <Button variant="ghost" size="sm" onClick={() => navigate('/my-roster')}>
                 View all <ChevronRight className="size-4 ms-1" />
               </Button>
             </CardHeader>
@@ -191,7 +191,7 @@ export function StaffDashboard() {
               <CardTitle className="text-base flex items-center gap-2">
                 <Umbrella className="size-4" /> Leave Requests
               </CardTitle>
-              <Button variant="ghost" size="sm" onClick={() => navigate('/staff/leave')}>
+              <Button variant="ghost" size="sm" onClick={() => navigate('/my-leave')}>
                 View all <ChevronRight className="size-4 ms-1" />
               </Button>
             </CardHeader>
@@ -241,7 +241,7 @@ export function StaffDashboard() {
                   </Badge>
                 )}
               </CardTitle>
-              <Button variant="ghost" size="sm" onClick={() => navigate('/staff/timesheets')}>
+              <Button variant="ghost" size="sm" onClick={() => navigate('/my-timesheets')}>
                 View all <ChevronRight className="size-4 ms-1" />
               </Button>
             </CardHeader>
@@ -286,16 +286,16 @@ export function StaffDashboard() {
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-3">
-                <Button variant="outline" onClick={() => navigate('/staff/leave/new')}>
+                <Button variant="outline" onClick={() => navigate('/my-leave/new')}>
                   <Umbrella className="size-4 me-1.5" /> Request Leave
                 </Button>
-                <Button variant="outline" onClick={() => navigate('/staff/checklists')}>
+                <Button variant="outline" onClick={() => navigate('/my-checklists')}>
                   <ClipboardList className="size-4 me-1.5" /> My Checklists
                 </Button>
-                <Button variant="outline" onClick={() => navigate('/staff/timesheets')}>
+                <Button variant="outline" onClick={() => navigate('/my-timesheets')}>
                   <ClipboardList className="size-4 me-1.5" /> My Timesheets
                 </Button>
-                <Button variant="outline" onClick={() => navigate('/staff/roster')}>
+                <Button variant="outline" onClick={() => navigate('/my-roster')}>
                   <Calendar className="size-4 me-1.5" /> View Roster
                 </Button>
               </div>

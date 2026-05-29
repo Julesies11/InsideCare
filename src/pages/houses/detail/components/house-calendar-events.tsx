@@ -320,7 +320,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
             .from(TABLES.HOUSE_CHECKLIST_SUBMISSION_ITEMS)
             .select(`
               *,
-              completed_by_staff:${TABLES.STAFF}!completed_by(id, staff_name)
+              completed_by_staff:${TABLES.STAFF}!house_checklist_submission_items_completed_by_fkey(id, staff_name)
             `)
             .eq('submission_id', existingSubmission.id);
 
@@ -412,7 +412,6 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
           status: status,
           submitted_by: staffId || null,
           completed_at: status === CHECKLIST_STATUS.completed ? new Date().toISOString() : null,
-          updated_at: new Date().toISOString()
         })
         .eq('id', submissionId);
 
@@ -553,7 +552,6 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
         location: formData.location || null,
         is_checklist_event: !!formData.house_checklist_id,
         house_checklist_id: formData.house_checklist_id || null,
-        created_by: user?.staff_id || null,
       };
 
       let finalEventId: string | null = null;

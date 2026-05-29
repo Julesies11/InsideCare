@@ -94,7 +94,7 @@ export function Medications({
     setShowDialog(true);
   };
 
-  const handleEdit = (medication: { id?: string; tempId?: string; medication_id: string; dosage?: string; frequency?: string; is_active: boolean }) => {
+  const handleEdit = (medication: { id?: string; tempId?: string; medication_id: string; dosage?: string; is_active: boolean }) => {
     setEditingMedication(medication);
     setShowDialog(true);
   };

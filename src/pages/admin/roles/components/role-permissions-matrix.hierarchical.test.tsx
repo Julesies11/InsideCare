@@ -70,7 +70,8 @@ describe('RolePermissionsMatrix Hierarchical & Locking Logic', () => {
         role_id: 'role-1', 
         [RBAC_MODULES.HOUSES]: ACCESS_LEVEL.READ_ONLY,
         [RBAC_MODULES.HOUSE_MANAGEMENT]: ACCESS_LEVEL.CONTEXT_READ_ONLY,
-        [RBAC_MODULES.PARTICIPANTS]: ACCESS_LEVEL.READ_ONLY 
+        [RBAC_MODULES.PARTICIPANTS]: ACCESS_LEVEL.READ_ONLY,
+        [RBAC_MODULES.EMPLOYEES]: ACCESS_LEVEL.READ_ONLY
       }],
       isLoading: false,
     } as any);

@@ -137,12 +137,23 @@ The Roster module implements a highly optimized data fetching strategy to handle
 - **Automatic Cache Invalidation**: Mutations (Creating/Updating/Deleting shifts) use the `queryClient` to invalidate relevant query keys, ensuring that all roster widgets (Calendar, Upcoming Shifts, Staff Detail) stay synchronized without manual state management.
 
 
-## 4. Activity Logging
-A centralized activity logging system tracks all major changes in the application.
+## 4. Activity Logging & Auditing (Gold Standard)
+The system implements a comprehensive, multi-layered auditing architecture designed for high-compliance healthcare environments.
 
-- **Library**: `src/lib/activity-logger.ts` provides `logActivity` and `detectChanges`.
-- **Logic**: It automatically generates human-readable descriptions (e.g., "Updated phone number from 'X' to 'Y'") based on the diff.
-- **Metadata**: Stores the full old/new values in a `metadata` JSONB column in the `activity_log` table.
+### 4.1 System-Level Auditing (Audit Columns)
+Every operational table (70+ total) includes a standardized set of audit columns managed exclusively at the database level:
+- **`created_at` / `updated_at`**: Managed by triggers to ensure millisecond-accurate timestamps using the database clock.
+- **`created_by` / `updated_by`**: Domain-driven identity tracking. These columns are **Foreign Keys to `public.ic_staff(id)`** with `ON DELETE SET NULL`. 
+- **Identity Resolution**: The `ic_set_audit_columns()` trigger function utilizes the `public.ic_jwt_get_staff_id()` helper to extract the user's staff identity directly from the secure JWT metadata (or fallback to database lookup). This ensures that actions are attributed to a real-world Staff entity rather than a raw infrastructure UUID.
+- **Immutability Layer**: For `UPDATE` operations, the trigger explicitly preserves the original `created_at` and `created_by` values, making the creation history tamper-proof even against direct API manipulation.
+- **Log Table Exception**: Immutable, write-only tables (like `ic_error_logs`) are excluded from the full audit suite to maintain performance and failure-resilience.
+
+### 4.2 Business-Level Auditing (Activity Log)
+The `ic_activity_log` table provides a human-readable "story" of the data's lifecycle.
+- **Engine**: Managed by the `ic_audit_trigger_func()` (SQL) and `src/lib/activity-logger.ts` (TS).
+- **Smart Resolution**: The system automatically resolves the "Aggregate Root" (e.g., linking a medication change back to the specific Participant) to provide consolidated history views on entity profiles.
+- **Contextual Metadata**: Captures detailed `changes` (old vs. new values) in JSONB format, along with `table_name`, `user_id` (Staff FK), and parent entity context.
+- **Security**: All audit functions are `SECURITY DEFINER` with hardened `search_path` and restricted permissions to prevent hijacking or bypasses.
 
 ## 5. UI & Styling
 - **Metronic v9.4.0**: The application is built on the Metronic React template.
@@ -302,7 +313,29 @@ The application uses a "Negative Proof" strategy for smoke testing to maximize r
     2. Verifies that no Error Boundary text ("Something went wrong") is visible.
     3. Verifies that no Vite crash overlay is attached to the DOM.
 
-### 13. Granular RBAC & Inclusive Entry
+### 12. Robust Querying Standards (Supabase)
+To ensure application stability and maintainable data fetching, the project enforces a standardized approach to Supabase queries.
+
+### 12.1 Explicit Join Hinting
+Ambiguity in database joins (multiple foreign keys to the same table) must be resolved using explicit database constraint names or unique column names as hints.
+- **Rule**: Follow the **Join Hinting Standards** defined in `DATABASE.md`.
+- **Validation**: Use `Database` type generics to ensure hints and joined column names are valid.
+- **Example**: `.from(TABLES.STAFF_SHIFTS).select(`*, house:${TABLES.HOUSES}!staff_shifts_house_id_fkey(house_name)`)`
+
+### 12.2 Column Accuracy
+Always verify that selected columns exist in the database schema (`src/models/database.types.ts`). 
+- **Rule**: NEVER select columns that are not defined in the schema, even if they were present in historical data.
+- **Performance**: Select only the columns required for the current UI context to minimize payload size.
+
+### 12.3 Error Resilience
+Queries that perform complex joins should include error handling and fallback logic.
+- **Pattern**: Check for `error` returned from Supabase calls and utilize `toast` or logging to inform the user.
+- **Empty States**: Distinguish between "No data found" and "Error loading data" in the UI.
+- **Maintainability**: Always use the `TABLES` constant from `@/config/db-tables` for `.from()` calls.
+  - *Correct:* `supabase.from(TABLES.PARTICIPANTS)`
+  - *Incorrect:* `supabase.from('ic_participants')`
+
+## 13. Granular RBAC & Inclusive Entry
 The application employs a hierarchical and inclusive RBAC model for complex modules, covering **Houses**, **Participant Records**, and **Staff Profiles**.
 
 ### 13.1 Inclusive Entry Logic

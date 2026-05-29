@@ -62,7 +62,7 @@ export const NotificationService = {
       type: 'timesheet_approved',
       title: 'Timesheet Approved',
       body: notes || `Your timesheet for ${dateStr} has been approved.`,
-      link: '/staff/timesheets',
+      link: '/my-timesheets',
     });
   },
 
@@ -72,7 +72,7 @@ export const NotificationService = {
       type: 'timesheet_rejected',
       title: 'Timesheet Rejected',
       body: notes || `Your timesheet for ${dateStr} requires revision.`,
-      link: '/staff/timesheets',
+      link: '/my-timesheets',
     });
   },
 
@@ -92,7 +92,7 @@ export const NotificationService = {
       type: 'leave_approved',
       title: 'Leave Request Approved',
       body: notes || `Your ${leaveType} request (${dateRangeStr}) has been approved.`,
-      link: '/staff/leave',
+      link: '/my-leave',
     });
   },
 
@@ -102,7 +102,7 @@ export const NotificationService = {
       type: 'leave_rejected',
       title: 'Leave Request Rejected',
       body: notes || `Your ${leaveType} request (${dateRangeStr}) has been rejected.`,
-      link: '/staff/leave',
+      link: '/my-leave',
     });
   },
 
@@ -126,7 +126,7 @@ export const NotificationService = {
       type: 'shift_assigned',
       title: 'New Shift Assigned',
       body: `You have been assigned a new shift at ${houseName} on ${dateStr}.`,
-      link: '/staff/roster',
+      link: '/my-roster',
     });
   },
 
@@ -136,7 +136,7 @@ export const NotificationService = {
       type: 'shift_modified',
       title: 'Shift Modified',
       body: `Your shift at ${houseName} on ${dateStr} has been updated.`,
-      link: '/staff/roster',
+      link: '/my-roster',
     });
   },
 
@@ -146,7 +146,7 @@ export const NotificationService = {
       type: 'shift_cancelled',
       title: 'Shift Cancelled',
       body: `Your shift at ${houseName} on ${dateStr} has been cancelled.`,
-      link: '/staff/roster',
+      link: '/my-roster',
     });
   },
 
@@ -190,7 +190,7 @@ export const NotificationService = {
     // Fetch staff assigned to this house
     const { data: assignments } = await supabase
       .from(TABLES.HOUSE_STAFF_ASSIGNMENTS)
-      .select('staff:staff_id(auth_user_id)')
+      .select('staff:ic_staff!house_staff_assignments_staff_id_fkey(auth_user_id)')
       .eq('house_id', houseId);
 
     if (assignments && assignments.length > 0) {

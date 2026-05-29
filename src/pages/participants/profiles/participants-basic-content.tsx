@@ -5,6 +5,7 @@ import { Participants } from './components';
 import { useNavigate } from 'react-router';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { TABLES } from '@/config/db-tables';
 import { RBAC_MODULES } from '@/config/rbac-modules';
 import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
 
@@ -21,7 +22,7 @@ export function ParticipantsProfilesContent() {
     try {
       // Create a new participant with minimal data (name can be NULL for drafts)
       const { data, error } = await supabase
-        .from('ic_participants')
+        .from(TABLES.PARTICIPANTS)
         .insert([
           {
             status: 'draft',

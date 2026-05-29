@@ -28,10 +28,10 @@ export interface StaffSort {
 const STAFF_LIST_COLUMNS = `
   id, staff_name, email, phone, status, branch_id, role_id, photo_url, auth_user_id,
   created_at, updated_at,
-  department_info:${TABLES.DEPARTMENTS}(id, department_name),
-  employment_type_info:${TABLES.EMPLOYMENT_TYPES_MASTER}(id, employment_type_name),
+  department_info:${TABLES.DEPARTMENTS}!staff_department_id_fkey(id, department_name),
+  employment_type_info:${TABLES.EMPLOYMENT_TYPES_MASTER}!staff_employment_type_id_fkey(id, employment_type_name),
   role:${TABLES.ROLES}!staff_role_id_fkey(id, role_name, description),
-  house_assignments:${TABLES.HOUSE_STAFF_ASSIGNMENTS}(
+  house_assignments:${TABLES.HOUSE_STAFF_ASSIGNMENTS}!house_staff_assignments_staff_id_fkey(
     id,
     house_id,
     house:${TABLES.HOUSES}(id, house_name)
@@ -49,8 +49,8 @@ const STAFF_DETAIL_COLUMNS = `
   ndis_infection_control_training, ndis_infection_control_training_expiry, 
   drivers_license, drivers_license_expiry, comprehensive_car_insurance, 
   comprehensive_car_insurance_expiry, photo_url,
-  department_info:${TABLES.DEPARTMENTS}(id, department_name),
-  employment_type_info:${TABLES.EMPLOYMENT_TYPES_MASTER}(id, employment_type_name),
+  department_info:${TABLES.DEPARTMENTS}!staff_department_id_fkey(id, department_name),
+  employment_type_info:${TABLES.EMPLOYMENT_TYPES_MASTER}!staff_employment_type_id_fkey(id, employment_type_name),
   role:${TABLES.ROLES}!staff_role_id_fkey(id, role_name, description),
   manager_info:${TABLES.STAFF}!manager_id(id, staff_name)
 `;
@@ -405,7 +405,7 @@ export function useStaffByRole(roleId?: string) {
         .from(TABLES.STAFF)
         .select(`
           id, staff_name, email, status, photo_url,
-          department_info:${TABLES.DEPARTMENTS}(id, department_name)
+          department_info:${TABLES.DEPARTMENTS}!staff_department_id_fkey(id, department_name)
         `)
         .eq('role_id', roleId)
         .order('staff_name', { ascending: true });

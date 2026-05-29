@@ -75,6 +75,9 @@ serve(async (req) => {
         entity_name: email,
         description: `User signed in: ${userName}`,
         user_name: userName,
+        user_id: staff.id,
+        table_name: 'auth.users',
+        parent_type: 'Staff',
         metadata: {
           auth_user_id: authUserId,
           email: email,

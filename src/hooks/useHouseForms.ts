@@ -77,7 +77,7 @@ export function useHouseForms(houseId?: string) {
           .from(TABLES.HOUSE_FORMS)
           .select(`
             *,
-            creator:ic_staff!created_by(id, staff_name, email),
+            creator:ic_staff!fk_ic_house_forms_created_by(id, staff_name, email),
             house_form_assignments:ic_house_form_assignments(
               id,
               form_id,
@@ -92,9 +92,9 @@ export function useHouseForms(houseId?: string) {
               created_at,
               updated_at,
               participant:ic_participants(id, participant_name, email),
-              staff:ic_staff!staff_id(id, staff_name, email),
-              assigned_by_staff:ic_staff!assigned_by(id, staff_name, email),
-              completed_by_staff:ic_staff!completed_by(id, staff_name, email)
+              staff:ic_staff!house_form_assignments_staff_id_fkey(id, staff_name, email),
+              assigned_by_staff:ic_staff!house_form_assignments_assigned_by_fkey(id, staff_name, email),
+              completed_by_staff:ic_staff!house_form_assignments_completed_by_fkey(id, staff_name, email)
             )
           `)
           .eq('house_id', houseId)

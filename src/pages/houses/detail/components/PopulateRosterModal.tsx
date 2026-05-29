@@ -386,7 +386,7 @@ export function PopulateRosterModal({ open, onOpenChange, houseId, houseName, on
                 <h5 className="text-xs font-black uppercase tracking-tight text-indigo-900">Routine Checklists</h5>
                 <p className="text-[10px] text-indigo-700 leading-relaxed mt-1">
                   Generated shifts will include: {defaults.length > 0 ? (
-                    <span className="font-bold">{[...new Set(defaults.map(d => d.checklist?.name))].filter(Boolean).join(', ')}</span>
+                    <span className="font-bold">{[...new Set(defaults.map(d => d.checklist?.house_checklist_name || d.checklist?.name))].filter(Boolean).join(', ')}</span>
                   ) : (
                     "No default checklists defined."
                   )}
