@@ -75,7 +75,7 @@ describe('NotificationService', () => {
         type: 'timesheet_approved',
         title: 'Timesheet Approved',
         body: 'Your timesheet for 2023-01-01 has been approved.',
-        link: '/staff/timesheets',
+        link: '/my-timesheets',
       });
     });
 

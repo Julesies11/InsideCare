@@ -64,26 +64,26 @@ export function AppRoutingSetup() {
             <Route path="/account/notifications" element={<NotificationCenter />} />
 
             <Route element={<RequirePermission module={RBAC_MODULES.SHIFT_ROUTINES} />}>
-              <Route path="/staff/dashboard" element={<StaffDashboard />} />
+              <Route path="/my-dashboard" element={<StaffDashboard />} />
             </Route>
 
             <Route element={<RequirePermission module={RBAC_MODULES.SHIFT_ROUTINES} />}>
-              <Route path="/staff/checklists" element={<StaffChecklists />} />
+              <Route path="/my-checklists" element={<StaffChecklists />} />
             </Route>
 
             <Route element={<RequirePermission module={RBAC_MODULES.MY_ROSTER} />}>
-              <Route path="/staff/roster" element={<StaffRoster />} />
+              <Route path="/my-roster" element={<StaffRoster />} />
             </Route>
 
             <Route element={<RequirePermission module={RBAC_MODULES.MY_TIMESHEETS} />}>
-              <Route path="/staff/roster/:shiftId/timesheet" element={<StaffTimesheetForm />} />
-              <Route path="/staff/timesheets" element={<StaffTimesheetList />} />
+              <Route path="/my-roster/:shiftId/timesheet" element={<StaffTimesheetForm />} />
+              <Route path="/my-timesheets" element={<StaffTimesheetList />} />
             </Route>
 
             <Route element={<RequirePermission module={RBAC_MODULES.MY_LEAVE} />}>
-              <Route path="/staff/leave" element={<StaffLeaveList />} />
-              <Route path="/staff/leave/new" element={<StaffLeaveForm />} />
-              <Route path="/staff/leave/:id/edit" element={<StaffLeaveForm />} />
+              <Route path="/my-leave" element={<StaffLeaveList />} />
+              <Route path="/my-leave/new" element={<StaffLeaveForm />} />
+              <Route path="/my-leave/:id/edit" element={<StaffLeaveForm />} />
             </Route>
 
             <Route path="/staff/profile" element={<StaffProfile />} />

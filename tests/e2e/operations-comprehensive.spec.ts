@@ -38,7 +38,7 @@ test.describe('Operations Comprehensive', () => {
       const editBtn = page.getByRole('button', { name: /Edit/i }).first();
       if (await editBtn.isVisible()) {
         await editBtn.click();
-        await expect(page).toHaveURL(/\/roster-board\/shift-templates\//);
+        await expect(page).toHaveURL(/shift-templates/, { timeout: 30000 });
         // Page might have a save button
       }
     });

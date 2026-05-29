@@ -106,7 +106,7 @@ export function SignInPage() {
       if (user?.is_admin) {
         navigate('/');
       } else {
-        navigate('/staff/dashboard');
+        navigate('/my-dashboard');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
@@ -138,7 +138,7 @@ export function SignInPage() {
       } else if (user?.is_admin) {
         navigate('/');
       } else {
-        navigate('/staff/dashboard');
+        navigate('/my-dashboard');
       }
     } catch (err) {
       setError(

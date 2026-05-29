@@ -8,12 +8,12 @@ export default defineConfig({
   plugins: [
     react(), 
     tailwindcss(),
-    visualizer({
-      open: false,
-      filename: 'stats.html',
-      gzipSize: true,
-      brotliSize: true,
-    })
+    // visualizer({
+    //   open: false,
+    //   filename: 'stats.html',
+    //   gzipSize: true,
+    //   brotliSize: true,
+    // })
   ],
   server: {
     strictPort: true,

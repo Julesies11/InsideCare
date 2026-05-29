@@ -383,13 +383,12 @@ export function ParticipantDetailContent({
             participant_id: id,
             medication_id: med.medication_id,
             dosage: med.dosage || null,
-            frequency: med.frequency || null,
             is_active: med.is_active,
             }));
 
           const { error } = await supabase.from(TABLES.PARTICIPANT_MEDICATIONS).insert(toInsert);
           if (error) throw new Error(`Failed to add medications: ${error.message}`);
-          
+
           if (participant?.house_id) {
             await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.participant_name || 'Participant', 'medication');
           }
@@ -402,7 +401,6 @@ export function ParticipantDetailContent({
               .update({
                 medication_id: med.medication_id,
                 dosage: med.dosage || null,
-                frequency: med.frequency || null,
                 is_active: med.is_active,
               })
               .eq('id', med.id);
@@ -412,7 +410,6 @@ export function ParticipantDetailContent({
             await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.participant_name || 'Participant', 'medication');
           }
         }
-
         if (canDeleteMedications && currentPending.medications.toDelete.length > 0) {
           const { error } = await supabase
             .from(TABLES.PARTICIPANT_MEDICATIONS)

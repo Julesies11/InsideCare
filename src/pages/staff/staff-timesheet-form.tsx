@@ -65,7 +65,7 @@ export function StaffTimesheetForm() {
   const [assignedChecklists, setAssignedChecklists] = useState<AssignedChecklist[]>([]);
 
   const handleBack = () => {
-    navigate('/staff/timesheets', { state: { activeTab: fromTab } });
+    navigate('/my-timesheets', { state: { activeTab: fromTab } });
   };
 
   const [shiftNoteStatus, setShiftNoteStatus]         = useState<'not_started' | 'draft' | 'completed'>('not_started');
@@ -193,7 +193,7 @@ export function StaffTimesheetForm() {
         description: `Please complete the following routines before submitting: ${incompleteChecklists.map(cl => cl.assignment_title).join(', ')}`,
         action: {
           label: 'Go to Checklists',
-          onClick: () => navigate('/staff/checklists')
+          onClick: () => navigate('/my-checklists')
         }
       });
       return;
@@ -605,7 +605,7 @@ export function StaffTimesheetForm() {
                       type="button" 
                       variant="primary" 
                       className="w-full font-bold shadow-sm"
-                      onClick={() => navigate('/staff/checklists')}
+                      onClick={() => navigate('/my-checklists')}
                     >
                       <ClipboardList className="size-4 me-2" />
                       Complete Checklists Now

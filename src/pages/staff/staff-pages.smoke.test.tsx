@@ -10,7 +10,7 @@ vi.mock('react-router', async () => {
     useNavigate: () => vi.fn(),
     useParams: () => ({ shiftId: 'test-shift' }),
     useLocation: () => ({ 
-      pathname: '/staff/roster',
+      pathname: '/my-roster',
       state: { fromTab: 'missing' } 
     }),
   };

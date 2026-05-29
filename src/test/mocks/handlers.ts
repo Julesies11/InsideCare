@@ -25,6 +25,19 @@ export const handlers = [
     });
   }),
 
+  // Edge Function Mocks
+  http.post(`${SUPABASE_URL}/functions/v1/ic-admin-auth-status`, () => {
+    return HttpResponse.json([
+      {
+        id: 'test-user-id',
+        email: 'test@example.com',
+        last_sign_in_at: '2026-05-25T10:00:00Z',
+        created_at: '2026-01-01T10:00:00Z',
+        invited_at: '2026-01-01T10:00:00Z',
+      }
+    ]);
+  }),
+
   // Database Mocks - Houses
   http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSES}`, ({ request }) => {
     const url = new URL(request.url);

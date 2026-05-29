@@ -136,7 +136,7 @@ describe('StaffTimesheetForm', () => {
 
     // Assert submission behavior
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/staff/timesheets', expect.anything());
+      expect(mockNavigate).toHaveBeenCalledWith('/my-timesheets', expect.anything());
     });
   });
 

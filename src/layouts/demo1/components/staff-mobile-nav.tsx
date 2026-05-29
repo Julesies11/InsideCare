@@ -3,11 +3,11 @@ import { LayoutDashboard, Calendar, Umbrella, ClipboardList, ClipboardCheck } fr
 import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
-  { to: '/staff/dashboard', icon: LayoutDashboard, label: 'Home' },
-  { to: '/staff/roster', icon: Calendar, label: 'Roster' },
-  { to: '/staff/checklists', icon: ClipboardCheck, label: 'Checklists' },
-  { to: '/staff/timesheets', icon: ClipboardList, label: 'Timesheets' },
-  { to: '/staff/leave', icon: Umbrella, label: 'Leave' },
+  { to: '/my-dashboard', icon: LayoutDashboard, label: 'Home' },
+  { to: '/my-roster', icon: Calendar, label: 'Roster' },
+  { to: '/my-checklists', icon: ClipboardCheck, label: 'Checklists' },
+  { to: '/my-timesheets', icon: ClipboardList, label: 'Timesheets' },
+  { to: '/my-leave', icon: Umbrella, label: 'Leave' },
 ];
 
 export function StaffMobileNav() {

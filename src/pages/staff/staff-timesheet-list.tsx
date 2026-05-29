@@ -292,7 +292,7 @@ export function StaffTimesheetList() {
                 size="sm"
                 variant="outline"
                 className="h-7 px-2.5 text-xs font-bold gap-1.5"
-                onClick={() => navigate(`/staff/roster/${ts.shift_id}/timesheet`, { state: { fromTab: activeTab } })}
+                onClick={() => navigate(`/my-roster/${ts.shift_id}/timesheet`, { state: { fromTab: activeTab } })}
               >
                 <FileText className="size-3.5" />
                 View Timesheet
@@ -303,7 +303,7 @@ export function StaffTimesheetList() {
                 size="sm"
                 variant="outline"
                 className="h-7 px-2.5 text-xs font-bold"
-                onClick={() => navigate(`/staff/roster/${ts.shift_id}/timesheet`, { state: { fromTab: activeTab } })}
+                onClick={() => navigate(`/my-roster/${ts.shift_id}/timesheet`, { state: { fromTab: activeTab } })}
               >
                 Submit <ChevronRight className="size-3.5 ms-1" />
               </Button>
