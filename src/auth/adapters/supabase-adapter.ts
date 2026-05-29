@@ -92,7 +92,7 @@ export const SupabaseAdapter = {
   /**
    * Get user profile from user and app metadata
    */
-  async getUserProfile(passedUser?: any): Promise<UserModel> {
+  async getUserProfile(passedUser?: User): Promise<UserModel> {
     let user = passedUser;
     
     if (!user) {

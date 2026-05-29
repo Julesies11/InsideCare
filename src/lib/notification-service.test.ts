@@ -113,7 +113,7 @@ describe('NotificationService', () => {
       await NotificationService.notifyAssignedStaff('house-1', 'part-1', 'John Doe', 'note');
 
       expect(supabase.from).toHaveBeenCalledWith(TABLES.HOUSE_STAFF_ASSIGNMENTS);
-      expect(mockSelect).toHaveBeenCalledWith('staff:staff_id(auth_user_id)');
+      expect(mockSelect).toHaveBeenCalledWith('staff:ic_staff!house_staff_assignments_staff_id_fkey(auth_user_id)');
       expect(mockEq).toHaveBeenCalledWith('house_id', 'house-1');
 
       expect(spy).toHaveBeenCalledTimes(2);

@@ -7,6 +7,18 @@ import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
 import { Row, ParticipantRow, StaffRow, HouseRow, ShiftRow } from '@/test/type-helpers';
 
+const mocks = vi.hoisted(() => ({
+  mockNavigate: vi.fn(),
+}));
+
+vi.mock('react-router', async () => {
+  const actual = await vi.importActual('react-router');
+  return {
+    ...actual,
+    useNavigate: () => mocks.mockNavigate,
+  };
+});
+
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
 const mockShiftNotes: (Partial<Row<'ic_shift_notes'>> & { 
@@ -95,7 +107,7 @@ describe('ShiftNotes', () => {
     });
   });
 
-  it('opens edit dialog when Edit is clicked', async () => {
+  it('navigates to edit page when Edit is clicked', async () => {
     const { user } = renderWithProviders(<ShiftNotes />);
 
     await waitFor(() => {
@@ -106,9 +118,7 @@ describe('ShiftNotes', () => {
     const editButton = screen.getAllByRole('button', { name: /Edit/i })[0];
     await user.click(editButton);
 
-    // Use findByRole which automatically waits
-    const dialog = await screen.findByRole('dialog', {}, { timeout: 5000 });
-    expect(dialog).toBeInTheDocument();
+    expect(mocks.mockNavigate).toHaveBeenCalledWith('/shift-notes/detail/note-1');
   });
 
   it('filters by house using popover', async () => {
