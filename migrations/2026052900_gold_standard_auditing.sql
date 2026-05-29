@@ -260,19 +260,21 @@ BEGIN
             AND NOT EXISTS (SELECT 1 FROM public.ic_staff s2 WHERE s2.id = t.updated_by)', t);
 
         -- C. Data Repair: Nullify Orphans
-        EXECUTE format('
-            UPDATE public.%I t
-            SET created_by = NULL 
-            WHERE created_by IS NOT NULL 
-            AND NOT EXISTS (SELECT 1 FROM public.ic_staff s WHERE s.id = t.created_by)', t);
+        RAISE NOTICE 'Cleaning up orphans in table: %', t;
+        
+        EXECUTE format('UPDATE public.%I SET created_by = NULL WHERE created_by IS NOT NULL AND NOT EXISTS (SELECT 1 FROM public.ic_staff s WHERE s.id = created_by)', t);
+        EXECUTE format('UPDATE public.%I SET updated_by = NULL WHERE updated_by IS NOT NULL AND NOT EXISTS (SELECT 1 FROM public.ic_staff s WHERE s.id = updated_by)', t);
 
-        EXECUTE format('
-            UPDATE public.%I t
-            SET updated_by = NULL 
-            WHERE updated_by IS NOT NULL 
-            AND NOT EXISTS (SELECT 1 FROM public.ic_staff s WHERE s.id = t.updated_by)', t);
+        -- DEBUG: Log remaining orphans for current table
+        IF EXISTS (SELECT 1 FROM public.ic_house_calendar_event_participants WHERE created_by IS NOT NULL AND NOT EXISTS (SELECT 1 FROM public.ic_staff WHERE id = created_by)) THEN
+             RAISE NOTICE 'ORPHANS FOUND IN TABLE: ic_house_calendar_event_participants';
+        END IF;
+
+        -- Re-enable triggers after data repair
+        EXECUTE format('ALTER TABLE public.%I ENABLE TRIGGER USER', t);
 
         -- D. Robust Constraint Removal
+        -- Drop any existing constraints on created_by/updated_by to avoid conflicts
         FOR constraint_to_drop IN 
             SELECT conname FROM pg_constraint con
             JOIN pg_attribute att ON att.attrelid = con.conrelid AND att.attnum = ANY(con.conkey)
@@ -316,3 +318,4 @@ ALTER TABLE public.ic_activity_log ADD CONSTRAINT fk_ic_activity_log_user_id FOR
 CREATE INDEX IF NOT EXISTS idx_activity_log_user_id ON public.ic_activity_log(user_id);
 CREATE INDEX IF NOT EXISTS idx_activity_log_entity_id ON public.ic_activity_log(entity_id);
 CREATE INDEX IF NOT EXISTS idx_activity_log_table_name ON public.ic_activity_log(table_name);
+

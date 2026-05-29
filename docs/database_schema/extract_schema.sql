@@ -1,4 +1,4 @@
--- This single query returns the entire schema metadata in multiple columns.
+-- This single query returns the entire schema metadata for InsideCare tables (prefixed with ic_).
 -- Run this in the Supabase SQL Editor and copy the results.
 
 WITH table_security AS (
@@ -11,7 +11,9 @@ WITH table_security AS (
     JOIN 
         pg_namespace n ON n.oid = c.relnamespace
     WHERE 
-        n.nspname = 'public' AND c.relkind = 'r'
+        n.nspname = 'public' 
+        AND c.relkind = 'r'
+        AND c.relname LIKE 'ic_%'
 ),
 table_columns AS (
     SELECT 
@@ -35,6 +37,7 @@ table_columns AS (
         information_schema.columns cols
     WHERE 
         cols.table_schema = 'public'
+        AND cols.table_name LIKE 'ic_%'
     GROUP BY 
         cols.table_name
 ),
@@ -56,7 +59,9 @@ table_fks AS (
         JOIN information_schema.constraint_column_usage AS ccu
           ON ccu.constraint_name = tc.constraint_name
           AND ccu.table_schema = tc.table_schema
-    WHERE tc.constraint_type = 'FOREIGN KEY' AND tc.table_schema = 'public'
+    WHERE tc.constraint_type = 'FOREIGN KEY' 
+      AND tc.table_schema = 'public'
+      AND tc.table_name LIKE 'ic_%'
     GROUP BY tc.table_name
 ),
 all_tables AS (
@@ -91,6 +96,7 @@ all_enums AS (
         pg_catalog.pg_namespace n ON n.oid = t.typnamespace
     WHERE 
         n.nspname = 'public' AND t.typtype = 'e'
+        AND t.typname LIKE 'ic_%'
 ),
 all_functions AS (
     SELECT 
@@ -110,6 +116,7 @@ all_functions AS (
         pg_type t ON p.prorettype = t.oid
     WHERE 
         n.nspname = 'public' AND p.prokind = 'f'
+        AND p.proname LIKE 'ic_%'
 ),
 all_triggers AS (
     SELECT 
@@ -126,6 +133,7 @@ all_triggers AS (
         information_schema.triggers
     WHERE 
         trigger_schema = 'public'
+        AND event_object_table LIKE 'ic_%'
 ),
 all_extensions AS (
     SELECT 
@@ -145,14 +153,16 @@ SELECT
     (SELECT triggers_json FROM all_triggers) AS triggers,
     (SELECT extensions_json FROM all_extensions) AS extensions;
 
--- query all RBAC policies
+-- query all RBAC policies for InsideCare tables
 SELECT * FROM pg_policies
-order by tablename, CMD
+WHERE tablename LIKE 'ic_%'
+ORDER BY tablename, CMD;
 
--- query all storage buckets
+-- query all storage buckets for InsideCare
 WITH bucket_list AS (
       SELECT b.id AS bucket_id, b.name AS bucket_name
       FROM storage.buckets b
+      WHERE b.name LIKE 'ic_%'
     ),
     policy_text AS (
       SELECT
@@ -164,9 +174,11 @@ WITH bucket_list AS (
       FROM pg_policies p
       WHERE p.schemaname = 'storage'
         AND p.tablename = 'objects'
+        -- Filter policies that likely affect our buckets
+        AND (p.qual ~ 'ic_' OR p.with_check ~ 'ic_')
     )
     SELECT
-      COALESCE(bl.bucket_name, 'GLOBAL / ALL BUCKETS') as bucket_context,
+      COALESCE(bl.bucket_name, 'GLOBAL / OTHER') as bucket_context,
       pt.policyname,
       pt.operation,
       pt.roles,
@@ -175,9 +187,7 @@ WITH bucket_list AS (
     FROM policy_text pt
     LEFT JOIN bucket_list bl
       ON (
-        -- Use word boundaries (\y) to prevent 'photos' matching 'participant-photos'
         pt.using_expression ~ ('\y' || bl.bucket_id || '\y')
         OR pt.with_check_expression ~ ('\y' || bl.bucket_id || '\y')
       )
     ORDER BY bucket_context, pt.policyname;
-

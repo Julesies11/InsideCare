@@ -112,7 +112,7 @@ describe('StaffLeaveForm', () => {
     await user.click(submitBtn);
 
     await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('/staff/leave');
+        expect(mockNavigate).toHaveBeenCalledWith('/my-leave');
     });
   });
 
@@ -146,7 +146,7 @@ describe('StaffLeaveForm', () => {
     fireEvent.click(submitBtn);
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/staff/leave');
+      expect(mockNavigate).toHaveBeenCalledWith('/my-leave');
     });
   });
 });
