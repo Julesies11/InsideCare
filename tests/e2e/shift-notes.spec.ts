@@ -7,7 +7,7 @@ test.describe('Shift Notes E2E', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/participants/shift-notes');
     // Ensure loading is finished or basic elements are visible
-    await expect(page.getByRole('heading', { name: 'Shift Notes', exact: true })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('heading', { name: 'Shift Notes', exact: true, level: 1 })).toBeVisible({ timeout: 15000 });
   });
 
   test('Navigate to detailed shift note form and verify sections', async ({ page }) => {
