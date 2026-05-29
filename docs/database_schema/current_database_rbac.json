@@ -1,6 +1,206 @@
 [
   {
     "schemaname": "public",
+    "tablename": "es_events",
+    "policyname": "Admins can delete any event",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "DELETE",
+    "qual": "is_admin()",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "es_events",
+    "policyname": "Admins can insert any event",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "is_admin()"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "es_events",
+    "policyname": "Organizers can insert their own events",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "(auth.uid() = organizer_id)"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "es_events",
+    "policyname": "Organizers can see all their own events",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "(auth.uid() = organizer_id)",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "es_events",
+    "policyname": "Admins can see all events",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "is_admin()",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "es_events",
+    "policyname": "Published events are viewable by everyone",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "(status = 'published'::event_status)",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "es_events",
+    "policyname": "Admins can update any event",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "UPDATE",
+    "qual": "is_admin()",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "es_events",
+    "policyname": "Organizers can update their own events",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "UPDATE",
+    "qual": "(auth.uid() = organizer_id)",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "es_profiles",
+    "policyname": "Admins can manage all profiles",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "ALL",
+    "qual": "is_admin()",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "es_profiles",
+    "policyname": "Users can insert their own profile",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "(auth.uid() = id)"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "es_profiles",
+    "policyname": "Public profiles are viewable by everyone",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "true",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "es_profiles",
+    "policyname": "Users can update own profile",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "UPDATE",
+    "qual": "(auth.uid() = id)",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "es_registrations",
+    "policyname": "Admins can manage any registration",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "ALL",
+    "qual": "is_admin()",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "es_registrations",
+    "policyname": "Admins can see all registrations",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "is_admin()",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "es_registrations",
+    "policyname": "Organizers see all for their events",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "(EXISTS ( SELECT 1\n   FROM es_events\n  WHERE ((es_events.id = es_registrations.event_id) AND (es_events.organizer_id = auth.uid()))))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "es_registrations",
+    "policyname": "Users can see own registrations",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "(auth.uid() = participant_id)",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "es_results",
+    "policyname": "Admins can manage any result",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "ALL",
+    "qual": "is_admin()",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "es_sub_events",
+    "policyname": "Sub-events viewable if event viewable",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "(EXISTS ( SELECT 1\n   FROM es_events\n  WHERE (es_events.id = es_sub_events.event_id)))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "es_teams",
+    "policyname": "Admins can manage any team",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "ALL",
+    "qual": "is_admin()",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "es_teams",
+    "policyname": "Admins can see all teams",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "is_admin()",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
     "tablename": "ic_activity_log",
     "policyname": "RBAC activity_log ALL (Admin)",
     "permissive": "PERMISSIVE",
@@ -22,31 +222,21 @@
   {
     "schemaname": "public",
     "tablename": "ic_activity_log",
+    "policyname": "RBAC Activity Log - Self Auth",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "((entity_type = 'auth'::text) AND (entity_id = (auth.uid())::text))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "ic_activity_log",
     "policyname": "RBAC Activity Log - Participant Context",
     "permissive": "PERMISSIVE",
     "roles": "{public}",
     "cmd": "SELECT",
     "qual": "(((entity_type = ANY (ARRAY['participants'::text, 'participant'::text])) OR (entity_type ~~ 'participant_%'::text) OR (entity_type = 'shift_notes'::text)) AND ((ic_jwt_get_perm('participants'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])) OR (ic_jwt_get_perm('participant_activity_log'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text]))))",
-    "with_check": null
-  },
-  {
-    "schemaname": "public",
-    "tablename": "ic_activity_log",
-    "policyname": "RBAC Activity Log - House Context",
-    "permissive": "PERMISSIVE",
-    "roles": "{public}",
-    "cmd": "SELECT",
-    "qual": "(((entity_type = ANY (ARRAY['houses'::text, 'house'::text])) OR (entity_type ~~ 'house_%'::text)) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('houses'::text) = ANY (ARRAY['read'::text, 'context_read'::text, 'context_read_write'::text, 'full'::text])) OR (ic_jwt_get_perm('house_activity_log'::text) = ANY (ARRAY['read'::text, 'context_read'::text, 'context_read_write'::text, 'full'::text]))))",
-    "with_check": null
-  },
-  {
-    "schemaname": "public",
-    "tablename": "ic_activity_log",
-    "policyname": "RBAC Activity Log - Global Auditor",
-    "permissive": "PERMISSIVE",
-    "roles": "{public}",
-    "cmd": "SELECT",
-    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('activity_log'::text) = ANY (ARRAY['read'::text, 'context_read_write'::text, 'full'::text])))",
     "with_check": null
   },
   {
@@ -62,11 +252,21 @@
   {
     "schemaname": "public",
     "tablename": "ic_activity_log",
-    "policyname": "RBAC Activity Log - Self Auth",
+    "policyname": "RBAC Activity Log - Global Auditor",
     "permissive": "PERMISSIVE",
     "roles": "{public}",
     "cmd": "SELECT",
-    "qual": "((entity_type = 'auth'::text) AND (entity_id = (auth.uid())::text))",
+    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('activity_log'::text) = ANY (ARRAY['read'::text, 'context_read_write'::text, 'full'::text])))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "ic_activity_log",
+    "policyname": "RBAC Activity Log - House Context",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "(((entity_type = ANY (ARRAY['houses'::text, 'house'::text])) OR (entity_type ~~ 'house_%'::text)) AND (ic_jwt_get_perm('houses'::text) = ANY (ARRAY['read'::text, 'context_read'::text, 'context_read_write'::text, 'full'::text])))",
     "with_check": null
   },
   {
@@ -182,7 +382,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_checklist_master",
-    "policyname": "RBAC ic_checklist_master INSERT",
+    "policyname": "RBAC checklist_master INSERT",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "INSERT",
@@ -192,7 +392,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_checklist_master",
-    "policyname": "RBAC checklist_master INSERT",
+    "policyname": "RBAC ic_checklist_master INSERT",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "INSERT",
@@ -212,7 +412,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_checklist_master",
-    "policyname": "RBAC ic_checklist_master UPDATE",
+    "policyname": "RBAC checklist_master UPDATE",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "UPDATE",
@@ -222,7 +422,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_checklist_master",
-    "policyname": "RBAC checklist_master UPDATE",
+    "policyname": "RBAC ic_checklist_master UPDATE",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "UPDATE",
@@ -262,7 +462,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_contact_types_master",
-    "policyname": "RBAC contact_types_master INSERT",
+    "policyname": "RBAC ic_contact_types_master INSERT",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "INSERT",
@@ -272,7 +472,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_contact_types_master",
-    "policyname": "RBAC ic_contact_types_master INSERT",
+    "policyname": "RBAC contact_types_master INSERT",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "INSERT",
@@ -292,7 +492,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_contact_types_master",
-    "policyname": "RBAC ic_contact_types_master UPDATE",
+    "policyname": "RBAC contact_types_master UPDATE",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "UPDATE",
@@ -302,7 +502,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_contact_types_master",
-    "policyname": "RBAC contact_types_master UPDATE",
+    "policyname": "RBAC ic_contact_types_master UPDATE",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "UPDATE",
@@ -836,7 +1036,7 @@
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "ALL",
-    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('house_operations'::text) = 'full'::text) OR ((ic_jwt_get_perm('house_operations'::text) = 'context_read_write'::text) AND ic_jwt_has_house(house_id)))",
+    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('houses'::text) = 'full'::text) OR ((ic_jwt_get_perm('houses'::text) = 'context_read_write'::text) AND ic_jwt_has_house(house_id)))",
     "with_check": null
   },
   {
@@ -846,7 +1046,7 @@
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "SELECT",
-    "qual": "(ic_jwt_is_admin() OR ic_jwt_has_house(house_id) OR (ic_jwt_get_perm('house_operations'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text])))",
+    "qual": "(ic_jwt_is_admin() OR ic_jwt_has_house(house_id) OR (ic_jwt_get_perm('houses'::text) = ANY (ARRAY['full'::text, 'read_only'::text])))",
     "with_check": null
   },
   {
@@ -856,7 +1056,7 @@
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "ALL",
-    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('house_resources'::text) = 'full'::text) OR ((ic_jwt_get_perm('house_resources'::text) = 'context_read_write'::text) AND ic_jwt_has_house(house_id)))",
+    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('houses'::text) = 'full'::text) OR ((ic_jwt_get_perm('houses'::text) = 'context_read_write'::text) AND ic_jwt_has_house(house_id)))",
     "with_check": null
   },
   {
@@ -866,7 +1066,7 @@
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "SELECT",
-    "qual": "(ic_jwt_is_admin() OR ic_jwt_has_house(house_id) OR (ic_jwt_get_perm('house_resources'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text])))",
+    "qual": "(ic_jwt_is_admin() OR ic_jwt_has_house(house_id))",
     "with_check": null
   },
   {
@@ -956,7 +1156,7 @@
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "SELECT",
-    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('houses'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text])) OR (ic_jwt_get_perm('house_management'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text])) OR (ic_jwt_get_perm('house_operations'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text])) OR (ic_jwt_get_perm('house_checklists'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text])) OR (ic_jwt_get_perm('house_checklist_history'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text])) OR (ic_jwt_get_perm('house_resources'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text])) OR (ic_jwt_get_perm('house_staff'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text])) OR (ic_jwt_get_perm('house_activity_log'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text])))",
+    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('houses'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR ((ic_jwt_get_perm('houses'::text) = ANY (ARRAY['context_read_write'::text, 'context_read_only'::text])) AND ic_jwt_has_house(id)))",
     "with_check": null
   },
   {
@@ -1112,7 +1312,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_medications_master",
-    "policyname": "RBAC ic_medications_master INSERT",
+    "policyname": "RBAC medications_master INSERT",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "INSERT",
@@ -1122,7 +1322,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_medications_master",
-    "policyname": "RBAC medications_master INSERT",
+    "policyname": "RBAC ic_medications_master INSERT",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "INSERT",
@@ -1142,7 +1342,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_medications_master",
-    "policyname": "RBAC ic_medications_master UPDATE",
+    "policyname": "RBAC medications_master UPDATE",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "UPDATE",
@@ -1152,7 +1352,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_medications_master",
-    "policyname": "RBAC medications_master UPDATE",
+    "policyname": "RBAC ic_medications_master UPDATE",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "UPDATE",
@@ -1416,7 +1616,7 @@
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "SELECT",
-    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text])) OR (ic_jwt_get_perm('participant_goals'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text])) OR (ic_jwt_get_perm('participant_behaviour'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text])) OR (ic_jwt_get_perm('participant_support_needs'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text])) OR (ic_jwt_get_perm('participant_mealtime'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text])) OR (ic_jwt_get_perm('participant_medical_routine'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text])) OR (ic_jwt_get_perm('participant_medications'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text])) OR (ic_jwt_get_perm('participant_emergency'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text])) OR (ic_jwt_get_perm('participant_contacts'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text])) OR (ic_jwt_get_perm('participant_documents'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text])) OR (ic_jwt_get_perm('participant_shift_notes'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text])))",
+    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR ((ic_jwt_get_perm('participants'::text) = ANY (ARRAY['context_read_write'::text, 'context_read_only'::text])) AND ic_jwt_has_house(house_id)))",
     "with_check": null
   },
   {
@@ -1742,21 +1942,21 @@
   {
     "schemaname": "public",
     "tablename": "ic_shift_notes",
-    "policyname": "RBAC ic_shift_notes ALL (Admin)",
-    "permissive": "PERMISSIVE",
-    "roles": "{authenticated}",
-    "cmd": "ALL",
-    "qual": "ic_jwt_is_admin()",
-    "with_check": null
-  },
-  {
-    "schemaname": "public",
-    "tablename": "ic_shift_notes",
     "policyname": "RBAC shift_notes ALL",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "ALL",
     "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('shift_notes'::text) = 'full'::text) OR (ic_jwt_get_perm('participant_shift_notes'::text) = 'full'::text) OR (((ic_jwt_get_perm('shift_notes'::text) = 'context_read_write'::text) OR (ic_jwt_get_perm('participant_shift_notes'::text) = 'context_read_write'::text)) AND (EXISTS ( SELECT 1\n   FROM ic_participants p\n  WHERE ((p.id = ic_shift_notes.participant_id) AND ic_jwt_has_house(p.house_id))))))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "ic_shift_notes",
+    "policyname": "RBAC ic_shift_notes ALL (Admin)",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "ic_jwt_is_admin()",
     "with_check": null
   },
   {
@@ -1886,16 +2086,16 @@
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "SELECT",
-    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('employees'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text])) OR (ic_jwt_get_perm('staff_employment'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text])) OR (ic_jwt_get_perm('staff_availability'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text])) OR (ic_jwt_get_perm('staff_emergency'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text])) OR (ic_jwt_get_perm('staff_compliance'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text])) OR (ic_jwt_get_perm('staff_training'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text])) OR (ic_jwt_get_perm('staff_documents'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text])) OR (ic_jwt_get_perm('staff_roster'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text])) OR (ic_jwt_get_perm('staff_leave'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text])) OR (ic_jwt_get_perm('staff_warnings'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text])) OR (auth.uid() = auth_user_id))",
+    "qual": "(ic_jwt_is_admin() OR (auth.uid() = auth_user_id) OR (ic_jwt_get_perm('employees'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR ((ic_jwt_get_perm('employees'::text) = ANY (ARRAY['context_read_write'::text, 'context_read_only'::text])) AND (ic_jwt_manages_staff(id) OR (EXISTS ( SELECT 1\n   FROM ic_house_staff_assignments hsa\n  WHERE ((hsa.staff_id = ic_staff.id) AND ic_jwt_has_house(hsa.house_id)))))))",
     "with_check": null
   },
   {
     "schemaname": "public",
     "tablename": "ic_staff",
-    "policyname": "RBAC staff SELECT SELF",
+    "policyname": "RBAC ic_staff SELF UPDATE",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
-    "cmd": "SELECT",
+    "cmd": "UPDATE",
     "qual": "(auth_user_id = auth.uid())",
     "with_check": null
   },
@@ -1911,12 +2111,12 @@
   },
   {
     "schemaname": "public",
-    "tablename": "ic_staff",
-    "policyname": "RBAC ic_staff SELF UPDATE",
+    "tablename": "ic_staff_compliance",
+    "policyname": "RBAC ic_staff_compliance ALL (Admin)",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
-    "cmd": "UPDATE",
-    "qual": "(auth_user_id = auth.uid())",
+    "cmd": "ALL",
+    "qual": "ic_jwt_is_admin()",
     "with_check": null
   },
   {
@@ -1927,16 +2127,6 @@
     "roles": "{authenticated}",
     "cmd": "ALL",
     "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('staff_compliance'::text) = 'full'::text) OR ((ic_jwt_get_perm('staff_compliance'::text) = 'context_read_write'::text) AND ic_jwt_manages_staff(staff_id)))",
-    "with_check": null
-  },
-  {
-    "schemaname": "public",
-    "tablename": "ic_staff_compliance",
-    "policyname": "RBAC ic_staff_compliance ALL (Admin)",
-    "permissive": "PERMISSIVE",
-    "roles": "{authenticated}",
-    "cmd": "ALL",
-    "qual": "ic_jwt_is_admin()",
     "with_check": null
   },
   {
@@ -2012,31 +2202,11 @@
   {
     "schemaname": "public",
     "tablename": "ic_staff_shifts",
-    "policyname": "RBAC ic_staff_shifts ALL (Admin)",
-    "permissive": "PERMISSIVE",
-    "roles": "{authenticated}",
-    "cmd": "ALL",
-    "qual": "ic_jwt_is_admin()",
-    "with_check": null
-  },
-  {
-    "schemaname": "public",
-    "tablename": "ic_staff_shifts",
     "policyname": "RBAC staff_shifts SELECT",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "SELECT",
     "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('staff_roster'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR (ic_jwt_get_perm('roster_board'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR ((ic_jwt_get_perm('staff_roster'::text) = ANY (ARRAY['context_read_write'::text, 'context_read_only'::text])) AND ic_jwt_manages_staff(staff_id)) OR (ic_jwt_get_staff_id() = staff_id))",
-    "with_check": null
-  },
-  {
-    "schemaname": "public",
-    "tablename": "ic_staff_shifts",
-    "policyname": "RBAC ic_staff_shifts SELECT",
-    "permissive": "PERMISSIVE",
-    "roles": "{authenticated}",
-    "cmd": "SELECT",
-    "qual": "(ic_jwt_is_admin() OR (staff_id = ic_jwt_get_staff_id()) OR (ic_jwt_get_perm('my_roster'::text) = ANY (ARRAY['full'::text, 'read_only'::text])))",
     "with_check": null
   },
   {
@@ -2120,13 +2290,423 @@
     "with_check": null
   },
   {
-    "schemaname": "storage",
-    "tablename": "objects",
-    "policyname": "RBAC storage staff_documents ALL",
+    "schemaname": "public",
+    "tablename": "mp_error_logs",
+    "policyname": "error_logs_admin_manage_v3",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "ALL",
-    "qual": "((bucket_id = 'ic_staff_documents'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('staff_documents'::text) = 'full'::text) OR ((ic_jwt_get_perm('staff_documents'::text) = 'context_read_write'::text) AND ic_jwt_manages_staff((split_part(name, '/'::text, 1))::uuid)) OR (split_part(name, '/'::text, 1) = (ic_jwt_get_staff_id())::text)))",
+    "qual": "is_sys_admin()",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "mp_error_logs",
+    "policyname": "error_logs_public_insert_v3",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "true"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "mp_error_logs",
+    "policyname": "error_logs_privileged_view_v3",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "is_privileged()",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "mp_evidence_types",
+    "policyname": "evidence_type_admin",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "is_sys_admin()",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "mp_evidence_types",
+    "policyname": "evidence_type_view",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "true",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "mp_evidence_uploads",
+    "policyname": "evidence_manage",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "(is_sys_admin() OR is_org_admin() OR is_supervisor(program_id) OR (submitted_by = auth.uid()))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "mp_evidence_uploads",
+    "policyname": "evidence_insert",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "(is_sys_admin() OR is_org_admin() OR is_supervisor(program_id) OR is_pair_member(pair_id))"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "mp_evidence_uploads",
+    "policyname": "evidence_view",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(is_sys_admin() OR is_org_admin() OR is_supervisor(program_id) OR is_pair_member(pair_id))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "mp_job_titles",
+    "policyname": "Allow org admins to manage job titles",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "(EXISTS ( SELECT 1\n   FROM mp_profiles\n  WHERE ((mp_profiles.id = auth.uid()) AND ((mp_profiles.role = 'org-admin'::text) OR (mp_profiles.role = 'administrator'::text)))))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "mp_job_titles",
+    "policyname": "Allow members to read job titles",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(organisation_id IN ( SELECT mp_job_titles.organisation_id\n   FROM mp_profiles\n  WHERE (mp_profiles.id = auth.uid())))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "mp_meetings",
+    "policyname": "meeting_manage_v2",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "(is_sys_admin() OR is_org_admin() OR is_supervisor(program_id) OR is_pair_member(pair_id))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "mp_meetings",
+    "policyname": "meeting_view_v2",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(is_sys_admin() OR is_org_admin() OR is_supervisor(program_id) OR is_pair_member(pair_id))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "mp_notifications",
+    "policyname": "notifications_self",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "(recipient_id = auth.uid())",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "mp_notifications",
+    "policyname": "notifications_system_insert",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "true"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "mp_organisations",
+    "policyname": "org_sys_admin_all",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "is_sys_admin()",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "mp_organisations",
+    "policyname": "org_view",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "true",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "mp_pair_subtasks",
+    "policyname": "pair_subtask_all",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "(EXISTS ( SELECT 1\n   FROM mp_pair_tasks pt\n  WHERE ((pt.id = mp_pair_subtasks.pair_task_id) AND (is_sys_admin() OR is_org_admin() OR is_supervisor(pt.program_id) OR is_pair_member(pt.pair_id)))))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "mp_pair_subtasks",
+    "policyname": "pair_subtask_view",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(EXISTS ( SELECT 1\n   FROM mp_pair_tasks pt\n  WHERE ((pt.id = mp_pair_subtasks.pair_task_id) AND (is_sys_admin() OR is_org_admin() OR is_supervisor(pt.program_id) OR is_pair_member(pt.pair_id)))))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "mp_pair_tasks",
+    "policyname": "pair_task_admin",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "(is_sys_admin() OR is_org_admin() OR is_supervisor(program_id))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "mp_pair_tasks",
+    "policyname": "pair_task_view",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(is_sys_admin() OR is_org_admin() OR is_supervisor(program_id) OR is_pair_member(pair_id))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "mp_pair_tasks",
+    "policyname": "pair_task_update",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "UPDATE",
+    "qual": "(is_sys_admin() OR is_org_admin() OR is_supervisor(program_id) OR is_pair_member(pair_id))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "mp_pairs",
+    "policyname": "pair_privileged_manage",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "(is_sys_admin() OR is_org_admin() OR is_supervisor(program_id))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "mp_pairs",
+    "policyname": "pair_view",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(is_sys_admin() OR is_org_admin() OR is_supervisor(program_id) OR (mentor_id = auth.uid()) OR (mentee_id = auth.uid()))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "mp_profiles",
+    "policyname": "profile_sys_admin_all",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "is_sys_admin()",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "mp_profiles",
+    "policyname": "profile_org_admin_manage",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "(is_org_admin() AND (role = ANY (ARRAY['supervisor'::text, 'program-member'::text])))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "mp_profiles",
+    "policyname": "profile_self_insert",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "(id = auth.uid())"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "mp_profiles",
+    "policyname": "profile_view",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "true",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "mp_profiles",
+    "policyname": "profile_self_update",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "UPDATE",
+    "qual": "(id = auth.uid())",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "mp_program_subtasks",
+    "policyname": "program_subtask_manage",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "(EXISTS ( SELECT 1\n   FROM mp_program_tasks pt\n  WHERE ((pt.id = mp_program_subtasks.program_task_id) AND (is_sys_admin() OR is_org_admin() OR is_supervisor(pt.program_id)))))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "mp_program_subtasks",
+    "policyname": "program_subtask_view",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(EXISTS ( SELECT 1\n   FROM mp_program_tasks pt\n  WHERE (pt.id = mp_program_subtasks.program_task_id)))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "mp_program_tasks",
+    "policyname": "program_task_manage",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "(is_sys_admin() OR is_org_admin() OR is_supervisor(program_id))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "mp_program_tasks",
+    "policyname": "program_task_view",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(is_sys_admin() OR is_org_admin() OR is_supervisor(program_id) OR (EXISTS ( SELECT 1\n   FROM mp_pairs\n  WHERE ((mp_pairs.program_id = mp_program_tasks.program_id) AND ((mp_pairs.mentor_id = auth.uid()) OR (mp_pairs.mentee_id = auth.uid()))))))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "mp_programs",
+    "policyname": "program_admin_manage",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "(is_sys_admin() OR is_org_admin())",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "mp_programs",
+    "policyname": "program_view",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(is_sys_admin() OR is_org_admin() OR is_supervisor(id) OR (EXISTS ( SELECT 1\n   FROM mp_pairs\n  WHERE ((mp_pairs.program_id = mp_programs.id) AND ((mp_pairs.mentor_id = auth.uid()) OR (mp_pairs.mentee_id = auth.uid()))))))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "mp_subtasks_master",
+    "policyname": "master_subtask_admin",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "(is_sys_admin() OR is_org_admin())",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "mp_subtasks_master",
+    "policyname": "master_subtask_view",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "true",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "mp_supervisor_programs",
+    "policyname": "sp_admin",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "(is_sys_admin() OR is_org_admin())",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "mp_supervisor_programs",
+    "policyname": "sp_view",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "true",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "mp_task_lists_master",
+    "policyname": "master_template_admin",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "(is_sys_admin() OR is_org_admin())",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "mp_task_lists_master",
+    "policyname": "master_template_view",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "true",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "mp_tasks_master",
+    "policyname": "master_task_admin",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "(is_sys_admin() OR is_org_admin())",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "mp_tasks_master",
+    "policyname": "master_task_view",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "true",
     "with_check": null
   },
   {
@@ -2142,21 +2722,61 @@
   {
     "schemaname": "storage",
     "tablename": "objects",
-    "policyname": "RBAC house_documents ALL",
+    "policyname": "evidence_files_manage",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "ALL",
-    "qual": "((bucket_id = 'ic_house_documents'::text) AND (ic_jwt_is_admin() OR (ic_jwt_has_house((split_part(name, '/'::text, 1))::uuid) AND ((ic_jwt_get_perm('houses'::text) = 'full'::text) OR (ic_jwt_get_perm('house_resources'::text) = 'full'::text)))))",
+    "qual": "((bucket_id = 'mp-evidence-photos'::text) AND (is_privileged() OR is_pair_member(((storage.foldername(name))[1])::uuid)))",
     "with_check": null
   },
   {
     "schemaname": "storage",
     "tablename": "objects",
-    "policyname": "RBAC storage_objects ALL (Admin)",
+    "policyname": "logos_admin_manage",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "ALL",
-    "qual": "ic_jwt_is_admin()",
+    "qual": "((bucket_id = 'mp-logos'::text) AND is_sys_admin())",
+    "with_check": null
+  },
+  {
+    "schemaname": "storage",
+    "tablename": "objects",
+    "policyname": "avatars_privileged_manage",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "((bucket_id = 'mp-avatars'::text) AND is_privileged())",
+    "with_check": null
+  },
+  {
+    "schemaname": "storage",
+    "tablename": "objects",
+    "policyname": "avatars_self_manage",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "((bucket_id = 'mp-avatars'::text) AND ((storage.foldername(name))[1] = (auth.uid())::text))",
+    "with_check": null
+  },
+  {
+    "schemaname": "storage",
+    "tablename": "objects",
+    "policyname": "RBAC storage staff_documents ALL",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "((bucket_id = 'ic_staff_documents'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('staff_documents'::text) = 'full'::text) OR ((ic_jwt_get_perm('staff_documents'::text) = 'context_read_write'::text) AND ic_jwt_manages_staff((split_part(name, '/'::text, 1))::uuid)) OR (split_part(name, '/'::text, 1) = (ic_jwt_get_staff_id())::text)))",
+    "with_check": null
+  },
+  {
+    "schemaname": "storage",
+    "tablename": "objects",
+    "policyname": "RBAC house_documents ALL",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "((bucket_id = 'ic_house_documents'::text) AND (ic_jwt_is_admin() OR (ic_jwt_has_house((split_part(name, '/'::text, 1))::uuid) AND ((ic_jwt_get_perm('houses'::text) = 'full'::text) OR (ic_jwt_get_perm('house_resources'::text) = 'full'::text)))))",
     "with_check": null
   },
   {
@@ -2172,52 +2792,22 @@
   {
     "schemaname": "storage",
     "tablename": "objects",
-    "policyname": "RBAC checklist_attachments INSERT",
+    "policyname": "RBAC storage_objects ALL (Admin)",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
-    "cmd": "INSERT",
-    "qual": null,
-    "with_check": "((bucket_id = 'ic_checklist_attachments'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('house_checklists'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text]))))"
+    "cmd": "ALL",
+    "qual": "ic_jwt_is_admin()",
+    "with_check": null
   },
   {
     "schemaname": "storage",
     "tablename": "objects",
-    "policyname": "RBAC house_documents INSERT",
+    "policyname": "Users can delete their own avatars",
     "permissive": "PERMISSIVE",
-    "roles": "{authenticated}",
-    "cmd": "INSERT",
-    "qual": null,
-    "with_check": "((bucket_id = 'ic_house_documents'::text) AND (ic_jwt_is_admin() OR (ic_jwt_has_house((split_part(name, '/'::text, 1))::uuid) AND ((ic_jwt_get_perm('houses'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text])) OR (ic_jwt_get_perm('house_resources'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text]))))))"
-  },
-  {
-    "schemaname": "storage",
-    "tablename": "objects",
-    "policyname": "RBAC participant_documents INSERT",
-    "permissive": "PERMISSIVE",
-    "roles": "{authenticated}",
-    "cmd": "INSERT",
-    "qual": null,
-    "with_check": "((bucket_id = 'ic_participant_documents'::text) AND (ic_jwt_is_admin() OR ((ic_jwt_get_perm('participants'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text])) AND (EXISTS ( SELECT 1\n   FROM ic_participants p\n  WHERE (((p.id)::text = split_part(objects.name, '/'::text, 1)) AND ic_jwt_has_house(p.house_id)))))))"
-  },
-  {
-    "schemaname": "storage",
-    "tablename": "objects",
-    "policyname": "RBAC staff_documents INSERT",
-    "permissive": "PERMISSIVE",
-    "roles": "{authenticated}",
-    "cmd": "INSERT",
-    "qual": null,
-    "with_check": "((bucket_id = 'ic_staff_documents'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('employees'::text) = 'full'::text) OR (split_part(name, '/'::text, 1) = (ic_jwt_get_staff_id())::text) OR ((split_part(name, '/'::text, 1) = 'leave-attachments'::text) AND (split_part(name, '/'::text, 2) = (ic_jwt_get_staff_id())::text))))"
-  },
-  {
-    "schemaname": "storage",
-    "tablename": "objects",
-    "policyname": "RBAC participant_photos INSERT",
-    "permissive": "PERMISSIVE",
-    "roles": "{authenticated}",
-    "cmd": "INSERT",
-    "qual": null,
-    "with_check": "((bucket_id = 'ic_participant_photos'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text]))))"
+    "roles": "{public}",
+    "cmd": "DELETE",
+    "qual": "((bucket_id = 'tf_avatars'::text) AND ((auth.uid())::text = (storage.foldername(name))[1]))",
+    "with_check": null
   },
   {
     "schemaname": "storage",
@@ -2232,42 +2822,62 @@
   {
     "schemaname": "storage",
     "tablename": "objects",
-    "policyname": "RBAC storage participant_documents SELECT",
+    "policyname": "RBAC participant_photos INSERT",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
-    "cmd": "SELECT",
-    "qual": "((bucket_id = 'ic_participant_documents'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('participant_documents'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text]))))",
-    "with_check": null
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "((bucket_id = 'ic_participant_photos'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text]))))"
   },
   {
     "schemaname": "storage",
     "tablename": "objects",
-    "policyname": "RBAC participant_photos SELECT",
+    "policyname": "RBAC participant_documents INSERT",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
-    "cmd": "SELECT",
-    "qual": "((bucket_id = 'ic_participant_photos'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR ((ic_jwt_get_perm('participants'::text) = ANY (ARRAY['context_read_write'::text, 'context_read_only'::text])) AND (EXISTS ( SELECT 1\n   FROM ic_participants p\n  WHERE (((p.id)::text = split_part(objects.name, '/'::text, 1)) AND ic_jwt_has_house(p.house_id)))))))",
-    "with_check": null
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "((bucket_id = 'ic_participant_documents'::text) AND (ic_jwt_is_admin() OR ((ic_jwt_get_perm('participants'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text])) AND (EXISTS ( SELECT 1\n   FROM ic_participants p\n  WHERE (((p.id)::text = split_part(objects.name, '/'::text, 1)) AND ic_jwt_has_house(p.house_id)))))))"
   },
   {
     "schemaname": "storage",
     "tablename": "objects",
-    "policyname": "RBAC storage staff_photos SELECT",
+    "policyname": "RBAC house_documents INSERT",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
-    "cmd": "SELECT",
-    "qual": "((bucket_id = 'ic_staff_photos'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('employees'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text])) OR (split_part(name, '/'::text, 1) = (ic_jwt_get_staff_id())::text)))",
-    "with_check": null
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "((bucket_id = 'ic_house_documents'::text) AND (ic_jwt_is_admin() OR (ic_jwt_has_house((split_part(name, '/'::text, 1))::uuid) AND ((ic_jwt_get_perm('houses'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text])) OR (ic_jwt_get_perm('house_resources'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text]))))))"
   },
   {
     "schemaname": "storage",
     "tablename": "objects",
-    "policyname": "RBAC participant_documents SELECT",
+    "policyname": "Users can upload their own avatars",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "((bucket_id = 'tf_avatars'::text) AND ((auth.uid())::text = (storage.foldername(name))[1]))"
+  },
+  {
+    "schemaname": "storage",
+    "tablename": "objects",
+    "policyname": "RBAC checklist_attachments INSERT",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
-    "cmd": "SELECT",
-    "qual": "((bucket_id = 'ic_participant_documents'::text) AND (ic_jwt_is_admin() OR (EXISTS ( SELECT 1\n   FROM ic_participant_documents doc\n  WHERE (doc.file_path = objects.name)))))",
-    "with_check": null
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "((bucket_id = 'ic_checklist_attachments'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('house_checklists'::text) = ANY (ARRAY['full'::text, 'context_read_write'::text]))))"
+  },
+  {
+    "schemaname": "storage",
+    "tablename": "objects",
+    "policyname": "RBAC staff_documents INSERT",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "((bucket_id = 'ic_staff_documents'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('employees'::text) = 'full'::text) OR (split_part(name, '/'::text, 1) = (ic_jwt_get_staff_id())::text) OR ((split_part(name, '/'::text, 1) = 'leave-attachments'::text) AND (split_part(name, '/'::text, 2) = (ic_jwt_get_staff_id())::text))))"
   },
   {
     "schemaname": "storage",
@@ -2292,11 +2902,31 @@
   {
     "schemaname": "storage",
     "tablename": "objects",
-    "policyname": "RBAC staff_documents SELECT",
+    "policyname": "RBAC storage staff_photos SELECT",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "SELECT",
-    "qual": "((bucket_id = 'ic_staff_documents'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('employees'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR (split_part(name, '/'::text, 1) = (ic_jwt_get_staff_id())::text) OR ((split_part(name, '/'::text, 1) = 'leave-attachments'::text) AND (split_part(name, '/'::text, 2) = (ic_jwt_get_staff_id())::text)) OR ((ic_jwt_get_perm('employees'::text) = ANY (ARRAY['context_read_write'::text, 'context_read_only'::text])) AND (EXISTS ( SELECT 1\n   FROM ic_staff s\n  WHERE (((s.id)::text = split_part(objects.name, '/'::text, 1)) AND ic_jwt_manages_staff(s.id)))))))",
+    "qual": "((bucket_id = 'ic_staff_photos'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('employees'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text])) OR (split_part(name, '/'::text, 1) = (ic_jwt_get_staff_id())::text)))",
+    "with_check": null
+  },
+  {
+    "schemaname": "storage",
+    "tablename": "objects",
+    "policyname": "RBAC participant_photos SELECT",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "((bucket_id = 'ic_participant_photos'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR ((ic_jwt_get_perm('participants'::text) = ANY (ARRAY['context_read_write'::text, 'context_read_only'::text])) AND (EXISTS ( SELECT 1\n   FROM ic_participants p\n  WHERE (((p.id)::text = split_part(objects.name, '/'::text, 1)) AND ic_jwt_has_house(p.house_id)))))))",
+    "with_check": null
+  },
+  {
+    "schemaname": "storage",
+    "tablename": "objects",
+    "policyname": "RBAC staff_photos SELECT",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "((bucket_id = 'ic_staff_photos'::text) AND (ic_jwt_is_admin() OR (split_part(name, '/'::text, 1) = (ic_jwt_get_staff_id())::text) OR ((ic_jwt_get_perm('employees'::text) = ANY (ARRAY['context_read_write'::text, 'context_read_only'::text])) AND (EXISTS ( SELECT 1\n   FROM ic_staff s\n  WHERE (((s.id)::text = split_part(objects.name, '/'::text, 1)) AND ic_jwt_manages_staff(s.id)))))))",
     "with_check": null
   },
   {
@@ -2312,11 +2942,461 @@
   {
     "schemaname": "storage",
     "tablename": "objects",
-    "policyname": "RBAC staff_photos SELECT",
+    "policyname": "RBAC storage participant_documents SELECT",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "SELECT",
-    "qual": "((bucket_id = 'ic_staff_photos'::text) AND (ic_jwt_is_admin() OR (split_part(name, '/'::text, 1) = (ic_jwt_get_staff_id())::text) OR ((ic_jwt_get_perm('employees'::text) = ANY (ARRAY['context_read_write'::text, 'context_read_only'::text])) AND (EXISTS ( SELECT 1\n   FROM ic_staff s\n  WHERE (((s.id)::text = split_part(objects.name, '/'::text, 1)) AND ic_jwt_manages_staff(s.id)))))))",
+    "qual": "((bucket_id = 'ic_participant_documents'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('participant_documents'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text]))))",
     "with_check": null
+  },
+  {
+    "schemaname": "storage",
+    "tablename": "objects",
+    "policyname": "evidence_files_view",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "((bucket_id = 'mp-evidence-photos'::text) AND (is_privileged() OR is_pair_member(((storage.foldername(name))[1])::uuid)))",
+    "with_check": null
+  },
+  {
+    "schemaname": "storage",
+    "tablename": "objects",
+    "policyname": "logos_view",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(bucket_id = 'mp-logos'::text)",
+    "with_check": null
+  },
+  {
+    "schemaname": "storage",
+    "tablename": "objects",
+    "policyname": "Avatar images are publicly accessible",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "(bucket_id = 'tf_avatars'::text)",
+    "with_check": null
+  },
+  {
+    "schemaname": "storage",
+    "tablename": "objects",
+    "policyname": "avatars_view",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(bucket_id = 'mp-avatars'::text)",
+    "with_check": null
+  },
+  {
+    "schemaname": "storage",
+    "tablename": "objects",
+    "policyname": "RBAC staff_documents SELECT",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "((bucket_id = 'ic_staff_documents'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('employees'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR (split_part(name, '/'::text, 1) = (ic_jwt_get_staff_id())::text) OR ((split_part(name, '/'::text, 1) = 'leave-attachments'::text) AND (split_part(name, '/'::text, 2) = (ic_jwt_get_staff_id())::text)) OR ((ic_jwt_get_perm('employees'::text) = ANY (ARRAY['context_read_write'::text, 'context_read_only'::text])) AND (EXISTS ( SELECT 1\n   FROM ic_staff s\n  WHERE (((s.id)::text = split_part(objects.name, '/'::text, 1)) AND ic_jwt_manages_staff(s.id)))))))",
+    "with_check": null
+  },
+  {
+    "schemaname": "storage",
+    "tablename": "objects",
+    "policyname": "RBAC participant_documents SELECT",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "((bucket_id = 'ic_participant_documents'::text) AND (ic_jwt_is_admin() OR (EXISTS ( SELECT 1\n   FROM ic_participant_documents doc\n  WHERE (doc.file_path = objects.name)))))",
+    "with_check": null
+  },
+  {
+    "schemaname": "storage",
+    "tablename": "objects",
+    "policyname": "Users can update their own avatars",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "UPDATE",
+    "qual": "((bucket_id = 'tf_avatars'::text) AND ((auth.uid())::text = (storage.foldername(name))[1]))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "tf_daily_metrics",
+    "policyname": "Users can manage their own daily metrics",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "ALL",
+    "qual": "(user_id = auth.uid())",
+    "with_check": "(user_id = auth.uid())"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "tf_error_logs",
+    "policyname": "Anyone can insert error logs",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "true"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "tf_error_logs",
+    "policyname": "Admins can view error logs",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "(EXISTS ( SELECT 1\n   FROM tf_profiles\n  WHERE ((tf_profiles.id = auth.uid()) AND ((tf_profiles.role = 'admin'::text) OR (tf_profiles.role = 'developer'::text)))))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "tf_event_priorities",
+    "policyname": "Admins can manage all event priorities",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "ALL",
+    "qual": "(EXISTS ( SELECT 1\n   FROM tf_profiles\n  WHERE ((tf_profiles.id = auth.uid()) AND (tf_profiles.role = 'admin'::text))))",
+    "with_check": "(EXISTS ( SELECT 1\n   FROM tf_profiles\n  WHERE ((tf_profiles.id = auth.uid()) AND (tf_profiles.role = 'admin'::text))))"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "tf_event_priorities",
+    "policyname": "Users can insert own custom event priorities",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "((is_system = false) AND (created_by = auth.uid()))"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "tf_event_priorities",
+    "policyname": "Users can view system or own event priorities",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "((is_system = true) OR (created_by = auth.uid()))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "tf_event_priorities",
+    "policyname": "Users can update own custom event priorities",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "UPDATE",
+    "qual": "((is_system = false) AND (created_by = auth.uid()))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "tf_event_segments",
+    "policyname": "Users can manage their own event segments",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "ALL",
+    "qual": "(EXISTS ( SELECT 1\n   FROM tf_events\n  WHERE ((tf_events.id = tf_event_segments.event_id) AND (tf_events.user_id = auth.uid()))))",
+    "with_check": "(EXISTS ( SELECT 1\n   FROM tf_events\n  WHERE ((tf_events.id = tf_event_segments.event_id) AND (tf_events.user_id = auth.uid()))))"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "tf_event_types",
+    "policyname": "Admins can manage all event types",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "ALL",
+    "qual": "(EXISTS ( SELECT 1\n   FROM tf_profiles\n  WHERE ((tf_profiles.id = auth.uid()) AND (tf_profiles.role = 'admin'::text))))",
+    "with_check": "(EXISTS ( SELECT 1\n   FROM tf_profiles\n  WHERE ((tf_profiles.id = auth.uid()) AND (tf_profiles.role = 'admin'::text))))"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "tf_event_types",
+    "policyname": "Users can insert own custom event types",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "((is_system = false) AND (created_by = auth.uid()))"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "tf_event_types",
+    "policyname": "Users can view system or own event types",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "((is_system = true) OR (created_by = auth.uid()))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "tf_event_types",
+    "policyname": "Users can update own custom event types",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "UPDATE",
+    "qual": "((is_system = false) AND (created_by = auth.uid()))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "tf_events",
+    "policyname": "Users can manage their own events",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "ALL",
+    "qual": "(user_id = auth.uid())",
+    "with_check": "(user_id = auth.uid())"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "tf_garmin_sport_mapping",
+    "policyname": "Admins can manage all Garmin mappings",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "(EXISTS ( SELECT 1\n   FROM tf_profiles\n  WHERE ((tf_profiles.id = auth.uid()) AND (tf_profiles.role = 'admin'::text))))",
+    "with_check": "(EXISTS ( SELECT 1\n   FROM tf_profiles\n  WHERE ((tf_profiles.id = auth.uid()) AND (tf_profiles.role = 'admin'::text))))"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "tf_garmin_sport_mapping",
+    "policyname": "Users can manage their own mappings",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "(user_id = auth.uid())",
+    "with_check": "(user_id = auth.uid())"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "tf_garmin_sport_mapping",
+    "policyname": "Users can view system and their own mappings",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "((is_system = true) OR (user_id = auth.uid()))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "tf_library_workouts",
+    "policyname": "Users can manage their own library workouts",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "ALL",
+    "qual": "(user_id = auth.uid())",
+    "with_check": "(user_id = auth.uid())"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "tf_notes",
+    "policyname": "Users can delete their own notes",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "DELETE",
+    "qual": "(auth.uid() = user_id)",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "tf_notes",
+    "policyname": "Users can create their own notes",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "(auth.uid() = user_id)"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "tf_notes",
+    "policyname": "Users can view their own notes",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "(auth.uid() = user_id)",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "tf_notes",
+    "policyname": "Users can update their own notes",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "UPDATE",
+    "qual": "(auth.uid() = user_id)",
+    "with_check": "(auth.uid() = user_id)"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "tf_plan_template_notes",
+    "policyname": "Users can manage notes for their own templates",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "ALL",
+    "qual": "(EXISTS ( SELECT 1\n   FROM tf_plan_templates\n  WHERE ((tf_plan_templates.id = tf_plan_template_notes.template_id) AND (tf_plan_templates.created_by = auth.uid()))))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "tf_plan_template_notes",
+    "policyname": "Users can view notes for visible templates",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "(EXISTS ( SELECT 1\n   FROM tf_plan_templates\n  WHERE (tf_plan_templates.id = tf_plan_template_notes.template_id)))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "tf_plan_template_workouts",
+    "policyname": "Users can manage workouts for their own templates",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "ALL",
+    "qual": "(EXISTS ( SELECT 1\n   FROM tf_plan_templates\n  WHERE ((tf_plan_templates.id = tf_plan_template_workouts.template_id) AND (tf_plan_templates.created_by = auth.uid()))))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "tf_plan_template_workouts",
+    "policyname": "Users can view workouts for visible templates",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "(EXISTS ( SELECT 1\n   FROM tf_plan_templates\n  WHERE (tf_plan_templates.id = tf_plan_template_workouts.template_id)))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "tf_plan_templates",
+    "policyname": "Users can manage their own templates",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "ALL",
+    "qual": "(created_by = auth.uid())",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "tf_plan_templates",
+    "policyname": "Users can view system templates and their own",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "((is_system = true) OR (created_by = auth.uid()))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "tf_profiles",
+    "policyname": "Users can insert their own profile",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "(id = auth.uid())"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "tf_profiles",
+    "policyname": "Users can view their own profile",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "(id = auth.uid())",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "tf_profiles",
+    "policyname": "Users can update their own profile",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "UPDATE",
+    "qual": "(id = auth.uid())",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "tf_sport_types",
+    "policyname": "Creators can manage their own sport types",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "ALL",
+    "qual": "(created_by = auth.uid())",
+    "with_check": "(created_by = auth.uid())"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "tf_sport_types",
+    "policyname": "Anyone can view sport types",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "true",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "tf_training_goals",
+    "policyname": "Users can manage their own training goals",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "ALL",
+    "qual": "(user_id = auth.uid())",
+    "with_check": "(user_id = auth.uid())"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "tf_user_sport_settings",
+    "policyname": "Users can manage their own sport settings",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "ALL",
+    "qual": "(user_id = auth.uid())",
+    "with_check": "(user_id = auth.uid())"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "tf_workout_categories",
+    "policyname": "Users can manage their own categories",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "ALL",
+    "qual": "(created_by = auth.uid())",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "tf_workout_categories",
+    "policyname": "Admins can manage all categories",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "ALL",
+    "qual": "(EXISTS ( SELECT 1\n   FROM tf_profiles\n  WHERE ((tf_profiles.id = auth.uid()) AND ((tf_profiles.role = 'admin'::text) OR (tf_profiles.role = 'developer'::text)))))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "tf_workout_categories",
+    "policyname": "Users can view system categories and their own",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "((is_system = true) OR (created_by = auth.uid()))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "tf_workouts",
+    "policyname": "Users can manage their own workouts",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "ALL",
+    "qual": "(user_id = auth.uid())",
+    "with_check": "(user_id = auth.uid())"
   }
 ]
