@@ -100,7 +100,7 @@ export function StaffLeaveList() {
             <ToolbarDescription>View and manage your leave requests</ToolbarDescription>
           </ToolbarHeading>
           <ToolbarActions>
-            <Button onClick={() => navigate('/staff/leave/new')}>
+            <Button onClick={() => navigate('/my-leave/new')}>
               <Plus className="size-4 me-1.5" />
               New Request
             </Button>
@@ -126,7 +126,7 @@ export function StaffLeaveList() {
                   <p className="font-medium">No leave requests yet</p>
                   <p className="text-sm text-muted-foreground mt-1">Submit your first leave request to get started.</p>
                 </div>
-                <Button onClick={() => navigate('/staff/leave/new')}>
+                <Button onClick={() => navigate('/my-leave/new')}>
                   <Plus className="size-4 me-1.5" />
                   New Request
                 </Button>
@@ -184,7 +184,7 @@ export function StaffLeaveList() {
                                 variant="ghost"
                                 className="h-7 w-7 p-0"
                                 title="Edit"
-                                onClick={() => navigate(`/staff/leave/${req.id}/edit`)}
+                                onClick={() => navigate(`/my-leave/${req.id}/edit`)}
                               >
                                 <Pencil className="size-3.5" />
                               </Button>

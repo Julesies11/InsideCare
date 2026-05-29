@@ -175,7 +175,7 @@ export function StaffLeaveForm() {
       toast.success('Leave request submitted successfully');
     }
 
-    navigate('/staff/leave');
+    navigate('/my-leave');
     setSaving(false);
   };
 
@@ -193,7 +193,7 @@ export function StaffLeaveForm() {
         <Toolbar className="hidden sm:flex">
           <ToolbarHeading>
             <div className="flex items-center gap-3">
-              <Button variant="outline" size="sm" onClick={() => navigate('/staff/leave')}>
+              <Button variant="outline" size="sm" onClick={() => navigate('/my-leave')}>
                 <ArrowLeft className="size-4 me-1.5" />
                 Back
               </Button>
@@ -206,7 +206,7 @@ export function StaffLeaveForm() {
             </div>
           </ToolbarHeading>
           <ToolbarActions>
-            <Button variant="outline" onClick={() => navigate('/staff/leave')} disabled={saving}>
+            <Button variant="outline" onClick={() => navigate('/my-leave')} disabled={saving}>
               Cancel
             </Button>
             <Button form="leave-form" type="submit" disabled={saving}>

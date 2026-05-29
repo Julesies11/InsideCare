@@ -19,7 +19,8 @@ vi.mock('@/hooks/useNotifications', () => ({
         type: 'timesheet_approved',
         title: 'Timesheet Approved',
         body: 'Your timesheet was approved',
-        link: '/staff/timesheets',
+        link: '/my-timesheets',
+
         is_read: false,
         created_at: new Date().toISOString(),
       },

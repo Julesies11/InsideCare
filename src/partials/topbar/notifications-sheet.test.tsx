@@ -19,7 +19,7 @@ vi.mock('@/hooks/useNotifications', () => ({
         type: 'shift_assigned',
         title: 'New Shift',
         body: 'You have a new shift',
-        link: '/staff/roster',
+        link: '/my-roster',
         is_read: false,
         created_at: new Date().toISOString(),
       },

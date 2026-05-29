@@ -97,6 +97,8 @@ export function ChangePasswordPage() {
 
   // Run verification on mount and on auth events
   useEffect(() => {
+    verifySession(); // Call immediately on mount
+
     let attempts = 0;
     const maxAttempts = 5; // 5 seconds of polling
 
@@ -174,7 +176,7 @@ export function ChangePasswordPage() {
         if (user?.is_admin) {
           navigate('/');
         } else {
-          navigate('/staff/dashboard');
+          navigate('/my-dashboard');
         }
       }, 1500);
     } catch (err) {
