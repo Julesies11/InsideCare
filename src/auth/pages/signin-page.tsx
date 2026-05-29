@@ -31,8 +31,8 @@ const PROD_ADMIN = { email: 'demo@kt.com', password: 'demo123' };
 const PROD_SUPPORT_WORKER = { email: 'staff@kt.com', password: 'demo123' };
 
 export function SignInPage() {
-  const isDev = import.meta.env.DEV;
-  const isProd = import.meta.env.PROD;
+  const isProd = import.meta.env.VITE_APP_ENV === 'production';
+  const isDev = !isProd;
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { login, getUser, logout } = useAuth();
