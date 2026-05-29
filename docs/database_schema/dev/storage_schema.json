@@ -1,6 +1,6 @@
 [
   {
-    "bucket_context": "GLOBAL / ALL BUCKETS",
+    "bucket_context": "GLOBAL / OTHER",
     "policyname": "RBAC storage_objects ALL (Admin)",
     "operation": "ALL",
     "roles": "{authenticated}",
