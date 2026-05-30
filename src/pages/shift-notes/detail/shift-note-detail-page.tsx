@@ -51,6 +51,7 @@ export function ShiftNoteDetailPage() {
 
   const [formData, setFormData] = useState<Record<string, unknown> | null>(null);
   const [originalData, setOriginalData] = useState<Record<string, unknown> | null>(null);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const saveHandlerRef = useRef<(() => Promise<void>) | null>(null);
 
@@ -137,9 +138,9 @@ export function ShiftNoteDetailPage() {
           </Container>
         </div>
       )}
-      <Container className="py-6">
+      <Container className="py-6 pb-[30vh]">
         <div className="flex grow gap-5 lg:gap-7.5">
-          {!isMobile && (
+          {!isMobile && !loading && formData && (
             <div className="w-[230px] shrink-0">
               <div className={cn('w-[230px]', sidebarSticky && `fixed z-10 start-auto ${stickyClass}`)}>
                 <Scrollspy offset={100} targetRef={parentRef}>
@@ -153,6 +154,7 @@ export function ShiftNoteDetailPage() {
             onFormDataChange={setFormData}
             onOriginalDataChange={setOriginalData}
             onSavingChange={setSaving}
+            onLoadingChange={setLoading}
             saveHandlerRef={saveHandlerRef}
             canEdit={canEdit}
           />
