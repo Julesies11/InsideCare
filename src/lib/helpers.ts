@@ -115,3 +115,22 @@ export function formatDateTime(input: Date | string | number): string {
     hour12: true,
   });
 }
+
+/**
+ * Extracts a human-readable filename from a Supabase storage URL or path.
+ * Handles signed URLs and removes timestamp prefixes (e.g., 1700000000000-file.pdf).
+ */
+export function getFilenameFromStorageUrl(url: string | null | undefined): string {
+  if (!url) return 'Existing attachment';
+  try {
+    const pathPart = url.split('?')[0];
+    const parts = pathPart.split('/');
+    const lastPart = parts[parts.length - 1];
+    const decoded = decodeURIComponent(lastPart);
+    const match = decoded.match(/^\d{13}-(.+)$/);
+    if (match) return match[1];
+    return decoded || 'Existing attachment';
+  } catch (e) {
+    return 'Existing attachment';
+  }
+}
