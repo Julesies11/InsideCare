@@ -165,7 +165,9 @@ export function AppRoutingSetup() {
               />
             </Route>
 
-            <Route path="/reporting" element={<ReportingHubPage />} />
+            <Route element={<RequirePermission module={[RBAC_MODULES.REPORTING_CLINICAL, RBAC_MODULES.REPORTING_OPERATIONAL, RBAC_MODULES.REPORTING_COMPLIANCE]} />}>
+              <Route path="/reporting" element={<ReportingHubPage />} />
+            </Route>
             <Route element={<RequirePermission module={RBAC_MODULES.REPORTING_CLINICAL} />}>
               <Route path="/reporting/clinical/incidents" element={<IncidentManagementReportPage />} />
             </Route>
