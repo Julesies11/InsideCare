@@ -18,6 +18,7 @@ interface ShiftNoteDetailContentProps {
   onFormDataChange?: (data: Record<string, unknown>) => void;
   onOriginalDataChange?: (data: Record<string, unknown>) => void;
   onSavingChange?: (saving: boolean) => void;
+  onLoadingChange?: (loading: boolean) => void;
   saveHandlerRef?: MutableRefObject<(() => Promise<void>) | null>;
   canEdit: boolean;
 }
@@ -26,6 +27,7 @@ export function ShiftNoteDetailContent({
   onFormDataChange,
   onOriginalDataChange,
   onSavingChange,
+  onLoadingChange,
   saveHandlerRef,
   canEdit,
 }: ShiftNoteDetailContentProps) {
@@ -252,10 +254,14 @@ export function ShiftNoteDetailContent({
 
   // Sync state to parent on mount or when formData is fully loaded/updated
   useEffect(() => {
+    if (onLoadingChange) onLoadingChange(loading);
+  }, [loading, onLoadingChange]);
+
+  useEffect(() => {
     if (!loading) {
       onOriginalDataChange?.(formData);
     }
-  }, [loading, onOriginalDataChange]);
+  }, [loading, formData, onOriginalDataChange]);
 
   useEffect(() => {
     if (!loading) {

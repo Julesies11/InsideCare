@@ -13,10 +13,9 @@ import { useScrollPosition } from '@/hooks/use-scroll-position';
 import { cn } from '@/lib/utils';
 import { HouseDetailSidebar } from './house-detail-sidebar';
 import { HouseStaff } from './components/house-staff';
-import { HouseCalendarEvents } from './components/house-calendar-events';
+import { HouseOperations } from './components/house-operations';
 import { HouseChecklistSetup } from './components/house-checklist-setup';
 import { HouseResources } from './components/house-resources';
-import { HouseComms } from './components/house-comms';
 import { HouseChecklistHistory } from './components/house-checklist-history';
 import { HouseManagement } from './components/house-management';
 import { HousePendingChanges, emptyHousePendingChanges } from '@/models/house-pending-changes';
@@ -295,7 +294,7 @@ export function HouseDetailContent({
   }
 
   return (
-    <div className="flex grow gap-5 lg:gap-7.5">
+    <div className="flex grow gap-5 lg:gap-7.5 pb-[30vh]">
       {!isMobile && (
         <div className="w-[230px] shrink-0">
           <div
@@ -375,23 +374,14 @@ export function HouseDetailContent({
           )}
 
           {canViewOperations && (
-            <div id="daily_operations" className="flex flex-col gap-5 lg:gap-7.5">
-              <HouseCalendarEvents 
-                houseId={id!} 
-                houseName={formData.house_name}
-                events={formData.calendarEvents || []}
-                pendingChanges={pendingChanges}
-                onPendingChangesChange={onPendingChangesChange}
-                canEdit={canEditOperations}
-              />
-
-              <HouseComms 
-                houseId={id!} 
-                canEdit={canEditOperations}
-                pendingChanges={pendingChanges}
-                onPendingChangesChange={onPendingChangesChange}
-              />
-            </div>
+            <HouseOperations 
+              houseId={id!} 
+              houseName={formData.house_name}
+              calendarEvents={formData.calendarEvents || []}
+              pendingChanges={pendingChanges}
+              onPendingChangesChange={onPendingChangesChange}
+              canEdit={canEditOperations}
+            />
           )}
 
           {canViewChecklistSetup && (

@@ -45,6 +45,7 @@ export interface HouseCalendarEventsProps {
   onRefreshNeeded?: () => void;
   // refreshKey?: number;
   hideCalendar?: boolean;
+  hideCardWrapper?: boolean;
 }
 
 type ViewMode = 'month' | 'week';
@@ -59,7 +60,8 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
   onPendingChangesChange,
   onRefreshNeeded,
   // refreshKey,
-  hideCalendar
+  hideCalendar,
+  hideCardWrapper = false
 }, ref) => {
   const [viewMode, setViewMode] = useState<ViewMode>('week');
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -687,25 +689,273 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
     refresh
   }));
 
+  const calendarContent = (
+    <div className="relative" id={hideCardWrapper ? "calendar_events" : undefined}>
+      {loading && getEventsForPeriod.length === 0 ? (
+        <div className="text-center py-12 text-muted-foreground flex flex-col items-center gap-2">
+          <Loader2 className="size-8 animate-spin text-primary" />
+          <p className="text-sm">Loading calendar events...</p>
+        </div>
+      ) : (
+        <div className="space-y-6 transition-opacity opacity-100">
+          {/* Visual Calendar View */}
+          <div className="border rounded-xl overflow-hidden bg-background">
+            {viewMode === 'week' ? (
+              <div className="grid grid-cols-1 md:grid-cols-7 divide-x divide-gray-100">
+                {Array.from({ length: 7 }).map((_, i) => {
+                  const day = addDays(startOfWeek(currentDate), i);
+                  const dayEvents = getEventsForPeriod.filter(e => isSameDay(new Date(e.event_date), day));
+                  const isToday = isSameDay(day, new Date());
+
+                  return (
+                    <div key={i} className={`min-h-[200px] flex flex-col group/day ${isToday ? 'bg-primary/[0.02]' : ''}`}>
+                      <div 
+                        className={`p-2 border-b border-gray-100 transition-colors ${isToday ? 'bg-primary/5' : 'bg-gray-50/50'}`}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="text-center flex-1">
+                            <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight">{format(day, 'EEE')}</div>
+                            <div className={`size-7 mx-auto flex items-center justify-center rounded-full text-sm font-bold mt-0.5 ${isToday ? 'bg-primary text-white' : 'text-gray-900'}`}>
+                              {format(day, 'd')}
+                            </div>
+                          </div>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="size-8 opacity-0 group-hover/day:opacity-100 transition-opacity -mr-1"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAddEvent(day);
+                            }}
+                          >
+                            <Plus className="size-5 text-primary" />
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="flex-1 p-1.5 space-y-1.5 overflow-y-auto max-h-[400px]">
+                        {dayEvents.length === 0 ? (
+                          <div className="h-full min-h-[100px] flex items-center justify-center italic text-[10px] text-muted-foreground/30">
+                            No events
+                          </div>
+                        ) : (
+                          dayEvents.map(event => {
+                            return (
+                              <div
+                                key={event.id || event.tempId}
+                                onClick={() => handleEditEvent(event)}
+                                className={`p-2 rounded-lg border text-left cursor-pointer transition-all hover:shadow-sm hover:scale-[1.02] active:scale-[0.98] ${
+                                  event.tempId ? 'bg-primary/5 border-primary/20' :
+                                  pendingChanges?.calendarEvents.toDelete.includes(event.id) ? 'opacity-40 bg-destructive/5' :
+                                  'bg-white border-gray-100'
+                                }`}
+                              >                                    <div className="flex flex-col gap-1">
+                                  <div className="text-[9px] text-gray-500 font-bold uppercase tracking-tighter flex items-center gap-1.5">
+                                    {event.is_checklist_event && <CheckSquare className={`size-2.5 text-${getTypeColor(event)}-600`} />}
+                                    {event.is_checklist_event ? 'CHECKLIST' : (event.event_type_info?.event_type_name || event.type)}
+                                  </div>
+                                  
+                                  <div className="flex items-start gap-1.5">
+                                    <div className={`size-1.5 rounded-full bg-${getTypeColor(event)}-500 mt-1 shrink-0`} />
+                                    <div className="flex flex-col gap-1 flex-1 min-w-0">
+                                      <span className="text-[10px] font-bold text-gray-900 leading-tight whitespace-normal break-words">{event.title}</span>
+                                      
+                                      {(event.start_time || event.end_time) && (
+                                        <div className="text-[9px] text-muted-foreground font-medium flex items-center gap-1">
+                                          <Clock className="size-2.5" />
+                                          {event.start_time || '??'} {event.end_time && `- ${event.end_time}`}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : viewMode === 'day' ? (
+              <div className="p-4 flex flex-col gap-4 min-h-[300px]">
+                <div className="flex items-center justify-between border-b pb-2">
+                  <h3 className="font-bold text-lg">{format(currentDate, 'EEEE, MMMM d')}</h3>
+                </div>
+                <div className="space-y-3">
+                  {getEventsForPeriod.length === 0 ? (
+                    <div className="py-12 text-center text-muted-foreground italic">No events for this day</div>
+                  ) : (
+                    getEventsForPeriod.map(event => {
+                      return (
+                        <div 
+                          key={event.id || event.tempId}
+                          onClick={() => handleEditEvent(event)}
+                          className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 hover:border-primary/30 hover:bg-primary/[0.02] cursor-pointer transition-all group"
+                        >
+                          <div className={`w-1 self-stretch rounded-full bg-${getTypeColor(event)}-500`} />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              {event.is_checklist_event && <CheckSquare className={`size-4 text-${getTypeColor(event)}-600`} />}
+                              <h4 className="font-bold text-gray-900">{event.title}</h4>                                <Badge variant="outline" className={`text-[10px] border-${getTypeColor(event)}-200 text-${getTypeColor(event)}-700 bg-${getTypeColor(event)}-50 uppercase font-bold`}>
+                                {(event.event_type_info?.event_type_name || event.type)}
+                              </Badge>
+                            </div>
+                            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                              {(event.start_time || event.end_time) && (
+                                <div className="flex items-center gap-1.5">
+                                  <Clock className="size-3.5" />
+                                  {event.start_time || '??'} {event.end_time && `- ${event.end_time}`}
+                                </div>
+                              )}
+                              {event.location && (
+                                <div className="flex items-center gap-1.5">
+                                  <MapPin className="size-3.5" />
+                                  {event.location}
+                                </div>
+                              )}
+                            </div>
+                            {event.description && <p className="mt-2 text-xs text-gray-600 line-clamp-2">{event.description}</p>}
+                            </div>
+                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            {canDelete && (
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="size-8 text-destructive hover:bg-destructive/10"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteEvent(event);
+                                }}
+                              >
+                                <Trash2 className="size-4" />
+                              </Button>
+                            )}
+                            <Button variant="ghost" size="icon" className="size-8">
+                              <Edit className="size-4" />
+                            </Button>
+                            </div>
+                            </div>
+                      );
+                    })
+                  )}                    </div>
+              </div>
+            ) : viewMode === 'month' ? (
+              <div className="p-0 border-t">
+                {/* Day Headers */}
+                <div className="grid grid-cols-7 border-b bg-gray-50/50">
+                  {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                    <div key={day} className="p-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      {day}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Calendar Grid */}
+                <div className="grid grid-cols-7 border-l border-t border-gray-100">
+                  {eachDayOfInterval({
+                    start: startOfWeek(startOfMonth(currentDate)),
+                    end: endOfWeek(endOfMonth(currentDate))
+                  }).map((day, idx) => {
+                    const dayStr = format(day, 'yyyy-MM-dd');
+                    const dayEvents = visibleEvents.filter(e => e.event_date === dayStr);
+                    const isToday = isSameDay(day, new Date());
+                    const isInMonth = isSameMonth(day, currentDate);
+
+                    return (
+                      <div 
+                        key={idx} 
+                        className={`min-h-[120px] p-2 border-r border-b border-gray-100 flex flex-col gap-1 transition-colors hover:bg-gray-50/50 ${
+                          !isInMonth ? 'bg-gray-50/30' : ''
+                        }`}
+                        onClick={() => handleAddEvent(day)}
+                      >
+                        <div className="flex justify-between items-center mb-1">
+                          <span className={`text-xs font-bold ${
+                            isToday ? 'bg-primary text-white size-6 rounded-full flex items-center justify-center' : 
+                            !isInMonth ? 'text-gray-300' : 'text-gray-700'
+                          }`}>
+                            {format(day, 'd')}
+                          </span>
+                        </div>
+
+                        <div className="flex flex-col gap-1 overflow-y-auto max-h-[85px] custom-scrollbar">
+                          {dayEvents.map(event => {
+                            const Icon = event.is_checklist_event ? CheckSquare : null;
+
+                            return (
+                              <div
+                                key={event.id || event.tempId}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEditEvent(event);
+                                }}
+                                className={cn(
+                                  "px-1.5 py-1 rounded text-[9px] font-medium flex flex-col gap-0.5 border transition-all hover:scale-[1.02]",
+                                  event.is_checklist_event
+                                    ? `bg-${getTypeColor(event)}-50 text-${getTypeColor(event)}-700 border-${getTypeColor(event)}-200`
+                                    : `bg-white text-gray-700 border-gray-200`
+                                )}
+                                title={`${event.title} (${getStatusText(event)})`}
+                              >
+                                <div className="flex items-center justify-between gap-1">
+                                  <span className="uppercase font-bold text-[8px] opacity-70 truncate flex items-center gap-1">
+                                    {Icon && <Icon className="size-2 shrink-0" />}
+                                    {event.is_checklist_event ? 'CHECKLIST' : (event.event_type_info?.event_type_name || event.type)}
+                                  </span>
+                                  <span className={cn(
+                                    "size-1.5 rounded-full shrink-0",
+                                    `bg-${getTypeColor(event)}-500`
+                                  )} />
+                                </div>                                    <div className="font-bold text-gray-900 leading-tight whitespace-normal break-words">
+                                  {event.title}
+                                </div>
+                                
+                                <div className={cn(
+                                  "text-[8px] font-bold uppercase tracking-tighter flex items-center gap-1",
+                                  `text-${getTypeColor(event)}-600`
+                                )}>
+                                  {getStatusText(event)}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              // Placeholder for any other view modes
+              <div className="p-8 text-center text-muted-foreground">
+                <p>Unsupported View Mode</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <>
-      {!hideCalendar && (
-        <Card className="pb-2.5" id="calendar_events">
-        <CardHeader>
+      {hideCardWrapper ? (
+        <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between flex-wrap gap-5">
-            <CardTitle className="flex items-center gap-2">
-              <CalendarDays className="size-5 text-primary" />
+            <Label className="text-sm font-bold flex items-center gap-2">
+              <CalendarCheck className="size-4 text-primary" />
               House Calendar
-            </CardTitle>
+            </Label>
 
             <div className="flex items-center gap-2 flex-wrap">
-              <div className="flex items-center bg-gray-100 rounded-lg p-1 mr-4">
+              <div className="flex items-center bg-gray-100 rounded-lg p-1">
                 {eventTypesMaster?.map(type => (
                   <button
                     key={type.id}
                     onClick={() => toggleFilter(type.id)}
                     className={cn(
-                      "px-2.5 py-1 text-[10px] font-bold rounded-md transition-all",
+                      "px-2 py-0.5 text-[9px] font-bold rounded-md transition-all",
                       getButtonClass(type.color, filterTypes.includes(type.id))
                     )}
                   >
@@ -715,10 +965,11 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
               </div>
             </div>
           </div>
-          <div className="flex items-center justify-between bg-muted/30 p-2 rounded-lg mt-2">
+          
+          <div className="flex items-center justify-between bg-muted/30 p-2 rounded-lg">
             <div className="flex items-center gap-2">
               <Select value={viewMode} onValueChange={(value: ViewMode) => setViewMode(value)}>
-                <SelectTrigger className="w-24 h-8 text-[10px] font-bold uppercase tracking-wider">
+                <SelectTrigger className="w-20 h-7 text-[9px] font-bold uppercase tracking-wider">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -728,269 +979,93 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
               </Select>
 
               <div className="flex items-center gap-1 border-l border-gray-300 pl-2">
-                <Button variant="ghost" size="icon" className="size-8" onClick={() => navigatePeriod('prev')}>
-                  <ChevronLeft className="size-4" />
+                <Button variant="ghost" size="icon" className="size-7" onClick={() => navigatePeriod('prev')}>
+                  <ChevronLeft className="size-3.5" />
                 </Button>
-                <Button variant="ghost" size="sm" className="h-8 text-xs font-semibold uppercase" onClick={() => setCurrentDate(new Date())}>
+                <Button variant="ghost" size="sm" className="h-7 text-[10px] font-semibold uppercase px-2" onClick={() => setCurrentDate(new Date())}>
                   Today
                 </Button>
-                <Button variant="ghost" size="icon" className="size-8" onClick={() => navigatePeriod('next')}>
-                  <ChevronRight className="size-4" />
+                <Button variant="ghost" size="icon" className="size-7" onClick={() => navigatePeriod('next')}>
+                  <ChevronRight className="size-3.5" />
                 </Button>
               </div>
             </div>
-            <span className="text-sm font-bold text-gray-700">
+            <span className="text-[11px] font-bold text-gray-700">
               {getPeriodLabel()}
             </span>
           </div>
-        </CardHeader>        <CardContent className="relative">
-          {loading && getEventsForPeriod.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground flex flex-col items-center gap-2">
-              <Loader2 className="size-8 animate-spin text-primary" />
-              <p className="text-sm">Loading calendar events...</p>
-            </div>
-          ) : (
-            <div className="space-y-6 transition-opacity opacity-100">
-              {/* Visual Calendar View */}
-              <div className="border rounded-xl overflow-hidden bg-background">
-                {viewMode === 'week' ? (
-                  <div className="grid grid-cols-1 md:grid-cols-7 divide-x divide-gray-100">
-                    {Array.from({ length: 7 }).map((_, i) => {
-                      const day = addDays(startOfWeek(currentDate), i);
-                      const dayEvents = getEventsForPeriod.filter(e => isSameDay(new Date(e.event_date), day));
-                      const isToday = isSameDay(day, new Date());
 
-                      return (
-                        <div key={i} className={`min-h-[200px] flex flex-col group/day ${isToday ? 'bg-primary/[0.02]' : ''}`}>
-                          <div 
-                            className={`p-2 border-b border-gray-100 transition-colors ${isToday ? 'bg-primary/5' : 'bg-gray-50/50'}`}
-                          >
-                            <div className="flex items-start justify-between">
-                              <div className="text-center flex-1">
-                                <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight">{format(day, 'EEE')}</div>
-                                <div className={`size-7 mx-auto flex items-center justify-center rounded-full text-sm font-bold mt-0.5 ${isToday ? 'bg-primary text-white' : 'text-gray-900'}`}>
-                                  {format(day, 'd')}
-                                </div>
-                              </div>
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                className="size-8 opacity-0 group-hover/day:opacity-100 transition-opacity -mr-1"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleAddEvent(day);
-                                }}
-                              >
-                                <Plus className="size-5 text-primary" />
-                              </Button>
-                            </div>
-                          </div>
-                          <div className="flex-1 p-1.5 space-y-1.5 overflow-y-auto max-h-[400px]">
-                            {dayEvents.length === 0 ? (
-                              <div className="h-full min-h-[100px] flex items-center justify-center italic text-[10px] text-muted-foreground/30">
-                                No events
-                              </div>
-                            ) : (
-                              dayEvents.map(event => {
-                                return (
-                                  <div
-                                    key={event.id || event.tempId}
-                                    onClick={() => handleEditEvent(event)}
-                                    className={`p-2 rounded-lg border text-left cursor-pointer transition-all hover:shadow-sm hover:scale-[1.02] active:scale-[0.98] ${
-                                      event.tempId ? 'bg-primary/5 border-primary/20' :
-                                      pendingChanges?.calendarEvents.toDelete.includes(event.id) ? 'opacity-40 bg-destructive/5' :
-                                      'bg-white border-gray-100'
-                                    }`}
-                                  >                                    <div className="flex flex-col gap-1">
-                                      <div className="text-[9px] text-gray-500 font-bold uppercase tracking-tighter flex items-center gap-1.5">
-                                        {event.is_checklist_event && <CheckSquare className={`size-2.5 text-${getTypeColor(event)}-600`} />}
-                                        {event.is_checklist_event ? 'CHECKLIST' : (event.event_type_info?.event_type_name || event.type)}
-                                      </div>
-                                      
-                                      <div className="flex items-start gap-1.5">
-                                        <div className={`size-1.5 rounded-full bg-${getTypeColor(event)}-500 mt-1 shrink-0`} />
-                                        <div className="flex flex-col gap-1 flex-1 min-w-0">
-                                          <span className="text-[10px] font-bold text-gray-900 leading-tight whitespace-normal break-words">{event.title}</span>
-                                          
-                                          {(event.start_time || event.end_time) && (
-                                            <div className="text-[9px] text-muted-foreground font-medium flex items-center gap-1">
-                                              <Clock className="size-2.5" />
-                                              {event.start_time || '??'} {event.end_time && `- ${event.end_time}`}
-                                            </div>
-                                          )}
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                );
-                              })
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
+          {calendarContent}
+        </div>
+      ) : (
+        !hideCalendar && (
+          <Card className="pb-2.5" id="calendar_events">
+            <CardHeader>
+              <div className="flex items-center justify-between flex-wrap gap-5">
+                <CardTitle className="flex items-center gap-2">
+                  <CalendarDays className="size-5 text-primary" />
+                  House Calendar
+                </CardTitle>
+
+                <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex items-center bg-gray-100 rounded-lg p-1 mr-4">
+                    {eventTypesMaster?.map(type => (
+                      <button
+                        key={type.id}
+                        onClick={() => toggleFilter(type.id)}
+                        className={cn(
+                          "px-2.5 py-1 text-[10px] font-bold rounded-md transition-all",
+                          getButtonClass(type.color, filterTypes.includes(type.id))
+                        )}
+                      >
+                        {type.event_type_name}
+                      </button>
+                    ))}
                   </div>
-                ) : viewMode === 'day' ? (
-                  <div className="p-4 flex flex-col gap-4 min-h-[300px]">
-                    <div className="flex items-center justify-between border-b pb-2">
-                      <h3 className="font-bold text-lg">{format(currentDate, 'EEEE, MMMM d')}</h3>
-                    </div>
-                    <div className="space-y-3">
-                      {getEventsForPeriod.length === 0 ? (
-                        <div className="py-12 text-center text-muted-foreground italic">No events for this day</div>
-                      ) : (
-                        getEventsForPeriod.map(event => {
-                          return (
-                            <div 
-                              key={event.id || event.tempId}
-                              onClick={() => handleEditEvent(event)}
-                              className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 hover:border-primary/30 hover:bg-primary/[0.02] cursor-pointer transition-all group"
-                            >
-                              <div className={`w-1 self-stretch rounded-full bg-${getTypeColor(event)}-500`} />
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-1">
-                                  {event.is_checklist_event && <CheckSquare className={`size-4 text-${getTypeColor(event)}-600`} />}
-                                  <h4 className="font-bold text-gray-900">{event.title}</h4>                                <Badge variant="outline" className={`text-[10px] border-${getTypeColor(event)}-200 text-${getTypeColor(event)}-700 bg-${getTypeColor(event)}-50 uppercase font-bold`}>
-                                    {(event.event_type_info?.event_type_name || event.type)}
-                                  </Badge>
-                                </div>
-                                <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                                  {(event.start_time || event.end_time) && (
-                                    <div className="flex items-center gap-1.5">
-                                      <Clock className="size-3.5" />
-                                      {event.start_time || '??'} {event.end_time && `- ${event.end_time}`}
-                                    </div>
-                                  )}
-                                  {event.location && (
-                                    <div className="flex items-center gap-1.5">
-                                      <MapPin className="size-3.5" />
-                                      {event.location}
-                                    </div>
-                                  )}
-                                </div>
-                                {event.description && <p className="mt-2 text-xs text-gray-600 line-clamp-2">{event.description}</p>}
-                                </div>
-                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                {canDelete && (
-                                  <Button 
-                                    variant="ghost" 
-                                    size="icon" 
-                                    className="size-8 text-destructive hover:bg-destructive/10"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleDeleteEvent(event);
-                                    }}
-                                  >
-                                    <Trash2 className="size-4" />
-                                  </Button>
-                                )}
-                                <Button variant="ghost" size="icon" className="size-8">
-                                  <Edit className="size-4" />
-                                </Button>
-                                </div>
-                                </div>
-                          );
-                        })
-                      )}                    </div>
-                  </div>
-                ) : viewMode === 'month' ? (
-                  <div className="p-0 border-t">
-                    {/* Day Headers */}
-                    <div className="grid grid-cols-7 border-b bg-gray-50/50">
-                      {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                        <div key={day} className="p-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">
-                          {day}
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Calendar Grid */}
-                    <div className="grid grid-cols-7 border-l border-t border-gray-100">
-                      {eachDayOfInterval({
-                        start: startOfWeek(startOfMonth(currentDate)),
-                        end: endOfWeek(endOfMonth(currentDate))
-                      }).map((day, idx) => {
-                        const dayStr = format(day, 'yyyy-MM-dd');
-                        const dayEvents = visibleEvents.filter(e => e.event_date === dayStr);
-                        const isToday = isSameDay(day, new Date());
-                        const isInMonth = isSameMonth(day, currentDate);
-
-                        return (
-                          <div 
-                            key={idx} 
-                            className={`min-h-[120px] p-2 border-r border-b border-gray-100 flex flex-col gap-1 transition-colors hover:bg-gray-50/50 ${
-                              !isInMonth ? 'bg-gray-50/30' : ''
-                            }`}
-                            onClick={() => handleAddEvent(day)}
-                          >
-                            <div className="flex justify-between items-center mb-1">
-                              <span className={`text-xs font-bold ${
-                                isToday ? 'bg-primary text-white size-6 rounded-full flex items-center justify-center' : 
-                                !isInMonth ? 'text-gray-300' : 'text-gray-700'
-                              }`}>
-                                {format(day, 'd')}
-                              </span>
-                            </div>
-
-                            <div className="flex flex-col gap-1 overflow-y-auto max-h-[85px] custom-scrollbar">
-                              {dayEvents.map(event => {
-                                const Icon = event.is_checklist_event ? CheckSquare : null;
-
-                                return (
-                                  <div
-                                    key={event.id || event.tempId}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleEditEvent(event);
-                                    }}
-                                    className={cn(
-                                      "px-1.5 py-1 rounded text-[9px] font-medium flex flex-col gap-0.5 border transition-all hover:scale-[1.02]",
-                                      event.is_checklist_event
-                                        ? `bg-${getTypeColor(event)}-50 text-${getTypeColor(event)}-700 border-${getTypeColor(event)}-200`
-                                        : `bg-white text-gray-700 border-gray-200`
-                                    )}
-                                    title={`${event.title} (${getStatusText(event)})`}
-                                  >
-                                    <div className="flex items-center justify-between gap-1">
-                                      <span className="uppercase font-bold text-[8px] opacity-70 truncate flex items-center gap-1">
-                                        {Icon && <Icon className="size-2 shrink-0" />}
-                                        {event.is_checklist_event ? 'CHECKLIST' : (event.event_type_info?.event_type_name || event.type)}
-                                      </span>
-                                      <span className={cn(
-                                        "size-1.5 rounded-full shrink-0",
-                                        `bg-${getTypeColor(event)}-500`
-                                      )} />
-                                    </div>                                    <div className="font-bold text-gray-900 leading-tight whitespace-normal break-words">
-                                      {event.title}
-                                    </div>
-                                    
-                                    <div className={cn(
-                                      "text-[8px] font-bold uppercase tracking-tighter flex items-center gap-1",
-                                      `text-${getTypeColor(event)}-600`
-                                    )}>
-                                      {getStatusText(event)}
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ) : (
-                  // Placeholder for any other view modes
-                  <div className="p-8 text-center text-muted-foreground">
-                    <p>Unsupported View Mode</p>
-                  </div>
-                )}
+                </div>
               </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              <div className="flex items-center justify-between bg-muted/30 p-2 rounded-lg mt-2">
+                <div className="flex items-center gap-2">
+                  <Select value={viewMode} onValueChange={(value: ViewMode) => setViewMode(value)}>
+                    <SelectTrigger className="w-24 h-8 text-[10px] font-bold uppercase tracking-wider">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="week">Week</SelectItem>
+                      <SelectItem value="month">Month</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <div className="flex items-center gap-1 border-l border-gray-300 pl-2">
+                    <Button variant="ghost" size="icon" className="size-8" onClick={() => navigatePeriod('prev')}>
+                      <ChevronLeft className="size-4" />
+                    </Button>
+                    <Button variant="ghost" size="sm" className="h-8 text-xs font-semibold uppercase" onClick={() => setCurrentDate(new Date())}>
+                      Today
+                    </Button>
+                    <Button variant="ghost" size="icon" className="size-8" onClick={() => navigatePeriod('next')}>
+                      <ChevronRight className="size-4" />
+                    </Button>
+                  </div>
+                </div>
+                <span className="text-sm font-bold text-gray-700">
+                  {getPeriodLabel()}
+                </span>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {calendarContent}
+            </CardContent>
+          </Card>
+        )
       )}
+
+      <BulkDeleteCalendarModal
+        open={showBulkDeleteModal}
+        onClose={() => setShowBulkDeleteModal(false)}
+        onConfirm={handleBulkDelete}
+        houseName={houseName || 'Selected House'}
+      />
 
       <BulkDeleteCalendarModal
         open={showBulkDeleteModal}

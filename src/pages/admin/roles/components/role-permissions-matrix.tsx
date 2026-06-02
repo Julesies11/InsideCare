@@ -15,9 +15,10 @@ import { RBAC_MODULES, RBACModule } from '@/config/rbac-modules';
 import { AccessLevel, ACCESS_LEVEL, useRBAC } from '@/hooks/useRBAC';
 
 interface ModuleConfig {
-  id: RBACModule;
+  id?: RBACModule;
   label: string;
   isChild?: boolean;
+  isLabelOnly?: boolean;
 }
 
 interface GroupConfig {
@@ -91,17 +92,15 @@ const GROUPS: GroupConfig[] = [
     ],
   },
   {
-    title: 'Operations & Facilities',
-    modules: [
-      { id: RBAC_MODULES.ROSTER_BOARD, label: 'Roster Board' },
-    ],
-  },
-  {
     title: 'System Administration',
     modules: [
       { id: RBAC_MODULES.ACCESS_CONTROL, label: 'Access Control' },
       { id: RBAC_MODULES.MASTER_LISTS, label: 'Master Lists' },
       { id: RBAC_MODULES.ACTIVITY_LOG, label: 'System Activity Log' },
+      { label: 'Reporting', isLabelOnly: true },
+      { id: RBAC_MODULES.REPORTING_CLINICAL, label: 'Clinical Reports', isChild: true },
+      { id: RBAC_MODULES.REPORTING_OPERATIONAL, label: 'Operational Reports', isChild: true },
+      { id: RBAC_MODULES.REPORTING_COMPLIANCE, label: 'Compliance Reports', isChild: true },
     ],
   },
 ];
@@ -159,6 +158,12 @@ export const getContextDescription = (moduleId: RBACModule, level: AccessLevel):
     RBAC_MODULES.HOUSE_ACTIVITY_LOG
   ].includes(moduleId);
 
+  const isReporting = [
+    RBAC_MODULES.REPORTING_CLINICAL,
+    RBAC_MODULES.REPORTING_OPERATIONAL,
+    RBAC_MODULES.REPORTING_COMPLIANCE
+  ].includes(moduleId);
+
   switch (level) {
     case ACCESS_LEVEL.FULL:
       return 'Global access to all records across the organization.';
@@ -170,6 +175,7 @@ export const getContextDescription = (moduleId: RBACModule, level: AccessLevel):
       if (isClinical) return 'View and edit participants in your assigned houses.';
       if (isOperational) return 'Full management of assigned houses and facilities.';
       if (isSystem) return 'Full access to system configurations or logs.';
+      if (isReporting) return 'Create and manage reports for assigned houses/staff.';
       return 'Context-aware read and write access.';
     case ACCESS_LEVEL.CONTEXT_READ_ONLY:
       if (isPersonal) return 'View-only access to your own personal records.';
@@ -177,6 +183,7 @@ export const getContextDescription = (moduleId: RBACModule, level: AccessLevel):
       if (isClinical) return 'View-only for participants in your assigned houses.';
       if (isOperational) return 'View-only access for assigned houses and facilities.';
       if (isSystem) return 'View-only access to logs or configurations.';
+      if (isReporting) return 'View reports for assigned houses/staff.';
       return 'Context-aware view-only access.';
     default:
       return 'Access is restricted.';
@@ -325,25 +332,30 @@ export function RolePermissionsMatrix() {
                     </TableCell>
                   </TableRow>
                   {group.modules.map((module) => {
-                    const currentLevel = getPermission(module.id);
+                    const currentLevel = module.id ? getPermission(module.id) : ACCESS_LEVEL.NONE;
                     
                     // Dependency checks
-                    const isLocked = (isHousesGroup && houseProfilesDisabled && module.id !== RBAC_MODULES.HOUSES) || 
+                    const isLocked = module.id && ((isHousesGroup && houseProfilesDisabled && module.id !== RBAC_MODULES.HOUSES) || 
                                      (isParticipantsGroup && participantProfilesDisabled && module.id !== RBAC_MODULES.PARTICIPANTS) ||
-                                     (isEmployeesGroup && staffProfilesDisabled && module.id !== RBAC_MODULES.EMPLOYEES && module.isChild);
+                                     (isEmployeesGroup && staffProfilesDisabled && module.id !== RBAC_MODULES.EMPLOYEES && module.isChild));
 
                     return (
                       <TableRow 
-                        key={`${group.title}-${module.id}`} 
+                        key={`${group.title}-${module.id || module.label}`} 
                         className={cn(
                           "hover:bg-gray-50/50 transition-colors",
-                          isLocked && "opacity-40"
+                          isLocked && "opacity-40",
+                          module.isLabelOnly && "bg-gray-50/30 hover:bg-gray-50/30 cursor-default"
                         )}
                       >
                         <TableCell className={cn("py-4", module.isChild ? "pl-14" : "pl-8")}>
                           <div className="flex flex-col">
                             <div className="flex items-center gap-2">
-                              <span className={cn("font-semibold", module.isChild ? "text-gray-600" : "text-gray-700")}>
+                              <span className={cn(
+                                "font-semibold", 
+                                module.isChild ? "text-gray-600" : "text-gray-700",
+                                module.isLabelOnly && "text-gray-900 font-bold"
+                              )}>
                                 {module.label}
                               </span>
                               {isLocked && (
@@ -352,43 +364,47 @@ export function RolePermissionsMatrix() {
                                 </Badge>
                               )}
                             </div>
-                            <div className="flex items-center gap-1 text-[11px] text-gray-400 mt-1">
-                              <Info className="size-3" />
-                              <span>
-                                {isLocked 
-                                  ? `Requires '${isHousesGroup ? "Houses" : isParticipantsGroup ? "Participant Profiles" : "Staff Profiles"}' access to be active.`
-                                  : getContextDescription(
-                                      module.id, 
-                                      isAdminRole ? ACCESS_LEVEL.FULL : currentLevel
-                                    )
-                                }
-                              </span>
-                            </div>
+                            {!module.isLabelOnly && (
+                              <div className="flex items-center gap-1 text-[11px] text-gray-400 mt-1">
+                                <Info className="size-3" />
+                                <span>
+                                  {isLocked 
+                                    ? `Requires '${isHousesGroup ? "Houses" : isParticipantsGroup ? "Participant Profiles" : "Staff Profiles"}' access to be active.`
+                                    : getContextDescription(
+                                        module.id!, 
+                                        isAdminRole ? ACCESS_LEVEL.FULL : currentLevel
+                                      )
+                                  }
+                                </span>
+                              </div>
+                            )}
                           </div>
                         </TableCell>
                         {ACCESS_LEVELS.map(level => {
-                          let isChecked = currentLevel === level.value;
+                          let isChecked = !module.isLabelOnly && currentLevel === level.value;
                           
                           // Override for Admin Role
-                          if (isAdminRole) {
+                          if (isAdminRole && !module.isLabelOnly) {
                             isChecked = level.value === ACCESS_LEVEL.FULL;
                           }
 
                           return (
                             <TableCell key={level.value} className="py-4 text-center">
-                              <div className="flex justify-center">
-                                <Checkbox 
-                                  checked={isChecked} 
-                                  onCheckedChange={() => {
-                                    if (!isChecked && canEdit && !isLocked) handleUpdate(module.id, level.value);
-                                  }}
-                                  disabled={isAdminRole || !canEdit || isLocked}
-                                  className={cn(
-                                    "size-5 border-gray-300 data-[state=checked]:bg-primary data-[state=checked]:border-primary",
-                                    (isAdminRole || !canEdit || isLocked) && "opacity-50 cursor-not-allowed"
-                                  )}
-                                />
-                              </div>
+                              {!module.isLabelOnly && (
+                                <div className="flex justify-center">
+                                  <Checkbox 
+                                    checked={isChecked} 
+                                    onCheckedChange={() => {
+                                      if (!isChecked && canEdit && !isLocked && module.id) handleUpdate(module.id, level.value);
+                                    }}
+                                    disabled={isAdminRole || !canEdit || isLocked}
+                                    className={cn(
+                                      "size-5 border-gray-300 data-[state=checked]:bg-primary data-[state=checked]:border-primary",
+                                      (isAdminRole || !canEdit || isLocked) && "opacity-50 cursor-not-allowed"
+                                    )}
+                                  />
+                                </div>
+                              )}
                             </TableCell>
                           );
                         })}
