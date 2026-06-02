@@ -298,89 +298,93 @@ export function SignInPage() {
           )}
         </Button>
 
-        <div className="border-t pt-4 mt-2">
-          <p className="text-xs text-center text-muted-foreground mb-3 font-medium uppercase tracking-wide">Live Production</p>
-          <div className="grid grid-cols-2 gap-2">
-            <Button
-              type="button"
-              className="bg-purple-800 text-white hover:bg-purple-900 border-none"
-              size="sm"
-              onClick={() => loginAs(PROD_ADMIN)}
-              disabled={isProcessing || !isProd}
-            >
-              Prod Admin
-            </Button>
-            <Button
-              type="button"
-              className="bg-blue-800 text-white hover:bg-blue-900 border-none"
-              size="sm"
-              onClick={() => loginAs(PROD_SUPPORT_WORKER)}
-              disabled={isProcessing || !isProd}
-            >
-              Prod Support
-            </Button>
+        {isProd && (
+          <div className="border-t pt-4 mt-2">
+            <p className="text-xs text-center text-muted-foreground mb-3 font-medium uppercase tracking-wide">Live Production</p>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                type="button"
+                className="bg-purple-800 text-white hover:bg-purple-900 border-none"
+                size="sm"
+                onClick={() => loginAs(PROD_ADMIN)}
+                disabled={isProcessing}
+              >
+                Prod Admin
+              </Button>
+              <Button
+                type="button"
+                className="bg-blue-800 text-white hover:bg-blue-900 border-none"
+                size="sm"
+                onClick={() => loginAs(PROD_SUPPORT_WORKER)}
+                disabled={isProcessing}
+              >
+                Prod Support
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
 
-        <div className="border-t pt-4 mt-2">
-          <p className="text-xs text-center text-muted-foreground mb-3 font-medium uppercase tracking-wide">Testing & Development</p>
-          <div className="grid grid-cols-2 gap-2">
-            <Button
-              type="button"
-              className="bg-purple-600 text-white hover:bg-purple-700 border-none"
-              size="sm"
-              onClick={() => loginAs(TEST_ADMIN)}
-              disabled={isProcessing || !isDev}
-            >
-              Admin
-            </Button>
-            <Button
-              type="button"
-              className="bg-blue-600 text-white hover:bg-blue-700 border-none"
-              size="sm"
-              onClick={() => loginAs(TEST_SUPPORT_WORKER)}
-              disabled={isProcessing || !isDev}
-            >
-              Support Worker
-            </Button>
-            <Button
-              type="button"
-              className="bg-emerald-600 text-white hover:bg-emerald-700 border-none"
-              size="sm"
-              onClick={() => loginAs(TEST_SUPERVISOR)}
-              disabled={isProcessing || !isDev}
-            >
-              Supervisor
-            </Button>
-            <Button
-              type="button"
-              className="bg-orange-600 text-white hover:bg-orange-700 border-none"
-              size="sm"
-              onClick={() => loginAs(TEST_HOUSE_MANAGER)}
-              disabled={isProcessing || !isDev}
-            >
-              House Manager
-            </Button>
-            <Button
-              type="button"
-              className="bg-cyan-600 text-white hover:bg-cyan-700 border-none"
-              size="sm"
-              onClick={() => loginAs(TEST_DIRECTOR)}
-              disabled={isProcessing || !isDev}
-            >
-              Director
-            </Button>
-            <Button
-              type="button"
-              className="bg-rose-600 text-white hover:bg-rose-700 border-none"
-              size="sm"
-              onClick={() => loginAs(TEST_FINANCE)}
-              disabled={isProcessing || !isDev}
-            >
-              Finance Manager
-            </Button>
+        {isDev && (
+          <div className="border-t pt-4 mt-2">
+            <p className="text-xs text-center text-muted-foreground mb-3 font-medium uppercase tracking-wide">Testing & Development</p>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                type="button"
+                className="bg-purple-600 text-white hover:bg-purple-700 border-none"
+                size="sm"
+                onClick={() => loginAs(TEST_ADMIN)}
+                disabled={isProcessing}
+              >
+                Admin
+              </Button>
+              <Button
+                type="button"
+                className="bg-blue-600 text-white hover:bg-blue-700 border-none"
+                size="sm"
+                onClick={() => loginAs(TEST_SUPPORT_WORKER)}
+                disabled={isProcessing}
+              >
+                Support Worker
+              </Button>
+              <Button
+                type="button"
+                className="bg-emerald-600 text-white hover:bg-emerald-700 border-none"
+                size="sm"
+                onClick={() => loginAs(TEST_SUPERVISOR)}
+                disabled={isProcessing}
+              >
+                Supervisor
+              </Button>
+              <Button
+                type="button"
+                className="bg-orange-600 text-white hover:bg-orange-700 border-none"
+                size="sm"
+                onClick={() => loginAs(TEST_HOUSE_MANAGER)}
+                disabled={isProcessing}
+              >
+                House Manager
+              </Button>
+              <Button
+                type="button"
+                className="bg-cyan-600 text-white hover:bg-cyan-700 border-none"
+                size="sm"
+                onClick={() => loginAs(TEST_DIRECTOR)}
+                disabled={isProcessing}
+              >
+                Director
+              </Button>
+              <Button
+                type="button"
+                className="bg-rose-600 text-white hover:bg-rose-700 border-none"
+                size="sm"
+                onClick={() => loginAs(TEST_FINANCE)}
+                disabled={isProcessing}
+              >
+                Finance Manager
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
       </form>
     </Form>
   );

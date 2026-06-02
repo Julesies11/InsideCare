@@ -118,8 +118,8 @@ export function StaffLeaveForm() {
 
   const uploadAttachment = async (staffId: string): Promise<string | null> => {
     if (!attachmentFile) return existingAttachmentUrl;
-    const ext = attachmentFile.name.split('.').pop();
-    const path = `leave-attachments/${staffId}/${Date.now()}.${ext}`;
+    const fileName = `${Date.now()}-${attachmentFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+    const path = `leave-attachments/${staffId}/${fileName}`;
     const { error } = await supabase.storage.from(STORAGE_BUCKETS.STAFF_DOCUMENTS).upload(path, attachmentFile);
     if (error) { toast.error('Failed to upload attachment'); return null; }
     const { data: urlData, error: urlError } = await supabase.storage
@@ -133,6 +133,8 @@ export function StaffLeaveForm() {
     }
     return urlData.signedUrl;
   };
+
+  const getFilenameFromUrl = getFilenameFromStorageUrl;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -323,8 +325,8 @@ export function StaffLeaveForm() {
                   {existingAttachmentUrl && !attachmentFile && (
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Paperclip className="size-3.5" />
-                      <a href={existingAttachmentUrl} target="_blank" rel="noreferrer" className="underline truncate max-w-xs">
-                        Existing attachment
+                      <a href={existingAttachmentUrl} target="_blank" rel="noreferrer" className="underline truncate max-w-xs" title={getFilenameFromUrl(existingAttachmentUrl)}>
+                        {getFilenameFromUrl(existingAttachmentUrl)}
                       </a>
                       <button type="button" onClick={() => setExistingAttachmentUrl(null)} className="text-destructive hover:text-destructive/80">
                         <X className="size-3.5" />
