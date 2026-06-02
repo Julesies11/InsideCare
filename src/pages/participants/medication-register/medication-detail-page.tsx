@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { Container } from '@/components/common/container';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -7,18 +7,21 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { ArrowLeft, Save, Loader2, Trash2 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ArrowLeft, Save, Loader2, Settings2 } from 'lucide-react';
 import { 
   useMedicationMaster, 
   useAddMedicationMaster, 
   useUpdateMedicationMaster,
-  useDeleteMedicationMaster
+  useMedicationTypes
 } from '@/hooks/use-medications-master';
 import { toast } from 'sonner';
 import { Toolbar, ToolbarActions, ToolbarHeading, ToolbarPageTitle, ToolbarDescription } from '@/partials/common/toolbar';
 import { RBAC_MODULES } from '@/config/rbac-modules';
 import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
 import { ROUTES } from '@/config/routes.config';
+import { MedicationTypeMasterDialog } from './components/medication-type-master-dialog';
+import { getDisplayMedicationTypes } from '@/lib/medication-utils';
 
 export function MedicationDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -27,42 +30,69 @@ export function MedicationDetailPage() {
   const { hasAccess } = useRBAC();
 
   const { data: medication, isLoading: loading } = useMedicationMaster(id);
+  const { data: medicationTypes = [] } = useMedicationTypes(true); // Fetch all for manual contextual filtering
   const { mutateAsync: addMedication } = useAddMedicationMaster();
   const { mutateAsync: updateMedication } = useUpdateMedicationMaster();
-  const { mutateAsync: deleteMedication } = useDeleteMedicationMaster();
+
+  const displayTypes = useMemo(() => 
+    getDisplayMedicationTypes(medicationTypes, medication?.type_id),
+    [medicationTypes, medication]
+  );
 
   const [formData, setFormData] = useState({
     medication_name: '',
-    category: '',
-    common_dosages: '',
+    brand_name: '',
+    type_id: '',
+    sub_class: '',
+    purpose: '',
+    contraindications: '',
     side_effects: '',
     interactions: '',
     is_active: true,
   });
 
+  const [initialData, setInitialData] = useState(formData);
   const [saving, setSaving] = useState(false);
+  const [typeMasterOpen, setTypeMasterOpen] = useState(false);
+
+  const isDirty = JSON.stringify(formData) !== JSON.stringify(initialData);
 
   const canEdit = hasAccess({
     resource: RBAC_MODULES.MASTER_LISTS,
     requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE,
   });
 
+  const canManageTypes = hasAccess({
+    resource: RBAC_MODULES.ACCESS_CONTROL,
+    requiredLevel: ACCESS_LEVEL.FULL,
+  });
+
   useEffect(() => {
     if (medication && !isNew) {
-      setFormData({
+      const data = {
         medication_name: medication.medication_name || '',
-        category: medication.category || '',
-        common_dosages: medication.common_dosages || '',
+        brand_name: medication.brand_name || '',
+        type_id: medication.type_id || '',
+        sub_class: medication.sub_class || '',
+        purpose: medication.purpose || '',
+        contraindications: medication.contraindications || '',
         side_effects: medication.side_effects || '',
         interactions: medication.interactions || '',
         is_active: medication.is_active ?? true,
-      });
+      };
+      setFormData(data);
+      setInitialData(data);
     }
   }, [medication, isNew]);
 
   const handleSave = async () => {
     if (!formData.medication_name.trim()) {
       toast.error('Medication name is required');
+      return;
+    }
+
+    if (!formData.type_id) {
+      toast.error('Medication type is required');
       return;
     }
 
@@ -89,20 +119,6 @@ export function MedicationDetailPage() {
       }
     } finally {
       setSaving(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (isNew || !id || !medication) return;
-    
-    if (window.confirm('Are you sure you want to deactivate this medication? It will no longer be available for selection.')) {
-      try {
-        await deleteMedication({ id, medication_name: medication.medication_name });
-        toast.success('Medication deactivated');
-        navigate(ROUTES.MEDICATION_REGISTER);
-      } catch (error) {
-        toast.error('Failed to deactivate medication');
-      }
     }
   };
 
@@ -138,13 +154,7 @@ export function MedicationDetailPage() {
               </div>
             </ToolbarHeading>
             <ToolbarActions>
-              {!isNew && canEdit && (
-                <Button variant="outline" size="sm" onClick={handleDelete} className="text-destructive hover:bg-destructive/5">
-                  <Trash2 className="size-4 me-1.5" />
-                  Deactivate
-                </Button>
-              )}
-              <Button size="sm" onClick={handleSave} disabled={saving || !canEdit}>
+              <Button size="sm" onClick={handleSave} disabled={saving || !canEdit || (!isNew && !isDirty)}>
                 {saving ? <Loader2 className="size-4 animate-spin me-1.5" /> : <Save className="size-4 me-1.5" />}
                 {isNew ? 'Create Medication' : 'Save Changes'}
               </Button>
@@ -163,36 +173,70 @@ export function MedicationDetailPage() {
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="medication_name">Medication Name <span className="text-destructive">*</span></Label>
+                  <Label htmlFor="medication_name">Generic Name <span className="text-destructive">*</span></Label>
                   <Input
                     id="medication_name"
                     value={formData.medication_name}
                     onChange={(e) => setFormData({ ...formData, medication_name: e.target.value })}
-                    placeholder="e.g., Paracetamol"
+                    placeholder="e.g., Risperidone"
                     disabled={!canEdit}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="category">Category</Label>
+                  <Label htmlFor="brand_name">Brand Name (AU)</Label>
                   <Input
-                    id="category"
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    placeholder="e.g., Analgesic, Antibiotic"
+                    id="brand_name"
+                    value={formData.brand_name}
+                    onChange={(e) => setFormData({ ...formData, brand_name: e.target.value })}
+                    placeholder="e.g., Risperdal"
                     disabled={!canEdit}
                   />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="common_dosages">Common Dosages</Label>
-                <Input
-                  id="common_dosages"
-                  value={formData.common_dosages}
-                  onChange={(e) => setFormData({ ...formData, common_dosages: e.target.value })}
-                  placeholder="e.g., 500mg, 10mg/ml"
-                  disabled={!canEdit}
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="type_id">Medication Type <span className="text-destructive">*</span></Label>
+                    {canManageTypes && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => setTypeMasterOpen(true)}
+                        className="h-auto p-0 text-xs font-medium text-primary hover:bg-transparent hover:text-primary/80"
+                      >
+                        <Settings2 className="size-3 me-1.5" />
+                        Manage Types
+                      </Button>
+                    )}
+                  </div>
+                  <Select 
+                    value={formData.type_id} 
+                    onValueChange={(value) => setFormData({ ...formData, type_id: value })}
+                    disabled={!canEdit}
+                  >
+                    <SelectTrigger id="type_id">
+                      <SelectValue placeholder="Select type..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {displayTypes.map(type => (
+                        <SelectItem key={type.id} value={type.id}>
+                          {type.medication_type_name} {!type.is_active && '(Inactive)'}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="sub_class">Sub Class</Label>
+                  <Input
+                    id="sub_class"
+                    value={formData.sub_class}
+                    onChange={(e) => setFormData({ ...formData, sub_class: e.target.value })}
+                    placeholder="e.g., Atypical"
+                    disabled={!canEdit}
+                  />
+                </div>
               </div>
 
               <div className="flex items-center justify-between rounded-lg border p-4">
@@ -218,25 +262,49 @@ export function MedicationDetailPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="side_effects">General Side Effects</Label>
+                <Label htmlFor="purpose">Purpose (Indications)</Label>
                 <Textarea
-                  id="side_effects"
-                  value={formData.side_effects}
-                  onChange={(e) => setFormData({ ...formData, side_effects: e.target.value })}
-                  placeholder="List common side effects staff should monitor for..."
-                  rows={4}
+                  id="purpose"
+                  value={formData.purpose}
+                  onChange={(e) => setFormData({ ...formData, purpose: e.target.value })}
+                  placeholder="What this medication is for..."
+                  rows={3}
                   disabled={!canEdit}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="interactions">Contraindication/Interactions</Label>
+                <Label htmlFor="side_effects">Key Side Effects to Monitor</Label>
+                <Textarea
+                  id="side_effects"
+                  value={formData.side_effects}
+                  onChange={(e) => setFormData({ ...formData, side_effects: e.target.value })}
+                  placeholder="List common side effects staff should monitor for..."
+                  rows={3}
+                  disabled={!canEdit}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="contraindications">Contraindications</Label>
+                <Textarea
+                  id="contraindications"
+                  value={formData.contraindications}
+                  onChange={(e) => setFormData({ ...formData, contraindications: e.target.value })}
+                  placeholder="List any reasons why this medication should not be used..."
+                  rows={3}
+                  disabled={!canEdit}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="interactions">Never Combine With (Interactions)</Label>
                 <Textarea
                   id="interactions"
                   value={formData.interactions}
                   onChange={(e) => setFormData({ ...formData, interactions: e.target.value })}
-                  placeholder="List any known drug interactions or contraindications..."
-                  rows={4}
+                  placeholder="List any known drug interactions..."
+                  rows={3}
                   disabled={!canEdit}
                 />
               </div>
@@ -244,6 +312,11 @@ export function MedicationDetailPage() {
           </Card>
         </div>
       </Container>
+      <MedicationTypeMasterDialog 
+        open={typeMasterOpen} 
+        onClose={() => setTypeMasterOpen(false)} 
+        canEdit={canManageTypes}
+      />
     </>
   );
 }

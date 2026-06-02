@@ -1,15 +1,12 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Plus, Edit, Trash2, Pill, Clock } from 'lucide-react';
+import { Plus, Edit, Trash2, Pill } from 'lucide-react';
 import { MedicationCombobox } from './medication-components/medication-combobox';
-import { MedicationMasterDialog } from './medication-components/medication-master-dialog';
 import { useParticipantMedications } from '@/hooks/use-participant-medications';
 import { useMedicationsMaster } from '@/hooks/use-medications-master';
 import { useForm } from 'react-hook-form';
@@ -36,7 +33,6 @@ interface MedicationsProps {
 
 const medicationSchema = z.object({
   medication_id: z.string().min(1, 'Medication is required'),
-  dosage: z.string().optional().default(''),
   is_active: z.boolean().default(true),
 });
 
@@ -52,8 +48,7 @@ export function Medications({
   refreshTrigger,
 }: MedicationsProps) {
   const [showDialog, setShowDialog] = useState(false);
-  const [editingMedication, setEditingMedication] = useState<{ id?: string; tempId?: string; medication_id: string; dosage?: string; is_active: boolean } | null>(null);
-  const [showMasterDialog, setShowMasterDialog] = useState(false);
+  const [editingMedication, setEditingMedication] = useState<{ id?: string; tempId?: string; medication_id: string; is_active: boolean } | null>(null);
 
   const { data: medications = [], isLoading: loading, refetch } = useParticipantMedications(participantId);
   const { medications: medicationsMaster = [] } = useMedicationsMaster();
@@ -68,7 +63,6 @@ export function Medications({
     resolver: zodResolver(medicationSchema),
     defaultValues: {
       medication_id: '',
-      dosage: '',
       is_active: true,
     },
   });
@@ -77,13 +71,11 @@ export function Medications({
     if (showDialog && editingMedication) {
       form.reset({
         medication_id: editingMedication.medication_id,
-        dosage: editingMedication.dosage || '',
         is_active: editingMedication.is_active,
       });
     } else if (showDialog) {
       form.reset({
         medication_id: '',
-        dosage: '',
         is_active: true,
       });
     }
@@ -94,7 +86,7 @@ export function Medications({
     setShowDialog(true);
   };
 
-  const handleEdit = (medication: { id?: string; tempId?: string; medication_id: string; dosage?: string; is_active: boolean }) => {
+  const handleEdit = (medication: { id?: string; tempId?: string; medication_id: string; is_active: boolean }) => {
     setEditingMedication(medication);
     setShowDialog(true);
   };
@@ -197,6 +189,11 @@ export function Medications({
     return medicationsMaster.find(m => m.id === id)?.medication_name || 'Unknown Medication';
   };
 
+  const getMedicationType = (id: string) => {
+    const med = medicationsMaster.find(m => m.id === id);
+    return (med as any)?.medication_type?.medication_type_name || '—';
+  };
+
   return (
     <>
       <Card className="pb-2.5" id="medications">
@@ -217,7 +214,7 @@ export function Medications({
               <TableHeader>
                 <TableRow>
                   <TableHead>Medication</TableHead>
-                  <TableHead>Dosage</TableHead>
+                  <TableHead>Type</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -248,7 +245,9 @@ export function Medications({
                           {isPendingDelete && <Badge variant="destructive" className="text-[10px] uppercase">Pending Delete</Badge>}
                         </div>
                       </TableCell>
-                      <TableCell className={cn(isPendingDelete && 'line-through')}>{med.dosage}</TableCell>
+                      <TableCell className={cn(isPendingDelete && 'text-muted-foreground line-through')}>
+                        {getMedicationType(med.medication_id)}
+                      </TableCell>
                       <TableCell>
                         <Badge variant={med.is_active ? 'success' : 'secondary'}>
                           {med.is_active ? 'Active' : 'Inactive'}
@@ -318,45 +317,17 @@ export function Medications({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Medication *</FormLabel>
-                    <div className="flex gap-2">
-                      <FormControl>
-                        <MedicationCombobox
-                          value={field.value}
-                          onChange={field.onChange}
-                          canEdit={canEdit}
-                          onManageList={() => setShowMasterDialog(true)}
-                        />
-                      </FormControl>
-                      <Button 
-                        type="button" 
-                        variant="outline" 
-                        size="icon" 
-                        onClick={() => setShowMasterDialog(true)}
-                        title="Add new medication to master list"
-                      >
-                        <Plus className="size-4" />
-                      </Button>
-                    </div>
+                    <FormControl>
+                      <MedicationCombobox
+                        value={field.value}
+                        onChange={field.onChange}
+                        canEdit={canEdit}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
-              <div className="grid grid-cols-1 gap-4">
-                <FormField
-                  control={form.control}
-                  name="dosage"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Dosage</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="e.g. 500mg" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
 
               <FormField
                 control={form.control}
@@ -391,12 +362,6 @@ export function Medications({
           </Form>
         </DialogContent>
       </Dialog>
-
-      <MedicationMasterDialog
-        open={showMasterDialog}
-        onClose={() => setShowMasterDialog(false)}
-        onUpdate={() => {}}
-      />
     </>
   );
 }

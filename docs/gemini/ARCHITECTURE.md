@@ -91,3 +91,9 @@ Every operational table includes standard audit columns (`created_at`, `created_
 ## 8. Maintainability Standards
 - **Centralized Constants**: Always use `TABLES`, `STORAGE_BUCKETS`, `QUERY_KEYS`, and `ROUTES` config files instead of hard-coded strings.
 - **End-to-End Type Safety**: Deriving frontend types directly from the database schema via `Database['public']['Tables']['...']['Row']` and `Awaited<ReturnType<...>>`.
+
+## 9. Master List Deactivation Standard
+As of **June 2, 2026**, the application implements a strict "Deactivate instead of Delete" standard for all master list items (e.g., Medication Types) to maintain foreign key integrity and clinical history.
+- **Contextual Filtering**: UI forms must implement contextual filtering logic (e.g., `getDisplayMedicationTypes`). 
+- **Behavior**: Dropdowns show only active items for new records, but include the current inactive item when editing an existing record to prevent data loss or "missing" selections.
+- **API Support**: API methods must support `includeInactive` filters to accommodate this standard.

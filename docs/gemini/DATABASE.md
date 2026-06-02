@@ -67,3 +67,9 @@ The care facilities. Includes setup fields: `setup_step`, `is_configured`.
 All operational tables use a unified, hardened trigger (`ic_trigger_set_audit_columns`) to manage standard audit fields (`created_at`, `updated_at`, `created_by`, `updated_by`).
 - **Immutability**: `created_at` and `created_by` are preserved during updates.
 - **Identity Logic**: Identities are resolved via `public.ic_jwt_get_staff_id()` from the secure JWT.
+
+### 6. Master Lists & Deactivation Standard
+To preserve data integrity and historical clinical records, the application follows a **"Deactivate, Don't Delete"** pattern for master list items.
+- **`ic_medication_types_master`**: Lookup table for medication categories.
+    - `is_active`: Boolean (Default: true). Deactivating a type hides it from new selections but preserves existing clinical records.
+- **Implementation**: API methods must support `includeInactive` filters, and UI components must implement **Contextual Filtering** (showing active types plus the currently assigned inactive type during editing).

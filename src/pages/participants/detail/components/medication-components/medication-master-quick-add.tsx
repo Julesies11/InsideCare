@@ -1,19 +1,23 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { MedicationMaster } from '@/models/medication-master';
+import { useMedicationTypes } from '@/hooks/use-medications-master';
+import { getDisplayMedicationTypes } from '@/lib/medication-utils';
 
 const medicationSchema = z.object({
   medication_name: z.string().min(1, 'Medication name is required'),
-  category: z.string().optional(),
-  common_dosages: z.string().optional(),
+  brand_name: z.string().optional(),
+  type_id: z.string().min(1, 'Medication type is required'),
+  sub_class: z.string().optional(),
   side_effects: z.string().optional(),
   interactions: z.string().optional(),
   is_active: z.boolean().default(true),
@@ -34,12 +38,20 @@ export function MedicationMasterQuickAdd({
   onSave,
   editingMedication,
 }: MedicationMasterQuickAddProps) {
+  const { data: medicationTypes = [] } = useMedicationTypes(true); // Fetch all for manual contextual filtering
+
+  const displayTypes = useMemo(() => 
+    getDisplayMedicationTypes(medicationTypes, editingMedication?.type_id),
+    [medicationTypes, editingMedication]
+  );
+
   const form = useForm<MedicationFormValues>({
     resolver: zodResolver(medicationSchema),
     defaultValues: {
       medication_name: '',
-      category: '',
-      common_dosages: '',
+      brand_name: '',
+      type_id: '',
+      sub_class: '',
       side_effects: '',
       interactions: '',
       is_active: true,
@@ -50,8 +62,9 @@ export function MedicationMasterQuickAdd({
     if (open && editingMedication) {
       form.reset({
         medication_name: editingMedication.medication_name,
-        category: editingMedication.category || '',
-        common_dosages: editingMedication.common_dosages || '',
+        brand_name: editingMedication.brand_name || '',
+        type_id: editingMedication.type_id || '',
+        sub_class: editingMedication.sub_class || '',
         side_effects: editingMedication.side_effects || '',
         interactions: editingMedication.interactions || '',
         is_active: editingMedication.is_active,
@@ -59,8 +72,9 @@ export function MedicationMasterQuickAdd({
     } else if (open) {
       form.reset({
         medication_name: '',
-        category: '',
-        common_dosages: '',
+        brand_name: '',
+        type_id: '',
+        sub_class: '',
         side_effects: '',
         interactions: '',
         is_active: true,
@@ -71,8 +85,9 @@ export function MedicationMasterQuickAdd({
   const handleSubmit = async (data: MedicationFormValues) => {
     await onSave({
       medication_name: data.medication_name,
-      category: data.category || null,
-      common_dosages: data.common_dosages || null,
+      brand_name: data.brand_name || null,
+      type_id: data.type_id,
+      sub_class: data.sub_class || null,
       side_effects: data.side_effects || null,
       interactions: data.interactions || null,
       is_active: data.is_active,
@@ -82,7 +97,7 @@ export function MedicationMasterQuickAdd({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent style={{ zIndex: 70 }}>
+      <DialogContent style={{ zIndex: 70 }} className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>
             {editingMedication ? 'Edit Medication' : 'Add Medication to List'}
@@ -90,59 +105,86 @@ export function MedicationMasterQuickAdd({
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 py-4">
-            <FormField
-              control={form.control}
-              name="medication_name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Medication Name *</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="e.g., Risperidone" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="category"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Category</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="e.g., Antipsychotic, Pain, etc." />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="common_dosages"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Common Dosages</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      placeholder="e.g., 0.5mg, 1mg, 2mg, 3mg, 4mg"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="medication_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Generic Name *</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="e.g., Risperidone" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="brand_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Brand Name (AU)</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="e.g., Risperdal" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="type_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Medication Type *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select type..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {displayTypes.map(type => (
+                          <SelectItem key={type.id} value={type.id}>
+                            {type.medication_type_name} {!type.is_active && '(Inactive)'}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="sub_class"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Sub Class</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="e.g., Atypical" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
             <FormField
               control={form.control}
               name="side_effects"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>General Side Effects</FormLabel>
+                  <FormLabel>Key Side Effects to Monitor</FormLabel>
                   <FormControl>
                     <Textarea
                       {...field}
                       placeholder="e.g., Drowsiness, dizziness, dry mouth, constipation"
-                      rows={3}
+                      rows={2}
                     />
                   </FormControl>
                   <FormMessage />
@@ -159,7 +201,7 @@ export function MedicationMasterQuickAdd({
                     <Textarea
                       {...field}
                       placeholder="e.g., MAO inhibitors, alcohol, other CNS depressants"
-                      rows={3}
+                      rows={2}
                     />
                   </FormControl>
                   <FormMessage />

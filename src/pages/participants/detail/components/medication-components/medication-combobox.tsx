@@ -16,21 +16,18 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Settings } from 'lucide-react';
 import { useMedicationsMaster } from '@/hooks/use-medications-master';
 
 interface MedicationComboboxProps {
   value: string;
   onChange: (value: string) => void;
   canEdit: boolean;
-  onManageList: () => void;
 }
 
 export function MedicationCombobox({
   value,
   onChange,
   canEdit,
-  onManageList,
 }: MedicationComboboxProps) {
   const [open, setOpen] = useState(false);
   const { medications = [], isLoading: loading } = useMedicationsMaster();
@@ -79,21 +76,21 @@ export function MedicationCombobox({
                     activeMedications.map((medication) => (
                       <CommandItem
                         key={medication.id}
-                        value={medication.medication_name}
+                        value={`${medication.medication_name} ${medication.brand_name || ''}`}
                         onSelect={() => handleSelect(medication.id)}
                       >
                         <span className="flex flex-col gap-0.5 flex-1">
                           <span className="flex items-center gap-2">
                             <span className="truncate font-medium">{medication.medication_name}</span>
-                            {medication.category && (
+                            {medication.brand_name && (
                               <span className="text-xs text-muted-foreground">
-                                ({medication.category})
+                                ({medication.brand_name})
                               </span>
                             )}
                           </span>
-                          {medication.common_dosages && (
-                            <span className="text-xs text-muted-foreground">
-                              {medication.common_dosages}
+                          {(medication as any).medication_type?.medication_type_name && (
+                            <span className="text-[10px] text-muted-foreground uppercase font-medium">
+                              {(medication as any).medication_type.medication_type_name}
                             </span>
                           )}
                         </span>
@@ -107,16 +104,6 @@ export function MedicationCombobox({
           </Command>
         </PopoverContent>
       </Popover>
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={onManageList}
-        disabled={!canEdit}
-        title="Manage medication list"
-      >
-        <Settings className="size-4" />
-      </Button>
     </div>
   );
 }
