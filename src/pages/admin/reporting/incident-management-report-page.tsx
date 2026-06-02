@@ -16,6 +16,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { useNavigate } from 'react-router';
+import { ROUTES } from '@/config/routes.config';
 import { useIncidentReports } from '@/hooks/use-incident-reports';
 import { 
   format, 
@@ -124,7 +125,7 @@ export function IncidentManagementReportPage() {
           {/* Left Column: Criteria - Hidden on print */}
           <div className="lg:col-span-3 space-y-4 no-print">
             <div className="sticky top-6 space-y-4">
-              <Button variant="outline" size="sm" onClick={() => navigate('/reporting')} className="w-fit">
+              <Button variant="outline" size="sm" onClick={() => navigate(ROUTES.REPORTING)} className="w-fit">
                 <ArrowLeft className="size-4 me-1.5" />
                 Back to Reports
               </Button>

@@ -54,6 +54,7 @@ export const QUERY_KEYS = {
   PARTICIPANT_PROVIDERS: 'participant-providers',
   HOUSE_DOCUMENTS: 'house-documents',
   HOUSE_RESOURCES: 'house-resources',
+  HOUSE_COMMS: 'house-comms',
   HOUSE_STAFF_ASSIGNMENTS: 'house-staff-assignments',
   SHIFT_ASSIGNED_CHECKLISTS: 'shift-assigned-checklists',
 

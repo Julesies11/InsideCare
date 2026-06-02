@@ -34,6 +34,6 @@ describe('ChecklistMasterPage Smoke Test', () => {
         </SettingsProvider>
       </QueryClientProvider>
     );
-    expect(screen.getByText(/Checklist Templates/i)).toBeInTheDocument();
+    expect(screen.getByText(/Checklist Master/i)).toBeInTheDocument();
   });
 });

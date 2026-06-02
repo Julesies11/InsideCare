@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router';
-import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/auth/context/auth-context';
 import { format, parseISO, differenceInMinutes } from 'date-fns';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import {
-  ArrowLeft, Clock, FileText, AlertTriangle, Car, Info, CheckCircle2, ClipboardList,
+  ArrowLeft, Clock, FileText, Info, CheckCircle2, ClipboardList, Car,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,6 +17,13 @@ import { Container } from '@/components/common/container';
 import {
   Toolbar, ToolbarHeading, ToolbarPageTitle, ToolbarDescription,
 } from '@/partials/common/toolbar';
+import { NotificationService } from '@/lib/notification-service';
+import { ROUTES } from '@/config/routes.config';
+import { TIMESHEET_STATUS } from '@/config/enums';
+import { rosterApi } from '@/api/roster.api';
+import { timesheetsApi } from '@/api/timesheets.api';
+import { shiftNotesApi } from '@/api/shift-notes.api';
+import { staffApi } from '@/api/staff.api';
 
 interface Shift {
   id: string;
@@ -27,26 +33,13 @@ interface Shift {
   start_time: string;
   end_time: string;
   shift_template: string;
-  house: { name: string } | null;
+  house: { house_name: string } | null;
 }
 
 interface AssignedChecklist {
   checklist_id: string;
   assignment_title: string;
   status?: string;
-}
-
-
-import { NotificationService } from '@/lib/notification-service';
-import { TABLES } from '@/config/db-tables';
-import { STORAGE_BUCKETS } from '@/config/storage-buckets';
-import { QUERY_KEYS } from '@/config/query-keys';
-import { TIMESHEET_STATUS } from '@/config/enums';
-
-interface ShiftNoteRes {
-  id: string;
-  full_note: string | null;
-  participant_id: string | null;
 }
 
 export function StaffTimesheetForm() {
@@ -65,7 +58,7 @@ export function StaffTimesheetForm() {
   const [assignedChecklists, setAssignedChecklists] = useState<AssignedChecklist[]>([]);
 
   const handleBack = () => {
-    navigate('/my-timesheets', { state: { activeTab: fromTab } });
+    navigate(ROUTES.MY_TIMESHEETS, { state: { activeTab: fromTab } });
   };
 
   const [shiftNoteStatus, setShiftNoteStatus]         = useState<'not_started' | 'draft' | 'completed'>('not_started');
@@ -97,87 +90,61 @@ export function StaffTimesheetForm() {
   useEffect(() => {
     if (!shiftId) return;
     const load = async () => {
-      const [shiftRes, tsRes, shiftNoteRes, checklistsRes] = await Promise.all([
-        supabase
-          .from(TABLES.STAFF_SHIFTS)
-          .select(`id, house_id, start_date, end_date, start_time, end_time, shift_template, house:${TABLES.HOUSES}(house_name)`)
-          .eq('id', shiftId)
-          .maybeSingle(),
-        user?.staff_id
-          ? supabase
-              .from(TABLES.TIMESHEETS)
-              .select('id, actual_start, actual_end, break_minutes, overtime_explanation, travel_km, sick_shift, notes, status')
-              .eq('shift_id', shiftId)
-              .eq('staff_id', user.staff_id)
-              .maybeSingle()
-          : Promise.resolve({ data: null }),
-        user?.staff_id
-          ? supabase
-              .from('ic_shift_notes')
-              .select('id, full_note, overall_presentation, shift_summary')
-              .eq('shift_id', shiftId)
-              .eq('staff_id', user.staff_id)
-              .maybeSingle()
-          : Promise.resolve({ data: null }),
-        supabase
-          .from(TABLES.SHIFT_ASSIGNED_CHECKLISTS)
-          .select(`
-            checklist_id,
-            assignment_title,
-            submissions:${TABLES.HOUSE_CHECKLIST_SUBMISSIONS}(id, status, shift_id)
-          `)
-          .eq('shift_id', shiftId)
-      ]);
+      console.log('DEBUG: Starting timesheet data load for shiftId:', shiftId);
+      try {
+        const [shiftRes, tsRes, shiftNoteRes] = await Promise.all([
+          rosterApi.getShift(shiftId).then(res => { console.log('DEBUG: rosterApi.getShift SUCCESS'); return res; }).catch(err => { console.error('DEBUG: rosterApi.getShift FAILED:', err); throw err; }),
+          (user?.staff_id ? timesheetsApi.getExisting(shiftId, user.staff_id) : Promise.resolve(null)).then(res => { console.log('DEBUG: timesheetsApi.getExisting SUCCESS'); return res; }).catch(err => { console.error('DEBUG: timesheetsApi.getExisting FAILED:', err); throw err; }),
+          (user?.staff_id ? shiftNotesApi.getByShiftAndStaff(shiftId, user.staff_id) : Promise.resolve(null)).then(res => { console.log('DEBUG: shiftNotesApi.getByShiftAndStaff SUCCESS'); return res; }).catch(err => { console.error('DEBUG: shiftNotesApi.getByShiftAndStaff FAILED:', err); throw err; })
+        ]);
 
-      if (shiftRes.data) {
-        const s = shiftRes.data as Shift;
-        setShift(s);
-        setActualStart(`${s.start_date}T${s.start_time.slice(0, 5)}`);
-        setActualEnd(`${(s.end_date || s.start_date)}T${s.end_time.slice(0, 5)}`);
-      }
+        if (shiftRes) {
+          const s = shiftRes as any;
+          setShift(s);
+          setActualStart(`${s.start_date}T${s.start_time.slice(0, 5)}`);
+          setActualEnd(`${(s.end_date || s.start_date)}T${s.end_time.slice(0, 5)}`);
 
-      if (shiftNoteRes?.data) {
-        const note = shiftNoteRes.data as any;
-        setShiftNoteId(note.id);
-        const isCompleted = !!(note.overall_presentation || note.shift_summary || note.full_note);
-        setShiftNoteStatus(isCompleted ? 'completed' : 'draft');
-      } else {
-        setShiftNoteStatus('not_started');
-      }
-
-      if (tsRes.data) {
-        const d = tsRes.data as { id: string; actual_start?: string; actual_end?: string; break_minutes?: number; overtime_explanation?: string; travel_km?: number; sick_shift?: boolean; notes?: string; status: string };
-        setExistingId(d.id);
-        setStatus(d.status);
-        
-        // If it's already submitted (not missing), make it read-only
-        if (['pending', 'approved', 'rejected'].includes(d.status)) {
-          setIsReadOnly(true);
+          if (s.assigned_checklists) {
+            const mapped = s.assigned_checklists.map((cl: any) => ({
+              ...cl,
+              status: cl.submissions?.[0]?.status || 'pending'
+            }));
+            setAssignedChecklists(mapped);
+          }
         }
 
-        if (d.actual_start)          setActualStart(d.actual_start.slice(0, 16));
-        if (d.actual_end)            setActualEnd(d.actual_end.slice(0, 16));
-        if (d.break_minutes != null) setBreakMins(String(d.break_minutes));
-        if (d.overtime_explanation)  setOvertimeExplanation(d.overtime_explanation);
-        if (d.travel_km)             setTravelKm(String(d.travel_km));
-        if (d.sick_shift)            setSickShift(d.sick_shift);
-        if (d.notes)                 setSickReason(d.notes);
-      }
+        if (shiftNoteRes && Array.isArray(shiftNoteRes) && shiftNoteRes.length > 0) {
+          const note = shiftNoteRes[0] as any; // Pick the newest one
+          setShiftNoteId(note.id);
+          const isCompleted = !!(note.overall_presentation || note.shift_summary || note.full_note);
+          setShiftNoteStatus(isCompleted ? 'completed' : 'draft');
+        } else {
+          setShiftNoteStatus('not_started');
+        }
 
-      if (checklistsRes.data) {
-        const mapped = (checklistsRes.data as any[]).map(cl => {
-          // Filter submissions to only those for THIS specific shift instance
-          const shiftSubmission = cl.submissions?.find((s: any) => s.shift_id === shiftId);
-          return {
-            checklist_id: cl.checklist_id,
-            assignment_title: cl.assignment_title,
-            status: shiftSubmission?.status || 'not_started'
-          };
-        });
-        setAssignedChecklists(mapped);
-      }
+        if (tsRes && Array.isArray(tsRes) && tsRes.length > 0) {
+          const d = tsRes[0] as any; // Pick the most recent one
+          setExistingId(d.id);
+          setStatus(d.status);
 
-      setLoading(false);
+          if (['pending', 'approved', 'rejected'].includes(d.status)) {
+            setIsReadOnly(true);
+          }
+
+          if (d.actual_start) setActualStart(d.actual_start.slice(0, 16));
+          if (d.actual_end) setActualEnd(d.actual_end.slice(0, 16));
+          if (d.break_minutes != null) setBreakMins(String(d.break_minutes));
+          if (d.overtime_explanation) setOvertimeExplanation(d.overtime_explanation);
+          if (d.travel_km) setTravelKm(String(d.travel_km));
+          if (d.sick_shift) setSickShift(d.sick_shift);
+          if (d.notes) setSickReason(d.notes);
+        }
+      } catch (error) {
+        console.error('Failed to load timesheet data:', error);
+        toast.error('Failed to load shift data');
+      } finally {
+        setLoading(false);
+      }
     };
     load();
   }, [shiftId, user?.staff_id]);
@@ -186,26 +153,24 @@ export function StaffTimesheetForm() {
     e.preventDefault();
     if (!user?.staff_id || !shiftId || !shift) return;
 
-    // 1. Enforce Checklist Completion
     const incompleteChecklists = assignedChecklists.filter(cl => cl.status !== 'completed');
     if (incompleteChecklists.length > 0) {
       toast.error('Mandatory Checklists Incomplete', {
         description: `Please complete the following routines before submitting: ${incompleteChecklists.map(cl => cl.assignment_title).join(', ')}`,
         action: {
           label: 'Go to Checklists',
-          onClick: () => navigate('/my-checklists')
+          onClick: () => navigate(ROUTES.MY_CHECKLISTS)
         }
       });
       return;
     }
     
-    // 2. Enforce Clinical Documentation
     if (shiftNoteStatus !== 'completed') {
       toast.error('Shift Note Incomplete', {
         description: 'Please complete your comprehensive Shift Note before submitting your timesheet.',
         action: {
           label: 'Complete Note',
-          onClick: () => navigate(`/shift-notes/detail/${shiftNoteId || 'new'}?shiftId=${shiftId}&staffId=${user?.staff_id || ''}`)
+          onClick: () => navigate(`${ROUTES.SHIFT_NOTES_DETAIL}/${shiftNoteId || 'new'}?shiftId=${shiftId}&staffId=${user?.staff_id || ''}`)
         }
       });
       return;
@@ -217,7 +182,6 @@ export function StaffTimesheetForm() {
     setSaving(true);
     const now = new Date().toISOString();
     
-    // Ensure timestamps are full ISO strings for Supabase
     const formatToFullISO = (val: string) => {
       if (!val) return null;
       const d = new Date(val);
@@ -234,48 +198,31 @@ export function StaffTimesheetForm() {
     }
 
     const payload = {
-      staff_id:             user.staff_id,
-      shift_id:             shiftId,
-      clock_in:             clockIn,
-      clock_out:            clockOut,
-      actual_start:         clockIn,
-      actual_end:           clockOut,
-      break_minutes:        parseInt(breakMins) || 0,
+      staff_id: user.staff_id,
+      shift_id: shiftId,
+      clock_in: clockIn,
+      clock_out: clockOut,
+      actual_start: clockIn,
+      actual_end: clockOut,
+      break_minutes: parseInt(breakMins) || 0,
       overtime_explanation: overtimeExplanation || null,
-      travel_km:            parseFloat(travelKm) || 0,
-      sick_shift:           sickShift,
-      notes:                sickShift ? (sickReason || null) : null,
-      overtime_hours:       overtimeHours,
-      status: TIMESHEET_STATUS.PENDING,
-      submitted_at:         now,
+      travel_km: parseFloat(travelKm) || 0,
+      sick_shift: sickShift,
+      notes: sickShift ? (sickReason || null) : null,
+      overtime_hours: overtimeHours,
+      status: TIMESHEET_STATUS.PENDING as any,
+      submitted_at: now,
     };
 
-    console.log('Timesheet: Submitting payload:', payload);
-
-    let tsId: string | null = existingId;
     try {
       if (existingId) {
-        console.log('Timesheet: Updating existing record:', existingId);
-        const { error } = await supabase.from(TABLES.TIMESHEETS).update(payload).eq('id', existingId);
-        if (error) throw error;
+        await timesheetsApi.update(existingId, payload);
       } else {
-        console.log('Timesheet: Inserting new record (upsert)');
-        const { data, error } = await supabase
-          .from(TABLES.TIMESHEETS)
-          .upsert(payload, { onConflict: 'shift_id,staff_id' })
-          .select('id')
-          .maybeSingle();
-        if (error) throw error;
-        if (!data) throw new Error("You do not have permission to perform this action");
-        tsId = data.id;
+        await timesheetsApi.create(payload);
       }
 
-      console.log('Timesheet: Notifying admins...');
       const userName = user?.fullname || user?.email || 'Staff';
-      const { data: admins } = await supabase
-        .from('ic_staff')
-        .select('auth_user_id')
-        .not('auth_user_id', 'is', null);
+      const admins = await staffApi.listAdmins();
 
       if (admins && admins.length > 0) {
         const adminIds = admins.map(a => a.auth_user_id).filter(Boolean) as string[];
@@ -342,7 +289,6 @@ export function StaffTimesheetForm() {
       <Container className="py-6 sm:py-0">
         <form onSubmit={handleSubmit} className="grid gap-5 lg:gap-7.5 max-w-2xl">
 
-          {/* Read-only status banner */}
           {isReadOnly && (
             <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 flex items-center gap-3">
               <Info className="size-5 text-primary" />
@@ -352,7 +298,6 @@ export function StaffTimesheetForm() {
             </div>
           )}
 
-          {/* Section 1 — Clinical Documentation */}
           <Card className={cn(
               "border-0 sm:border",
               shiftNoteStatus === 'completed' ? "border-green-200 bg-green-50/10" : "border-orange-200 bg-orange-50/10"
@@ -384,31 +329,18 @@ export function StaffTimesheetForm() {
                       : 'Please complete all required fields in the shift note.'}
                   </span>
                 </div>
-                {!isReadOnly && (
-                  <Button
-                    type="button"
-                    variant={shiftNoteStatus === 'completed' ? 'outline' : 'primary'}
-                    size="sm"
-                    onClick={() => navigate(`/shift-notes/detail/${shiftNoteId || 'new'}?shiftId=${shiftId}&staffId=${user?.staff_id || ''}`)}
-                  >
-                    {shiftNoteStatus === 'completed' ? 'Edit Note' : 'Complete Note'}
-                  </Button>
-                )}
-                {isReadOnly && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigate(`/shift-notes/detail/${shiftNoteId || 'new'}?shiftId=${shiftId}&staffId=${user?.staff_id || ''}`)}
-                  >
-                    View Note
-                  </Button>
-                )}
+                <Button
+                  type="button"
+                  variant={isReadOnly || shiftNoteStatus === 'completed' ? 'outline' : 'primary'}
+                  size="sm"
+                  onClick={() => navigate(`${ROUTES.SHIFT_NOTES_DETAIL}/${shiftNoteId || 'new'}?shiftId=${shiftId}&staffId=${user?.staff_id || ''}`)}
+                >
+                  {isReadOnly ? 'View Note' : shiftNoteStatus === 'completed' ? 'Edit Note' : 'Complete Note'}
+                </Button>
               </div>
             </CardContent>
           </Card>
 
-          {/* Section 2 — Actual Hours */}
           <Card className="border-0 sm:border">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
@@ -492,7 +424,6 @@ export function StaffTimesheetForm() {
             </CardContent>
           </Card>
 
-          {/* Section 3 — Additional Options */}
           <Card className="border-0 sm:border">
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Additional Options</CardTitle>
@@ -514,7 +445,6 @@ export function StaffTimesheetForm() {
                   className="max-w-[140px]"
                   readOnly={isReadOnly}
                 />
-                {!isReadOnly && <p className="text-xs text-muted-foreground">Leave blank if no travel claimed</p>}
               </div>
 
               <div className="border-t pt-4">
@@ -557,7 +487,6 @@ export function StaffTimesheetForm() {
             </CardContent>
           </Card>
 
-          {/* Section 4 — Checklist Completion Enforcement */}
           {assignedChecklists.length > 0 && (
             <Card className={cn(
               "border-0 sm:border",
@@ -605,7 +534,7 @@ export function StaffTimesheetForm() {
                       type="button" 
                       variant="primary" 
                       className="w-full font-bold shadow-sm"
-                      onClick={() => navigate('/my-checklists')}
+                      onClick={() => navigate(ROUTES.MY_CHECKLISTS)}
                     >
                       <ClipboardList className="size-4 me-2" />
                       Complete Checklists Now
@@ -616,7 +545,6 @@ export function StaffTimesheetForm() {
             </Card>
           )}
 
-          {/* Submit */}
           <div className="flex items-center gap-3 pb-8">
             {!isReadOnly ? (
               <>

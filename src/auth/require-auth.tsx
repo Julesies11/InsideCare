@@ -2,6 +2,7 @@ import { Navigate, Outlet, useLocation } from 'react-router';
 import { ScreenLoader } from '@/components/common/screen-loader';
 import { useAuth } from './context/auth-context';
 import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
+import { ROUTES } from '@/config/routes.config';
 
 /**
  * Protects routes based on granular permissions.
@@ -13,7 +14,7 @@ export const RequirePermission = ({ module }: { module: string | string[] }) => 
   if (loading) return <ScreenLoader />;
 
   if (!auth?.access_token) {
-    return <Navigate to="/auth/signin" replace />;
+    return <Navigate to={ROUTES.AUTH_SIGNIN} replace />;
   }
 
   // If auth exists but user profile isn't loaded yet, wait.
@@ -31,7 +32,7 @@ export const RequirePermission = ({ module }: { module: string | string[] }) => 
   };
 
   if (!checkAccess()) {
-    return <Navigate to="/error/403" replace />;
+    return <Navigate to={ROUTES.ERROR_403} replace />;
   }
 
   return <Outlet />;
@@ -51,7 +52,7 @@ export const RequireAuth = () => {
   if (!auth?.access_token) {
     return (
       <Navigate
-        to={`/auth/signin?next=${encodeURIComponent(location.pathname)}`}
+        to={`${ROUTES.AUTH_SIGNIN}?next=${encodeURIComponent(location.pathname)}`}
         replace
       />
     );
@@ -71,7 +72,7 @@ export const RequireAdmin = () => {
   if (loading) return <ScreenLoader />;
 
   if (!auth?.access_token) {
-    return <Navigate to="/auth/signin" replace />;
+    return <Navigate to={ROUTES.AUTH_SIGNIN} replace />;
   }
 
   // user not yet loaded but auth token exists — wait
@@ -79,7 +80,7 @@ export const RequireAdmin = () => {
 
   // User is authenticated but not an admin — redirect to 403
   if (!isAdmin) {
-    return <Navigate to="/error/403" replace />;
+    return <Navigate to={ROUTES.ERROR_403} replace />;
   }
 
   return <Outlet />;
@@ -95,12 +96,12 @@ export const RequireStaff = () => {
   if (loading) return <ScreenLoader />;
 
   if (!auth?.access_token) {
-    return <Navigate to="/auth/signin" replace />;
+    return <Navigate to={ROUTES.AUTH_SIGNIN} replace />;
   }
 
   // user is loaded and is admin — redirect away
   if (user && isAdmin) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={ROUTES.HOME} replace />;
   }
 
   // user not yet loaded but auth token exists — wait

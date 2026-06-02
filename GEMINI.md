@@ -21,6 +21,7 @@
 - Do NOT run unit tests (e.g., 'npm test', 'vitest', 'npx vitest') automatically.
 - **NEVER** run Playwright smoke tests (e.g., 'npm run test:smoke') automatically in the local development environment. These tests take too long, consume significant resources, and often timeout in the local context.
 - **CI Ownership**: All Playwright E2E/Smoke tests are exclusively owned by the GitHub Actions pipeline and run automatically on every push.
+- **Agent Playwright Execution**: When running Playwright tests locally as an agent, ALWAYS use the `--reporter=list` or `--reporter=line` flag to prevent the interactive HTML reporter from hanging the shell process.
 - Only execute build or test steps if I explicitly ask for them.
 
 # ===============================
@@ -52,6 +53,9 @@ For detailed information on the project architecture, database, and features, re
     - `XX`: Sequential number starting at `00`.
 - **Logic**: Favor implementing logic in TypeScript/Hooks over SQL Functions/Triggers (as per ARCHITECTURE.md).
 - **Enums**: Use `.eq()` or `.in()` for enum columns in Supabase queries; do NOT use `.ilike()`.
+- **No Hard-coded Repeated Strings**: 
+    - NEVER hard-code strings that are repeated across the application. Use centralized constants for maintenance ease.
+    - **Routes**: All navigation paths MUST use the `ROUTES` constant from `@/config/routes.config.ts`. (e.g., `navigate(ROUTES.MY_LEAVE)` instead of `navigate('/my-leave')`).
 
 # ===============================
 # 5. CI/CD & OPERATIONAL STANDARDS

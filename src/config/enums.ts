@@ -42,3 +42,16 @@ export const LEAVE_STATUS = {
   REJECTED: 'rejected',
   CANCELLED: 'cancelled',
 } as const;
+
+export const SHIFT_PERIODS = {
+  MORNING: 'morning',
+  DAY: 'day',
+  AFTERNOON: 'afternoon',
+  EVENING: 'evening',
+  NIGHT: 'night',
+  SLEEPOVER: 'sleepover',
+  ALL: 'all',
+} as const;
+
+export type ShiftPeriod = (typeof SHIFT_PERIODS)[keyof typeof SHIFT_PERIODS];
+

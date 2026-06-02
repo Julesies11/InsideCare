@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { RBAC_MODULES } from '@/config/rbac-modules';
 import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
 import { participantsApi } from '@/api/participants.api';
+import { ROUTES } from '@/config/routes.config';
 
 export function ParticipantsProfilesContent() {
   const navigate = useNavigate();
@@ -18,20 +19,26 @@ export function ParticipantsProfilesContent() {
   });
 
   const handleAddParticipant = async () => {
+    console.log('[DEBUG] handleAddParticipant triggered');
     try {
       // Create a new participant with minimal data (name can be NULL for drafts) using DAL
       const data = await participantsApi.create({
         status: 'draft',
       } as any);
+      console.log('[DEBUG] participant created successfully:', data);
 
       if (!data) throw new Error("You do not have permission to perform this action");
 
       // Navigate to the detail page
-      navigate(`/participants/detail/${data.id}`);
-    } catch (error) {
-      const err = error as Error;
-      console.error('Error creating participant:', err);
-      toast.error('Failed to create participant', { description: err.message });
+      navigate(`${ROUTES.PARTICIPANT_DETAIL}/${data.id}`);
+    } catch (error: any) {
+      console.error('[DEBUG] FAILED to create participant:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint
+      });
+      toast.error('Failed to create participant', { description: error.message });
     }
   };
 

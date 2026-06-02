@@ -13,6 +13,11 @@
   *:focus-visible {
     @apply outline-ring rounded-xs shadow-none outline-2 outline-offset-3 transition-none!;
   }
+
+  /* Account for sticky header/toolbar in anchor scrolls */
+  [id] {
+    scroll-margin-top: 5rem;
+  }
 }
 
 /* Metronic Components  */

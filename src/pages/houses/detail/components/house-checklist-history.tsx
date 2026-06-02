@@ -26,14 +26,12 @@ import {
 } from 'lucide-react';
 import { useChecklistHistory, ChecklistSubmission } from '@/hooks/use-checklist-history';
 import { useHouseChecklists } from '@/hooks/use-house-checklists';
+import { checklistsApi } from '@/api/checklists.api';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { HouseChecklistExecution } from './house-checklist-execution';
 import { format, subDays } from 'date-fns';
-import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/auth/context/auth-context';
 import { toast } from 'sonner';
-import { TABLES } from '@/config/db-tables';
-import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 import { QUERY_KEYS } from '@/config/query-keys';
 import { CHECKLIST_STATUS } from '@/config/enums';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
@@ -127,22 +125,11 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
       if (!checklist) {
         // If not in pre-loaded houseChecklists (maybe it's for another house), fetch it
         try {
-          const { data: clData, error: clError } = await supabase
-            .from(TABLES.HOUSE_CHECKLISTS)
-            .select(`
-              id, house_id, house_checklist_name, description, master_id, created_at, updated_at,
-              house_checklist_items:${TABLES.HOUSE_CHECKLIST_ITEMS}(id, checklist_id, title, instructions, group_title, priority, is_required, sort_order, created_at, updated_at)
-            `)
-            .eq('id', submission.checklist_id)
-            .maybeSingle();
+          const clData = await checklistsApi.getHouseChecklist(submission.checklist_id);
 
-          if (clError) throw clError;
           if (!clData) throw new Error("You do not have permission to view this checklist template");
           
-          setExecutingChecklist({
-            ...clData,
-            items: (clData.house_checklist_items || []).sort((a: any, b: any) => a.sort_order - b.sort_order)
-          });
+          setExecutingChecklist(clData);
         } catch (error) {
           toast.error('Checklist template not found');
           setIsResuming(false);
@@ -153,24 +140,8 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
       }
 
       try {
-        const { data: itemData } = await supabase
-          .from(TABLES.HOUSE_CHECKLIST_SUBMISSION_ITEMS)
-          .select(`
-            id, 
-            submission_id, 
-            item_id, 
-            is_completed, 
-            status,
-            note, 
-            completed_at,
-            completed_by_staff:${TABLES.STAFF}!house_checklist_submission_items_completed_by_fkey(id, staff_name)
-          `)
-          .eq('submission_id', submission.id);
-
-        const { data: attachmentData } = await supabase
-          .from(TABLES.HOUSE_CHECKLIST_ITEM_ATTACHMENTS)
-          .select('id, submission_id, item_id, file_name, file_path, file_size, mime_type, uploaded_by, created_at')
-          .eq('submission_id', submission.id);
+        const itemData = await checklistsApi.getSubmissionItems(submission.id);
+        const attachmentData = await checklistsApi.getSubmissionAttachments(submission.id);
 
         const completedItems: Record<string, boolean> = {};
         const itemNotes: Record<string, string> = {};
@@ -192,17 +163,12 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
         if (attachmentData) {
           for (const att of attachmentData) {
             if (!attachments[att.item_id]) attachments[att.item_id] = [];
-            const { data: urlData, error: urlError } = await supabase.storage
-              .from(STORAGE_BUCKETS.CHECKLIST_ATTACHMENTS)
-              .createSignedUrl(att.file_path, 3600, {
-                download: att.file_name || true
-              });
-            
-            if (urlError) {
+            try {
+              const signedUrl = await checklistsApi.getAttachmentSignedUrl(att.file_path, att.file_name);
+              attachments[att.item_id].push({ ...att, file_path: signedUrl });
+            } catch (urlError) {
               console.error('Error creating signed URL for attachment:', urlError);
-              continue;
             }
-            attachments[att.item_id].push({ ...att, file_path: urlData.signedUrl });
           }
         }
 
@@ -216,7 +182,6 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
     };
 
     const persistExecution = async (results: any, status: CHECKLIST_STATUS.in_progress | CHECKLIST_STATUS.completed) => {
-      // Use the house_id from the checklist if not provided in props
       const targetHouseId = houseId || executingChecklist?.house_id;
       if (!targetHouseId) {
         toast.error('No house ID associated with this checklist');
@@ -226,34 +191,20 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
       const staffId = user?.staff_id;
       let submissionId = activeSubmission?.id;
 
-      if (!submissionId) {
-        const { data, error } = await supabase
-          .from(TABLES.HOUSE_CHECKLIST_SUBMISSIONS)
-          .insert({
-            checklist_id: results.checklist_id,
-            house_id: targetHouseId,
-            master_id: executingChecklist?.master_id || null,
-            submitted_by: staffId || null,
-            shift_id: executingShiftId || null,
-            status: status,
-            scheduled_date: format(new Date(), 'yyyy-MM-dd'),
-            completed_at: status === CHECKLIST_STATUS.completed ? new Date().toISOString() : null
-          })
-          .select().maybeSingle();
-        if (error) throw error;
-        if (!data) throw new Error("You do not have permission to create checklist submissions");
-        submissionId = data.id;
-      } else {
-        const { error } = await supabase
-          .from(TABLES.HOUSE_CHECKLIST_SUBMISSIONS)
-          .update({
-            status: status,
-            submitted_by: staffId || null,
-            completed_at: status === CHECKLIST_STATUS.completed ? new Date().toISOString() : null,
-          })
-          .eq('id', submissionId);
-        if (error) throw error;
-      }
+      const submissionPayload = {
+        checklist_id: results.checklist_id,
+        house_id: targetHouseId,
+        master_id: executingChecklist?.master_id || null,
+        submitted_by: staffId || null,
+        shift_id: executingShiftId || null,
+        status: status,
+        scheduled_date: format(new Date(), 'yyyy-MM-dd'),
+        completed_at: status === CHECKLIST_STATUS.completed ? new Date().toISOString() : null
+      };
+
+      const submission = await checklistsApi.upsertSubmission(submissionPayload, submissionId);
+      if (!submission) throw new Error("Failed to persist checklist submission");
+      submissionId = submission.id;
 
       const submissionItems = results.items.map((item: any) => {
         const originalItem = executingChecklist?.items?.find((i: any) => i.id === item.item_id);
@@ -268,32 +219,19 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
           completed_at: item.is_completed ? new Date().toISOString() : null
         };
       });
-      await supabase.from(TABLES.HOUSE_CHECKLIST_SUBMISSION_ITEMS).upsert(submissionItems, { onConflict: 'submission_id,item_id' });
+      await checklistsApi.upsertSubmissionItems(submissionItems);
 
-      // Handle attachments...
+      // Handle attachments
       if (results.toDeleteAttachments?.length > 0) {
         for (const attId of results.toDeleteAttachments) {
-          const { data: att } = await supabase.from(TABLES.HOUSE_CHECKLIST_ITEM_ATTACHMENTS).select('file_path').eq('id', attId).maybeSingle();
-          if (!att) throw new Error("You do not have permission to perform this action");
-          if (att?.file_path) await supabase.storage.from(STORAGE_BUCKETS.CHECKLIST_ATTACHMENTS).remove([att.file_path]);
-          await supabase.from(TABLES.HOUSE_CHECKLIST_ITEM_ATTACHMENTS).delete().eq('id', attId);
+          await checklistsApi.deleteAttachment(attId);
         }
       }
 
       if (results.queuedAttachments) {
         for (const itemId in results.queuedAttachments) {
           for (const queued of results.queuedAttachments[itemId]) {
-            const filePath = `${submissionId}/${itemId}/${Date.now()}-${queued.file.name}`;
-            await supabase.storage.from(STORAGE_BUCKETS.CHECKLIST_ATTACHMENTS).upload(filePath, queued.file);
-            await supabase.from(TABLES.HOUSE_CHECKLIST_ITEM_ATTACHMENTS).insert({
-              submission_id: submissionId,
-              item_id: itemId,
-              file_name: queued.file.name,
-              file_path: filePath,
-              file_size: queued.file.size,
-              mime_type: queued.file.type,
-              uploaded_by: staffId || null
-            });
+            await checklistsApi.uploadAttachment(submissionId, itemId, queued.file, staffId);
           }
         }
       }

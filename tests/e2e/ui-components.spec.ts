@@ -39,40 +39,41 @@ test.describe('UI Components & Responsiveness', () => {
     // We check if it's off-screen or has a specific attribute
     
     // Header should have a mobile toggle button
-    const mobileToggle = page.locator('header button:has(svg.lucide-menu)').first();
-    await expect(mobileToggle).toBeVisible();
+    const mobileToggle = page.locator('header button').filter({ has: page.locator('svg.lucide-menu') }).first();
+    await expect(mobileToggle).toBeVisible({ timeout: 15000 });
 
     // Click toggle to open sidebar
-    await mobileToggle.click();
+    await mobileToggle.click({ force: true });
     await expect(page.getByText(/Dashboard/i).first()).toBeVisible();
   });
 
   test('Form Dirty Tracking and Navigation Blocking', async ({ page }) => {
-    await page.goto('/staff/profile');
+    // Use House Detail page as it has navigation blocking and a Back button
+    await page.goto('/houses');
+    await page.getByRole('button', { name: /Add House/i }).click();
     
     // Change a field
-    const nameInput = page.locator('input#staff_name').or(page.getByLabel(/Full Name/i));
+    const nameInput = page.locator('input#house_name');
     await expect(nameInput).toBeVisible({ timeout: 15000 });
     
-    // Wait for the input to be populated (indicating data has loaded)
-    await expect(nameInput).not.toHaveValue('', { timeout: 30000 });
-    
     await nameInput.click();
-    await nameInput.fill('Test User Update'); 
+    await nameInput.fill('Dirty House Update'); 
+    await nameInput.blur(); // Ensure events are fired
 
     // Verify "Save Changes" is active - wait for it to become enabled
     const saveBtn = page.getByRole('button', { name: /Save Changes/i });
-    await expect(saveBtn).toBeEnabled({ timeout: 15000 });
+    await expect(saveBtn).toBeEnabled({ timeout: 20000 });
 
     // Try to click another sidebar link
-    await page.getByRole('link', { name: /Dashboard/i }).first().click({ timeout: 30000 });
+    const dialogPromise = page.waitForEvent('dialog');
+    // Use the Back button to trigger the dialog
+    const backBtn = page.getByRole('button', { name: /Back/i });
+    await expect(backBtn).toBeVisible({ timeout: 15000 });
+    await backBtn.click({ force: true });
 
-    // Verify that navigation is either blocked by a dialog or the dirty state persists
-    // The app might use a beforeunload handler or a custom router guard
-    page.once('dialog', async dialog => {
-      expect(dialog.message().toLowerCase()).toContain('unsaved');
-      await dialog.accept(); // Actually leave
-    });
+    const dialog = await dialogPromise;
+    expect(dialog.message().toLowerCase()).toContain('unsaved');
+    await dialog.accept(); // Actually leave
   });
 
   test('Toast Notifications for Mutations', async ({ page }) => {

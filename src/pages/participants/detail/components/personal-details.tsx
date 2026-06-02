@@ -108,7 +108,7 @@ export function PersonalDetails({
 
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <Label className="flex w-full max-w-56">Personal Mobile</Label>
+            <Label htmlFor="personal_mobile" className="flex w-full max-w-56">Personal Mobile</Label>
             <Input
               id="personal_mobile"
               type="tel"
@@ -152,14 +152,14 @@ export function PersonalDetails({
         </div>
 
         <div className="flex items-center flex-wrap gap-2.5">
-          <Label className="flex w-full max-w-56">Support Level</Label>
+          <Label className="flex w-full max-w-56" htmlFor="support_level">Support Level</Label>
           <div className="grow">
             <Select
               value={formData.support_level}
               onValueChange={(value) => onFormChange('support_level', value)}
               disabled={!canEdit}
             >
-              <SelectTrigger>
+              <SelectTrigger id="support_level">
                 <SelectValue placeholder="Select support level" />
               </SelectTrigger>
               <SelectContent>
@@ -174,7 +174,7 @@ export function PersonalDetails({
 
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <Label className="flex w-full max-w-56">Support Coordinator</Label>
+            <Label className="flex w-full max-w-56" htmlFor="support_coordinator">Support Coordinator</Label>
             <Input
               id="support_coordinator"
               value={formData.support_coordinator || ''}
@@ -185,14 +185,14 @@ export function PersonalDetails({
         </div>
 
         <div className="flex items-center flex-wrap gap-2.5">
-          <Label className="flex w-full max-w-56">House</Label>
+          <Label className="flex w-full max-w-56" htmlFor="house_id">House</Label>
           <div className="grow">
             <Select
               value={formData.house_id || ''}
               onValueChange={(value) => onFormChange('house_id', value)}
               disabled={!canEdit}
             >
-              <SelectTrigger>
+              <SelectTrigger id="house_id">
                 <SelectValue placeholder="Select house" />
               </SelectTrigger>
               <SelectContent>
@@ -207,14 +207,14 @@ export function PersonalDetails({
         </div>
 
         <div className="flex items-center flex-wrap gap-2.5">
-          <Label className="flex w-full max-w-56">Status</Label>
+          <Label className="flex w-full max-w-56" htmlFor="status">Status</Label>
           <div className="grow">
             <Select
               value={formData.status}
               onValueChange={(value) => onFormChange('status', value)}
               disabled={!canEdit}
             >
-              <SelectTrigger>
+              <SelectTrigger id="status">
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
               <SelectContent>

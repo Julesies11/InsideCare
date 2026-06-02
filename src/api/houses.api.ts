@@ -18,6 +18,20 @@ export interface HousesSort {
  */
 export const housesApi = {
   /**
+   * Helper to strip non-existent columns from payloads to prevent 42703 errors.
+   */
+  sanitizeRecord(record: any, forbidden: string[] = []) {
+    const sanitized = { ...record };
+    forbidden.forEach(key => delete sanitized[key]);
+    
+    // Standard system-managed fields that should never be sent in mutations
+    const systemFields = ['created_at', 'updated_at', 'created_by', 'updated_by'];
+    systemFields.forEach(key => delete sanitized[key]);
+    
+    return sanitized;
+  },
+
+  /**
    * Fetches a paginated list of houses with relations.
    */
   async list({
@@ -86,6 +100,19 @@ export const housesApi = {
   },
 
   /**
+   * Fetches all active houses.
+   */
+  async listActive() {
+    const { data, error } = await supabase
+      .from(TABLES.HOUSES)
+      .select('id, house_name, status, branch_id')
+      .eq('status', 'active')
+      .order('house_name');
+    if (error) throw error;
+    return (data || []).map((h: any) => ({ ...h, name: h.house_name }));
+  },
+
+  /**
    * Fetches a single house by ID.
    */
   async get(id: string) {
@@ -117,31 +144,81 @@ export const housesApi = {
    * Creates a new house.
    */
   async create(house: Database['public']['Tables']['ic_houses']['Insert']) {
+    const payload = this.sanitizeRecord(house, ['resource_name', 'file_path']);
+
     const { data, error } = await supabase
       .from(TABLES.HOUSES)
-      .insert([house])
+      .insert([payload])
       .select(HOUSE_VIEWS.STANDARD)
       .maybeSingle();
 
     if (error) throw error;
-    if (!data) throw new Error('Failed to create house or permission denied');
+    if (!data) throw new Error('Failed to create house. This is likely an RLS policy violation (missing INSERT permission).');
 
     return data;
+  },
+
+  /**
+   * Creates a new house with minimal data.
+   */
+  async createMinimal(name: string) {
+    const { data, error } = await supabase
+      .from(TABLES.HOUSES)
+      .insert([
+        {
+          house_name: name,
+          status: 'active',
+        },
+      ])
+      .select()
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) throw new Error("Failed to create house. This is likely an RLS policy violation (missing INSERT permission).");
+
+    return data;
+  },
+
+  /**
+   * Fetches houses with their shift templates.
+   */
+  async listWithTemplates() {
+    const { data, error } = await supabase
+      .from(TABLES.HOUSES)
+      .select(`
+        id, 
+        house_name, 
+        address,
+        templates:ic_house_shift_templates(
+          id, 
+          shift_template_name, 
+          color_theme, 
+          sort_order, 
+          is_active
+        )
+      `)
+      .eq('status', 'active')
+      .order('house_name');
+    
+    if (error) throw error;
+    return data || [];
   },
 
   /**
    * Updates an existing house.
    */
   async update(id: string, updates: Database['public']['Tables']['ic_houses']['Update']) {
+    const payload = this.sanitizeRecord(updates, ['resource_name', 'file_path']);
+
     const { data, error } = await supabase
       .from(TABLES.HOUSES)
-      .update(updates)
+      .update(payload)
       .eq('id', id)
       .select(HOUSE_VIEWS.STANDARD)
       .maybeSingle();
 
     if (error) throw error;
-    if (!data) throw new Error('House not found or permission denied');
+    if (!data) throw new Error('House not found or permission denied (RLS Violation).');
 
     return data;
   },
@@ -157,5 +234,121 @@ export const housesApi = {
 
     if (error) throw error;
     return true;
+  },
+
+  async updateSetupStep(id: string, step: number) {
+    const { error } = await supabase
+      .from(TABLES.HOUSES)
+      .update({ setup_step: step })
+      .eq('id', id);
+    if (error) throw error;
+    return true;
+  },
+
+  async finalizeSetup(id: string) {
+    const { error } = await supabase
+      .from(TABLES.HOUSES)
+      .update({ 
+        setup_step: 3,
+        is_configured: true,
+        status: 'active'
+      })
+      .eq('id', id);
+    if (error) throw error;
+    return true;
+  },
+
+  /**
+   * House Forms & Assignments
+   */
+  async listForms(houseId: string) {
+    const { data, error } = await supabase
+      .from(TABLES.HOUSE_FORMS)
+      .select(`
+        *,
+        creator:ic_staff!fk_ic_house_forms_created_by(id, staff_name, email),
+        house_form_assignments:ic_house_form_assignments(
+          id,
+          form_id,
+          participant_id,
+          staff_id,
+          assigned_by,
+          due_date,
+          status,
+          completed_at,
+          completed_by,
+          notes,
+          created_at,
+          updated_at,
+          participant:ic_participants(id, participant_name, email),
+          staff:ic_staff!house_form_assignments_staff_id_fkey(id, staff_name, email),
+          assigned_by_staff:ic_staff!house_form_assignments_assigned_by_fkey(id, staff_name, email),
+          completed_by_staff:ic_staff!house_form_assignments_completed_by_fkey(id, staff_name, email)
+        )
+      `)
+      .eq('house_id', houseId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  /**
+   * Staff Assignments
+   */
+  async listStaffAssignments(houseId?: string) {
+    let query = supabase
+      .from(TABLES.HOUSE_STAFF_ASSIGNMENTS)
+      .select(`
+        id, house_id, staff_id, is_primary, start_date, end_date, notes, created_at, updated_at,
+        staff:${TABLES.STAFF}!house_staff_assignments_staff_id_fkey(
+          id, staff_name, email, phone, status, separation_date, role_id, photo_url, 
+          role:ic_roles!staff_role_id_fkey(id, role_name, description)
+        )
+      `)
+      .order('created_at', { ascending: false });
+
+    if (houseId) {
+      query = query.eq('house_id', houseId);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+
+    return (data || []).map((assignment: any) => {
+      if (assignment.staff) {
+        return {
+          ...assignment,
+          staff: {
+            ...assignment.staff,
+            role: Array.isArray(assignment.staff.role) ? assignment.staff.role[0] : assignment.staff.role
+          }
+        };
+      }
+      return assignment;
+    });
+  },
+
+  async listStaffAssignmentsByStaff(staffId: string) {
+    const today = new Date().toISOString().split('T')[0];
+    const { data, error } = await supabase
+      .from(TABLES.HOUSE_STAFF_ASSIGNMENTS)
+      .select(`house:${TABLES.HOUSES}(id, house_name, status, branch_id)`)
+      .eq('staff_id', staffId)
+      .or(`end_date.is.null,end_date.gte.${today}`);
+      
+    if (error) throw error;
+    
+    const houses = (data || [])
+      .map((a: any) => a.house)
+      .filter((h: any) => h && h.status === 'active');
+    
+    // Deduplicate by ID
+    const uniqueHouses = Array.from(new Map(houses.map(h => [h.id, h])).values());
+    
+    return uniqueHouses.map((h: any) => ({ 
+      ...h, 
+      name: h.house_name 
+    })).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
   }
 };

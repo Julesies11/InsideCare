@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { TABLES } from '@/config/db-tables';
+import { participantDetailsApi } from '@/api/participant-details.api';
 
 export interface DocumentRolePermission {
   id: string;
@@ -16,18 +15,7 @@ export function useDocumentRolePermissions(documentId?: string) {
     queryKey: ['document-role-permissions', documentId],
     queryFn: async () => {
       if (!documentId) return [];
-      const { data, error } = await supabase
-        .from(TABLES.PARTICIPANT_DOCUMENT_ROLES)
-        .select(`
-          id,
-          document_id,
-          role_id,
-          access_level,
-          role:${TABLES.ROLES}(id, role_name)
-        `)
-        .eq('document_id', documentId);
-
-      if (error) throw error;
+      const data = await participantDetailsApi.documents.listRolePermissions(documentId);
       return data;
     },
     enabled: !!documentId,
@@ -39,18 +27,7 @@ export function useAllParticipantDocumentOverrides(documentIds: string[]) {
     queryKey: ['participant-document-overrides', documentIds],
     queryFn: async () => {
       if (!documentIds.length) return [];
-      const { data, error } = await supabase
-        .from(TABLES.PARTICIPANT_DOCUMENT_ROLES)
-        .select(`
-          id,
-          document_id,
-          role_id,
-          access_level,
-          role:${TABLES.ROLES}(id, role_name)
-        `)
-        .in('document_id', documentIds);
-
-      if (error) throw error;
+      const data = await participantDetailsApi.documents.listMultipleRolePermissions(documentIds);
       return data;
     },
     enabled: documentIds.length > 0,
@@ -62,26 +39,7 @@ export function useUpdateDocumentRolePermissions() {
 
   return useMutation({
     mutationFn: async ({ documentId, roles }: { documentId: string; roles: Array<{ role_id: string; access_level: string }> }) => {
-      // 1. Delete existing role permissions for this document
-      const { error: deleteError } = await supabase
-        .from(TABLES.PARTICIPANT_DOCUMENT_ROLES)
-        .delete()
-        .eq('document_id', documentId);
-
-      if (deleteError) throw deleteError;
-
-      // 2. Insert new role permissions if any
-      if (roles.length > 0) {
-        const { error: insertError } = await supabase
-          .from(TABLES.PARTICIPANT_DOCUMENT_ROLES)
-          .insert(roles.map(r => ({
-            document_id: documentId,
-            role_id: r.role_id,
-            access_level: r.access_level as any,
-          })));
-
-        if (insertError) throw insertError;
-      }
+      await participantDetailsApi.documents.updateRolePermissions(documentId, roles);
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['document-role-permissions', variables.documentId] });

@@ -3,19 +3,24 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { HouseParticipants } from './house-participants';
 import { FileText, Users, Activity, Info } from 'lucide-react';
+import { HousePendingChanges } from '@/models/house-pending-changes';
 
 interface HouseManagementProps {
   houseId?: string;
   formData: Record<string, any>;
   onFieldChange: (field: string, value: string) => void;
   canEdit: boolean; // Only true for Admin or House Supervisor
+  pendingChanges: HousePendingChanges;
+  onPendingChangesChange: (changes: HousePendingChanges) => void;
 }
 
 export function HouseManagement({ 
   houseId, 
   formData, 
   onFieldChange,
-  canEdit 
+  canEdit,
+  pendingChanges,
+  onPendingChangesChange
 }: HouseManagementProps) {
   return (
     <div id="house_management">
@@ -27,21 +32,20 @@ export function HouseManagement({
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-8">
-          {/* Participants Section - View Only */}
+          {/* Participants Section */}
           <div id="house_participants" className="space-y-4">
             <Label className="text-sm font-bold flex items-center gap-2">
               <Users className="size-4 text-primary" />
               Participants
             </Label>
-            <div className="border rounded-lg p-4 bg-gray-50/50">
-              <HouseParticipants 
-                houseId={houseId}
-                canAdd={false}
-                canDelete={false}
-                readOnly={true}
-              />
-            </div>
-            <div className="border-b border-dashed my-6" />
+            <HouseParticipants 
+              houseId={houseId}
+              canAdd={canEdit}
+              canDelete={canEdit}
+              readOnly={!canEdit}
+              pendingChanges={pendingChanges}
+              onPendingChangesChange={onPendingChangesChange}
+            />
           </div>
 
           <div id="house_management_details" className="flex flex-col gap-6">

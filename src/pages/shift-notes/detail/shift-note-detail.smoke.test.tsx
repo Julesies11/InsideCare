@@ -54,7 +54,7 @@ describe('ShiftNoteDetailContent Smoke Test', () => {
     
     // Check for core fields
     expect(screen.getByText('Shift Overview')).toBeDefined();
-    expect(screen.getAllByText(/Shift Date/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Select Shift/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/Participant/i).length).toBeGreaterThan(0);
   });
 });

@@ -5,7 +5,6 @@ import { Database } from '@/models/database.types';
 
 export interface ParticipantsFilter {
   search?: string;
-  houses?: string[];
   statuses?: string[];
 }
 
@@ -16,37 +15,24 @@ export interface ParticipantsSort {
 
 /**
  * Data Access Layer (DAL) for Participants.
- * 
- * This module is the single source of truth for all Participant-related 
- * database operations. It ensures type safety and prevents magic string 
- * duplication across the codebase.
  */
 export const participantsApi = {
   /**
-   * Fetches participants assigned to a specific house.
+   * Helper to strip non-existent columns from payloads to prevent 42703 errors.
    */
-  async listByHouse(houseId: string, status?: string) {
-    let query = supabase
-      .from(TABLES.PARTICIPANTS)
-      .select(PARTICIPANT_VIEWS.LIST)
-      .eq('house_id', houseId);
-
-    if (status) {
-      query = query.eq('status', status);
-    }
-
-    const { data, error } = await query.order('participant_name', { ascending: true });
-    if (error) throw error;
-
-    return (data || []).map(p => ({
-      ...p,
-      name: (p as any).participant_name,
-      house_name: (p as any).houses?.house_name || null,
-    }));
+  sanitizeRecord(record: any, forbidden: string[] = []) {
+    const sanitized = { ...record };
+    forbidden.forEach(key => delete sanitized[key]);
+    
+    // Standard system-managed fields that should never be sent in mutations
+    const systemFields = ['created_at', 'updated_at', 'created_by', 'updated_by'];
+    systemFields.forEach(key => delete sanitized[key]);
+    
+    return sanitized;
   },
 
   /**
-   * Fetches a paginated list of participants with house details.
+   * Fetches a paginated list of participants with related house.
    */
   async list({
     pageIndex = 0,
@@ -63,32 +49,23 @@ export const participantsApi = {
       .from(TABLES.PARTICIPANTS)
       .select(PARTICIPANT_VIEWS.LIST, { count: 'exact' });
 
-    // Apply Search
     if (filters.search) {
-      query = query.or(`participant_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%,ndis_number.ilike.%${filters.search}%,address.ilike.%${filters.search}%`);
+      query = query.or(`participant_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%,ndis_number.ilike.%${filters.search}%`);
     }
 
-    // Apply House Filter
-    if (filters.houses && filters.houses.length > 0) {
-      query = query.in('house_id', filters.houses);
-    }
-
-    // Apply Status Filter
     if (filters.statuses && filters.statuses.length > 0) {
       query = query.in('status', filters.statuses);
     }
 
-    // Apply Sorting
     if (sort.length > 0) {
       sort.forEach(s => {
-        const column = s.id === 'house' ? 'house_id' : (s.id === 'name' || s.id === 'participant' ? 'participant_name' : s.id);
+        const column = s.id === 'house' ? 'house_id' : s.id;
         query = query.order(column as any, { ascending: !s.desc });
       });
     } else {
       query = query.order('participant_name', { ascending: true });
     }
 
-    // Apply Pagination
     const from = pageIndex * pageSize;
     const to = from + pageSize - 1;
     query = query.range(from, to);
@@ -107,6 +84,42 @@ export const participantsApi = {
   },
 
   /**
+   * Fetches all active participants.
+   */
+  async listActive() {
+    const { data, error } = await supabase
+      .from(TABLES.PARTICIPANTS)
+      .select('id, participant_name, status, house_id')
+      .eq('status', 'active')
+      .order('participant_name');
+    if (error) throw error;
+    return (data || []).map((p: any) => ({ ...p, name: p.participant_name }));
+  },
+
+  /**
+   * Fetches participants for a specific house.
+   */
+  async listByHouse(houseId: string, status?: string) {
+    let query = supabase
+      .from(TABLES.PARTICIPANTS)
+      .select(PARTICIPANT_VIEWS.LIST)
+      .eq('house_id', houseId);
+
+    if (status) {
+      query = query.eq('status', status);
+    }
+
+    const { data, error } = await query.order('participant_name');
+    if (error) throw error;
+
+    return (data || []).map(p => ({
+      ...p,
+      name: (p as any).participant_name,
+      house_name: (p as any).houses?.house_name || null,
+    }));
+  },
+
+  /**
    * Fetches a single participant by ID with full details.
    */
   async get(id: string) {
@@ -121,6 +134,7 @@ export const participantsApi = {
 
     return {
       ...data,
+      name: (data as any).participant_name,
       house_name: (data as any).houses?.house_name || null,
     };
   },
@@ -129,14 +143,16 @@ export const participantsApi = {
    * Creates a new participant.
    */
   async create(participant: Database['public']['Tables']['ic_participants']['Insert']) {
+    const payload = this.sanitizeRecord(participant, ['frequency', 'instructions']);
+
     const { data, error } = await supabase
       .from(TABLES.PARTICIPANTS)
-      .insert([participant])
+      .insert([payload])
       .select(PARTICIPANT_VIEWS.DETAIL)
       .maybeSingle();
 
     if (error) throw error;
-    if (!data) throw new Error('Failed to create participant');
+    if (!data) throw new Error('Failed to create participant. This is likely an RLS policy violation (missing INSERT permission).');
 
     return data;
   },
@@ -145,20 +161,19 @@ export const participantsApi = {
    * Updates an existing participant.
    */
   async update(id: string, updates: Database['public']['Tables']['ic_participants']['Update']) {
+    const payload = this.sanitizeRecord(updates, ['frequency', 'instructions']);
+
     const { data, error } = await supabase
       .from(TABLES.PARTICIPANTS)
-      .update(updates)
+      .update(payload)
       .eq('id', id)
       .select(PARTICIPANT_VIEWS.DETAIL)
       .maybeSingle();
 
     if (error) throw error;
-    if (!data) throw new Error('Participant not found or permission denied');
+    if (!data) throw new Error('Participant not found or permission denied (RLS Violation).');
 
-    return {
-      ...data,
-      house_name: (data as any).houses?.house_name || null,
-    };
+    return data;
   },
 
   /**
@@ -181,10 +196,6 @@ export const participantsApi = {
     let query = supabase
       .from(TABLES.PARTICIPANTS)
       .select('*', { count: 'exact', head: true });
-
-    if (filters.houses && filters.houses.length > 0) {
-      query = query.in('house_id', filters.houses);
-    }
 
     if (filters.statuses && filters.statuses.length > 0) {
       query = query.in('status', filters.statuses);

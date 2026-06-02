@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { usePermissions } from '@/hooks/use-permissions';
 import { RBAC_MODULES } from '@/config/rbac-modules';
+import { ROUTES } from '@/config/routes.config';
 import { cn } from '@/lib/utils';
 
 interface ReportCardProps {
@@ -85,7 +86,7 @@ export function ReportingHubPage() {
       title: 'Incident Management',
       description: 'Summary of accidents, medical incidents, and restrictive practices.',
       icon: AlertTriangle,
-      path: '/reporting/clinical/incidents',
+      path: ROUTES.REPORTING_CLINICAL_INCIDENTS,
       category: 'Clinical',
       permission: RBAC_MODULES.REPORTING_CLINICAL,
       implemented: true,

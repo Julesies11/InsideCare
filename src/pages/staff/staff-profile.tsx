@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/auth/context/auth-context';
-import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { format, differenceInDays, parseISO } from 'date-fns';
 import { Download } from 'lucide-react';
 import { Container } from '@/components/common/container';
+import { staffDetailsApi } from '@/api/staff-details.api';
 import {
   Toolbar,
   ToolbarActions,
@@ -21,10 +21,9 @@ import { EmergencyContact } from '@/pages/employees/staff-detail/components/emer
 import { AccountSecurity } from './components/account-security';
 import { useStaffMember, useUpdateStaff, StaffTraining } from '@/hooks/use-staff';
 import { handleAvatarUpload } from '@/lib/api/profiles';
+import { staffApi } from '@/api/staff.api';
 import { TABLES } from '@/config/db-tables';
 import { STORAGE_BUCKETS } from '@/config/storage-buckets';
-import { QUERY_KEYS } from '@/config/query-keys';
-import { STATUS, COMPLIANCE_STATUS } from '@/config/enums';
 
 type TrainingStatus = 'Current' | 'Expiring Soon' | 'Expired';
 
@@ -46,17 +45,12 @@ export function StaffProfile() {
   const { user, setUser } = useAuth();
   const { mutateAsync: updateStaff } = useUpdateStaff();
 
-  // Use staff_id directly from AuthContext user object
   const staffId = user?.staff_id || null;
-  const loading = false; // Auth user already loaded
-
-  // Photo state — kept separate so it doesn't affect dirty tracking
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [originalPhotoUrl, setOriginalPhotoUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  // Form state — mirrors StaffDetailContent pattern
   const [formData, setFormData] = useState<Record<string, any>>({
     staff_name: '',
     email: '',
@@ -70,11 +64,9 @@ export function StaffProfile() {
   });
   const [originalData, setOriginalData] = useState<Record<string, any> | null>(null);
 
-  // Training
   const [training, setTraining] = useState<StaffTraining[]>([]);
   const [loadingTraining, setLoadingTraining] = useState(true);
 
-  // Load staff record once staffId is known
   const { data: staffData } = useStaffMember(staffId ?? undefined);
   
   useEffect(() => {
@@ -97,19 +89,15 @@ export function StaffProfile() {
     }
 
     if (staffId) {
-      supabase
-        .from('ic_staff_training')
-        .select('id, staff_id, title, category, description, provider, date_completed, expiry_date, file_path, file_name, file_size, created_by, created_at, updated_at')
-        .eq('staff_id', staffId)
-        .order('date_completed', { ascending: false })
-        .then(({ data }) => {
-          setTraining((data as StaffTraining[]) || []);
-          setLoadingTraining(false);
-        });
+      staffApi.getTraining(staffId).then(data => {
+        setTraining(data as any[]);
+        setLoadingTraining(false);
+      });
+    } else {
+      setLoadingTraining(false);
     }
   }, [staffId, staffData]);
 
-  // Dirty tracking — photo dirty if new file selected OR preview differs from original (deletion)
   const isPhotoDirty = photoFile !== null || photoPreview !== originalPhotoUrl;
   const isDirty =
     isPhotoDirty ||
@@ -118,7 +106,6 @@ export function StaffProfile() {
         (k) => formData[k] !== originalData[k]
       ));
 
-  // onFormChange handler — intercepts photo fields like StaffDetailContent does
   const handleFormChange = (field: string, value: any) => {
     if (field === 'photo_file') { setPhotoFile(value); return; }
     if (field === 'photo_url_preview') { setPhotoPreview(value); return; }
@@ -129,32 +116,19 @@ export function StaffProfile() {
     if (!staffId) return;
     setSaving(true);
     try {
-      // Step 1: Upload photo if pending, or clear it if deleted
       if (photoFile) {
-        const ext = photoFile.name.split('.').pop();
-        const path = `${staffId}/profile/${Date.now()}.${ext}`;
-        const { error: uploadErr } = await supabase.storage
-          .from(STORAGE_BUCKETS.STAFF_PHOTOS)          .upload(path, photoFile, { upsert: true });
-        if (uploadErr) throw uploadErr;
-        
-        // Save the PATH to the database, not the temporary signed URL
-        const newPhotoUrl = path;
-
-        await supabase.from('ic_staff').update({ photo_url: newPhotoUrl }).eq('id', staffId);
+        const newPhotoUrl = await handleAvatarUpload(photoFile, STORAGE_BUCKETS.STAFF_PHOTOS, staffId);
+        await staffApi.update(staffId, { photo_url: newPhotoUrl });
         setOriginalPhotoUrl(newPhotoUrl);
-
-        // Update header avatar immediately
         if (setUser && user) setUser({ ...user, photo_url: newPhotoUrl });
         setPhotoFile(null);
         setPhotoPreview(newPhotoUrl);
       } else if (photoPreview === null && originalPhotoUrl !== null) {
-        // Photo was deleted — clear it in the DB
-        await supabase.from('ic_staff').update({ photo_url: null }).eq('id', staffId);
+        await staffApi.update(staffId, { photo_url: null });
         setOriginalPhotoUrl(null);
         if (setUser && user) setUser({ ...user, photo_url: null });
       }
 
-      // Step 2: Save form fields via useStaff hook (mirrors StaffDetailContent)
       const toNull = (v: string | null) => (v === '' ? null : v);
       const updates: Record<string, any> = {
         staff_name: formData.staff_name,
@@ -168,13 +142,11 @@ export function StaffProfile() {
         emergency_contact_phone: toNull(formData.emergency_contact_phone),
       };
 
-      await updateStaff({ id: staffId, updates: updates });
-
+      await staffApi.update(staffId, updates);
       setOriginalData({ ...formData });
       toast.success('Profile updated successfully');
-    } catch (err) {
-      const error = err as Error;
-      toast.error('Failed to save profile', { description: error.message });
+    } catch (err: any) {
+      toast.error('Failed to save profile', { description: err.message });
     } finally {
       setSaving(false);
     }
@@ -182,8 +154,7 @@ export function StaffProfile() {
 
   const handleDownloadTraining = async (filePath: string) => {
     try {
-      const { data, error } = await supabase.storage.from(STORAGE_BUCKETS.STAFF_DOCUMENTS).download(filePath);
-      if (error) throw error;
+      const data = await staffDetailsApi.documents.downloadFile(filePath);
       const url = window.URL.createObjectURL(data);
       const a = document.createElement('a');
       a.href = url;
@@ -197,19 +168,11 @@ export function StaffProfile() {
     }
   };
 
-  if (loading) {
-    return (
-      <Container>
-        <div className="py-10 text-center text-sm text-muted-foreground">Loading profile...</div>
-      </Container>
-    );
-  }
-
   if (!staffId) {
     return (
       <Container>
         <div className="py-10 text-center text-sm text-muted-foreground">
-          No staff record linked to your account. Please contact your administrator.
+          No staff record linked to your account.
         </div>
       </Container>
     );
@@ -237,7 +200,6 @@ export function StaffProfile() {
 
       <Container className="py-6 sm:py-0">
         <div className="max-w-3xl grid gap-5 lg:gap-7.5">
-
           <Card className="border-0 sm:border">
             <PersonalDetails
               formData={{ ...formData, photo_url_preview: photoPreview }}
@@ -256,7 +218,6 @@ export function StaffProfile() {
 
           <AccountSecurity />
 
-          {/* Training (read-only) */}
           <Card className="pb-2.5 border-0 sm:border" id="staff_training">
             <CardHeader>
               <CardTitle>Training</CardTitle>
@@ -327,7 +288,6 @@ export function StaffProfile() {
               )}
             </CardContent>
           </Card>
-
         </div>
       </Container>
     </>

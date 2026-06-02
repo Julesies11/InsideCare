@@ -4,6 +4,7 @@ import { Link } from 'react-router';
 import { toAbsoluteUrl } from '@/lib/helpers';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { ROUTES } from '@/config/routes.config';
 
 const TwoFactorAuth = () => {
   const [codeInputs, setCodeInputs] = useState(Array(6).fill(''));
@@ -60,7 +61,7 @@ const TwoFactorAuth = () => {
           Didn’t receive a code? (37s)
         </span>
         <Link
-          to="/auth/classic/login"
+          to={ROUTES.AUTH_SIGNIN}
           className="font-semibold text-foreground hover:text-primary"
         >
           Resend
@@ -70,7 +71,7 @@ const TwoFactorAuth = () => {
       <Button className="grow">Continue</Button>
 
       <Link
-        to="/auth/signin"
+        to={ROUTES.AUTH_SIGNIN}
         className="gap-2.5 flex items-center justify-center text-sm font-semibold text-foreground hover:text-primary"
       >
         <MoveLeft className="size-3.5 opacity-70" />

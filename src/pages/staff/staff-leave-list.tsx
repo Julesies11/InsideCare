@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router';
-import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/auth/context/auth-context';
 import { format } from 'date-fns';
 import { Plus, Umbrella, Pencil, Trash2 } from 'lucide-react';
@@ -15,10 +14,8 @@ import {
   ToolbarPageTitle,
   ToolbarDescription,
 } from '@/partials/common/toolbar';
-import { TABLES } from '@/config/db-tables';
-import { STORAGE_BUCKETS } from '@/config/storage-buckets';
-import { QUERY_KEYS } from '@/config/query-keys';
-import { LEAVE_STATUS } from '@/config/enums';
+import { rosterApi } from '@/api/roster.api';
+import { ROUTES } from '@/config/routes.config';
 import {
   Dialog,
   DialogContent,
@@ -62,13 +59,15 @@ export function StaffLeaveList() {
 
   const fetchRequests = useCallback(async () => {
     if (!user?.staff_id) { setLoading(false); return; }
-    const { data } = await supabase
-      .from(TABLES.LEAVE_REQUESTS)
-      .select(`id, leave_type:${TABLES.LEAVE_TYPES}(leave_type_name), start_date, end_date, reason, status, admin_notes, created_at`)
-      .eq('staff_id', user.staff_id)
-      .order('created_at', { ascending: false });
-    setRequests((data as LeaveRequest[]) || []);
-    setLoading(false);
+    try {
+      const data = await rosterApi.listLeaveRequests(user.staff_id);
+      setRequests(data as any[]);
+    } catch (error) {
+      console.error('Error loading leave requests:', error);
+      toast.error('Failed to load leave requests');
+    } finally {
+      setLoading(false);
+    }
   }, [user?.staff_id]);
 
   useEffect(() => { fetchRequests(); }, [fetchRequests]);
@@ -80,15 +79,16 @@ export function StaffLeaveList() {
   const handleDelete = async () => {
     if (!deleteTarget) return;
     setDeleting(true);
-    const { error } = await supabase.from(TABLES.LEAVE_REQUESTS).delete().eq('id', deleteTarget.id);
-    if (error) {
-      toast.error('Failed to delete leave request');
-    } else {
+    try {
+      await rosterApi.deleteLeaveRequest(deleteTarget.id);
       toast.success('Leave request deleted');
       setRequests(prev => prev.filter(r => r.id !== deleteTarget.id));
+    } catch (error) {
+      toast.error('Failed to delete leave request');
+    } finally {
+      setDeleteTarget(null);
+      setDeleting(false);
     }
-    setDeleteTarget(null);
-    setDeleting(false);
   };
 
   return (
@@ -100,7 +100,7 @@ export function StaffLeaveList() {
             <ToolbarDescription>View and manage your leave requests</ToolbarDescription>
           </ToolbarHeading>
           <ToolbarActions>
-            <Button onClick={() => navigate('/my-leave/new')}>
+            <Button onClick={() => navigate(`${ROUTES.MY_LEAVE}/new`)}>
               <Plus className="size-4 me-1.5" />
               New Request
             </Button>
@@ -126,7 +126,7 @@ export function StaffLeaveList() {
                   <p className="font-medium">No leave requests yet</p>
                   <p className="text-sm text-muted-foreground mt-1">Submit your first leave request to get started.</p>
                 </div>
-                <Button onClick={() => navigate('/my-leave/new')}>
+                <Button onClick={() => navigate(`${ROUTES.MY_LEAVE}/new`)}>
                   <Plus className="size-4 me-1.5" />
                   New Request
                 </Button>
@@ -184,7 +184,7 @@ export function StaffLeaveList() {
                                 variant="ghost"
                                 className="h-7 w-7 p-0"
                                 title="Edit"
-                                onClick={() => navigate(`/my-leave/${req.id}/edit`)}
+                                onClick={() => navigate(`${ROUTES.MY_LEAVE}/${req.id}/edit`)}
                               >
                                 <Pencil className="size-3.5" />
                               </Button>

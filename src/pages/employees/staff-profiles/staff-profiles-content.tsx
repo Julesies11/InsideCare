@@ -3,12 +3,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { StaffTable } from './components';
 import { useNavigate } from 'react-router';
-import { supabase } from '@/lib/supabase';
-import { handleSupabaseError } from '@/errors/error-handler';
+import { staffApi } from '@/api/staff.api';
+import { handleError } from '@/errors/error-handler';
 import { RBAC_MODULES } from '@/config/rbac-modules';
 import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
-import { TABLES } from '@/config/db-tables';
-import { STATUS } from '@/config/enums';
+import { ROUTES } from '@/config/routes.config';
 
 export function StaffProfilesContent() {
   const navigate = useNavigate();
@@ -21,24 +20,13 @@ export function StaffProfilesContent() {
 
   const handleAddStaff = async () => {
     try {
-      // Create a new staff member with minimal data (name can be NULL for drafts)
-      const { data, error } = await supabase
-        .from(TABLES.STAFF)
-        .insert([
-          {
-            status: STATUS.draft,
-          },
-        ])
-        .select()
-        .maybeSingle();
-
-      if (error) throw error;
-      if (!data) throw new Error("You do not have permission to perform this action");
+      // Create a new staff member with minimal data (status: draft)
+      const data = await staffApi.create({});
 
       // Navigate to the detail page
-      navigate(`/employees/staff-detail/${data.id}`);
+      navigate(`${ROUTES.STAFF_DETAIL}/${data.id}`);
     } catch (error) {
-      handleSupabaseError(error, 'Failed to create staff member');
+      handleError(error as Error, { category: 'network', title: 'Failed to create staff member' });
     }
   };
 

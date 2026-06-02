@@ -21,6 +21,7 @@ import {
   getResetRequestSchema,
   ResetRequestSchemaType,
 } from '../forms/reset-password-schema';
+import { ROUTES } from '@/config/routes.config';
 
 export function ResetPasswordPage() {
   useAuth();
@@ -46,7 +47,7 @@ export function ResetPasswordPage() {
       const { error } = await supabase.auth.resetPasswordForEmail(
         values.email,
         {
-          redirectTo: `${window.location.origin}/auth/reset-password`,
+          redirectTo: `${window.location.origin}${ROUTES.AUTH_RESET_PASSWORD}`,
         },
       );
 
@@ -137,7 +138,7 @@ export function ResetPasswordPage() {
 
           <div className="text-center text-sm">
             <Link
-              to="/auth/signin"
+              to={ROUTES.AUTH_SIGNIN}
               className="inline-flex items-center gap-2 text-sm font-semibold text-accent-foreground hover:underline hover:underline-offset-2"
             >
               <MoveLeft className="size-3.5 opacity-70" /> Back to Sign In

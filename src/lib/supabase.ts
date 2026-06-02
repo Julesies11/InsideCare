@@ -60,3 +60,8 @@ export const supabase: SupabaseClient<Database> = createBrowserClient<Database>(
     }
   }
 );
+
+// Expose to window for testing
+if (import.meta.env.DEV && typeof window !== 'undefined') {
+  (window as any).supabase = supabase;
+}

@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -19,6 +18,7 @@ import {
   getNewPasswordSchema,
   NewPasswordSchemaType,
 } from '@/auth/forms/reset-password-schema';
+import { systemApi } from '@/api/system.api';
 
 export function AccountSecurity() {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -37,13 +37,7 @@ export function AccountSecurity() {
     try {
       setIsProcessing(true);
 
-      const { error } = await supabase.auth.updateUser({
-        password: values.password,
-      });
-
-      if (error) {
-        throw error;
-      }
+      await systemApi.auth.updatePassword(values.password);
 
       toast.success('Password updated successfully');
       form.reset();

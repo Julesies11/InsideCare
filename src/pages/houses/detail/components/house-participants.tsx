@@ -231,20 +231,19 @@ export function HouseParticipants({
 
   const content = (
     <>
-      <CardHeader className="flex flex-row items-center justify-between pb-2 px-0">
-        <CardTitle>Participants</CardTitle>
-        {!readOnly && (
-          <Button variant="secondary" size="sm" className="border border-gray-300" onClick={handleAdd} disabled={!houseId || !canAdd}>
-            <Plus className="size-4 me-1.5" />
-            Add Participant
-          </Button>
-        )}
-      </CardHeader>
       <CardContent className="px-0">
         {loading ? (
           <div className="text-center py-8 text-muted-foreground">Loading participants...</div>
         ) : visibleParticipants.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">No participants linked to this house</div>
+          <div className="flex flex-col items-center justify-center py-8">
+            <div className="text-center text-muted-foreground mb-4">No participants linked to this house</div>
+            {!readOnly && (
+              <Button variant="secondary" size="sm" className="border border-gray-300" onClick={handleAdd} disabled={!houseId || !canAdd}>
+                <Plus className="size-4 me-1.5" />
+                Add Participant
+              </Button>
+            )}
+          </div>
         ) : (
           <div className="overflow-x-auto"><Table>
             <TableHeader>
@@ -252,7 +251,14 @@ export function HouseParticipants({
                 <TableHead>Participant</TableHead>
                 <TableHead>Move-in Date</TableHead>
                 <TableHead>Status</TableHead>
-                {!readOnly && <TableHead className="text-right">Actions</TableHead>}
+                {!readOnly && (
+                  <TableHead className="text-right">
+                    <Button variant="secondary" size="sm" className="border border-gray-300" onClick={handleAdd} disabled={!houseId || !canAdd}>
+                      <Plus className="size-4 me-1.5" />
+                      Add Participant
+                    </Button>
+                  </TableHead>
+                )}
               </TableRow>
             </TableHeader>
             <TableBody>

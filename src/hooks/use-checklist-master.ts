@@ -1,19 +1,23 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { TABLES } from '@/config/db-tables';
+import { masterListsApi } from '@/api/master-lists.api';
 import { QUERY_KEYS } from '@/config/query-keys';
 
-const getChecklistMasterQuery = () => supabase
-  .from(TABLES.CHECKLIST_MASTER)
-  .select(`
-    id, checklist_name, days_of_week, description,
-    items:ic_checklist_item_master(id, master_id, title, instructions, group_title, priority, is_required, sort_order)
-  `);
+export interface ChecklistMasterItem {
+  id: string;
+  master_id: string;
+  title: string;
+  instructions: string | null;
+  group_title: string;
+  priority: string;
+  is_required: boolean;
+  sort_order: number;
+}
 
-export type ChecklistMasterWithRelations = Awaited<ReturnType<typeof getChecklistMasterQuery>>['data'] extends (infer U)[] ? U : never;
-export type ChecklistMasterItem = ChecklistMasterWithRelations['items'] extends (infer U)[] ? U : never;
-
-export interface ChecklistMaster extends Omit<ChecklistMasterWithRelations, 'items'> {
+export interface ChecklistMaster {
+  id: string;
+  checklist_name: string;
+  days_of_week: string[] | null;
+  description: string | null;
   items?: ChecklistMasterItem[];
 }
 
@@ -21,20 +25,8 @@ export function useChecklistMaster() {
   const query = useQuery({
     queryKey: [QUERY_KEYS.CHECKLIST_MASTER],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from(TABLES.CHECKLIST_MASTER)
-        .select(`
-          id, checklist_name, days_of_week, description,
-          items:ic_checklist_item_master(id, master_id, title, instructions, group_title, priority, is_required, sort_order)
-        `)
-        .order('checklist_name', { ascending: true });
-
-      if (error) throw error;
-
-      return (data || []).map(checklist => ({
-        ...checklist,
-        items: ((checklist.items as ChecklistMasterItem[]) || []).sort((a, b) => a.sort_order - b.sort_order)
-      })) as unknown as ChecklistMaster[];
+      const data = await masterListsApi.checklists.list();
+      return data as unknown as ChecklistMaster[];
     },
     staleTime: 1000 * 60 * 60, // 1 hour
   });

@@ -7,6 +7,7 @@ import { MenuConfig, MenuItem } from '@/config/types';
 import { useAuth } from '@/auth/context/auth-context';
 import { usePermissions, PermissionModule } from '@/hooks/use-permissions';
 import { cn } from '@/lib/utils';
+import { ROUTES } from '@/config/routes.config';
 import {
   AccordionMenu,
   AccordionMenuClassNames,
@@ -42,7 +43,7 @@ export function SidebarMenu() {
     (path: string): boolean => {
       if (path === pathname) return true;
       // If path is root, don't match
-      if (path === '/') return false;
+      if (path === ROUTES.HOME) return false;
       // Match if pathname starts with path and is followed by a slash
       return pathname.startsWith(`${path}/`);
     },

@@ -7,7 +7,6 @@ import { ArrowLeft, Mail, CheckCircle, Archive, UserCheck, MoreHorizontal, LogOu
 import { StaffDetailContent } from './staff-detail-content.tsx';
 import { StaffDeactivationDialog } from './components/staff-deactivation-dialog';
 import { StaffActivationDialog } from './components/staff-activation-dialog';
-import { supabase } from '@/lib/supabase';
 import {
   DropdownMenu,
   DropdownMenuContent,

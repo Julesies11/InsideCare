@@ -27,12 +27,27 @@ export function getShiftTheme(colorTheme?: string, shiftTemplateName?: string) {
   return 'bg-gray-500/10 text-gray-700 border-gray-200';
 }
 
+/**
+ * Returns Tailwind classes for event cards based on the color from DB
+ */
+export function getEventTheme(color?: string | null) {
+  const c = (color || 'gray').toLowerCase();
+  
+  if (c.includes('red') || c.includes('danger')) return 'bg-red-500/10 text-red-700 border-red-200';
+  if (c.includes('blue') || c.includes('primary')) return 'bg-blue-500/10 text-blue-700 border-blue-200';
+  if (c.includes('green') || c.includes('success')) return 'bg-emerald-500/10 text-emerald-700 border-emerald-200';
+  if (c.includes('yellow') || c.includes('warning')) return 'bg-amber-500/10 text-amber-700 border-amber-200';
+  
+  return 'bg-gray-500/10 text-gray-700 border-gray-200';
+}
+
 /** @deprecated Use getShiftTheme instead */
 export const getShiftTemplateColor = (type: string): string => {
   return getShiftTheme(undefined, type);
 };
 
-export const formatTime = (time: string): string => {
+export const formatTime = (time?: string | null): string => {
+  if (!time) return '';
   return time.substring(0, 5);
 };
 

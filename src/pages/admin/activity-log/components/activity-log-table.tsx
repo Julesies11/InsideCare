@@ -63,8 +63,7 @@ import {
 import { Calendar } from '@/components/ui/calendar';
 import { DateRange } from 'react-day-picker';
 import { cn } from '@/lib/utils';
-import { supabase } from '@/lib/supabase';
-import { TABLES } from '@/config/db-tables';
+import { staffApi } from '@/api/staff.api';
 
 import { useActivityLog } from '@/hooks/use-activity-log';
 import { useSearchParams } from 'react-router';
@@ -195,14 +194,8 @@ export function ActivityLogTable() {
   // 3. Effect: Fetch staff for dropdown
   useEffect(() => {
     const fetchStaff = async () => {
-      const { data } = await supabase
-        .from(TABLES.STAFF)
-        .select('staff_name')
-        .order('staff_name');
-      if (data) {
-        const names = [...new Set(data.map(s => s.staff_name).filter(Boolean))];
-        setStaffList(names.map(name => ({ id: name!, name: name! })));
-      }
+      const names = await staffApi.listNames();
+      setStaffList(names.map(name => ({ id: name, name: name })));
     };
     fetchStaff();
   }, []);

@@ -1,8 +1,13 @@
-import { ClipboardList } from 'lucide-react';
+import { ClipboardList, Plus } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router';
+import { ROUTES } from '@/config/routes.config';
 import { ShiftNotes } from './components';
 
 export function ShiftNotesContent() {
+  const navigate = useNavigate();
+
   return (
     <div className="grid gap-5 lg:gap-7.5">
       {/* Page Header */}

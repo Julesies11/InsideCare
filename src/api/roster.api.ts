@@ -1,8 +1,9 @@
 import { supabase } from '@/lib/supabase';
 import { TABLES } from '@/config/db-tables';
-import { ROSTER_VIEWS } from '@/config/query-views';
+import { ROSTER_VIEWS, CALENDAR_VIEWS } from '@/config/query-views';
 import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 import { format, addDays, parseISO, startOfWeek } from 'date-fns';
+import { LEAVE_STATUS } from '@/config/enums';
 
 export interface ShiftParticipantSync {
   shift_id: string;
@@ -54,7 +55,18 @@ export const rosterApi = {
     if (includeEvents && staffId && staffId !== 'all') {
       eventQuery = supabase
         .from(TABLES.HOUSE_CALENDAR_EVENTS)
-        .select(CALENDAR_VIEWS.STANDARD)
+        .select(`
+          id,
+          title,
+          event_date,
+          start_time,
+          end_time,
+          location,
+          type:ic_house_calendar_event_types_master(event_type_name, color),
+          house_id,
+          house:ic_houses(house_name),
+          staff_assignments:ic_house_calendar_event_staff!inner(staff_id)
+        `)
         .eq('staff_assignments.staff_id', staffId)
         .gte('event_date', startDate || '')
         .lte('event_date', endDate || '');
@@ -157,6 +169,89 @@ export const rosterApi = {
   },
 
   /**
+   * List paginated shifts for a specific staff member.
+   */
+  async listStaffShiftsPaginated(params: {
+    staffId: string;
+    pageIndex?: number;
+    pageSize?: number;
+    search?: string;
+    sorting?: Array<{ id: string; desc: boolean }>;
+  }) {
+    const { staffId, pageIndex = 0, pageSize = 50, search, sorting } = params;
+    const from = pageIndex * pageSize;
+    const to = from + pageSize - 1;
+
+    let query = supabase
+      .from(TABLES.STAFF_SHIFTS)
+      .select(`
+        id, 
+        start_date, 
+        end_date,
+        start_time, 
+        end_time, 
+        shift_template, 
+        notes,
+        house:ic_houses(house_name),
+        participants:ic_shift_participants(
+          participant:ic_participants(id, participant_name)
+        )
+      `, { count: 'exact' })
+      .eq('staff_id', staffId);
+
+    if (search) {
+      query = query.or(`shift_template.ilike.%${search}%,notes.ilike.%${search}%`);
+    }
+
+    if (sorting && sorting.length > 0) {
+      sorting.forEach((s) => {
+        const column = s.id === 'details' ? 'shift_template' : s.id;
+        query = query.order(column as any, { ascending: !s.desc });
+      });
+    } else {
+      query = query.order('start_date', { ascending: false })
+        .order('start_time', { ascending: false });
+    }
+
+    const { data, error, count } = await query.range(from, to);
+
+    const shiftIds = (data || []).map((s) => s.id);
+    
+    // Fetch timesheets and shift notes for these shifts
+    const [timesheetRes, shiftNoteRes] = await Promise.all([
+      supabase
+        .from(TABLES.TIMESHEETS)
+        .select('shift_id')
+        .in('shift_id', shiftIds.length > 0 ? shiftIds : ['00000000-0000-0000-0000-000000000000']),
+      supabase
+        .from(TABLES.SHIFT_NOTES)
+        .select('shift_id')
+        .in('shift_id', shiftIds.length > 0 ? shiftIds : ['00000000-0000-0000-0000-000000000000'])
+    ]);
+
+    const timesheetedIds = new Set((timesheetRes.data || []).map((t) => t.shift_id));
+    const shiftNotedIds = new Set((shiftNoteRes.data || []).map((n) => n.shift_id));
+
+    const formattedData = (data || []).map((s) => ({
+      ...s,
+      entry_type: 'shift' as const,
+      house: (Array.isArray(s.house) ? s.house[0] : s.house) as { house_name: string } | null,
+      has_timesheet: timesheetedIds.has(s.id),
+      has_shift_note: shiftNotedIds.has(s.id),
+      participants: (s.participants || [])?.map((p: any) => {
+        const part = p.participant;
+        const actualPart = Array.isArray(part) ? part[0] : part;
+        return {
+          id: actualPart?.id || p.id || p.participant_id,
+          participant_name: actualPart?.participant_name || p.participant_name
+        };
+      }).filter((p: any) => p.id && p.participant_name) || []
+    }));
+
+    return { data: formattedData, count: count || 0 };
+  },
+
+  /**
    * Create a new shift.
    */
   async createShift(shift: any) {
@@ -195,18 +290,20 @@ export const rosterApi = {
   /**
    * Update an existing shift.
    */
-  async updateShift(id: string, updates: any) {
+  async updateShift(id: string, updates: any = {}) {
     const { 
       participant_ids, 
       assigned_checklists, 
       ...dbPayload 
-    } = updates;
+    } = updates || {};
     
     // Remove UI-only fields before updating
-    delete dbPayload.entry_type;
-    delete dbPayload.title;
-    delete dbPayload.location;
-    delete dbPayload.participants;
+    if (dbPayload) {
+      delete dbPayload.entry_type;
+      delete dbPayload.title;
+      delete dbPayload.location;
+      delete dbPayload.participants;
+    }
 
     const { data, error } = await supabase
       .from(TABLES.STAFF_SHIFTS)
@@ -238,6 +335,132 @@ export const rosterApi = {
       .delete()
       .eq('id', id);
     if (error) throw error;
+  },
+
+  /**
+   * Fetches the complete roster for a staff member, including shifts, events, and leave.
+   */
+  async getStaffRoster(staffId: string) {
+    const [shiftsRes, eventsRes, leaveRes] = await Promise.all([
+      supabase
+        .from(TABLES.STAFF_SHIFTS)
+        .select(`
+          id, 
+          start_date, 
+          start_time, 
+          end_time, 
+          shift_template, 
+          house:ic_houses(house_name),
+          participants:ic_shift_participants(
+            participant:ic_participants(id, participant_name)
+          )
+        `)
+        .eq('staff_id', staffId)
+        .order('start_date', { ascending: false }),
+      supabase
+        .from(TABLES.HOUSE_CALENDAR_EVENTS)
+        .select(`
+          id,
+          title,
+          event_date,
+          start_time,
+          end_time,
+          location,
+          type:ic_house_calendar_event_types_master(event_type_name, color),
+          house:ic_houses(house_name),
+          staff_assignments:ic_house_calendar_event_staff!inner(staff_id)
+        `)
+        .eq('staff_assignments.staff_id', staffId)
+        .order('event_date', { ascending: false }),
+      supabase
+        .from(TABLES.LEAVE_REQUESTS)
+        .select(`
+          id,
+          start_date,
+          end_date,
+          status,
+          reason,
+          leave_type:ic_leave_types(leave_type_name)
+        `)
+        .eq('staff_id', staffId)
+        .neq('status', 'rejected')
+        .order('start_date', { ascending: false })
+    ]);
+
+    if (shiftsRes.error) throw shiftsRes.error;
+    if (eventsRes.error) throw eventsRes.error;
+    if (leaveRes.error) throw leaveRes.error;
+
+    const shiftsData = shiftsRes.data || [];
+    const eventsData = eventsRes.data || [];
+    const leaveData = leaveRes.data || [];
+
+    const shiftIds = shiftsData.map((s) => s.id);
+    
+    // Fetch timesheets and shift notes for these shifts
+    const [timesheetRes, shiftNoteRes] = await Promise.all([
+      supabase
+        .from(TABLES.TIMESHEETS)
+        .select('shift_id')
+        .in('shift_id', shiftIds.length > 0 ? shiftIds : ['00000000-0000-0000-0000-000000000000']),
+      supabase
+        .from(TABLES.SHIFT_NOTES)
+        .select('shift_id')
+        .in('shift_id', shiftIds.length > 0 ? shiftIds : ['00000000-0000-0000-0000-000000000000'])
+    ]);
+
+    const timesheetedIds = new Set((timesheetRes.data || []).map((t) => t.shift_id));
+    const shiftNotedIds = new Set((shiftNoteRes.data || []).map((n) => n.shift_id));
+    
+    const shifts = shiftsData.map((s) => ({
+      ...s,
+      entry_type: 'shift' as const,
+      house: (Array.isArray(s.house) ? s.house[0] : s.house) as { house_name: string } | null,
+      has_timesheet: timesheetedIds.has(s.id),
+      has_shift_note: shiftNotedIds.has(s.id),
+      participants: (s.participants || [])?.map((p: any) => {
+        const part = p.participant;
+        const actualPart = Array.isArray(part) ? part[0] : part;
+        return {
+          id: actualPart?.id || p.id || p.participant_id,
+          participant_name: actualPart?.participant_name || p.participant_name
+        };
+      }).filter((p: any) => p.id && p.participant_name) || []
+    }));
+
+    const events = eventsData.map((e) => ({
+      id: e.id,
+      start_date: e.event_date,
+      start_time: e.start_time,
+      end_time: e.end_time,
+      entry_type: 'event' as const,
+      title: e.title,
+      location: e.location,
+      type_name: (Array.isArray(e.type) ? e.type[0] : e.type)?.event_type_name || 'Meeting',
+      type_color: (Array.isArray(e.type) ? e.type[0] : e.type)?.color || 'blue',
+      house: (Array.isArray(e.house) ? e.house[0] : e.house) as { house_name: string } | null,
+      has_timesheet: false,
+    }));
+
+    const leaves = leaveData.map((l) => ({
+      id: l.id,
+      start_date: l.start_date,
+      end_date: l.end_date,
+      start_time: '00:00:00',
+      end_time: '23:59:59',
+      entry_type: 'leave' as const,
+      title: (Array.isArray(l.leave_type) ? l.leave_type[0] : l.leave_type)?.leave_type_name || 'Leave',
+      reason: l.reason,
+      status: l.status,
+      house: null,
+      has_timesheet: false,
+    }));
+
+    return [...shifts, ...events, ...leaves].sort((a, b) => {
+      const dateCompare = (b.start_date || '').localeCompare(a.start_date || '');
+      if (dateCompare !== 0) return dateCompare;
+      return (b.start_time || '').localeCompare(a.start_time || '');
+    });
   },
 
   /**
@@ -280,17 +503,51 @@ export const rosterApi = {
   },
 
   /**
+   * List all leave requests for admin review.
+   */
+  async listAdminLeaveRequests() {
+    const { data, error } = await supabase
+      .from(TABLES.LEAVE_REQUESTS)
+      .select(`
+        *, 
+        staff:${TABLES.STAFF}!leave_requests_staff_id_fkey(id, staff_name, auth_user_id), 
+        leave_type:${TABLES.LEAVE_TYPES}!leave_type_id(leave_type_name)
+      `)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+
+  /**
+   * Updates a leave request status and admin notes.
+   */
+  async updateLeaveRequestStatus(id: string, status: 'approved' | 'rejected', adminNotes?: string | null) {
+    const { data, error } = await supabase
+      .from(TABLES.LEAVE_REQUESTS)
+      .update({ status, admin_notes: adminNotes })
+      .eq('id', id)
+      .select()
+      .maybeSingle();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  /**
    * List leave requests for staff.
    */
-  async listLeaveRequests(staffId: string, startDate: string, endDate: string) {
+  async listLeaveRequests(staffId: string, startDate?: string, endDate?: string) {
     let query = supabase
       .from(TABLES.LEAVE_REQUESTS)
       .select(ROSTER_VIEWS.LEAVE_LIST)
-      .neq('status', 'REJECTED')
-      .lte('start_date', endDate)
-      .gte('end_date', startDate);
+      .neq('status', LEAVE_STATUS.rejected);
+
+    if (endDate) query = query.lte('start_date', endDate);
+    if (startDate) query = query.gte('end_date', startDate);
       
     if (staffId !== 'all') query = query.eq('staff_id', staffId);
+    
+    query = query.order('created_at', { ascending: false });
     
     const { data, error } = await query;
     if (error) throw error;
@@ -304,7 +561,6 @@ export const rosterApi = {
     const { data, error } = await supabase
       .from(TABLES.HOUSE_SHIFT_TEMPLATES)
       .select('shift_template_name')
-      .eq('is_active', true)
       .order('shift_template_name');
     
     if (error) throw error;
@@ -477,7 +733,6 @@ export const rosterApi = {
     const { data, error } = await supabase
       .from(TABLES.LEAVE_TYPES)
       .select('id, leave_type_name')
-      .eq('is_active', true)
       .order('leave_type_name');
     
     if (error) throw error;
@@ -523,12 +778,29 @@ export const rosterApi = {
   },
 
   /**
-   * List conflicting shifts for a staff member.
+   * List shifts for multiple staff IDs within a date range.
    */
-  async listConflictingShifts(staffId: string, startDate: string, endDate: string) {
+  async listShiftsForStaffIds(staffIds: string[], startDate: string, endDate: string) {
     const { data, error } = await supabase
       .from(TABLES.STAFF_SHIFTS)
-      .select(`id, start_date, start_time, end_time, house:${TABLES.HOUSES}(house_name)`)
+      .select('id, staff_id, start_date')
+      .in('staff_id', staffIds)
+      .gte('start_date', startDate)
+      .lte('start_date', endDate);
+    
+    if (error) throw error;
+    return (data as any[]) || [];
+  },
+
+  /**
+   * List conflicting shifts for a staff member.
+   */
+  async listConflictingShifts(staffId: string, startDate?: string, endDate?: string) {
+    if (!startDate || !endDate) return [];
+    
+    const { data, error } = await supabase
+      .from(TABLES.STAFF_SHIFTS)
+      .select(`id, start_date, start_time, end_time, house:${TABLES.HOUSES}!house_id(house_name)`)
       .eq('staff_id', staffId)
       .gte('start_date', startDate)
       .lte('start_date', endDate)
@@ -564,5 +836,64 @@ export const rosterApi = {
     
     if (error) throw error;
     return data.signedUrl;
+  },
+
+  /**
+   * Shift Assigned Checklists (Routines)
+   */
+  async listShiftAssignments(houseId: string) {
+    const { data, error } = await supabase
+      .from(TABLES.SHIFT_ASSIGNED_CHECKLISTS)
+      .select('*')
+      .eq('house_id', houseId)
+      .order('sort_order', { ascending: true });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  async syncShiftAssignments(houseId: string, assignments: any[]) {
+    // 1. Delete existing for this house
+    const { error: deleteError } = await supabase
+      .from(TABLES.SHIFT_ASSIGNED_CHECKLISTS)
+      .delete()
+      .eq('house_id', houseId);
+
+    if (deleteError) throw deleteError;
+
+    // 2. Insert new batch
+    if (assignments.length > 0) {
+      const { error: insertError } = await supabase
+        .from(TABLES.SHIFT_ASSIGNED_CHECKLISTS)
+        .insert(assignments);
+
+      if (insertError) throw insertError;
+    }
+    return true;
+  },
+
+  /**
+   * Appends new shift assignments without clearing existing ones.
+   */
+  async appendShiftAssignments(assignments: any[]) {
+    const { error } = await supabase
+      .from(TABLES.SHIFT_ASSIGNED_CHECKLISTS)
+      .insert(assignments);
+    if (error) throw error;
+    return true;
+  },
+
+  /**
+   * Lists approved leave requests that might conflict with a roster rollout.
+   */
+  async listApprovedLeaveForRollout(startDate: string, rolloutEndDate: string) {
+    const { data, error } = await supabase
+      .from(TABLES.LEAVE_REQUESTS)
+      .select('staff_id, start_date, end_date')
+      .eq('status', 'approved')
+      .gte('end_date', startDate)
+      .lte('start_date', rolloutEndDate);
+    if (error) throw error;
+    return data || [];
   }
 };

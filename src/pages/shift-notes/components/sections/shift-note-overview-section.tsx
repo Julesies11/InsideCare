@@ -6,21 +6,75 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useParticipants } from '@/hooks/use-participants';
 import { useStaff } from '@/hooks/use-staff';
 import { useHouses } from '@/hooks/use-houses';
+import { useStaffShifts } from '@/hooks/use-staff-shifts';
+import { format, subDays, parseISO } from 'date-fns';
+import { useMemo } from 'react';
+import { SHIFT_PERIODS } from '@/config/enums';
 
 interface ShiftNoteOverviewSectionProps {
   canEdit: boolean;
   formData: Record<string, unknown>;
   onFormChange: (field: string, value: unknown) => void;
+  onBulkChange?: (changes: Record<string, unknown>) => void;
+  isShiftLocked?: boolean;
+  isParticipantLocked?: boolean;
 }
 
 export function ShiftNoteOverviewSection({
   canEdit,
   formData,
   onFormChange,
+  onBulkChange,
+  isShiftLocked = false,
+  isParticipantLocked = false,
 }: ShiftNoteOverviewSectionProps) {
-  const { participants } = useParticipants(0, 100);
   const { staff } = useStaff();
   const { houses } = useHouses();
+
+  // Filter participants to only show active ones from the selected house (if any)
+  const { participants } = useParticipants(0, 1000, [], {
+    houses: formData.house_id ? [formData.house_id as string] : [],
+    statuses: ['active'],
+  });
+
+  // Fetch shifts for the last 14 days to provide a good selection
+  const startDate = format(subDays(new Date(), 14), 'yyyy-MM-dd');
+  const endDate = format(new Date(), 'yyyy-MM-dd');
+  
+  // We fetch all shifts for the "Select Shift" dropdown. 
+  const { shifts, loading: loadingShifts } = useStaffShifts('all', startDate, endDate);
+
+  const handleShiftChange = (shiftId: string) => {
+    if (shiftId === 'none') {
+      onBulkChange?.({
+        shift_id: null,
+        start_date: format(new Date(), 'yyyy-MM-dd'),
+        shift_time: null,
+        house_id: null,
+        staff_id: null,
+        shift_type: null
+      });
+      return;
+    }
+
+    const shift = shifts.find(s => s.id === shiftId);
+    if (shift) {
+      const mappedType = shift.shift_template?.toLowerCase();
+      const isValidType = Object.values(SHIFT_PERIODS).includes(mappedType as any);
+
+      onBulkChange?.({
+        shift_id: shift.id,
+        start_date: shift.start_date,
+        shift_time: shift.start_time,
+        house_id: shift.house_id,
+        staff_id: shift.staff_id,
+        shift_type: isValidType ? mappedType : null
+      });
+    }
+  };
+
+  const selectedStaff = staff.find(s => s.id === formData.staff_id);
+  const selectedHouse = houses.find(h => h.id === formData.house_id);
 
   return (
     <div className="space-y-6">
@@ -29,77 +83,40 @@ export function ShiftNoteOverviewSection({
           <CardTitle>Shift Overview</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="start_date">Shift Date *</Label>
-              <Input
-                id="start_date"
-                type="date"
-                value={formData.start_date || ''}
-                onChange={(e) => onFormChange('start_date', e.target.value)}
-                required
-                disabled={!canEdit}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="shift_time">Shift Time</Label>
-              <Input
-                id="shift_time"
-                type="time"
-                value={formData.shift_time || ''}
-                onChange={(e) => onFormChange('shift_time', e.target.value)}
-                disabled={!canEdit}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="shift_type">Shift Type</Label>
+              <Label htmlFor="shift_id">Select Shift *</Label>
               <Select
-                value={formData.shift_type || 'none'}
-                onValueChange={(val) => onFormChange('shift_type', val === 'none' ? null : val)}
-                disabled={!canEdit}
+                value={(formData.shift_id as string) || 'none'}
+                onValueChange={handleShiftChange}
+                disabled={!canEdit || isShiftLocked}
               >
-                <SelectTrigger id="shift_type">
-                  <SelectValue placeholder="Select type" />
+                <SelectTrigger id="shift_id">
+                  <SelectValue placeholder={loadingShifts ? "Loading shifts..." : "Select a shift"} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Select type...</SelectItem>
-                  <SelectItem value="morning">Morning</SelectItem>
-                  <SelectItem value="afternoon">Afternoon</SelectItem>
-                  <SelectItem value="evening">Evening</SelectItem>
-                  <SelectItem value="sleepover">Sleepover</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="house_id">House</Label>
-              <Select
-                value={formData.house_id || 'none'}
-                onValueChange={(val) => onFormChange('house_id', val === 'none' ? null : val)}
-                disabled={!canEdit}
-              >
-                <SelectTrigger id="house_id">
-                  <SelectValue placeholder="Select house" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Select house...</SelectItem>
-                  {houses.map((h) => (
-                    <SelectItem key={h.id} value={h.id}>{h.house_name}</SelectItem>
+                  <SelectItem value="none">Select a shift...</SelectItem>
+                  {shifts.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {format(parseISO(s.start_date), 'EEE, MMM d')} - {s.start_time.substring(0, 5)} ({s.staff_info?.staff_name || 'Unassigned'})
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              <p className="text-xs text-muted-foreground">
+                {isShiftLocked 
+                  ? "This note is locked to the selected shift."
+                  : "Selecting a shift automatically fills date, time, house, and staff."
+                }
+              </p>
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="participant_id">Participant *</Label>
               <Select
-                value={formData.participant_id || 'none'}
+                value={(formData.participant_id as string) || 'none'}
                 onValueChange={(val) => onFormChange('participant_id', val === 'none' ? null : val)}
-                disabled={!canEdit}
+                disabled={!canEdit || isParticipantLocked}
               >
                 <SelectTrigger id="participant_id">
                   <SelectValue placeholder="Select participant" />
@@ -111,27 +128,34 @@ export function ShiftNoteOverviewSection({
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="staff_id">Staff Member *</Label>
-              <Select
-                value={formData.staff_id || 'none'}
-                onValueChange={(val) => onFormChange('staff_id', val === 'none' ? null : val)}
-                disabled={!canEdit}
-              >
-                <SelectTrigger id="staff_id">
-                  <SelectValue placeholder="Select staff" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Select staff...</SelectItem>
-                  {staff.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>{s.staff_name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {isParticipantLocked && (
+                <p className="text-xs text-muted-foreground">
+                  This note is locked to the selected participant.
+                </p>
+              )}
             </div>
           </div>
+
+          {formData.shift_id && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-muted/30 rounded-lg border border-border/50">
+              <div className="space-y-1">
+                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Date</span>
+                <p className="text-sm font-medium">{formData.start_date ? format(parseISO(formData.start_date as string), 'PPP') : 'N/A'}</p>
+              </div>
+              <div className="space-y-1">
+                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Time</span>
+                <p className="text-sm font-medium">{formData.shift_time ? (formData.shift_time as string).substring(0, 5) : 'N/A'}</p>
+              </div>
+              <div className="space-y-1">
+                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Staff</span>
+                <p className="text-sm font-medium">{selectedStaff?.staff_name || 'N/A'}</p>
+              </div>
+              <div className="space-y-1">
+                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">House</span>
+                <p className="text-sm font-medium">{selectedHouse?.house_name || 'N/A'}</p>
+              </div>
+            </div>
+          )}
 
           <div className="space-y-4 pt-2">
             <div className="space-y-2">
@@ -160,7 +184,7 @@ export function ShiftNoteOverviewSection({
                   </Label>
                   <Textarea
                     id="risk_description"
-                    value={formData.risk_description || ''}
+                    value={(formData.risk_description as string) || ''}
                     onChange={(e) => onFormChange('risk_description', e.target.value)}
                     placeholder="Enter risk description..."
                     rows={3}
@@ -177,7 +201,7 @@ export function ShiftNoteOverviewSection({
               </p>
               <Textarea
                 id="overall_presentation"
-                value={formData.overall_presentation || ''}
+                value={(formData.overall_presentation as string) || ''}
                 onChange={(e) => onFormChange('overall_presentation', e.target.value)}
                 placeholder="Describe presentation..."
                 rows={4}

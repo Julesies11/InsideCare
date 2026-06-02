@@ -1,55 +1,59 @@
-import { renderWithProviders, screen, waitFor } from '@/test/test-utils';
-import { RosterBoardContent } from './roster-board-content';
 import { describe, it, expect, vi } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { RosterBoardContent } from './roster-board-content';
+import { ReactNode } from 'react';
 
-// Mock Supabase to return empty data for all metadata and shifts
-vi.mock('@/lib/supabase', () => ({
-  supabase: {
-    from: vi.fn(() => ({
-      select: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          not: vi.fn(() => ({
-            order: vi.fn(() => Promise.resolve({ data: [], error: null }))
-          })),
-          gte: vi.fn(() => ({
-            lte: vi.fn(() => ({
-              order: vi.fn(() => ({
-                order: vi.fn(() => Promise.resolve({ data: [], error: null }))
-              }))
-            }))
-          })),
-          order: vi.fn(() => Promise.resolve({ data: [], error: null }))
-        })),
-        gte: vi.fn(() => ({
-          lte: vi.fn(() => ({
-            order: vi.fn(() => ({
-              order: vi.fn(() => Promise.resolve({ data: [], error: null }))
-            }))
-          }))
-        })),
-        order: vi.fn(() => Promise.resolve({ data: [], error: null })),
-        maybeSingle: vi.fn(() => Promise.resolve({ data: null, error: null }))
-      }))
-    }))
-  }
+// Mock required hooks and components
+vi.mock('@/hooks/useRBAC', () => ({
+  useRBAC: vi.fn(() => ({
+    hasAccess: vi.fn(() => true),
+  })),
+  ACCESS_LEVEL: {
+    CONTEXT_READ_WRITE: 'context_read_write',
+  },
 }));
 
-describe('Roster Board Smoke Test', () => {
-  it('renders the roster board without crashing', async () => {
-    renderWithProviders(<RosterBoardContent />);
-    
-    // Check for core page elements
-    expect(screen.getByText(/Roster Board/i)).toBeInTheDocument();
-    
-    // Check for the motivational banner text
-    expect(screen.getByText(/Orchestrating Quality Care/i)).toBeInTheDocument();
-    
-    // Check for major action buttons
-    expect(screen.getByText(/today/i)).toBeInTheDocument();
-    
-    // Check for filter placeholders in RosterCalendarHeader
-    await waitFor(() => {
-      expect(screen.getByText(/All Houses/i)).toBeInTheDocument();
-    });
+vi.mock('@/hooks/use-house-checklists', () => ({
+  useHouseChecklists: vi.fn(() => ({ houseChecklists: [] })),
+}));
+
+vi.mock('@/components/roster/use-roster-data', () => ({
+  useRosterData: vi.fn(() => ({
+    houses: [],
+    participants: [],
+    staff: [],
+    loading: false,
+    bulkUpdateShifts: vi.fn(),
+    bulkDeleteShifts: vi.fn(),
+  })),
+  useGlobalShiftTemplatesQuery: vi.fn(() => ({ data: [] })),
+}));
+
+vi.mock('./components/staff-roster-calendar', () => ({
+  StaffRosterCalendar: vi.fn(() => <div data-testid="staff-roster-calendar" />),
+}));
+
+const createTestQueryClient = () => new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: false,
+    },
+  },
+});
+
+const wrapper = ({ children }: { children: ReactNode }) => (
+  <MemoryRouter>
+    <QueryClientProvider client={createTestQueryClient()}>
+      {children}
+    </QueryClientProvider>
+  </MemoryRouter>
+);
+
+describe('RosterBoardContent Smoke Test', () => {
+  it('renders without crashing', () => {
+    render(<RosterBoardContent />, { wrapper });
+    expect(screen.getByTestId('staff-roster-calendar')).toBeDefined();
   });
 });

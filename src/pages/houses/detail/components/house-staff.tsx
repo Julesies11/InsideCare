@@ -209,30 +209,6 @@ export function HouseStaff({
     return null;
   };
 
-  // Helper function to get staff email
-  const getStaffEmail = (staffAssignment: any) => {
-    if (staffAssignment.staff?.email) {
-      return staffAssignment.staff.email;
-    }
-    if (staffAssignment.staff_id) {
-      const staffMember = staff.find(s => s.id === staffAssignment.staff_id);
-      return staffMember?.email || '';
-    }
-    return '';
-  };
-
-  // Helper function to get staff phone
-  const getStaffPhone = (staffAssignment: any) => {
-    if (staffAssignment.staff?.phone) {
-      return staffAssignment.staff.phone;
-    }
-    if (staffAssignment.staff_id) {
-      const staffMember = staff.find(s => s.id === staffAssignment.staff_id);
-      return staffMember?.phone || '';
-    }
-    return '';
-  };
-
   // Helper function to get staff role
   const getStaffRole = (staffAssignment: any) => {
     // If staff assignment has staff object with role (from database join), use it
@@ -298,7 +274,6 @@ export function HouseStaff({
               <TableHeader>
                 <TableRow>
                   <TableHead>Staff Member</TableHead>
-                  <TableHead>Contact</TableHead>
                   <TableHead>Role</TableHead>
                   <TableHead>Start Date</TableHead>
                   <TableHead>End Date</TableHead>
@@ -366,12 +341,6 @@ export function HouseStaff({
                               </span>
                             )}
                           </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm">
-                          <div>{getStaffEmail(staffAssignment) || 'N/A'}</div>
-                          <div className="text-xs text-muted-foreground">{getStaffPhone(staffAssignment) || 'N/A'}</div>
                         </div>
                       </TableCell>
                       <TableCell>

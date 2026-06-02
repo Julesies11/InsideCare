@@ -20,6 +20,7 @@ import {
   getNewPasswordSchema,
   NewPasswordSchemaType,
 } from '../forms/reset-password-schema';
+import { ROUTES } from '@/config/routes.config';
 
 export function ChangePasswordPage() {
   const navigate = useNavigate();
@@ -174,9 +175,9 @@ export function ChangePasswordPage() {
       // 3. Smoothly redirect to dashboard after a short delay
       setTimeout(() => {
         if (user?.is_admin) {
-          navigate('/');
+          navigate(ROUTES.HOME);
         } else {
-          navigate('/my-dashboard');
+          navigate(ROUTES.MY_DASHBOARD);
         }
       }, 1500);
     } catch (err) {
@@ -231,7 +232,7 @@ export function ChangePasswordPage() {
         </Button>
 
         <div className="text-center text-sm">
-          <Link to="/auth/signin" className="text-primary hover:underline">
+          <Link to={ROUTES.AUTH_SIGNIN} className="text-primary hover:underline">
             Back to Sign In
           </Link>
         </div>
@@ -261,12 +262,12 @@ export function ChangePasswordPage() {
         </div>
 
         <Button asChild className="w-full">
-          <Link to="/auth/reset-password">Request a Reset Link</Link>
+          <Link to={ROUTES.AUTH_RESET_PASSWORD}>Request a Reset Link</Link>
         </Button>
 
         <div className="text-center text-sm">
           <span className="text-muted-foreground">Remember your password?</span>{' '}
-          <Link to="/auth/signin" className="text-primary hover:underline">
+          <Link to={ROUTES.AUTH_SIGNIN} className="text-primary hover:underline">
             Sign In
           </Link>
         </div>
@@ -387,7 +388,7 @@ export function ChangePasswordPage() {
           </Button>
 
           <div className="text-center text-sm">
-            <Link to="/auth/signin" className="text-primary hover:underline">
+            <Link to={ROUTES.AUTH_SIGNIN} className="text-primary hover:underline">
               Back to Sign In
             </Link>
           </div>

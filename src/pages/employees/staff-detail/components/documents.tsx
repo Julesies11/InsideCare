@@ -359,10 +359,12 @@ export function Documents({
                     <ContextMenuTrigger asChild>
                       <div 
                         className={cn(
-                          "flex flex-col items-center justify-start p-1.5 rounded-lg hover:bg-gray-50 transition-all relative group text-center w-full min-h-[85px] cursor-context-menu",
+                          "flex flex-col items-center justify-start p-1.5 rounded-lg hover:bg-gray-50 transition-all relative group text-center w-full min-h-[85px] cursor-pointer",
                           isPendingDelete && "opacity-60 grayscale bg-destructive/5",
                           hasOverrides && "bg-amber-50/30 border border-amber-100/50 shadow-xs"
                         )}
+                        onDoubleClick={() => !isPendingDelete && handleDownload(doc.file_path, doc.file_name)}
+                        title="Double-click to download"
                       >
                         <div className="size-10 flex items-center justify-center shrink-0 mb-1 group-hover:scale-110 transition-transform relative">
                           <img 
@@ -536,7 +538,11 @@ export function Documents({
                     return (
                       <TableRow key={doc.id} className={cn(isPendingDelete && "opacity-50 grayscale bg-destructive/5")}>
                         <TableCell>
-                          <div className="flex items-center gap-2.5">
+                          <div 
+                            className="flex items-center gap-2.5 cursor-pointer select-none"
+                            onDoubleClick={() => !isPendingDelete && handleDownload(doc.file_path, doc.file_name)}
+                            title="Double-click to download"
+                          >
                             <img 
                               src={toAbsoluteUrl(`/media/file-types/${getFileIcon(doc.file_name)}`)} 
                               className="size-8" 

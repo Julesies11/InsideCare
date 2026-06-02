@@ -30,23 +30,102 @@ test.describe('Operations Comprehensive', () => {
       }
     });
 
-    test('Manage Shift Templates', async ({ page }) => {
+    test('Manage Shift Templates - Full CRUD lifecycle', async ({ page }) => {
       await page.goto('/shift-setup');
       await expect(page.locator('h1:has-text("Shift Templates")')).toBeVisible();
       
-      // Check if there's a template to edit
-      const editBtn = page.getByRole('button', { name: /Edit/i }).first();
-      if (await editBtn.isVisible()) {
-        await editBtn.click();
-        await expect(page).toHaveURL(/shift-templates/, { timeout: 30000 });
-        // Page might have a save button
-      }
+      // Click Edit for the first available house in the list
+      const editHouseBtn = page.getByRole('button', { name: /Edit/i }).first();
+      await expect(editHouseBtn).toBeVisible();
+      await editHouseBtn.click({ force: true });
+      
+      // Verify we are on the edit page for that house
+      await expect(page).toHaveURL(/\/shift-setup\//, { timeout: 30000 });
+      await expect(page.getByRole('button', { name: /Add Template/i })).toBeVisible();
+
+      // 1. Create Shift Template
+      const templateName = `E2E Test Template ${Date.now()}`;
+      await page.getByRole('button', { name: /Add Template/i }).click({ force: true });
+      await page.getByLabel(/Template Name/i).fill(templateName);
+      await page.getByLabel(/Short Name/i).fill('E2ET');
+      await page.getByRole('button', { name: /Save Template/i }).click({ force: true });
+      
+      // Wait for success toast to ensure DB sync
+      await expect(page.locator('[data-sonner-toast][data-type="success"]').last()).toContainText(/success|saved|updated/i, { timeout: 30000 });
+
+      // Verify persistence
+      await expect(page.getByText(templateName).first()).toBeVisible();
+
+      // 2. Edit Shift Template
+      const editedName = `${templateName} Edited`;
+      const templateCard = page.locator('div.bg-white.border.rounded-xl').filter({ hasText: templateName });
+      await templateCard.locator('button[aria-label="edit"]').first().click({ force: true });
+      await page.getByLabel(/Template Name/i).fill(editedName);
+      await page.getByRole('button', { name: /Save Template/i }).click({ force: true });
+      
+      // Wait for success toast
+      await expect(page.locator('[data-sonner-toast][data-type="success"]').last()).toContainText(/success|updated/i, { timeout: 30000 });
+
+      // Verify persistence
+      await expect(page.getByText(editedName).first()).toBeVisible();
+
+      // 3. Delete Shift Template
+      // Handle the browser confirm dialog
+      page.once('dialog', dialog => dialog.accept());
+      
+      const editedCard = page.locator('div.bg-white.border.rounded-xl').filter({ hasText: editedName });
+      await editedCard.locator('button[aria-label="delete"]').first().click({ force: true });
+      
+      // Verify it is gone
+      await expect(page.getByText(editedName)).not.toBeVisible();
     });
 
-    test('Manage Checklist Templates', async ({ page }) => {
+    test('Manage Checklist Templates - Full CRUD lifecycle', async ({ page }) => {
       await page.goto('/checklist-templates');
-      await expect(page.locator('h1:has-text("Checklist Templates")')).toBeVisible();
-      await expect(page.getByRole('button', { name: /New Master Checklist/i })).toBeVisible();
+      await expect(page.locator('h1:has-text("Checklist Master")')).toBeVisible();
+      
+      // 1. Create Checklist Template
+      const templateName = `E2E Checklist ${Date.now()}`;
+      await page.getByRole('button', { name: /Create Template/i }).click({ force: true });
+      await page.getByPlaceholder(/e.g. Morning Clinical Routine/i).fill(templateName);
+      
+      await page.getByRole('button', { name: /Add Task/i }).click({ force: true });
+      await page.getByPlaceholder(/e.g. Confirm kitchen cleaning/i).fill('E2E Verification Task');
+      await page.getByRole('button', { name: /Apply Task/i }).click({ force: true });
+      
+      await expect(page.getByText('E2E Verification Task').first()).toBeVisible();
+      await page.getByRole('button', { name: /Create Master Template/i }).click({ force: true });
+      
+      // Wait for success toast
+      await expect(page.locator('[data-sonner-toast]')).toContainText(/success|created|saved/i, { timeout: 30000 });
+
+      // Verify persistence
+      await expect(page.getByText(templateName).first()).toBeVisible();
+
+      // 2. Edit Checklist Template
+      const editedName = `${templateName} Edited`;
+      // Find the card with the template name and click Edit
+      const templateCard = page.locator('div.border').filter({ hasText: templateName });
+      await expect(templateCard.first()).toBeVisible({ timeout: 20000 });
+      await templateCard.scrollIntoViewIfNeeded();
+      await templateCard.locator('button[aria-label="edit"]').first().click({ force: true });
+
+      await page.getByPlaceholder(/e.g. Morning Clinical Routine/i).fill(editedName);
+      await page.getByRole('button', { name: /Update Master Template/i }).click({ force: true });
+
+      // Wait for success toast
+      await expect(page.locator('[data-sonner-toast][data-type="success"]').last()).toContainText(/success|updated/i, { timeout: 30000 });
+
+      // Verify persistence
+      await expect(page.getByText(editedName).first()).toBeVisible();
+
+      // 3. Delete Checklist Template
+      page.once('dialog', dialog => dialog.accept());
+      const editedCard = page.locator('div.border').filter({ hasText: editedName });
+      await editedCard.locator('button[aria-label="delete"]').first().click({ force: true });
+      
+      // Verify it is gone
+      await expect(page.getByText(editedName)).not.toBeVisible();
     });
   });
 
@@ -54,7 +133,7 @@ test.describe('Operations Comprehensive', () => {
     test.use({ storageState: 'playwright/.auth/staff.json' });
 
     test('Staff Dashboard - Check for active shift or missing timesheets', async ({ page }) => {
-      await page.goto('/staff/dashboard');
+      await page.goto('/my-dashboard');
       await expect(page.getByText(/Upcoming Schedule/i).first()).toBeVisible();
       
       // Look for cards
@@ -62,7 +141,7 @@ test.describe('Operations Comprehensive', () => {
     });
 
     test('Staff Checklists - Sign-off flow', async ({ page }) => {
-      await page.goto('/staff/checklists');
+      await page.goto('/my-checklists');
       await expect(page.getByText(/House Checklists/i)).toBeVisible({ timeout: 30000 });
 
       // Click on a checklist card if present
@@ -79,7 +158,7 @@ test.describe('Operations Comprehensive', () => {
     });
 
     test('Staff Timesheets - Create and View', async ({ page }) => {
-      await page.goto('/staff/timesheets');
+      await page.goto('/my-timesheets');
       await expect(page.locator('h1:has-text("My Timesheets")')).toBeVisible();
       
       // Check for tabs

@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { TABLES } from '@/config/db-tables';
+import { systemApi } from '@/api/system.api';
 
 export interface StaffDocumentRolePermission {
   id: string;
@@ -16,19 +15,7 @@ export function useStaffDocumentRolePermissions(documentId?: string) {
     queryKey: ['staff-document-role-permissions', documentId],
     queryFn: async () => {
       if (!documentId) return [];
-      const { data, error } = await supabase
-        .from(TABLES.STAFF_DOCUMENT_ROLES)
-        .select(`
-          id,
-          document_id,
-          role_id,
-          access_level,
-          role:${TABLES.ROLES}(id, role_name)
-        `)
-        .eq('document_id', documentId);
-
-      if (error) throw error;
-      return data;
+      return await systemApi.permissions.listStaffDocumentPermissions(documentId);
     },
     enabled: !!documentId,
   });
@@ -39,19 +26,7 @@ export function useAllStaffDocumentOverrides(documentIds: string[]) {
     queryKey: ['staff-document-overrides', documentIds],
     queryFn: async () => {
       if (!documentIds.length) return [];
-      const { data, error } = await supabase
-        .from(TABLES.STAFF_DOCUMENT_ROLES)
-        .select(`
-          id,
-          document_id,
-          role_id,
-          access_level,
-          role:${TABLES.ROLES}(id, role_name)
-        `)
-        .in('document_id', documentIds);
-
-      if (error) throw error;
-      return data;
+      return await systemApi.permissions.listMultipleStaffDocumentPermissions(documentIds);
     },
     enabled: documentIds.length > 0,
   });
@@ -62,26 +37,7 @@ export function useUpdateStaffDocumentRolePermissions() {
 
   return useMutation({
     mutationFn: async ({ documentId, roles }: { documentId: string; roles: Array<{ role_id: string; access_level: string }> }) => {
-      // 1. Delete existing role permissions for this document
-      const { error: deleteError } = await supabase
-        .from(TABLES.STAFF_DOCUMENT_ROLES)
-        .delete()
-        .eq('document_id', documentId);
-
-      if (deleteError) throw deleteError;
-
-      // 2. Insert new role permissions if any
-      if (roles.length > 0) {
-        const { error: insertError } = await supabase
-          .from(TABLES.STAFF_DOCUMENT_ROLES)
-          .insert(roles.map(r => ({
-            document_id: documentId,
-            role_id: r.role_id,
-            access_level: r.access_level as any,
-          })));
-
-        if (insertError) throw insertError;
-      }
+      await systemApi.permissions.updateStaffDocumentPermissions(documentId, roles);
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['staff-document-role-permissions', variables.documentId] });

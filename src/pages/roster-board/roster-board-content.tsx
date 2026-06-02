@@ -23,12 +23,11 @@ export function RosterBoardContent() {
   const [viewMode, setViewMode] = useState<ViewMode>('week');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedStaffId, setSelectedStaffId] = useState<string>('all');
-  const [showLeave, setShowLeave] = useState(false);
+  const [showLeave, setShowLeave] = useState(true);
   
   const [houseFilter, setHouseFilter] = useState<string>('all');
   const [participantFilter, setParticipantFilter] = useState<string>('all');
   const [shiftTemplateFilter, setShiftTemplateFilter] = useState<string>('all');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
 
   const { houseChecklists } = useHouseChecklists();
   const { 
@@ -155,36 +154,34 @@ export function RosterBoardContent() {
             shiftTemplateFilter={shiftTemplateFilter}
             onShiftTemplateFilterChange={setShiftTemplateFilter}
             shiftTemplateList={shiftTemplates}
-            statusFilter={statusFilter}
-            onStatusFilterChange={setStatusFilter}
             showLeave={showLeave}
             onShowLeaveChange={setShowLeave}
             onPopulateRoster={() => handleOpenPopulateModal()}
             onBulkAction={() => handleOpenBulkModal()}
             isCopying={isCopying}
-          />
-        </CardContent>
-      </Card>
+            />
+            </CardContent>
+            </Card>
 
-      {/* Calendar */}
-      {!rosterLoading && (
-        <StaffRosterCalendar
-          ref={calendarRef}
-          staffId={selectedStaffId}
-          viewMode={viewMode}
-          currentDate={currentDate}
-          houseFilter={houseFilter}
-          participantFilter={participantFilter}
-          shiftTemplateFilter={shiftTemplateFilter}
-          canEdit={canEdit}
-          groupByHouse={true}
-          showLeave={showLeave}
-          onBulkAction={handleOpenBulkModal}
-          onPopulateRoster={handleOpenPopulateModal}
-          checklists={houseChecklists}
-        />
-      )}
-
+            {/* Calendar */}
+            {!rosterLoading && (
+            <StaffRosterCalendar
+            ref={calendarRef}
+            staffId={selectedStaffId}
+            viewMode={viewMode}
+            currentDate={currentDate}
+            houseFilter={houseFilter}
+            participantFilter={participantFilter}
+            shiftTemplateFilter={shiftTemplateFilter}
+            canEdit={canEdit}
+            groupByHouse={true}
+            showLeave={showLeave}
+            includeEvents={false}
+            onBulkAction={handleOpenBulkModal}
+            onPopulateRoster={handleOpenPopulateModal}
+            checklists={houseChecklists}
+            />
+            )}
       <BulkActionModal
         key={bulkModalOpen ? `bulk-${bulkInitialHouseId}` : 'bulk-closed'}
         open={bulkModalOpen}

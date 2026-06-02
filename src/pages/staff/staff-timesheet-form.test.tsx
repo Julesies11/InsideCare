@@ -3,6 +3,7 @@ import { screen, waitFor, fireEvent } from '@testing-library/react';
 import { StaffTimesheetForm } from './staff-timesheet-form';
 import { renderWithProviders } from '@/test/test-utils';
 import { TABLES } from '@/config/db-tables';
+import { ROUTES } from '@/config/routes.config';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
 import { ShiftRow, HouseRow, StaffRow } from '@/test/type-helpers';
@@ -33,7 +34,7 @@ vi.mock('react-router', async () => {
     useNavigate: () => mockNavigate,
     useLocation: () => ({
       state: {},
-      pathname: '/staff/timesheet/new',
+      pathname: `${ROUTES.MY_ROSTER}/shift-1/timesheet`,
     }),
   };
 });
@@ -136,7 +137,7 @@ describe('StaffTimesheetForm', () => {
 
     // Assert submission behavior
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/my-timesheets', expect.anything());
+      expect(mockNavigate).toHaveBeenCalledWith(ROUTES.MY_TIMESHEETS, expect.anything());
     });
   });
 

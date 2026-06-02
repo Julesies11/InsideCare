@@ -4,6 +4,7 @@ import { toAbsoluteUrl } from '@/lib/helpers';
 import { cn } from '@/lib/utils';
 import { useSettings } from '@/providers/settings-provider';
 import { Button } from '@/components/ui/button';
+import { ROUTES } from '@/config/routes.config';
 
 export function SidebarHeader() {
   const { settings, storeOption } = useSettings();
@@ -17,7 +18,7 @@ export function SidebarHeader() {
 
   return (
     <div className="sidebar-header hidden lg:flex items-center relative justify-center px-3 lg:px-6 shrink-0">
-      <Link to="/">
+      <Link to={ROUTES.HOME}>
         <div className="dark:hidden">
           <img
             src={toAbsoluteUrl('/media/app/default-logo.png')}

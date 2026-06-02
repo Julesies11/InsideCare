@@ -17,6 +17,8 @@ interface RosterCalendarHeaderProps {
   // Filter visibility flags
   showStaffFilter?: boolean;
   showParticipantFilter?: boolean;
+  showHouseFilter?: boolean;
+  showShiftTemplateFilter?: boolean;
   
   // Filter values and handlers
   staffFilter?: string;
@@ -25,22 +27,23 @@ interface RosterCalendarHeaderProps {
   
   participantFilter?: string;
   onParticipantFilterChange?: (value: string) => void;
-  participantList?: Array<{ id: string; name: string }>;
+  participantList?: Array<{ id: string; participant_name: string }>;
   
-  houseFilter: string;
-  onHouseFilterChange: (value: string) => void;
-  houseList: Array<{ id: string; name: string }>;
+  houseFilter?: string;
+  onHouseFilterChange?: (value: string) => void;
+  houseList?: Array<{ id: string; house_name: string }>;
   
-  shiftTemplateFilter: string;
-  onShiftTemplateFilterChange: (value: string) => void;
+  shiftTemplateFilter?: string;
+  onShiftTemplateFilterChange?: (value: string) => void;
   shiftTemplateList?: Array<{ id: string; name: string }>;
-  
-  statusFilter: string;
-  onStatusFilterChange: (value: string) => void;
 
   // Leave filter
   showLeave?: boolean;
   onShowLeaveChange?: (value: boolean) => void;
+
+  // Events/Meetings filter
+  showEvents?: boolean;
+  onShowEventsChange?: (value: boolean) => void;
 
   // Template actions
   onPopulateRoster?: () => void;
@@ -55,6 +58,9 @@ export function RosterCalendarHeader({
   getPeriodLabel,
   showStaffFilter = false,
   showParticipantFilter = false,
+  showHouseFilter = true,
+  showShiftTemplateFilter = true,
+  showStatusFilter = true,
   staffFilter,
   onStaffFilterChange,
   staffList = [],
@@ -63,14 +69,14 @@ export function RosterCalendarHeader({
   participantList = [],
   houseFilter,
   onHouseFilterChange,
-  houseList,
+  houseList = [],
   shiftTemplateFilter,
   onShiftTemplateFilterChange,
   shiftTemplateList = [],
-  statusFilter,
-  onStatusFilterChange,
   showLeave = false,
   onShowLeaveChange,
+  showEvents = false,
+  onShowEventsChange,
   onPopulateRoster: _onPopulateRoster,
   onBulkAction: _onBulkAction,
   isCopying: _isCopying = false,
@@ -133,7 +139,24 @@ export function RosterCalendarHeader({
               htmlFor="header-show-leave" 
               className="font-bold text-[10px] uppercase tracking-wider cursor-pointer text-muted-foreground"
             >
-              Staff Leave
+              Leave
+            </Label>
+          </div>
+        )}
+
+        {onShowEventsChange && (
+          <div className="flex items-center gap-2 mr-2">
+            <Switch 
+              id="header-show-events" 
+              checked={showEvents} 
+              onCheckedChange={onShowEventsChange} 
+              size="sm" 
+            />
+            <Label 
+              htmlFor="header-show-events" 
+              className="font-bold text-[10px] uppercase tracking-wider cursor-pointer text-muted-foreground"
+            >
+              Meetings
             </Label>
           </div>
         )}
@@ -154,19 +177,21 @@ export function RosterCalendarHeader({
           </Select>
         )}
 
-        <Select value={houseFilter} onValueChange={onHouseFilterChange}>
-          <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder="All Houses" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Houses</SelectItem>
-            {houseList.map(house => (
-              <SelectItem key={house.id} value={house.id}>
-                {house.house_name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {showHouseFilter && onHouseFilterChange && (
+          <Select value={houseFilter} onValueChange={onHouseFilterChange}>
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder="All Houses" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Houses</SelectItem>
+              {houseList.map(house => (
+                <SelectItem key={house.id} value={house.id}>
+                  {house.house_name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
 
         {showParticipantFilter && onParticipantFilterChange && (
           <Select value={participantFilter} onValueChange={onParticipantFilterChange}>
@@ -184,33 +209,21 @@ export function RosterCalendarHeader({
           </Select>
         )}
 
-        <Select value={shiftTemplateFilter} onValueChange={onShiftTemplateFilterChange}>
-          <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder="All Types" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            {shiftTemplateList.map(type => (
-              <SelectItem key={type.id} value={type.id}>
-                {type.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select value={statusFilter} onValueChange={onStatusFilterChange}>
-          <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder="All Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="Scheduled">Scheduled</SelectItem>
-            <SelectItem value="Confirmed">Confirmed</SelectItem>
-            <SelectItem value="Completed">Completed</SelectItem>
-            <SelectItem value="Cancelled">Cancelled</SelectItem>
-            <SelectItem value="No Show">No Show</SelectItem>
-          </SelectContent>
-        </Select>
+        {showShiftTemplateFilter && onShiftTemplateFilterChange && (
+          <Select value={shiftTemplateFilter} onValueChange={onShiftTemplateFilterChange}>
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder="All Types" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              {shiftTemplateList.map(type => (
+                <SelectItem key={type.id} value={type.id}>
+                  {type.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
     </div>
   );

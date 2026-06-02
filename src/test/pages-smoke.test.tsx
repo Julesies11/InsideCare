@@ -51,7 +51,7 @@ vi.mock('@/lib/supabase', () => {
 describe('Smoke Tests - Pages and Features', () => {
   it('Checklist Master Page loads without crashing', () => {
     renderWithProviders(<ChecklistMasterPage />);
-    expect(screen.getByText(/Checklist Templates/i)).toBeDefined();
+    expect(screen.getByText(/Checklist Master/i)).toBeDefined();
   });
 
   it('House Checklist Schedule Modal renders', () => {

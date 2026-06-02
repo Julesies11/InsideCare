@@ -9,7 +9,7 @@ import { HousePendingChanges } from '@/models/house-pending-changes';
 import { HouseChecklistSetup } from './house-checklist-setup';
 import { HouseShiftSetup } from './house-shift-setup';
 import { toast } from 'sonner';
-import { supabase } from '@/lib/supabase';
+import { housesApi } from '@/api/houses.api';
 
 interface HouseRosterWizardProps {
   open: boolean;
@@ -45,10 +45,7 @@ export function HouseRosterWizard({ open, onOpenChange, houseId, houseName, pend
       setCurrentStep(nextStep);
       
       try {
-        await supabase
-          .from('ic_houses')
-          .update({ setup_step: nextStep })
-          .eq('id', houseId);
+        await housesApi.updateSetupStep(houseId, nextStep);
       } catch (e) {
         console.error('Failed to persist setup step', e);
       }
@@ -64,16 +61,7 @@ export function HouseRosterWizard({ open, onOpenChange, houseId, houseName, pend
   const handleFinish = async () => {
     setIsSaving(true);
     try {
-      const { error } = await supabase
-        .from('ic_houses')
-        .update({ 
-          setup_step: 3,
-          is_configured: true,
-          status: 'active'
-        })
-        .eq('id', houseId);
-
-      if (error) throw error;
+      await housesApi.finalizeSetup(houseId);
 
       queryClient.invalidateQueries({ queryKey: ['houses'] });
       queryClient.invalidateQueries({ queryKey: ['house-detail', houseId] });

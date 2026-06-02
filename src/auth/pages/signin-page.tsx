@@ -19,6 +19,7 @@ import { Input } from '@/components/ui/input';
 import { getSigninSchema, SigninSchemaType } from '../forms/signin-schema';
 import { LoaderCircleIcon } from 'lucide-react';
 import { toAbsoluteUrl } from '@/lib/helpers';
+import { ROUTES } from '@/config/routes.config';
 
 const TEST_ADMIN = { email: 'julian.gibbings+admin@gmail.com', password: 'Password123!' };
 const TEST_SUPPORT_WORKER = { email: 'julian.gibbings+supportworker@gmail.com', password: 'Password123!' };
@@ -104,9 +105,9 @@ export function SignInPage() {
       // NOTE: We ignore the 'next' parameter for Development buttons 
       // to ensure the user lands on a page they actually have access to.
       if (user?.is_admin) {
-        navigate('/');
+        navigate(ROUTES.HOME);
       } else {
-        navigate('/my-dashboard');
+        navigate(ROUTES.MY_DASHBOARD);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
@@ -136,9 +137,9 @@ export function SignInPage() {
       if (nextPath) {
         navigate(nextPath);
       } else if (user?.is_admin) {
-        navigate('/');
+        navigate(ROUTES.HOME);
       } else {
-        navigate('/my-dashboard');
+        navigate(ROUTES.MY_DASHBOARD);
       }
     } catch (err) {
       setError(
@@ -278,7 +279,7 @@ export function SignInPage() {
                   </FormLabel>
                 </div>
                 <Link
-                  to="/auth/reset-password"
+                  to={ROUTES.AUTH_RESET_PASSWORD}
                   className="text-sm font-semibold text-foreground hover:text-primary"
                 >
                   Forgot Password?

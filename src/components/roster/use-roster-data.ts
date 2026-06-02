@@ -1,10 +1,11 @@
 import { useMemo, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { TABLES } from '@/config/db-tables';
 import { QUERY_KEYS } from '@/config/query-keys';
-import { STATUS, CHECKLIST_STATUS, LEAVE_STATUS } from '@/config/enums';
+import { CHECKLIST_STATUS } from '@/config/enums';
 import { rosterApi } from '@/api/roster.api';
+import { housesApi } from '@/api/houses.api';
+import { participantsApi } from '@/api/participants.api';
+import { staffApi } from '@/api/staff.api';
 
 export interface StaffShift {
   id: string;
@@ -95,7 +96,7 @@ export function useShiftsQuery(staffId: string, startDate: string, endDate: stri
     const houseMap = new Map(houses.map(h => [h.id, { id: h.id, house_name: h.house_name }]));
     const staffMap = new Map(staff.map(s => [s.id, s.staff_name]));
 
-    return query.data.map((item: any): StaffShift => {
+    return (query.data as any[]).map((item: any): StaffShift => {
       const colorTheme = item.type_details?.color_theme || item.type_color;
       const iconName = item.type_details?.icon_name;
 
@@ -133,11 +134,12 @@ export function useShiftsQuery(staffId: string, startDate: string, endDate: stri
         icon_name: iconName,
       };
     }).sort((a, b) => {
-      const dateCompare = a.start_date.localeCompare(b.start_date);
+      const dateCompare = (a.start_date || '').localeCompare(b.start_date || '');
       if (dateCompare !== 0) return dateCompare;
       return (a.start_time || '').localeCompare(b.start_time || '');
     });
-    }, [query.data, houses, staff]);
+  }, [query.data, houses, staff]);
+
   return useMemo(() => ({
     ...query,
     shifts,
@@ -151,34 +153,10 @@ export function useRosterData(staffId?: string, options: { includeMetadata?: boo
   const housesQuery = useQuery({
     queryKey: [QUERY_KEYS.HOUSES, staffId],
     queryFn: async () => {
-      const today = new Date().toISOString().split('T')[0];
-
       if (staffId && staffId !== 'all') {
-        const { data, error } = await supabase
-          .from(TABLES.HOUSE_STAFF_ASSIGNMENTS)
-          .select(`house:${TABLES.HOUSES}(id, house_name, status, branch_id)`)
-          .eq('staff_id', staffId)
-          .or(`end_date.is.null,end_date.gte.${today}`);
-        
-        if (error) throw error;
-        
-        const houses = (data || [])
-          .map((a: any) => a.house)
-          .filter((h: any) => h && h.status === STATUS.active);
-        
-        // Deduplicate by ID
-        const uniqueHouses = Array.from(new Map(houses.map(h => [h.id, h])).values());
-        
-        return uniqueHouses.map((h: any) => ({ ...h, name: h.house_name })).sort((a, b) => a.house_name.localeCompare(b.house_name));
+        return await housesApi.listStaffAssignmentsByStaff(staffId);
       }
-
-      const { data, error } = await supabase
-        .from(TABLES.HOUSES)
-        .select('id, house_name, status, branch_id')
-        .eq('status', STATUS.active)
-        .order('house_name');
-      if (error) throw error;
-      return (data || []).map((h: any) => ({ ...h, name: h.house_name }));
+      return await housesApi.listActive();
     },
     enabled: includeMetadata,
     staleTime: 1000 * 60 * 60, // 1 hour
@@ -187,13 +165,7 @@ export function useRosterData(staffId?: string, options: { includeMetadata?: boo
   const participantsQuery = useQuery({
     queryKey: [QUERY_KEYS.PARTICIPANTS],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from(TABLES.PARTICIPANTS)
-        .select('id, participant_name, status, house_id')
-        .eq('status', STATUS.active)
-        .order('participant_name');
-      if (error) throw error;
-      return (data || []).map((p: any) => ({ ...p, name: p.participant_name }));
+      return await participantsApi.listActive();
     },
     enabled: includeMetadata,
     staleTime: 1000 * 60 * 60, // 1 hour
@@ -202,51 +174,21 @@ export function useRosterData(staffId?: string, options: { includeMetadata?: boo
   const staffQuery = useQuery({
     queryKey: [QUERY_KEYS.STAFF],
     queryFn: async () => {
-      const today = new Date().toISOString().split('T')[0];
-      const { data, error } = await supabase
-        .from(TABLES.STAFF)
-        .select(`
-          id, staff_name, status, email,
-          house_assignments:${TABLES.HOUSE_STAFF_ASSIGNMENTS}!house_staff_assignments_staff_id_fkey(
-            id,
-            house_id,
-            end_date,
-            house:${TABLES.HOUSES}(id, house_name)
-          )
-        `)
-        .eq('status', STATUS.active)
-        .order('staff_name');
-      if (error) throw error;
-      
-      // Normalize and Filter house assignments (only active ones)
-      return (data || []).map((s: any) => {
-        const activeAssignments = (s.house_assignments || []).filter((ha: any) => {
-          return !ha.end_date || ha.end_date >= today;
-        }).map((ha: any) => ({
-          ...ha,
-          house: Array.isArray(ha.house) ? ha.house[0] : ha.house
-        }));
-
-        return {
-          ...s,
-          name: s.staff_name,
-          house_assignments: activeAssignments
-        };
-      });
+      return await staffApi.listActive();
     },
     enabled: includeMetadata,
     staleTime: 1000 * 60 * 60, // 1 hour
   });
 
   const createShiftMutation = useMutation({
-    mutationFn: (shift: any) => rosterApi.createShift(shift),
+    mutationFn: (newShift: any) => rosterApi.createShift(newShift),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['roster-shifts'] });
     },
   });
 
   const updateShiftMutation = useMutation({
-    mutationFn: ({ id, updates }: { id: string, updates: any }) => rosterApi.updateShift(id, updates),
+    mutationFn: ({ id, updates }: { id: string; updates: any }) => rosterApi.updateShift(id, updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['roster-shifts'] });
     },
@@ -260,21 +202,28 @@ export function useRosterData(staffId?: string, options: { includeMetadata?: boo
   });
 
   const bulkUpdateShiftsMutation = useMutation({
-    mutationFn: ({ params, updates }: { params: string[] | any, updates: any }) => rosterApi.bulkUpdateShifts(params, updates),
+    mutationFn: ({ params, updates }: { params: any; updates: any }) => rosterApi.bulkUpdateShifts(params, updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['roster-shifts'] });
     },
   });
 
   const bulkDeleteShiftsMutation = useMutation({
-    mutationFn: (params: string[] | any) => rosterApi.bulkDeleteShifts(params),
+    mutationFn: (params: any) => rosterApi.bulkDeleteShifts(params),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['roster-shifts'] });
     },
   });
 
   const syncShiftParticipantsMutation = useMutation({
-    mutationFn: ({ shift_id, participant_ids }: { shift_id: string, participant_ids: string[] }) => rosterApi.syncShiftParticipants(shift_id, participant_ids),
+    mutationFn: ({ shiftId, participantIds }: { shiftId: string; participantIds: string[] }) => rosterApi.syncShiftParticipants(shiftId, participantIds),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['roster-shifts'] });
+    },
+  });
+
+  const addShiftParticipantMutation = useMutation({
+    mutationFn: ({ shiftId, participantId }: { shiftId: string; participantId: string }) => rosterApi.addShiftParticipant(shiftId, participantId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['roster-shifts'] });
     },
@@ -288,57 +237,30 @@ export function useRosterData(staffId?: string, options: { includeMetadata?: boo
   });
 
   const syncShiftChecklistsMutation = useMutation({
-    mutationFn: ({ shift_id, checklists }: { shift_id: string, checklists: AssignedChecklist[] }) => rosterApi.syncShiftChecklists(shift_id, checklists),
+    mutationFn: ({ shiftId, checklists }: { shiftId: string; checklists: any[] }) => rosterApi.syncShiftChecklists(shiftId, checklists),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['roster-shifts'] });
     },
   });
 
-  const materializePattern = useCallback((params: any) => materializePatternMutation.mutateAsync(params), [materializePatternMutation]);
-  const syncShiftChecklists = useCallback((shift_id: string, checklists: AssignedChecklist[]) => syncShiftChecklistsMutation.mutateAsync({ shift_id, checklists }), [syncShiftChecklistsMutation]);
-
-  // Wrappers to keep the original function API
-  const createShift = useCallback((shift: any) => createShiftMutation.mutateAsync(shift), [createShiftMutation]);
-  const updateShift = useCallback((id: string, updates: any) => updateShiftMutation.mutateAsync({ id, updates }), [updateShiftMutation]);
-  const deleteShift = useCallback((id: string) => deleteShiftMutation.mutateAsync(id), [deleteShiftMutation]);
-  const bulkUpdateShifts = useCallback((params: string[] | any, updates: any) => bulkUpdateShiftsMutation.mutateAsync({ params, updates }), [bulkUpdateShiftsMutation]);
-  const bulkDeleteShifts = useCallback((params: string[] | any) => bulkDeleteShiftsMutation.mutateAsync(params), [bulkDeleteShiftsMutation]);
-  const syncShiftParticipants = useCallback((shift_id: string, participant_ids: string[]) => syncShiftParticipantsMutation.mutateAsync({ shift_id, participant_ids }), [syncShiftParticipantsMutation]);
-
-  return useMemo(() => ({
+  return {
     houses: housesQuery.data || [],
     participants: participantsQuery.data || [],
     staff: staffQuery.data || [],
     loading: housesQuery.isLoading || participantsQuery.isLoading || staffQuery.isLoading,
-    loadHouses: housesQuery.refetch,
-    loadParticipants: participantsQuery.refetch,
-    loadStaff: staffQuery.refetch,
-    createShift,
-    updateShift,
-    deleteShift,
-    bulkUpdateShifts,
-    bulkDeleteShifts,
-    syncShiftParticipants,
-    materializePattern,
-    syncShiftChecklists,
-  }), [
-    housesQuery.data, 
-    housesQuery.isLoading, 
-    housesQuery.refetch,
-    participantsQuery.data, 
-    participantsQuery.isLoading, 
-    participantsQuery.refetch,
-    staffQuery.data, 
-    staffQuery.isLoading, 
-    staffQuery.refetch,
-    createShift,
-    updateShift,
-    deleteShift,
-    bulkUpdateShifts,
-    bulkDeleteShifts,
-    syncShiftParticipants,
-    materializePattern,
-    syncShiftChecklists
-  ]);
+    refresh: () => {
+      housesQuery.refetch();
+      participantsQuery.refetch();
+      staffQuery.refetch();
+    },
+    createShift: createShiftMutation.mutateAsync,
+    updateShift: updateShiftMutation.mutateAsync,
+    deleteShift: deleteShiftMutation.mutateAsync,
+    bulkUpdateShifts: bulkUpdateShiftsMutation.mutateAsync,
+    bulkDeleteShifts: bulkDeleteShiftsMutation.mutateAsync,
+    syncShiftParticipants: syncShiftParticipantsMutation.mutateAsync,
+    addShiftParticipant: addShiftParticipantMutation.mutateAsync,
+    materializePattern: materializePatternMutation.mutateAsync,
+    syncShiftChecklists: syncShiftChecklistsMutation.mutateAsync,
+  };
 }
-

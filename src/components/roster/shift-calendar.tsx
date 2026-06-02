@@ -28,13 +28,14 @@ export interface ShiftCalendarProps {
   onPopulateRoster?: (houseId: string) => void;
   houses?: Array<{ id: string; name: string }>;
   staffList?: Array<{ id: string; name: string }>;
+  groupByHouse?: boolean;
   onQuickAssign?: (shiftId: string, staffId: string) => void;
   onEditLeave?: (leave: LeaveBlock) => void;
 }
 
 function LeaveBlockBadge({ leave, staffName, onClick }: { leave: LeaveBlock; staffName?: string, onClick?: () => void }) {
   const isPending = leave.status === 'pending';
-  const reason = leave.reason ? (leave.reason.length > 50 ? `${leave.reason.slice(0, 50)}...` : leave.reason) : null;
+  const reason = leave.reason;
   return (
     <div
       onClick={(e) => {
@@ -43,7 +44,7 @@ function LeaveBlockBadge({ leave, staffName, onClick }: { leave: LeaveBlock; sta
           onClick();
         }
       }}
-      className={`text-[10px] px-1.5 py-0.5 rounded font-medium truncate transition-colors ${
+      className={`text-[10px] px-1.5 py-0.5 rounded font-medium line-clamp-3 whitespace-normal break-words transition-all ${
         onClick ? 'cursor-pointer hover:brightness-95' : ''
       } ${
         isPending
@@ -73,6 +74,7 @@ export function ShiftCalendar({
   onPopulateRoster,
   houses = [],
   staffList,
+  groupByHouse = false,
   onQuickAssign,
   onEditLeave,
 }: ShiftCalendarProps) {
@@ -98,9 +100,13 @@ export function ShiftCalendar({
 
   const getLeaveForDate = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    return leaveBlocks.filter(leave => {
+    const filtered = leaveBlocks.filter(leave => {
       return dateStr >= leave.start_date && dateStr <= leave.end_date;
     });
+    
+    // Deduplicate by ID to prevent "doubling up"
+    const uniqueLeave = Array.from(new Map(filtered.map(l => [l.id, l])).values());
+    return uniqueLeave;
   };
 
   const getShiftsForHouseAndDate = (houseId: string, date: Date) => {
@@ -111,10 +117,10 @@ export function ShiftCalendar({
     return sortShifts(filtered);
   };
 
-  const getConflictingShifts = (staffId: string, date: Date, excludeShiftId?: string) => {
+  const getConflictingShifts = (staffIdParam: string, date: Date, excludeShiftId?: string) => {
     const dateStr = format(date, 'yyyy-MM-dd');
     return shifts.filter(shift => 
-      shift.staff_id === staffId && 
+      shift.staff_id === staffIdParam && 
       shift.start_date && shift.start_date === dateStr &&
       shift.id !== excludeShiftId
     );
@@ -282,7 +288,7 @@ export function ShiftCalendar({
   };
 
   const renderWeekView = (days: Date[]) => {
-    if (houses.length > 0) {
+    if (groupByHouse && houses.length > 0) {
       return renderHouseGroupedWeekView(days);
     }
 
@@ -336,7 +342,7 @@ export function ShiftCalendar({
                 ))}
                 {dayShifts.map(shift => (
                   <div key={shift.id} onClick={(e) => e.stopPropagation()}>
-                    {renderShiftCardWithWarning(shift, day, false, false)}
+                    {renderShiftCardWithWarning(shift, day, false, true)}
                   </div>
                 ))}
                 {dayShifts.length === 0 && getLeaveForDate(day).length === 0 && (
@@ -482,18 +488,23 @@ export function ShiftCalendar({
                         
                         <div className="space-y-1.5">
                           {/* Render leave blocks for staff assigned to this house */}
-                          {leaveBlocks.filter(leave => {
+                          {(() => {
                             const dateStr = format(day, 'yyyy-MM-dd');
-                            return houseStaffList.some(s => s.id === leave.staff_id) && 
-                                   dateStr >= leave.start_date && dateStr <= leave.end_date;
-                          }).map(leave => (
-                            <LeaveBlockBadge 
-                              key={leave.id} 
-                              leave={leave} 
-                              staffName={staffList?.find(s => s.id === leave.staff_id)?.name} 
-                              onClick={onEditLeave ? () => onEditLeave(leave) : undefined}
-                            />
-                          ))}
+                            const houseLeave = leaveBlocks.filter(leave => {
+                              return houseStaffList.some(s => s.id === leave.staff_id) && 
+                                     dateStr >= leave.start_date && dateStr <= leave.end_date;
+                            });
+                            const uniqueHouseLeave = Array.from(new Map(houseLeave.map(l => [l.id, l])).values());
+                            
+                            return uniqueHouseLeave.map(leave => (
+                              <LeaveBlockBadge 
+                                key={leave.id} 
+                                leave={leave} 
+                                staffName={staffList?.find(s => s.id === leave.staff_id)?.name} 
+                                onClick={onEditLeave ? () => onEditLeave(leave) : undefined}
+                              />
+                            ));
+                          })()}
 
                           {houseShifts.map(shift => (
                             <div key={shift.id} onClick={(e) => e.stopPropagation()}>

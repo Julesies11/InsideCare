@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Edit, Calendar } from 'lucide-react';
 import { ReactNode } from 'react';
 
 interface ChecklistCardProps {
@@ -22,12 +22,17 @@ interface ChecklistCardProps {
   isPendingAdd?: boolean;
   isPendingUpdate?: boolean;
   isPendingDelete?: boolean;
+  onEdit?: (checklist: ChecklistCardProps['checklist']) => void;
   onDelete?: (checklist: ChecklistCardProps['checklist']) => void;
+  onSchedule?: (checklist: ChecklistCardProps['checklist']) => void;
   renderActions?: (checklist: ChecklistCardProps['checklist']) => ReactNode;
   dragHandle?: ReactNode;
   footer?: ReactNode;
   showTasksPreview?: boolean;
   maxTasksPreview?: number;
+  isMaster?: boolean;
+  canDelete?: boolean;
+  canEdit?: boolean;
 }
 
 /**
@@ -38,12 +43,17 @@ export function ChecklistCard({
   isPendingAdd, 
   isPendingUpdate, 
   isPendingDelete,
+  onEdit,
   onDelete,
+  onSchedule,
   renderActions,
   dragHandle,
   footer,
   showTasksPreview = true,
-  maxTasksPreview = 2
+  maxTasksPreview = 2,
+  isMaster = false,
+  canDelete = true,
+  canEdit = true
 }: ChecklistCardProps) {
   const checklistItems = checklist.items || [];
   const displayName = checklist.house_checklist_name || checklist.checklist_name || checklist.name || 'Untitled Checklist';
@@ -70,14 +80,25 @@ export function ChecklistCard({
               </h3>
               {isPendingAdd && <Badge variant="outline" className="text-[9px] h-4 border-primary-200 text-primary bg-primary/10 px-1">PENDING ADD</Badge>}
               {isPendingUpdate && <Badge variant="outline" className="text-[9px] h-4 border-warning-200 text-warning bg-warning/10 px-1">PENDING UPDATE</Badge>}
+              {isMaster && <Badge variant="outline" className="text-[9px] h-4 border-gray-200 text-gray-500 bg-gray-100 px-1">MASTER</Badge>}
             </div>
             {checklist.description && <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{checklist.description}</p>}
           </div>
           
           <div className="flex gap-0.5 shrink-0 ml-2">
             {renderActions && renderActions(checklist)}
-            {onDelete && !isPendingDelete && (
-              <Button variant="ghost" size="icon" className="size-8 text-destructive" onClick={() => onDelete(checklist)}>
+            {onSchedule && (
+              <Button variant="ghost" size="icon" className="size-8 text-primary" onClick={() => onSchedule(checklist)}>
+                <Calendar className="size-3.5" />
+              </Button>
+            )}
+            {onEdit && canEdit && (
+              <Button variant="ghost" size="icon" className="size-8 text-primary" onClick={() => onEdit(checklist)} aria-label="edit">
+                <Edit className="size-3.5" />
+              </Button>
+            )}
+            {onDelete && canDelete && !isPendingDelete && (
+              <Button variant="ghost" size="icon" className="size-8 text-destructive" onClick={() => onDelete(checklist)} aria-label="delete">
                 <Trash2 className="size-3.5" />
               </Button>
             )}

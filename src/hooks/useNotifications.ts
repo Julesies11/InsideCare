@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/auth/context/auth-context';
 import { toast } from 'sonner';
-import { TABLES } from '@/config/db-tables';
+import { systemApi } from '@/api/system.api';
 
 export interface AppNotification {
   id: string;
@@ -28,29 +27,15 @@ export function useNotifications() {
     }
 
     setLoading(true);
-    let query = supabase
-      .from(TABLES.NOTIFICATIONS)
-      .select('id, type, title, body, link, metadata, is_read, created_at', { count: 'exact' })
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
-
-    if (filterRead !== undefined) {
-      query = query.eq('is_read', filterRead);
-    }
-
-    query = query.range(offset, offset + limit - 1);
-
-    const { data, count, error } = await query;
-    
-    if (error) {
+    try {
+      const { data, count } = await systemApi.notifications.list(user.id, limit, offset, filterRead);
+      setNotifications((data as AppNotification[]) || []);
+      if (count !== null) setTotalCount(count);
+    } catch (error) {
       console.error('Error fetching notifications:', error);
+    } finally {
       setLoading(false);
-      return;
     }
-
-    setNotifications((data as AppNotification[]) || []);
-    if (count !== null) setTotalCount(count);
-    setLoading(false);
   }, [user?.id]);
 
   useEffect(() => {
@@ -64,69 +49,39 @@ export function useNotifications() {
     // Initial fetch for the topbar (latest 50)
     fetchNotifications(50, 0);
 
-    // Subscribe to real-time inserts for this user
-    // Use a globally unique channel name per hook instance to avoid collisions across multiple components
-    const channelName = `ic_notifications_${user.id}_${Math.random().toString(36).substring(7)}`;
-    const channel = supabase
-      .channel(channelName)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: TABLES.NOTIFICATIONS,
-          filter: `user_id=eq.${user.id}`,
-        },
-        (payload) => {
-          const newNotification = payload.new as AppNotification;
-          
-          // Prepend the new notification to the list
-          setNotifications((prev) => [newNotification, ...prev]);
-          setTotalCount(prev => prev + 1);
-          
-          // Trigger a global toast alert so the user sees it immediately
-          toast.info(newNotification.title, {
-            description: newNotification.body,
-            duration: 5000,
-          });
-        }
-      )
-      .subscribe();
+    // Subscribe to real-time inserts via DAL
+    const unsubscribe = systemApi.notifications.subscribe(user.id, (payload) => {
+      const newNotification = payload.new as AppNotification;
+      
+      setNotifications((prev) => [newNotification, ...prev]);
+      setTotalCount(prev => prev - 1);
+      
+      toast.info(newNotification.title, {
+        description: newNotification.body,
+        duration: 5000,
+      });
+    });
 
     return () => {
-      supabase.removeChannel(channel);
+      unsubscribe();
     };
   }, [auth?.access_token, user?.id, fetchNotifications]);
 
   const markAllRead = useCallback(async () => {
     if (!user?.id) return;
-
-    await supabase
-      .from(TABLES.NOTIFICATIONS)
-      .update({ is_read: true })
-      .eq('user_id', user.id)
-      .eq('is_read', false);
-
+    await systemApi.notifications.markAllAsRead(user.id);
     setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
   }, [user?.id]);
 
   const markRead = useCallback(async (id: string) => {
-    await supabase
-      .from(TABLES.NOTIFICATIONS)
-      .update({ is_read: true })
-      .eq('id', id);
-
+    await systemApi.notifications.markAsRead(id);
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
     );
   }, []);
 
   const markUnread = useCallback(async (id: string) => {
-    await supabase
-      .from(TABLES.NOTIFICATIONS)
-      .update({ is_read: false })
-      .eq('id', id);
-
+    await systemApi.notifications.markAsUnread(id);
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, is_read: false } : n))
     );
@@ -134,23 +89,14 @@ export function useNotifications() {
 
   const clearAll = useCallback(async () => {
     if (!user?.id) return;
-
-    await supabase
-      .from(TABLES.NOTIFICATIONS)
-      .delete()
-      .eq('user_id', user.id);
-
+    await systemApi.notifications.clearAll(user.id);
     setNotifications([]);
     setTotalCount(0);
     toast.success('All notifications cleared');
   }, [user?.id]);
 
   const clearNotification = useCallback(async (id: string) => {
-    await supabase
-      .from(TABLES.NOTIFICATIONS)
-      .delete()
-      .eq('id', id);
-
+    await systemApi.notifications.clear(id);
     setNotifications((prev) => prev.filter((n) => n.id !== id));
     setTotalCount(prev => prev - 1);
   }, []);

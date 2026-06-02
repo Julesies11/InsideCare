@@ -9,13 +9,12 @@ import {
   ToolbarHeading,
   ToolbarPageTitle,
   ToolbarDescription,
-  ToolbarActions,
 } from '@/partials/common/toolbar';
 import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
 import { RBAC_MODULES } from '@/config/rbac-modules';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { TABLES } from '@/config/db-tables';
+import { housesApi } from '@/api/houses.api';
+import { ROUTES } from '@/config/routes.config';
 
 export function ShiftTemplatesEditPage() {
   const { id } = useParams<{ id: string }>();
@@ -30,18 +29,13 @@ export function ShiftTemplatesEditPage() {
   const { data: house } = useQuery({
     queryKey: ['house-name', id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from(TABLES.HOUSES)
-        .select('house_name')
-        .eq('id', id)
-        .single();
-      if (error) throw error;
-      return data;
+      if (!id) return null;
+      return await housesApi.get(id);
     },
     enabled: !!id
   });
 
-  const handleBack = () => navigate('/shift-setup');
+  const handleBack = () => navigate(ROUTES.SHIFT_SETUP);
 
   if (!canEdit) {
     return (

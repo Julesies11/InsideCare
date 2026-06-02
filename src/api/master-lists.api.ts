@@ -11,7 +11,6 @@ export type EmploymentType = Database['public']['Tables']['ic_employment_types_m
 export interface MedicationsFilter {
   search?: string;
   category?: string;
-  includeInactive?: boolean;
 }
 
 export interface MedicationsSort {
@@ -28,7 +27,8 @@ export const masterListsApi = {
       pageIndex: number = 0,
       pageSize: number = 50,
       sort: MedicationsSort[] = [],
-      filters: MedicationsFilter = {}
+      filters: MedicationsFilter = {},
+      includeInactive = true
     ) {
       let query = supabase
         .from(TABLES.MEDICATIONS_MASTER)
@@ -41,8 +41,8 @@ export const masterListsApi = {
       if (filters.category && filters.category !== 'all') {
         query = query.eq('category', filters.category);
       }
-
-      if (filters.includeInactive === false) {
+      
+      if (!includeInactive) {
         query = query.eq('is_active', true);
       }
 
@@ -136,7 +136,7 @@ export const masterListsApi = {
     async delete(id: string) {
       const { error } = await supabase
         .from(TABLES.MEDICATIONS_MASTER)
-        .update({ is_active: false })
+        .delete()
         .eq('id', id);
 
       if (error) throw error;
@@ -194,7 +194,7 @@ export const masterListsApi = {
     async delete(id: string) {
       const { error } = await supabase
         .from(TABLES.CONTACT_TYPES_MASTER)
-        .update({ is_active: false })
+        .delete()
         .eq('id', id);
 
       if (error) throw error;
@@ -242,6 +242,14 @@ export const masterListsApi = {
         throw new Error('You do not have permission to edit this department, or it does not exist.');
       }
       return data as Department;
+    },
+
+    async delete(id: string) {
+      const { error } = await supabase
+        .from(TABLES.DEPARTMENTS)
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
     }
   },
 
@@ -249,12 +257,17 @@ export const masterListsApi = {
    * Employment Types Master
    */
   employmentTypes: {
-    async list() {
-      const { data, error } = await supabase
+    async list(includeInactive = true) {
+      let query = supabase
         .from(TABLES.EMPLOYMENT_TYPES_MASTER)
         .select(MASTER_LIST_VIEWS.EMPLOYMENT_TYPES)
         .order('employment_type_name', { ascending: true });
 
+      if (!includeInactive) {
+        query = query.eq('status', 'Active');
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       return data as EmploymentType[];
     },
@@ -286,6 +299,335 @@ export const masterListsApi = {
         throw new Error('You do not have permission to perform this action');
       }
       return data as EmploymentType;
+    },
+
+    async delete(id: string) {
+      const { error } = await supabase
+        .from(TABLES.EMPLOYMENT_TYPES_MASTER)
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+    }
+  },
+
+  /**
+   * House Types Master
+   */
+  houseTypes: {
+    async list() {
+      const { data, error } = await supabase
+        .from(TABLES.HOUSE_TYPES_MASTER)
+        .select('*')
+        .order('house_type_name', { ascending: true });
+
+      if (error) throw error;
+      return data;
+    },
+
+    async create(houseTypeData: Database['public']['Tables']['ic_house_types_master']['Insert']) {
+      const { data, error } = await supabase
+        .from(TABLES.HOUSE_TYPES_MASTER)
+        .insert([houseTypeData])
+        .select('*')
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!data) throw new Error('You do not have permission to perform this action');
+      return data;
+    },
+
+    async update(id: string, updates: Database['public']['Tables']['ic_house_types_master']['Update']) {
+      const { data, error } = await supabase
+        .from(TABLES.HOUSE_TYPES_MASTER)
+        .update(updates)
+        .eq('id', id)
+        .select('*')
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!data) throw new Error('You do not have permission to perform this action');
+      return data;
+    },
+
+    async delete(id: string) {
+      const { error } = await supabase
+        .from(TABLES.HOUSE_TYPES_MASTER)
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+      return true;
+    }
+  },
+
+  /**
+   * Seizure Types Master
+   */
+  seizureTypes: {
+    async list() {
+      const { data, error } = await supabase
+        .from(TABLES.SEIZURE_TYPES_MASTER)
+        .select('id, name, description, created_at, updated_at')
+        .order('name', { ascending: true });
+
+      if (error) throw error;
+      return data;
+    },
+
+    async upsert(record: Database['public']['Tables']['ic_seizure_types_master']['Insert']) {
+      const { data, error } = await supabase
+        .from(TABLES.SEIZURE_TYPES_MASTER)
+        .upsert([record])
+        .select('id, name, description, created_at, updated_at')
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+
+    async delete(id: string) {
+      const { error } = await supabase.from(TABLES.SEIZURE_TYPES_MASTER).delete().eq('id', id);
+      if (error) throw error;
+    }
+  },
+
+  /**
+   * Behaviour Types Master
+   */
+  behaviourTypes: {
+    async list() {
+      const { data, error } = await supabase
+        .from(TABLES.BEHAVIOUR_TYPES_MASTER)
+        .select('id, name, description, created_at, updated_at')
+        .order('name', { ascending: true });
+
+      if (error) throw error;
+      return data;
+    },
+
+    async upsert(record: Database['public']['Tables']['ic_behaviour_types_master']['Insert']) {
+      const { data, error } = await supabase
+        .from(TABLES.BEHAVIOUR_TYPES_MASTER)
+        .upsert([record])
+        .select('id, name, description, created_at, updated_at')
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+
+    async delete(id: string) {
+      const { error } = await supabase.from(TABLES.BEHAVIOUR_TYPES_MASTER).delete().eq('id', id);
+      if (error) throw error;
+    }
+  },
+
+  /**
+   * Funding Sources Master
+   */
+  fundingSources: {
+    async list(includeInactive = true) {
+      let query = supabase
+        .from(TABLES.FUNDING_SOURCES_MASTER)
+        .select(MASTER_LIST_VIEWS.FUNDING_SOURCES)
+        .order('funding_source_name', { ascending: true });
+
+      if (!includeInactive) {
+        query = query.eq('is_active', true);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data;
+    },
+
+    async delete(id: string) {
+      const { error } = await supabase.from(TABLES.FUNDING_SOURCES_MASTER).delete().eq('id', id);
+      if (error) throw error;
+    }
+  },
+
+  /**
+   * Funding Types Master
+   */
+  fundingTypes: {
+    async list(includeInactive = true) {
+      let query = supabase
+        .from(TABLES.FUNDING_TYPES_MASTER)
+        .select(MASTER_LIST_VIEWS.FUNDING_TYPES)
+        .order('funding_type_name', { ascending: true });
+
+      if (!includeInactive) {
+        query = query.eq('is_active', true);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data;
+    },
+
+    async delete(id: string) {
+      const { error } = await supabase.from(TABLES.FUNDING_TYPES_MASTER).delete().eq('id', id);
+      if (error) throw error;
+    }
+  },
+
+  /**
+   * Calendar Event Types Master
+   */
+  eventTypes: {
+    async list() {
+      const { data, error } = await supabase
+        .from(TABLES.HOUSE_CALENDAR_EVENT_TYPES_MASTER)
+        .select('id, event_type_name, color, status, created_at, updated_at')
+        .order('event_type_name', { ascending: true });
+
+      if (error) throw error;
+      return data;
+    },
+
+    async upsert(record: Database['public']['Tables']['ic_house_calendar_event_types_master']['Insert']) {
+      const { data, error } = await supabase
+        .from(TABLES.HOUSE_CALENDAR_EVENT_TYPES_MASTER)
+        .upsert([record])
+        .select()
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+
+    async delete(id: string) {
+      const { error } = await supabase.from(TABLES.HOUSE_CALENDAR_EVENT_TYPES_MASTER).delete().eq('id', id);
+      if (error) throw error;
+    }
+  },
+
+  /**
+   * Leave Types Master
+   */
+  leaveTypes: {
+    async list(includeInactive = true) {
+      let query = supabase
+        .from(TABLES.LEAVE_TYPES)
+        .select('*')
+        .order('leave_type_name', { ascending: true });
+
+      if (!includeInactive) {
+        query = query.eq('is_active', true);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data;
+    },
+
+    async upsert(record: Database['public']['Tables']['ic_leave_types']['Insert']) {
+      const { data, error } = await supabase
+        .from(TABLES.LEAVE_TYPES)
+        .upsert([record])
+        .select()
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+
+    async delete(id: string) {
+      const { error } = await supabase
+        .from(TABLES.LEAVE_TYPES)
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+      return true;
+    }
+  },
+
+  /**
+   * Checklist Master
+   */
+  checklists: {
+    async list() {
+      const { data, error } = await supabase
+        .from(TABLES.CHECKLIST_MASTER)
+        .select(`
+          *,
+          items:${TABLES.CHECKLIST_ITEM_MASTER}(*)
+        `)
+        .order('checklist_name', { ascending: true });
+
+      if (error) throw error;
+      return (data || []).map(cl => ({
+        ...cl,
+        items: (cl.items || []).sort((a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0))
+      }));
+    },
+
+    async upsert(payload: any, id?: string) {
+      const { items, ...dbPayload } = payload;
+      
+      let result;
+      if (id) {
+        const { data, error } = await supabase
+          .from(TABLES.CHECKLIST_MASTER)
+          .update(dbPayload)
+          .eq('id', id)
+          .select()
+          .maybeSingle();
+        if (error) throw error;
+        result = data;
+      } else {
+        const { data, error } = await supabase
+          .from(TABLES.CHECKLIST_MASTER)
+          .insert([dbPayload])
+          .select()
+          .maybeSingle();
+        if (error) throw error;
+        result = data;
+      }
+
+      if (result && items) {
+        await this.syncItems(result.id, items);
+      }
+
+      return result;
+    },
+
+    async delete(id: string) {
+      // 1. Delete items first
+      await supabase.from(TABLES.CHECKLIST_ITEM_MASTER).delete().eq('master_id', id);
+      // 2. Delete the master
+      const { error } = await supabase.from(TABLES.CHECKLIST_MASTER).delete().eq('id', id);
+      if (error) throw error;
+      return true;
+    },
+
+    async syncItems(masterId: string, items: any[]) {
+      const { data: existing } = await supabase.from(TABLES.CHECKLIST_ITEM_MASTER).select('id').eq('master_id', masterId);
+      const existingIds = (existing || []).map(e => e.id);
+      const currentIds = items.filter(i => i.id && !i.id.toString().startsWith('temp-')).map(i => i.id);
+      
+      const toDelete = existingIds.filter(id => !currentIds.includes(id));
+      if (toDelete.length > 0) {
+        await supabase.from(TABLES.CHECKLIST_ITEM_MASTER).delete().in('id', toDelete);
+      }
+
+      for (const item of items) {
+        const itemPayload = {
+          master_id: masterId,
+          title: item.title,
+          instructions: item.instructions || null,
+          group_title: item.group_title || 'Morning',
+          priority: item.priority || 'medium',
+          is_required: !!item.is_required,
+          sort_order: item.sort_order || 0
+        };
+
+        if (item.id && !item.id.toString().startsWith('temp-')) {
+          await supabase.from(TABLES.CHECKLIST_ITEM_MASTER).update(itemPayload).eq('id', item.id);
+        } else {
+          await supabase.from(TABLES.CHECKLIST_ITEM_MASTER).insert([itemPayload]);
+        }
+      }
     }
   }
 };

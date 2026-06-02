@@ -49,6 +49,7 @@ import {
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { SecureAvatar } from '@/components/ui/secure-avatar';
 import { STORAGE_BUCKETS } from '@/config/storage-buckets';
+import { ROUTES } from '@/config/routes.config';
 
 import { Participant, ParticipantWithHouse }  from '@/models/participant';
 import { Archive, Edit } from 'lucide-react';
@@ -82,7 +83,7 @@ function ActionsCell({ row, updateParticipant }: { row: Row<ParticipantWithHouse
   });
 
   const handleEdit = () => {
-    navigate(`/participants/detail/${row.original.id}`);
+    navigate(`${ROUTES.PARTICIPANT_DETAIL}/${row.original.id}`);
   };
 
   const handleArchive = async () => {
@@ -282,7 +283,7 @@ const Participants = () => {
 
             <div className="flex flex-col gap-0.5">
               <Link 
-                to={`/participants/detail/${row.original.id}`}
+                to={`${ROUTES.PARTICIPANT_DETAIL}/${row.original.id}`}
                 className="leading-none font-bold text-sm text-gray-900 hover:text-primary hover:underline transition-colors"
               >
                 {row.original.participant_name || '-'}

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
+import { systemApi } from '@/api/system.api';
 import { RBAC_MODULES } from '@/config/rbac-modules';
 import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
 import { QUERY_KEYS } from '@/config/query-keys';
@@ -30,13 +30,7 @@ export function useAdminAuthStatus() {
   return useQuery({
     queryKey: [QUERY_KEYS.ADMIN_AUTH_STATUS],
     queryFn: async (): Promise<AuthStatusMap> => {
-      const { data, error } = await supabase.functions.invoke('ic-admin-auth-status');
-      
-      if (error) {
-        console.error('Failed to fetch admin auth status:', error);
-        throw error;
-      }
-      
+      const data = await systemApi.auth.getAdminStatus();
       return data as AuthStatusMap;
     },
     enabled: isAdmin,

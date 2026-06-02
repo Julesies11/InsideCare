@@ -5,24 +5,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { MessageSquare, Plus, Calendar, User, Clock, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { Link } from 'react-router';
-import { supabase } from '@/lib/supabase';
+import { houseOperationsApi } from '@/api/house-operations.api';
 import { useAuth } from '@/auth/context/auth-context';
 import { format, subDays, addDays, isToday, parseISO } from 'date-fns';
 import { toast } from 'sonner';
 import { HousePendingChanges } from '@/models/house-pending-changes';
-import { TABLES } from '@/config/db-tables';
 import { useQuery } from '@tanstack/react-query';
-
-interface HouseCommEntry {
-  id: string;
-  entry_date: string;
-  content: string;
-  created_at: string;
-  created_by: string;
-  creator?: {
-    staff_name: string;
-  };
-}
+import { QUERY_KEYS } from '@/config/query-keys';
 
 interface HouseCommsProps {
   houseId: string;
@@ -43,23 +32,11 @@ export function HouseComms({
   const [showAddForm, setShowAddForm] = useState(false);
 
   const fetchEntries = async (date: Date) => {
-    const dateStr = format(date, 'yyyy-MM-dd');
-    const { data, error } = await supabase
-      .from(TABLES.HOUSE_COMMS)
-      .select(`
-        *,
-        creator:ic_staff!fk_ic_house_comms_created_by(staff_name)
-      `)
-      .eq('house_id', houseId)
-      .eq('entry_date', dateStr)
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
-    return data || [];
+    return await houseOperationsApi.comms.list(houseId, format(date, 'yyyy-MM-dd'));
   };
 
   const { data: entries = [], isLoading: loading } = useQuery({
-    queryKey: ['house_comms', { houseId, date: format(selectedDate, 'yyyy-MM-dd') }],
+    queryKey: [QUERY_KEYS.HOUSE_COMMS, houseId, format(selectedDate, 'yyyy-MM-dd')],
     queryFn: () => fetchEntries(selectedDate),
     enabled: !!houseId,
   });
@@ -260,4 +237,3 @@ export function HouseComms({
     </Card>
   );
 }
-

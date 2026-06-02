@@ -8,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { ROUTES } from '@/config/routes.config';
 
 export function WelcomeMessageDialog({
   open,
@@ -47,13 +48,13 @@ export function WelcomeMessageDialog({
           </div>
 
           <div className="flex justify-center mb-2">
-            <Link to="/" className="btn btn-primary flex justify-center">
+            <Link to={ROUTES.HOME} className="btn btn-primary flex justify-center">
               Show me around
             </Link>
           </div>
 
           <Link
-            to="/"
+            to={ROUTES.HOME}
             className="text-sm font-medium text-secondary-foreground hover:text-primary py-3"
           >
             Skip the tour

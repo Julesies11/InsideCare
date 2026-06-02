@@ -12,6 +12,7 @@ import { format, addMonths } from 'date-fns';
 import { CalendarDays, ClipboardList, UserCheck, Loader2, Info } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { rosterApi } from '@/api/roster.api';
 
 interface HouseChecklistScheduleModalProps {
   open: boolean;
@@ -19,7 +20,8 @@ interface HouseChecklistScheduleModalProps {
   houseId: string;
   checklist: {
     id: string;
-    name: string;
+    house_checklist_name?: string;
+    name?: string;
   } | null;
 }
 
@@ -65,17 +67,13 @@ export function HouseChecklistScheduleModal({
         }
         
         // Save logic for shift_assigned_checklists
-        // This will be a new mutation in useChecklistSchedules or a direct supabase call
-        const { error } = await supabase
-          .from('ic_shift_assigned_checklists')
-          .insert(selectedShiftIds.map(stId => ({
-            house_id: houseId,
-            checklist_id: checklist.id,
-            shift_template_id: stId,
-            assignment_title: checklist.house_checklist_name || checklist.name || 'Routine Checklist'
-          })));
+        await rosterApi.appendShiftAssignments(selectedShiftIds.map(stId => ({
+          house_id: houseId,
+          checklist_id: checklist.id,
+          shift_template_id: stId,
+          assignment_title: checklist.house_checklist_name || checklist.name || 'Routine Checklist'
+        })));
 
-        if (error) throw error;
         toast.success('Checklist linked to shift routines.');
       }
       onClose();
@@ -238,4 +236,3 @@ export function HouseChecklistScheduleModal({
     </Dialog>
   );
 }
-import { supabase } from '@/lib/supabase';

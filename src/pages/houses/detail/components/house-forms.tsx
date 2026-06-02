@@ -19,6 +19,7 @@ import { Link } from 'react-router';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
+import { cn } from '@/lib/utils';
 
 interface HouseFormsProps {
   houseId?: string;
@@ -32,7 +33,6 @@ const formSchema = z.object({
   name: z.string().min(1, 'Form name is required'),
   type: z.string().min(1, 'Form type is required'),
   description: z.string().optional(),
-  frequency: z.string().min(1, 'Frequency is required'),
   is_global: z.boolean().default(false),
   status: z.string().default('active'),
 });
@@ -58,7 +58,7 @@ export function HouseForms({
 }: HouseFormsProps) {
   const [showFormDialog, setShowFormDialog] = useState(false);
   const [showAssignmentDialog, setShowAssignmentDialog] = useState(false);
-  const [editingForm, setEditingForm] = useState<{ id?: string; tempId?: string; name: string; type: string; description?: string; frequency: string; is_global?: boolean; status?: string; assignments?: any[] } | null>(null);
+  const [editingForm, setEditingForm] = useState<{ id?: string; tempId?: string; name: string; type: string; description?: string; is_global?: boolean; status?: string; assignments?: any[] } | null>(null);
   const [selectedForm, setSelectedForm] = useState<{ id: string; name: string } | null>(null);
   const [editingAssignment, setEditingAssignment] = useState<{ id?: string; tempId?: string; participant_id?: string; staff_id?: string; due_date?: string; status: string; notes?: string } | null>(null);
 
@@ -73,7 +73,6 @@ export function HouseForms({
       name: '',
       type: '',
       description: '',
-      frequency: 'monthly',
       is_global: false,
       status: 'active',
     },
@@ -96,7 +95,6 @@ export function HouseForms({
         name: editingForm.name,
         type: editingForm.type,
         description: editingForm.description || '',
-        frequency: editingForm.frequency,
         is_global: editingForm.is_global || false,
         status: editingForm.status || 'active',
       });
@@ -105,7 +103,6 @@ export function HouseForms({
         name: '',
         type: '',
         description: '',
-        frequency: 'monthly',
         is_global: false,
         status: 'active',
       });
@@ -137,7 +134,7 @@ export function HouseForms({
     setShowFormDialog(true);
   };
 
-  const handleEditForm = (form: { id?: string; tempId?: string; name: string; type: string; description?: string; frequency: string; is_global?: boolean; status?: string; assignments?: any[] }) => {
+  const handleEditForm = (form: { id?: string; tempId?: string; name: string; type: string; description?: string; is_global?: boolean; status?: string; assignments?: any[] }) => {
     setEditingForm(form);
     setShowFormDialog(true);
   };
@@ -423,9 +420,6 @@ export function HouseForms({
                             )}
                             <Badge variant="outline" className="text-xs">
                               {form.type}
-                            </Badge>
-                            <Badge variant="outline" className="text-xs">
-                              {form.frequency}
                             </Badge>
                             <Badge variant={getStatusColor(form.status)} className="text-xs">
                               {form.status}
@@ -723,31 +717,6 @@ export function HouseForms({
                     <FormLabel>Description</FormLabel>
                     <FormControl>
                       <Textarea {...field} placeholder="Describe the purpose of this form" rows={3} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="frequency"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Frequency *</FormLabel>
-                    <FormControl>
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select frequency" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="daily">Daily</SelectItem>
-                          <SelectItem value="weekly">Weekly</SelectItem>
-                          <SelectItem value="monthly">Monthly</SelectItem>
-                          <SelectItem value="quarterly">Quarterly</SelectItem>
-                          <SelectItem value="yearly">Yearly</SelectItem>
-                          <SelectItem value="as_needed">As Needed</SelectItem>
-                        </SelectContent>
-                      </Select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>

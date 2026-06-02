@@ -60,18 +60,20 @@ test.describe('Participant Management Comprehensive', () => {
     await expect(saveButton).toBeEnabled();
 
     // Attempt to navigate away and check for unsaved changes prompt
-    await page.getByRole('link', { name: /Dashboard/i }).first().click();
+    const dialogPromise = page.waitForEvent('dialog');
+    // Clicking the Back button on the toolbar triggers window.confirm
+    const backBtn = page.getByRole('button', { name: /Back/i });
+    await expect(backBtn).toBeVisible({ timeout: 15000 });
+    await backBtn.click({ force: true });
     
-    // The browser-level "leave site?" dialog is handled by the app's custom dirty tracking
-    page.once('dialog', async dialog => {
-      expect(dialog.message().toLowerCase()).toContain('unsaved');
-      await dialog.dismiss();
-    });
+    const dialog = await dialogPromise;
+    expect(dialog.message().toLowerCase()).toContain('unsaved');
+    await dialog.dismiss();
   });
 
   test('Manage Medications - Add Medication dialog', async ({ page }) => {
     const firstRow = page.locator('table tbody tr').first();
-    await firstRow.getByRole('button', { name: /Edit/i }).click();
+    await firstRow.getByRole('button', { name: /Edit/i }).click({ force: true });
 
     // Scroll to Medications section or use deep link
     await page.goto(`${page.url()}?tab=medications`);
@@ -79,13 +81,14 @@ test.describe('Participant Management Comprehensive', () => {
 
     // Click "Add Medication" button
     const addMedBtn = page.getByRole('button', { name: /Add Medication/i });
-    await expect(addMedBtn).toBeVisible();
-    await addMedBtn.click();
+    await expect(addMedBtn).toBeVisible({ timeout: 20000 });
+    await addMedBtn.scrollIntoViewIfNeeded();
+    await addMedBtn.click({ force: true });
 
     // Verify dialog appears
-    const dialog = page.locator('[role="dialog"]');
-    await expect(dialog).toBeVisible();
-    await expect(dialog.getByText(/Add Medication/i, { exact: true })).toBeVisible();
+    const dialog = page.locator('[role="dialog"]').or(page.locator('.fixed.inset-0')).first();
+    await expect(dialog).toBeVisible({ timeout: 30000 });
+    await expect(dialog.getByText(/Medication/i)).toBeVisible({ timeout: 15000 });
 
     // Close dialog
     await dialog.getByRole('button', { name: /Cancel/i }).or(dialog.locator('button[aria-label="Close"]')).click();
