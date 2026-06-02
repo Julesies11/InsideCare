@@ -60,6 +60,7 @@ export const TABLES = {
   
   // Master Lists
   MEDICATIONS_MASTER: 'ic_medications_master',
+  MEDICATION_TYPES_MASTER: 'ic_medication_types_master',
   CONTACT_TYPES_MASTER: 'ic_contact_types_master',
   CHECKLIST_MASTER: 'ic_checklist_master',
   CHECKLIST_ITEM_MASTER: 'ic_checklist_item_master',

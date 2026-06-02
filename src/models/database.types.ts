@@ -2986,43 +2986,94 @@ export type Database = {
           },
         ]
       }
+      ic_medication_types_master: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          medication_type_name: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          medication_type_name: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          medication_type_name?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ic_medication_types_master_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_medication_types_master_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ic_medications_master: {
         Row: {
-          category: string | null
-          common_dosages: string | null
+          brand_name: string | null
+          contraindications: string | null
           created_at: string | null
           created_by: string | null
           id: string
           interactions: string | null
           is_active: boolean | null
           medication_name: string
+          purpose: string | null
           side_effects: string | null
+          sub_class: string | null
+          type_id: string
           updated_at: string | null
           updated_by: string | null
         }
         Insert: {
-          category?: string | null
-          common_dosages?: string | null
+          brand_name?: string | null
+          contraindications?: string | null
           created_at?: string | null
           created_by?: string | null
           id?: string
           interactions?: string | null
           is_active?: boolean | null
           medication_name: string
+          purpose?: string | null
           side_effects?: string | null
+          sub_class?: string | null
+          type_id: string
           updated_at?: string | null
           updated_by?: string | null
         }
         Update: {
-          category?: string | null
-          common_dosages?: string | null
+          brand_name?: string | null
+          contraindications?: string | null
           created_at?: string | null
           created_by?: string | null
           id?: string
           interactions?: string | null
           is_active?: boolean | null
           medication_name?: string
+          purpose?: string | null
           side_effects?: string | null
+          sub_class?: string | null
+          type_id?: string
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -3039,6 +3090,13 @@ export type Database = {
             columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_medications_master_type_id_fkey"
+            columns: ["type_id"]
+            isOneToOne: false
+            referencedRelation: "ic_medication_types_master"
             referencedColumns: ["id"]
           },
         ]
@@ -4954,6 +5012,7 @@ export type Database = {
           sleep_wake_time: string | null
           staff_id: string | null
           start_date: string
+          status: Database["public"]["Enums"]["ic_status_enum"]
           updated_at: string | null
           updated_by: string | null
         }
@@ -5045,6 +5104,7 @@ export type Database = {
           sleep_wake_time?: string | null
           staff_id?: string | null
           start_date: string
+          status?: Database["public"]["Enums"]["ic_status_enum"]
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -5136,6 +5196,7 @@ export type Database = {
           sleep_wake_time?: string | null
           staff_id?: string | null
           start_date?: string
+          status?: Database["public"]["Enums"]["ic_status_enum"]
           updated_at?: string | null
           updated_by?: string | null
         }

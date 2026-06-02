@@ -16,7 +16,7 @@ interface MedicationMasterDialogProps {
   onUpdate: () => void;
 }
 
-type SortField = 'medication_name' | 'category' | 'is_active';
+type SortField = 'medication_name' | 'brand_name' | 'type_id' | 'is_active';
 type SortDirection = 'asc' | 'desc';
 
 export function MedicationMasterDialog({
@@ -24,14 +24,23 @@ export function MedicationMasterDialog({
   onClose,
   onUpdate,
 }: MedicationMasterDialogProps) {
-  const { medications = [], isLoading: loading } = useMedicationsMaster();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortField, setSortField] = useState<SortField>('medication_name');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const [pageIndex, setPageIndex] = useState(0);
+  const pageSize = 50;
+
+  const { medications = [], count = 0, isLoading: loading } = useMedicationsMaster(
+    pageIndex,
+    pageSize,
+    [{ id: sortField, desc: sortDirection === 'desc' }],
+    { search: searchQuery, includeInactive: true }
+  );
+
   const { mutateAsync: addMedication } = useAddMedicationMaster();
   const { mutateAsync: updateMedication } = useUpdateMedicationMaster();
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingMedication, setEditingMedication] = useState<MedicationMaster | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortField, setSortField] = useState<SortField>('medication_name');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -40,33 +49,8 @@ export function MedicationMasterDialog({
       setSortField(field);
       setSortDirection('asc');
     }
+    setPageIndex(0);
   };
-
-  const sortedAndFilteredMedications = useMemo(() => {
-    const filtered = medications.filter((med) =>
-      med.medication_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (med.category && med.category.toLowerCase().includes(searchQuery.toLowerCase()))
-    );
-
-    filtered.sort((a, b) => {
-      let aVal: string | number = a[sortField] || '';
-      let bVal: string | number = b[sortField] || '';
-
-      if (sortField === 'is_active') {
-        aVal = a.is_active ? 1 : 0;
-        bVal = b.is_active ? 1 : 0;
-      } else {
-        aVal = aVal.toString().toLowerCase();
-        bVal = bVal.toString().toLowerCase();
-      }
-
-      if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
-      if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
-      return 0;
-    });
-
-    return filtered;
-  }, [medications, searchQuery, sortField, sortDirection]);
 
   const handleAdd = () => {
     setEditingMedication(null);
@@ -98,8 +82,9 @@ export function MedicationMasterDialog({
       } else {
         await addMedication({
           medication_name: medicationData.medication_name!,
-          category: medicationData.category || null,
-          common_dosages: medicationData.common_dosages || null,
+          brand_name: medicationData.brand_name || null,
+          type_id: medicationData.type_id!,
+          sub_class: medicationData.sub_class || null,
           side_effects: medicationData.side_effects || null,
           interactions: medicationData.interactions || null,
           is_active: medicationData.is_active ?? true,
@@ -139,9 +124,12 @@ export function MedicationMasterDialog({
 
           <div className="flex items-center justify-between gap-2 mb-4">
             <Input
-              placeholder="Search medications..."
+              placeholder="Search by Generic, Brand, or Side Effects..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setPageIndex(0);
+              }}
               className="max-w-xs"
             />
             <Button variant="secondary" size="sm" className="border border-gray-300" onClick={handleAdd}>
@@ -153,7 +141,7 @@ export function MedicationMasterDialog({
           <div className="flex-1 overflow-auto min-h-0">
             {loading ? (
               <div className="text-center py-8 text-muted-foreground">Loading medications...</div>
-            ) : sortedAndFilteredMedications.length === 0 ? (
+            ) : medications.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 {searchQuery ? 'No medications found matching your search' : 'No medications available'}
               </div>
@@ -165,17 +153,23 @@ export function MedicationMasterDialog({
                       className="cursor-pointer select-none"
                       onClick={() => handleSort('medication_name')}
                     >
-                      Medication Name
+                      Generic Name
                       <SortIcon field="medication_name" />
                     </TableHead>
                     <TableHead 
                       className="cursor-pointer select-none"
-                      onClick={() => handleSort('category')}
+                      onClick={() => handleSort('brand_name')}
                     >
-                      Category
-                      <SortIcon field="category" />
+                      Brand Name
+                      <SortIcon field="brand_name" />
                     </TableHead>
-                    <TableHead>Common Dosages</TableHead>
+                    <TableHead 
+                      className="cursor-pointer select-none"
+                      onClick={() => handleSort('type_id')}
+                    >
+                      Type
+                      <SortIcon field="type_id" />
+                    </TableHead>
                     <TableHead>General Side Effects</TableHead>
                     <TableHead>Contraindication/Interactions</TableHead>
                     <TableHead 
@@ -189,21 +183,13 @@ export function MedicationMasterDialog({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {sortedAndFilteredMedications.map((medication) => (
+                  {medications.map((medication) => (
                     <TableRow key={medication.id}>
                       <TableCell className="font-medium">{medication.medication_name}</TableCell>
+                      <TableCell>{medication.brand_name || '-'}</TableCell>
                       <TableCell>
-                        {medication.category ? (
-                          <Badge variant="secondary">{medication.category}</Badge>
-                        ) : (
-                          <span className="text-muted-foreground text-sm">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {medication.common_dosages ? (
-                          <span className="text-sm text-muted-foreground">
-                            {medication.common_dosages}
-                          </span>
+                        {(medication as any).medication_type?.medication_type_name ? (
+                          <Badge variant="secondary">{(medication as any).medication_type.medication_type_name}</Badge>
                         ) : (
                           <span className="text-muted-foreground text-sm">-</span>
                         )}

@@ -9,8 +9,11 @@ export interface ParticipantMedication {
   medication?: {
     id: string;
     medication_name: string;
-    category?: string;
-    common_dosages?: string;
+    brand_name?: string;
+    medication_type?: {
+      id: string;
+      medication_type_name: string;
+    };
   };
   dosage?: string;
   is_active?: boolean;

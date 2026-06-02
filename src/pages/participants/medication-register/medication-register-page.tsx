@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Plus, Edit, Search, ArrowUpDown, ArrowUp, ArrowDown, X } from 'lucide-react';
 import { 
   useMedicationsMaster, 
-  useMedicationCategories 
+  useMedicationTypes 
 } from '@/hooks/use-medications-master';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -21,6 +21,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { ROUTES } from '@/config/routes.config';
+import { MedicationTypeMasterDialog } from './components/medication-type-master-dialog';
+import { Settings2 } from 'lucide-react';
 
 type SortField = 'medication_name' | 'category' | 'side_effects' | 'is_active';
 
@@ -45,8 +47,9 @@ export function MedicationRegisterPage() {
   const [pagination, setPagination] = useState<PaginationState>(getInitialPagination());
   const [sorting, setSorting] = useState<SortingState>(getInitialSorting());
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
-  const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'all');
+  const [selectedTypeId, setSelectedTypeId] = useState(searchParams.get('type') || 'all');
   const [includeInactive, setIncludeInactive] = useState(searchParams.get('inactive') === 'true');
+  const [typeMasterOpen, setTypeMasterOpen] = useState(false);
   
   const debouncedSearch = useDebounce(searchQuery, 300);
 
@@ -55,13 +58,18 @@ export function MedicationRegisterPage() {
     requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE,
   });
 
+  const canManageTypes = hasAccess({
+    resource: RBAC_MODULES.ACCESS_CONTROL,
+    requiredLevel: ACCESS_LEVEL.FULL,
+  });
+
   const { medications, count, isLoading: loading } = useMedicationsMaster(
     pagination.pageIndex,
     pagination.pageSize,
     sorting.map(s => ({ id: s.id, desc: s.desc })),
     { 
       search: debouncedSearch,
-      category: selectedCategory,
+      typeId: selectedTypeId,
       includeInactive: includeInactive 
     }
   );
@@ -86,8 +94,8 @@ export function MedicationRegisterPage() {
       params.set('search', debouncedSearch);
     }
 
-    if (selectedCategory !== 'all') {
-      params.set('category', selectedCategory);
+    if (selectedTypeId !== 'all') {
+      params.set('type', selectedTypeId);
     }
 
     if (includeInactive) {
@@ -95,12 +103,12 @@ export function MedicationRegisterPage() {
     }
     
     setSearchParams(params, { replace: true });
-  }, [pagination, sorting, debouncedSearch, selectedCategory, includeInactive, setSearchParams]);
+  }, [pagination, sorting, debouncedSearch, selectedTypeId, includeInactive, setSearchParams]);
 
   // Reset to first page when filters change
   useEffect(() => {
     setPagination(prev => ({ ...prev, pageIndex: 0 }));
-  }, [debouncedSearch, selectedCategory, includeInactive]);
+  }, [debouncedSearch, selectedTypeId, includeInactive]);
 
   const handleSort = (field: SortField) => {
     setSorting(prev => {
@@ -125,8 +133,8 @@ export function MedicationRegisterPage() {
       <ArrowUp className="size-4 ms-1 inline" />;
   };
 
-  // Optimized category fetching
-  const { data: categories = [] } = useMedicationCategories();
+  // Optimized type fetching - Filter to only active types for the dropdown
+  const { data: medicationTypes = [] } = useMedicationTypes(false);
 
   // Mock table object for DataGrid context
   const tableInstance = {
@@ -154,12 +162,14 @@ export function MedicationRegisterPage() {
               Medication Register
             </h1>
           </div>
-          {canEdit && (
-            <Button onClick={handleAddMedication}>
-              <Plus className="size-4 me-2" />
-              Add Medication
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            {canEdit && (
+              <Button size="sm" onClick={handleAddMedication}>
+                <Plus className="size-4 me-2" />
+                Add Medication
+              </Button>
+            )}
+          </div>
         </div>
 
         <Card>
@@ -185,17 +195,19 @@ export function MedicationRegisterPage() {
                   )}
                 </div>
 
-                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger className="w-[200px]">
-                    <SelectValue placeholder="Filter by Category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Categories</SelectItem>
-                    {categories.map(cat => (
-                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex items-center gap-2">
+                  <Select value={selectedTypeId} onValueChange={setSelectedTypeId}>
+                    <SelectTrigger className="w-[200px]">
+                      <SelectValue placeholder="Filter by Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Types</SelectItem>
+                      {medicationTypes.map(type => (
+                        <SelectItem key={type.id} value={type.id}>{type.medication_type_name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
                 <div className="flex items-center gap-2 ps-2 border-s">
                   <Switch 
@@ -220,8 +232,8 @@ export function MedicationRegisterPage() {
                 </div>
               ) : medications.length === 0 ? (
                 <div className="py-20 text-center text-muted-foreground border rounded-lg border-dashed">
-                  {searchQuery || selectedCategory !== 'all' 
-                    ? 'No medications found matching your filters.' 
+                  {searchQuery || selectedTypeId !== 'all'
+                    ? 'No medications found matching your filters.'
                     : 'No medications found in the register.'}
                 </div>
               ) : (
@@ -241,7 +253,7 @@ export function MedicationRegisterPage() {
                             className="cursor-pointer select-none font-semibold text-gray-900 dark:text-gray-100"
                             onClick={() => handleSort('category')}
                           >
-                            Category
+                            Type
                             <SortIcon field="category" />
                           </TableHead>
                           <TableHead 
@@ -272,8 +284,8 @@ export function MedicationRegisterPage() {
                               {med.medication_name}
                             </TableCell>
                             <TableCell>
-                              {med.category ? (
-                                <Badge variant="secondary" appearance="outline">{med.category}</Badge>
+                              {med.medication_type?.medication_type_name ? (
+                                <Badge variant="secondary" appearance="outline">{med.medication_type.medication_type_name}</Badge>
                               ) : (
                                 <span className="text-muted-foreground text-sm">-</span>
                               )}
@@ -313,6 +325,11 @@ export function MedicationRegisterPage() {
           </CardContent>
         </Card>
       </div>
+      <MedicationTypeMasterDialog 
+        open={typeMasterOpen} 
+        onClose={() => setTypeMasterOpen(false)} 
+        canEdit={canManageTypes}
+      />
     </Container>
   );
 }

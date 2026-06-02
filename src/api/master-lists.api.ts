@@ -8,9 +8,16 @@ import { Database } from '@/models/database.types';
 export type Department = Database['public']['Tables']['ic_departments']['Row'];
 export type EmploymentType = Database['public']['Tables']['ic_employment_types_master']['Row'];
 
+export interface MedicationType {
+  id: string;
+  medication_type_name: string;
+  is_active: boolean;
+}
+
 export interface MedicationsFilter {
   search?: string;
-  category?: string;
+  typeId?: string;
+  includeInactive?: boolean;
 }
 
 export interface MedicationsSort {
@@ -27,28 +34,31 @@ export const masterListsApi = {
       pageIndex: number = 0,
       pageSize: number = 50,
       sort: MedicationsSort[] = [],
-      filters: MedicationsFilter = {},
-      includeInactive = true
+      filters: MedicationsFilter = {}
     ) {
       let query = supabase
         .from(TABLES.MEDICATIONS_MASTER)
         .select(MEDICATION_VIEWS.STANDARD, { count: 'exact' });
 
       if (filters.search) {
-        query = query.ilike('medication_name', `%${filters.search}%`);
+        // Search Generic, Brand Name, or Side Effects (Visible columns across all contexts)
+        query = query.or(`medication_name.ilike.%${filters.search}%,brand_name.ilike.%${filters.search}%,side_effects.ilike.%${filters.search}%`);
       }
 
-      if (filters.category && filters.category !== 'all') {
-        query = query.eq('category', filters.category);
+      if (filters.typeId && filters.typeId !== 'all') {
+        query = query.eq('type_id', filters.typeId);
       }
       
-      if (!includeInactive) {
+      if (filters.includeInactive !== true) {
         query = query.eq('is_active', true);
       }
 
       if (sort.length > 0) {
         sort.forEach(s => {
-          query = query.order(s.id as any, { ascending: !s.desc });
+          // If sorting by category/type name, we need to handle the join or just sort by the FK ID for now
+          // Typically Metronic sort.id matches the column name.
+          const sortId = s.id === 'category' ? 'type_id' : s.id;
+          query = query.order(sortId as any, { ascending: !s.desc });
         });
       } else {
         query = query.order('medication_name', { ascending: true });
@@ -60,7 +70,7 @@ export const masterListsApi = {
 
       const { data, error, count } = await query;
       if (error) throw error;
-      return { data: data as MedicationMaster[], count: count || 0 };
+      return { data: (data || []) as MedicationMaster[], count: count || 0 };
     },
 
     async getById(id: string) {
@@ -74,23 +84,65 @@ export const masterListsApi = {
       return data as MedicationMaster;
     },
 
-    async getCategories() {
-      const { data, error } = await supabase
-        .from(TABLES.MEDICATIONS_MASTER)
-        .select('category')
-        .not('category', 'is', null)
-        .order('category');
+    async getMedicationTypes(includeInactive = true) {
+      let query = supabase
+        .from(TABLES.MEDICATION_TYPES_MASTER)
+        .select('id, medication_type_name, is_active')
+        .order('medication_type_name');
 
+      if (!includeInactive) {
+        query = query.eq('is_active', true);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
-      
-      const categories = Array.from(new Set(data.map(m => m.category)))
-        .filter((c): c is string => !!c)
-        .sort();
-        
-      return categories;
+      return data as MedicationType[];
     },
 
-    async create(medication: Omit<MedicationMaster, 'id' | 'created_at' | 'updated_at'>) {
+    async createMedicationType(name: string) {
+      const { data, error } = await supabase
+        .from(TABLES.MEDICATION_TYPES_MASTER)
+        .insert({ medication_type_name: name, is_active: true })
+        .select('id, medication_type_name, is_active')
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!data) throw new Error('You do not have permission to perform this action');
+      return data as MedicationType;
+    },
+
+    async updateMedicationType(id: string, updates: { name?: string; is_active?: boolean }) {
+      const dbUpdates: any = {};
+      if (updates.name !== undefined) dbUpdates.medication_type_name = updates.name;
+      if (updates.is_active !== undefined) dbUpdates.is_active = updates.is_active;
+
+      const { data, error } = await supabase
+        .from(TABLES.MEDICATION_TYPES_MASTER)
+        .update(dbUpdates)
+        .eq('id', id)
+        .select('id, medication_type_name, is_active')
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!data) throw new Error('You do not have permission to perform this action');
+      return data as MedicationType;
+    },
+
+    async deleteMedicationType(id: string) {
+      const { error } = await supabase
+        .from(TABLES.MEDICATION_TYPES_MASTER)
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        if (error.code === '23503') {
+          throw new Error('Cannot delete this type because it is currently assigned to one or more medications.');
+        }
+        throw error;
+      }
+    },
+
+    async create(medication: Omit<MedicationMaster, 'id' | 'created_at' | 'updated_at' | 'medication_type'>) {
       const { data, error } = await supabase
         .from(TABLES.MEDICATIONS_MASTER)
         .insert(medication)
@@ -112,9 +164,12 @@ export const masterListsApi = {
     },
 
     async update(id: string, updates: Partial<MedicationMaster>) {
+      // Remove joined data before update if present
+      const { medication_type, ...cleanUpdates } = updates as any;
+
       const { data, error } = await supabase
         .from(TABLES.MEDICATIONS_MASTER)
-        .update(updates)
+        .update(cleanUpdates)
         .eq('id', id)
         .select(MEDICATION_VIEWS.STANDARD)
         .maybeSingle();

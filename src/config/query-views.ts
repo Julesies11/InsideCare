@@ -113,7 +113,12 @@ export const PARTICIPANT_VIEWS = {
     is_active, 
     created_at, 
     updated_at,
-    medication_info:${TABLES.MEDICATIONS_MASTER}!medication_id(id, medication_name, category)
+    medication_info:${TABLES.MEDICATIONS_MASTER}!medication_id(
+      id, 
+      medication_name, 
+      brand_name,
+      medication_type:${TABLES.MEDICATION_TYPES_MASTER}!type_id(id, medication_type_name)
+    )
   `,
 
   /**
@@ -495,7 +500,23 @@ export const MEDICATION_VIEWS = {
   /**
    * Standard medication master view.
    */
-  STANDARD: 'id, medication_name, category, common_dosages, side_effects, interactions, is_active, created_by, updated_by, created_at, updated_at',
+  STANDARD: `
+    id, 
+    medication_name, 
+    brand_name,
+    type_id,
+    sub_class,
+    purpose,
+    contraindications,
+    side_effects, 
+    interactions, 
+    is_active, 
+    created_by, 
+    updated_by, 
+    created_at, 
+    updated_at,
+    medication_type:${TABLES.MEDICATION_TYPES_MASTER}!type_id(id, medication_type_name)
+  `,
 } as const;
 
 export const MASTER_LIST_VIEWS = {

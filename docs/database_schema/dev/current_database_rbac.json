@@ -22,31 +22,21 @@
   {
     "schemaname": "public",
     "tablename": "ic_activity_log",
-    "policyname": "RBAC Activity Log - House Context",
-    "permissive": "PERMISSIVE",
-    "roles": "{public}",
-    "cmd": "SELECT",
-    "qual": "(((entity_type = ANY (ARRAY['houses'::text, 'house'::text])) OR (entity_type ~~ 'house_%'::text)) AND (ic_jwt_get_perm('houses'::text) = ANY (ARRAY['read'::text, 'context_read'::text, 'context_read_write'::text, 'full'::text])))",
-    "with_check": null
-  },
-  {
-    "schemaname": "public",
-    "tablename": "ic_activity_log",
-    "policyname": "RBAC Activity Log - Participant Context",
-    "permissive": "PERMISSIVE",
-    "roles": "{public}",
-    "cmd": "SELECT",
-    "qual": "(((entity_type = ANY (ARRAY['participants'::text, 'participant'::text])) OR (entity_type ~~ 'participant_%'::text) OR (entity_type = 'shift_notes'::text)) AND ((ic_jwt_get_perm('participants'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])) OR (ic_jwt_get_perm('participant_activity_log'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text]))))",
-    "with_check": null
-  },
-  {
-    "schemaname": "public",
-    "tablename": "ic_activity_log",
     "policyname": "RBAC Activity Log - Global Auditor",
     "permissive": "PERMISSIVE",
     "roles": "{public}",
     "cmd": "SELECT",
     "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('activity_log'::text) = ANY (ARRAY['read'::text, 'context_read_write'::text, 'full'::text])))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "ic_activity_log",
+    "policyname": "RBAC Activity Log - Staff Context",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "(((entity_type = ANY (ARRAY['staff'::text, 'employee'::text])) OR (entity_type ~~ 'staff_%'::text)) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('employees'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])) OR (ic_jwt_get_perm('staff_activity_log'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])) OR (entity_id = (ic_jwt_get_staff_id())::text)))",
     "with_check": null
   },
   {
@@ -62,11 +52,21 @@
   {
     "schemaname": "public",
     "tablename": "ic_activity_log",
-    "policyname": "RBAC Activity Log - Staff Context",
+    "policyname": "RBAC Activity Log - House Context",
     "permissive": "PERMISSIVE",
     "roles": "{public}",
     "cmd": "SELECT",
-    "qual": "(((entity_type = ANY (ARRAY['staff'::text, 'employee'::text])) OR (entity_type ~~ 'staff_%'::text)) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('employees'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])) OR (ic_jwt_get_perm('staff_activity_log'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])) OR (entity_id = (ic_jwt_get_staff_id())::text)))",
+    "qual": "(((entity_type = ANY (ARRAY['houses'::text, 'house'::text])) OR (entity_type ~~ 'house_%'::text)) AND (ic_jwt_get_perm('houses'::text) = ANY (ARRAY['read'::text, 'context_read'::text, 'context_read_write'::text, 'full'::text])))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "ic_activity_log",
+    "policyname": "RBAC Activity Log - Participant Context",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "(((entity_type = ANY (ARRAY['participants'::text, 'participant'::text])) OR (entity_type ~~ 'participant_%'::text) OR (entity_type = 'shift_notes'::text)) AND ((ic_jwt_get_perm('participants'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])) OR (ic_jwt_get_perm('participant_activity_log'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text]))))",
     "with_check": null
   },
   {
@@ -212,16 +212,6 @@
   {
     "schemaname": "public",
     "tablename": "ic_checklist_master",
-    "policyname": "RBAC checklist_master DELETE",
-    "permissive": "PERMISSIVE",
-    "roles": "{authenticated}",
-    "cmd": "DELETE",
-    "qual": "ic_jwt_is_admin()",
-    "with_check": null
-  },
-  {
-    "schemaname": "public",
-    "tablename": "ic_checklist_master",
     "policyname": "RBAC ic_checklist_master DELETE",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
@@ -232,7 +222,17 @@
   {
     "schemaname": "public",
     "tablename": "ic_checklist_master",
-    "policyname": "RBAC ic_checklist_master INSERT",
+    "policyname": "RBAC checklist_master DELETE",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "DELETE",
+    "qual": "ic_jwt_is_admin()",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "ic_checklist_master",
+    "policyname": "RBAC checklist_master INSERT",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "INSERT",
@@ -242,7 +242,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_checklist_master",
-    "policyname": "RBAC checklist_master INSERT",
+    "policyname": "RBAC ic_checklist_master INSERT",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "INSERT",
@@ -302,16 +302,6 @@
   {
     "schemaname": "public",
     "tablename": "ic_contact_types_master",
-    "policyname": "RBAC contact_types_master DELETE",
-    "permissive": "PERMISSIVE",
-    "roles": "{authenticated}",
-    "cmd": "DELETE",
-    "qual": "ic_jwt_is_admin()",
-    "with_check": null
-  },
-  {
-    "schemaname": "public",
-    "tablename": "ic_contact_types_master",
     "policyname": "RBAC ic_contact_types_master DELETE",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
@@ -322,7 +312,17 @@
   {
     "schemaname": "public",
     "tablename": "ic_contact_types_master",
-    "policyname": "RBAC ic_contact_types_master INSERT",
+    "policyname": "RBAC contact_types_master DELETE",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "DELETE",
+    "qual": "ic_jwt_is_admin()",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "ic_contact_types_master",
+    "policyname": "RBAC contact_types_master INSERT",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "INSERT",
@@ -332,7 +332,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_contact_types_master",
-    "policyname": "RBAC contact_types_master INSERT",
+    "policyname": "RBAC ic_contact_types_master INSERT",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "INSERT",
@@ -492,7 +492,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_funding_sources_master",
-    "policyname": "RBAC ic_funding_sources_master DELETE",
+    "policyname": "RBAC funding_sources_master DELETE",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "DELETE",
@@ -502,7 +502,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_funding_sources_master",
-    "policyname": "RBAC funding_sources_master DELETE",
+    "policyname": "RBAC ic_funding_sources_master DELETE",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "DELETE",
@@ -542,7 +542,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_funding_types_master",
-    "policyname": "RBAC ic_funding_types_master DELETE",
+    "policyname": "RBAC funding_types_master DELETE",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "DELETE",
@@ -552,7 +552,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_funding_types_master",
-    "policyname": "RBAC funding_types_master DELETE",
+    "policyname": "RBAC ic_funding_types_master DELETE",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "DELETE",
@@ -1042,7 +1042,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_house_types_master",
-    "policyname": "RBAC ic_house_types_master DELETE",
+    "policyname": "RBAC house_types_master DELETE",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "DELETE",
@@ -1052,7 +1052,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_house_types_master",
-    "policyname": "RBAC house_types_master DELETE",
+    "policyname": "RBAC ic_house_types_master DELETE",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "DELETE",
@@ -1281,6 +1281,26 @@
   },
   {
     "schemaname": "public",
+    "tablename": "ic_medication_types_master",
+    "policyname": "RBAC ic_medication_types_master ADMIN ONLY",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "(ic_jwt_get_perm('access_control'::text) = 'full'::text)",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "ic_medication_types_master",
+    "policyname": "RBAC ic_medication_types_master SELECT",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "true",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
     "tablename": "ic_medications_master",
     "policyname": "RBAC ic_medications_master DELETE",
     "permissive": "PERMISSIVE",
@@ -1332,22 +1352,22 @@
   {
     "schemaname": "public",
     "tablename": "ic_medications_master",
-    "policyname": "RBAC ic_medications_master UPDATE",
-    "permissive": "PERMISSIVE",
-    "roles": "{authenticated}",
-    "cmd": "UPDATE",
-    "qual": "ic_jwt_is_admin()",
-    "with_check": null
-  },
-  {
-    "schemaname": "public",
-    "tablename": "ic_medications_master",
     "policyname": "RBAC medications_master UPDATE",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "UPDATE",
     "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('master_lists'::text) = 'full'::text))",
     "with_check": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('master_lists'::text) = 'full'::text))"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "ic_medications_master",
+    "policyname": "RBAC ic_medications_master UPDATE",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "UPDATE",
+    "qual": "ic_jwt_is_admin()",
+    "with_check": null
   },
   {
     "schemaname": "public",
