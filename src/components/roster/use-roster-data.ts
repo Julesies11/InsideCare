@@ -254,13 +254,13 @@ export function useRosterData(staffId?: string, options: { includeMetadata?: boo
       staffQuery.refetch();
     },
     createShift: createShiftMutation.mutateAsync,
-    updateShift: updateShiftMutation.mutateAsync,
+    updateShift: (id: string, updates: any) => updateShiftMutation.mutateAsync({ id, updates }),
     deleteShift: deleteShiftMutation.mutateAsync,
-    bulkUpdateShifts: bulkUpdateShiftsMutation.mutateAsync,
+    bulkUpdateShifts: (params: any, updates: any) => bulkUpdateShiftsMutation.mutateAsync({ params, updates }),
     bulkDeleteShifts: bulkDeleteShiftsMutation.mutateAsync,
-    syncShiftParticipants: syncShiftParticipantsMutation.mutateAsync,
-    addShiftParticipant: addShiftParticipantMutation.mutateAsync,
+    syncShiftParticipants: (shiftId: string, participantIds: string[]) => syncShiftParticipantsMutation.mutateAsync({ shiftId, participantIds }),
+    addShiftParticipant: (shiftId: string, participantId: string) => addShiftParticipantMutation.mutateAsync({ shiftId, participantId }),
     materializePattern: materializePatternMutation.mutateAsync,
-    syncShiftChecklists: syncShiftChecklistsMutation.mutateAsync,
+    syncShiftChecklists: (shiftId: string, checklists: any[]) => syncShiftChecklistsMutation.mutateAsync({ shiftId, checklists }),
   };
 }
