@@ -101,12 +101,17 @@ export function useCreateShift() {
 export function useUpdateShift() {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  const mutation = useMutation({
     mutationFn: ({ id, updates }: { id: string; updates: any }) => rosterApi.updateShift(id, updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staff-shifts'] });
     },
   });
+
+  return {
+    ...mutation,
+    mutateAsync: (id: string, updates: any) => mutation.mutateAsync({ id, updates })
+  };
 }
 
 export function useDeleteShift() {
@@ -151,7 +156,7 @@ export function useShiftParticipants(shiftId?: string) {
 export function useAddShiftParticipant() {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  const mutation = useMutation({
     mutationFn: ({ shiftId, participantId }: { shiftId: string; participantId: string }) => rosterApi.addShiftParticipant(shiftId, participantId),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['shift-participants', variables.shiftId] });
@@ -159,12 +164,17 @@ export function useAddShiftParticipant() {
       queryClient.invalidateQueries({ queryKey: ['roster-shifts'] });
     },
   });
+
+  return {
+    ...mutation,
+    mutateAsync: (shiftId: string, participantId: string) => mutation.mutateAsync({ shiftId, participantId })
+  };
 }
 
 export function useRemoveShiftParticipant() {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  const mutation = useMutation({
     mutationFn: ({ shiftId, participantId }: { shiftId: string; participantId: string }) => rosterApi.removeShiftParticipant(shiftId, participantId),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['shift-participants', variables.shiftId] });
@@ -172,6 +182,9 @@ export function useRemoveShiftParticipant() {
       queryClient.invalidateQueries({ queryKey: ['roster-shifts'] });
     },
   });
+
+  return {
+    ...mutation,
+    mutateAsync: (shiftId: string, participantId: string) => mutation.mutateAsync({ shiftId, participantId })
+  };
 }
-
-
