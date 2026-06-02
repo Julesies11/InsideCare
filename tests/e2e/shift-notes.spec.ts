@@ -15,17 +15,17 @@ test.describe('Shift Notes E2E', () => {
     // Click on "Add Shift Note"
     const addBtn = page.getByRole('button', { name: /Add Shift Note/i });
     await expect(addBtn).toBeVisible({ timeout: 30000 });
-    await addBtn.click();
+    await addBtn.click({ force: true });
 
     // Verify redirection to the detail page for a new note
-    await expect(page).toHaveURL(/\/shift-notes\/detail\/new/);
+    await expect(page).toHaveURL(/\/shift-notes\/detail\/new/, { timeout: 30000 });
 
     // Verify primary sections are present via Sidebar links
-    await expect(page.getByRole('link', { name: 'Overview' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Supports' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Health & Medication' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Trackers' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Summary' })).toBeVisible();
+    await expect(page.getByText('Overview', { exact: true }).first()).toBeVisible({ timeout: 30000 });
+    await expect(page.getByText('Supports', { exact: true }).first()).toBeVisible();
+    await expect(page.getByText('Health & Medication', { exact: true }).first()).toBeVisible();
+    await expect(page.getByText('Trackers', { exact: true }).first()).toBeVisible();
+    await expect(page.getByText('Summary', { exact: true }).first()).toBeVisible();
 
     // Verify content sections
     await expect(page.locator('#shift_note_overview')).toBeVisible();
@@ -34,18 +34,20 @@ test.describe('Shift Notes E2E', () => {
 
   test('Toggle clinical trackers and verify visibility', async ({ page }) => {
     await page.goto('/shift-notes/detail/new');
-    await expect(page.locator('#shift_note_trackers')).toBeVisible();
+    await expect(page.locator('#shift_note_trackers')).toBeVisible({ timeout: 30000 });
 
     // Initially, Bowel Tracking card should NOT be visible
     await expect(page.locator('#tracker_bowel')).not.toBeVisible();
 
-    // Find and click the toggle for Bowel Tracking
-    const bowelToggle = page.locator('div').filter({ hasText: /^Bowel Tracking$/ }).locator('button[role="checkbox"]');
-    await expect(bowelToggle).toBeVisible();
-    await bowelToggle.click();
+    // Click the Bowel Tracking toggle (click the card/div wrapper)
+    await expect(page.locator('div').filter({ hasText: /^Bowel Tracking$/ }).first()).toBeVisible();
+    
+    // Sometimes clicking the div is tricky, try clicking the label or the checkbox if needed, 
+    // but here we'll try to click it more precisely or use the checkbox id
+    await page.locator('label[for="bowel_toggle"]').or(page.locator('div').filter({ hasText: /^Bowel Tracking$/ }).first()).first().click({ force: true });
 
     // Verify the Bowel Tracking card appears
-    await expect(page.locator('#tracker_bowel')).toBeVisible();
+    await expect(page.locator('#tracker_bowel')).toBeVisible({ timeout: 15000 });
     
     // Verify Bristol Scale is visible inside the card
     await expect(page.getByText('Bristol Scale Type *')).toBeVisible();

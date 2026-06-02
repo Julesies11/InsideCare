@@ -1,8 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { TABLES } from '@/config/db-tables';
-import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 import { QUERY_KEYS } from '@/config/query-keys';
+import { houseOperationsApi } from '@/api/house-operations.api';
 
 export interface HouseDocument {
   id: string;
@@ -20,23 +18,14 @@ export interface HouseDocument {
   updated_at: string;
 }
 
-const HOUSE_DOCUMENT_COLUMNS = 'id, house_id, file_name, file_path, file_size, file_type, category, version, status, uploaded_by, notes, created_at, updated_at';
-
 export function useHouseDocuments(houseId?: string) {
   const query = useQuery({
     queryKey: [QUERY_KEYS.HOUSE_DOCUMENTS, houseId],
     queryFn: async () => {
       if (!houseId) return [];
 
-      const { data, error } = await supabase
-        .from(TABLES.HOUSE_FILES)
-        .select(HOUSE_DOCUMENT_COLUMNS)
-        .eq('house_id', houseId)
-        .eq('status', 'current')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return data as HouseDocument[];
+      const data = await houseOperationsApi.files.list(houseId);
+      return data.filter((f: any) => f.status === 'current') as HouseDocument[];
     },
     enabled: !!houseId,
     staleTime: 1000 * 60 * 5,
@@ -52,15 +41,10 @@ export function useHouseDocuments(houseId?: string) {
 }
 
 export const getHouseFileUrl = async (filePath: string, downloadName?: string) => {
-  const { data, error } = await supabase.storage
-    .from(STORAGE_BUCKETS.HOUSE_DOCUMENTS)
-    .createSignedUrl(filePath, 3600, {
-      download: downloadName || true
-    });
-  
-  if (error) {
+  try {
+    return await houseOperationsApi.files.getAttachmentSignedUrl(filePath, downloadName);
+  } catch (error) {
     console.error('Error creating signed URL:', error);
     return null;
   }
-  return data.signedUrl;
 };

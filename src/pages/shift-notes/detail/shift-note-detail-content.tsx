@@ -1,13 +1,18 @@
-import { useState, useEffect, useCallback, MutableRefObject } from 'react';
+import { useState, useEffect, useCallback, useMemo, MutableRefObject } from 'react';
 import { useParams, useNavigate } from 'react-router';
-import { supabase } from '@/lib/supabase';
+import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { TABLES } from '@/config/db-tables';
+import { shiftNotesApi } from '@/api/shift-notes.api';
+import { rosterApi } from '@/api/roster.api';
+import { participantsApi } from '@/api/participants.api';
+import { SHIFT_PERIODS } from '@/config/enums';
 import { ShiftNoteOverviewSection } from '../components/sections/shift-note-overview-section';
 import { ShiftNoteSupportsSection } from '../components/sections/shift-note-supports-section';
 import { ShiftNoteHealthSection } from '../components/sections/shift-note-health-section';
 import { ShiftNoteTrackersSection } from '../components/sections/shift-note-trackers-section';
 import { ShiftNoteSummarySection } from '../components/sections/shift-note-summary-section';
+import { ROUTES } from '@/config/routes.config';
+import { QUERY_KEYS } from '@/config/query-keys';
 
 interface ShiftNoteDetailContentProps {
   onFormDataChange?: (data: Record<string, unknown>) => void;
@@ -28,6 +33,7 @@ export function ShiftNoteDetailContent({
 }: ShiftNoteDetailContentProps) {
   const { id } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState<Record<string, unknown>>({
@@ -116,18 +122,23 @@ export function ShiftNoteDetailContent({
 
   const isNewNote = id === 'new';
 
+  const { isShiftLocked, isParticipantLocked } = useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    const queryShiftId = params.get('shiftId');
+    const queryParticipantId = params.get('participantId');
+
+    return {
+      isShiftLocked: !!queryShiftId || (!isNewNote && !!formData.shift_id),
+      isParticipantLocked: !!queryParticipantId || (!isNewNote && !!formData.participant_id),
+    };
+  }, [isNewNote, formData.shift_id, formData.participant_id]);
+
   // Auto-populate Mealtime Management from Participant Profile
   const fetchParticipantMtm = async (participantId: string) => {
     if (!participantId || !isNewNote) return;
 
     try {
-      const { data, error } = await supabase
-        .from(TABLES.PARTICIPANTS)
-        .select('mtmp_required, mtmp_details')
-        .eq('id', participantId)
-        .single();
-
-      if (error) throw error;
+      const data = await participantsApi.get(participantId);
 
       if (data?.mtmp_required) {
         handleFormChange('mtm_meal_provided', true);
@@ -138,29 +149,56 @@ export function ShiftNoteDetailContent({
     }
   };
 
+  // Check if a note already exists for this shift and staff
+  const checkExistingNote = async (shiftId: string, staffId: string) => {
+    if (!shiftId || !staffId || !isNewNote) return null;
+
+    try {
+      const existing = await shiftNotesApi.getByShiftAndStaff(shiftId, staffId);
+      if (existing) {
+        // If found, load it and change URL to edit mode
+        setFormData(existing);
+        onOriginalDataChange?.(existing);
+        navigate(`${ROUTES.SHIFT_NOTES_DETAIL}/${existing.id}`, { replace: true });
+        return existing;
+      }
+    } catch (err) {
+      console.error('Error checking for existing shift note:', err);
+    }
+    return null;
+  };
+
   // Fetch shift details if creating from a shift
   const fetchShiftDetails = async (shiftId: string) => {
     if (!shiftId) return;
 
     try {
-      const { data, error } = await supabase
-        .from(TABLES.STAFF_SHIFTS)
-        .select('start_date, start_time, house_id, shift_template')
-        .eq('id', shiftId)
-        .single();
-
-      if (error) throw error;
+      const data = await rosterApi.getShift(shiftId);
 
       if (data) {
-        const mappedType = data.shift_template?.toLowerCase();
-        const validTypes = ['morning', 'afternoon', 'evening', 'sleepover'];
-        
-        handleFormChange('start_date', data.start_date);
-        handleFormChange('shift_time', data.start_time);
-        handleFormChange('house_id', data.house_id);
-        if (validTypes.includes(mappedType)) {
-          handleFormChange('shift_type', mappedType);
+        // PROACTIVE CHECK: Does a note already exist for this shift/staff?
+        if (data.staff_id) {
+          const existing = await checkExistingNote(shiftId, data.staff_id);
+          if (existing) return; // Exit if we loaded an existing note
         }
+
+        const mappedType = data.shift_template?.toLowerCase();
+        const isValidType = Object.values(SHIFT_PERIODS).includes(mappedType as any);
+
+        // Batch update to prevent multiple re-renders
+        const updates: Record<string, any> = {
+          shift_id: shiftId,
+          start_date: data.start_date,
+          shift_time: data.start_time,
+          house_id: data.house_id,
+          staff_id: data.staff_id
+        };
+
+        if (isValidType) {
+          updates.shift_type = mappedType;
+        }
+
+        handleBulkChange(updates);
       }
     } catch (err) {
       console.error('Error fetching shift details:', err);
@@ -172,13 +210,8 @@ export function ShiftNoteDetailContent({
 
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from(TABLES.SHIFT_NOTES)
-        .select('*')
-        .eq('id', id)
-        .maybeSingle();
+      const data = await shiftNotesApi.get(id);
 
-      if (error) throw error;
       if (!data) throw new Error("Shift note not found");
 
       setFormData(data);
@@ -247,37 +280,91 @@ export function ShiftNoteDetailContent({
     }
   };
 
+  const handleBulkChange = (changes: Record<string, unknown>) => {
+    if (!canEdit) return;
+
+    setFormData(prev => ({ ...prev, ...changes }));
+
+    // Side effect: Check for existing note if shift and staff are provided
+    if (changes.shift_id && changes.staff_id && isNewNote) {
+      checkExistingNote(changes.shift_id as string, changes.staff_id as string);
+    }
+
+    // Side effect: Auto-populate MTM if participant_id is in the changes
+    if (changes.participant_id && isNewNote) {
+      fetchParticipantMtm(changes.participant_id as string);
+    }
+  };
+
   const handleSave = useCallback(async () => {
     if (!canEdit) return;
+
+    if (!formData.start_date) {
+      toast.error('Date is required to save a shift note');
+      return;
+    }
+
+    if (!formData.shift_id) {
+      toast.error('A linked shift is required to save a shift note');
+      return;
+    }
+
     try {
       if (onSavingChange) onSavingChange(true);
 
-      const dataToSave = { ...formData };
-      // Clean up empty strings to null for better DB integrity
-      Object.keys(dataToSave).forEach(key => {
-        if (dataToSave[key] === '' && key !== 'notes') {
-          dataToSave[key] = null;
+      const validColumns = [
+        'participant_id', 'staff_id', 'start_date', 'shift_time', 'house_id', 'shift_id', 
+        'notes', 'full_note', 'status', 'shift_type', 'risks_observed', 'risk_description', 
+        'overall_presentation', 'adl_supports', 'domestic_tasks', 'capacity_building_goals', 
+        'regular_medication_status', 'prn_medication_given', 'prn_description', 
+        'pbs_strategies_used', 'pbs_strategies_details', 'pbs_when_used', 'pbs_outcome', 
+        'restrictive_practices_status', 'shift_summary', 'bowel_movement_occurred', 
+        'bowel_time', 'bowel_bristol_scale', 'bowel_amount', 'bowel_assistance_required', 
+        'bowel_notes', 'seizure_occurred', 'seizure_time_started', 'seizure_duration_minutes', 
+        'seizure_type_id', 'seizure_description', 'seizure_injury_occurred', 
+        'seizure_injury_description', 'seizure_emergency_services', 'seizure_notes', 
+        'sleep_occurred', 'sleep_type_period', 'sleep_start_time', 'sleep_wake_time', 
+        'sleep_quality', 'sleep_support_required', 'behaviour_observed', 
+        'behaviour_type_id', 'behaviour_intensity', 'behaviour_notes', 
+        'community_access_occurred', 'community_activity_type', 'community_location', 
+        'community_engagement_level', 'community_notes', 'meal_provided', 
+        'nutrition_meal_type', 'nutrition_intake', 'nutrition_refusal_alternatives', 
+        'nutrition_assistance_needed', 'nutrition_fluids_intake', 'nutrition_notes', 
+        'mtm_meal_provided', 'mtm_diet_type', 'mtm_fluids', 'mtm_texture_correct', 
+        'mtm_consistency_correct', 'mtm_positioning_appropriate', 'mtm_supervision_required', 
+        'mtm_swallowing_concerns', 'mtm_meal_intake', 'mtm_meal_intake_notes', 
+        'mtm_fluid_intake', 'mtm_fluid_intake_notes', 'mtm_concerns', 'mtm_notes', 
+        'hygiene_support_required', 'hygiene_shower', 'hygiene_oral_care', 
+        'hygiene_toileting', 'hygiene_grooming', 'hygiene_observed_concerns', 'hygiene_notes'
+      ];
+
+      const dataToSave: Record<string, any> = {};
+      
+      // Only include valid database columns and clean up values
+      Object.keys(formData).forEach(key => {
+        if (validColumns.includes(key)) {
+          let value = formData[key];
+          // Clean up empty strings to null for better DB integrity
+          if (value === '' && key !== 'notes') {
+            value = null;
+          }
+          dataToSave[key] = value;
         }
       });
 
       if (isNewNote) {
-        const { data, error } = await supabase
-          .from(TABLES.SHIFT_NOTES)
-          .insert([dataToSave])
-          .select()
-          .single();
-
-        if (error) throw error;
+        const data = await shiftNotesApi.upsert(dataToSave);
+        
+        // Invalidate queries to refresh lists
+        await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SHIFT_NOTES] });
 
         toast.success('Shift note created successfully');
-        navigate(`/shift-notes/detail/${data.id}`);
+        navigate(`${ROUTES.SHIFT_NOTES_DETAIL}/${data.id}`, { replace: true });
       } else {
-        const { error } = await supabase
-          .from(TABLES.SHIFT_NOTES)
-          .update(dataToSave)
-          .eq('id', id);
+        await shiftNotesApi.update(id as string, dataToSave);
 
-        if (error) throw error;
+        // Invalidate queries to refresh lists
+        await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SHIFT_NOTES] });
 
         toast.success('Shift note updated successfully');
         if (onOriginalDataChange) onOriginalDataChange(formData);
@@ -315,7 +402,10 @@ export function ShiftNoteDetailContent({
         <ShiftNoteOverviewSection 
           canEdit={canEdit} 
           formData={formData} 
-          onFormChange={handleFormChange} 
+          onFormChange={handleFormChange}
+          onBulkChange={handleBulkChange}
+          isShiftLocked={isShiftLocked}
+          isParticipantLocked={isParticipantLocked}
         />
       </div>
 

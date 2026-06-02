@@ -49,6 +49,7 @@ import { useAuth } from '@/auth/context/auth-context';
 import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
 import { RBAC_MODULES } from '@/config/rbac-modules';
 import { parseSupabaseError } from '@/lib/error-parser';
+import { ROUTES } from '@/config/routes.config';
 
 import { useSearchParams } from 'react-router';
 import { useDebounce } from '@/hooks/use-debounce';
@@ -86,7 +87,7 @@ function ActionsCell({ row, updateHouse }: { row: Row<House>; updateHouse: (para
   });
 
   const handleEdit = () => {
-    navigate(`/houses/detail/${row.original.id}`);
+    navigate(`${ROUTES.HOUSE_DETAIL}/${row.original.id}`);
   };
 
   const handleArchive = async () => {
@@ -191,18 +192,17 @@ export function Houses() {
     statuses: selectedStatuses
   }), [debouncedSearchQuery, selectedStatuses]);
 
-  const { data, isLoading: loading, error } = useHouses(
+  const { houses, count, isLoading: loading, error } = useHouses(
     pagination.pageIndex,
     pagination.pageSize,
     sorting,
     filters
   );
   
-  const houses = data?.data || [];
-  const count = data?.count || 0;
+  const { participants: allParticipants } = useParticipants(0, 1000); // Fetch more for occupancy calculation
+  const participants = useMemo(() => allParticipants || [], [allParticipants]);
 
-  const { data: participantsData } = useParticipants(); 
-  const participants = useMemo(() => participantsData?.data || [], [participantsData]);
+  console.log('[DEBUG] Houses rendering:', { housesCount: houses?.length, participantsCount: participants?.length, loading, error });
 
   // Handle pagination change
   const handlePaginationChange = (updater: any) => {
@@ -432,7 +432,7 @@ export function Houses() {
                   {participantsForHouse.map((p) => (
                     <Link
                       key={p.id}
-                      to={`/participants/detail/${p.id}`}
+                      to={`${ROUTES.PARTICIPANT_DETAIL}/${p.id}`}
                       className="text-xs font-medium text-gray-700 hover:text-primary hover:underline transition-colors"
                     >
                       {p.name}

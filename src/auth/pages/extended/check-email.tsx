@@ -1,5 +1,6 @@
 import { Link } from 'react-router';
 import { toAbsoluteUrl } from '@/lib/helpers';
+import { ROUTES } from '@/config/routes.config';
 
 const CheckEmail = () => {
   return (
@@ -33,7 +34,7 @@ const CheckEmail = () => {
       </div>
 
       <div className="flex justify-center mb-5">
-        <Link to="/" className="btn btn-primary flex justify-center">
+        <Link to={ROUTES.HOME} className="btn btn-primary flex justify-center">
           Back to Home
         </Link>
       </div>
@@ -43,7 +44,7 @@ const CheckEmail = () => {
           Didn’t receive an email?
         </span>
         <Link
-          to="/auth/signin"
+          to={ROUTES.AUTH_SIGNIN}
           className="text-sm font-semibold text-foreground hover:text-primary"
         >
           Resend

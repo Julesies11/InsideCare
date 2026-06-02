@@ -408,7 +408,11 @@ export function HouseResources({
                           <TableCell>
                             <div className="text-sm">
                               {fileName ? (
-                                <div className="flex items-center gap-2">
+                                <div 
+                                  className="flex items-center gap-2 cursor-pointer select-none"
+                                  onDoubleClick={() => resource.file_url && handleDownload(resource.file_url, resource.file_name || 'resource')}
+                                  title="Double-click to download"
+                                >
                                   <FileText className="size-4 text-muted-foreground" />
                                   <div>
                                     <div className="line-clamp-1">{fileName}</div>

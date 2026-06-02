@@ -2,15 +2,17 @@ import { useState, useMemo, forwardRef, useImperativeHandle } from 'react';
 import { format, addDays, parseISO } from 'date-fns';
 import { toast } from 'sonner';
 import { ShiftCalendar, LeaveBlock } from '@/components/roster/shift-calendar';
+import { StaffPersonalCalendar } from '@/components/roster/staff-personal-calendar';
 import { ShiftDialog, ShiftFormData } from '@/components/roster/shift-dialog';
 import { ViewShiftDialog } from '@/components/roster/view-shift-dialog';
 import { LeaveDialog } from '@/components/roster/leave-dialog';
 import { StaffShift, useRosterData, useShiftsQuery, useLeaveRequestsQuery } from '@/components/roster/use-roster-data';
 import { getDateRange, ViewMode } from '@/components/roster/roster-utils';
-import { supabase } from '@/lib/supabase';
+import { rosterApi } from '@/api/roster.api';
 import { useHouseShiftTemplates } from '@/hooks/use-house-shift-templates';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router';
+import { ROUTES } from '@/config/routes.config';
 
 export interface LeaveBlock {
   id: string;
@@ -29,13 +31,13 @@ interface StaffRosterCalendarProps {
   houseFilter: string;
   participantFilter: string;
   shiftTemplateFilter: string;
-  statusFilter: string;
   canEdit: boolean;
   showLeave?: boolean;
   onBulkAction?: (houseId: string) => void;
   onPopulateRoster?: (houseId: string) => void;
   checklists: any[];
   includeEvents?: boolean;
+  isPersonal?: boolean;
 }
 
 export interface StaffRosterCalendarHandle {
@@ -54,13 +56,13 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
   houseFilter,
   participantFilter,
   shiftTemplateFilter,
-  statusFilter: _statusFilter,
   canEdit,
   showLeave = false,
   onBulkAction,
   onPopulateRoster,
   checklists,
   includeEvents = false,
+  isPersonal = false,
 }, ref) => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -114,7 +116,7 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
       const matchesParticipant = participantFilter === 'all' || (shift.participants && shift.participants.some((p: any) => p.id === participantFilter));
       
       return matchesType && matchesParticipant;
-    }).sort((a, b) => a.start_time.localeCompare(b.start_time));
+    }).sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
   }, [shifts, participantFilter, shiftTemplateFilter]);
 
   const handleAddShift = (date: Date, houseId?: string, shiftTemplateId?: string) => {
@@ -135,7 +137,8 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
   };
 
   const handleWriteNote = (shift: any) => {
-    navigate(`/shift-notes/detail/new?shiftId=${shift.id}`);
+    const firstParticipantId = shift.participants?.[0]?.id || '';
+    navigate(`${ROUTES.SHIFT_NOTES_DETAIL}/new?shiftId=${shift.id}&staffId=${shift.staff_id || ''}&participantId=${firstParticipantId}`);
   };
 
   const handleNotesClick = (shift: StaffShift) => {
@@ -148,7 +151,6 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
   };
 
   const handleEditLeave = (leave: LeaveBlock) => {
-    // Only allow editing if it's the staff member's own leave OR if admin (canEdit)
     setSelectedLeaveId(leave.id);
     setShowLeaveDialog(true);
   };
@@ -273,12 +275,7 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
       let leaveConflictCount = 0;
 
       const rolloutEndDate = format(addDays(parseISO(sourceShifts[0].start_date), (weeks * 7) + 7), 'yyyy-MM-dd');
-      const { data: allLeave } = await supabase
-        .from('ic_leave_requests')
-        .select('staff_id, start_date, end_date')
-        .eq('status', 'approved')
-        .gte('end_date', sourceShifts[0].start_date)
-        .lte('start_date', rolloutEndDate);
+      const allLeave = await rosterApi.listApprovedLeaveForRollout(sourceShifts[0].start_date, rolloutEndDate);
 
       for (let i = 1; i <= weeks; i++) {
         const daysOffset = i * 7;
@@ -287,15 +284,15 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
           const targetDateStr = format(addDays(sourceDate, daysOffset), 'yyyy-MM-dd');
           const targetEndDateStr = shift.end_date ? format(addDays(parseISO(shift.end_date), daysOffset), 'yyyy-MM-dd') : targetDateStr;
 
-          const { data: existing } = await supabase
-            .from('ic_staff_shifts')
-            .select('id')
-            .eq('house_id', houseFilter)
-            .eq('start_date', targetDateStr)
-            .eq('start_time', shift.start_time)
-            .maybeSingle();
+          const existing = await rosterApi.listShifts({
+            houseId: houseFilter,
+            startDate: targetDateStr,
+            endDate: targetDateStr
+          });
+          
+          const isDuplicate = existing.some(e => e.start_time === shift.start_time);
 
-          if (existing) {
+          if (isDuplicate) {
             skippedCount++;
             continue;
           }
@@ -376,27 +373,45 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
 
   return (
     <>
-      <ShiftCalendar
-        staffId={staffId}
-        viewMode={viewMode}
-        currentDate={currentDate}
-        shifts={filteredShifts}
-        loading={shiftsLoading || isCopying || saving}
-        canEdit={canEdit}
-        leaveBlocks={showLeave ? (leaveBlocks as LeaveBlock[]) : []}
-        shiftTemplates={shiftTemplates}
-        onAddShift={handleAddShift}
-        onEditShift={handleEditShift}
-        onWriteNote={handleWriteNote}
-        onNotesClick={handleNotesClick}
-        onBulkAction={onBulkAction}
-        onPopulateRoster={onPopulateRoster}
-        groupByHouse={true}
-        houses={houses}
-        staffList={staff}
-        onQuickAssign={handleQuickAssign}
-        onEditLeave={handleEditLeave}
-      />
+      {isPersonal ? (
+        <StaffPersonalCalendar
+          staffId={staffId}
+          viewMode={viewMode}
+          currentDate={currentDate}
+          shifts={filteredShifts}
+          loading={shiftsLoading || isCopying || saving}
+          canEdit={canEdit}
+          leaveBlocks={showLeave ? (leaveBlocks as LeaveBlock[]) : []}
+          onAddShift={handleAddShift}
+          onEditShift={handleEditShift}
+          onWriteNote={handleWriteNote}
+          onNotesClick={handleNotesClick}
+          staffList={staff}
+          onEditLeave={handleEditLeave}
+        />
+      ) : (
+        <ShiftCalendar
+          staffId={staffId}
+          viewMode={viewMode}
+          currentDate={currentDate}
+          shifts={filteredShifts}
+          loading={shiftsLoading || isCopying || saving}
+          canEdit={canEdit}
+          leaveBlocks={showLeave ? (leaveBlocks as LeaveBlock[]) : []}
+          shiftTemplates={shiftTemplates}
+          onAddShift={handleAddShift}
+          onEditShift={handleEditShift}
+          onWriteNote={handleWriteNote}
+          onNotesClick={handleNotesClick}
+          onBulkAction={onBulkAction}
+          onPopulateRoster={onPopulateRoster}
+          groupByHouse={staffId === 'all'}
+          houses={houses}
+          staffList={staff}
+          onQuickAssign={handleQuickAssign}
+          onEditLeave={handleEditLeave}
+        />
+      )}
 
       <LeaveDialog
         open={showLeaveDialog}

@@ -21,9 +21,27 @@ import { LeaveDialog } from '@/components/roster/leave-dialog';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { cn } from '@/lib/utils';
-import { useStaffRoster, RosterEntry as Entry } from '@/hooks/use-staff-roster';
-import { useRosterData } from '@/components/roster/use-roster-data';
-import { Pencil } from 'lucide-react';
+import { useStaffRoster, useStaffShiftsPaginated, RosterEntry as Entry } from '@/hooks/use-staff-roster';
+import { Pencil, Search } from 'lucide-react';
+import { ROUTES } from '@/config/routes.config';
+import { DataGrid } from '@/components/ui/data-grid';
+import { DataGridTable } from '@/components/ui/data-grid-table';
+import { DataGridPagination } from '@/components/ui/data-grid-pagination';
+import { DataGridColumnHeader } from '@/components/ui/data-grid-column-header';
+import { useMemo } from 'react';
+import { 
+  ColumnDef, 
+  useReactTable, 
+  getCoreRowModel, 
+  getPaginationRowModel, 
+  getSortedRowModel,
+  SortingState
+} from '@tanstack/react-table';
+
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { useDebounce } from '@/hooks/use-debounce';
 
 type TabView = 'calendar' | 'list';
 
@@ -38,10 +56,14 @@ export function StaffRoster() {
   // Calendar state
   const [viewMode, setViewMode] = useState<ViewMode>('week');
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [houseFilter, setHouseFilter] = useState('all');
-  const [shiftTemplateFilter, setShiftTemplateFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [showLeave, setShowLeave] = useState(false);
+  const [showLeave, setShowLeave] = useState(true);
+  const [showEvents, setShowEvents] = useState(false);
+
+  // Pagination state
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 50 });
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 300);
 
   // Leave Dialog state
   const [selectedLeaveId, setSelectedLeaveId] = useState<string | null>(null);
@@ -50,8 +72,14 @@ export function StaffRoster() {
   // List state
   const { data: entries = [], isLoading: loading, refetch } = useStaffRoster(user?.staff_id);
 
-  // Houses for filter
-  const { houses } = useRosterData(user?.staff_id);
+  // Paginated shifts for list view
+  const { data: paginatedData, isLoading: paginatedLoading } = useStaffShiftsPaginated({
+    staffId: user?.staff_id,
+    pageIndex: pagination.pageIndex,
+    pageSize: pagination.pageSize,
+    search: debouncedSearch,
+    sorting: sorting.map(s => ({ id: s.id, desc: s.desc }))
+  });
 
   const navigatePeriod = (direction: 'prev' | 'next') => {
     if (viewMode === 'today') {
@@ -88,6 +116,88 @@ export function StaffRoster() {
     queryClient.invalidateQueries({ queryKey: ['leave-requests', user?.staff_id] });
     refetch();
   };
+
+  const columns = useMemo<ColumnDef<any>[]>(() => [
+    {
+      accessorKey: 'start_date',
+      header: ({ column }) => <DataGridColumnHeader title="From" column={column} />,
+      cell: ({ row }) => format(new Date(row.original.start_date + 'T00:00:00'), 'EEE dd MMM yyyy'),
+      enableSorting: true,
+    },
+    {
+      accessorKey: 'end_date',
+      header: ({ column }) => <DataGridColumnHeader title="To" column={column} />,
+      cell: ({ row }) => format(new Date((row.original.end_date || row.original.start_date) + 'T00:00:00'), 'EEE dd MMM yyyy'),
+      enableSorting: true,
+    },
+    {
+      accessorKey: 'entry_type',
+      header: ({ column }) => <DataGridColumnHeader title="Type" column={column} />,
+      cell: () => <Badge variant="secondary" appearance="light">Shift</Badge>,
+      enableSorting: false,
+    },
+    {
+      accessorKey: 'details',
+      header: ({ column }) => <DataGridColumnHeader title="Details" column={column} />,
+      cell: ({ row }) => (
+        <div className="flex flex-col">
+          <span className="text-muted-foreground">{row.original.shift_template || 'Standard'}</span>
+          <span className="text-[10px] text-muted-foreground italic">
+            {row.original.start_time?.slice(0, 5)} – {row.original.end_time?.slice(0, 5)}
+            {row.original.house?.house_name ? ` at ${row.original.house.house_name}` : ''}
+          </span>
+        </div>
+      ),
+      enableSorting: true,
+    },
+    {
+      id: 'actions',
+      header: ({ column }) => <DataGridColumnHeader title="Action" column={column} />,
+      cell: ({ row }) => {
+        const entry = row.original;
+        if (entry.has_timesheet) {
+          return <Badge variant="success" appearance="light">Submitted</Badge>;
+        }
+        if (isPast(entry)) {
+          return (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => navigate(`/my-roster/${entry.id}/timesheet`)}
+            >
+              <ClipboardList className="size-3.5 me-1.5" />
+              Timesheet
+            </Button>
+          );
+        }
+        return <span className="text-xs text-muted-foreground">Upcoming</span>;
+      },
+      enableSorting: false,
+    }
+  ], [navigate]);
+
+  const table = useReactTable({
+    data: paginatedData?.data || [],
+    columns,
+    state: {
+      pagination,
+      sorting,
+    },
+    onPaginationChange: (updater) => {
+      const nextPagination = typeof updater === 'function' ? updater(pagination) : updater;
+      setPagination(nextPagination);
+    },
+    onSortingChange: (updater) => {
+      const nextSorting = typeof updater === 'function' ? updater(sorting) : updater;
+      setSorting(nextSorting);
+    },
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    manualPagination: true,
+    manualSorting: true,
+    pageCount: Math.ceil((paginatedData?.count || 0) / pagination.pageSize),
+  });
 
   return (
     <>
@@ -143,15 +253,12 @@ export function StaffRoster() {
                     getPeriodLabel={getPeriodLabel}
                     showStaffFilter={false}
                     showParticipantFilter={false}
-                    houseFilter={houseFilter}
-                    onHouseFilterChange={setHouseFilter}
-                    houseList={houses || []}
-                    shiftTemplateFilter={shiftTemplateFilter}
-                    onShiftTemplateFilterChange={setShiftTemplateFilter}
-                    statusFilter={statusFilter}
-                    onStatusFilterChange={setStatusFilter}
+                    showHouseFilter={false}
+                    showShiftTemplateFilter={false}
                     showLeave={showLeave}
                     onShowLeaveChange={setShowLeave}
+                    showEvents={showEvents}
+                    onShowEventsChange={setShowEvents}
                   />
                 </CardContent>
               </Card>
@@ -159,13 +266,13 @@ export function StaffRoster() {
                 staffId={user.staff_id}
                 viewMode={viewMode}
                 currentDate={currentDate}
-                houseFilter={houseFilter}
+                houseFilter="all"
                 participantFilter="all"
-                shiftTemplateFilter={shiftTemplateFilter}
-                statusFilter={statusFilter}
+                shiftTemplateFilter="all"
                 canEdit={false}
                 showLeave={showLeave}
-                includeEvents={true}
+                includeEvents={showEvents}
+                isPersonal={true}
                 checklists={[]}
                 onEditLeave={(leave) => handleEditLeave(leave.id)}
               />
@@ -179,151 +286,32 @@ export function StaffRoster() {
           )
         ) : (
           <div className="grid gap-5 lg:gap-7.5">
-            {loading ? (
-              <Card className="border-0 sm:border">
-                <CardContent className="py-10 text-center text-sm text-muted-foreground">
-                  Loading shifts...
+            <Card className="border-0 sm:border">
+              <CardHeader className="py-4 px-5 flex items-center">
+                <div className="relative w-full sm:w-64 ml-auto">
+                  <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
+                  <Input
+                    type="search"
+                    placeholder="Search shifts..."
+                    className="pl-9 h-9"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
+                </div>
+              </CardHeader>
+              <DataGrid
+                table={table}
+                recordCount={paginatedData?.count || 0}
+                isLoading={paginatedLoading}
+              >
+                <CardContent className="p-0">
+                  <DataGridTable />
                 </CardContent>
-              </Card>
-            ) : entries.length === 0 ? (
-              <Card className="border-0 sm:border">
-                <CardContent className="py-16 flex flex-col items-center gap-4">
-                  <div className="flex size-14 items-center justify-center rounded-full bg-muted">
-                    <Calendar className="size-7 text-muted-foreground" />
-                  </div>
-                  <div className="text-center">
-                    <p className="font-medium">No commitments found</p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Your scheduled shifts and assigned events will appear here.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <Card className="border-0 sm:border">
-                <CardHeader className="py-4 px-5">
-                  <span className="text-sm text-muted-foreground">
-                    {entries.length} item{entries.length !== 1 ? 's' : ''}
-                  </span>
-                </CardHeader>
-                <CardTable>
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b bg-muted/40">
-                        <th className="text-left px-5 py-3 font-medium text-muted-foreground">Date</th>
-                        <th className="text-left px-5 py-3 font-medium text-muted-foreground hidden sm:table-cell">Time</th>
-                        <th className="text-left px-5 py-3 font-medium text-muted-foreground hidden md:table-cell">Location</th>
-                        <th className="text-left px-5 py-3 font-medium text-muted-foreground">Type</th>
-                        <th className="text-left px-5 py-3 font-medium text-muted-foreground">Details</th>
-                        <th className="text-left px-5 py-3 font-medium text-muted-foreground hidden lg:table-cell">Participants</th>
-                        <th className="text-left px-5 py-3 font-medium text-muted-foreground">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y">
-                      {entries.map((entry) => (
-                        <tr key={entry.id} className="hover:bg-muted/30 transition-colors">
-                          <td className="px-5 py-3.5 font-medium">
-                            {format(new Date(entry.start_date + 'T00:00:00'), 'EEE dd MMM yyyy')}
-                          </td>
-                          <td className="px-5 py-3.5 text-muted-foreground hidden sm:table-cell">
-                            {entry.start_time?.slice(0, 5)} – {entry.end_time?.slice(0, 5)}
-                          </td>
-                          <td className="px-5 py-3.5 text-muted-foreground hidden md:table-cell">
-                            {entry.house?.house_name ?? entry.location ?? '—'}
-                          </td>
-                          <td className="px-5 py-3.5">
-                            {entry.entry_type === 'shift' ? (
-                              <Badge variant="secondary" appearance="light">
-                                Shift
-                              </Badge>
-                            ) : entry.entry_type === 'leave' ? (
-                              <Badge 
-                                variant="outline" 
-                                className={cn("font-bold", 
-                                  entry.status === 'pending' ? 'text-yellow-600 bg-yellow-50 border-yellow-200' : 'text-gray-600 bg-gray-50 border-gray-200'
-                                )}
-                              >
-                                {entry.status === 'pending' ? '⏳ ' : '🏖 '}{entry.status === 'pending' ? 'Pending Leave' : 'Approved Leave'}
-                              </Badge>
-                            ) : (
-                              <Badge 
-                                variant="outline" 
-                                className={cn("font-bold", 
-                                  entry.type_color === 'red' ? 'text-red-600 bg-red-50 border-red-200' :
-                                  entry.type_color === 'green' ? 'text-green-600 bg-green-50 border-green-200' :
-                                  entry.type_color === 'purple' ? 'text-purple-600 bg-purple-50 border-purple-200' :
-                                  'text-blue-600 bg-blue-50 border-blue-200'
-                                )}
-                              >
-                                {entry.type_name || 'Event'}
-                              </Badge>
-                            )}
-                          </td>
-                          <td className="px-5 py-3.5">
-                            {entry.entry_type === 'shift' ? (
-                              <span className="text-muted-foreground">{entry.shift_template || 'Standard'}</span>
-                            ) : entry.entry_type === 'leave' ? (
-                              <div className="flex flex-col">
-                                <span className="font-semibold text-gray-800">{entry.title}</span>
-                                {entry.reason && <span className="text-xs text-muted-foreground italic truncate max-w-[200px]">{entry.reason}</span>}
-                              </div>
-                            ) : (
-                              <span className="font-semibold text-gray-800">{entry.title}</span>
-                            )}
-                          </td>
-                          <td className="px-5 py-3.5 hidden lg:table-cell">
-                            {entry.entry_type === 'shift' ? (
-                              <div className="flex items-center gap-1.5">
-                                <Users className="size-3.5 text-muted-foreground" />
-                                <span className="text-xs">
-                                  {entry.participants && entry.participants.length > 0 
-                                    ? entry.participants.map(p => p.name).join(', ')
-                                    : 'None'}
-                                </span>
-                              </div>
-                            ) : (
-                              <span className="text-xs text-muted-foreground">—</span>
-                            )}
-                          </td>
-                          <td className="px-5 py-3.5">
-                            {entry.entry_type === 'shift' ? (
-                              entry.has_timesheet ? (
-                                <Badge variant="success" appearance="light">Submitted</Badge>
-                              ) : isPast(entry) ? (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => navigate(`/my-roster/${entry.id}/timesheet`)}
-                                >
-                                  <ClipboardList className="size-3.5 me-1.5" />
-                                  Timesheet
-                                </Button>
-                              ) : (
-                                <span className="text-xs text-muted-foreground">Upcoming</span>
-                              )
-                            ) : entry.entry_type === 'leave' ? (
-                              <div className="flex items-center gap-1">
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="h-7 w-7 p-0"
-                                  title="Edit"
-                                  onClick={() => handleEditLeave(entry.id)}
-                                >
-                                  <Pencil className="size-3.5" />
-                                </Button>
-                              </div>
-                            ) : (
-                              <span className="text-xs text-muted-foreground">—</span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </CardTable>
-              </Card>
-            )}
+                <div className="border-t p-4">
+                  <DataGridPagination />
+                </div>
+              </DataGrid>
+            </Card>
           </div>
         )}
       </Container>

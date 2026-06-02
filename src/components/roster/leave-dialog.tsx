@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/auth/context/auth-context';
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
@@ -7,9 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { TABLES } from '@/config/db-tables';
-import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 import { LEAVE_STATUS } from '@/config/enums';
+import { rosterApi } from '@/api/roster.api';
 import {
   Select,
   SelectContent,
@@ -71,32 +69,32 @@ export function LeaveDialog({ open, onOpenChange, leaveId, onSuccess, initialDat
   useEffect(() => {
     if (open) {
       const fetchLeaveTypes = async () => {
-        const { data } = await supabase
-          .from(TABLES.LEAVE_TYPES)
-          .select('id, leave_type_name')
-          .eq('is_active', true)
-          .order('leave_type_name');
-        setLeaveTypes((data as any[])?.map(d => ({ id: d.id, name: d.leave_type_name })) || []);
+        try {
+          const data = await rosterApi.listLeaveTypes();
+          setLeaveTypes(data);
+        } catch (error) {
+          console.error('Error fetching leave types:', error);
+        }
       };
       fetchLeaveTypes();
 
       if (isEdit && leaveId) {
         const load = async () => {
           setLoading(true);
-          const { data } = await supabase
-            .from(TABLES.LEAVE_REQUESTS)
-            .select('leave_type_id, start_date, end_date, reason, attachment_url')
-            .eq('id', leaveId)
-            .maybeSingle();
-          if (!data) throw new Error("You do not have permission to perform this action");
-          if (data) {
+          try {
+            const data = await rosterApi.getLeaveRequest(leaveId);
+            if (!data) throw new Error("Leave request not found");
             setLeaveTypeId(data.leave_type_id || '');
             setStartDate(data.start_date || '');
             setEndDate(data.end_date || '');
             setReason(data.reason || '');
             setExistingAttachmentUrl(data.attachment_url || null);
+          } catch (error) {
+            console.error('Error loading leave request:', error);
+            toast.error('Failed to load leave request');
+          } finally {
+            setLoading(false);
           }
-          setLoading(false);
         };
         load();
       } else {
@@ -120,14 +118,12 @@ export function LeaveDialog({ open, onOpenChange, leaveId, onSuccess, initialDat
     }
 
     const check = async () => {
-      const { data } = await supabase
-        .from(TABLES.STAFF_SHIFTS)
-        .select(`id, start_date, start_time, end_time, house:${TABLES.HOUSES}(house_name)`)
-        .eq('staff_id', user.staff_id)
-        .gte('start_date', startDate)
-        .lte('start_date', endDate)
-        .order('start_date');
-      setConflictingShifts((data as any[]) || []);
+      try {
+        const data = await rosterApi.listConflictingShifts(user.staff_id!, startDate, endDate);
+        setConflictingShifts(data as ConflictingShift[]);
+      } catch (error) {
+        console.error('Error checking for conflicts:', error);
+      }
     };
 
     const timer = setTimeout(check, 500);
@@ -146,62 +142,34 @@ export function LeaveDialog({ open, onOpenChange, leaveId, onSuccess, initialDat
 
     setSaving(true);
 
-    let attachmentUrl = existingAttachmentUrl || undefined;
-    if (attachmentFile) {
-      const fileName = `${Date.now()}-${attachmentFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-      const filePath = `leave-attachments/${user.staff_id}/${fileName}`;
-      const { error: uploadError } = await supabase.storage
-        .from(STORAGE_BUCKETS.STAFF_DOCUMENTS)        .upload(filePath, attachmentFile);
-      if (uploadError) {
-        toast.error('Failed to upload attachment');
-        setSaving(false);
-        return;
+    try {
+      let attachmentUrl = existingAttachmentUrl || undefined;
+      if (attachmentFile) {
+        const filePath = await rosterApi.uploadStaffDocument(user.staff_id, attachmentFile);
+        attachmentUrl = await rosterApi.getStaffDocumentSignedUrl(filePath);
       }
-      const { data: urlData, error: urlError } = await supabase.storage
-        .from(STORAGE_BUCKETS.STAFF_DOCUMENTS)        .createSignedUrl(filePath, 3600, { download: attachmentFile.name || true });
-      if (urlError) {
-        console.error('Error creating signed URL:', urlError);
-        toast.error('Failed to resolve attachment URL');
-        setSaving(false);
-        return;
-      }
-      attachmentUrl = urlData.signedUrl;
-    }
 
-    if (isEdit && leaveId) {
-      const updates: {
-        leave_type_id: string;
-        start_date: string;
-        end_date: string;
-        reason: string | null;
-        attachment_url?: string;
-      } = {
-        leave_type_id: leaveTypeId,
-        start_date: startDate,
-        end_date: endDate,
-        reason: reason || null,
-        ...(attachmentUrl !== undefined ? { attachment_url: attachmentUrl } : {}),
-      };
-      const { error } = await supabase.from(TABLES.LEAVE_REQUESTS).update(updates).eq('id', leaveId);
-      if (error) { toast.error('Failed to update leave request'); setSaving(false); return; }
-      toast.success('Leave request updated');
-    } else {
-      const { error } = await supabase.from(TABLES.LEAVE_REQUESTS).insert({
+      const payload = {
         staff_id: user.staff_id,
         leave_type_id: leaveTypeId,
         start_date: startDate,
         end_date: endDate,
         reason: reason || null,
-        attachment_url: attachmentUrl || null,
         status: LEAVE_STATUS.PENDING,
-      });
-      if (error) { toast.error('Failed to submit leave request'); setSaving(false); return; }
-      toast.success('Leave request submitted successfully');
-    }
+        ...(attachmentUrl !== undefined ? { attachment_url: attachmentUrl } : {}),
+      };
 
-    setSaving(false);
-    onOpenChange(false);
-    if (onSuccess) onSuccess();
+      await rosterApi.upsertLeaveRequest(payload, leaveId || undefined);
+      
+      toast.success(isEdit ? 'Leave request updated' : 'Leave request submitted successfully');
+      onOpenChange(false);
+      if (onSuccess) onSuccess();
+    } catch (error) {
+      console.error('Error submitting leave request:', error);
+      toast.error(isEdit ? 'Failed to update leave request' : 'Failed to submit leave request');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (

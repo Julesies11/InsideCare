@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
+import { ROUTES } from '@/config/routes.config';
 
 interface ShiftNotePendingChanges {
   toAdd: any[];
@@ -54,7 +55,7 @@ export function ShiftNotes({
       toast.info('Please save the participant profile before editing this new note in the full editor.');
       return;
     }
-    navigate(`/shift-notes/detail/${note.id}`);
+    navigate(`${ROUTES.SHIFT_NOTES_DETAIL}/${note.id}`);
   };
 
   const handleDelete = (note: any) => {

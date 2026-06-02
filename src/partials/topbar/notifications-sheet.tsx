@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import { useNotifications, AppNotification } from '@/hooks/useNotifications';
+import { ROUTES } from '@/config/routes.config';
 
 const TYPE_ICON: Record<string, React.ElementType> = {
   timesheet_approved: CheckCircle,
@@ -161,7 +162,7 @@ export function NotificationsSheet({ trigger }: { trigger: ReactNode }) {
           <Button
             variant="ghost"
             className="w-full"
-            onClick={() => navigate('/account/notifications')}
+            onClick={() => navigate(ROUTES.NOTIFICATIONS)}
           >
             View all notifications
           </Button>

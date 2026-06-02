@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/auth/context/auth-context';
 import { useNavigate, useSearchParams } from 'react-router';
 import { supabase } from '@/lib/supabase';
+import { ROUTES } from '@/config/routes.config';
 
 /**
  * Callback page for OAuth authentication redirects.
@@ -23,7 +24,7 @@ export function CallbackPage() {
       // After a delay, redirect to signin page with error params
       setTimeout(() => {
         navigate(
-          `/auth/signin?error=${errorParam}&error_description=${encodeURIComponent(errorDescription || 'Authentication failed')}`,
+          `${ROUTES.AUTH_SIGNIN}?error=${errorParam}&error_description=${encodeURIComponent(errorDescription || 'Authentication failed')}`,
         );
       }, 1500);
       return;
@@ -36,12 +37,12 @@ export function CallbackPage() {
         if (!data.session) throw new Error('Authentication session not established');
 
         // Navigate to the target page - AuthProvider will handle state updates via onAuthStateChange
-        const nextPath = searchParams.get('next') || '/';
+        const nextPath = searchParams.get('next') || ROUTES.HOME;
         navigate(nextPath);
       } catch (err) {
         console.error('Error processing OAuth callback:', err);
         setError('An unexpected error occurred during authentication');
-        setTimeout(() => navigate('/auth/signin?error=auth_callback_error'), 1500);
+        setTimeout(() => navigate(`${ROUTES.AUTH_SIGNIN}?error=auth_callback_error`), 1500);
       }
     };
 

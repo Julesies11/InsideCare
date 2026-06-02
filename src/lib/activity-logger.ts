@@ -1,6 +1,5 @@
-import { supabase } from './supabase';
 import { ActivityType, EntityType } from '@/models/activity-log';
-import { TABLES } from '@/config/db-tables';
+import { activityLogApi } from '@/api/activity-log.api';
 
 interface LogActivityParams {
   activityType: ActivityType;
@@ -143,14 +142,14 @@ export async function logActivity({
   try {
     const description = generateDescription(activityType, entityType, changes, customDescription);
 
-    await supabase.from(TABLES.ACTIVITY_LOG).insert({
-      activity_type: activityType,
-      entity_type: entityType,
-      entity_id: entityId,
-      entity_name: entityName || null,
-      description,
-      user_name: userName || null,
-      metadata: changes ? { changes } as any : null,
+    await activityLogApi.log({
+      activityType,
+      entityType,
+      entityId,
+      entityName: entityName || undefined,
+      userName: userName || undefined,
+      customDescription: description,
+      metadata: changes ? { changes } : undefined,
     });
   } catch (error) {
     console.error('Failed to log activity:', error);

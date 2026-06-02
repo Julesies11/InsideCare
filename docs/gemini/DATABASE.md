@@ -8,183 +8,62 @@ As of **May 21, 2026**, the database schema uses the `ic_` prefix for all object
 - **Storage Buckets:** `ic_` prefix required (e.g., `ic_staff_photos`).
 - **Edge Functions:** `ic-` prefix required (e.g., `ic-invite-user`).
 
+## Data Access Layer (DAL) Adherence
+As of **May 31, 2026**, the application has achieved **100% DAL adherence** for the UI layer. 
+- **Centralized Access**: All database interactions are routed through `src/api/`. 
+- **Zero Raw Imports**: Raw `supabase` and `TABLES` imports are strictly forbidden in `src/pages`, `src/hooks`, and `src/components`.
+- **Consistency**: All master data is fetched through unified `listActive` methods ensuring consistent data shapes (e.g., `name` property normalization).
+
 ## Database Source of Truth
 The schema source of truth is maintained in:
 - **Directory:** `docs/database_schema/`
 - **Schema Metadata:** `docs/database_schema/schema_metadata.json` (Tables, Columns, Enums, Logic).
 - **RBAC Policies:** `docs/database_schema/current_database_rbac.json` (Live RLS policy state).
-- **Storage Policies:** `docs/database_schema/storage_schema.json` (Storage RLS state).
 
-**Mandatory AI Workflow:**
-Before generating any SQL statements, the AI **MUST** perform a `read_file` on these metadata files to verify naming conventions, data types, and existing security policies.
+**AI Workflow:** Before generating any SQL, always audit these metadata files.
 
 ### Security Model (Gold Standard RLS)
 The project employs a **Gold Standard RLS architecture**:
-1.  **Explicit Command Separation**: Policies are explicitly separated into `SELECT`, `INSERT`, `UPDATE`, and `DELETE` commands. Broad `ALL` policies for non-admin roles are strictly forbidden to ensure granular control.
-2.  **Delete Restriction (Admin Only)**: All records (clinical, transactional, organizational, master lists) can **only** be deleted by global `Admin` users (defined as `full` access to `access_control`). This enforces the project-wide soft-delete architecture at the database level.
-3.  **Level-Guarded Context**: House or staff-specific access is only granted if the user's permission level for that specific module is at least `context_read_only`.
-4.  **Hierarchical Module Access**: Permissions are structured hierarchically:
-    - **Houses**: `houses` parent with `house_management`, `house_operations`, etc., as children.
-    - **Participant Records**: `participants` parent with `participant_goals`, `participant_medications`, etc., as children.
-    - **Staff Profiles**: `employees` parent with `staff_compliance`, `staff_employment`, etc., as children.
-    - *Enforcement*: Setting a parent to `none` ghost-locks children in the UI, but database policies are inclusive to prevent logic deadlocks.
-5.  **Inclusive Entry Logic**: Application-level entry guards for complex modules (like Houses) use OR-logic. A user is granted access to a module if they have authorized access to ANY granular sub-module, ensuring they can reach the specific data they are permitted to manage.
-6.  **Master List Protection**: Master List tables (e.g., `medications_master`) are restricted to users with the `master_lists` permission.
-7.  **Audit Integrity**: Use of `WITH CHECK` clauses ensures that users can only insert or update records that they own or are authorized to manage (e.g., matching their own `staff_id` or `house_id`).
-8.  **JWT-Driven Performance**: System performance is maintained using memory-resident `auth.jwt()` lookups via `SECURITY DEFINER` helper functions.
-
-### Migration Naming Convention
-New migrations must follow the `YYYYMMDDXX_description.sql` format:
-- `YYYYMMDD`: The current date (Year, Month, Day).
-- `XX`: A sequential number starting from `00` for each unique migration on that date (e.g., `00`, `01`, `02`).
-- `description`: A brief, lowercase, underscore-separated description of the change.
-
-### Schema Baselining
-As of **May 26, 2026**, the database schema has been consolidated into a single baseline migration: `migrations/2026052602_baseline_schema.sql`.
-- **Purpose**: Consolidates all tables, functions, triggers, enums, and storage buckets into a single starting point, including the latest RLS hardening and storage cleanup fixes.
-- **RLS Policy Handling**: To maintain readability and manageable file sizes, RLS policies are **EXCLUDED** from the baseline SQL file. They are maintained as a single source of truth in `docs/database_schema/current_database_rbac.json` and must be applied manually or via a specialized deployment script.
-- **Archiving**: All previous migrations have been moved to `migrations/old_consolidated/`.
+1.  **Explicit Command Separation**: Policies are explicitly separated into `SELECT`, `INSERT`, `UPDATE`, and `DELETE` commands.
+2.  **Delete Restriction (Admin Only)**: All records can **only** be deleted by global `Admin` users (defined as `full` access to `access_control`). 
+3.  **Audit Integrity**: Use of `WITH CHECK` clauses ensures that users can only insert or update records that they are authorized to manage.
+4.  **JWT-Driven Performance**: Optimized memory-resident `auth.jwt()` lookups via `SECURITY DEFINER` helper functions.
 
 ## RBAC Access Levels (`public.access_level_enum`)
-Used in `role_permissions` to define granular module access. Enforcement is performed via optimized JWT-based RLS:
+Used in `role_permissions` to define granular module access:
 - `full`: Global Read/Write.
 - `context_read_write`: Domain-aware Read/Write (Locked to `assigned_houses` or `managed_staff_ids` in JWT).
 - `context_read_only`: Domain-aware Read-Only.
 - `read_only`: Global Read-Only.
 - `none`: No access.
 
-### Security Helpers (Postgres)
-The following optimized functions are used in RLS policies to query the user's JWT metadata. These are prefixed with `ic_` and are `SECURITY DEFINER` to prevent recursion:
-- **`ic_jwt_is_admin()`**: Returns true if the user has global admin rights.
-- **`ic_jwt_has_house(uuid)`**: Returns true if the user is authorized for the given house.
-- **`ic_jwt_get_perm(text)`**: Returns the access level string for a specific module.
-- **`ic_jwt_get_staff_id()`**: Returns the staff UUID associated with the current user.
-- **`ic_jwt_manages_staff(uuid)`**: Returns true if the user manages the given staff member.
-
 ## Join Hinting Standards
-When performing joins in Supabase (PostgREST), ambiguity can arise if multiple foreign keys point to the same target table (e.g., `created_by`, `updated_by`, and `staff_id` all pointing to `ic_staff`).
+When performing joins in Supabase (PostgREST), ambiguity is resolved using **Column-Based Hinting** as the primary method.
 
-### Standardized Hint Usage:
-1. **Explicit Constraint Hints**: Always use the explicit database constraint name as the hint when ambiguity exists. 
-   - *Example:* `.select(`*, staff:${TABLES.STAFF}!leave_requests_staff_id_fkey(id, staff_name)`)`
-2. **Standard Audit Hints**: Joins on standardized audit columns MUST use the following hint names:
-   - `created_by`: `!fk_ic_[table_name]_created_by`
-   - `updated_by`: `!fk_ic_[table_name]_updated_by`
-   - *Example:* `.select(`*, creator:${TABLES.STAFF}!fk_ic_houses_created_by(staff_name)`)`
-3. **Self-Join Exception**: For self-referential relationships (joining a table to itself, e.g., `ic_staff` to `ic_staff` via `manager_id`), use the **column name** as the hint to ensure schema cache reliability.
-   - *Example:* `.select(`*, manager_info:${TABLES.STAFF}!manager_id(staff_name)`)`
-4. **Non-Ambiguous Joins**: If only one relationship exists between two tables, no hint is required, but explicit naming is preferred for consistency.
-   - *Example:* `.select(`*, house:${TABLES.HOUSES}(house_name)`)`
-
-## Enum Compatibility & Querying
-The project uses Postgres Enums for critical columns (e.g., `public.status_enum`).
-- **Restriction:** You **cannot** use `.ilike()` or pattern matching operators (`~~*`) on enum columns.
-- **Rule:** Always use `.eq()` for exact matching or `.in()` for multiple values when filtering by `status` or other enum types in Supabase queries.
+1. **Column-Name Hints (Primary)**: Always use the foreign key column name as the hint. 
+   - *Example:* `.select(`*, staff:${TABLES.STAFF}!staff_id(id, staff_name)`)`
+2. **Self-Join Exception**: For self-referential relationships, the column name hint is mandatory.
+3. **Standard Audit Hints**: Joins on audit columns MUST use column identity (`!created_by`, `!updated_by`).
 
 ## Core Entities
 
 ### 1. Participants (`public.ic_participants`)
-The central entity representing the individuals receiving care.
-- **Key Fields:** `id`, `name`, `email`, `house_id`, `status` (`active`, `draft`, etc.), `ndis_number`, `support_level`.
-- **Relationships:** Belongs to a House (`house_id`). Has many Notes, Medications, Goals, Documents, etc.
+The individuals receiving care. Linked to a House (`house_id`). 
 
-### 2. Medication Master (`public.ic_medications_master`)
-Centralized register of all medications used in care.
-- **Key Fields:** `id`, `medication_name` (UNIQUE), `category`, `common_dosages`, `side_effects`, `interactions`, `is_active`.
-- **Constraint**: Enforces uniqueness on `medication_name` to ensure register integrity.
+### 2. Staff (`public.ic_staff`)
+The employees providing care. Linked to many Houses via `house_staff_assignments`.
+- **Definition of "Active Staff":** Status must be `'active'` AND have an active assignment with no `end_date` or a future `end_date`.
 
-### 3. Clinical Master Lists
-Centralized registers for clinical categorization.
-- **`ic_seizure_types_master`**: Managed list of seizure types (e.g., Tonic-Clonic, Absence).
-- **`ic_behaviour_types_master`**: Managed list of behaviour types and support strategies.
-- **Standards**: Follow the same UNIQUE name and Admin-only edit rules as the Medication Master.
+### 3. Houses (`public.ic_houses`)
+The care facilities. Includes setup fields: `setup_step`, `is_configured`.
 
-### 4. Staff (`public.ic_staff`)
-The employees providing care.
-- **Key Fields:** `id`, `name`, `email`, `role_id`, `status`, `auth_user_id` (links to Supabase Auth).
-- **Relationships:** Belongs to a Department. Assigned to many Houses via `house_staff_assignments`.
-- **Definition of "Active Staff":** A staff member is considered "Active" for a specific house only if:
-    1. Their `status` in the `staff` table is exactly `'active'`.
-    2. They have a record in `house_staff_assignments` for that house.
-    3. The assignment record has no `end_date` OR the `end_date` is in the future.
-    4. *This definition must be strictly enforced across all dropdowns, rosters, and house-linked counts.*
+### 4. Operational Tables
+- **`ic_shift_notes`**: Flat normalization with 70+ clinical columns.
+- **`ic_staff_shifts`**: Scheduled work periods.
+- **`ic_house_checklists`**: Facility and shift routines.
+- **`ic_timesheets`**: Tracked actual hours vs rostered.
 
-### 4. Houses (`public.ic_houses`)
-The care facilities/locations.
-- **Key Fields:** `id`, `name`, `branch_id`, `capacity`, `current_occupancy`.
-- **Management Fields:** 
-    - `general_house_details`: Routines, preferences, and general house rules.
-    - `individuals_breakdown`: Qualitative description of each person residing in the house.
-    - `participant_dynamics`: Social dynamics and interactions between participants.
-    - `risk_management`: House-level risk mitigation strategies and alerts.
-    - `observations`: General staff observations regarding the house environment.
-- **Relationships:** Belongs to a Branch. Has many Participants and Staff assignments.
-
-## Child Entities (Participant-related)
-
-- **`participant_medications`**: Tracks medications and dosage. Linked to `medications_master`.
-- **`participant_goals` & `participant_goal_progress`**: Tracks care goals and their progress.
-- **`participant_notes`**: General and important notes about the participant.
-- **`participant_documents`**: Files uploaded for the participant.
-    - **Security**: Uses a granular "Direct Override > Global Baseline" permission model. The `is_restricted` column has been removed. Permissions are handled via `ic_participant_document_roles` where Admins can set specific `Edit`, `Read-only`, or `No Access` overrides for individual roles per document.
-- **`participant_contacts`**: External contacts (GP, Pharmacy, Support Coordinator).
-- **`participant_funding`**: Tracks NDIS or other funding sources and balances.
-- **`participant_hygiene_routines`**: Specific care routines.
-- **`participant_restrictive_practices`**: Compliance-critical care instructions.
-
-## Operational Tables
-
-### Operations & Documentation
-- **`ic_shift_notes`**: Comprehensive clinical documentation completed at the end of every shift.
-    - **Flat Normalization**: Over 70 columns covering Risks, Supports, Health, PBS, and clinical trackers (Bowel, Seizure, Sleep, etc.).
-    - **Linking**: Explicitly linked to `participant_id`, `staff_id`, `house_id`, and optionally `shift_id`.
-    - **Data Integrity**: Uses structured types (BOOLEAN, TIME, INTEGER) instead of JSONB for all tracking fields.
-
-### Roster & Shifts
-- **`house_shift_templates`**: Defines house-specific shift periods (Morning, Day, etc.) with custom icons, colors, and default times.
-- **`shift_template_default_checklists`**: Junction table mapping default checklists to shift templates for automatic assignment.
-- **`staff_shifts`**: Scheduled shifts for staff.
-    - **Key Fields**: `id`, `staff_id`, `house_id`, `start_date`, `end_date`, `start_time`, `end_time`, `shift_template_id`, `shift_template`.
-- **`shift_participants`**: Many-to-many relationship between shifts and care recipients (`participants`).
-- **`shift_assigned_checklists`**: Instances of checklists assigned to a *specific* `staff_shift`.
-- **Note**: Organization-level shift templates (`org_shift_templates`) have been deprecated in favor of this House-specific model for better operational flexibility.
-
-### Checklists & Submissions
-- **`checklist_master` & `checklist_item_master`**: Templates for recurring tasks.
-- **`house_checklists` & `house_checklist_items`**: Checklists assigned to specific houses.
-    - **Optimization**: Frequency logic has been removed from the house checklist level to support pure template-based assignment.
-- **`house_checklist_submissions`**: Tracks the overall status of a checklist execution (e.g., 'in_progress', 'completed').
-    - **Linking**: Submissions explicitly store `shift_id` and `shift_template_id` for compliance tracking.
-- **`house_checklist_submission_items`**: Tracks completion of specific tasks.
-    - **Attribution**: The `completed_by` column stores the `staff_id` of the individual who signed off on the task.
-    - **Status**: The `status` column ('Completed' or 'Pending') indicates task state.
-- **`house_checklist_item_attachments`**: Files uploaded for specific tasks during execution.
-
-### Compliance & Training
-- **`staff_compliance`**: Tracks mandatory checks (NDIS Worker Screening, etc.).
-- **`staff_training`**: Records of training completed by staff.
-- **`staff_documents`**: Files like ID, certificates, etc.
-
-## System Tables
-
-- **`activity_log`**: Audit trail for all changes in the system.
-- **`roles`**: RBAC role definitions.
-- **`role_permissions`**: Granular module-by-module access levels (`access_level_enum`) linked 1:1 to roles.
-- **`departments` & `branches`**: Organizational structure.
-
-## Data Rules
-
-- **Logic in TS**: No complex triggers or procedures in the database. Transformations and joins are handled in the React application.
-- **Master Tables**: Heavy use of "Master" tables (e.g., `medications_master`, `contact_types_master`) to maintain consistent options across the system.
-- **Soft Delete/Status**: Most entities use a `status` field or `is_active` flag rather than hard deletion.
-- **Activity Logging**: Most `INSERT`/`UPDATE`/`DELETE` operations are accompanied by an entry in the `activity_log`.
-- **Automated Audit Columns**: All operational tables use a unified, hardened trigger (`ic_trigger_set_audit_columns`) to manage standard audit fields:
-    - `created_at`: Set automatically via database clock.
-    - `updated_at`: Set automatically on every update.
-    - `created_by`: Set once on insert; immutable thereafter. Linked to `ic_staff(id)`.
-    - `updated_by`: Set on every insert/update. Linked to `ic_staff(id)`.
-    - **Identity Logic**: Identities are resolved via `public.ic_jwt_get_staff_id()`, prioritizing the secure JWT claim injected by the application.
-    - **Note:** Because these are handled at the database level, application code **MUST NOT** manually assign these fields in Supabase mutation calls. This ensures 100% audit coverage and prevents client-side spoofing.
-- `created_by`: Set automatically on insert via `ic_set_audit_columns` trigger using `auth.uid()`.
-    - `updated_by`: Set automatically on every insert or update via `ic_set_audit_columns` trigger using `auth.uid()`.
-    - **Note:** Because these are handled at the database level, application code **MUST NOT** manually assign these fields in Supabase mutation calls. This ensures 100% audit coverage and prevents client-side spoofing.
+### 5. Automated Audit Columns
+All operational tables use a unified, hardened trigger (`ic_trigger_set_audit_columns`) to manage standard audit fields (`created_at`, `updated_at`, `created_by`, `updated_by`).
+- **Immutability**: `created_at` and `created_by` are preserved during updates.
+- **Identity Logic**: Identities are resolved via `public.ic_jwt_get_staff_id()` from the secure JWT.

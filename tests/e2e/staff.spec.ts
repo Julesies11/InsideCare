@@ -4,7 +4,7 @@ test.describe('Staff Workflows', () => {
   test.use({ storageState: 'playwright/.auth/staff.json' });
 
   test('Staff can initiate a Leave Request', async ({ page }) => {
-    await page.goto('/staff/leave/new');
+    await page.goto('/my-leave/new');
     
     // Verify form elements
     const trigger = page.locator('#leaveType');
@@ -28,23 +28,23 @@ test.describe('Staff Workflows', () => {
     await expect(page.locator('[data-sonner-toast]')).toContainText(/submitted successfully|request updated/i, { timeout: 15000 });
     
     // Should be redirected to leave list
-    await expect(page).toHaveURL(/\/staff\/leave/);
+    await expect(page).toHaveURL(/\/my-leave/);
   });
 
   test('Staff can view their Leave Requests', async ({ page }) => {
-    await page.goto('/staff/leave');
+    await page.goto('/my-leave');
     await expect(page.getByRole('table')).toBeVisible({ timeout: 15000 });
     // Should see the seeded 'Annual Leave' or the one just created
     await expect(page.locator('body')).toContainText(/Annual Leave/i);
   });
 
   test('Staff can view their Roster', async ({ page }) => {
-    await page.goto('/staff/roster');
+    await page.goto('/my-roster');
     await expect(page.getByRole('button', { name: /Today/i })).toBeVisible({ timeout: 15000 });
   });
 
   test('Staff can access House Checklists', async ({ page }) => {
-    await page.goto('/staff/checklists');
+    await page.goto('/my-checklists');
     // Wait for the main container first
     await expect(page.locator('#root')).toBeVisible({ timeout: 30000 });
     // Check for heading or checklist card - using text is often more robust than role + level in complex templates

@@ -21,7 +21,6 @@ import { ShiftNotes } from './components/shift-notes';
 import { ActivityLog } from '@/components/activities/ActivityLog';
 import { useUpdateParticipant, useParticipant } from '@/hooks/use-participants';
 import { Participant } from '@/models/participant';
-import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { NotificationService } from '@/lib/notification-service';
 import { useFormValidation } from '@/hooks/use-form-validation';
@@ -31,6 +30,7 @@ import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
 import { TABLES } from '@/config/db-tables';
 import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 import { QUERY_KEYS } from '@/config/query-keys';
+import { participantDetailsApi } from '@/api/participant-details.api';
 
 import { ParticipantPendingChanges, emptyParticipantPendingChanges } from '@/models/participant-pending-changes';
 import { MealtimeManagement } from './components/mealtime-management';
@@ -75,7 +75,6 @@ export function ParticipantDetailContent({
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
 
-  const { user } = useAuth();
   const { settings } = useSettings();
   const [sidebarSticky, setSidebarSticky] = useState(false);
   const [participant, setParticipant] = useState<Participant | undefined>();
@@ -220,8 +219,6 @@ export function ParticipantDetailContent({
   const parentRef = useRef<HTMLElement | Document>(document);
   const scrollPosition = useScrollPosition({ targetRef: parentRef });
   
-  const userName = user?.fullname || user?.email || 'Unknown User';
-  
   useEffect(() => {
     const photoDirty = photoFile !== null || photoPreview !== originalPhotoUrl;
     onPhotoDirtyChange?.(photoDirty);
@@ -338,206 +335,53 @@ export function ParticipantDetailContent({
     if (onSavingChange) onSavingChange(true);
 
     try {
-      // Step 1: Process pending goals
-      if (canEditGoals) {
-        if (currentPending.goals.toAdd.length > 0) {
-          const toInsert = currentPending.goals.toAdd.map(goal => ({
-            participant_id: id,
-            goal_type: goal.goal_type,
-            description: goal.description || null,
-            is_active: goal.is_active,
-          }));
-          
-          const { error } = await supabase.from(TABLES.PARTICIPANT_GOALS).insert(toInsert);
-          if (error) throw new Error(`Failed to add goals: ${error.message}`);
-        }
+      // 1. Use the new DAL to synchronize all child entities in bulk
+      await participantDetailsApi.syncDetails(id, currentPending);
 
-        if (currentPending.goals.toUpdate.length > 0) {
-          for (const goal of currentPending.goals.toUpdate) {
-            const { error } = await supabase
-              .from(TABLES.PARTICIPANT_GOALS)
-              .update({
-                goal_type: goal.goal_type,
-                description: goal.description || null,
-                is_active: goal.is_active,
-              })
-              .eq('id', goal.id);
-            if (error) throw new Error(`Failed to update goal: ${error.message}`);
-          }
-        }
-
-        if (canDeleteGoals && currentPending.goals.toDelete.length > 0) {
-          const { error } = await supabase
-            .from(TABLES.PARTICIPANT_GOALS)
-            .delete()
-            .in('id', currentPending.goals.toDelete);
-          
-          if (error) throw new Error(`Failed to delete goals: ${error.message}`);
-        }
-      }
-
-      // Step 2: Process pending medications
-      if (canEditMedications) {
-        if (currentPending.medications.toAdd.length > 0) {
-          const toInsert = currentPending.medications.toAdd.map(med => ({
-            participant_id: id,
-            medication_id: med.medication_id,
-            dosage: med.dosage || null,
-            is_active: med.is_active,
-            }));
-
-          const { error } = await supabase.from(TABLES.PARTICIPANT_MEDICATIONS).insert(toInsert);
-          if (error) throw new Error(`Failed to add medications: ${error.message}`);
-
-          if (participant?.house_id) {
-            await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.participant_name || 'Participant', 'medication');
-          }
-        }
-
-        if (currentPending.medications.toUpdate.length > 0) {
-          for (const med of currentPending.medications.toUpdate) {
-            const { error } = await supabase
-              .from(TABLES.PARTICIPANT_MEDICATIONS)
-              .update({
-                medication_id: med.medication_id,
-                dosage: med.dosage || null,
-                is_active: med.is_active,
-              })
-              .eq('id', med.id);
-            if (error) throw new Error(`Failed to update medication: ${error.message}`);
-          }
-          if (participant?.house_id) {
-            await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.participant_name || 'Participant', 'medication');
-          }
-        }
-        if (canDeleteMedications && currentPending.medications.toDelete.length > 0) {
-          const { error } = await supabase
-            .from(TABLES.PARTICIPANT_MEDICATIONS)
-            .delete()
-            .in('id', currentPending.medications.toDelete);
-          
-          if (error) throw new Error(`Failed to delete medications: ${error.message}`);
-        }
-      }
-
-      // Step 3: Process pending contacts
-      if (canEditContacts) {
-        if (currentPending.contacts.toAdd.length > 0) {
-          const toInsert = currentPending.contacts.toAdd.map(contact => ({
-            participant_id: id,
-            contact_name: contact.contact_name,
-            contact_type_id: contact.contact_type_id,
-            phone: contact.phone || null,
-            email: contact.email || null,
-            address: contact.address || null,
-            notes: contact.notes || null,
-            is_active: contact.is_active,
-            }));
-
-          const { error } = await supabase.from(TABLES.PARTICIPANT_CONTACTS).insert(toInsert);
-          if (error) throw new Error(`Failed to add contacts: ${error.message}`);
-        }
-
-        if (currentPending.contacts.toUpdate.length > 0) {
-          for (const contact of currentPending.contacts.toUpdate) {
-            const { error } = await supabase
-              .from(TABLES.PARTICIPANT_CONTACTS)
-              .update({
-                contact_name: contact.contact_name,
-                contact_type_id: contact.contact_type_id,
-                phone: contact.phone || null,
-                email: contact.email || null,
-                address: contact.address || null,
-                notes: contact.notes || null,
-                is_active: contact.is_active,
-              })
-              .eq('id', contact.id);
-            if (error) throw new Error(`Failed to update contact: ${error.message}`);
-          }
-        }
-
-        if (canDeleteContacts && currentPending.contacts.toDelete.length > 0) {
-          const { error } = await supabase
-            .from(TABLES.PARTICIPANT_CONTACTS)
-            .delete()
-            .in('id', currentPending.contacts.toDelete);
-          
-          if (error) throw new Error(`Failed to delete contacts: ${error.message}`);
-        }
-      }
-
-      // Step 4: Process pending documents
+      // 2. Process pending documents (Storage operations + DB)
       if (canEditDocuments) {
         if (currentPending.documents.toAdd.length > 0) {
-          const toInsert = [];
           for (const doc of currentPending.documents.toAdd) {
-            const fileExt = doc.file.name.split('.').pop();
-            const fileName = `${id}-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-            const filePath = `${id}/documents/${fileName}`;
-
-            const { error: uploadError } = await supabase.storage
-              .from(STORAGE_BUCKETS.PARTICIPANT_DOCUMENTS)
-              .upload(filePath, doc.file);
-
-            if (uploadError) {
-              throw new Error(`Failed to upload document "${doc.file.name}": ${uploadError.message}`);
-            }
-
-            toInsert.push({
-              participant_id: id,
-              file_name: doc.file.name,
-              file_path: filePath,
-              file_size: doc.file.size,
-              mime_type: doc.file.type,
-              });
+            await participantDetailsApi.documents.upload(id, doc.file);
           }
-
-          const { error: dbError } = await supabase.from(TABLES.PARTICIPANT_DOCUMENTS).insert(toInsert);
-          if (dbError) throw new Error(`Failed to create document records: ${dbError.message}`);
         }
 
         if (canDeleteDocuments && currentPending.documents.toDelete.length > 0) {
           const ids = currentPending.documents.toDelete.map(d => d.id);
           const filePaths = currentPending.documents.toDelete.map(d => d.filePath);
-
-          await supabase.storage.from(STORAGE_BUCKETS.PARTICIPANT_DOCUMENTS).remove(filePaths);
-
-          const { error: dbError } = await supabase.from(TABLES.PARTICIPANT_DOCUMENTS).delete().in('id', ids);
-          if (dbError) throw new Error(`Failed to delete document records: ${dbError.message}`);
+          await participantDetailsApi.documents.bulkDelete(ids, filePaths);
         }
       }
 
-      // Profile Photo handling
+      // 3. Profile Photo handling
       if (canEditPersonal) {
         if (photoFile) {
-          // Use the new handleAvatarUpload utility for resizing and processing
           const newPhotoUrl = await handleAvatarUpload(photoFile, STORAGE_BUCKETS.PARTICIPANT_PHOTOS, id);
 
-          const { error: photoErr } = await supabase
-            .from(TABLES.PARTICIPANTS)
-            .update({ photo_url: newPhotoUrl })
-            .eq('id', id);
-          if (photoErr) throw photoErr;
+          const { id: updatedId } = await updateParticipantFn({ 
+            id, 
+            updates: { photo_url: newPhotoUrl } 
+          });
+          if (!updatedId) throw new Error('Failed to update photo');
           setOriginalPhotoUrl(newPhotoUrl);
           setPhotoFile(null);
           setPhotoPreview(newPhotoUrl);
           setFormData(prev => ({ ...prev, photo_url: newPhotoUrl }));
           latestFormData.current = { ...currentFormData, photo_url: newPhotoUrl };
         } else if (photoPreview === null && originalPhotoUrl !== null) {
-          const { error: photoErr } = await supabase
-            .from(TABLES.PARTICIPANTS)
-            .update({ photo_url: null })
-            .eq('id', id);
-          if (photoErr) throw photoErr;
+          const { id: updatedId } = await updateParticipantFn({ 
+            id, 
+            updates: { photo_url: null } 
+          });
+          if (!updatedId) throw new Error('Failed to update photo');
           setOriginalPhotoUrl(null);
           setFormData(prev => ({ ...prev, photo_url: null }));
           latestFormData.current = { ...currentFormData, photo_url: null };
         }
       }
 
-      // Step 4: Save main participant form data
+      // 4. Save main participant form data
       const normalizedFormData = { ...currentFormData };
-      // Exclude photo fields from main update to prevent accidental Base64 persistence
       const excludeFields = ['photo_url', 'photo_file', 'photo_url_preview', 'updated_at', 'created_at'];
       
       Object.keys(normalizedFormData).forEach(key => {
@@ -553,7 +397,6 @@ export function ParticipantDetailContent({
         const newValue = normalizedFormData[key];
         const oldValue = currentOriginalData[key];
         
-        // Granular protection for fields on ic_participants
         let canUpdateField = false;
         
         const personalFields = ['participant_name', 'email', 'house_phone', 'personal_mobile', 'address', 'date_of_birth', 'move_in_date', 'ndis_number', 'house_id', 'status', 'support_level', 'support_coordinator'];
@@ -591,49 +434,13 @@ export function ParticipantDetailContent({
         }
       }
 
-      // Step 5: Process pending shift notes
-      if (canEditShiftNotes) {
-        if (currentPending.shiftNotes.toAdd.length > 0) {
-          const toInsert = currentPending.shiftNotes.toAdd.map(note => ({
-            participant_id: id,
-            staff_id: note.staff_id,
-            start_date: note.start_date,
-            shift_time: note.shift_time || null,
-            full_note: note.full_note,
-          }));
-          
-          const { error } = await supabase.from(TABLES.SHIFT_NOTES).insert(toInsert);
-          if (error) throw new Error(`Failed to add shift notes: ${error.message}`);
-          
-          if (participant?.house_id) {
-            await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.participant_name || 'Participant', 'note');
-          }
+      // 5. Handle notifications for bulk-synced changes
+      if (participant?.house_id) {
+        if (currentPending.medications.toAdd.length > 0 || currentPending.medications.toUpdate.length > 0) {
+          await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.participant_name || 'Participant', 'medication');
         }
-
-        if (currentPending.shiftNotes.toUpdate.length > 0) {
-          for (const note of currentPending.shiftNotes.toUpdate) {
-            const { error } = await supabase
-              .from(TABLES.SHIFT_NOTES)
-              .update({
-                staff_id: note.staff_id,
-                start_date: note.start_date,
-                shift_time: note.shift_time || null,
-                full_note: note.full_note,
-              })
-              .eq('id', note.id);
-            if (error) throw new Error(`Failed to update shift note: ${error.message}`);
-          }
-          if (participant?.house_id) {
-            await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.participant_name || 'Participant', 'note');
-          }
-        }
-
-        if (canDeleteShiftNotes && currentPending.shiftNotes.toDelete.length > 0) {
-          const { error } = await supabase
-            .from(TABLES.SHIFT_NOTES)
-            .delete()
-            .in('id', currentPending.shiftNotes.toDelete);
-          if (error) throw new Error(`Failed to delete shift notes: ${error.message}`);
+        if (currentPending.shiftNotes.toAdd.length > 0 || currentPending.shiftNotes.toUpdate.length > 0) {
+          await NotificationService.notifyAssignedStaff(participant.house_id, participant.id, participant.participant_name || 'Participant', 'note');
         }
       }
 
@@ -776,7 +583,7 @@ export function ParticipantDetailContent({
         {canViewContacts && (
           <Contacts 
             participantId={id} 
-            canAdd={canAddContacts}
+            canAdd={canAddContacts} 
             canDelete={canDeleteContacts}
             canEdit={canEditContacts}
             pendingChanges={pendingChanges?.contacts}
@@ -789,7 +596,7 @@ export function ParticipantDetailContent({
         {canViewDocuments && (
           <Documents 
             participantId={id} 
-            canAdd={canAddDocuments}
+            canAdd={canAddDocuments} 
             canDelete={canDeleteDocuments}
             canEdit={canEditDocuments}
             pendingChanges={pendingChanges?.documents}

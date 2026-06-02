@@ -1,8 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
 import { useCallback } from 'react';
-import { TABLES } from '@/config/db-tables';
 import { QUERY_KEYS } from '@/config/query-keys';
+import { shiftNotesApi, ShiftNoteUpdateData } from '@/api/shift-notes.api';
 
 export interface ShiftNote {
   id: string;
@@ -42,48 +41,41 @@ export interface ShiftNote {
   house_name?: string;
 }
 
-export interface ShiftNoteUpdateData {
-  participant_id?: string | null;
-  staff_id?: string | null;
-  start_date?: string;
-  shift_time?: string | null;
-  house_id?: string | null;
-  shift_id?: string | null;
-  notes?: string | null;
-  full_note?: string | null;
+export interface ShiftNoteTask {
+  id: string;
+  shift_id: string;
+  participant_id: string | null;
+  participant_name: string;
+  participant_names?: string;
+  staff_id: string | null;
+  staff_name: string | null;
+  house_id: string | null;
+  house_name: string | null;
+  start_date: string;
+  end_date?: string | null;
+  start_time: string;
+  end_time: string;
+  shift_template: string;
+  note_id?: string;
+  note_status?: string | null;
 }
 
-const SHIFT_NOTE_COLUMNS = `
-  id, 
-  participant_id, 
-  staff_id, 
-  start_date, 
-  shift_time, 
-  house_id, 
-  shift_id, 
-  notes, 
-  full_note, 
-  created_at, 
-  updated_at,
-  participant:${TABLES.PARTICIPANTS}(id, participant_name),
-  staff:${TABLES.STAFF}!shift_notes_staff_id_fkey(id, staff_name),
-  house:${TABLES.HOUSES}(id, house_name),
-  shift:${TABLES.STAFF_SHIFTS}(id, start_time, end_time, shift_template)
-`;
+export function useShiftNoteTasks(params: { staffId?: string; participantId?: string; houseId?: string; startDate?: string } = {}) {
+  return useQuery({
+    queryKey: [QUERY_KEYS.SHIFT_NOTES, 'tasks', params],
+    queryFn: () => shiftNotesApi.listNoteTasks(params) as Promise<ShiftNoteTask[]>,
+    staleTime: 0,
+  });
+}
 
 export function useShiftNotes() {
   const query = useQuery({
     queryKey: [QUERY_KEYS.SHIFT_NOTES],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from(TABLES.SHIFT_NOTES)
-        .select(SHIFT_NOTE_COLUMNS)
-        .order('start_date', { ascending: false });
-
-      if (error) throw error;
+      const data = await shiftNotesApi.list();
 
       // Map for legacy support if needed
-      return (data || []).map((note: any) => ({
+      return data.map((note: any) => ({
         ...note,
         participant_name: note.participant?.participant_name,
         staff_name: note.staff?.staff_name,
@@ -95,17 +87,11 @@ export function useShiftNotes() {
 
   const { mutateAsync: createShiftNote } = useCreateShiftNote();
   const { mutateAsync: updateShiftNote } = useUpdateShiftNote();
+  const { mutateAsync: archiveShiftNote } = useArchiveShiftNote();
   const { mutateAsync: deleteShiftNote } = useDeleteShiftNote();
 
   const fetchShiftNotesByShiftId = useCallback(async (shiftId: string) => {
-    const { data, error } = await supabase
-      .from(TABLES.SHIFT_NOTES)
-      .select(SHIFT_NOTE_COLUMNS)
-      .eq('shift_id', shiftId)
-      .order('created_at', { ascending: true });
-
-    if (error) throw error;
-    return data as ShiftNote[];
+    return await shiftNotesApi.getByShiftId(shiftId) as unknown as ShiftNote[];
   }, []);
 
   return {
@@ -115,6 +101,7 @@ export function useShiftNotes() {
     error: query.error ? (query.error as any).message : null,
     createShiftNote,
     updateShiftNote,
+    archiveShiftNote,
     deleteShiftNote,
     fetchShiftNotesByShiftId,
     refetch: query.refetch,
@@ -126,14 +113,7 @@ export function useShiftNotesByShiftId(shiftId?: string) {
     queryKey: [QUERY_KEYS.SHIFT_NOTES, { shiftId }],
     queryFn: async () => {
       if (!shiftId) return [];
-      const { data, error } = await supabase
-        .from(TABLES.SHIFT_NOTES)
-        .select(SHIFT_NOTE_COLUMNS)
-        .eq('shift_id', shiftId)
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
-      return data as ShiftNote[];
+      return await shiftNotesApi.getByShiftId(shiftId) as unknown as ShiftNote[];
     },
     enabled: !!shiftId,
   });
@@ -144,15 +124,9 @@ export function useShiftNotesByParticipantId(participantId?: string) {
     queryKey: [QUERY_KEYS.SHIFT_NOTES, { participantId }],
     queryFn: async () => {
       if (!participantId) return [];
-      const { data, error } = await supabase
-        .from(TABLES.SHIFT_NOTES)
-        .select(SHIFT_NOTE_COLUMNS)
-        .eq('participant_id', participantId)
-        .order('start_date', { ascending: false })
-        .order('created_at', { ascending: false });
+      const data = await shiftNotesApi.getByParticipantId(participantId);
 
-      if (error) throw error;
-      return (data || []).map((note: any) => ({
+      return data.map((note: any) => ({
         ...note,
         participant_name: note.participant?.participant_name,
         staff_name: note.staff?.staff_name,
@@ -167,17 +141,7 @@ export function useCreateShiftNote() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (noteData: ShiftNoteUpdateData) => {
-      const { data, error } = await supabase
-        .from(TABLES.SHIFT_NOTES)
-        .upsert(noteData, { onConflict: 'shift_id,staff_id' })
-        .select(SHIFT_NOTE_COLUMNS)
-        .maybeSingle();
-
-      if (error) throw error;
-      if (!data) throw new Error("You do not have permission to create this shift note");
-      return data as ShiftNote;
-    },
+    mutationFn: (noteData: ShiftNoteUpdateData) => shiftNotesApi.upsert(noteData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SHIFT_NOTES] });
     },
@@ -188,20 +152,11 @@ export function useUpdateShiftNote() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: ShiftNoteUpdateData }) => {
+    mutationFn: ({ id, updates }: { id: string; updates: ShiftNoteUpdateData }) => {
       if (!id || id === 'undefined') {
         throw new Error('Shift note ID is required for update');
       }
-      const { data, error } = await supabase
-        .from(TABLES.SHIFT_NOTES)
-        .update(updates)
-        .eq('id', id)
-        .select(SHIFT_NOTE_COLUMNS)
-        .maybeSingle();
-
-      if (error) throw error;
-      if (!data) throw new Error("You do not have permission to edit this shift note");
-      return data as ShiftNote;
+      return shiftNotesApi.update(id, updates);
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SHIFT_NOTES] });
@@ -212,20 +167,25 @@ export function useUpdateShiftNote() {
   });
 }
 
-export function useDeleteShiftNote() {
+export function useArchiveShiftNote() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from(TABLES.SHIFT_NOTES)
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-    },
+    mutationFn: (id: string) => shiftNotesApi.archive(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SHIFT_NOTES] });
     },
   });
 }
+
+export function useDeleteShiftNote() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => shiftNotesApi.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SHIFT_NOTES] });
+    },
+  });
+}
+

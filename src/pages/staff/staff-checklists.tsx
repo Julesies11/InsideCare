@@ -293,7 +293,7 @@ export function StaffChecklists() {
 
       if (aIsActive && !bIsActive) return -1;
       if (bIsActive && !aIsActive) return 1;
-      return a.house.house_name.localeCompare(b.house.house_name);
+      return (a.house.house_name || '').localeCompare(b.house.house_name || '');
     });
   }, [activeHouses, activeShift]);
 

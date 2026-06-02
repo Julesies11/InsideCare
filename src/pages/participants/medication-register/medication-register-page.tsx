@@ -20,6 +20,7 @@ import { DataGridPagination } from '@/components/ui/data-grid-pagination';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { ROUTES } from '@/config/routes.config';
 
 type SortField = 'medication_name' | 'category' | 'side_effects' | 'is_active';
 
@@ -109,11 +110,11 @@ export function MedicationRegisterPage() {
   };
 
   const handleAddMedication = () => {
-    navigate('/participants/medication-register/new');
+    navigate(`${ROUTES.MEDICATION_REGISTER}/new`);
   };
 
   const handleEditMedication = (id: string) => {
-    navigate(`/participants/medication-register/${id}`);
+    navigate(`${ROUTES.MEDICATION_REGISTER}/${id}`);
   };
 
   const SortIcon = ({ field }: { field: SortField }) => {

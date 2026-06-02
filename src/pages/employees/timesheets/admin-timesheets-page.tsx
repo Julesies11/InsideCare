@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/auth/context/auth-context';
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
@@ -37,8 +36,10 @@ import { DataGridPagination } from '@/components/ui/data-grid-pagination';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RBAC_MODULES } from '@/config/rbac-modules';
 import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
-import { TABLES } from '@/config/db-tables';
 import { TIMESHEET_STATUS } from '@/config/enums';
+import { timesheetsApi } from '@/api/timesheets.api';
+import { useQueryClient } from '@tanstack/react-query';
+import { QUERY_KEYS } from '@/config/query-keys';
 
 interface Timesheet {
   id: string;
@@ -61,14 +62,14 @@ interface Timesheet {
   travel_km: number;
   overtime_explanation: string | null;
   created_at: string;
-  staff: { id: string; name: string; auth_user_id: string | null } | null;
+  staff: { id: string; staff_name: string; auth_user_id: string | null } | null;
   shift: {
     start_date: string;
     end_date: string | null;
     start_time: string;
     end_time: string;
     shift_template: string;
-    house: { name: string } | null;
+    house: { house_name: string } | null;
   } | null;
 }
 
@@ -123,6 +124,7 @@ function ExceptionIcons({ ts }: { ts: Timesheet }) {
 export function AdminTimesheetsPage() {
   const { user } = useAuth();
   const { hasAccess } = useRBAC();
+  const queryClient = useQueryClient();
   
   const canEdit = hasAccess({ 
     resource: RBAC_MODULES.TIMESHEETS, 
@@ -142,29 +144,17 @@ export function AdminTimesheetsPage() {
 
   const fetchTimesheets = useCallback(async () => {
     setLoading(true);
-    let query = supabase
-      .from(TABLES.TIMESHEETS)
-      .select(`
-        id, staff_id, shift_id, clock_in, clock_out, actual_start, actual_end,
-        break_minutes, shift_notes_text, notes, status, admin_notes, rejection_reason,
-        submitted_at, incident_tag, sick_shift, overtime_hours, travel_km,
-        overtime_explanation, created_at,
-        staff:ic_staff!timesheets_staff_id_fkey(id, staff_name, auth_user_id),
-        shift:ic_staff_shifts!timesheets_shift_id_fkey(start_date, end_date, start_time, end_time, shift_template, house:ic_houses!staff_shifts_house_id_fkey(house_name))
-      `)
-      .order('submitted_at', { ascending: false, nullsFirst: false });
-
-    if (statusFilter !== 'all') {
-      query = query.eq('status', statusFilter);
-    } else {
-      query = query.in('status', [TIMESHEET_STATUS.PENDING, TIMESHEET_STATUS.APPROVED, TIMESHEET_STATUS.REJECTED]);
+    try {
+      const data = await timesheetsApi.list({
+        status: statusFilter === 'all' ? undefined : statusFilter
+      });
+      setTimesheets(data as any[]);
+    } catch (error) {
+      toast.error('Failed to load timesheets');
+    } finally {
+      setLoading(false);
+      setRowSelection({});
     }
-
-    const { data, error } = await query;
-    if (error) toast.error('Failed to load timesheets');
-    else setTimesheets((data as Timesheet[]) || []);
-    setLoading(false);
-    setRowSelection({}); // Reset selection on filter/refresh
   }, [statusFilter]);
 
   useEffect(() => { fetchTimesheets(); }, [fetchTimesheets]);
@@ -195,7 +185,7 @@ export function AdminTimesheetsPage() {
     setSaving(true);
     const newStatus = action === 'approve' ? 'approved' : 'rejected';
     const now = new Date().toISOString();
-    const updatePayload: Record<string, unknown> = {
+    const updatePayload: any = {
       status: newStatus, admin_notes: adminNotes || null,
     };
     if (action === 'approve') {
@@ -204,66 +194,75 @@ export function AdminTimesheetsPage() {
     }
     if (action === 'reject') updatePayload.rejection_reason = rejectionReason || null;
 
-    const { error } = await supabase.from(TABLES.TIMESHEETS).update(updatePayload).eq('id', selected.id);
-    if (error) { toast.error('Failed to update timesheet'); setSaving(false); return; }
+    try {
+      await timesheetsApi.update(selected.id, updatePayload);
 
-    const shiftDate = selected.shift?.start_date
-      ? format(parseISO(selected.shift.start_date), 'dd MMM yyyy')
-      : format(new Date(selected.clock_in), 'dd MMM yyyy');
+      const shiftDate = selected.shift?.start_date
+        ? format(parseISO(selected.shift.start_date), 'dd MMM yyyy')
+        : format(new Date(selected.clock_in), 'dd MMM yyyy');
 
-    if (selected.staff?.auth_user_id) {
-      if (newStatus === TIMESHEET_STATUS.APPROVED) {
-        await NotificationService.notifyTimesheetApproved(
-          selected.staff.auth_user_id,
-          shiftDate
-        );
-      } else if (newStatus === TIMESHEET_STATUS.REJECTED) {
-        await NotificationService.notifyTimesheetRejected(
-          selected.staff.auth_user_id,
-          shiftDate,
-          rejectionReason ? `Your timesheet for ${shiftDate} was rejected: ${rejectionReason}` : undefined
-        );
+      if (selected.staff?.auth_user_id) {
+        if (newStatus === TIMESHEET_STATUS.APPROVED) {
+          await NotificationService.notifyTimesheetApproved(
+            selected.staff.auth_user_id,
+            shiftDate
+          );
+        } else if (newStatus === TIMESHEET_STATUS.REJECTED) {
+          await NotificationService.notifyTimesheetRejected(
+            selected.staff.auth_user_id,
+            shiftDate,
+            rejectionReason ? `Your timesheet for ${shiftDate} was rejected: ${rejectionReason}` : undefined
+          );
+        }
       }
-    }
 
-    toast.success(`Timesheet ${newStatus}`);
-    setSelected(null); setAction(null); setRowSelection({});
-    fetchTimesheets(); setSaving(false);
+      toast.success(`Timesheet ${newStatus}`);
+      setSelected(null); setAction(null); setRowSelection({});
+      fetchTimesheets();
+    } catch (error) {
+      toast.error('Failed to update timesheet');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  // Actually, TanStack table indices match the data passed to it
   const selectedItems = useMemo(() => {
     return filtered.filter((_, _idx) => rowSelection[_idx as keyof typeof rowSelection]);
   }, [filtered, rowSelection]);
 
   const handleBulkApprove = async () => {
     if (selectedItems.length === 0) return;
-    const ids = selectedItems.map(item => item.id);
     setSaving(true);
     const now = new Date().toISOString();
-    const { error } = await supabase
-      .from(TABLES.TIMESHEETS)
-      .update({ status: 'approved', approved_at: now, approved_by: user?.staff_id ?? null })
-      .in('id', ids);
+    
+    try {
+      for (const item of selectedItems) {
+        await timesheetsApi.update(item.id, { 
+          status: 'approved', 
+          approved_at: now, 
+          approved_by: user?.staff_id ?? null 
+        });
 
-    if (error) { toast.error('Bulk approve failed'); setSaving(false); return; }
+        const shiftDate = item.shift?.start_date
+          ? format(parseISO(item.shift.start_date), 'dd MMM yyyy')
+          : format(new Date(item.clock_in), 'dd MMM yyyy');
 
-    for (const ts of selectedItems) {
-      const shiftDate = ts.shift?.start_date
-        ? format(parseISO(ts.shift.start_date), 'dd MMM yyyy')
-        : format(new Date(ts.clock_in), 'dd MMM yyyy');
-
-      if (ts.staff?.auth_user_id) {
-
-        await NotificationService.notifyTimesheetApproved(
-          ts.staff.auth_user_id,
-          shiftDate
-        );
+        if (item.staff?.auth_user_id) {
+          await NotificationService.notifyTimesheetApproved(
+            item.staff.auth_user_id,
+            shiftDate
+          );
+        }
       }
-    }
 
-    toast.success(`${ids.length} timesheet${ids.length !== 1 ? 's' : ''} approved`);
-    setRowSelection({}); fetchTimesheets(); setSaving(false);
+      toast.success(`${selectedItems.length} timesheets approved`);
+      setRowSelection({}); 
+      fetchTimesheets();
+    } catch (error) {
+      toast.error('Bulk approve failed');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const columns = useMemo<ColumnDef<Timesheet>[]>(() => [

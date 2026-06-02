@@ -54,12 +54,12 @@ const PUBLIC_PAGES = [
 // Pages accessible by both Staff and Admins (Staff Portal & Shared Care)
 const STAFF_PAGES = [
   '/',
-  '/staff/dashboard',
-  '/staff/checklists',
-  '/staff/roster',
-  '/staff/timesheets',
-  '/staff/leave',
-  '/staff/leave/new',
+  '/my-dashboard',
+  '/my-checklists',
+  '/my-roster',
+  '/my-timesheets',
+  '/my-leave',
+  '/my-leave/new',
   '/staff/profile',
   '/participants/profiles',
   '/participants/shift-notes',
@@ -272,12 +272,12 @@ adminTest(`Medication Detail page loads`, async ({ page }) => {
 });
 
 staffTest(`Staff Timesheet Form page loads`, async ({ page }) => {
-  await page.goto(`/staff/roster/${MOCK_SHIFT_ID}/timesheet`);
+  await page.goto(`/my-roster/${MOCK_SHIFT_ID}/timesheet`);
   await checkNoWSoD(page);
 });
 
 staffTest(`Staff Leave Edit page loads`, async ({ page }) => {
-  await page.goto(`/staff/leave/${MOCK_LEAVE_ID}/edit`);
+  await page.goto(`/my-leave/${MOCK_LEAVE_ID}/edit`);
   await checkNoWSoD(page);
 });
 
@@ -288,7 +288,7 @@ adminTest(`Shift Template Edit page loads`, async ({ page }) => {
 
 // RBAC & Security Verification Tests
 publicTest(`Public user is redirected from protected page to signin`, async ({ page }) => {
-  await page.goto('/staff/dashboard');
+  await page.goto('/my-dashboard');
   await expect(page).toHaveURL(/\/auth\/signin/);
 });
 

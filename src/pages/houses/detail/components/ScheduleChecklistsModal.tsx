@@ -6,9 +6,9 @@ import { Input } from '@/components/ui/input';
 import { CalendarDays, Loader2, CalendarCheck, Copy, CheckSquare } from 'lucide-react';
 import { format, addDays, startOfWeek, isBefore, startOfDay } from 'date-fns';
 import { useHouseChecklists } from '@/hooks/use-house-checklists';
+import { checklistsApi } from '@/api/checklists.api';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/auth/context/auth-context';
 
 interface ScheduleChecklistsModalProps {
@@ -100,7 +100,6 @@ export function ScheduleChecklistsModal({ open, onOpenChange, houseId, houseName
     setIsGenerating(true);
     try {
       const eventsToInsert: any[] = [];
-      const currentStaffId = user?.staff_id || null;
 
       pattern.forEach((weekPattern, weekIndex) => {
         const anchorMonday = startOfWeek(new Date(startDate), { weekStartsOn: 1 });
@@ -129,11 +128,7 @@ export function ScheduleChecklistsModal({ open, onOpenChange, houseId, houseName
       });
 
       if (eventsToInsert.length > 0) {
-        const { error } = await supabase
-          .from('ic_house_calendar_events')
-          .insert(eventsToInsert);
-
-        if (error) throw error;
+        await checklistsApi.upsertCalendarEvents(eventsToInsert);
       }
 
       toast.success('Checklists scheduled successfully!', {
@@ -306,8 +301,8 @@ export function ScheduleChecklistsModal({ open, onOpenChange, houseId, houseName
                                       <span className={cn(
                                         "text-[10px] font-bold leading-tight break-words pt-0.5",
                                         isSelected ? "text-gray-900" : "text-gray-400"
-                                      )} title={checklist.house_checklist_name || checklist.name}>
-                                        {checklist.house_checklist_name || checklist.name}
+                                      )} title={checklist.house_checklist_name || (checklist as any).name}>
+                                        {checklist.house_checklist_name || (checklist as any).name}
                                       </span>
                                     </div>
                                   );

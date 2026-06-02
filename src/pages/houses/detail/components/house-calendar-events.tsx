@@ -25,16 +25,14 @@ import { HouseCalendarEventAttachments, QueuedAttachment } from './HouseCalendar
 import { cn } from '@/lib/utils';
 import { HouseChecklistExecution } from './house-checklist-execution';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { TABLES } from '@/config/db-tables';
-import { STORAGE_BUCKETS } from '@/config/storage-buckets';
-import { QUERY_KEYS } from '@/config/query-keys';
 import { STATUS, CHECKLIST_STATUS } from '@/config/enums';
 import { BulkDeleteCalendarModal } from './BulkDeleteCalendarModal';
 import { ScheduleChecklistsModal } from './ScheduleChecklistsModal';
 import { useHouseCalendarEventTypesMaster } from '@/hooks/use-house-calendar-event-types-master';
 import { useQueryClient } from '@tanstack/react-query';
+import { houseOperationsApi } from '@/api/house-operations.api';
+import { checklistsApi } from '@/api/checklists.api';
 
 export interface HouseCalendarEventsProps {
   houseId?: string;
@@ -143,32 +141,12 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
     if (!houseId) return;
     
     try {
-      const promises = [];
-      
-      if (deleteEvents) {
-        promises.push(
-          supabase.from(TABLES.HOUSE_CALENDAR_EVENTS)
-            .delete()
-            .eq('house_id', houseId)
-            .gte('event_date', startDate)
-            .lte('event_date', endDate)
-        );
-      }
-      
-      if (deleteChecklists) {
-        promises.push(
-          supabase.from(TABLES.HOUSE_CHECKLIST_SUBMISSIONS)
-            .delete()
-            .eq('house_id', houseId)
-            .gte('created_at', `${startDate}T00:00:00.000Z`)
-            .lte('created_at', `${endDate}T23:59:59.999Z`)
-        );
-      }
-      
-      const results = await Promise.all(promises);
-      const error = results.find(r => r.error)?.error;
-      
-      if (error) throw error;
+      await houseOperationsApi.calendar.bulkDelete({
+        houseId,
+        startDate,
+        endDate,
+        deleteChecklists
+      });
       
       await queryClient.invalidateQueries({ queryKey: ['house-calendar-events', { houseId }] });
       await queryClient.invalidateQueries({ queryKey: ['house-checklist-history', houseId] });
@@ -386,76 +364,17 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
     if (!selectedEvent || !houseId) return;
 
     const staffId = (user as any)?.staff_id;
-    let submissionId = activeSubmission?.id;
 
-    if (!submissionId) {
-      const { data, error } = await supabase
-        .from(TABLES.HOUSE_CHECKLIST_SUBMISSIONS)
-        .insert({
-          checklist_id: executingChecklist.id,
-          house_id: houseId,
-          calendar_event_id: selectedEvent.id,
-          scheduled_date: selectedEvent.event_date,
-          status: status,
-          submitted_by: staffId || null,
-          started_at: new Date().toISOString(),
-          completed_at: status === CHECKLIST_STATUS.completed ? new Date().toISOString() : null
-        })
-        .select()
-        .maybeSingle();
-
-      if (error) throw error;
-      if (!data) throw new Error("You do not have permission to perform this action");
-      submissionId = data.id;
-    } else {
-      const { error } = await supabase
-        .from(TABLES.HOUSE_CHECKLIST_SUBMISSIONS)
-        .update({
-          status: status,
-          submitted_by: staffId || null,
-          completed_at: status === CHECKLIST_STATUS.completed ? new Date().toISOString() : null,
-        })
-        .eq('id', submissionId);
-
-      if (error) throw error;
-    }
-
-    const submissionItems = results.items.map((item: any) => ({
-      submission_id: submissionId,
-      item_id: item.item_id,
-      is_completed: !!item.is_completed,
-      status: item.is_completed ? CHECKLIST_STATUS.COMPLETED : CHECKLIST_STATUS.PENDING,
-      note: item.note,
-      completed_by: item.completed_by,
-      completed_at: item.is_completed ? new Date().toISOString() : null
-    }));
-
-    const { error: itemsError } = await supabase
-      .from(TABLES.HOUSE_CHECKLIST_SUBMISSION_ITEMS)
-      .upsert(submissionItems, { onConflict: 'submission_id,item_id' });
-
-    if (itemsError) throw itemsError;
-
-    if (results.queuedAttachments) {
-      for (const itemId in results.queuedAttachments) {
-        for (const queued of results.queuedAttachments[itemId]) {
-          const file = queued.file;
-          const filePath = `${submissionId}/${itemId}/${Date.now()}-${file.name}`;
-          await supabase.storage.from(STORAGE_BUCKETS.CHECKLIST_ATTACHMENTS).upload(filePath, file);
-          await supabase.from(TABLES.HOUSE_CHECKLIST_ITEM_ATTACHMENTS).insert({
-            submission_id: submissionId,
-            item_id: itemId,
-            file_name: file.name,
-            file_path: filePath,
-            file_size: file.size,
-            mime_type: file.type,
-            uploaded_by: staffId || null
-          });
-        }
-      }
-    }
-
-    return submissionId;
+    return await checklistsApi.persistExecution({
+      checklistId: executingChecklist.id,
+      houseId: houseId,
+      calendarEventId: selectedEvent.id,
+      scheduledDate: selectedEvent.event_date,
+      status,
+      staffId,
+      submissionId: activeSubmission?.id,
+      results
+    });
   };
 
   const handleSaveChecklistProgress = async (results: any) => {
@@ -548,15 +467,12 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
         event_date: formData.event_date,
         start_time: formData.start_time || null,
         end_time: formData.end_time || null,
-        participant_ids: formData.participant_ids || [],
-        assigned_staff_ids: formData.assigned_staff_ids || [],
         status: formData.status || 'scheduled',
         location: formData.location || null,
         is_checklist_event: !!formData.house_checklist_id,
         house_checklist_id: formData.house_checklist_id || null,
+        created_by: user?.staff_id || null,
       };
-
-      let finalEventId: string | null = null;
 
       if (selectedEvent) {
         if (selectedEvent.tempId) {
@@ -565,58 +481,44 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
             calendarEvents: {
               ...pendingChanges.calendarEvents,
               toAdd: pendingChanges.calendarEvents.toAdd.map(event =>
-                event.tempId === selectedEvent.tempId ? { ...event, ...eventData } : event
+                event.tempId === selectedEvent.tempId ? { ...event, ...eventData, participant_ids: formData.participant_ids, assigned_staff_ids: formData.assigned_staff_ids } : event
               ),
             },
           };
           onPendingChangesChange(newPending);
           setShowEventDialog(false);
           await refresh();
-          } else {
-          finalEventId = selectedEvent.id;
-          const newPending = {
-            ...pendingChanges,
-            calendarEvents: {
-              ...pendingChanges.calendarEvents,
-              toUpdate: [
-                ...pendingChanges.calendarEvents.toUpdate.filter(e => e.id !== selectedEvent.id),
-                { id: selectedEvent.id, ...eventData },
-              ],
-            },
-          };
-          onPendingChangesChange(newPending);
+        } else {
+          // It's an existing event being updated
+          toast.loading('Saving event updates...');
+          await houseOperationsApi.calendar.updateWithRelations(
+            selectedEvent.id, 
+            eventData, 
+            formData.toDeleteAttachments, 
+            formData.queuedAttachments?.map(qa => ({ file: qa.file })),
+            user?.id
+          );
+          toast.dismiss();
+          toast.success('Event updated successfully');
           setShowEventDialog(false);
           await refresh();
-          }
-          } else {
+        }
+      } else {
         if (formData.queuedAttachments.length > 0) {
           toast.loading('Creating event and uploading attachments...');
-          const { participant_ids, assigned_staff_ids, ...directTableData } = eventData;
-
-          const { data: newEvent, error: insertError } = await supabase
-            .from(TABLES.HOUSE_CALENDAR_EVENTS)
-            .insert({
-              ...directTableData,
-              house_id: houseId,
-            })
-            .select('id')
-            .maybeSingle();
-
-          if (insertError) throw insertError;
-          if (!newEvent) throw new Error("You do not have permission to perform this action");
-          finalEventId = newEvent.id;
-
-          if (participant_ids?.length > 0) {
-            await supabase
-              .from(TABLES.HOUSE_CALENDAR_EVENT_PARTICIPANTS)
-              .insert(participant_ids.map(id => ({ event_id: finalEventId, participant_id: id })));
-          }
-          if (assigned_staff_ids?.length > 0) {
-            await supabase
-              .from(TABLES.HOUSE_CALENDAR_EVENT_STAFF)
-              .insert(assigned_staff_ids.map(id => ({ event_id: finalEventId, staff_id: id })));
-          }
+          
+          await houseOperationsApi.calendar.createWithRelations(
+            { ...eventData, house_id: houseId }, 
+            formData.participant_ids || [], 
+            formData.assigned_staff_ids || [], 
+            formData.queuedAttachments?.map(qa => ({ file: qa.file })), 
+            user?.id
+          );
+          
           toast.dismiss();
+          toast.success('Event saved with attachments');
+          setShowEventDialog(false);
+          await refresh();
         } else {
           const tempId = `temp-${Date.now()}-${Math.random()}`;
           const newPending = {
@@ -625,50 +527,17 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
               ...pendingChanges.calendarEvents,
               toAdd: [
                 ...pendingChanges.calendarEvents.toAdd,
-                { tempId, house_id: houseId, ...eventData },
+                { tempId, house_id: houseId, ...eventData, participant_ids: formData.participant_ids, assigned_staff_ids: formData.assigned_staff_ids },
               ],
             },
           };
           onPendingChangesChange(newPending);
+          setShowEventDialog(false);
         }
       }
-
-      if (finalEventId) {
-        if (formData.toDeleteAttachments.length > 0) {
-          for (const attId of formData.toDeleteAttachments) {
-            const att = formData.existingAttachments.find(a => a.id === attId);
-            if (att?.file_path) await supabase.storage.from(STORAGE_BUCKETS.HOUSE_DOCUMENTS).remove([att.file_path]);
-            await supabase.from(TABLES.HOUSE_CALENDAR_EVENT_ATTACHMENTS).delete().eq('id', attId);
-          }
-        }
-
-        if (formData.queuedAttachments.length > 0) {
-          for (const queued of formData.queuedAttachments) {
-            const ext = queued.file.name.split('.').pop();
-            const filePath = `calendar-events/${finalEventId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
-            const { error: uploadError } = await supabase.storage
-              .from(STORAGE_BUCKETS.HOUSE_DOCUMENTS)
-              .upload(filePath, queued.file);
-            if (uploadError) throw uploadError;
-            await supabase.from(TABLES.HOUSE_CALENDAR_EVENT_ATTACHMENTS).insert({
-              event_id: finalEventId,
-              file_name: queued.file.name,
-              file_path: filePath,
-              file_size: queued.file.size,
-              mime_type: queued.file.type,
-              uploaded_by: user?.id,
-            });
-          }
-        }
-        if (formData.toDeleteAttachments.length > 0 || formData.queuedAttachments.length > 0) {
-          toast.success('Event saved with attachments');
-        }
-      }
-      setShowEventDialog(false);
-      await refresh();
     } catch (error: any) {
       console.error('Error saving event attachments:', error);
-      toast.error('Failed to process attachments: ' + error.message);
+      toast.error('Failed to save event: ' + error.message);
     }
   };
 

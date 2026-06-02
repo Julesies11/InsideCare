@@ -13,12 +13,13 @@ import {
 } from 'lucide-react';
 import { MenuItemConfig } from '@/layouts/demo1/sidebar/SidebarMenu';
 import { RBAC_MODULES } from './rbac-modules';
+import { ROUTES } from '@/config/routes.config';
 
 export const MENU_SIDEBAR: MenuItemConfig[] = [
   {
     title: 'My Dashboard',
     icon: Home,
-    path: '/my-dashboard',
+    path: ROUTES.MY_DASHBOARD,
   },
   {
     heading: 'Staff Portal',
@@ -33,25 +34,25 @@ export const MENU_SIDEBAR: MenuItemConfig[] = [
   {
     title: 'House Checklists',
     icon: CheckSquare,
-    path: '/my-checklists',
+    path: ROUTES.MY_CHECKLISTS,
     permission: RBAC_MODULES.HOUSE_CHECKLISTS,
   },
   {
     title: 'My Roster',
     icon: Calendar,
-    path: '/my-roster',
+    path: ROUTES.MY_ROSTER,
     permission: RBAC_MODULES.MY_ROSTER,
   },
   {
     title: 'My Leave',
     icon: LogOut,
-    path: '/my-leave',
+    path: ROUTES.MY_LEAVE,
     permission: RBAC_MODULES.MY_LEAVE,
   },
   {
     title: 'My Timesheets',
     icon: Clock,
-    path: '/my-timesheets',
+    path: ROUTES.MY_TIMESHEETS,
     permission: RBAC_MODULES.MY_TIMESHEETS,
   },
   {
@@ -61,13 +62,13 @@ export const MENU_SIDEBAR: MenuItemConfig[] = [
   {
     title: 'Staff',
     icon: UserCheck,
-    path: '/staff',
+    path: ROUTES.STAFF,
     permission: RBAC_MODULES.EMPLOYEES,
   },
   {
     title: 'Houses',
     icon: Home,
-    path: '/houses',
+    path: ROUTES.HOUSES,
     permission: RBAC_MODULES.HOUSES,
   },
   {
@@ -75,9 +76,9 @@ export const MENU_SIDEBAR: MenuItemConfig[] = [
     icon: Users,
     permission: RBAC_MODULES.PARTICIPANTS,
     children: [
-      { title: 'Participant Profiles', path: '/participants/profiles', permission: RBAC_MODULES.PARTICIPANTS },
-      { title: 'Medication Register', path: '/participants/medication-register', permission: RBAC_MODULES.MASTER_LISTS },
-      { title: 'Shift Notes', path: '/participants/shift-notes', permission: RBAC_MODULES.SHIFT_NOTES },
+      { title: 'Participant Profiles', path: ROUTES.PARTICIPANT_PROFILES, permission: RBAC_MODULES.PARTICIPANTS },
+      { title: 'Medication Register', path: ROUTES.MEDICATION_REGISTER, permission: RBAC_MODULES.MASTER_LISTS },
+      { title: 'Shift Notes', path: ROUTES.SHIFT_NOTES, permission: RBAC_MODULES.SHIFT_NOTES },
     ],
   },
   {
@@ -87,25 +88,25 @@ export const MENU_SIDEBAR: MenuItemConfig[] = [
   {
     title: 'Roster Board',
     icon: Calendar,
-    path: '/roster-board',
+    path: ROUTES.ROSTER_BOARD,
     permission: RBAC_MODULES.ROSTER_BOARD,
   },
   {
     title: 'Shift Setup',
     icon: ClipboardList,
-    path: '/shift-setup',
+    path: ROUTES.SHIFT_SETUP,
     permission: RBAC_MODULES.ROSTER_BOARD,
   },
   {
     title: 'Timesheet Approvals',
     icon: ClipboardList,
-    path: '/timesheet-approvals',
+    path: ROUTES.TIMESHEET_APPROVALS,
     permission: RBAC_MODULES.TIMESHEETS,
   },
   {
     title: 'Leave Approvals',
     icon: ClipboardList,
-    path: '/leave-approvals',
+    path: ROUTES.LEAVE_APPROVALS,
     permission: RBAC_MODULES.LEAVE_REQUESTS,
   },
   { 
@@ -121,25 +122,25 @@ export const MENU_SIDEBAR: MenuItemConfig[] = [
   {
     title: 'Access Control',
     icon: Settings,
-    path: '/access-control',
+    path: ROUTES.ACCESS_CONTROL,
     permission: RBAC_MODULES.ACCESS_CONTROL,
   },
   {
     title: 'Checklist Templates',
     icon: ClipboardList,
-    path: '/checklist-templates',
+    path: ROUTES.CHECKLIST_TEMPLATES,
     permission: RBAC_MODULES.ACCESS_CONTROL,
   },
   {
     title: 'Reporting',
     icon: BarChart3,
-    path: '/reporting',
+    path: ROUTES.REPORTING,
     permission: [RBAC_MODULES.REPORTING_CLINICAL, RBAC_MODULES.REPORTING_OPERATIONAL, RBAC_MODULES.REPORTING_COMPLIANCE],
   },
   {
     title: 'Activity Log',
     icon: Activity,
-    path: '/activity-log',
+    path: ROUTES.ACTIVITY_LOG,
     permission: RBAC_MODULES.ACTIVITY_LOG,
   },
 ];

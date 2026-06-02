@@ -1,8 +1,9 @@
 import { Fragment, useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
+import { useQueryClient } from '@tanstack/react-query';
 import { Container } from '@/components/common/container';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Trash2 } from 'lucide-react';
 import { ShiftNoteDetailContent } from './shift-note-detail-content';
 import { ShiftNoteDetailSidebar } from './shift-note-detail-sidebar';
 import { Scrollspy } from '@/components/ui/scrollspy';
@@ -20,6 +21,10 @@ import { useSettings } from '@/providers/settings-provider';
 import { useDirtyTracker } from '@/hooks/useDirtyTracker';
 import { RBAC_MODULES } from '@/config/rbac-modules';
 import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
+import { useArchiveShiftNote } from '@/hooks/use-shift-notes';
+import { toast } from 'sonner';
+import { ROUTES } from '@/config/routes.config';
+import { QUERY_KEYS } from '@/config/query-keys';
 
 const stickySidebarClasses: Record<string, string> = {
   'demo1-layout': 'top-[calc(var(--header-height)+1rem)]',
@@ -36,6 +41,7 @@ const stickySidebarClasses: Record<string, string> = {
 
 export function ShiftNoteDetailPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { settings } = useSettings();
   const { id } = useParams();
   const { hasAccess } = useRBAC();
@@ -43,6 +49,7 @@ export function ShiftNoteDetailPage() {
   const parentRef = useRef<HTMLElement | Document>(document);
   const scrollPosition = useScrollPosition({ targetRef: parentRef });
   const [sidebarSticky, setSidebarSticky] = useState(false);
+  const archiveNote = useArchiveShiftNote();
   
   const canEdit = hasAccess({ 
     resource: RBAC_MODULES.SHIFT_NOTES, 
@@ -54,6 +61,8 @@ export function ShiftNoteDetailPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const saveHandlerRef = useRef<(() => Promise<void>) | null>(null);
+
+  const isNewNote = id === 'new';
 
   // Check if form is dirty
   const { isDirty } = useDirtyTracker({
@@ -78,19 +87,18 @@ export function ShiftNoteDetailPage() {
     setSidebarSticky(scrollPosition > 100);
   }, [scrollPosition]);
 
-  const handleBack = useCallback(() => {
+  const handleBack = useCallback(async () => {
     if (isDirty) {
       const confirmLeave = window.confirm('You have unsaved changes. Are you sure you want to leave?');
       if (!confirmLeave) return;
     }
     
-    // Navigate back if possible, otherwise to the shift notes list
-    if (window.history.length > 2) {
-      navigate(-1);
-    } else {
-      navigate('/participants/shift-notes');
-    }
-  }, [navigate, isDirty]);
+    // Refresh the table data before going back
+    await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SHIFT_NOTES] });
+
+    // Navigate back to the shift notes list
+    navigate(ROUTES.SHIFT_NOTES);
+  }, [navigate, isDirty, queryClient]);
 
   const handleSave = async () => {
     if (saveHandlerRef.current) {
@@ -98,7 +106,32 @@ export function ShiftNoteDetailPage() {
     }
   };
 
-  const isNewNote = id === 'new';
+  const handleDelete = async () => {
+    if (!id || id === 'new') return;
+    
+    const confirmed = window.confirm('Are you sure you want to delete this shift note? This will mark it as inactive.');
+    if (!confirmed) return;
+
+    try {
+      setSaving(true);
+      await archiveNote.mutateAsync(id);
+      
+      // Refresh the table data
+      await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SHIFT_NOTES] });
+
+      toast.success('Shift note deleted successfully');
+      navigate(ROUTES.SHIFT_NOTES);
+    } catch (err: any) {
+      console.error('Error deleting shift note:', err);
+      toast.error(err.message || 'Failed to delete shift note');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Allow "Create" for new notes even if technically clean (due to defaults), 
+  // provided they have the minimum required fields.
+  const canSave = isDirty || (isNewNote && formData?.shift_id && formData?.participant_id);
 
   const stickyClass = settings?.layout
     ? stickySidebarClasses[`${settings?.layout}-layout`] ||
@@ -126,10 +159,21 @@ export function ShiftNoteDetailPage() {
                 </div>
               </ToolbarHeading>
               <ToolbarActions>
+                {!isNewNote && (
+                  <Button 
+                    variant="destructive" 
+                    size="sm" 
+                    onClick={handleDelete}
+                    disabled={saving || !canEdit}
+                  >
+                    <Trash2 className="size-4 me-1.5" />
+                    Delete
+                  </Button>
+                )}
                 <Button 
                   onClick={handleSave} 
-                  disabled={!isDirty || saving || !canEdit}
-                  variant={isDirty ? 'primary' : 'secondary'}
+                  disabled={!canSave || saving || !canEdit}
+                  variant={canSave ? 'primary' : 'secondary'}
                 >
                   {saving ? 'Saving...' : isNewNote ? 'Create' : 'Save Changes'}
                 </Button>

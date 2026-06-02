@@ -34,7 +34,7 @@ export function HouseCalendarEventTypeCombobox({
   const { data: eventTypes = [], isLoading: loading } = useHouseCalendarEventTypesMaster();
 
   // Filter active event types for the dropdown list
-  const activeEventTypes = eventTypes.filter((type) => type.status === 'Active');
+  const activeEventTypes = eventTypes.filter((type) => type.status?.toLowerCase() === 'active');
   
   // Find selected event type from full list (including inactive) so saved values display
   const selectedEventType = eventTypes.find((type) => type.id === value);

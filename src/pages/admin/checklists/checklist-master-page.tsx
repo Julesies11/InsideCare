@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -10,19 +10,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Edit, Trash2, CheckSquare, GripVertical, Search, ClipboardList } from 'lucide-react';
 import { useChecklistMaster, ChecklistMaster } from '@/hooks/use-checklist-master';
-import { Sortable, SortableItem, SortableItemHandle } from '@/components/ui/sortable';
-import { supabase } from '@/lib/supabase';
+import { Sortable, SortableItem } from '@/components/ui/sortable';
 import { toast } from 'sonner';
-import { handleSupabaseError } from '@/errors/error-handler';
 import { ChecklistCard } from '@/components/checklists/checklist-card';
 import { Container } from '@/components/common/container';
-import { cn, getPeriodTheme } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
 import { RBAC_MODULES } from '@/config/rbac-modules';
-import { TABLES } from '@/config/db-tables';
-import { STORAGE_BUCKETS } from '@/config/storage-buckets';
-import { QUERY_KEYS } from '@/config/query-keys';
-import { STATUS } from '@/config/enums';
+import { masterListsApi } from '@/api/master-lists.api';
+import { Switch } from '@/components/ui/switch';
 
 export function ChecklistMasterPage() {
   const { masterChecklists, loading, refetch } = useChecklistMaster();
@@ -42,25 +38,19 @@ export function ChecklistMasterPage() {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showItemDialog, setShowItemDialog] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<ChecklistMaster | null>(null);
-  const [selectedItem, setSelectedItem] = useState<{ id?: string; tempId?: string; title: string; instructions?: string; priority?: string; is_required?: boolean; sort_order?: number } | null>(null);
+  const [selectedItem, setSelectedItem] = useState<any>(null);
   
   const [formData, setFormData] = useState<{
     checklist_name: string;
     days_of_week: string[];
     description: string;
-    items: Array<{ id?: string; tempId?: string; title: string; instructions?: string; group_title?: string; priority?: string; is_required?: boolean; sort_order?: number }>;
+    items: any[];
   }>({
     checklist_name: '',
     days_of_week: [],
     description: '',
     items: [],
   });
-  const [initialFormData, setInitialFormData] = useState<typeof formData | null>(null);
-
-  const hasEdits = useMemo(() => {
-    if (!initialFormData) return false;
-    return JSON.stringify(formData) !== JSON.stringify(initialFormData);
-  }, [formData, initialFormData]);
 
   const [itemFormData, setItemFormData] = useState({
     title: '',
@@ -73,54 +63,35 @@ export function ChecklistMasterPage() {
 
   const handleAddTemplate = () => {
     setSelectedTemplate(null);
-    const initialData: typeof formData = {
+    setFormData({
       checklist_name: '',
       days_of_week: [],
       description: '',
       items: [],
-    };
-    setFormData(initialData);
-    setInitialFormData(initialData);
+    });
     setShowEditDialog(true);
   };
 
   const handleEditTemplate = (template: ChecklistMaster) => {
     setSelectedTemplate(template);
-    const initialData: typeof formData = {
+    setFormData({
       checklist_name: template.checklist_name,
       days_of_week: template.days_of_week || [],
       description: template.description || '',
       items: template.items || [],
-    };
-    setFormData(initialData);
-    setInitialFormData(initialData);
+    });
     setShowEditDialog(true);
   };
 
   const handleDeleteTemplate = async (template: ChecklistMaster) => {
-    if (!confirm('Are you sure you want to delete this master checklist? It will also delete all associated checklist items.')) return;
+    if (!confirm('Are you sure you want to delete this master checklist? This will not affect existing house-specific copies.')) return;
 
     try {
-      // 1. Delete all associated items first
-      const { error: itemsError } = await supabase
-        .from(TABLES.CHECKLIST_ITEM_MASTER)
-        .delete()
-        .eq('master_id', template.id);
-
-      if (itemsError) throw itemsError;
-
-      // 2. Delete the master checklist
-      const { error } = await supabase
-        .from(TABLES.CHECKLIST_MASTER)
-        .delete()
-        .eq('id', template.id);
-
-      if (error) throw error;
-      
+      await masterListsApi.checklists.delete(template.id);
       toast.success('Master checklist deleted successfully');
       refetch();
-    } catch (error) {
-      handleSupabaseError(error, 'Failed to delete checklist');
+    } catch (error: any) {
+      toast.error('Failed to delete checklist: ' + error.message);
     }
   };
 
@@ -128,98 +99,32 @@ export function ChecklistMasterPage() {
     if (!formData.checklist_name.trim()) return;
 
     try {
-      let masterId = selectedTemplate?.id;
+      await masterListsApi.checklists.upsert({
+        checklist_name: formData.checklist_name,
+        days_of_week: formData.days_of_week,
+        description: formData.description,
+        items: formData.items
+      }, selectedTemplate?.id);
 
-      if (masterId) {
-        await supabase
-          .from(TABLES.CHECKLIST_MASTER)
-          .update({
-            checklist_name: formData.checklist_name,
-            days_of_week: formData.days_of_week || null,
-            description: formData.description || null,
-          })
-          .eq('id', selectedTemplate.id);
-        masterId = selectedTemplate.id;
-        } else {
-        const { data, error } = await supabase
-          .from(TABLES.CHECKLIST_MASTER)
-          .insert({
-            checklist_name: formData.checklist_name,
-            days_of_week: formData.days_of_week || null,
-            description: formData.description || null,
-          })
-          .select()
-          .maybeSingle();
-        if (error) throw error;
-        if (!data) throw new Error("You do not have permission to perform this action");
-        masterId = data.id;
-      }
-
-      // Handle items
-      const originalItems = selectedTemplate?.items || [];
-      const currentItems = formData.items.map((item, index: number) => ({
-        ...item,
-        master_id: masterId,
-        sort_order: index,
-      }));
-
-      // Delete items
-      const itemsToDelete = originalItems
-        .filter(orig => !currentItems.some((curr) => curr.id === orig.id))
-        .map(i => i.id);
-      
-      if (itemsToDelete.length > 0) {
-        await supabase.from(TABLES.CHECKLIST_ITEM_MASTER).delete().in('id', itemsToDelete);
-      }
-
-      // Separate updates from inserts to avoid PostgREST bulk array null key issues
-      if (currentItems.length > 0) {
-        const itemsToUpdate = currentItems
-          .filter((item) => !!(item.id && !item.id.startsWith('temp-')))
-          .map((item) => ({
-            id: item.id as string,
-            master_id: masterId as string,
-            title: item.title,
-            instructions: item.instructions || null,
-            group_title: item.group_title || 'Morning',
-            priority: item.priority || 'medium',
-            is_required: !!item.is_required,
-            sort_order: item.sort_order || 0,
-          }));
-
-        const itemsToInsert = currentItems
-          .filter((item) => !item.id || item.id.startsWith('temp-'))
-          .map((item) => ({
-            master_id: masterId as string,
-            title: item.title,
-            instructions: item.instructions || null,
-            group_title: item.group_title || 'Morning',
-            priority: item.priority || 'medium',
-            is_required: !!item.is_required,
-            sort_order: item.sort_order || 0,
-          }));
-
-        if (itemsToUpdate.length > 0) {
-          const { error: updateError } = await supabase
-            .from(TABLES.CHECKLIST_ITEM_MASTER)
-            .upsert(itemsToUpdate);
-          if (updateError) throw updateError;
-        }
-
-        if (itemsToInsert.length > 0) {
-          const { error: insertError } = await supabase
-            .from(TABLES.CHECKLIST_ITEM_MASTER)
-            .insert(itemsToInsert);
-          if (insertError) throw insertError;
-        }
-      }
-
-      toast.success('Master checklist saved successfully');
-      setShowEditDialog(false);
+      toast.success(selectedTemplate ? 'Master checklist updated' : 'Master checklist created');
       refetch();
-    } catch (error) {
-      handleSupabaseError(error, 'Failed to save checklist');
+      setShowEditDialog(false);
+    } catch (error: any) {
+      toast.error('Failed to save checklist: ' + error.message);
     }
+  };
+
+  const handleAddItem = () => {
+    setSelectedItem(null);
+    setItemFormData({
+      title: '',
+      instructions: '',
+      group_title: 'Morning',
+      priority: 'medium',
+      is_required: true,
+      sort_order: formData.items.length,
+    });
+    setShowItemDialog(true);
   };
 
   const handleSaveItem = () => {
@@ -228,295 +133,309 @@ export function ChecklistMasterPage() {
     if (selectedItem) {
       setFormData({
         ...formData,
-        items: formData.items.map((item) => 
-          (item.id && item.id === selectedItem.id) || (item.tempId && item.tempId === selectedItem.tempId) 
-            ? { ...item, ...itemFormData } 
-            : item
-        )
+        items: formData.items.map(i => i === selectedItem ? { ...itemFormData, id: i.id } : i)
       });
     } else {
-      const tempId = `temp-${Date.now()}`;
       setFormData({
         ...formData,
-        items: [...formData.items, { ...itemFormData, tempId }]
+        items: [...formData.items, { ...itemFormData, tempId: `temp-${Date.now()}` }]
       });
     }
     setShowItemDialog(false);
   };
 
-  const filteredTemplates = masterChecklists.filter(t => 
-    t.checklist_name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    t.description?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleDeleteItem = (item: any) => {
+    setFormData({
+      ...formData,
+      items: formData.items.filter(i => i !== item)
+    });
+  };
+
+  const filteredTemplates = useMemo(() => {
+    return masterChecklists.filter(t => 
+      t.checklist_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      t.description?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [masterChecklists, searchTerm]);
 
   return (
-    <Container>
-      <div className="grid gap-5 lg:gap-7.5 py-5">
-        {/* Page Header */}
-        <div className="flex flex-wrap items-center justify-between gap-5">
-          <div className="flex flex-col gap-1">
-            <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-              Checklist Templates
-            </h1>
-            <p className="text-sm text-gray-700 dark:text-gray-400">
-              Manage master checklists for all houses
-            </p>
-          </div>
-          <Button onClick={handleAddTemplate} disabled={!canAdd}>
-            <Plus className="size-4 me-1.5" />
-            New Master Checklist
-          </Button>
-        </div>
-
-        {/* Motivational Banner */}
-        <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-200 dark:border-blue-800">
-          <CardContent className="p-6">
-            <div className="flex items-start gap-4">
-              <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/50">
-                <ClipboardList className="size-6 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <h3 className="text-base font-semibold text-blue-900 dark:text-blue-100">
-                  Standardising Care Quality
-                </h3>
-                <p className="text-sm text-blue-700 dark:text-blue-300">
-                  Master templates allow you to define standardised operational procedures that can be 
-                  easily deployed and customised across all your service locations.
-                </p>
-              </div>
+    <Container className="py-10">
+      <div className="flex flex-col gap-8">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="size-12 rounded-2xl bg-primary/10 flex items-center justify-center">
+              <ClipboardList className="size-6 text-primary" />
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Main Content Card */}
-        <Card>
-          <CardHeader>
-            <div className="relative w-full max-w-sm">
+            <div>
+              <h1 className="text-2xl font-black uppercase tracking-tight">Checklist Master</h1>
+              <p className="text-sm text-muted-foreground font-medium">Standardized routine templates for all houses</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="relative w-64">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
               <Input 
-                placeholder="Search master checklists..." 
-                className="pl-9"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={searchTerm} 
+                onChange={e => setSearchTerm(e.target.value)} 
+                placeholder="Search templates..." 
+                className="pl-10 h-10"
               />
             </div>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="py-12 text-center text-muted-foreground text-sm">Loading checklists...</div>
-            ) : filteredTemplates.length === 0 ? (
-              <div className="py-12 text-center text-muted-foreground">
-                <CheckSquare className="size-12 mx-auto mb-4 opacity-20" />
-                <p>No master checklists found</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                {filteredTemplates.map(template => (
-                  <ChecklistCard 
-                    key={template.id}
-                    checklist={template}
-                    onEdit={handleEditTemplate}
-                    onDelete={canEdit ? handleDeleteTemplate : undefined}
-                    showTasksPreview={true}
-                    footer={
-                      <Button 
-                        variant="secondary" 
-                        size="sm" 
-                        className="w-full h-8 text-xs font-bold gap-1.5" 
-                        onClick={() => handleEditTemplate(template)}
-                        disabled={!canEdit}
-                      >
-                        <Edit className="size-3.5" />
-                        Manage Master Checklist
-                      </Button>
-                    }
-                  />
-                ))}
-              </div>
+            {canAdd && (
+              <Button onClick={handleAddTemplate} className="gap-2 font-bold h-10">
+                <Plus className="size-4" /> Create Template
+              </Button>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredTemplates.map(template => (
+            <ChecklistCard
+              key={template.id}
+              checklist={template}
+              onEdit={() => handleEditTemplate(template)}
+              onDelete={() => handleDeleteTemplate(template)}
+              isMaster
+              canEdit={canEdit}
+            />
+          ))}
+
+          {filteredTemplates.length === 0 && !loading && (
+            <div className="col-span-full py-20 text-center border-2 border-dashed rounded-3xl bg-muted/30">
+              <ClipboardList className="size-12 text-muted-foreground mx-auto mb-4 opacity-20" />
+              <h3 className="text-lg font-bold text-gray-400">No master templates found</h3>
+              <p className="text-sm text-gray-400 mb-6">Create your first standardized checklist routine</p>
+              <Button onClick={handleAddTemplate} variant="outline" className="font-bold border-gray-300">
+                Create Template
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Edit Dialog */}
+      {/* Edit Template Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
-          <DialogHeader className="p-6 pb-2">
-            <DialogTitle>{selectedTemplate ? 'Edit Master Checklist' : 'Add Master Checklist'}</DialogTitle>
-            <DialogDescription>Define the structure for this master checklist</DialogDescription>
+        <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col p-0 border-none shadow-2xl overflow-hidden">
+          <DialogHeader className="p-6 border-b bg-white">
+            <div className="flex items-center gap-4">
+              <div className="size-12 rounded-2xl bg-primary/10 flex items-center justify-center">
+                <ClipboardList className="size-6 text-primary" />
+              </div>
+              <div>
+                <DialogTitle className="text-xl font-black uppercase tracking-tight">
+                  {selectedTemplate ? 'Edit Master Template' : 'New Master Template'}
+                </DialogTitle>
+                <DialogDescription className="text-sm font-medium">Standardize this routine for organization-wide use.</DialogDescription>
+              </div>
+            </div>
           </DialogHeader>
 
-          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="tpl-name">Name *</Label>
-              <Input
-                id="tpl-name"
-                value={formData.checklist_name}
-                onChange={(e) => setFormData({ ...formData, checklist_name: e.target.value })}
-                placeholder="e.g., Weekly Safety Audit"
-              />
+          <div className="flex-1 overflow-y-auto p-6 space-y-8 bg-gray-50/30 custom-scrollbar">
+            <div className="grid gap-6">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">Template Name *</Label>
+                <Input 
+                  value={formData.checklist_name} 
+                  onChange={e => setFormData({ ...formData, checklist_name: e.target.value })}
+                  placeholder="e.g. Morning Clinical Routine"
+                  className="h-12 text-lg font-bold"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">Default Applicable Days (Optional)</Label>
+                <div className="flex flex-wrap gap-2">
+                  {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => {
+                    const isSelected = formData.days_of_week.includes(day);
+                    return (
+                      <Badge 
+                        key={day} 
+                        variant={isSelected ? 'primary' : 'outline'}
+                        className={cn(
+                          "cursor-pointer h-8 px-4 text-xs font-bold transition-all",
+                          isSelected ? "shadow-lg shadow-primary/20 scale-105" : "bg-white hover:bg-gray-100 border-gray-200"
+                        )}
+                        onClick={() => {
+                          const newDays = isSelected
+                            ? formData.days_of_week.filter(d => d !== day)
+                            : [...formData.days_of_week, day];
+                          setFormData({ ...formData, days_of_week: newDays });
+                        }}
+                      >
+                        {day}
+                      </Badge>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">Description</Label>
+                <Textarea 
+                  value={formData.description} 
+                  onChange={e => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Describe the standard procedure for this routine..."
+                  rows={3}
+                  className="bg-white resize-none"
+                />
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="tpl-desc">Description</Label>
-              <Textarea
-                id="tpl-desc"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="What is this checklist for?"
-                rows={2}
-              />
-            </div>
-
-            <div className="space-y-4 pt-4 border-t">
-              <div className="flex items-center justify-between">
-                <Label className="text-base font-semibold">Master Tasks</Label>
-                <Button variant="outline" size="sm" onClick={() => {
-                  setSelectedItem(null);
-                  setItemFormData({ title: '', instructions: '', priority: 'medium', is_required: true, sort_order: formData.items.length });
-                  setShowItemDialog(true);
-                }} disabled={!canEdit}>
-                  <Plus className="size-3.5 mr-1" />
-                  Add Master Task
+            <div className="space-y-4">
+              <div className="flex items-center justify-between px-1">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-black uppercase tracking-widest text-gray-900">Standard Tasks ({formData.items.length})</h3>
+                  <div className="h-1 w-1 rounded-full bg-gray-300" />
+                </div>
+                <Button variant="ghost" size="sm" className="h-8 gap-2 text-primary font-bold hover:bg-primary/5" onClick={handleAddItem}>
+                  <Plus className="size-4" /> Add Task
                 </Button>
               </div>
 
-              <Sortable
-                value={formData.items}
-                onValueChange={(newItems) => setFormData({ ...formData, items: newItems })}
-                getItemValue={(item) => (item.id || item.tempId).toString()}
-                className="space-y-2"
-              >
-                {formData.items.map((item: any) => (
-                  <SortableItem 
-                    key={item.id || item.tempId} 
-                    value={(item.id || item.tempId).toString()}
-                    className="flex items-center gap-3 p-3 bg-background border rounded-lg group"
-                  >
-                    <SortableItemHandle className="shrink-0 text-muted-foreground/50 hover:text-foreground cursor-grab">
-                      <GripVertical className="size-4" />
-                    </SortableItemHandle>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <span className="text-sm font-medium truncate block">{item.title}</span>
-                        {item.group_title && (
-                          <Badge 
-                            variant="outline" 
-                            className={cn(
-                              "text-[8px] h-3.5 px-1 uppercase shrink-0 gap-1 font-bold",
-                              getPeriodTheme(item.group_title).bg,
-                              getPeriodTheme(item.group_title).text,
-                              getPeriodTheme(item.group_title).border
-                            )}
-                          >
-                            {(() => {
-                              const theme = getPeriodTheme(item.group_title);
-                              const ThemeIcon = theme.icon;
-                              return <ThemeIcon className="size-2" />;
-                            })()}
-                            {item.group_title}
-                          </Badge>
-                        )}
-                        {item.is_required && (
-                          <Badge variant="outline" className="text-[9px] h-4 border-red-200 text-red-600 bg-red-50 px-1 uppercase shrink-0">
-                            Required
-                          </Badge>
-                        )}
+              <div className="space-y-3">
+                <Sortable
+                  value={formData.items}
+                  onValueChange={(newItems) => setFormData({ ...formData, items: newItems })}
+                  getItemValue={(item) => (item.id || item.tempId || '').toString()}
+                >
+                  {formData.items.map((item, idx) => (
+                    <SortableItem key={item.id || item.tempId || idx} value={(item.id || item.tempId || idx).toString()}>
+                      <div className="flex flex-col gap-1 flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-sm text-gray-900">{item.title}</span>
+                          {item.is_required && (
+                            <Badge variant="outline" className="text-[9px] h-4 px-1.5 border-red-100 text-red-600 bg-red-50 uppercase font-black tracking-tighter">
+                              Mandatory
+                            </Badge>
+                          )}
+                          {item.group_title && (
+                            <Badge variant="outline" className="text-[9px] h-4 px-1.5 uppercase font-bold text-blue-600 border-blue-100 bg-blue-50">
+                              {item.group_title}
+                            </Badge>
+                          )}
+                        </div>
+                        {item.instructions && <p className="text-[10px] text-muted-foreground truncate font-medium">{item.instructions}</p>}
                       </div>
-                      {item.instructions && <p className="text-[10px] text-muted-foreground truncate">{item.instructions}</p>}
-                    </div>
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button variant="ghost" size="icon" className="size-7" onClick={() => {
-                        setSelectedItem(item);
-                        setItemFormData({ ...item });
-                        setShowItemDialog(true);
-                      }} disabled={!canEdit}>
-                        <Edit className="size-3.5" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="size-7 text-destructive" onClick={() => {
-                        setFormData({ ...formData, items: formData.items.filter((i: any) => ( (i.id && i.id !== item.id) || (i.tempId && i.tempId !== item.tempId) )) });
-                      }} disabled={!canEdit}>
-                        <Trash2 className="size-3.5" />
-                      </Button>
-                    </div>
-                  </SortableItem>
-                ))}
-              </Sortable>
+                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="size-8 rounded-lg" 
+                          onClick={() => { setSelectedItem(item); setItemFormData({ ...item }); setShowItemDialog(true); }}
+                        >
+                          <Edit className="size-3.5 text-gray-500" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="size-8 rounded-lg hover:bg-red-50" 
+                          onClick={() => handleDeleteItem(item)}
+                        >
+                          <Trash2 className="size-3.5 text-red-400" />
+                        </Button>
+                      </div>
+                    </SortableItem>
+                  ))}
+                </Sortable>
+
+                {formData.items.length === 0 && (
+                  <div className="py-12 text-center border-2 border-dashed rounded-2xl bg-gray-50/50">
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">No tasks added yet</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
-          <DialogFooter className="p-6 pt-2 border-t">
-            <Button variant="outline" onClick={() => setShowEditDialog(false)}>Cancel</Button>
-            <Button variant="primary" onClick={handleSaveTemplate} disabled={!canEdit || !hasEdits || !formData.checklist_name.trim()}>Save Master Checklist</Button>
+          <DialogFooter className="p-4 border-t bg-white flex flex-row gap-3">
+            <Button variant="ghost" onClick={() => setShowEditDialog(false)} className="flex-1 font-bold h-11">Cancel</Button>
+            <Button onClick={handleSaveTemplate} className="flex-[2] font-black uppercase tracking-tight h-11 shadow-xl shadow-primary/20">
+              {selectedTemplate ? 'Update Master Template' : 'Create Master Template'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Item Dialog */}
+      {/* Task Item Dialog */}
       <Dialog open={showItemDialog} onOpenChange={setShowItemDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>{selectedItem ? 'Edit Master Task' : 'Add Master Task'}</DialogTitle>
-            <DialogDescription>Define the details and grouping for this specific task.</DialogDescription>
+        <DialogContent className="max-w-md border-none shadow-2xl p-0 overflow-hidden">
+          <DialogHeader className="p-6 pb-4 border-b bg-white">
+            <div className="flex items-center gap-3">
+              <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <CheckSquare className="size-5 text-primary" />
+              </div>
+              <div>
+                <DialogTitle className="text-lg font-black uppercase tracking-tight">
+                  {selectedItem ? 'Edit Standard Task' : 'Add Standard Task'}
+                </DialogTitle>
+                <DialogDescription className="text-xs font-medium">Define a requirement for this template.</DialogDescription>
+              </div>
+            </div>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          
+          <div className="space-y-6 p-6 bg-gray-50/30">
             <div className="space-y-2">
-              <Label>Group Title *</Label>
-              <Select 
-                value={itemFormData.group_title} 
-                onValueChange={(v) => setItemFormData({ ...itemFormData, group_title: v })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select group..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {['Morning', 'Day', 'Night'].map(period => {
-                    const theme = getPeriodTheme(period);
-                    const Icon = theme.icon;
-                    return (
-                      <SelectItem key={period} value={period}>
-                        <div className="flex items-center gap-2">
-                          <div className={cn("size-2 rounded-full", theme.dot)} />
-                          <Icon className="size-3.5 text-muted-foreground" />
-                          <span>{period}</span>
-                        </div>
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
-              <p className="text-[10px] text-muted-foreground italic">Visually groups items together for staff</p>
-            </div>
-            <div className="space-y-2">
-              <Label>Task Title *</Label>
-              <Input
-                value={itemFormData.title}
-                onChange={(e) => setItemFormData({ ...itemFormData, title: e.target.value })}
-                placeholder="What needs to be done?"
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">Task Title *</Label>
+              <Input 
+                value={itemFormData.title} 
+                onChange={e => setItemFormData({ ...itemFormData, title: e.target.value })}
+                placeholder="e.g. Confirm kitchen cleaning completed"
+                className="bg-white h-10 font-medium"
               />
             </div>
+
             <div className="space-y-2">
-              <Label>Instructions</Label>
-              <Textarea
-                value={itemFormData.instructions}
-                onChange={(e) => setItemFormData({ ...itemFormData, instructions: e.target.value })}
-                placeholder="Step-by-step guidance..."
-                rows={2}
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">Instructions (Optional)</Label>
+              <Textarea 
+                value={itemFormData.instructions} 
+                onChange={e => setItemFormData({ ...itemFormData, instructions: e.target.value })}
+                placeholder="Step-by-step guidance for staff..."
+                rows={3}
+                className="bg-white resize-none text-sm"
               />
             </div>
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="itm-req-master"
-                checked={itemFormData.is_required}
-                onCheckedChange={(c) => setItemFormData({ ...itemFormData, is_required: !!c })}
-                disabled={!canEdit}
-              />
-              <Label htmlFor="itm-req-master" className={cn("cursor-pointer", !canEdit && "cursor-not-allowed opacity-50")}>Required Task</Label>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">Shift Period</Label>
+                <Select value={itemFormData.group_title} onValueChange={v => setItemFormData({ ...itemFormData, group_title: v })}>
+                  <SelectTrigger className="bg-white h-10"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Morning">Morning</SelectItem>
+                    <SelectItem value="Afternoon">Afternoon</SelectItem>
+                    <SelectItem value="Evening">Evening</SelectItem>
+                    <SelectItem value="Sleepover">Sleepover</SelectItem>
+                    <SelectItem value="Daily">General/Daily</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">Priority</Label>
+                <Select value={itemFormData.priority} onValueChange={v => setItemFormData({ ...itemFormData, priority: v })}>
+                  <SelectTrigger className="bg-white h-10"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                    <SelectItem value="critical">Critical</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between p-4 rounded-2xl border bg-white shadow-sm border-gray-100">
+              <div className="space-y-0.5">
+                <Label className="text-xs font-bold text-gray-900 uppercase tracking-tight">Mandatory Task</Label>
+                <p className="text-[10px] text-muted-foreground font-medium">Staff must confirm this task is done.</p>
+              </div>
+              <Switch checked={itemFormData.is_required} onCheckedChange={v => setItemFormData({ ...itemFormData, is_required: v })} className="scale-90" />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowItemDialog(false)}>Cancel</Button>
-            <Button variant="primary" onClick={handleSaveItem} disabled={!canEdit}>Confirm</Button>
+
+          <DialogFooter className="p-4 border-t bg-white flex flex-row gap-3">
+            <Button variant="ghost" onClick={() => setShowItemDialog(false)} className="flex-1 font-bold h-10">Cancel</Button>
+            <Button onClick={handleSaveItem} className="flex-[2] font-black uppercase tracking-tight h-10 shadow-lg shadow-primary/10">Apply Task</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

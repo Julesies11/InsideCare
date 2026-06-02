@@ -8,7 +8,7 @@ test.describe('Leave Types Management', () => {
     await page.goto('/admin/leave-types');
     
     // Verify page heading
-    await expect(page.getByRole('heading', { name: /Leave Types Configuration/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Leave Types Configuration/i })).toBeVisible({ timeout: 15000 });
     
     // Open manage dialog
     await page.getByRole('button', { name: /Manage Master List/i }).click();

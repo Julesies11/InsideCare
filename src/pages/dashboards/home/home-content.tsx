@@ -4,6 +4,7 @@ import { WelcomeBanner, StatCard, MotivationalBanner, RecentActivity, UpcomingSh
 import { useParticipantsCount } from '@/hooks/use-participants';
 import { useStaffCount } from '@/hooks/use-staff';
 import { useAuth } from '@/auth/context/auth-context';
+import { ROUTES } from '@/config/routes.config';
 
 export function HomeContent() {
   const navigate = useNavigate();
@@ -23,14 +24,14 @@ export function HomeContent() {
           value={participantCount}
           icon={Users}
           color="bg-blue-500"
-          onClick={() => navigate('/participants/profiles')}
+          onClick={() => navigate(ROUTES.PARTICIPANT_PROFILES)}
         />
         <StatCard
           title="Active Staff"
           value={staffCount}
           icon={UserCheck}
           color="bg-green-500"
-          onClick={() => navigate('/staff')}
+          onClick={() => navigate(ROUTES.STAFF)}
         />
         {isAdmin && (
           <>
@@ -39,14 +40,14 @@ export function HomeContent() {
               value="8"
               icon={ClipboardList}
               color="bg-orange-500"
-              onClick={() => navigate('/timesheet-approvals')}
+              onClick={() => navigate(ROUTES.TIMESHEET_APPROVALS)}
             />
             <StatCard
               title="Leave Requests"
               value="3"
               icon={CheckSquare}
               color="bg-purple-500"
-              onClick={() => navigate('/leave-approvals')}
+              onClick={() => navigate(ROUTES.LEAVE_APPROVALS)}
             />
           </>
         )}

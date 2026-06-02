@@ -45,12 +45,13 @@ import { useHouses } from '@/hooks/use-houses';
 import { useStaff } from '@/hooks/use-staff';
 import { useNavigate } from 'react-router';
 import { format } from 'date-fns';
+import { ROUTES } from '@/config/routes.config';
 
 function ActionsCell({ row }: { row: Row<ShiftNote> }) {
   const navigate = useNavigate();
 
   const handleView = () => {
-    navigate(`/shift-notes/detail/${row.original.id}`);
+    navigate(`${ROUTES.SHIFT_NOTES_DETAIL}/${row.original.id}`);
   };
 
   return (

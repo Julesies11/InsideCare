@@ -1,32 +1,21 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { Database } from '@/models/database.types';
-import { TABLES } from '@/config/db-tables';
+import { rosterApi } from '@/api/roster.api';
 
-const getShiftsQuery = () => supabase
-  .from(TABLES.STAFF_SHIFTS)
-  .select(`
-    id,
-    staff_id,
-    start_date,
-    end_date,
-    start_time,
-    end_time,
-    house_id,
-    shift_template,
-    shift_template_id,
-    notes,
-    created_by,
-    updated_by,
-    created_at,
-    updated_at,
-    house:ic_houses(id, house_name)
-  `);
-
-export type StaffShiftRow = Awaited<ReturnType<typeof getShiftsQuery>>['data'] extends (infer U)[] ? U : never;
-export type ShiftParticipantRow = Database['public']['Tables']['ic_shift_participants']['Row'];
-
-export interface StaffShift extends Omit<StaffShiftRow, 'house'> {
+export interface StaffShift {
+  id: string;
+  staff_id: string;
+  start_date: string;
+  end_date: string;
+  start_time: string;
+  end_time: string;
+  house_id: string | null;
+  shift_template: string;
+  shift_template_id?: string | null;
+  notes: string | null;
+  created_by?: string | null;
+  updated_by?: string | null;
+  created_at?: string;
+  updated_at?: string;
   house?: {
     id: string;
     house_name: string;
@@ -37,26 +26,6 @@ export interface StaffShift extends Omit<StaffShiftRow, 'house'> {
   }>;
   duration_hours?: number;
 }
-
-export type ShiftParticipant = ShiftParticipantRow;
-
-const SHIFT_COLUMNS = `
-  id,
-  staff_id,
-  start_date,
-  end_date,
-  start_time,
-  end_time,
-  house_id,
-  shift_template,
-  shift_template_id,
-  notes,
-  created_by,
-  updated_by,
-  created_at,
-  updated_at,
-  house:ic_houses(id, house_name)
-`;
 
 export const calculateDuration = (startTime: string, endTime: string): number => {
   try {
@@ -84,52 +53,23 @@ export function useStaffShifts(staffId?: string, startDate?: string, endDate?: s
     queryFn: async () => {
       if (!staffId) return [];
 
-      let query = supabase
-        .from(TABLES.STAFF_SHIFTS)
-        .select(SHIFT_COLUMNS)
-        .eq('staff_id', staffId)
-        .order('start_date', { ascending: true })
-        .order('start_time', { ascending: true });
+      const shifts = await rosterApi.listShifts({ staffId, startDate, endDate });
 
-      // Handle overlapping date ranges (useful for overnight shifts)
-      // Intersection rule: (Shift End >= Range Start) AND (Shift Start <= Range End)
-      if (startDate) query = query.gte('end_date', startDate);
-      if (endDate) query = query.lte('start_date', endDate);
-
-      const { data: shifts, error: shiftsError } = await query;
-      if (shiftsError) throw shiftsError;
-      if (!shifts || shifts.length === 0) return [];
-
-      const shiftIds = shifts.map((s) => s.id);
-      const { data: participants, error: participantsError } = await supabase
-        .from(TABLES.SHIFT_PARTICIPANTS)
-        .select(`
-          shift_id,
-          participant:ic_participants(id, participant_name)
-        `)
-        .in('shift_id', shiftIds);
-
-      if (participantsError) {
-        console.error('Error fetching participants:', participantsError);
-      }
-
-      return (shifts || []).map((shift) => {
-        const shiftParticipants = participants
-          ?.filter((p) => p.shift_id === shift.id)
-          .map((p) => {
-            const participantData = (Array.isArray(p.participant) ? p.participant[0] : p.participant);
-            return p.participant ? {
-              id: participantData.id,
-              participant_name: participantData.participant_name,
-              name: participantData.participant_name
-            } : null;
-          })
-          .filter((p) => p !== null) || [];
+      return (shifts || []).map((shift: any) => {
+        // Map participants from the structure returned by rosterApi (SHIFT_DETAIL view)
+        const participants = (shift.participants || [])?.map((p: any) => {
+          const part = p.participant || p;
+          return {
+            id: part.id,
+            participant_name: part.participant_name,
+            name: part.participant_name
+          };
+        }).filter((p: any) => p.id && p.participant_name) || [];
 
         return {
           ...shift,
-          house: Array.isArray(shift.house) ? shift.house[0] : shift.house,
-          participants: shiftParticipants as Array<{ id: string; participant_name: string }>,
+          house: shift.house_info || shift.house,
+          participants,
           duration_hours: calculateDuration(shift.start_time, shift.end_time),
         };
       }) as unknown as StaffShift[];
@@ -151,17 +91,7 @@ export function useCreateShift() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (shiftData: Database['public']['Tables']['ic_staff_shifts']['Insert']) => {
-      const { data, error } = await supabase
-        .from(TABLES.STAFF_SHIFTS)
-        .insert([shiftData])
-        .select(SHIFT_COLUMNS)
-        .maybeSingle();
-
-      if (error) throw error;
-      if (!data) throw new Error("You do not have permission to create this shift");
-      return data as unknown as StaffShift;
-    },
+    mutationFn: (shiftData: any) => rosterApi.createShift(shiftData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staff-shifts'] });
     },
@@ -172,18 +102,7 @@ export function useUpdateShift() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: Database['public']['Tables']['ic_staff_shifts']['Update'] }) => {
-      const { data, error } = await supabase
-        .from(TABLES.STAFF_SHIFTS)
-        .update(updates)
-        .eq('id', id)
-        .select(SHIFT_COLUMNS)
-        .maybeSingle();
-
-      if (error) throw error;
-      if (!data) throw new Error("You do not have permission to edit this shift");
-      return data as unknown as StaffShift;
-    },
+    mutationFn: ({ id, updates }: { id: string; updates: any }) => rosterApi.updateShift(id, updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staff-shifts'] });
     },
@@ -194,14 +113,7 @@ export function useDeleteShift() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from(TABLES.STAFF_SHIFTS)
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-    },
+    mutationFn: (id: string) => rosterApi.deleteShift(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staff-shifts'] });
     },
@@ -213,21 +125,16 @@ export function useShiftParticipants(shiftId?: string) {
     queryKey: ['shift-participants', shiftId],
     queryFn: async () => {
       if (!shiftId) return [];
-      const { data, error } = await supabase
-        .from(TABLES.SHIFT_PARTICIPANTS)
-        .select(`
-          id,
-          shift_id,
-          participant_id,
-          participant:ic_participants(id, participant_name)
-        `)
-        .eq('shift_id', shiftId);
-
-      if (error) throw error;
-      return (data || []).map(p => ({
-        ...p,
-        participant: Array.isArray(p.participant) ? p.participant[0] : p.participant
-      }));
+      const shift = await rosterApi.getShift(shiftId);
+      if (!shift) return [];
+      
+      return (shift.participants || []).map((p: any) => {
+        const part = p.participant || p;
+        return {
+          ...p,
+          participant: part
+        };
+      });
     },
     enabled: !!shiftId,
   });
@@ -245,20 +152,11 @@ export function useAddShiftParticipant() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ shiftId, participantId }: { shiftId: string; participantId: string }) => {
-      const { data, error } = await supabase
-        .from(TABLES.SHIFT_PARTICIPANTS)
-        .insert([{ shift_id: shiftId, participant_id: participantId }])
-        .select()
-        .maybeSingle();
-
-      if (error) throw error;
-      if (!data) throw new Error("You do not have permission to add a participant to this shift");
-      return data as ShiftParticipant;
-    },
+    mutationFn: ({ shiftId, participantId }: { shiftId: string; participantId: string }) => rosterApi.addShiftParticipant(shiftId, participantId),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['shift-participants', variables.shiftId] });
       queryClient.invalidateQueries({ queryKey: ['staff-shifts'] });
+      queryClient.invalidateQueries({ queryKey: ['roster-shifts'] });
     },
   });
 }
@@ -267,18 +165,13 @@ export function useRemoveShiftParticipant() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ shiftId, participantId }: { shiftId: string; participantId: string }) => {
-      const { error } = await supabase
-        .from(TABLES.SHIFT_PARTICIPANTS)
-        .delete()
-        .eq('shift_id', shiftId)
-        .eq('participant_id', participantId);
-
-      if (error) throw error;
-    },
+    mutationFn: ({ shiftId, participantId }: { shiftId: string; participantId: string }) => rosterApi.removeShiftParticipant(shiftId, participantId),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['shift-participants', variables.shiftId] });
       queryClient.invalidateQueries({ queryKey: ['staff-shifts'] });
+      queryClient.invalidateQueries({ queryKey: ['roster-shifts'] });
     },
   });
 }
+
+

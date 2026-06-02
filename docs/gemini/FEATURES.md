@@ -16,6 +16,8 @@ Management of care providers and support staff.
     - **Personalized Filtering**: Automatically filters the roster to only show Houses the staff member is actively assigned to.
     - **Robust Tracking**: Intelligent data mapping ensures participants and routines are correctly linked and displayed even across complex database relationships.
     - **Unified View**: Displays personal shifts, assigned events (meetings/outings), and approved leave in one consolidated calendar.
+    - **Performance-First List View**: High-performance, paginated list view (50 records per page) optimized for staff with deep roster histories.
+    - **Advanced Search & Sort**: Integrated DataGrid support allows staff to search and sort their entire shift history across multiple fields (date, template, house, notes).
     - **Staff Shift View**: Dedicated read-only dashboard for staff to view their assigned shifts with checklist previews and scheduler instructions.
 - **Compliance Tracking**: Monitoring of mandatory NDIS checks and their expiry dates.
 - **Training Records**: Tracking of staff training sessions and certifications.

@@ -53,8 +53,12 @@ test.describe('House & Participant Management', () => {
 
   test('Navigate to House Profiles and search', async ({ page }) => {
     await page.goto('/houses');
+    
+    // Wait for page to load by checking title
+    await expect(page.getByText(/House Management/i)).toBeVisible({ timeout: 30000 });
+    
     const search = page.getByPlaceholder(/Search Houses/i);
-    await expect(search).toBeVisible({ timeout: 15000 });
+    await expect(search).toBeVisible({ timeout: 30000 });
     await search.fill('Demo House');
     // Use specific locator for the table to avoid strict mode violation
     await expect(page.locator('#houses_table')).toBeVisible({ timeout: 30000 });

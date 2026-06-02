@@ -3,6 +3,7 @@ import { screen, waitFor, fireEvent } from '@testing-library/react';
 import { StaffLeaveForm } from './staff-leave-form';
 import { renderWithProviders } from '@/test/test-utils';
 import { TABLES } from '@/config/db-tables';
+import { ROUTES } from '@/config/routes.config';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
 import { ShiftRow, HouseRow, LeaveRequestRow, Row } from '@/test/type-helpers';
@@ -112,7 +113,7 @@ describe('StaffLeaveForm', () => {
     await user.click(submitBtn);
 
     await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('/my-leave');
+        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.MY_LEAVE);
     });
   });
 
@@ -146,7 +147,7 @@ describe('StaffLeaveForm', () => {
     fireEvent.click(submitBtn);
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/my-leave');
+      expect(mockNavigate).toHaveBeenCalledWith(ROUTES.MY_LEAVE);
     });
   });
 });

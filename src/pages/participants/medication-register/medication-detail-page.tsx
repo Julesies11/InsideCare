@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 import { Toolbar, ToolbarActions, ToolbarHeading, ToolbarPageTitle, ToolbarDescription } from '@/partials/common/toolbar';
 import { RBAC_MODULES } from '@/config/rbac-modules';
 import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
+import { ROUTES } from '@/config/routes.config';
 
 export function MedicationDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -78,7 +79,7 @@ export function MedicationDetailPage() {
         });
         toast.success('Medication updated successfully');
       }
-      navigate('/participants/medication-register');
+      navigate(ROUTES.MEDICATION_REGISTER);
     } catch (error) {
       const err = error as Error;
       if (err.message === 'DUPLICATE_NAME') {
@@ -98,7 +99,7 @@ export function MedicationDetailPage() {
       try {
         await deleteMedication({ id, medication_name: medication.medication_name });
         toast.success('Medication deactivated');
-        navigate('/participants/medication-register');
+        navigate(ROUTES.MEDICATION_REGISTER);
       } catch (error) {
         toast.error('Failed to deactivate medication');
       }
@@ -123,7 +124,7 @@ export function MedicationDetailPage() {
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  onClick={() => navigate('/participants/medication-register')}
+                  onClick={() => navigate(ROUTES.MEDICATION_REGISTER)}
                 >
                   <ArrowLeft className="size-4 me-1.5" />
                   Back

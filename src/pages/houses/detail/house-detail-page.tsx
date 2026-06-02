@@ -1,5 +1,6 @@
 import { Fragment, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router';
+import { ROUTES } from '@/config/routes.config';
 import { Container } from '@/components/common/container';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
@@ -40,7 +41,7 @@ export function HouseDetailPage() {
   const [saving, setSaving] = useState(false);
   const saveHandlerRef = useRef<(() => Promise<void>) | null>(null);
 
-  const handleBack = () => navigate('/houses');
+  const handleBack = () => navigate(ROUTES.HOUSES);
 
   const handleSave = async () => {
     if (saveHandlerRef.current) {

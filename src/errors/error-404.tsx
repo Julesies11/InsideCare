@@ -1,4 +1,5 @@
 import { Link } from 'react-router';
+import { ROUTES } from '@/config/routes.config';
 import { toAbsoluteUrl } from '@/lib/helpers';
 
 export function Error404() {
@@ -26,7 +27,7 @@ export function Error404() {
       <div className="text-base text-center text-secondary-foreground mb-10">
         The requested page is missing. Check the URL or&nbsp;
         <Link
-          to="/"
+          to={ROUTES.HOME}
           className="text-primary font-medium hover:text-primary-active"
         >
           Return Home

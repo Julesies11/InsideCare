@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { TABLES } from '@/config/db-tables';
+import { masterListsApi } from '@/api/master-lists.api';
 import { QUERY_KEYS } from '@/config/query-keys';
 import { toast } from 'sonner';
 
@@ -8,7 +7,6 @@ export interface SeizureTypeMaster {
   id: string;
   name: string;
   description: string | null;
-  is_active: boolean;
   created_at?: string;
   updated_at?: string;
 }
@@ -17,13 +15,7 @@ export function useSeizureTypesMaster() {
   return useQuery({
     queryKey: [QUERY_KEYS.SEIZURE_TYPES_MASTER],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from(TABLES.SEIZURE_TYPES_MASTER)
-        .select('*')
-        .order('name', { ascending: true });
-
-      if (error) throw error;
-      return data as SeizureTypeMaster[];
+      return await masterListsApi.seizureTypes.list();
     },
   });
 }
@@ -33,14 +25,7 @@ export function useAddSeizureTypeMaster() {
 
   return useMutation({
     mutationFn: async (newItem: Partial<SeizureTypeMaster>) => {
-      const { data, error } = await supabase
-        .from(TABLES.SEIZURE_TYPES_MASTER)
-        .insert([newItem])
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      return await masterListsApi.seizureTypes.upsert(newItem as any);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SEIZURE_TYPES_MASTER] });
@@ -58,16 +43,7 @@ export function useUpdateSeizureTypeMaster() {
 
   return useMutation({
     mutationFn: async (updatedItem: Partial<SeizureTypeMaster> & { id: string }) => {
-      const { id, ...changes } = updatedItem;
-      const { data, error } = await supabase
-        .from(TABLES.SEIZURE_TYPES_MASTER)
-        .update(changes)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      return await masterListsApi.seizureTypes.upsert(updatedItem as any);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SEIZURE_TYPES_MASTER] });

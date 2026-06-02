@@ -9,6 +9,7 @@ import { Container } from '@/components/common/container';
 import { WelcomeBanner } from '../dashboards/home/components';
 import { useStaffDashboardData } from '@/hooks/use-staff-dashboard-data';
 import { cn, getPeriodTheme } from '@/lib/utils';
+import { ROUTES } from '@/config/routes.config';
 
 export function StaffDashboard() {
   const { user } = useAuth();
@@ -19,6 +20,7 @@ export function StaffDashboard() {
   const pendingLeave = data?.pendingLeave || [];
   const pendingTimesheets = data?.pendingTimesheets || [];
   const missingTimesheetsCount = data?.missingTimesheetsCount || 0;
+  const missingShiftNotesCount = data?.missingShiftNotesCount || 0;
 
   // Identify if currently on shift
   const now = new Date();
@@ -40,6 +42,35 @@ export function StaffDashboard() {
 
       <Container>
         <div className="grid gap-4 sm:gap-5 lg:gap-7.5 lg:grid-cols-2">
+          {/* Missing Shift Notes Alert */}
+          {missingShiftNotesCount > 0 && (
+            <Card className="lg:col-span-2 border-red-200 bg-red-50/10 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="size-10 rounded-full bg-red-100 flex items-center justify-center text-red-600 shrink-0">
+                      <AlertCircle className="size-6" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-red-900">Shift Notes Required</h3>
+                      <p className="text-xs text-red-700 mt-0.5">
+                        You have {missingShiftNotesCount} completed shift{missingShiftNotesCount !== 1 ? 's' : ''} missing a shift note.
+                      </p>
+                    </div>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full sm:w-auto border-red-200 text-red-700 hover:bg-red-100 font-bold text-xs"
+                    onClick={() => navigate(ROUTES.SHIFT_NOTES)}
+                  >
+                    CREATE NOW <ChevronRight className="size-3.5 ms-1" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Missing Timesheets Alert */}
           {missingTimesheetsCount > 0 && (
             <Card className="lg:col-span-2 border-orange-200 bg-orange-50/10 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
@@ -60,7 +91,7 @@ export function StaffDashboard() {
                     variant="outline" 
                     size="sm" 
                     className="w-full sm:w-auto border-orange-200 text-orange-700 hover:bg-orange-100 font-bold text-xs"
-                    onClick={() => navigate('/my-timesheets')}
+                    onClick={() => navigate(ROUTES.MY_TIMESHEETS)}
                   >
                     CREATE NOW <ChevronRight className="size-3.5 ms-1" />
                   </Button>
@@ -120,7 +151,7 @@ export function StaffDashboard() {
                         "flex-1 md:flex-none font-bold shadow-lg shadow-primary/20",
                         currentShift.checklist_stats?.all_done ? "bg-green-600 hover:bg-green-700" : "bg-primary"
                       )} 
-                      onClick={() => navigate('/my-checklists')}
+                      onClick={() => navigate(ROUTES.MY_CHECKLISTS)}
                     >
                       <ClipboardList className="size-4 me-2" />
                       {currentShift.checklist_stats?.all_done ? 'Review Checklists' : 'Complete Checklists'}
@@ -137,7 +168,7 @@ export function StaffDashboard() {
               <CardTitle className="text-base flex items-center gap-2">
                 <Calendar className="size-4" /> Upcoming Schedule
               </CardTitle>
-              <Button variant="ghost" size="sm" onClick={() => navigate('/my-roster')}>
+              <Button variant="ghost" size="sm" onClick={() => navigate(ROUTES.MY_ROSTER)}>
                 View all <ChevronRight className="size-4 ms-1" />
               </Button>
             </CardHeader>
@@ -191,7 +222,7 @@ export function StaffDashboard() {
               <CardTitle className="text-base flex items-center gap-2">
                 <Umbrella className="size-4" /> Leave Requests
               </CardTitle>
-              <Button variant="ghost" size="sm" onClick={() => navigate('/my-leave')}>
+              <Button variant="ghost" size="sm" onClick={() => navigate(ROUTES.MY_LEAVE)}>
                 View all <ChevronRight className="size-4 ms-1" />
               </Button>
             </CardHeader>
@@ -241,7 +272,7 @@ export function StaffDashboard() {
                   </Badge>
                 )}
               </CardTitle>
-              <Button variant="ghost" size="sm" onClick={() => navigate('/my-timesheets')}>
+              <Button variant="ghost" size="sm" onClick={() => navigate(ROUTES.MY_TIMESHEETS)}>
                 View all <ChevronRight className="size-4 ms-1" />
               </Button>
             </CardHeader>
@@ -286,16 +317,16 @@ export function StaffDashboard() {
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-3">
-                <Button variant="outline" onClick={() => navigate('/my-leave/new')}>
+                <Button variant="outline" onClick={() => navigate(`${ROUTES.MY_LEAVE}/new`)}>
                   <Umbrella className="size-4 me-1.5" /> Request Leave
                 </Button>
-                <Button variant="outline" onClick={() => navigate('/my-checklists')}>
+                <Button variant="outline" onClick={() => navigate(ROUTES.MY_CHECKLISTS)}>
                   <ClipboardList className="size-4 me-1.5" /> My Checklists
                 </Button>
-                <Button variant="outline" onClick={() => navigate('/my-timesheets')}>
+                <Button variant="outline" onClick={() => navigate(ROUTES.MY_TIMESHEETS)}>
                   <ClipboardList className="size-4 me-1.5" /> My Timesheets
                 </Button>
-                <Button variant="outline" onClick={() => navigate('/my-roster')}>
+                <Button variant="outline" onClick={() => navigate(ROUTES.MY_ROSTER)}>
                   <Calendar className="size-4 me-1.5" /> View Roster
                 </Button>
               </div>

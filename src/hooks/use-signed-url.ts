@@ -1,5 +1,4 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
 import { SignedUrlBatcher } from '@/lib/signed-url-batcher';
 import { QUERY_KEYS } from '@/config/query-keys';
 

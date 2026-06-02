@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router';
-import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/auth/context/auth-context';
 import { format, parseISO, subDays, isBefore } from 'date-fns';
 import {
@@ -32,7 +31,9 @@ import {
 import { DataGrid } from '@/components/ui/data-grid';
 import { DataGridTable } from '@/components/ui/data-grid-table';
 import { DataGridPagination } from '@/components/ui/data-grid-pagination';
-import { TABLES } from '@/config/db-tables';
+import { timesheetsApi } from '@/api/timesheets.api';
+import { rosterApi } from '@/api/roster.api';
+import { ROUTES } from '@/config/routes.config';
 
 interface Timesheet {
   id: string;
@@ -110,82 +111,73 @@ export function StaffTimesheetList() {
     const thirtyDaysAgo = subDays(now, 30).toISOString().split('T')[0];
     const todayStr = format(now, 'yyyy-MM-dd');
 
-    // 1. Fetch existing timesheets
-    const { data: existingTs } = await supabase
-      .from(TABLES.TIMESHEETS)
-      .select(`
-        id, shift_id, clock_in, clock_out, actual_start, actual_end,
-        break_minutes, shift_notes_text, status, admin_notes,
-        rejection_reason, submitted_at, incident_tag, sick_shift,
-        overtime_hours, travel_km, created_at,
-        shift:ic_staff_shifts!timesheets_shift_id_fkey(id, start_date, end_date, start_time, end_time, shift_template, house:${TABLES.HOUSES}(house_name))
-      `)
-      .eq('staff_id', user.staff_id)
-      .order('created_at', { ascending: false });
+    try {
+      // 1. Fetch existing timesheets via DAL
+      const existingTs = await timesheetsApi.listByStaff(user.staff_id);
 
-    // 2. Fetch shifts from the last 30 days
-    const { data: pastShifts } = await supabase
-      .from(TABLES.STAFF_SHIFTS)
-      .select(`
-        id, start_date, end_date, start_time, end_time, shift_template,
-        house:${TABLES.HOUSES}(house_name)
-      `)
-      .eq('staff_id', user.staff_id)
-      .gte('end_date', thirtyDaysAgo)
-      .lte('start_date', todayStr)
-      .order('start_date', { ascending: false });
+      // 2. Fetch shifts from the last 30 days via DAL
+      const pastShifts = await rosterApi.listShifts({
+        staffId: user.staff_id,
+        startDate: thirtyDaysAgo,
+        endDate: todayStr
+      });
 
-    const tsList = (existingTs as Timesheet[]) || [];
-    const shifts = (pastShifts as any[]) || []; // Keeping any here for simplicity as it's a complex join
+      const tsList = (existingTs as Timesheet[]) || [];
+      const shifts = (pastShifts as any[]) || [];
 
-    // 3. Identify shifts that have passed but have no timesheet
-    const timesheetedShiftIds = new Set(tsList.map(ts => ts.shift_id).filter(Boolean) as string[]);
-    
-    const missingTimesheets: Timesheet[] = shifts
-      .filter(s => {
-        // If it already has a timesheet, skip
-        if (timesheetedShiftIds.has(s.id)) return false;
-        
-        // Check if the shift has actually finished
-        const shiftEnd = parseISO(`${s.end_date}T${s.end_time}`);
-        return isBefore(shiftEnd, now);
-      })
-      .map(s => ({
-        id: `missing-${s.id}`,
-        shift_id: s.id,
-        clock_in: `${s.start_date}T${s.start_time}`,
-        clock_out: `${s.end_date}T${s.end_time}`,
-        actual_start: null,
-        actual_end: null,
-        break_minutes: 0,
-        shift_notes_text: null,
-        status: 'missing' as const,
-        admin_notes: null,
-        rejection_reason: null,
-        submitted_at: null,
-        incident_tag: false,
-        sick_shift: false,
-        overtime_hours: 0,
-        travel_km: 0,
-        created_at: `${s.start_date}T${s.start_time}`,
-        shift: {
-          start_date: s.start_date,
-          start_time: s.start_time,
-          end_time: s.end_time,
-          shift_template: s.shift_template,
-          house: s.house
-        }
-      }));
+      // 3. Identify shifts that have passed but have no timesheet
+      const timesheetedShiftIds = new Set(tsList.map(ts => ts.shift_id).filter(Boolean) as string[]);
+      
+      const missingTimesheets: Timesheet[] = shifts
+        .filter(s => {
+          if (s.entry_type !== 'shift') return false;
+          // If it already has a timesheet, skip
+          if (timesheetedShiftIds.has(s.id)) return false;
+          
+          // Check if the shift has actually finished
+          const shiftEnd = parseISO(`${s.end_date}T${s.end_time}`);
+          return isBefore(shiftEnd, now);
+        })
+        .map(s => ({
+          id: `missing-${s.id}`,
+          shift_id: s.id,
+          clock_in: `${s.start_date}T${s.start_time}`,
+          clock_out: `${s.end_date}T${s.end_time}`,
+          actual_start: null,
+          actual_end: null,
+          break_minutes: 0,
+          shift_notes_text: null,
+          status: 'missing' as const,
+          admin_notes: null,
+          rejection_reason: null,
+          submitted_at: null,
+          incident_tag: false,
+          sick_shift: false,
+          overtime_hours: 0,
+          travel_km: 0,
+          created_at: `${s.start_date}T${s.start_time}`,
+          shift: {
+            start_date: s.start_date,
+            start_time: s.start_time,
+            end_time: s.end_time,
+            shift_template: s.shift_template,
+            house: s.house
+          }
+        }));
 
-    // 4. Combine and sort
-    const combined = [...missingTimesheets, ...tsList].sort((a, b) => {
-      const dateA = a.shift?.start_date || a.clock_in;
-      const dateB = b.shift?.start_date || b.clock_in;
-      return dateB.localeCompare(dateA);
-    });
+      // 4. Combine and sort
+      const combined = [...missingTimesheets, ...tsList].sort((a, b) => {
+        const dateA = a.shift?.start_date || a.clock_in || '';
+        const dateB = b.shift?.start_date || b.clock_in || '';
+        return dateB.localeCompare(dateA);
+      });
 
-    setTimesheets(combined);
-    setLoading(false);
+      setTimesheets(combined);
+    } catch (error) {
+      console.error('Error loading timesheets:', error);
+    } finally {
+      setLoading(false);
+    }
   }, [user?.staff_id]);
 
   useEffect(() => { fetchTimesheets(); }, [fetchTimesheets]);
@@ -292,7 +284,7 @@ export function StaffTimesheetList() {
                 size="sm"
                 variant="outline"
                 className="h-7 px-2.5 text-xs font-bold gap-1.5"
-                onClick={() => navigate(`/my-roster/${ts.shift_id}/timesheet`, { state: { fromTab: activeTab } })}
+                onClick={() => navigate(`${ROUTES.MY_ROSTER}/${ts.shift_id}/timesheet`, { state: { fromTab: activeTab } })}
               >
                 <FileText className="size-3.5" />
                 View Timesheet
@@ -303,7 +295,7 @@ export function StaffTimesheetList() {
                 size="sm"
                 variant="outline"
                 className="h-7 px-2.5 text-xs font-bold"
-                onClick={() => navigate(`/my-roster/${ts.shift_id}/timesheet`, { state: { fromTab: activeTab } })}
+                onClick={() => navigate(`${ROUTES.MY_ROSTER}/${ts.shift_id}/timesheet`, { state: { fromTab: activeTab } })}
               >
                 Submit <ChevronRight className="size-3.5 ms-1" />
               </Button>

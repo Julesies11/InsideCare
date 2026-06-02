@@ -18,6 +18,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { LoaderCircleIcon } from 'lucide-react';
 import { getSignupSchema, SignupSchemaType } from '../forms/signup-schema';
+import { ROUTES } from '@/config/routes.config';
 
 export function SignUpPage() {
   const navigate = useNavigate();
@@ -64,7 +65,7 @@ export function SignUpPage() {
 
       // Optionally redirect to login page after a delay
       setTimeout(() => {
-        navigate('/auth/signin');
+        navigate(ROUTES.AUTH_SIGNIN);
       }, 3000);
     } catch (err) {
       console.error('Registration error:', err);
@@ -263,7 +264,7 @@ export function SignUpPage() {
         <div className="text-center text-sm text-muted-foreground">
           Already have an account?{' '}
           <Link
-            to="/auth/signin"
+            to={ROUTES.AUTH_SIGNIN}
             className="text-sm font-semibold text-foreground hover:text-primary"
           >
             Sign In

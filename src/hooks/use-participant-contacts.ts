@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { TABLES } from '@/config/db-tables';
+import { participantDetailsApi } from '@/api/participant-details.api';
 import { QUERY_KEYS } from '@/config/query-keys';
 
 export interface ParticipantContact {
@@ -21,36 +20,12 @@ export interface ParticipantContact {
   updated_at?: string;
 }
 
-const CONTACT_COLUMNS = `
-  id,
-  participant_id,
-  contact_name,
-  contact_type_id,
-  phone,
-  email,
-  address,
-  notes,
-  is_active,
-  created_at,
-  updated_at,
-  contact_type:ic_contact_types_master(
-    id,
-    contact_type_name
-  )
-`;
-
 export function useParticipantContacts(participantId?: string) {
   return useQuery({
     queryKey: [QUERY_KEYS.PARTICIPANT_CONTACTS, participantId],
     queryFn: async () => {
       if (!participantId) return [];
-      const { data, error } = await supabase
-        .from(TABLES.PARTICIPANT_CONTACTS)
-        .select(CONTACT_COLUMNS)
-        .eq('participant_id', participantId)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      const data = await participantDetailsApi.contacts.list(participantId);
 
       return (data || []).map(item => ({
         ...item,
@@ -67,17 +42,8 @@ export function useAddParticipantContact() {
 
   return useMutation({
     mutationFn: async (contact: Omit<ParticipantContact, 'id' | 'created_at' | 'updated_at'>) => {
-      const { data, error } = await supabase
-        .from(TABLES.PARTICIPANT_CONTACTS)
-        .insert(contact)
-        .select(CONTACT_COLUMNS)
-        .maybeSingle();
-
-      if (error) throw error;
-      if (!data) {
-        throw new Error('You do not have permission to add a contact for this participant.');
-      }
-      return data as ParticipantContact;
+      const data = await participantDetailsApi.contacts.upsert(contact as any);
+      return (Array.isArray(data) ? data[0] : data) as ParticipantContact;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PARTICIPANT_CONTACTS, data.participant_id] });
@@ -90,18 +56,8 @@ export function useUpdateParticipantContact() {
 
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<ParticipantContact> }) => {
-      const { data, error } = await supabase
-        .from(TABLES.PARTICIPANT_CONTACTS)
-        .update(updates)
-        .eq('id', id)
-        .select(CONTACT_COLUMNS)
-        .maybeSingle();
-
-      if (error) throw error;
-      if (!data) {
-        throw new Error('You do not have permission to update this contact.');
-      }
-      return data as ParticipantContact;
+      const data = await participantDetailsApi.contacts.upsert({ id, ...updates } as any);
+      return (Array.isArray(data) ? data[0] : data) as ParticipantContact;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PARTICIPANT_CONTACTS, data.participant_id] });
@@ -114,12 +70,7 @@ export function useDeleteParticipantContact() {
 
   return useMutation({
     mutationFn: async ({ id, participantId }: { id: string; participantId: string }) => {
-      const { error } = await supabase
-        .from(TABLES.PARTICIPANT_CONTACTS)
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
+      await participantDetailsApi.contacts.delete(id);
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PARTICIPANT_CONTACTS, variables.participantId] });

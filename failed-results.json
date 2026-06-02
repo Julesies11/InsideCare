@@ -1,0 +1,162 @@
+[
+  {
+    "title": "Admin can access Roster Board and see management tools",
+    "file": "/Users/juliangibbings/Documents/Code/InsideCare/tests/e2e/admin.spec.ts",
+    "line": 6,
+    "status": "failed",
+    "duration": 8700,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('button', { name: /Build Roster/i }).or(getByRole('button', { name: /Add Shift/i }))\nExpected: visible\nError: strict mode violation: getByRole('button', { name: /Build Roster/i }).or(getByRole('button', { name: /Add Shift/i })) resolved to 3 elements:\n    1) <button data-slot=\"button\" class=\"cursor-pointer group focus-visible:outline-hidden inline-flex items-center has-data-[arrow=true]:justify-between whitespace-nowrap ring-offset-background disabled:pointer-events-none disabled:opacity-60 [&_svg]:shrink-0 border data-[state=open]:bg-accent rounded-md [&_svg:not([class*=size-])]:size-3.5 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 [&_svg:not([role=img]):not([class*=text-]):not([class*=opacity-])]:opacity-60 shadow-black/5 h-7…>…</button> aka getByRole('button', { name: 'BUILD ROSTER' }).first()\n    2) <button data-slot=\"button\" class=\"cursor-pointer group focus-visible:outline-hidden inline-flex items-center has-data-[arrow=true]:justify-between whitespace-nowrap ring-offset-background disabled:pointer-events-none disabled:opacity-60 [&_svg]:shrink-0 border data-[state=open]:bg-accent rounded-md [&_svg:not([class*=size-])]:size-3.5 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 [&_svg:not([role=img]):not([class*=text-]):not([class*=opacity-])]:opacity-60 shadow-black/5 h-7…>…</button> aka getByRole('button', { name: 'BUILD ROSTER' }).nth(1)\n    3) <button data-slot=\"button\" class=\"cursor-pointer group focus-visible:outline-hidden inline-flex items-center has-data-[arrow=true]:justify-between whitespace-nowrap ring-offset-background disabled:pointer-events-none disabled:opacity-60 [&_svg]:shrink-0 border data-[state=open]:bg-accent rounded-md [&_svg:not([class*=size-])]:size-3.5 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 [&_svg:not([role=img]):not([class*=text-]):not([class*=opacity-])]:opacity-60 shadow-black/5 h-7…>…</button> aka getByRole('button', { name: 'BUILD ROSTER' }).nth(2)\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: /Build Roster/i }).or(getByRole('button', { name: /Add Shift/i }))\u001b[22m\n"
+  },
+  {
+    "title": "Complete Staff Record Lifecycle",
+    "file": "/Users/juliangibbings/Documents/Code/InsideCare/tests/e2e/crud-lifecycle.spec.ts",
+    "line": 13,
+    "status": "failed",
+    "duration": 21451,
+    "error": "TimeoutError: locator.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByLabel(/Full Name/i)\u001b[22m\n"
+  },
+  {
+    "title": "Complete Participant Record Lifecycle",
+    "file": "/Users/juliangibbings/Documents/Code/InsideCare/tests/e2e/crud-lifecycle.spec.ts",
+    "line": 66,
+    "status": "failed",
+    "duration": 22496,
+    "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('tab', { name: /Goals/i })\u001b[22m\n"
+  },
+  {
+    "title": "Create and Configure House",
+    "file": "/Users/juliangibbings/Documents/Code/InsideCare/tests/e2e/crud-lifecycle.spec.ts",
+    "line": 106,
+    "status": "failed",
+    "duration": 19549,
+    "error": "TimeoutError: locator.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByLabel(/House Name/i)\u001b[22m\n"
+  },
+  {
+    "title": "Create and Fully Configure House Record",
+    "file": "/Users/juliangibbings/Documents/Code/InsideCare/tests/e2e/house-marathon.spec.ts",
+    "line": 10,
+    "status": "failed",
+    "duration": 21324,
+    "error": "TimeoutError: locator.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByLabel(/House Name/i)\u001b[22m\n"
+  },
+  {
+    "title": "Admin can access Leave Types page and manage list",
+    "file": "/Users/juliangibbings/Documents/Code/InsideCare/tests/e2e/leave-types.spec.ts",
+    "line": 6,
+    "status": "failed",
+    "duration": 37079,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('heading', { name: /Leave Types Configuration/i })\nExpected: visible\nTimeout: 30000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 30000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('heading', { name: /Leave Types Configuration/i })\u001b[22m\n"
+  },
+  {
+    "title": "Create and Fully Populate Participant Record",
+    "file": "/Users/juliangibbings/Documents/Code/InsideCare/tests/e2e/participant-marathon.spec.ts",
+    "line": 10,
+    "status": "failed",
+    "duration": 26473,
+    "error": "TimeoutError: locator.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByLabel(/Personal Mobile/i)\u001b[22m\n"
+  },
+  {
+    "title": "Create and Fully Populate Staff Record",
+    "file": "/Users/juliangibbings/Documents/Code/InsideCare/tests/e2e/staff-marathon.spec.ts",
+    "line": 10,
+    "status": "failed",
+    "duration": 22030,
+    "error": "TimeoutError: locator.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByLabel(/Full Name/i)\u001b[22m\n"
+  },
+  {
+    "title": "Admin can access Roster Board and see management tools",
+    "file": "/Users/juliangibbings/Documents/Code/InsideCare/tests/e2e/admin.spec.ts",
+    "line": 6,
+    "status": "failed",
+    "duration": 9426,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('button', { name: /Build Roster/i }).or(getByRole('button', { name: /Add Shift/i }))\nExpected: visible\nError: strict mode violation: getByRole('button', { name: /Build Roster/i }).or(getByRole('button', { name: /Add Shift/i })) resolved to 5 elements:\n    1) <button data-slot=\"button\" class=\"cursor-pointer group focus-visible:outline-hidden inline-flex items-center has-data-[arrow=true]:justify-between whitespace-nowrap ring-offset-background disabled:pointer-events-none disabled:opacity-60 [&_svg]:shrink-0 border data-[state=open]:bg-accent rounded-md [&_svg:not([class*=size-])]:size-3.5 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 [&_svg:not([role=img]):not([class*=text-]):not([class*=opacity-])]:opacity-60 shadow-black/5 h-7…>…</button> aka getByRole('button', { name: 'BUILD ROSTER' }).first()\n    2) <button data-slot=\"button\" class=\"cursor-pointer group focus-visible:outline-hidden inline-flex items-center has-data-[arrow=true]:justify-between whitespace-nowrap ring-offset-background disabled:pointer-events-none disabled:opacity-60 [&_svg]:shrink-0 border data-[state=open]:bg-accent rounded-md [&_svg:not([class*=size-])]:size-3.5 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 [&_svg:not([role=img]):not([class*=text-]):not([class*=opacity-])]:opacity-60 shadow-black/5 h-7…>…</button> aka getByRole('button', { name: 'BUILD ROSTER' }).nth(1)\n    3) <button data-slot=\"button\" class=\"cursor-pointer group focus-visible:outline-hidden inline-flex items-center has-data-[arrow=true]:justify-between whitespace-nowrap ring-offset-background disabled:pointer-events-none disabled:opacity-60 [&_svg]:shrink-0 border data-[state=open]:bg-accent rounded-md [&_svg:not([class*=size-])]:size-3.5 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 [&_svg:not([role=img]):not([class*=text-]):not([class*=opacity-])]:opacity-60 shadow-black/5 h-7…>…</button> aka getByRole('button', { name: 'BUILD ROSTER' }).nth(2)\n    4) <button data-slot=\"button\" class=\"cursor-pointer group focus-visible:outline-hidden inline-flex items-center has-data-[arrow=true]:justify-between whitespace-nowrap ring-offset-background disabled:pointer-events-none disabled:opacity-60 [&_svg]:shrink-0 border data-[state=open]:bg-accent rounded-md [&_svg:not([class*=size-])]:size-3.5 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 [&_svg:not([role=img]):not([class*=text-]):not([class*=opacity-])]:opacity-60 shadow-black/5 h-7…>…</button> aka getByRole('button', { name: 'BUILD ROSTER' }).nth(3)\n    5) <button data-slot=\"button\" class=\"cursor-pointer group focus-visible:outline-hidden inline-flex items-center has-data-[arrow=true]:justify-between whitespace-nowrap ring-offset-background disabled:pointer-events-none disabled:opacity-60 [&_svg]:shrink-0 border data-[state=open]:bg-accent rounded-md [&_svg:not([class*=size-])]:size-3.5 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 [&_svg:not([role=img]):not([class*=text-]):not([class*=opacity-])]:opacity-60 shadow-black/5 h-7…>…</button> aka getByRole('button', { name: 'BUILD ROSTER' }).nth(4)\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: /Build Roster/i }).or(getByRole('button', { name: /Add Shift/i }))\u001b[22m\n"
+  },
+  {
+    "title": "Complete Participant Record Lifecycle",
+    "file": "/Users/juliangibbings/Documents/Code/InsideCare/tests/e2e/crud-lifecycle.spec.ts",
+    "line": 66,
+    "status": "failed",
+    "duration": 9207,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText(/Participant Profile/i)\nExpected: visible\nError: strict mode violation: getByText(/Participant Profile/i) resolved to 2 elements:\n    1) <h1 class=\"text-xl font-semibold text-gray-900 dark:text-gray-100\">Participant Profiles</h1> aka getByRole('heading', { name: 'Participant Profiles' })\n    2) <p class=\"text-sm text-blue-700 dark:text-blue-300\">Each participant profile represents a unique stor…</p> aka getByText('Each participant profile')\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 30000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/Participant Profile/i)\u001b[22m\n"
+  },
+  {
+    "title": "Complete Staff Record Lifecycle",
+    "file": "/Users/juliangibbings/Documents/Code/InsideCare/tests/e2e/crud-lifecycle.spec.ts",
+    "line": 13,
+    "status": "failed",
+    "duration": 23513,
+    "error": "TimeoutError: locator.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByLabel(/Full Name/i)\u001b[22m\n"
+  },
+  {
+    "title": "Create and Configure House",
+    "file": "/Users/juliangibbings/Documents/Code/InsideCare/tests/e2e/crud-lifecycle.spec.ts",
+    "line": 106,
+    "status": "failed",
+    "duration": 21851,
+    "error": "TimeoutError: locator.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByLabel(/House Name/i)\u001b[22m\n"
+  },
+  {
+    "title": "Create and Fully Configure House Record",
+    "file": "/Users/juliangibbings/Documents/Code/InsideCare/tests/e2e/house-marathon.spec.ts",
+    "line": 10,
+    "status": "failed",
+    "duration": 22792,
+    "error": "TimeoutError: locator.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByLabel(/House Name/i)\u001b[22m\n"
+  },
+  {
+    "title": "Create and Fully Populate Participant Record",
+    "file": "/Users/juliangibbings/Documents/Code/InsideCare/tests/e2e/participant-marathon.spec.ts",
+    "line": 10,
+    "status": "failed",
+    "duration": 35141,
+    "error": "TimeoutError: locator.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByLabel(/Personal Mobile/i)\u001b[22m\n"
+  },
+  {
+    "title": "Edit participant basic info and verify dirty tracking",
+    "file": "/Users/juliangibbings/Documents/Code/InsideCare/tests/e2e/participants-comprehensive.spec.ts",
+    "line": 47,
+    "status": "failed",
+    "duration": 21487,
+    "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: /Dashboard/i }).first()\u001b[22m\n"
+  },
+  {
+    "title": "Manage Medications - Add Medication dialog",
+    "file": "/Users/juliangibbings/Documents/Code/InsideCare/tests/e2e/participants-comprehensive.spec.ts",
+    "line": 72,
+    "status": "failed",
+    "duration": 23631,
+    "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /Add Medication/i })\u001b[22m\n\u001b[2m    - locator resolved to <button data-slot=\"button\" class=\"cursor-pointer group focus-visible:outline-hidden inline-flex items-center justify-center has-data-[arrow=true]:justify-between whitespace-nowrap font-medium ring-offset-background transition-[color,box-shadow] disabled:pointer-events-none disabled:opacity-60 [&_svg]:shrink-0 bg-secondary text-secondary-foreground hover:bg-secondary/90 data-[state=open]:bg-secondary/90 h-7 rounded-md px-2.5 gap-1.25 text-xs [&_svg:not([class*=size-])]:size-3.5 focus-visible:ring-2 foc…>…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not stable\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - <div data-slot=\"card-header\" class=\"flex items-center justify-between flex-wrap px-5 min-h-14 gap-2.5 border-b border-border\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m  - retrying click action\u001b[22m\n\u001b[2m    - waiting 100ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is not stable\u001b[22m\n\u001b[2m  - retrying click action\u001b[22m\n\u001b[2m    - waiting 100ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div data-slot=\"card-header\" class=\"flex items-center justify-between flex-wrap px-5 min-h-14 gap-2.5 border-b border-border\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n\u001b[2m    3 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <textarea rows=\"5\" data-slot=\"textarea\" id=\"medical_routine_other\" placeholder=\"Describe any other medical routine information...\" class=\"w-full border border-input bg-background shadow-xs shadow-black/5 transition-[color,box-shadow] text-foreground placeholder:text-muted-foreground/80 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-50 [&[readonly]]:opacity-70 aria-invalid:border-destructive/60 aria-inv…>Some other</textarea> from <div data-slot=\"card\" id=\"medical-routine\" class=\"flex flex-col items-stretch text-card-foreground rounded-xl bg-card border border-border shadow-xs black/5 pb-2.5\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n\u001b[2m      - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"flex flex-wrap items-center lg:items-end justify-between gap-5 py-4\">…</div> from <div class=\"sticky top-0 z-20 bg-background border-b border-border\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n\u001b[2m      - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"flex flex-wrap items-center lg:items-end justify-between gap-5 py-4\">…</div> from <div class=\"sticky top-0 z-20 bg-background border-b border-border\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n\u001b[2m      - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div data-slot=\"card-header\" class=\"flex items-center justify-between flex-wrap px-5 min-h-14 gap-2.5 border-b border-border\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - <textarea rows=\"5\" data-slot=\"textarea\" id=\"medical_routine_other\" placeholder=\"Describe any other medical routine information...\" class=\"w-full border border-input bg-background shadow-xs shadow-black/5 transition-[color,box-shadow] text-foreground placeholder:text-muted-foreground/80 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-50 [&[readonly]]:opacity-70 aria-invalid:border-destructive/60 aria-inv…>Some other</textarea> from <div data-slot=\"card\" id=\"medical-routine\" class=\"flex flex-col items-stretch text-card-foreground rounded-xl bg-card border border-border shadow-xs black/5 pb-2.5\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  - retrying click action\u001b[22m\n\u001b[2m    - waiting 500ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - <div class=\"flex flex-wrap items-center lg:items-end justify-between gap-5 py-4\">…</div> from <div class=\"sticky top-0 z-20 bg-background border-b border-border\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  - retrying click action\u001b[22m\n\u001b[2m    - waiting 500ms\u001b[22m\n"
+  },
+  {
+    "title": "Admin has full access to management tools",
+    "file": "/Users/juliangibbings/Documents/Code/InsideCare/tests/e2e/rbac-granular-comprehensive.spec.ts",
+    "line": 8,
+    "status": "failed",
+    "duration": 31747,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('link', { name: /Access Control/i })\nExpected: visible\nTimeout: 30000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 30000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('link', { name: /Access Control/i })\u001b[22m\n"
+  },
+  {
+    "title": "Navigate to detailed shift note form and verify sections",
+    "file": "/Users/juliangibbings/Documents/Code/InsideCare/tests/e2e/shift-notes.spec.ts",
+    "line": 14,
+    "status": "failed",
+    "duration": 35794,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('Overview', { exact: true })\nExpected: visible\nTimeout: 30000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 30000ms\u001b[22m\n\u001b[2m  - waiting for getByText('Overview', { exact: true })\u001b[22m\n"
+  },
+  {
+    "title": "Create and Fully Populate Staff Record",
+    "file": "/Users/juliangibbings/Documents/Code/InsideCare/tests/e2e/staff-marathon.spec.ts",
+    "line": 10,
+    "status": "failed",
+    "duration": 40256,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('heading', { name: /Staff Details/i })\nExpected: visible\nTimeout: 30000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 30000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('heading', { name: /Staff Details/i })\u001b[22m\n"
+  },
+  {
+    "title": "Form Dirty Tracking and Navigation Blocking",
+    "file": "/Users/juliangibbings/Documents/Code/InsideCare/tests/e2e/ui-components.spec.ts",
+    "line": 50,
+    "status": "failed",
+    "duration": 37591,
+    "error": "TimeoutError: locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: /Dashboard/i }).first()\u001b[22m\n"
+  }
+]

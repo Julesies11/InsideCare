@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
-import { TABLES } from '@/config/db-tables';
+import { housesApi } from '@/api/houses.api';
 
 export interface HouseFormAssignment {
   id: string;
@@ -17,22 +16,22 @@ export interface HouseFormAssignment {
   updated_at: string;
   participant?: {
     id: string;
-    house_form_name?: string; staff_name?: string; participant_name?: string;
+    participant_name?: string;
     email?: string;
   };
   staff?: {
     id: string;
-    house_form_name?: string; staff_name?: string; participant_name?: string;
+    staff_name?: string;
     email?: string;
   };
   assigned_by_staff?: {
     id: string;
-    house_form_name?: string; staff_name?: string; participant_name?: string;
+    staff_name?: string;
     email?: string;
   };
   completed_by_staff?: {
     id: string;
-    house_form_name?: string; staff_name?: string; participant_name?: string;
+    staff_name?: string;
     email?: string;
   };
 }
@@ -40,7 +39,7 @@ export interface HouseFormAssignment {
 export interface HouseForm {
   id: string;
   house_id: string;
-  house_form_name?: string; staff_name?: string; participant_name?: string;
+  house_form_name?: string;
   type: string;
   description?: string;
   frequency: string;
@@ -51,10 +50,10 @@ export interface HouseForm {
   updated_at: string;
   creator?: {
     id: string;
-    house_form_name?: string; staff_name?: string; participant_name?: string;
+    staff_name?: string;
     email?: string;
   };
-  assignments?: HouseFormAssignment[];
+  house_form_assignments?: HouseFormAssignment[];
 }
 
 export function useHouseForms(houseId?: string) {
@@ -72,36 +71,7 @@ export function useHouseForms(houseId?: string) {
     const fetchHouseForms = async () => {
       try {
         setLoading(true);
-        
-        const { data, error } = await supabase
-          .from(TABLES.HOUSE_FORMS)
-          .select(`
-            *,
-            creator:ic_staff!fk_ic_house_forms_created_by(id, staff_name, email),
-            house_form_assignments:ic_house_form_assignments(
-              id,
-              form_id,
-              participant_id,
-              staff_id,
-              assigned_by,
-              due_date,
-              status,
-              completed_at,
-              completed_by,
-              notes,
-              created_at,
-              updated_at,
-              participant:ic_participants(id, participant_name, email),
-              staff:ic_staff!house_form_assignments_staff_id_fkey(id, staff_name, email),
-              assigned_by_staff:ic_staff!house_form_assignments_assigned_by_fkey(id, staff_name, email),
-              completed_by_staff:ic_staff!house_form_assignments_completed_by_fkey(id, staff_name, email)
-            )
-          `)
-          .eq('house_id', houseId)
-          .order('created_at', { ascending: false });
-
-        if (error) throw error;
-
+        const data = await housesApi.listForms(houseId);
         setHouseForms(data || []);
         setError(null);
       } catch (err) {

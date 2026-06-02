@@ -6,7 +6,7 @@ test.describe('Admin Workflows', () => {
   test('Admin can access Roster Board and see management tools', async ({ page }) => {
     await page.goto('/roster-board');
     await expect(page.getByRole('button', { name: /Today/i })).toBeVisible({ timeout: 15000 });
-    await expect(page.getByRole('button', { name: /Build Roster/i }).or(page.getByRole('button', { name: /Add Shift/i }))).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('button', { name: /Build Roster/i }).or(page.getByRole('button', { name: /Add Shift/i })).first()).toBeVisible({ timeout: 15000 });
   });
 
   test('Admin can view Activity Log', async ({ page }) => {

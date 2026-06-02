@@ -44,6 +44,7 @@ import { Staff, useStaff } from '@/hooks/use-staff';
 import { useNavigate } from 'react-router';
 import { useSearchParams } from 'react-router';
 import { useDebounce } from '@/hooks/use-debounce';
+import { ROUTES } from '@/config/routes.config';
 
 import { RBAC_MODULES } from '@/config/rbac-modules';
 import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
@@ -65,7 +66,7 @@ function ActionsCell({ row }: { row: Row<Staff> }) {
   });
 
   const handleEdit = () => {
-    navigate(`/employees/staff-detail/${row.original.id}`);
+    navigate(`${ROUTES.STAFF_DETAIL}/${row.original.id}`);
   };
 
   return (

@@ -18,6 +18,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { SecureAvatar } from '@/components/ui/secure-avatar';
 import { STORAGE_BUCKETS } from '@/config/storage-buckets';
+import { ROUTES } from '@/config/routes.config';
 
 export function UserDropdownMenu({ trigger }: { trigger: ReactNode }) {
   const { logout, user } = useAuth();
@@ -59,7 +60,7 @@ export function UserDropdownMenu({ trigger }: { trigger: ReactNode }) {
             />
             <div className="flex flex-col">
               <Link
-                to="/staff/profile"
+                to={ROUTES.STAFF_PROFILE}
                 className="text-sm text-mono hover:text-primary font-semibold"
               >
                 {displayName}
@@ -79,7 +80,7 @@ export function UserDropdownMenu({ trigger }: { trigger: ReactNode }) {
         {/* Menu Items */}
         <DropdownMenuItem asChild>
           <Link
-            to="/staff/profile"
+            to={ROUTES.STAFF_PROFILE}
             className="flex items-center gap-2"
           >
             <UserCircle className="size-4" />
@@ -89,7 +90,7 @@ export function UserDropdownMenu({ trigger }: { trigger: ReactNode }) {
 
         <DropdownMenuItem asChild>
           <Link
-            to="/account/notifications"
+            to={ROUTES.NOTIFICATIONS}
             className="flex items-center gap-2"
           >
             <Bell className="size-4" />

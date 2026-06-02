@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router';
 import { Error404 } from './error-404';
 import { Error403 } from './error-403';
 import { Error500 } from './error-500';
+import { ROUTES } from '@/config/routes.config';
 
 export function ErrorRouting() {
   return (
@@ -12,7 +13,7 @@ export function ErrorRouting() {
         <Route path="403" element={<Error403 />} />
         <Route path="404" element={<Error404 />} />
         <Route path="500" element={<Error500 />} />
-        <Route path="*" element={<Navigate to="/error/404" />} />
+        <Route path="*" element={<Navigate to={ROUTES.ERROR_404} />} />
       </Route>
     </Routes>
   );

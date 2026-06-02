@@ -25,38 +25,17 @@ import {
 } from '@/components/ui/data-grid-table';
 
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { TABLES } from '@/config/db-tables';
+import { housesApi } from '@/api/houses.api';
 import { useNavigate } from 'react-router';
 import { getPeriodTheme } from '@/lib/utils';
-import { STATUS } from '@/config/enums';
+import { ROUTES } from '@/config/routes.config';
 
 export function ShiftTemplatesTable() {
   const navigate = useNavigate();
 
   const { data: houses, isLoading } = useQuery({
     queryKey: ['houses-with-shift-templates'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from(TABLES.HOUSES)
-        .select(`
-          id, 
-          house_name, 
-          address,
-          templates:ic_house_shift_templates(
-            id, 
-            shift_template_name, 
-            color_theme, 
-            sort_order, 
-            is_active
-          )
-        `)
-        .eq('status', STATUS.active)
-        .order('house_name');
-      
-      if (error) throw error;
-      return data || [];
-    }
+    queryFn: () => housesApi.listWithTemplates()
   });
 
   const columns = useMemo<ColumnDef<any>[]>(() => [

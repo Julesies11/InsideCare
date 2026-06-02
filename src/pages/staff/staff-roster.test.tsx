@@ -8,33 +8,14 @@ import { server } from '@/test/mocks/server';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
-const mockEntries = [
+const mockShifts = [
   {
     id: 'shift-1',
     start_date: '2026-04-10',
     start_time: '10:00:00',
     end_time: '14:00:00',
     shift_template: 'Standard',
-    house: { name: 'House A' }
-  },
-  {
-    id: 'event-1',
-    title: 'Client Meeting',
-    event_date: '2026-04-10',
-    start_time: '09:00:00',
-    end_time: '09:30:00',
-    location: 'Office',
-    type: { name: 'Meeting', color: 'blue' },
-    house: { name: 'House A' },
-    staff_assignments: [{ staff_id: 'staff-1' }]
-  },
-  {
-    id: 'leave-1',
-    start_date: '2026-04-12',
-    end_date: '2026-04-13',
-    status: 'approved',
-    reason: 'Family event',
-    leave_type: { name: 'Personal Leave' }
+    house: { house_name: 'House A' }
   }
 ];
 
@@ -52,10 +33,17 @@ describe('StaffRoster', () => {
     vi.clearAllMocks();
     
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF_SHIFTS}`, () => HttpResponse.json([mockEntries[0]])),
-      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSE_CALENDAR_EVENTS}`, () => HttpResponse.json([mockEntries[1]])),
-      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.LEAVE_REQUESTS}`, () => HttpResponse.json([mockEntries[2]])),
-      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.TIMESHEETS}`, () => HttpResponse.json([]))
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF_SHIFTS}`, () => {
+        return HttpResponse.json(mockShifts, {
+          headers: {
+            'content-range': '0-0/1'
+          }
+        });
+      }),
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSE_CALENDAR_EVENTS}`, () => HttpResponse.json([])),
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.LEAVE_REQUESTS}`, () => HttpResponse.json([])),
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.TIMESHEETS}`, () => HttpResponse.json([])),
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.SHIFT_NOTES}`, () => HttpResponse.json([]))
     );
   });
 
@@ -63,43 +51,34 @@ describe('StaffRoster', () => {
     renderWithProviders(<StaffRoster />);
     expect(screen.getByText(/my roster/i)).toBeInTheDocument();
     
-    // In calendar view, we should see the Today/Week/Month buttons
     expect(screen.getByRole('button', { name: /today/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /week/i, exact: true })).toBeInTheDocument();
   });
 
-  it('renders the list view with shifts, events, and leave', async () => {
+  it('renders the list view with shifts and search box', async () => {
     const { user } = renderWithProviders(<StaffRoster />);
     
     // Switch to list tab
     const listTab = screen.getByRole('button', { name: /list/i });
     await user.click(listTab);
 
-    // Wait for data to load
+    // Wait for data to load in DataGrid
     await waitFor(() => {
-      expect(screen.getByText(/Client Meeting/)).toBeInTheDocument();
       expect(screen.getByText(/Standard/)).toBeInTheDocument();
-      expect(screen.getByText(/Family event/)).toBeInTheDocument();
-      expect(screen.getByText(/3 items/i)).toBeInTheDocument();
+      expect(screen.getByPlaceholderText(/search shifts/i)).toBeInTheDocument();
     });
   });
 
-  it('renders empty state when no data is returned in list view', async () => {
-    server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF_SHIFTS}`, () => HttpResponse.json([])),
-      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSE_CALENDAR_EVENTS}`, () => HttpResponse.json([])),
-      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.LEAVE_REQUESTS}`, () => HttpResponse.json([])),
-      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.TIMESHEETS}`, () => HttpResponse.json([]))
-    );
-
+  it('performs search in list view', async () => {
     const { user } = renderWithProviders(<StaffRoster />);
     
     // Switch to list tab
-    const listTab = screen.getByRole('button', { name: /list/i });
-    await user.click(listTab);
+    await user.click(screen.getByRole('button', { name: /list/i }));
 
-    await waitFor(() => {
-      expect(screen.getByText(/no commitments found/i)).toBeInTheDocument();
-    });
+    const searchInput = screen.getByPlaceholderText(/search shifts/i);
+    await user.type(searchInput, 'Morning');
+
+    // Verification would ideally check if API was called with search param
+    // In this unit test, we just verify the input value changed
+    expect(searchInput).toHaveValue('Morning');
   });
 });

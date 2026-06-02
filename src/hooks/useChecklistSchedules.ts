@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import { supabase } from '@/lib/supabase';
 import { format, addDays, parseISO } from 'date-fns';
 import { expandRRule } from '@/lib/rrule-utils';
 import { toast } from 'sonner';
-import { TABLES } from '@/config/db-tables';
+import { checklistsApi } from '@/api/checklists.api';
 
 export interface ChecklistSchedule {
   id: string;
@@ -26,18 +25,8 @@ export function useChecklistSchedules(houseId?: string) {
     try {
       setLoading(true);
 
-      // 1. Insert the Schedule
-      const { data: newSchedule, error: scheduleError } = await supabase
-        .from(TABLES.CHECKLIST_SCHEDULES)
-        .insert(schedule)
-        .select()
-        .maybeSingle();
-
-      if (scheduleError) throw scheduleError;
-
-      if (!newSchedule) {
-        throw new Error('You do not have permission to perform this action');
-      }
+      // 1. Insert the Schedule via API
+      const newSchedule = await checklistsApi.createSchedule(schedule);
 
       // 2. Materialize Events (e.g., for the next 6 months)
       const rangeStart = new Date();
@@ -52,11 +41,7 @@ export function useChecklistSchedules(houseId?: string) {
 
       if (eventDates.length > 0) {
         // Fetch the house checklist info for the title
-        const { data: houseChecklist } = await supabase
-          .from(TABLES.HOUSE_CHECKLISTS)
-          .select('house_checklist_name')
-          .eq('id', schedule.house_checklist_id)
-          .maybeSingle();
+        const houseChecklist = await checklistsApi.getHouseChecklist(schedule.house_checklist_id);
 
         if (!houseChecklist) {
           throw new Error('You do not have permission to perform this action');
@@ -72,11 +57,10 @@ export function useChecklistSchedules(houseId?: string) {
           status: 'scheduled',
         }));
 
-        const { error: eventError } = await supabase
-          .from(TABLES.HOUSE_CALENDAR_EVENTS)
-          .insert(calendarEvents);
-
-        if (eventError) throw eventError;
+        // We should probably add a bulk insert to checklistsApi or similar
+        // For now, I'll use the existing pattern if I can.
+        // Wait, I'll add bulk insert to houseOperationsApi.calendar.upsert
+        await checklistsApi.upsertCalendarEvents(calendarEvents);
       }
 
       toast.success('Checklist schedule created and calendar populated.');
@@ -96,14 +80,7 @@ export function useChecklistSchedules(houseId?: string) {
   const deleteSchedule = async (scheduleId: string) => {
     try {
       setLoading(true);
-      
-      // Deleting the schedule will cascade delete calendar events (due to FK ON DELETE CASCADE)
-      const { error } = await supabase
-        .from(TABLES.CHECKLIST_SCHEDULES)
-        .delete()
-        .eq('id', scheduleId);
-
-      if (error) throw error;
+      await checklistsApi.deleteSchedule(scheduleId);
       toast.success('Schedule removed.');
     } catch (err) {
       console.error('Error deleting schedule:', err);
@@ -119,12 +96,7 @@ export function useChecklistSchedules(houseId?: string) {
   const deleteEvent = async (eventId: string) => {
     try {
       setLoading(true);
-      const { error } = await supabase
-        .from(TABLES.HOUSE_CALENDAR_EVENTS)
-        .delete()
-        .eq('id', eventId);
-
-      if (error) throw error;
+      await checklistsApi.deleteCalendarEvent(eventId);
       toast.success('Event removed.');
     } catch (err) {
       console.error('Error deleting event:', err);

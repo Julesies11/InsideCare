@@ -179,7 +179,7 @@
             "ref_table": "ic_staff"
           }
         ],
-        "policy_count": 2
+        "policy_count": 4
       },
       {
         "name": "ic_branch_policies",
@@ -467,7 +467,7 @@
             "ref_table": "ic_staff"
           }
         ],
-        "policy_count": 2
+        "policy_count": 4
       },
       {
         "name": "ic_checklist_item_master",
@@ -662,7 +662,7 @@
             "ref_table": "ic_staff"
           }
         ],
-        "policy_count": 6
+        "policy_count": 7
       },
       {
         "name": "ic_checklist_schedules",
@@ -843,7 +843,7 @@
             "ref_table": "ic_staff"
           }
         ],
-        "policy_count": 6
+        "policy_count": 7
       },
       {
         "name": "ic_departments",
@@ -925,7 +925,7 @@
             "ref_table": "ic_staff"
           }
         ],
-        "policy_count": 4
+        "policy_count": 5
       },
       {
         "name": "ic_employment_types_master",
@@ -1000,7 +1000,7 @@
             "ref_table": "ic_staff"
           }
         ],
-        "policy_count": 4
+        "policy_count": 5
       },
       {
         "name": "ic_error_logs",
@@ -1146,7 +1146,7 @@
             "ref_table": "ic_staff"
           }
         ],
-        "policy_count": 4
+        "policy_count": 5
       },
       {
         "name": "ic_funding_types_master",
@@ -1214,7 +1214,7 @@
             "ref_table": "ic_staff"
           }
         ],
-        "policy_count": 4
+        "policy_count": 5
       },
       {
         "name": "ic_house_calendar_event_attachments",
@@ -1553,7 +1553,7 @@
             "ref_table": "ic_staff"
           }
         ],
-        "policy_count": 4
+        "policy_count": 5
       },
       {
         "name": "ic_house_calendar_events",
@@ -3229,7 +3229,7 @@
             "ref_table": "ic_staff"
           }
         ],
-        "policy_count": 2
+        "policy_count": 4
       },
       {
         "name": "ic_house_staff_assignments",
@@ -3410,7 +3410,7 @@
             "ref_table": "ic_staff"
           }
         ],
-        "policy_count": 4
+        "policy_count": 5
       },
       {
         "name": "ic_houses",
@@ -3593,7 +3593,7 @@
             "ref_table": "ic_staff"
           }
         ],
-        "policy_count": 2
+        "policy_count": 4
       },
       {
         "name": "ic_incident_reports",
@@ -3925,7 +3925,7 @@
             "ref_table": "ic_staff"
           }
         ],
-        "policy_count": 4
+        "policy_count": 6
       },
       {
         "name": "ic_medications_master",
@@ -4021,7 +4021,7 @@
             "ref_table": "ic_staff"
           }
         ],
-        "policy_count": 6
+        "policy_count": 7
       },
       {
         "name": "ic_notifications",
@@ -5770,7 +5770,7 @@
             "ref_table": "ic_staff"
           }
         ],
-        "policy_count": 3
+        "policy_count": 5
       },
       {
         "name": "ic_permission_mappings",
@@ -6620,7 +6620,7 @@
             "ref_table": "ic_staff"
           }
         ],
-        "policy_count": 4
+        "policy_count": 5
       },
       {
         "name": "ic_seizure_types_master",
@@ -6695,7 +6695,7 @@
             "ref_table": "ic_staff"
           }
         ],
-        "policy_count": 2
+        "policy_count": 4
       },
       {
         "name": "ic_service_participants",
@@ -7049,7 +7049,7 @@
             "ref_table": "ic_house_checklists"
           }
         ],
-        "policy_count": 1
+        "policy_count": 2
       },
       {
         "name": "ic_shift_notes",
@@ -7662,6 +7662,13 @@
             "type": "text",
             "default": null,
             "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "status",
+            "type": "USER-DEFINED",
+            "default": "'active'::ic_status_enum",
+            "nullable": "NO"
           }
         ],
         "rls_enabled": true,
@@ -7707,7 +7714,7 @@
             "ref_table": "ic_staff"
           }
         ],
-        "policy_count": 6
+        "policy_count": 7
       },
       {
         "name": "ic_shift_participants",
@@ -7785,7 +7792,7 @@
             "ref_table": "ic_participants"
           }
         ],
-        "policy_count": 1
+        "policy_count": 2
       },
       {
         "name": "ic_shift_template_checklists",
@@ -7936,7 +7943,7 @@
             "ref_table": "ic_house_shift_templates"
           }
         ],
-        "policy_count": 3
+        "policy_count": 5
       },
       {
         "name": "ic_staff",
@@ -8241,7 +8248,7 @@
             "ref_table": "ic_roles"
           }
         ],
-        "policy_count": 4
+        "policy_count": 6
       },
       {
         "name": "ic_staff_compliance",

@@ -551,7 +551,7 @@ export function Goals({
                   <FormItem>
                     <FormLabel>Goal Description *</FormLabel>
                     <FormControl>
-                      <Textarea {...field} rows={3} placeholder="Describe the goal..." />
+                      <Textarea {...field} id="description" rows={3} placeholder="Describe the goal..." />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

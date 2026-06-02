@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
+import { rosterApi } from '@/api/roster.api';
 import { toast } from 'sonner';
-import { TABLES } from '@/config/db-tables';
 import { QUERY_KEYS } from '@/config/query-keys';
 
 export interface ShiftAssignedChecklist {
@@ -20,14 +19,7 @@ export function useShiftAssignedChecklists(houseId?: string) {
     queryKey: [QUERY_KEYS.SHIFT_ASSIGNED_CHECKLISTS, houseId],
     queryFn: async () => {
       if (!houseId) return [];
-      const { data, error } = await supabase
-        .from(TABLES.SHIFT_ASSIGNED_CHECKLISTS)
-        .select('*')
-        .eq('house_id', houseId)
-        .order('sort_order', { ascending: true });
-
-      if (error) throw error;
-      return data as ShiftAssignedChecklist[];
+      return await rosterApi.listShiftAssignments(houseId);
     },
     enabled: !!houseId,
   });
@@ -36,31 +28,15 @@ export function useShiftAssignedChecklists(houseId?: string) {
     mutationFn: async (newAssignments: Partial<ShiftAssignedChecklist>[]) => {
       if (!houseId) throw new Error('House ID is required');
 
-      // 1. Delete existing for this house
-      const { error: deleteError } = await supabase
-        .from(TABLES.SHIFT_ASSIGNED_CHECKLISTS)
-        .delete()
-        .eq('house_id', houseId);
+      const toInsert = newAssignments.map((a, index) => ({
+        house_id: houseId,
+        checklist_id: a.checklist_id,
+        shift_template_id: a.shift_template_id,
+        assignment_title: a.assignment_title || 'Routine',
+        sort_order: a.sort_order ?? index
+      }));
 
-      if (deleteError) throw deleteError;
-
-      // 2. Insert new batch
-      if (newAssignments.length > 0) {
-        // Clean the objects to only include what we want to save
-        const toInsert = newAssignments.map((a, index) => ({
-          house_id: houseId,
-          checklist_id: a.checklist_id,
-          shift_template_id: a.shift_template_id,
-          assignment_title: a.assignment_title || 'Routine',
-          sort_order: a.sort_order ?? index
-        }));
-
-        const { error: insertError } = await supabase
-          .from(TABLES.SHIFT_ASSIGNED_CHECKLISTS)
-          .insert(toInsert);
-
-        if (insertError) throw insertError;
-      }
+      await rosterApi.syncShiftAssignments(houseId, toInsert);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SHIFT_ASSIGNED_CHECKLISTS, houseId] });

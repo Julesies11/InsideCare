@@ -47,7 +47,7 @@ describe('ChecklistMasterPage', () => {
   it('renders the page and loads checklists', async () => {
     renderWithProviders(<ChecklistMasterPage />);
 
-    expect(screen.getByText('Checklist Templates')).toBeInTheDocument();
+    expect(screen.getByText('Checklist Master')).toBeInTheDocument();
     
     await waitFor(() => {
       expect(screen.getByText('Weekly Safety Audit')).toBeInTheDocument();
@@ -58,11 +58,26 @@ describe('ChecklistMasterPage', () => {
   it('allows opening the new checklist dialog', async () => {
     const { user } = renderWithProviders(<ChecklistMasterPage />);
 
-    const newBtn = screen.getByRole('button', { name: /new master checklist/i });
+    const newBtn = screen.getByRole('button', { name: /create template/i });
     await user.click(newBtn);
 
-    expect(screen.getByText('Add Master Checklist')).toBeInTheDocument();
-    expect(screen.getByLabelText(/name \*/i)).toBeInTheDocument();
+    expect(screen.getByText('New Master Template')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/e\.g\. morning clinical routine/i)).toBeInTheDocument();
+  });
+
+  it('allows opening the edit checklist dialog', async () => {
+    const { user } = renderWithProviders(<ChecklistMasterPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Weekly Safety Audit')).toBeInTheDocument();
+    });
+
+    // Find the edit button inside the card
+    const editBtn = screen.getByRole('button', { name: /edit/i });
+    await user.click(editBtn);
+
+    expect(screen.getByText('Edit Master Template')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('Weekly Safety Audit')).toBeInTheDocument();
   });
 
   it('filters checklists by search term', async () => {
@@ -72,12 +87,12 @@ describe('ChecklistMasterPage', () => {
       expect(screen.getByText('Weekly Safety Audit')).toBeInTheDocument();
     });
 
-    const searchInput = screen.getByPlaceholderText(/search master checklists/i);
+    const searchInput = screen.getByPlaceholderText(/search templates\.\.\./i);
     await user.type(searchInput, 'NothingMatches');
 
     await waitFor(() => {
       expect(screen.queryByText('Weekly Safety Audit')).not.toBeInTheDocument();
-      expect(screen.getByText(/no master checklists found/i)).toBeInTheDocument();
+      expect(screen.getByText(/no master templates found/i)).toBeInTheDocument();
     });
   });
 });

@@ -14,7 +14,7 @@ test.describe('Authentication & Access Control', () => {
   });
 
   test('Public user is redirected from dashboard to signin', async ({ page }) => {
-    await page.goto('/staff/dashboard');
+    await page.goto('/my-dashboard');
     await expect(page).toHaveURL(/\/auth\/signin/);
   });
 

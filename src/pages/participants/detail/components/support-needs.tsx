@@ -132,7 +132,7 @@ export function SupportNeeds({
             </div>
             <div className="w-full">
               <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-                <Label className="flex w-full max-w-56">Communication Type Notes</Label>
+                <Label htmlFor="communication_notes" className="flex w-full max-w-56">Communication Type Notes</Label>
                 <Textarea
                   id="communication_notes"
                   value={formData.communication_notes || ''}
@@ -145,7 +145,7 @@ export function SupportNeeds({
             </div>
             <div className="w-full">
               <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-                <Label className="flex w-full max-w-56">Communication & Language Needs</Label>
+                <Label htmlFor="communication_language_needs" className="flex w-full max-w-56">Communication & Language Needs</Label>
                 <Textarea
                   id="communication_language_needs"
                   value={formData.communication_language_needs || ''}

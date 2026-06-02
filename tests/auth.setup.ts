@@ -98,7 +98,7 @@ setup('authenticate as staff', async ({ page }) => {
     }
   }
   
-  // Staff usually redirects to /staff/dashboard
+  // Staff usually redirects to /my-dashboard
   await expect(page.locator('.layout-container, .sidebar, .header, #root').first()).toBeVisible({ timeout: 45000 });
   
   await page.context().storageState({ path: STAFF_STORAGE_STATE });

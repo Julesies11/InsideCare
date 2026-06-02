@@ -1,8 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
+import { systemApi } from '@/api/system.api';
 import { AccessLevel } from './useRBAC';
 import { syncAllUsersOfRole } from '@/lib/rbac-sync';
-import { TABLES } from '@/config/db-tables';
 import { QUERY_KEYS } from '@/config/query-keys';
 
 export interface RolePermissions {
@@ -29,11 +28,7 @@ export function useAllRolePermissions() {
   return useQuery({
     queryKey: [QUERY_KEYS.ROLE_PERMISSIONS],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from(TABLES.ROLE_PERMISSIONS)
-        .select('*');
-
-      if (error) throw error;
+      const data = await systemApi.permissions.listAll();
       return data as RolePermissions[];
     },
     staleTime: 1000 * 60 * 60, // 1 hour
@@ -45,21 +40,7 @@ export function useUpdateRolePermissions() {
 
   return useMutation({
     mutationFn: async ({ role_id, updates }: { role_id: string; updates: Partial<RolePermissions> }) => {
-      const { data, error } = await supabase
-        .from(TABLES.ROLE_PERMISSIONS)
-        .upsert(
-          { role_id, ...updates },
-          { onConflict: 'role_id' }
-        )
-        .select()
-        .maybeSingle();
-
-      if (error) throw error;
-      
-      if (!data) {
-        throw new Error('You do not have permission to perform this action');
-      }
-      
+      const data = await systemApi.permissions.upsert(role_id, updates);
       return data as RolePermissions;
     },
     onSuccess: (_, { role_id }) => {

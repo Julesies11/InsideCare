@@ -7,13 +7,13 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Edit, Trash2, FileText, Download, Clock } from 'lucide-react';
+import { Plus, Edit, Trash2, FileText, Download, Clock, CheckSquare } from 'lucide-react';
 import { StaffTraining, useStaffTraining } from '@/hooks/use-staff';
 import { toast } from 'sonner';
 import { StaffPendingChanges } from '@/models/staff-pending-changes';
 import { cn } from '@/lib/utils';
 import { format, differenceInDays, parseISO } from 'date-fns';
-import { supabase } from '@/lib/supabase';
+import { staffDetailsApi } from '@/api/staff-details.api';
 
 interface StaffTrainingSectionProps {
   staffId?: string;
@@ -129,8 +129,8 @@ export function StaffTrainingSection({
                 ? { 
                     ...item, 
                     ...formData,
-                    file: selectedFile || item.file,
-                    fileName: selectedFile?.name || item.fileName,
+                    file: (editingItem as any)._removeFile ? null : (selectedFile || item.file),
+                    fileName: (editingItem as any)._removeFile ? null : (selectedFile?.name || item.fileName),
                   } 
                 : item
             ),
@@ -147,8 +147,8 @@ export function StaffTrainingSection({
               { 
                 id: editingItem.id, 
                 ...formData,
-                file: selectedFile,
-                fileName: selectedFile?.name,
+                file: (editingItem as any)._removeFile ? null : selectedFile,
+                fileName: (editingItem as any)._removeFile ? null : selectedFile?.name,
                 filePath: editingItem.file_path,
               },
             ],
@@ -241,11 +241,7 @@ export function StaffTrainingSection({
 
   const handleDownload = async (filePath: string) => {
     try {
-      const { data, error } = await supabase.storage
-        .from('staff-documents')
-        .download(filePath);
-
-      if (error) throw error;
+      const data = await staffDetailsApi.documents.downloadFile(filePath);
 
       // Create a download link
       const url = window.URL.createObjectURL(data);
@@ -302,6 +298,7 @@ export function StaffTrainingSection({
                   <TableHead>Date Completed</TableHead>
                   <TableHead>Expiry Date</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Document</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -311,7 +308,9 @@ export function StaffTrainingSection({
                   const isPendingUpdate = pendingChanges?.training.toUpdate.some((p) => p.id === item.id);
                   const isPendingDelete = item.id ? pendingChanges?.training.toDelete.some((d) => d.id === item.id) : false;
                   const status = calculateTrainingStatus(item.expiry_date);
-                  const hasFile = (item as any).file_path || (item as any).filePath || (item as any).file;
+                  const itemFileName = (item as any).fileName || (item as any).file_name;
+                  const itemFilePath = (item as any).filePath || (item as any).file_path;
+                  const hasFile = itemFilePath || (item as any).file;
 
                   return (
                     <TableRow
@@ -323,16 +322,13 @@ export function StaffTrainingSection({
                       }
                     >
                       <TableCell>
-                        <div className="flex items-center gap-2">
-                          {hasFile && <FileText className="size-4 text-muted-foreground" />}
-                          <div className="flex flex-col">
-                            <span className={cn(
-                              "font-medium text-gray-900 dark:text-gray-100",
-                              isPendingDelete && "line-through"
-                            )}>
-                              {item.title}
-                            </span>
-                          </div>
+                        <div className="flex flex-col">
+                          <span className={cn(
+                            "font-medium text-gray-900 dark:text-gray-100",
+                            isPendingDelete && "line-through"
+                          )}>
+                            {item.title}
+                          </span>
                           {(isPendingAdd || isPendingUpdate || isPendingDelete) && (
                             <span className={cn(
                               "text-[10px] flex items-center gap-1",
@@ -357,14 +353,26 @@ export function StaffTrainingSection({
                         </Badge>
                       </TableCell>
                       <TableCell>
+                        {hasFile ? (
+                          <div className="flex items-center gap-2 max-w-[120px]">
+                            <FileText className="size-3.5 text-primary shrink-0" />
+                            <span className="text-[10px] text-muted-foreground truncate" title={itemFileName || 'File'}>
+                              {itemFileName || 'File attached'}
+                            </span>
+                            {itemFilePath && (
+                              <Button variant="ghost" size="icon" className="size-6 shrink-0" onClick={() => handleDownload(itemFilePath)}>
+                                <Download className="size-3" />
+                              </Button>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-[10px] text-muted-foreground italic">No document</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
                         <div className="flex justify-end gap-1">
                           {!isPendingDelete && (
                             <>
-                              {hasFile && (item as any).file_path && (
-                                <Button variant="ghost" size="sm" onClick={() => handleDownload((item as any).file_path)}>
-                                  <Download className="size-4" />
-                                </Button>
-                              )}
                               <Button variant="ghost" size="sm" onClick={() => handleEdit(item)} disabled={!canEdit}>
                                 <Edit className="size-4" />
                               </Button>
@@ -455,8 +463,8 @@ export function StaffTrainingSection({
                 <Input
                   id="date_completed"
                   type="date"
-                  value={formData.date_completed}
-                  onChange={(e) => setFormData({ ...formData, date_completed: e.target.value })}
+                  value={formData.date_completed || ''}
+                  onChange={(e) => setFormData({ ...formData, date_completed: e.target.value || null })}
                 />
               </div>
             </div>
@@ -467,8 +475,8 @@ export function StaffTrainingSection({
                 <Input
                   id="expiry_date"
                   type="date"
-                  value={formData.expiry_date}
-                  onChange={(e) => setFormData({ ...formData, expiry_date: e.target.value })}
+                  value={formData.expiry_date || ''}
+                  onChange={(e) => setFormData({ ...formData, expiry_date: e.target.value || null })}
                 />
               </div>
               <div className="space-y-2">
@@ -482,23 +490,49 @@ export function StaffTrainingSection({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="file">Upload Document</Label>
-              <Input
-                id="file"
-                type="file"
-                onChange={handleFileChange}
-                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-              />
-              {selectedFile && (
-                <p className="text-sm text-muted-foreground">
-                  Selected: {selectedFile.name}
+              <Label htmlFor="file">Training Document</Label>
+              <div className="flex items-center gap-3">
+                <Input
+                  id="file"
+                  type="file"
+                  onChange={handleFileChange}
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                  className="flex-1"
+                />
+                {(selectedFile || editingItem?.file_name) && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="text-destructive border-destructive/20 hover:bg-destructive/5 gap-2"
+                    onClick={() => {
+                      setSelectedFile(null);
+                      if (editingItem) {
+                        // Mark for removal by setting file to null explicitly
+                        // We'll handle this in handleSave
+                        (editingItem as any)._removeFile = true;
+                      }
+                      // Reset file input
+                      const input = document.getElementById('file') as HTMLInputElement;
+                      if (input) input.value = '';
+                    }}
+                  >
+                    <Trash2 className="size-3.5" />
+                    Remove
+                  </Button>
+                )}
+              </div>
+              
+              {selectedFile ? (
+                <p className="text-[10px] text-primary font-bold flex items-center gap-1.5 mt-1 animate-pulse">
+                  <CheckSquare className="size-3" />
+                  New file selected: {selectedFile.name}
                 </p>
-              )}
-              {editingItem?.file_name && !selectedFile && (
-                <p className="text-sm text-muted-foreground">
+              ) : editingItem?.file_name ? (
+                <p className="text-[10px] text-muted-foreground flex items-center gap-1.5 mt-1">
+                  <FileText className="size-3" />
                   Current file: {editingItem.file_name}
                 </p>
-              )}
+              ) : null}
             </div>
           </div>
           <DialogFooter>

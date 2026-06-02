@@ -1,28 +1,15 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
 import { LeaveTypeMaster } from '@/models/leave-type-master';
 import { useAuth } from '@/auth/context/auth-context';
 import { logActivity, detectChanges } from '@/lib/activity-logger';
-import { TABLES } from '@/config/db-tables';
 import { QUERY_KEYS } from '@/config/query-keys';
+import { masterListsApi } from '@/api/master-lists.api';
 
-const LEAVE_TYPE_COLUMNS = 'id, leave_type_name, is_active, created_by, updated_by, created_at';
-
-export function useLeaveTypesMaster(includeInactive = true) {
+export function useLeaveTypesMaster() {
   return useQuery({
-    queryKey: [QUERY_KEYS.LEAVE_TYPES, { includeInactive }],
+    queryKey: [QUERY_KEYS.LEAVE_TYPES],
     queryFn: async () => {
-      let query = supabase
-        .from(TABLES.LEAVE_TYPES)
-        .select(LEAVE_TYPE_COLUMNS)
-        .order('leave_type_name', { ascending: true });
-
-      if (!includeInactive) {
-        query = query.eq('is_active', true);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
+      const data = await masterListsApi.leaveTypes.list();
       return data as LeaveTypeMaster[];
     },
     staleTime: 1000 * 60 * 60, // 1 hour
@@ -35,22 +22,7 @@ export function useAddLeaveTypeMaster() {
 
   return useMutation({
     mutationFn: async (leaveType: Omit<LeaveTypeMaster, 'id' | 'created_at'>) => {
-      const { data, error } = await supabase
-        .from(TABLES.LEAVE_TYPES)
-        .insert(leaveType)
-        .select(LEAVE_TYPE_COLUMNS)
-        .maybeSingle();
-
-      if (error) {
-        if (error.code === '23505') {
-          throw new Error('DUPLICATE_NAME');
-        }
-        throw error;
-      }
-
-      if (!data) {
-        throw new Error('You do not have permission to perform this action');
-      }
+      const data = await masterListsApi.leaveTypes.upsert(leaveType as any);
 
       await logActivity({
         activityType: 'create',
@@ -74,23 +46,7 @@ export function useUpdateLeaveTypeMaster() {
 
   return useMutation({
     mutationFn: async ({ id, updates, oldLeaveType }: { id: string; updates: Partial<LeaveTypeMaster>; oldLeaveType?: LeaveTypeMaster }) => {
-      const { data, error } = await supabase
-        .from(TABLES.LEAVE_TYPES)
-        .update(updates)
-        .eq('id', id)
-        .select(LEAVE_TYPE_COLUMNS)
-        .maybeSingle();
-
-      if (error) {
-        if (error.code === '23505') {
-          throw new Error('DUPLICATE_NAME');
-        }
-        throw error;
-      }
-
-      if (!data) {
-        throw new Error('You do not have permission to perform this action');
-      }
+      const data = await masterListsApi.leaveTypes.upsert({ ...updates, id } as any);
 
       if (oldLeaveType) {
         const changes = detectChanges(oldLeaveType, data);
@@ -120,15 +76,8 @@ export function useDeleteLeaveTypeMaster() {
 
   return useMutation({
     mutationFn: async ({ id, leave_type_name }: { id: string; leave_type_name: string }) => {
-      // Soft delete - mark as inactive
-      const { error } = await supabase
-        .from(TABLES.LEAVE_TYPES)
-        .update({
-          is_active: false,
-        })
-        .eq('id', id);
-
-      if (error) throw error;
+      // Hard delete since we don't have is_active
+      await masterListsApi.leaveTypes.delete(id);
 
       await logActivity({
         activityType: 'delete',

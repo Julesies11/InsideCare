@@ -182,6 +182,7 @@ The Shift Template system has been refactored from a rigid 7-day week to a flexi
 ### 12.3. Saving Architecture (Seamless Save)
 *   **Pending Changes Pattern**: Shift Templates are tracked locally in `pendingChanges` and saved only when the main "Save" button is clicked.
 *   **Optimistic Cache Seeding**: To prevent UI flicker, the system manually "seeds" the TanStack Query cache immediately after a successful save before clearing local state.
+*   **Atomic API Synchronization**: As of **May 30, 2026**, all checklist management (Masters and House-specific) is handled via atomic DAL methods (`upsertChecklist`, `syncChecklistItems`). This ensures that complex template updates (reordering, renaming, and item deletion) are performed as a single logical transaction, preventing orphaned items or data corruption.
 ## 13. Completion Enforcement & Accountability
 To ensure operational compliance, the system enforces the completion of mandatory routines through a combination of visual cues and submission blocking.
 
@@ -196,4 +197,5 @@ To ensure operational compliance, the system enforces the completion of mandator
 
 ### 13.3. Admin Audit Trail
 *   **Real-time Visibility**: Admins can view the "Checklist History" on the House Detail page to see progress in real-time.
-*   **Granular Attribution**: Every item within a checklist (both shared house tasks and individual routines) records the specific staff member who performed the sign-off, fulfilling the requirement for individual accountability in a collaborative environment.
+- **Individual Accountability & Attribution**: Every item within a checklist (both shared house tasks and individual routines) records the specific staff member who performed the sign-off. This is enforced by the DAL and verified via the `house_checklist_submission_items_completed_by_fkey` join.
+

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
-import { TABLES } from '@/config/db-tables';
+import { houseOperationsApi } from '@/api/house-operations.api';
+import { CALENDAR_VIEWS } from '@/config/query-views';
 
 export interface HouseCalendarEventType {
   id: string;
@@ -79,70 +79,26 @@ export function useHouseCalendarEvents(houseId?: string, staffId?: string, start
     try {
       setLoading(true);
       
-      let query = supabase
-        .from(TABLES.HOUSE_CALENDAR_EVENTS)
-        .select(`
-          id,
-          house_id,
-          title,
-          event_type_id,
-          description,
-          event_date,
-          start_time,
-          end_time,
-          status,
-          location,
-          created_by,
-          created_at,
-          updated_at,
-          is_checklist_event,
-          house_checklist_id,
-          checklist_schedule_id,
-          event_type_info:ic_house_calendar_event_types_master(*),
-          attachments:ic_house_calendar_event_attachments(*),
-          creator:ic_staff!fk_ic_house_calendar_events_created_by(id, staff_name, email),
-          submissions:ic_house_checklist_submissions(
-            id, 
-            status, 
-            completed_at,
-            ic_house_checklist_submission_items:ic_house_checklist_submission_items(
-              id,
-              item_id,
-              status,
-              is_completed,
-              note,
-              completed_by_staff:ic_staff!house_checklist_submission_items_completed_by_fkey(id, staff_name)
-            )
-          ),
-          event_participants:ic_house_calendar_event_participants(participant:ic_participants(id, participant_name)),
-          event_staff:${TABLES.HOUSE_CALENDAR_EVENT_STAFF}(staff:${TABLES.STAFF}!house_calendar_event_staff_staff_id_fkey(id, staff_name))
-        `)
-        .eq('house_id', houseId);
-        
-      if (startDate) query = query.gte('event_date', startDate);
-      if (endDate) query = query.lte('event_date', endDate);
-        
-      const { data: events, error: eventError } = await query
-        .order('event_date', { ascending: true })
-        .abortSignal(signal as any);
-
-      if (eventError) {
-        if (eventError.code === 'PGRST100') return;
-        throw eventError;
-      }
+      const events = await houseOperationsApi.calendar.list({
+        houseId,
+        startDate,
+        endDate,
+        view: CALENDAR_VIEWS.FULL_LIST,
+        signal
+      });
 
       const combinedEvents = (events || []).map((e: any) => {
         let type = 'other';
+        const typeName = e.type?.event_type_name || '';
+        
         if (e.is_checklist_event) {
           type = 'checklist';
-        } else if (e.event_type_info?.event_type_name) {
-          const name = e.event_type_info.event_type_name.toLowerCase();
+        } else if (typeName) {
+          const name = typeName.toLowerCase();
           if (name.includes('meeting')) type = 'meeting';
           else if (name.includes('appointment')) type = 'appointment';
           else if (name.includes('clinical')) type = 'clinical';
           else type = 'other';
-        } else {
-          type = 'other';
         }
 
         return {
@@ -154,7 +110,11 @@ export function useHouseCalendarEvents(houseId?: string, staffId?: string, start
       setHouseCalendarEvents(combinedEvents);
       setError(null);
     } catch (err: any) {
-      if (err.name === 'AbortError') return;
+      // Correctly ignore AbortError (common on unmount or re-fetch)
+      if (err.name === 'AbortError' || err.message === 'AbortError' || (err.hint && err.hint.includes('Request was aborted'))) {
+        return;
+      }
+      
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch house calendar events';
       console.error('Error fetching house calendar events:', err);
       setError(errorMessage);

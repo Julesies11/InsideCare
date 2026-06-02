@@ -4,17 +4,16 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit, Trash2, Clock, CheckSquare, Download, Info } from 'lucide-react';
+import { Plus, Edit, Trash2, Clock, CheckSquare, Download, Info, Loader2 } from 'lucide-react';
 import { useHouseChecklists } from '@/hooks/use-house-checklists';
+import { checklistsApi } from '@/api/checklists.api';
 import { useHouses } from '@/hooks/use-houses';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Switch } from '@/components/ui/switch';
 import { HousePendingChanges } from '@/models/house-pending-changes';
-import { supabase } from '@/lib/supabase';
-import { TABLES } from '@/config/db-tables';
-import { STATUS, CHECKLIST_STATUS } from '@/config/enums';
+import { STATUS } from '@/config/enums';
 import { Textarea } from '@/components/ui/textarea';
 import { Sortable, SortableItem } from '@/components/ui/sortable';
 import { ChecklistCard } from '@/components/checklists/checklist-card';
@@ -26,6 +25,7 @@ interface HouseChecklistSetupProps {
   onPendingChangesChange?: (changes: HousePendingChanges) => void;
   directSave?: boolean;
   canAdd?: boolean;
+  canEdit?: boolean;
   canDelete?: boolean;
   onRefresh?: () => void;
 }
@@ -36,6 +36,7 @@ export function HouseChecklistSetup({
   onPendingChangesChange, 
   directSave = false,
   canAdd = true,
+  canEdit = true,
   canDelete = true,
   onRefresh
 }: HouseChecklistSetupProps) {
@@ -124,63 +125,15 @@ export function HouseChecklistSetup({
 
     if (directSave) {
       try {
-        let savedChecklistId = selectedChecklist?.id;
+        await checklistsApi.upsertChecklist({
+          house_id: houseId,
+          house_checklist_name: checklistFormData.house_checklist_name,
+          days_of_week: checklistFormData.days_of_week,
+          description: checklistFormData.description,
+          items: itemsWithUpdatedSortOrder
+        }, selectedChecklist?.tempId ? undefined : selectedChecklist?.id);
 
-        if (savedChecklistId && !selectedChecklist.tempId) {
-          const { error } = await supabase
-            .from(TABLES.HOUSE_CHECKLISTS)
-            .update({
-              house_checklist_name: checklistFormData.house_checklist_name,
-              days_of_week: checklistFormData.days_of_week,
-              description: checklistFormData.description,
-            })
-            .eq('id', savedChecklistId);
-          if (error) throw error;
-        } else {
-          const { data, error } = await supabase
-            .from(TABLES.HOUSE_CHECKLISTS)
-            .insert({
-              house_id: houseId,
-              house_checklist_name: checklistFormData.house_checklist_name,
-              days_of_week: checklistFormData.days_of_week,
-              description: checklistFormData.description,
-              sort_order: visibleChecklists.length * 10,
-            })
-            .select()
-            .maybeSingle();
-
-          if (error) throw error;
-          if (!data) throw new Error("You do not have permission to perform this action");
-          savedChecklistId = data.id;
-        }
-
-        // Sync items (Delete existing and insert new for simplicity in directSave mode)
-        const { error: deleteItemsError } = await supabase
-          .from(TABLES.HOUSE_CHECKLIST_ITEMS)
-          .delete()
-          .eq('checklist_id', savedChecklistId);
-        
-        if (deleteItemsError) throw deleteItemsError;
-
-        if (itemsWithUpdatedSortOrder.length > 0) {
-          const itemsToInsert = itemsWithUpdatedSortOrder.map((item: any) => ({
-            checklist_id: savedChecklistId,
-            title: item.title,
-            instructions: item.instructions,
-            group_title: item.group_title || 'Morning',
-            priority: item.priority || 'medium',
-            is_required: !!item.is_required,
-            sort_order: item.sort_order,
-          }));
-
-          const { error: insertItemsError } = await supabase
-            .from(TABLES.HOUSE_CHECKLIST_ITEMS)
-            .insert(itemsToInsert);
-          
-          if (insertItemsError) throw insertItemsError;
-        }
-
-        toast.success('Checklist saved');
+        toast.success(selectedChecklist ? 'Checklist updated' : 'Checklist added');
         refreshChecklists();
         if (onRefresh) onRefresh();
         setShowChecklistDialog(false);
@@ -210,7 +163,8 @@ export function HouseChecklistSetup({
           id: selectedChecklist.id, 
           house_checklist_name: checklistFormData.house_checklist_name, 
           days_of_week: checklistFormData.days_of_week, 
-          description: checklistFormData.description 
+          description: checklistFormData.description,
+          items: itemsWithUpdatedSortOrder
         };
         
         onPendingChangesChange({
@@ -219,7 +173,7 @@ export function HouseChecklistSetup({
             ...pendingChanges.checklists,
             toUpdate: [
               ...pendingChanges.checklists.toUpdate.filter(u => u.id !== selectedChecklist.id),
-              update
+              update as any
             ]
           }
         });
@@ -253,8 +207,7 @@ export function HouseChecklistSetup({
 
     if (directSave) {
       try {
-        const { error } = await supabase.from(TABLES.HOUSE_CHECKLISTS).delete().eq('id', checklist.id);
-        if (error) throw error;
+        await checklistsApi.deleteChecklist(checklist.id);
         toast.success('Checklist deleted');
         refreshChecklists();
         if (onRefresh) onRefresh();
@@ -329,16 +282,7 @@ export function HouseChecklistSetup({
 
     setIsFetchingSource(true);
     try {
-      const { data, error } = await supabase
-        .from(TABLES.HOUSE_CHECKLISTS)
-        .select(`
-          id, house_checklist_name, description, sort_order,
-          items:${TABLES.HOUSE_CHECKLIST_ITEMS}(id, title, instructions, group_title, priority, is_required, sort_order)
-        `)
-        .eq('house_id', sourceId)
-        .order('sort_order', { ascending: true });
-
-      if (error) throw error;
+      const data = await checklistsApi.listByHouse(sourceId);
       setSourceChecklists(data || []);
       setSelectedImportIds([]);
     } catch (err) {
@@ -366,16 +310,12 @@ export function HouseChecklistSetup({
         const source = sourceChecklists.find(cl => cl.id === id);
         if (!source) continue;
 
-        const tempId = `temp-import-${Date.now()}-${Math.random()}`;
-        
         const checklistData = {
-          tempId,
           house_id: houseId,
           house_checklist_name: source.house_checklist_name || source.name,
           description: source.description,
           sort_order: (visibleChecklists.length + importCounter),
           items: (source.items || []).map((item: any) => ({
-            tempId: `temp-item-import-${Date.now()}-${Math.random()}`,
             title: item.title,
             instructions: item.instructions,
             group_title: item.group_title,
@@ -386,34 +326,12 @@ export function HouseChecklistSetup({
         };
 
         if (directSave) {
-          const { data: newCl, error: clErr } = await supabase
-            .from(TABLES.HOUSE_CHECKLISTS)
-            .insert({
-              house_id: houseId,
-              house_checklist_name: checklistData.house_checklist_name,
-              description: checklistData.description,
-              sort_order: checklistData.sort_order
-            })
-            .select()
-            .maybeSingle();
-          
-          if (clErr) throw clErr;
-          if (!newCl) throw new Error("You do not have permission to perform this action");
-
-          const toInsertItems = checklistData.items.map(i => ({
-            checklist_id: newCl.id,
-            title: i.title,
-            instructions: i.instructions,
-            group_title: i.group_title,
-            priority: i.priority,
-            is_required: i.is_required,
-            sort_order: i.sort_order
-          }));
-
-          const { error: itemsErr } = await supabase.from(TABLES.HOUSE_CHECKLIST_ITEMS).insert(toInsertItems);
-          if (itemsErr) throw itemsErr;
+          await checklistsApi.upsertChecklist(checklistData);
         } else {
-          checklistsToAdd.push(checklistData);
+          checklistsToAdd.push({
+            ...checklistData,
+            tempId: `temp-import-${Date.now()}-${Math.random()}`,
+          });
         }
         importCounter++;
       }
@@ -428,7 +346,7 @@ export function HouseChecklistSetup({
         });
       }
 
-      toast.success(directSave ? 'Checklists imported to database' : `Successfully imported ${checklistsToAdd.length} checklists.`);
+      toast.success(directSave ? 'Checklists imported to database' : `Successfully imported ${importCounter} checklists.`);
       if (directSave) refreshChecklists();
       setShowImportDialog(false);
     } catch (err: any) {
@@ -469,6 +387,7 @@ export function HouseChecklistSetup({
               setShowScheduleModal(true);
             }}
             canDelete={canDelete}
+            canEdit={canEdit}
           />
         ))}
         {visibleChecklists.length === 0 && !loading && (
@@ -722,6 +641,7 @@ export function HouseChecklistSetup({
               disabled={selectedImportIds.length === 0 || isImporting}
               className="gap-2"
             >
+              {isImporting ? <Loader2 className="size-4 animate-spin" /> : null}
               {isImporting ? 'Importing...' : `Import Selected (${selectedImportIds.length})`}
             </Button>
           </DialogFooter>

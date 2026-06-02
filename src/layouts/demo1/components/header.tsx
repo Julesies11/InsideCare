@@ -3,6 +3,7 @@ import { useAuth } from '@/auth/context/auth-context';
 import { NotificationsSheet } from '@/partials/topbar/notifications-sheet';
 import { UserDropdownMenu } from '@/partials/topbar/user-dropdown-menu';
 import { useNotifications } from '@/hooks/useNotifications';
+import { ROUTES } from '@/config/routes.config';
 import {
   Bell,
   Menu,
@@ -59,7 +60,7 @@ export function Header() {
       <Container className="flex justify-between items-stretch lg:gap-4">
         {/* HeaderLogo */}
         <div className="flex gap-1 lg:hidden items-center gap-2.5">
-          <Link to="/" className="shrink-0">
+          <Link to={ROUTES.HOME} className="shrink-0">
             <img
               src={toAbsoluteUrl('/media/app/mini-logo.png')}
               className="h-[25px] w-full"

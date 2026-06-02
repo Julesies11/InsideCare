@@ -49,7 +49,7 @@ export function PersonalDetails({
 
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <Label className="flex w-full max-w-56">Full Name *</Label>
+            <Label htmlFor="staff_name" className="flex w-full max-w-56">Full Name *</Label>
             <div className="grow">
               <Input
                 id="staff_name"
@@ -68,7 +68,7 @@ export function PersonalDetails({
 
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <Label className="flex w-full max-w-56">
+            <Label htmlFor="email" className="flex w-full max-w-56">
               Email {formData.status !== 'draft' && '*'}
             </Label>
             <div className="grow">

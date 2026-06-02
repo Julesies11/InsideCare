@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, Fragment } from 'react';
-import { supabase } from '@/lib/supabase';
+import { rosterApi } from '@/api/roster.api';
 import { useAuth } from '@/auth/context/auth-context';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -25,7 +25,6 @@ import {
   ToolbarDescription,
 } from '@/partials/common/toolbar';
 import { NotificationService } from '@/lib/notification-service';
-import { TABLES } from '@/config/db-tables';
 import { RBAC_MODULES } from '@/config/rbac-modules';
 import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
 
@@ -40,8 +39,8 @@ interface LeaveRequest {
   admin_notes: string | null;
   attachment_url: string | null;
   created_at: string;
-  staff: { id: string; name: string; auth_user_id: string | null } | null;
-  leave_type: { name: string } | null;
+  staff: { id: string; staff_name: string; auth_user_id: string | null } | null;
+  leave_type: { leave_type_name: string } | null;
   conflict_count?: number;
 }
 
@@ -91,40 +90,36 @@ export function AdminLeaveRequestsPage() {
 
   const fetchRequests = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from(TABLES.LEAVE_REQUESTS)
-      .select(`*, staff:${TABLES.STAFF}!leave_requests_staff_id_fkey(id, staff_name, auth_user_id), leave_type:${TABLES.LEAVE_TYPES}(leave_type_name)`)
-      .order('created_at', { ascending: false });
-    if (error) { toast.error('Failed to load leave requests'); setLoading(false); return; }
-    const rows = (data as LeaveRequest[]) || [];
-    setRequests(rows);
+    try {
+      const rows = await rosterApi.listAdminLeaveRequests() as LeaveRequest[];
+      setRequests(rows);
 
-    // Fetch conflict counts for all pending requests in a single bulk query
-    const pending = rows.filter(r => r.status === 'pending');
-    if (pending.length > 0) {
-      const staffIds = Array.from(new Set(pending.map(r => r.staff_id)));
-      const minDate = pending.reduce((min, r) => r.start_date < min ? r.start_date : min, pending[0].start_date);
-      const maxDate = pending.reduce((max, r) => r.end_date > max ? r.end_date : max, pending[0].end_date);
+      // Fetch conflict counts for all pending requests in a single bulk query
+      const pending = rows.filter(r => r.status === 'pending');
+      if (pending.length > 0) {
+        const staffIds = Array.from(new Set(pending.map(r => r.staff_id)));
+        const minDate = pending.reduce((min, r) => r.start_date < min ? r.start_date : min, pending[0].start_date);
+        const maxDate = pending.reduce((max, r) => r.end_date > max ? r.end_date : max, pending[0].end_date);
 
-      const { data: allShifts } = await supabase
-        .from(TABLES.STAFF_SHIFTS)
-        .select('id, staff_id, start_date')
-        .in('staff_id', staffIds)
-        .gte('start_date', minDate)
-        .lte('start_date', maxDate);
+        const allShifts = await rosterApi.listShiftsForStaffIds(staffIds, minDate, maxDate);
 
-      const counts: Record<string, number> = {};
-      pending.forEach(req => {
-        const matches = (allShifts || []).filter(s => 
-          s.staff_id === req.staff_id && 
-          s.start_date >= req.start_date && 
-          s.start_date <= req.end_date
-        );
-        counts[req.id] = matches.length;
-      });
-      setConflictCounts(counts);
+        const counts: Record<string, number> = {};
+        pending.forEach(req => {
+          const matches = (allShifts || []).filter(s => 
+            s.staff_id === req.staff_id && 
+            s.start_date >= req.start_date && 
+            s.start_date <= req.end_date
+          );
+          counts[req.id] = matches.length;
+        });
+        setConflictCounts(counts);
+      }
+    } catch (error) {
+      console.error('Error loading leave requests:', error);
+      toast.error('Failed to load leave requests'); 
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -134,16 +129,7 @@ export function AdminLeaveRequestsPage() {
   const fetchAffectedShifts = async (staffId: string, startDate: string, endDate: string) => {
     setShiftsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from(TABLES.STAFF_SHIFTS)
-        .select(`id, start_date, start_time, end_time, house:${TABLES.HOUSES}!staff_shifts_house_id_fkey(house_name)`)
-        .eq('staff_id', staffId)
-        .gte('start_date', startDate)
-        .lte('start_date', endDate)
-        .order('start_date', { ascending: true })
-        .order('start_time', { ascending: true });
-
-      if (error) throw error;
+      const data = await rosterApi.listConflictingShifts(staffId, startDate, endDate);
       setAffectedShifts((data as AffectedShift[]) || []);
     } catch (err) {
       console.error('Error fetching affected shifts:', err);
@@ -170,30 +156,17 @@ export function AdminLeaveRequestsPage() {
     
     try {
       // Update the leave request
-      const { error } = await supabase
-        .from(TABLES.LEAVE_REQUESTS)
-        .update({ 
-          status: newStatus, 
-          admin_notes: adminNotes || null,
-        })
-        .eq('id', selected.id);
-
-      if (error) throw error;
+      await rosterApi.updateLeaveRequestStatus(selected.id, newStatus, adminNotes || null);
 
       // Handle shift removal if approved
       if (newStatus === 'approved' && affectedShifts.length > 0) {
-        // Option 1: Mark shifts as 'open' (removing staff_id)
+        // Mark shifts as 'open' (removing staff_id)
         const shiftIds = affectedShifts.map(s => s.id);
-        const { error: shiftError } = await supabase
-          .from(TABLES.STAFF_SHIFTS)
-          .update({ 
-            staff_id: null,
-            notes: `Staff member approved for leave. Previously assigned to ${selected.staff?.staff_name}.` 
-          })
-          .in('id', shiftIds);
-
-        if (shiftError) console.error('Error opening shifts:', shiftError);
-        else toast.success(`Leave approved and ${affectedShifts.length} shifts opened.`);
+        await rosterApi.bulkUpdateShifts(shiftIds, { 
+          staff_id: null,
+          notes: `Staff member approved for leave. Previously assigned to ${selected.staff?.staff_name}.` 
+        });
+        toast.success(`Leave approved and ${affectedShifts.length} shifts opened.`);
       }
 
       // Notify staff member via Edge Function or NotificationService
@@ -214,7 +187,9 @@ export function AdminLeaveRequestsPage() {
         }
       }
 
-      toast.success(`Leave request ${newStatus}`);
+      if (newStatus === 'rejected' || affectedShifts.length === 0) {
+        toast.success(`Leave request ${newStatus}`);
+      }
       setSelected(null);
       setAction(null);
       fetchRequests();

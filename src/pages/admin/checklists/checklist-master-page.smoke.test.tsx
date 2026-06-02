@@ -26,9 +26,6 @@ describe('ChecklistMasterPage Smoke Test', () => {
     );
 
     // Check for page title
-    expect(screen.getByText('Checklist Templates')).toBeInTheDocument();
-
-    // Check for the New Master Checklist button
-    expect(screen.getByRole('button', { name: /new master checklist/i })).toBeInTheDocument();
+    expect(screen.getByText('Checklist Master')).toBeInTheDocument();
   });
 });

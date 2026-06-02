@@ -3,41 +3,36 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Houses } from './components';
 import { useNavigate } from 'react-router';
-import { supabase } from '@/lib/supabase';
+import { housesApi } from '@/api/houses.api';
 import { handleSupabaseError } from '@/errors/error-handler';
-import { TABLES } from '@/config/db-tables';
 import { RBAC_MODULES } from '@/config/rbac-modules';
 import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
+import { ROUTES } from '@/config/routes.config';
 
 export function HousesProfilesContent() {
   const navigate = useNavigate();
   const { hasAccess } = useRBAC();
   
+  console.log('[DEBUG] HousesProfilesContent rendering');
+
   const canAdd = hasAccess({ 
     resource: RBAC_MODULES.HOUSES, 
     requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE 
   });
 
   const handleAddHouse = async () => {
+    console.log('[DEBUG] handleAddHouse triggered');
     try {
-      // Create a new house with minimal data
-      const { data, error } = await supabase
-        .from(TABLES.HOUSES)
-        .insert([
-          {
-            house_name: 'New House',
-            status: 'active',
-          },
-        ])
-        .select()
-        .maybeSingle();
-
-      if (error) throw error;
-      if (!data) throw new Error("You do not have permission to perform this action");
-
-      // Navigate to the detail page
-      navigate(`/houses/detail/${data.id}`);
-    } catch (error) {
+      const data = await housesApi.createMinimal('New House');
+      console.log('[DEBUG] house created successfully:', data);
+      navigate(`${ROUTES.HOUSE_DETAIL}/${data.id}`);
+    } catch (error: any) {
+      console.error('[DEBUG] FAILED to create house:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint
+      });
       handleSupabaseError(error, 'Failed to create house');
     }
   };

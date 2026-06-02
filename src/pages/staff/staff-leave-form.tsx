@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/auth/context/auth-context';
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
@@ -26,13 +25,13 @@ import {
   ToolbarPageTitle,
   ToolbarDescription,
 } from '@/partials/common/toolbar';
-import { TABLES } from '@/config/db-tables';
-import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 import { LEAVE_STATUS } from '@/config/enums';
 import { useLeaveTypesMaster } from '@/hooks/use-leave-types-master';
 import { LeaveTypeMasterDialog } from '@/pages/admin/leave-types/components/leave-type-master-dialog';
 import { RBAC_MODULES } from '@/config/rbac-modules';
 import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
+import { ROUTES } from '@/config/routes.config';
+import { rosterApi } from '@/api/roster.api';
 
 interface ConflictingShift {
   id: string;
@@ -74,22 +73,21 @@ export function StaffLeaveForm() {
   useEffect(() => {
     if (!isEdit || !id) return;
     const load = async () => {
-      const { data } = await supabase
-        .from(TABLES.LEAVE_REQUESTS)
-        .select('leave_type_id, start_date, end_date, reason, attachment_url')
-        .eq('id', id)
-        .maybeSingle();
-      
-      if (!data) throw new Error("You do not have permission to perform this action");
-
-      if (data) {
-        setLeaveTypeId(data.leave_type_id || '');
-        setStartDate(data.start_date || '');
-        setEndDate(data.end_date || '');
-        setReason(data.reason || '');
-        setExistingAttachmentUrl(data.attachment_url || null);
+      try {
+        const data = await rosterApi.getLeaveRequest(id);
+        if (data) {
+          setLeaveTypeId(data.leave_type_id || '');
+          setStartDate(data.start_date || '');
+          setEndDate(data.end_date || '');
+          setReason(data.reason || '');
+          setExistingAttachmentUrl(data.attachment_url || null);
+        }
+      } catch (error) {
+        console.error('Error loading leave request:', error);
+        toast.error('Failed to load leave request');
+      } finally {
+        setLoadingEdit(false);
       }
-      setLoadingEdit(false);
     };
     load();
   }, [id, isEdit]);
@@ -104,37 +102,17 @@ export function StaffLeaveForm() {
 
     const check = async () => {
       setCheckingConflicts(true);
-      const { data } = await supabase
-        .from('ic_staff_shifts')
-        .select('id, start_date, start_time, end_time, house:ic_houses(house_name)')
-        .eq('staff_id', user.staff_id)
-        .gte('start_date', startDate)
-        .lte('start_date', endDate);
-      setConflictingShifts((data as ConflictingShift[]) || []);
-      setCheckingConflicts(false);
+      try {
+        const data = await rosterApi.listConflictingShifts(user.staff_id!, startDate, endDate);
+        setConflictingShifts(data as any[]);
+      } catch (error) {
+        console.error('Error checking conflicts:', error);
+      } finally {
+        setCheckingConflicts(false);
+      }
     };
     check();
   }, [startDate, endDate, user?.staff_id]);
-
-  const uploadAttachment = async (staffId: string): Promise<string | null> => {
-    if (!attachmentFile) return existingAttachmentUrl;
-    const fileName = `${Date.now()}-${attachmentFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-    const path = `leave-attachments/${staffId}/${fileName}`;
-    const { error } = await supabase.storage.from(STORAGE_BUCKETS.STAFF_DOCUMENTS).upload(path, attachmentFile);
-    if (error) { toast.error('Failed to upload attachment'); return null; }
-    const { data: urlData, error: urlError } = await supabase.storage
-      .from(STORAGE_BUCKETS.STAFF_DOCUMENTS)      .createSignedUrl(path, 3600, {
-        download: attachmentFile.name || true
-      });
-    
-    if (urlError) {
-      console.error('Error creating signed URL:', urlError);
-      return null;
-    }
-    return urlData.signedUrl;
-  };
-
-  const getFilenameFromUrl = getFilenameFromStorageUrl;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -150,35 +128,31 @@ export function StaffLeaveForm() {
     }
 
     setSaving(true);
+    try {
+      let attachmentUrl = existingAttachmentUrl;
+      if (attachmentFile) {
+        attachmentUrl = await rosterApi.uploadStaffDocument(user.staff_id, attachmentFile);
+      }
 
-    const attachmentUrl = await uploadAttachment(user.staff_id);
-
-    if (isEdit && id) {
-      const { error } = await supabase.from(TABLES.LEAVE_REQUESTS).update({
-        leave_type_id: leaveTypeId,
-        start_date: startDate,
-        end_date: endDate,
-        reason: reason || null,
-        ...(attachmentUrl !== undefined ? { attachment_url: attachmentUrl } : {}),
-      }).eq('id', id);
-      if (error) { toast.error('Failed to update leave request'); setSaving(false); return; }
-      toast.success('Leave request updated');
-    } else {
-      const { error } = await supabase.from(TABLES.LEAVE_REQUESTS).insert({
+      const payload = {
         staff_id: user.staff_id,
         leave_type_id: leaveTypeId,
         start_date: startDate,
         end_date: endDate,
         reason: reason || null,
         attachment_url: attachmentUrl,
-        status: 'pending',
-      });
-      if (error) { toast.error('Failed to submit leave request'); setSaving(false); return; }
-      toast.success('Leave request submitted successfully');
-    }
+        status: LEAVE_STATUS.PENDING,
+      };
 
-    navigate('/my-leave');
-    setSaving(false);
+      await rosterApi.upsertLeaveRequest(payload, id);
+
+      toast.success(isEdit ? 'Leave request updated' : 'Leave request submitted successfully');
+      navigate(ROUTES.MY_LEAVE);
+    } catch (error: any) {
+      toast.error('Failed to save leave request: ' + error.message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (loadingEdit) {
@@ -195,7 +169,7 @@ export function StaffLeaveForm() {
         <Toolbar className="hidden sm:flex">
           <ToolbarHeading>
             <div className="flex items-center gap-3">
-              <Button variant="outline" size="sm" onClick={() => navigate('/my-leave')}>
+              <Button variant="outline" size="sm" onClick={() => navigate(ROUTES.MY_LEAVE)}>
                 <ArrowLeft className="size-4 me-1.5" />
                 Back
               </Button>
@@ -208,7 +182,7 @@ export function StaffLeaveForm() {
             </div>
           </ToolbarHeading>
           <ToolbarActions>
-            <Button variant="outline" onClick={() => navigate('/my-leave')} disabled={saving}>
+            <Button variant="outline" onClick={() => navigate(ROUTES.MY_LEAVE)} disabled={saving}>
               Cancel
             </Button>
             <Button form="leave-form" type="submit" disabled={saving}>
