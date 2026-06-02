@@ -25,6 +25,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 
+import { getFilenameFromStorageUrl } from '@/lib/helpers';
+
 interface LeaveType {
   id: string;
   name: string;
@@ -127,6 +129,8 @@ export function LeaveDialog({ open, onOpenChange, leaveId, onSuccess, initialDat
     const timer = setTimeout(check, 500);
     return () => clearTimeout(timer);
   }, [startDate, endDate, user?.staff_id, open]);
+
+  const getFilenameFromUrl = getFilenameFromStorageUrl;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -258,8 +262,8 @@ export function LeaveDialog({ open, onOpenChange, leaveId, onSuccess, initialDat
                 {existingAttachmentUrl && !attachmentFile && (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Paperclip className="size-3.5" />
-                    <a href={existingAttachmentUrl} target="_blank" rel="noreferrer" className="underline truncate max-w-[200px]">
-                      Existing attachment
+                    <a href={existingAttachmentUrl} target="_blank" rel="noreferrer" className="underline truncate max-w-[200px]" title={getFilenameFromUrl(existingAttachmentUrl)}>
+                      {getFilenameFromUrl(existingAttachmentUrl)}
                     </a>
                     <button type="button" onClick={() => setExistingAttachmentUrl(null)} className="text-destructive">
                       <X className="size-3.5" />
