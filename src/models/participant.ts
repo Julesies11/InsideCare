@@ -1,13 +1,25 @@
 import { Database } from './database.types';
+import type { participantsApi } from '@/api/participants.api';
 
 export type ParticipantStatus = Database['public']['Enums']['ic_status_enum'];
 
 export type ParticipantRow = Database['public']['Tables']['ic_participants']['Row'];
 
+/**
+ * Base Participant type derived from the database row.
+ */
 export type Participant = ParticipantRow;
 
-// Extended interface with house details for display
-export interface ParticipantWithHouse extends Participant {
-  name?: string | null;
-  house_name?: string | null;
-}
+/**
+ * Inferred Participant type from the DAL's list view.
+ * This automatically includes any joined fields like 'house_name'.
+ */
+export type ParticipantListItem = Awaited<ReturnType<typeof participantsApi.list>>['data'][0];
+
+/**
+ * Inferred Participant type from the DAL's detail view.
+ */
+export type ParticipantDetail = NonNullable<Awaited<ReturnType<typeof participantsApi.get>>>;
+
+// Legacy support (to be phased out in favor of inferred types)
+export type ParticipantWithHouse = ParticipantListItem;

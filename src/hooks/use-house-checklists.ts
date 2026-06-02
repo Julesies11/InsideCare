@@ -1,22 +1,19 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { TABLES } from '@/config/db-tables';
-import { CHECKLIST_STATUS } from '@/config/enums';
+import { checklistsApi } from '@/api/checklists.api';
 
-const getHouseChecklistsQuery = () => supabase
-  .from(TABLES.HOUSE_CHECKLISTS)
-  .select(`
-    id, house_id, house_checklist_name, days_of_week, description, master_id, sort_order, created_at, updated_at,
-    house_checklist_items:ic_house_checklist_items(
-      id, checklist_id, title, instructions, group_id, group_title, priority, is_required, sort_order, created_at, updated_at,
-      group:ic_house_shift_templates(id, shift_template_name, short_name, color_theme)
-    )
-  `);
+export type HouseChecklistWithRelations = any; // Will be typed by api response
+export type HouseChecklistItem = any;
 
-export type HouseChecklistWithRelations = Awaited<ReturnType<typeof getHouseChecklistsQuery>>['data'] extends (infer U)[] ? U : never;
-export type HouseChecklistItem = HouseChecklistWithRelations['house_checklist_items'] extends (infer U)[] ? U : never;
-
-export interface HouseChecklist extends Omit<HouseChecklistWithRelations, 'house_checklist_items'> {
+export interface HouseChecklist {
+  id: string;
+  house_id: string;
+  house_checklist_name: string;
+  days_of_week: string[] | null;
+  description: string | null;
+  master_id: string | null;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
   items?: HouseChecklistItem[];
   latest_submission?: {
     id: string;
@@ -31,45 +28,7 @@ export function useHouseChecklists(houseId?: string, scheduledDate?: string) {
     queryKey: ['house-checklists', houseId, scheduledDate],
     queryFn: async () => {
       if (!houseId) return [];
-
-      // Fetch checklists with items
-      const { data: checklists, error: clError } = await supabase
-        .from(TABLES.HOUSE_CHECKLISTS)
-        .select(`
-          id, house_id, house_checklist_name, days_of_week, description, master_id, sort_order, created_at, updated_at,
-          house_checklist_items:ic_house_checklist_items(
-            id, checklist_id, title, instructions, group_id, group_title, priority, is_required, sort_order, created_at, updated_at,
-            group:ic_house_shift_templates(id, shift_template_name, short_name, color_theme)
-          )
-        `)
-        .eq('house_id', houseId)
-        .order('sort_order', { ascending: true });
-
-      if (clError) throw clError;
-
-      // Fetch latest in_progress submissions for these checklists in this house
-      // If scheduledDate is provided, only fetch for that specific date
-      let subQuery = supabase
-        .from(TABLES.HOUSE_CHECKLIST_SUBMISSIONS)
-        .select('id, checklist_id, status, updated_at, scheduled_date')
-        .eq('house_id', houseId);
-        
-      if (scheduledDate) {
-        subQuery = subQuery.eq('scheduled_date', scheduledDate);
-      } else {
-        subQuery = subQuery.eq('status', CHECKLIST_STATUS.in_progress);
-      }
-
-      const { data: submissions, error: subError } = await subQuery;
-
-      if (subError) throw subError;
-
-      // Combine data
-      return (checklists || []).map(cl => ({
-        ...cl,
-        items: ((cl.house_checklist_items as HouseChecklistItem[]) || []).sort((a, b) => a.sort_order - b.sort_order),
-        latest_submission: submissions?.find(s => s.checklist_id === cl.id)
-      })) as unknown as HouseChecklist[];
+      return await checklistsApi.listHouseChecklists(houseId, scheduledDate) as unknown as HouseChecklist[];
     },
     enabled: !!houseId,
     staleTime: 0, // Real-time RLS enforcement
@@ -83,3 +42,4 @@ export function useHouseChecklists(houseId?: string, scheduledDate?: string) {
     refresh: query.refetch,
   };
 }
+

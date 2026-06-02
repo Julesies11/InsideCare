@@ -1,50 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { TABLES } from '@/config/db-tables';
+import { participantsApi } from '@/api/participants.api';
 import { STATUS } from '@/config/enums';
-
-export interface HouseParticipant {
-  id: string;
-  name: string;
-  email?: string;
-  status: string;
-  house_id?: string;
-  house_phone?: string;
-  personal_mobile?: string;
-  move_in_date?: string;
-  created_at: string;
-  updated_at: string;
-}
+import { ParticipantListItem } from '@/models/participant';
 
 export function useHouseParticipants(houseId?: string) {
   const query = useQuery({
     queryKey: ['house-participants', { houseId }],
     queryFn: async () => {
       if (!houseId) return [];
-      
-      const { data, error } = await supabase
-        .from(TABLES.PARTICIPANTS)
-        .select(`
-          id,
-          participant_name,
-          email,
-          status,
-          house_id,
-          house_phone,
-          personal_mobile,
-          move_in_date,
-          created_at,
-          updated_at
-        `)
-        .eq('house_id', houseId)
-        .eq('status', STATUS.active)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return (data || []).map((p: any) => ({
-        ...p,
-        name: p.participant_name
-      })) as HouseParticipant[];
+      return participantsApi.listByHouse(houseId, STATUS.active);
     },
     enabled: !!houseId,
     staleTime: 0, // Real-time RLS enforcement
@@ -52,7 +16,7 @@ export function useHouseParticipants(houseId?: string) {
 
   return {
     ...query,
-    houseParticipants: query.data || [],
+    houseParticipants: (query.data || []) as ParticipantListItem[],
     loading: query.isLoading,
     error: query.error ? (query.error as Error).message : null,
     refresh: query.refetch,

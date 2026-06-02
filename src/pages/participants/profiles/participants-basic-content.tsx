@@ -3,11 +3,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Participants } from './components';
 import { useNavigate } from 'react-router';
-import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { TABLES } from '@/config/db-tables';
 import { RBAC_MODULES } from '@/config/rbac-modules';
 import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
+import { participantsApi } from '@/api/participants.api';
 
 export function ParticipantsProfilesContent() {
   const navigate = useNavigate();
@@ -20,18 +19,11 @@ export function ParticipantsProfilesContent() {
 
   const handleAddParticipant = async () => {
     try {
-      // Create a new participant with minimal data (name can be NULL for drafts)
-      const { data, error } = await supabase
-        .from(TABLES.PARTICIPANTS)
-        .insert([
-          {
-            status: 'draft',
-          },
-        ])
-        .select()
-        .maybeSingle();
+      // Create a new participant with minimal data (name can be NULL for drafts) using DAL
+      const data = await participantsApi.create({
+        status: 'draft',
+      } as any);
 
-      if (error) throw error;
       if (!data) throw new Error("You do not have permission to perform this action");
 
       // Navigate to the detail page

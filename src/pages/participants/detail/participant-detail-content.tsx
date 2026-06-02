@@ -513,22 +513,22 @@ export function ParticipantDetailContent({
           // Use the new handleAvatarUpload utility for resizing and processing
           const newPhotoUrl = await handleAvatarUpload(photoFile, STORAGE_BUCKETS.PARTICIPANT_PHOTOS, id);
 
-          const { error: photoErr } = await supabase
-            .from(TABLES.PARTICIPANTS)
-            .update({ photo_url: newPhotoUrl })
-            .eq('id', id);
-          if (photoErr) throw photoErr;
+          const { id: updatedId } = await updateParticipantFn({ 
+            id, 
+            updates: { photo_url: newPhotoUrl } 
+          });
+          if (!updatedId) throw new Error('Failed to update photo');
           setOriginalPhotoUrl(newPhotoUrl);
           setPhotoFile(null);
           setPhotoPreview(newPhotoUrl);
           setFormData(prev => ({ ...prev, photo_url: newPhotoUrl }));
           latestFormData.current = { ...currentFormData, photo_url: newPhotoUrl };
         } else if (photoPreview === null && originalPhotoUrl !== null) {
-          const { error: photoErr } = await supabase
-            .from(TABLES.PARTICIPANTS)
-            .update({ photo_url: null })
-            .eq('id', id);
-          if (photoErr) throw photoErr;
+          const { id: updatedId } = await updateParticipantFn({ 
+            id, 
+            updates: { photo_url: null } 
+          });
+          if (!updatedId) throw new Error('Failed to update photo');
           setOriginalPhotoUrl(null);
           setFormData(prev => ({ ...prev, photo_url: null }));
           latestFormData.current = { ...currentFormData, photo_url: null };
