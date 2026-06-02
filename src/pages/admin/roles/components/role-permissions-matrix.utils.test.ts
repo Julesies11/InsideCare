@@ -31,11 +31,19 @@ describe('RolePermissionsMatrix Utils', () => {
       // Operational
       expect(getContextDescription(RBAC_MODULES.HOUSES, ACCESS_LEVEL.CONTEXT_READ_WRITE))
         .toContain('Full management');
+      
+      // Reporting
+      expect(getContextDescription(RBAC_MODULES.REPORTING_CLINICAL, ACCESS_LEVEL.CONTEXT_READ_WRITE))
+        .toContain('Create and manage reports');
     });
 
     it('returns module-specific descriptions for CONTEXT_READ_ONLY', () => {
       expect(getContextDescription(RBAC_MODULES.PARTICIPANTS, ACCESS_LEVEL.CONTEXT_READ_ONLY))
         .toContain('View-only for participants');
+      
+      // Reporting
+      expect(getContextDescription(RBAC_MODULES.REPORTING_CLINICAL, ACCESS_LEVEL.CONTEXT_READ_ONLY))
+        .toContain('View reports');
     });
 
     it('returns global READ_ONLY description', () => {
