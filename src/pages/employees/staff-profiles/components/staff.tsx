@@ -13,7 +13,6 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import {
-  Edit,
   Search,
   X,
 } from 'lucide-react';
@@ -41,8 +40,8 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 import { Staff, useStaff } from '@/hooks/use-staff';
-import { useNavigate } from 'react-router';
-import { useSearchParams } from 'react-router';
+import { useRoles } from '@/hooks/use-roles';
+import { useNavigate, useSearchParams, Link } from 'react-router';
 import { useDebounce } from '@/hooks/use-debounce';
 import { ROUTES } from '@/config/routes.config';
 
@@ -56,37 +55,10 @@ const STAFF_STATUS_OPTIONS: StatusOption[] = [
   { value: 'inactive', label: 'Inactive', badge: 'secondary' },
 ];
 
-function ActionsCell({ row }: { row: Row<Staff> }) {
-  const navigate = useNavigate();
-  const { hasAccess } = useRBAC();
-  
-  const canEdit = hasAccess({ 
-    resource: RBAC_MODULES.EMPLOYEES, 
-    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE 
-  });
-
-  const handleEdit = () => {
-    navigate(`${ROUTES.STAFF_DETAIL}/${row.original.id}`);
-  };
-
-  return (
-    <div className="flex items-center gap-2">
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={handleEdit}
-        className="h-8"
-      >
-        <Edit className="size-4 me-1.5" />
-        {canEdit ? 'Edit' : 'View'}
-      </Button>
-    </div>
-  );
-}
-
 const StaffTable = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { hasAccess } = useRBAC();
+  const { roles: allRoles } = useRoles();
   
   const canManageAny = hasAccess({ 
     resource: RBAC_MODULES.EMPLOYEES, 
@@ -96,7 +68,7 @@ const StaffTable = () => {
   // Helper functions to parse URL params into initial state
   const getInitialPagination = (): PaginationState => ({
     pageIndex: Math.max(0, parseInt(searchParams.get('page') || '1') - 1), // Convert to 0-indexed
-    pageSize: parseInt(searchParams.get('pageSize') || '10'),
+    pageSize: parseInt(searchParams.get('pageSize') || '25'),
   });
 
   const getInitialSorting = (): SortingState => {
@@ -117,19 +89,26 @@ const StaffTable = () => {
     return param.split(',').filter((s) => STAFF_STATUS_OPTIONS.some(opt => opt.value === s));
   };
 
+  const getInitialRoles = (): string[] => {
+    const param = searchParams.get('roles');
+    return param ? param.split(',') : [];
+  };
+
   // Initialize state from URL params
   const [pagination, setPagination] = useState<PaginationState>(getInitialPagination());
   const [sorting, setSorting] = useState<SortingState>(getInitialSorting());
   const [searchQuery, setSearchQuery] = useState(getInitialSearch());
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>(getInitialStatuses());
+  const [selectedRoles, setSelectedRoles] = useState<string[]>(getInitialRoles());
 
   // Use debounced search query for API calls to reduce server load
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
   const filters = useMemo(() => ({
     search: debouncedSearchQuery,
-    statuses: selectedStatuses
-  }), [debouncedSearchQuery, selectedStatuses]);
+    statuses: selectedStatuses,
+    roleIds: selectedRoles
+  }), [debouncedSearchQuery, selectedStatuses, selectedRoles]);
 
   const { data, isLoading: loading, error } = useStaff(
     pagination.pageIndex,
@@ -140,30 +119,43 @@ const StaffTable = () => {
   const staff = data?.data || [];
   const count = data?.count || 0;
 
-  const columns: ColumnDef<Staff>[] = [
+  console.log('[DEBUG] Staff rendering:', { staffCount: staff.length, count, loading, error, filters });
+
+  const roleOptions: StatusOption[] = useMemo(() => 
+    allRoles.map(r => ({ value: r.id, label: r.role_name })), 
+    [allRoles]
+  );
+
+  const columns: ColumnDef<Staff>[] = useMemo(() => [
     {
       id: 'name',
       accessorKey: 'staff_name',
       header: ({ column }) => (
-        <DataGridColumnHeader title="Name" column={column} />
+        <DataGridColumnHeader title="Staff Member" column={column} />
       ),
       cell: ({ row }) => {
         const name = row.original.staff_name;
         const initials = name
           ? name.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2)
           : '??';
+
+        const detailUrl = `${ROUTES.STAFF_DETAIL}/${row.original.id}`;
+
         return (
-          <div className="flex items-center gap-2.5">
+          <Link 
+            to={detailUrl}
+            className="flex items-center gap-2.5 group w-full max-w-full text-left"
+          >
             <SecureAvatar 
               src={row.original.photo_url} 
               initials={initials} 
-              className="size-9"
+              className="size-9 group-hover:ring-2 group-hover:ring-primary/20 transition-all shrink-0"
               bucket={STORAGE_BUCKETS.STAFF_PHOTOS} 
             />
-            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+            <span className="text-sm font-medium text-blue-700 dark:text-blue-400 group-hover:underline transition-colors break-words whitespace-normal">
               {name || '-'}
             </span>
-          </div>
+          </Link>
         );
       },
       meta: {
@@ -178,6 +170,41 @@ const StaffTable = () => {
       size: 200,
     },
     {
+      id: 'role',
+      accessorKey: 'role',
+      header: ({ column }) => (
+        <DataGridColumnHeader title="Role" column={column} />
+      ),
+      cell: ({ row }) => (
+        <div className="text-sm text-gray-700 dark:text-gray-300 break-words whitespace-normal text-left">
+          {row.original.role?.role_name || '-'}
+        </div>
+      ),
+      enableSorting: true,
+      size: 150,
+    },
+    {
+      id: 'contact',
+      accessorKey: 'email',
+      header: ({ column }) => (
+        <DataGridColumnHeader title="Contact" column={column} />
+      ),
+      cell: ({ row }) => (
+        <div className="flex flex-col text-left break-words whitespace-normal">
+          <span className="text-sm text-gray-700 dark:text-gray-300 select-all">
+            {row.original.email || '-'}
+          </span>
+          {row.original.phone && (
+            <span className="text-xs text-muted-foreground select-all">
+              {row.original.phone}
+            </span>
+          )}
+        </div>
+      ),
+      enableSorting: true,
+      size: 250,
+    },
+    {
       id: 'houses',
       header: ({ column }) => (
         <DataGridColumnHeader title="House" column={column} />
@@ -187,14 +214,19 @@ const StaffTable = () => {
         if (assignments.length === 0) return <span className="text-sm text-gray-500">-</span>;
         
         return (
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1 text-left break-words whitespace-normal">
             {assignments.map((assignment) => (
-              <span 
-                key={assignment.id} 
-                className="text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
-                {assignment.house?.house_name || 'Unknown House'}
-              </span>
+              assignment.house ? (
+                <Link 
+                  key={assignment.id} 
+                  to={`${ROUTES.HOUSE_DETAIL}/${assignment.house_id}`}
+                  className="text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline transition-colors"
+                >
+                  {assignment.house.house_name}
+                </Link>
+              ) : (
+                <span key={assignment.id} className="text-sm text-gray-500">Unknown House</span>
+              )
             ))}
           </div>
         );
@@ -207,40 +239,8 @@ const StaffTable = () => {
           </div>
         ),
       },
+      enableSorting: false, // House is a join list, harder to sort server-side without custom logic
       size: 180,
-    },
-    {
-      id: 'role',
-      accessorKey: 'role',
-      header: ({ column }) => (
-        <DataGridColumnHeader title="Role" column={column} />
-      ),
-      cell: ({ row }) => (
-        <span className="text-sm text-gray-700 dark:text-gray-300">
-          {row.original.role?.role_name || '-'}
-        </span>
-      ),
-      meta: {
-        skeleton: <Skeleton className="h-3 w-20" />,
-      },
-      enableSorting: true,
-      size: 150,
-    },
-    {
-      id: 'employment_type',
-      accessorKey: 'employment_type',
-      header: ({ column }) => (
-        <DataGridColumnHeader title="Employment Type" column={column} />
-      ),
-      cell: ({ row }) => (
-        <Badge variant="secondary" className="text-xs">
-          {row.original.employment_type_info?.employment_type_name || 'Not Specified'}
-        </Badge>
-      ),
-      meta: {
-        skeleton: <Skeleton className="h-5 w-24 rounded-full" />,
-      },
-      size: 130,
     },
     {
       id: 'status',
@@ -249,23 +249,17 @@ const StaffTable = () => {
         <DataGridColumnHeader title="Status" column={column} />
       ),
       cell: ({ row }) => (
-        <StatusBadge status={row.original.status} />
+        <div className="break-words whitespace-normal">
+          <StatusBadge status={row.original.status} />
+        </div>
       ),
       meta: {
         skeleton: <Skeleton className="h-5 w-16 rounded-full" />,
       },
+      enableSorting: true,
       size: 80,
     },
-    {
-      id: 'actions',
-      header: 'Actions',
-      cell: ActionsCell,
-      meta: {
-        skeleton: <Skeleton className="h-8 w-20" />,
-      },
-      size: 100,
-    },
-  ];
+  ], []);
 
   // Sync state changes to URL query parameters
   useEffect(() => {
@@ -278,7 +272,7 @@ const StaffTable = () => {
       params.delete('page');
     }
 
-    if (pagination.pageSize !== 10) {
+    if (pagination.pageSize !== 25) {
       params.set('pageSize', pagination.pageSize.toString());
     } else {
       params.delete('pageSize');
@@ -306,9 +300,16 @@ const StaffTable = () => {
       params.delete('statuses');
     }
 
+    // Role filter
+    if (selectedRoles.length > 0) {
+      params.set('roles', selectedRoles.join(','));
+    } else {
+      params.delete('roles');
+    }
+
     // Update URL immediately without adding to history to ensure state is preserved if user navigates away
     setSearchParams(params, { replace: true });
-  }, [pagination, sorting, searchQuery, selectedStatuses, setSearchParams]);
+  }, [pagination, sorting, searchQuery, selectedStatuses, selectedRoles, setSearchParams]);
 
   const pageCount = useMemo(() => {
     return Math.ceil(count / pagination.pageSize);
@@ -320,6 +321,11 @@ const StaffTable = () => {
     state: {
       pagination,
       sorting,
+    },
+    initialState: {
+      columnPinning: {
+        left: ['name'],
+      },
     },
     onPaginationChange: (updater) => {
       setPagination((prev) => {
@@ -353,10 +359,11 @@ const StaffTable = () => {
         columnsMovable: true,
         columnsVisibility: true,
         cellBorder: true,
+        width: 'fixed'
       }}
     >
       <Card>
-        <CardHeader>
+        <CardHeader className="flex-wrap gap-2.5">
           <div className="flex items-center gap-2.5">
             <div className="relative">
               <Search className="size-4 text-muted-foreground absolute start-3 top-1/2 -translate-y-1/2" />
@@ -383,17 +390,23 @@ const StaffTable = () => {
               options={STAFF_STATUS_OPTIONS}
               label="Status"
             />
+            <StatusFilter
+              value={selectedRoles}
+              onChange={setSelectedRoles}
+              options={roleOptions}
+              label="Role"
+            />
             {!canManageAny && (
               <Badge variant="warning" appearance="light" size="sm" className="h-9 px-3">
                 Read Only
               </Badge>
             )}
-            <CardToolbar>
-              <div className="flex flex-wrap items-center gap-2.5">
-                {/* Additional toolbar items here if needed */}
-              </div>
-            </CardToolbar>
           </div>
+          <CardToolbar>
+            <div className="flex flex-wrap items-center gap-2.5">
+              {/* Additional toolbar items here if needed */}
+            </div>
+          </CardToolbar>
         </CardHeader>
 
         {loading && <div className="p-4 text-center">Loading staff...</div>}
@@ -403,10 +416,9 @@ const StaffTable = () => {
           </Alert>
         )}
 
-        <CardTable>
-          <ScrollArea>
+        <CardTable className="overflow-hidden">
+          <ScrollArea className="w-full">
             <DataGridTable />
-            <ScrollBar orientation="horizontal" />
           </ScrollArea>
         </CardTable>
         <CardFooter>

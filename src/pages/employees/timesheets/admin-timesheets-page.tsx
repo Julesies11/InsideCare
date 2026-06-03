@@ -40,6 +40,21 @@ import { TIMESHEET_STATUS } from '@/config/enums';
 import { timesheetsApi } from '@/api/timesheets.api';
 import { useQueryClient } from '@tanstack/react-query';
 import { QUERY_KEYS } from '@/config/query-keys';
+import { Link } from 'react-router';
+import { ROUTES } from '@/config/routes.config';
+import { SecureAvatar } from '@/components/ui/secure-avatar';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
+import { House as HouseIcon } from 'lucide-react';
+
+const getInitials = (name?: string) => {
+  if (!name) return '??';
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+};
 
 interface Timesheet {
   id: string;
@@ -62,14 +77,14 @@ interface Timesheet {
   travel_km: number;
   overtime_explanation: string | null;
   created_at: string;
-  staff: { id: string; staff_name: string; auth_user_id: string | null } | null;
+  staff: { id: string; staff_name: string; photo_url: string | null; auth_user_id: string | null } | null;
   shift: {
     start_date: string;
     end_date: string | null;
     start_time: string;
     end_time: string;
     shift_template: string;
-    house: { house_name: string } | null;
+    house: { id: string; house_name: string } | null;
   } | null;
 }
 
@@ -299,7 +314,27 @@ export function AdminTimesheetsPage() {
     {
       accessorKey: 'staff_name',
       header: 'Staff',
-      cell: ({ row }) => <span className="font-medium">{row.original.staff?.staff_name ?? 'Unknown'}</span>,
+      cell: ({ row }) => {
+        const staff = row.original.staff;
+        if (!staff) return <span className="text-muted-foreground">Unknown</span>;
+
+        return (
+          <Link 
+            to={`${ROUTES.STAFF_DETAIL}/${staff.id}`}
+            className="flex items-center gap-2 group/staff w-fit"
+          >
+            <SecureAvatar 
+              src={staff.photo_url} 
+              initials={getInitials(staff.staff_name)} 
+              className="size-7 transition-all group-hover/staff:ring-2 group-hover/staff:ring-primary/20"
+              bucket={STORAGE_BUCKETS.STAFF_PHOTOS} 
+            />
+            <span className="text-sm font-medium text-blue-700 dark:text-blue-400 group-hover/staff:underline transition-colors">
+              {staff.staff_name}
+            </span>
+          </Link>
+        );
+      },
     },
     {
       accessorKey: 'date',
@@ -318,7 +353,24 @@ export function AdminTimesheetsPage() {
     {
       accessorKey: 'location',
       header: 'Location',
-      cell: ({ row }) => row.original.shift?.house?.house_name ?? '—',
+      cell: ({ row }) => {
+        const house = row.original.shift?.house;
+        if (!house || !house.id) return '—';
+
+        return (
+          <Link 
+            to={`${ROUTES.HOUSE_DETAIL}/${house.id}`}
+            className="flex items-center gap-2 group/house w-fit"
+          >
+            <div className="size-6 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center group-hover/house:ring-2 group-hover/house:ring-primary/20 transition-all shrink-0">
+              <HouseIcon className="size-3 text-gray-600 dark:text-gray-400 group-hover/house:text-primary transition-colors" />
+            </div>
+            <span className="text-sm font-medium text-blue-700 dark:text-blue-400 group-hover/house:underline transition-colors">
+              {house.house_name}
+            </span>
+          </Link>
+        );
+      },
       meta: { className: 'hidden md:table-cell' },
     },
     {

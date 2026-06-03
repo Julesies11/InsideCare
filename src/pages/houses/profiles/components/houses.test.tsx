@@ -2,28 +2,51 @@ import { describe, it, expect, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import { Houses } from './houses';
 import { renderWithProviders } from '@/test/test-utils';
+import { House } from '@/models/house';
 import { HouseRow } from '@/test/type-helpers';
 
 // Mock useHouses hook
 vi.mock('@/hooks/use-houses', () => ({
   useHouses: (pageIndex: number, pageSize: number, sort: any[], filters: any) => {
-    const mockHouses: (Partial<HouseRow> & { staff_assignments: any[] })[] = [
+    const mockHouses: House[] = [
       {
         id: 'house-1',
         house_name: 'Test House 1',
         status: 'active',
         capacity: 5,
         address: '123 Test St',
-        staff_assignments: [{ count: 1 }]
-      },
+        staff_assignments: [
+          {
+            id: 'a1',
+            end_date: null,
+            staff: {
+              id: 'staff-1',
+              staff_name: 'Staff One',
+              photo_url: null,
+              status: 'active'
+            }
+          }
+        ]
+      } as any,
       {
         id: 'house-2',
         house_name: 'Test House 2',
         status: 'active',
         capacity: 3,
         address: '456 Mock Ave',
-        staff_assignments: [{ count: 1 }]
-      }
+        staff_assignments: [
+          {
+            id: 'a2',
+            end_date: null,
+            staff: {
+              id: 'staff-2',
+              staff_name: 'Staff Two',
+              photo_url: null,
+              status: 'active'
+            }
+          }
+        ]
+      } as any
     ];
     
     // Simple filter simulation
@@ -33,10 +56,8 @@ vi.mock('@/hooks/use-houses', () => ({
     }
 
     return {
-      data: {
-        data: filtered,
-        count: filtered.length
-      },
+      houses: filtered,
+      count: filtered.length,
       isLoading: false,
       error: null
     };
@@ -63,18 +84,18 @@ describe('Houses Component', () => {
     expect(screen.getByText('123 Test St')).toBeInTheDocument();
   });
 
-  it('calculates linked staff count correctly (only active assignments)', async () => {
+  it('renders linked staff correctly', async () => {
     renderWithProviders(<Houses />);
 
     await waitFor(() => expect(screen.getByText('Test House 1')).toBeInTheDocument());
 
-    // House 1 has 4 assignments total, but only 1 should be counted as active
+    // House 1 has 1 active assignment: Staff One
     const house1Row = screen.getByText('Test House 1').closest('tr');
-    expect(house1Row).toHaveTextContent('1staff member');
+    expect(house1Row).toHaveTextContent('Staff One');
 
-    // House 2 has 1 active assignment
+    // House 2 has 1 active assignment: Staff Two
     const house2Row = screen.getByText('Test House 2').closest('tr');
-    expect(house2Row).toHaveTextContent('1staff member');
+    expect(house2Row).toHaveTextContent('Staff Two');
   });
 
   it('filters by status when clicking status filter', async () => {
@@ -97,17 +118,16 @@ describe('Houses Component', () => {
     });
   });
 
-  it('navigates to detail page when edit is clicked', async () => {
+  it('navigates to detail page when clicking house name', async () => {
     const { user } = renderWithProviders(<Houses />);
 
     await waitFor(() => expect(screen.getByText('Test House 1')).toBeInTheDocument());
 
-    // Find and click the edit button for House 1
-    // We might need to find all buttons and pick one or use a more specific selector
-    const editButtons = screen.getAllByRole('button', { name: /edit/i });
-    await user.click(editButtons[0]);
+    // Click the house name link
+    const houseLink = screen.getByRole('link', { name: /Test House 1/i });
+    await user.click(houseLink);
 
-    // Navigation would normally happen here. In tests we can verify the URL if needed,
-    // or just ensure the click handler was called.
+    // Navigation would normally happen here. Link component is from react-router.
+    expect(houseLink).toHaveAttribute('href', expect.stringContaining('house-1'));
   });
 });

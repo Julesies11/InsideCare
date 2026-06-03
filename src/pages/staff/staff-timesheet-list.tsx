@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useNavigate, useLocation } from 'react-router';
+import { useNavigate, useLocation, Link } from 'react-router';
 import { useAuth } from '@/auth/context/auth-context';
 import { format, parseISO, subDays, isBefore } from 'date-fns';
 import {
@@ -195,15 +195,39 @@ export function StaffTimesheetList() {
       header: 'Date',
       cell: ({ row }) => {
         const ts = row.original;
-        return ts.shift?.start_date
+        const dateStr = ts.shift?.start_date
           ? format(parseISO(ts.shift.start_date), 'EEE dd MMM yyyy')
           : format(new Date(ts.clock_in), 'EEE dd MMM yyyy');
+
+        return (
+          <Link 
+            to={`${ROUTES.MY_ROSTER}/${ts.shift_id}/timesheet`}
+            state={{ fromTab: activeTab }}
+            className="text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline transition-colors"
+          >
+            {dateStr}
+          </Link>
+        );
       },
     },
     {
       accessorKey: 'location',
       header: 'Location',
-      cell: ({ row }) => row.original.shift?.house?.house_name ?? '—',
+      cell: ({ row }) => {
+        const house = row.original.shift?.house;
+        const houseId = (row.original.shift as any)?.house_id || (row.original.shift as any)?.house?.id;
+        
+        if (!house || !houseId) return <span className="text-sm text-gray-500">—</span>;
+
+        return (
+          <Link 
+            to={`${ROUTES.HOUSE_DETAIL}/${houseId}`}
+            className="text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline transition-colors"
+          >
+            {house.house_name}
+          </Link>
+        );
+      },
       meta: { className: 'hidden sm:table-cell' },
     },
     {
@@ -271,42 +295,6 @@ export function StaffTimesheetList() {
         </Badge>
       ),
       meta: { className: 'hidden lg:table-cell' },
-    },
-    {
-      id: 'actions',
-      header: '',
-      cell: ({ row }) => {
-        const ts = row.original;
-        return (
-          <div className="flex items-center justify-end gap-2">
-            {ts.status !== 'missing' && (
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-7 px-2.5 text-xs font-bold gap-1.5"
-                onClick={() => navigate(`${ROUTES.MY_ROSTER}/${ts.shift_id}/timesheet`, { state: { fromTab: activeTab } })}
-              >
-                <FileText className="size-3.5" />
-                View Timesheet
-              </Button>
-            )}
-            {ts.status === 'missing' ? (
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-7 px-2.5 text-xs font-bold"
-                onClick={() => navigate(`${ROUTES.MY_ROSTER}/${ts.shift_id}/timesheet`, { state: { fromTab: activeTab } })}
-              >
-                Submit <ChevronRight className="size-3.5 ms-1" />
-              </Button>
-            ) : ts.status === 'rejected' && (ts.rejection_reason || ts.admin_notes) ? (
-              <p className="text-xs text-destructive italic max-w-[180px] truncate">
-                {ts.rejection_reason || ts.admin_notes}
-              </p>
-            ) : null}
-          </div>
-        );
-      },
     },
   ], [activeTab, navigate]);
 

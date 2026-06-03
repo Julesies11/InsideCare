@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router';
+import { useNavigate, Link } from 'react-router';
 import { useAuth } from '@/auth/context/auth-context';
 import { format } from 'date-fns';
 import { Calendar, Umbrella, ClipboardList, ChevronRight, PlayCircle, CheckCircle2, AlertTriangle, AlertCircle } from 'lucide-react';
@@ -116,7 +116,15 @@ export function StaffDashboard() {
                       {currentShift.checklist_stats?.all_done ? <CheckCircle2 className="size-6" /> : <PlayCircle className="size-6" />}
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-lg font-bold text-gray-900">Active Shift: {currentShift.house?.house_name}</h3>
+                      <h3 className="text-lg font-bold text-gray-900">
+                        Active Shift: {' '}
+                        <Link 
+                          to={`${ROUTES.HOUSE_DETAIL}/${currentShift.house_id || currentShift.house?.id}`}
+                          className="text-blue-700 dark:text-blue-400 hover:underline transition-colors"
+                        >
+                          {currentShift.house?.house_name}
+                        </Link>
+                      </h3>
                       <p className="text-sm text-muted-foreground">
                         Started at {currentShift.start_time.slice(0, 5)} · Scheduled until {currentShift.end_time.slice(0, 5)}
                       </p>
@@ -198,12 +206,20 @@ export function StaffDashboard() {
                             );
                           })()}
                         </div>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <p className="text-xs text-muted-foreground">
-                            {item.start_time?.slice(0, 5)} – {item.end_time?.slice(0, 5)}
-                            {item.house ? ` · ${item.house.house_name}` : ''}
-                            {item.entry_type === 'event' && item.location ? ` · ${item.location}` : ''}
-                          </p>
+                        <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground">
+                          <span>{item.start_time?.slice(0, 5)} – {item.end_time?.slice(0, 5)}</span>
+                          {item.house && (
+                            <>
+                              <span> · </span>
+                              <Link 
+                                to={`${ROUTES.HOUSE_DETAIL}/${item.house_id || item.house?.id}`}
+                                className="text-blue-700 dark:text-blue-400 font-medium hover:underline transition-colors"
+                              >
+                                {item.house.house_name}
+                              </Link>
+                            </>
+                          )}
+                          {item.entry_type === 'event' && item.location ? ` · ${item.location}` : ''}
                         </div>
                         {item.entry_type === 'event' && (
                           <p className="text-sm font-semibold text-gray-800 mt-1">{item.title}</p>

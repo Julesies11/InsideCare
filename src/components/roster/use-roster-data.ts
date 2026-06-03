@@ -21,7 +21,12 @@ export interface StaffShift {
   created_at?: string;
   updated_at?: string;
   house?: { id: string; house_name: string };
-  participants?: Array<{ id: string; participant_name: string; house_id?: string | null }>;
+  participants?: Array<{ 
+    id: string; 
+    participant_name: string; 
+    photo_url?: string | null;
+    house_id?: string | null;
+  }>;
   assigned_checklists?: Array<{ 
     id: string; 
     checklist_id: string; 
@@ -30,6 +35,7 @@ export interface StaffShift {
     items?: Array<{ id: string; title: string }>;
   }>;
   staff_name?: string;
+  staff_photo_url?: string | null;
   duration_hours?: number;
   color_theme?: string;
   icon_name?: string;
@@ -94,14 +100,16 @@ export function useShiftsQuery(staffId: string, startDate: string, endDate: stri
     if (!query.data) return [];
     
     const houseMap = new Map(houses.map(h => [h.id, { id: h.id, house_name: h.house_name }]));
-    const staffMap = new Map(staff.map(s => [s.id, s.staff_name]));
+    const staffMap = new Map(staff.map(s => [s.id, { name: s.staff_name, photo: s.photo_url }]));
 
     return (query.data as any[]).map((item: any): StaffShift => {
       const colorTheme = item.type_details?.color_theme || item.type_color;
       const iconName = item.type_details?.icon_name;
 
       // Use joined data if available (compact mode), otherwise fallback to global map (full mode)
-      const staffName = item.staff_info?.staff_name || (item.staff_id ? staffMap.get(item.staff_id) : 'Unassigned') || 'Unassigned';
+      const staffInfo = staffMap.get(item.staff_id || '');
+      const staffName = item.staff_info?.staff_name || staffInfo?.name || 'Unassigned';
+      const staffPhoto = item.staff_info?.photo_url || staffInfo?.photo || null;
       const houseData = item.house_info || (item.house_id ? houseMap.get(item.house_id) : undefined);
 
       // Flatten participants if they are in the nested ic_shift_participants format
@@ -115,7 +123,8 @@ export function useShiftsQuery(staffId: string, startDate: string, endDate: stri
         return {
           id: actualPart?.id || p.id || p.participant_id,
           participant_name: participantName,
-          name: participantName
+          name: participantName,
+          photo_url: actualPart?.photo_url || p.photo_url || null
         };
       }).filter((p: any) => p.id && p.participant_name) || [];
 
@@ -123,6 +132,7 @@ export function useShiftsQuery(staffId: string, startDate: string, endDate: stri
         ...item,
         house: item.house || houseData,
         staff_name: staffName,
+        staff_photo_url: staffPhoto,
         participants,
         assigned_checklists: item.assigned_checklists?.map((cl: any) => ({
           ...cl,

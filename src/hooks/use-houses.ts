@@ -2,13 +2,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { housesApi, HousesFilter, HousesSort } from '@/api/houses.api';
 import { useLogActivity } from '@/hooks/use-activity-log';
 import { Database } from '@/models/database.types';
+import { House } from '@/models/house';
 import { QUERY_KEYS } from '@/config/query-keys';
 
 // Re-export types for backward compatibility
 export type { HousesFilter, HousesSort };
 
-// The UI expects staff_assignments to be an array with a count object after mapping
-export type HouseUIData = any; // Simplifying to avoid complex type duplication, as it's now handled in API
+export type HouseUIData = House; 
 
 export function useHouses(
   pageIndex: number = 0,

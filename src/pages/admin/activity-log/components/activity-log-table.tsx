@@ -66,11 +66,14 @@ import { cn } from '@/lib/utils';
 import { staffApi } from '@/api/staff.api';
 
 import { useActivityLog } from '@/hooks/use-activity-log';
-import { useSearchParams } from 'react-router';
+import { useSearchParams, Link } from 'react-router';
 import { ActivityLog, ActivityType } from '@/models/activity-log';
 import { useDebounce } from '@/hooks/use-debounce';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Code } from '@/components/ui/code';
+import { ROUTES } from '@/config/routes.config';
+import { SecureAvatar } from '@/components/ui/secure-avatar';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 
 const ACTIVITY_TYPE_BADGES: Record<ActivityType, { variant: any; icon: any }> = {
   create: { variant: 'success', icon: ShieldCheck },
@@ -256,13 +259,41 @@ export function ActivityLogTable() {
       header: ({ column }) => (
         <DataGridColumnHeader title="User" column={column} />
       ),
-      cell: ({ row }) => (
-        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-          {row.original.user_name || 'System'}
-        </span>
-      ),
+      cell: ({ row }) => {
+        const staff = (row.original as any).staff;
+        const name = row.original.user_name || 'System';
+        const initials = name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
+
+        if (!staff?.id) {
+          return (
+            <div className="flex items-center gap-2">
+              <div className="size-6 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center shrink-0">
+                <ShieldCheck className="size-3 text-gray-400" />
+              </div>
+              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{name}</span>
+            </div>
+          );
+        }
+
+        return (
+          <Link 
+            to={`${ROUTES.STAFF_DETAIL}/${staff.id}`}
+            className="flex items-center gap-2 group/user w-fit"
+          >
+            <SecureAvatar 
+              src={staff.photo_url} 
+              initials={initials} 
+              className="size-6 transition-all group-hover/user:ring-2 group-hover/user:ring-primary/20"
+              bucket={STORAGE_BUCKETS.STAFF_PHOTOS} 
+            />
+            <span className="text-sm font-medium text-blue-700 dark:text-blue-400 group-hover/user:underline transition-colors">
+              {name}
+            </span>
+          </Link>
+        );
+      },
       meta: { skeleton: <Skeleton className="h-4 w-24" /> },
-      size: 150,
+      size: 180,
     },
     {
       id: 'activity_type',
@@ -491,7 +522,16 @@ export function ActivityLogTable() {
                   </div>
                   <div className="space-y-1">
                     <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Entity</p>
-                    <p className="text-sm">{inspectingActivity.entity_name || inspectingActivity.entity_id}</p>
+                    {['staff', 'participants', 'houses', 'employees', 'ic_staff', 'ic_participants', 'ic_houses'].includes(inspectingActivity.entity_type) ? (
+                      <Link 
+                        to={`${(inspectingActivity.entity_type === 'staff' || inspectingActivity.entity_type === 'employees' || inspectingActivity.entity_type === 'ic_staff') ? ROUTES.STAFF_DETAIL : (inspectingActivity.entity_type === 'participants' || inspectingActivity.entity_type === 'ic_participants') ? ROUTES.PARTICIPANT_DETAIL : ROUTES.HOUSE_DETAIL}/${inspectingActivity.entity_id}`}
+                        className="text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline"
+                      >
+                        {inspectingActivity.entity_name || inspectingActivity.entity_id}
+                      </Link>
+                    ) : (
+                      <p className="text-sm">{inspectingActivity.entity_name || inspectingActivity.entity_id}</p>
+                    )}
                   </div>
                 </div>
 

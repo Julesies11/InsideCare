@@ -11,6 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { SecureAvatar } from '@/components/ui/secure-avatar';
 import { Plus, Edit, Trash2, Clock, Star } from 'lucide-react';
 import { Link } from 'react-router';
+import { ROUTES } from '@/config/routes.config';
 import { useHouseStaffAssignments } from '@/hooks/use-house-staff-assignments';
 import { useStaff } from '@/hooks/use-staff';
 import { StaffCombobox } from './staff-combobox';
@@ -309,8 +310,8 @@ export function HouseStaff({
                           />
                           <div className={`flex flex-col ${isPendingDelete ? 'line-through' : ''}`}>
                             <Link 
-                              to={`/employees/staff-detail/${staffAssignment.staff_id}`}
-                              className={`font-bold text-gray-900 hover:underline hover:text-primary ${isPendingDelete ? 'pointer-events-none opacity-50' : ''}`}
+                              to={`${ROUTES.STAFF_DETAIL}/${staffAssignment.staff_id}`}
+                              className={`font-medium text-blue-700 dark:text-blue-400 hover:underline transition-colors ${isPendingDelete ? 'pointer-events-none opacity-50' : ''}`}
                             >
                               {getStaffName(staffAssignment)}
                             </Link>

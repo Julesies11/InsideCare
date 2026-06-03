@@ -52,7 +52,7 @@ import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 import { ROUTES } from '@/config/routes.config';
 
 import { Participant, ParticipantWithHouse }  from '@/models/participant';
-import { Archive, Edit } from 'lucide-react';
+import { Edit } from 'lucide-react';
 import { useParticipants, useUpdateParticipant } from '@/hooks/use-participants';
 import { useHouses } from '@/hooks/use-houses';
 import { useNavigate, Link } from 'react-router';
@@ -67,64 +67,6 @@ const PARTICIPANT_STATUS_OPTIONS: StatusOption[] = [
   { value: 'draft', label: 'Draft', badge: 'warning' },
   { value: 'inactive', label: 'Inactive', badge: 'secondary' },
 ];
-
-function ActionsCell({ row, updateParticipant }: { row: Row<ParticipantWithHouse>; updateParticipant: (params: { id: string; updates: Partial<Participant> }) => Promise<void> }) {
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  const { hasAccess } = useRBAC();
-  
-  const canEdit = hasAccess({ 
-    resource: RBAC_MODULES.PARTICIPANTS, 
-    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE 
-  });
-  const canArchive = hasAccess({ 
-    resource: RBAC_MODULES.PARTICIPANTS, 
-    requiredLevel: ACCESS_LEVEL.FULL 
-  });
-
-  const handleEdit = () => {
-    navigate(`${ROUTES.PARTICIPANT_DETAIL}/${row.original.id}`);
-  };
-
-  const handleArchive = async () => {
-    if (!canArchive) return;
-    try {
-      await updateParticipant({ id: row.original.id, updates: { status: 'inactive' } });
-
-      toast.success('Participant archived successfully');
-    } catch (error) {
-      const err = error as Error;
-      const parsedError = parseSupabaseError(err);
-      toast.error(parsedError.title, { description: parsedError.description });
-      console.error('Error archiving participant:', error);
-    }
-  };
-
-  return (
-    <div className="flex items-center gap-2">
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={handleEdit}
-        className="h-8"
-      >
-        <Edit className="size-4 me-1.5" />
-        {canEdit ? 'Edit' : 'View'}
-      </Button>
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={handleArchive}
-        disabled={!canArchive}
-        className="h-8"
-        title={!canArchive ? 'You do not have permission to archive participants' : ''}
-      >
-        <Archive className="size-4 me-1.5" />
-        Archive
-      </Button>
-    </div>
-  );
-}
 
 // Helper function to get initials from name
 function getInitials(name: string | null | undefined): string {
@@ -149,7 +91,7 @@ const Participants = () => {
   // Helper functions to parse URL params into initial state
   const getInitialPagination = (): PaginationState => ({
     pageIndex: Math.max(0, parseInt(searchParams.get('page') || '1') - 1), // Convert to 0-indexed
-    pageSize: parseInt(searchParams.get('pageSize') || '10'),
+    pageSize: parseInt(searchParams.get('pageSize') || '25'),
   });
 
   const getInitialSorting = (): SortingState => {
@@ -187,29 +129,25 @@ const Participants = () => {
 
   const filters = useMemo(() => ({
     search: debouncedSearchQuery,
-    houses: selectedHouses,
+    houseIds: selectedHouses,
     statuses: selectedStatuses
   }), [debouncedSearchQuery, selectedHouses, selectedStatuses]);
 
-  const { data, isLoading: loading, error } = useParticipants(
+  const { participants, count, isLoading: loading, error } = useParticipants(
     pagination.pageIndex,
     pagination.pageSize,
     sorting,
     filters
   );
-  const participants = useMemo(() => data?.data || [], [data]);
-  const count = data?.count || 0;
 
-  const { mutateAsync: updateParticipant } = useUpdateParticipant();
-  
+  console.log('[DEBUG] Participants rendering:', { pCount: participants.length, count, loading, error, filters });
+
   const { data: housesData } = useHouses();
   const houses = useMemo(() => housesData?.data || [], [housesData]);
 
   // Count of participants per house (This still uses the full list if we want accurate badges, 
   // but for now we'll simplify or keep it as is if useHouses has the counts)
   const houseCounts = useMemo(() => {
-    // Note: This logic only counts from the CURRENT PAGE now. 
-    // For a production app, the house counts should ideally come from a separate count query or summary.
     return participants.reduce((acc, item) => {
       if (item.house_id) {
         acc[item.house_id] = (acc[item.house_id] || 0) + 1;
@@ -237,7 +175,7 @@ const Participants = () => {
     if (pagination.pageIndex > 0) {
       params.set('page', (pagination.pageIndex + 1).toString()); // Convert to 1-indexed
     }
-    if (pagination.pageSize !== 10) {
+    if (pagination.pageSize !== 25) {
       params.set('pageSize', pagination.pageSize.toString());
     }
     
@@ -272,30 +210,28 @@ const Participants = () => {
         header: ({ column }) => (
           <DataGridColumnHeader title="Participant" column={column} />
         ),
-        cell: ({ row }) => (
-          <div className="flex items-center gap-2.5">
-            <SecureAvatar 
-              src={row.original.photo_url} 
-              initials={getInitials(row.original.participant_name)} 
-              className="size-9"
-              bucket={STORAGE_BUCKETS.PARTICIPANT_PHOTOS} 
-            />
+        cell: ({ row }) => {
+          const detailUrl = `${ROUTES.PARTICIPANT_DETAIL}/${row.original.id}`;
+          return (
+            <Link 
+              to={detailUrl}
+              className="flex items-center gap-2.5 group w-full max-w-full text-left"
+            >
+              <SecureAvatar 
+                src={row.original.photo_url} 
+                initials={getInitials(row.original.participant_name)} 
+                className="size-9 group-hover:ring-2 group-hover:ring-primary/20 transition-all shrink-0"
+                bucket={STORAGE_BUCKETS.PARTICIPANT_PHOTOS} 
+              />
 
-            <div className="flex flex-col gap-0.5">
-              <Link 
-                to={`${ROUTES.PARTICIPANT_DETAIL}/${row.original.id}`}
-                className="leading-none font-bold text-sm text-gray-900 hover:text-primary hover:underline transition-colors"
-              >
-                {row.original.participant_name || '-'}
-              </Link>
-              {row.original.date_of_birth && (
-                <span className="text-sm text-secondary-foreground font-normal">
-                  DOB: {row.original.date_of_birth}
+              <div className="flex flex-col min-w-0">
+                <span className="text-sm font-medium text-blue-700 dark:text-blue-400 group-hover:underline transition-colors break-words whitespace-normal">
+                  {row.original.participant_name || '-'}
                 </span>
-              )}
-            </div>
-          </div>
-        ),
+              </div>
+            </Link>
+          );
+        },
         meta: {
           skeleton: (
             <div className="flex items-center gap-2.5">
@@ -308,7 +244,28 @@ const Participants = () => {
           ),
         },
         enableSorting: true,
-        size: 300,
+        size: 250,
+      },
+      {
+        id: 'contact',
+        accessorFn: (row) => row.email,
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Contact" column={column} />
+        ),
+        cell: ({ row }) => (
+          <div className="flex flex-col text-left break-words whitespace-normal">
+            <span className="text-sm text-gray-700 dark:text-gray-300 select-all">
+              {row.original.email || '-'}
+            </span>
+            {row.original.personal_mobile && (
+              <span className="text-xs text-muted-foreground select-all">
+                {row.original.personal_mobile}
+              </span>
+            )}
+          </div>
+        ),
+        enableSorting: true,
+        size: 200,
       },
       {
         id: 'ndis',
@@ -317,7 +274,7 @@ const Participants = () => {
           <DataGridColumnHeader title="NDIS Number" column={column} />
         ),
         cell: ({ row }) => (
-          <span className="text-foreground font-normal">
+          <span className="text-foreground font-normal break-words whitespace-normal">
             {row.original.ndis_number || '-'}
           </span>
         ),
@@ -325,7 +282,7 @@ const Participants = () => {
           skeleton: <Skeleton className="h-3 w-20" />,
         },
         enableSorting: true,
-        size: 165,
+        size: 150,
       },
       {
         id: 'house',
@@ -333,16 +290,26 @@ const Participants = () => {
         header: ({ column }) => (
           <DataGridColumnHeader title="House Assignment" column={column} />
         ),
-        cell: ({ row }) => (
-          <span className="text-foreground font-normal">
-            {(row.original as ParticipantWithHouse).house_name || '-'}
-          </span>
-        ),
+        cell: ({ row }) => {
+          const houseId = (row.original as ParticipantWithHouse).house_id;
+          const houseName = (row.original as ParticipantWithHouse).house_name;
+          
+          if (!houseId) return <span className="text-sm text-gray-500">-</span>;
+          
+          return (
+            <Link 
+              to={`${ROUTES.HOUSE_DETAIL}/${houseId}`}
+              className="text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline transition-colors"
+            >
+              {houseName}
+            </Link>
+          );
+        },
         meta: {
           skeleton: <Skeleton className="h-3 w-24" />,
         },
         enableSorting: true,
-        size: 165,
+        size: 150,
       },
       {
         id: 'status',
@@ -351,26 +318,18 @@ const Participants = () => {
           <DataGridColumnHeader title="Status" column={column} />
         ),
         cell: ({ row }) => (
-          <StatusBadge status={row.original.status} />
+          <div className="break-words whitespace-normal">
+            <StatusBadge status={row.original.status} />
+          </div>
         ),
         meta: {
           skeleton: <Skeleton className="h-5 w-16 rounded-full" />,
         },
         enableSorting: true,
-        size: 165,
-      },
-      {
-        id: 'actions',
-        header: 'Actions',
-        cell: ({ row }) => <ActionsCell row={row} updateParticipant={updateParticipant} />,
-        meta: {
-          skeleton: <Skeleton className="h-8 w-20" />,
-        },
-        enableSorting: false,
-        size: 150,
+        size: 100,
       },
     ],
-    [updateParticipant]
+    []
   );
 
   const pageCount = useMemo(() => {
@@ -388,6 +347,11 @@ const Participants = () => {
     state: {
       pagination,
       sorting,
+    },
+    initialState: {
+      columnPinning: {
+        left: ['participant'],
+      },
     },
     onPaginationChange: (updater) => {
       setPagination((prev) => {
@@ -418,7 +382,7 @@ const Participants = () => {
       params.delete('page');
     }
 
-    if (pagination.pageSize !== 10) {
+    if (pagination.pageSize !== 25) {
       params.set('pageSize', pagination.pageSize.toString());
     } else {
       params.delete('pageSize');
@@ -467,10 +431,11 @@ const Participants = () => {
         columnsMovable: true,
         columnsVisibility: true,
         cellBorder: true,
+        width: 'fixed'
       }}
     >
       <Card>
-        <CardHeader>
+        <CardHeader className="flex-wrap gap-2.5">
           <div className="flex items-center gap-2.5">
             <div className="relative">
               <Search className="size-4 text-muted-foreground absolute start-3 top-1/2 -translate-y-1/2" />
@@ -554,10 +519,9 @@ const Participants = () => {
           </Alert>
         )}
 
-        <CardTable>
-          <ScrollArea>
+        <CardTable className="overflow-hidden">
+          <ScrollArea className="w-full">
             <DataGridTable />
-            <ScrollBar orientation="horizontal" />
           </ScrollArea>
         </CardTable>
         <CardFooter>

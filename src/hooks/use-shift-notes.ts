@@ -19,10 +19,12 @@ export interface ShiftNote {
   participant?: {
     id: string;
     participant_name: string;
+    photo_url?: string | null;
   } | null;
   staff?: {
     id: string;
     staff_name: string;
+    photo_url?: string | null;
   } | null;
   house?: {
     id: string;
@@ -47,8 +49,10 @@ export interface ShiftNoteTask {
   participant_id: string | null;
   participant_name: string;
   participant_names?: string;
+  participant_photo_url?: string | null;
   staff_id: string | null;
   staff_name: string | null;
+  staff_photo_url?: string | null;
   house_id: string | null;
   house_name: string | null;
   start_date: string;

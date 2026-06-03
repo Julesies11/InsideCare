@@ -15,7 +15,7 @@ import {
   Printer,
   Loader2
 } from 'lucide-react';
-import { useNavigate } from 'react-router';
+import { useNavigate, Link } from 'react-router';
 import { ROUTES } from '@/config/routes.config';
 import { useIncidentReports } from '@/hooks/use-incident-reports';
 import { 
@@ -287,15 +287,51 @@ export function IncidentManagementReportPage() {
                               </td>
                               <td className="px-5 py-5">
                                 <div className="font-bold text-gray-900 mb-1">
-                                  {report.participant?.participant_name || report.staff?.staff_name || 'General Context'}
+                                  {report.participant ? (
+                                    <Link 
+                                      to={`${ROUTES.PARTICIPANT_DETAIL}/${report.participant.id}`}
+                                      className="text-blue-700 dark:text-blue-400 hover:underline transition-colors"
+                                    >
+                                      {report.participant.participant_name}
+                                    </Link>
+                                  ) : report.staff ? (
+                                    <Link 
+                                      to={`${ROUTES.STAFF_DETAIL}/${report.staff.id}`}
+                                      className="text-blue-700 dark:text-blue-400 hover:underline transition-colors"
+                                    >
+                                      {report.staff.staff_name}
+                                    </Link>
+                                  ) : (
+                                    'General Context'
+                                  )}
                                 </div>
                                 <p className="text-gray-600 leading-relaxed italic">
                                   "{report.description}"
                                 </p>
                                 <div className="mt-2 flex items-center gap-2 text-[10px] font-medium text-gray-400 uppercase tracking-wider">
-                                  <span>House: {report.house?.house_name || 'N/A'}</span>
+                                  <span>
+                                    House: {' '}
+                                    {report.house ? (
+                                      <Link 
+                                        to={`${ROUTES.HOUSE_DETAIL}/${report.house.id}`}
+                                        className="text-blue-700 dark:text-blue-400 hover:underline transition-colors font-bold"
+                                      >
+                                        {report.house.house_name}
+                                      </Link>
+                                    ) : 'N/A'}
+                                  </span>
                                   <span className="text-gray-200">|</span>
-                                  <span>Reporter: {report.reporter?.staff_name || 'System'}</span>
+                                  <span>
+                                    Reporter: {' '}
+                                    {report.reporter ? (
+                                      <Link 
+                                        to={`${ROUTES.STAFF_DETAIL}/${report.reporter.id}`}
+                                        className="text-blue-700 dark:text-blue-400 hover:underline transition-colors font-bold"
+                                      >
+                                        {report.reporter.staff_name}
+                                      </Link>
+                                    ) : 'System'}
+                                  </span>
                                 </div>
                               </td>
                               <td className="px-5 py-5 text-center">

@@ -10,7 +10,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
-import { useNavigate, useSearchParams } from 'react-router';
+import { useNavigate, useSearchParams, Link } from 'react-router';
 import { RBAC_MODULES } from '@/config/rbac-modules';
 import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
 import { useDebounce } from '@/hooks/use-debounce';
@@ -277,11 +277,15 @@ export function MedicationRegisterPage() {
                         {medications.map((med) => (
                           <TableRow 
                             key={med.id} 
-                            className="cursor-pointer hover:bg-muted/50 transition-colors"
-                            onClick={() => handleEditMedication(med.id)}
+                            className="group hover:bg-muted/50 transition-colors"
                           >
-                            <TableCell className="font-medium text-gray-900 dark:text-gray-100">
-                              {med.medication_name}
+                            <TableCell className="font-medium">
+                              <Link 
+                                to={`${ROUTES.MEDICATION_REGISTER}/${med.id}`}
+                                className="text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline transition-colors"
+                              >
+                                {med.medication_name}
+                              </Link>
                             </TableCell>
                             <TableCell>
                               {med.medication_type?.medication_type_name ? (

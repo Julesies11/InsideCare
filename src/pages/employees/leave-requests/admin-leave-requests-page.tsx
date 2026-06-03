@@ -27,6 +27,20 @@ import {
 import { NotificationService } from '@/lib/notification-service';
 import { RBAC_MODULES } from '@/config/rbac-modules';
 import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
+import { Link } from 'react-router';
+import { ROUTES } from '@/config/routes.config';
+import { SecureAvatar } from '@/components/ui/secure-avatar';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
+
+const getInitials = (name?: string) => {
+  if (!name) return '??';
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+};
 
 interface LeaveRequest {
   id: string;
@@ -39,7 +53,7 @@ interface LeaveRequest {
   admin_notes: string | null;
   attachment_url: string | null;
   created_at: string;
-  staff: { id: string; staff_name: string; auth_user_id: string | null } | null;
+  staff: { id: string; staff_name: string; photo_url: string | null; auth_user_id: string | null } | null;
   leave_type: { leave_type_name: string } | null;
   conflict_count?: number;
 }
@@ -254,10 +268,30 @@ export function AdminLeaveRequestsPage() {
                       return (
                         <tr key={req.id} className="border-b border-gray-50 group hover:bg-gray-50/50 transition-colors">
                           <td className="px-5 py-3.5">
-                            <div className="flex flex-col">
-                              <span className="font-bold text-gray-900">{req.staff?.staff_name ?? 'Unknown'}</span>
-                              <span className="text-[10px] text-muted-foreground truncate max-w-[150px]">{req.reason}</span>
-                            </div>
+                            {req.staff ? (
+                              <Link 
+                                to={`${ROUTES.STAFF_DETAIL}/${req.staff.id}`}
+                                className="flex items-center gap-3 group/staff w-fit"
+                              >
+                                <SecureAvatar 
+                                  src={req.staff.photo_url} 
+                                  initials={getInitials(req.staff.staff_name)} 
+                                  className="size-9 transition-all group-hover/staff:ring-2 group-hover/staff:ring-primary/20"
+                                  bucket={STORAGE_BUCKETS.STAFF_PHOTOS} 
+                                />
+                                <div className="flex flex-col">
+                                  <span className="font-bold text-blue-700 dark:text-blue-400 group-hover/staff:underline transition-colors">
+                                    {req.staff.staff_name}
+                                  </span>
+                                  <span className="text-[10px] text-muted-foreground truncate max-w-[150px]">{req.reason}</span>
+                                </div>
+                              </Link>
+                            ) : (
+                              <div className="flex flex-col">
+                                <span className="font-bold text-gray-900">Unknown</span>
+                                <span className="text-[10px] text-muted-foreground truncate max-w-[150px]">{req.reason}</span>
+                              </div>
+                            )}
                           </td>
                           <td className="px-5 py-3.5">{req.leave_type?.leave_type_name ?? 'Leave'}</td>
                           <td className="px-5 py-3.5 text-muted-foreground hidden sm:table-cell text-sm">

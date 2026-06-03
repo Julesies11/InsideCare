@@ -12,9 +12,22 @@ import { useParticipants } from '@/hooks/use-participants';
 import { ParticipantCombobox } from './participant-combobox';
 import { useForm } from 'react-hook-form';
 import { useNavigate, Link } from 'react-router';
+import { ROUTES } from '@/config/routes.config';
+import { SecureAvatar } from '@/components/ui/secure-avatar';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
+
+const getInitials = (name?: string) => {
+  if (!name) return '??';
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+};
 
 interface HouseParticipantsProps {
   houseId?: string;
@@ -70,6 +83,32 @@ export function HouseParticipants({
       return participantData?.participant_name || 'Unknown Participant';
     }
     return 'Unknown Participant';
+  };
+
+  // Helper function to get participant initials
+  const getParticipantInitials = (participant: any) => {
+    const name = getParticipantName(participant);
+    return name
+      .split(' ')
+      .map((w: string) => w[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  // Helper function to get participant photo
+  const getParticipantPhoto = (participant: any) => {
+    // 1. Check direct photo_url (from listByHouse)
+    if (participant.photo_url) return participant.photo_url;
+    // 2. Check joined object (alternative database mapping)
+    if (participant.participant?.photo_url) return participant.participant.photo_url;
+    // 3. Fallback: Lookup in full participants list
+    const pId = participant.participant_id || participant.id;
+    if (pId) {
+      const match = participants.find(p => p.id === pId);
+      return match?.photo_url || null;
+    }
+    return null;
   };
 
   const form = useForm<ParticipantFormValues>({
@@ -281,32 +320,41 @@ export function HouseParticipants({
                     }
                   >
                     <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Users className="size-4 text-muted-foreground" />
-                        <Link 
-                          to={`/participants/detail/${participant.participant_id || participant.id}`}
-                          className={`font-bold text-gray-900 hover:underline hover:text-primary transition-colors ${isPendingDelete ? 'line-through opacity-50 pointer-events-none' : ''}`}
-                        >
-                          {getParticipantName(participant)}
-                        </Link>
-                        {isPendingAdd && (
-                          <span className="text-xs text-primary flex items-center gap-1">
-                            <Clock className="size-3" />
-                            Pending add
-                          </span>
-                        )}
-                        {isPendingUpdate && (
-                          <span className="text-xs text-warning flex items-center gap-1">
-                            <Clock className="size-3" />
-                            Pending update
-                          </span>
-                        )}
-                        {isPendingDelete && (
-                          <span className="text-xs text-destructive flex items-center gap-1">
-                            <Clock className="size-3" />
-                            Pending removal
-                          </span>
-                        )}
+                      <div className="flex items-center gap-3">
+                        <SecureAvatar 
+                          src={getParticipantPhoto(participant)} 
+                          initials={getParticipantInitials(participant)} 
+                          className="size-9 transition-all group-hover:ring-2 group-hover:ring-primary/20"
+                          bucket={STORAGE_BUCKETS.PARTICIPANT_PHOTOS} 
+                        />
+                        <div className="flex flex-col">
+                          <Link 
+                            to={`${ROUTES.PARTICIPANT_DETAIL}/${participant.participant_id || participant.id}`}
+                            className={`font-medium text-blue-700 dark:text-blue-400 hover:underline transition-colors ${isPendingDelete ? 'line-through opacity-50 pointer-events-none' : ''}`}
+                          >
+                            {getParticipantName(participant)}
+                          </Link>
+                          <div className="flex items-center gap-1">
+                            {isPendingAdd && (
+                              <span className="text-[10px] text-primary font-bold uppercase tracking-widest flex items-center gap-1">
+                                <Clock className="size-3" />
+                                New
+                              </span>
+                            )}
+                            {isPendingUpdate && (
+                              <span className="text-[10px] text-warning font-bold uppercase tracking-widest flex items-center gap-1">
+                                <Clock className="size-3" />
+                                Updated
+                              </span>
+                            )}
+                            {isPendingDelete && (
+                              <span className="text-[10px] text-destructive font-bold uppercase tracking-widest flex items-center gap-1">
+                                <Clock className="size-3" />
+                                Removing
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell>

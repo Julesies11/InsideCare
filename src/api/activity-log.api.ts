@@ -56,10 +56,8 @@ export const activityLogApi = {
       .select(columns as any, { count: 'exact' });
 
     if (entityId) {
-      query = query.eq('entity_id', entityId);
-    }
-
-    if (entityType) {
+      query = query.or(`entity_id.eq.${entityId},parent_id.eq.${entityId}`);
+    } else if (entityType) {
       query = query.eq('entity_type', entityType);
     }
 

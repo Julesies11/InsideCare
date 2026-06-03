@@ -93,9 +93,9 @@ export const shiftNotesApi = {
         house_id,
         staff_id,
         house:${TABLES.HOUSES}!house_id(house_name),
-        staff:${TABLES.STAFF}!staff_id(staff_name),
+        staff:${TABLES.STAFF}!staff_id(staff_name, photo_url),
         participants:${TABLES.SHIFT_PARTICIPANTS}!shift_id(
-          participant:${TABLES.PARTICIPANTS}!participant_id(id, participant_name)
+          participant:${TABLES.PARTICIPANTS}!participant_id(id, participant_name, photo_url)
         ),
         notes:${TABLES.SHIFT_NOTES}!shift_id(
           id,
@@ -137,6 +137,7 @@ export const shiftNotesApi = {
           participant_names: '(No Participants Assigned)',
           staff_id: shift.staff_id,
           staff_name: (shift as any).staff?.staff_name,
+          staff_photo_url: (shift as any).staff?.photo_url,
           house_id: shift.house_id,
           house_name: (shift as any).house?.house_name,
           start_date: shift.start_date,
@@ -167,8 +168,10 @@ export const shiftNotesApi = {
           participant_id: filteredParticipants[0]?.participant?.id || null,
           participant_name: participantNames,
           participant_names: participantNames,
+          participant_photo_url: filteredParticipants[0]?.participant?.photo_url || null,
           staff_id: shift.staff_id,
           staff_name: (shift as any).staff?.staff_name,
+          staff_photo_url: (shift as any).staff?.photo_url,
           house_id: shift.house_id,
           house_name: (shift as any).house?.house_name,
           start_date: shift.start_date,

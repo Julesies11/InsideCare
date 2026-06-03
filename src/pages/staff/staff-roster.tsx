@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, Link } from 'react-router';
 import { useAuth } from '@/auth/context/auth-context';
 import { format, addDays, addWeeks, addMonths } from 'date-fns';
 import { ClipboardList, Calendar, List, Users } from 'lucide-react';
@@ -121,7 +121,17 @@ export function StaffRoster() {
     {
       accessorKey: 'start_date',
       header: ({ column }) => <DataGridColumnHeader title="From" column={column} />,
-      cell: ({ row }) => format(new Date(row.original.start_date + 'T00:00:00'), 'EEE dd MMM yyyy'),
+      cell: ({ row }) => {
+        const dateStr = format(new Date(row.original.start_date + 'T00:00:00'), 'EEE dd MMM yyyy');
+        return (
+          <Link 
+            to={`${ROUTES.MY_ROSTER}/${row.original.id}/timesheet`}
+            className="text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline transition-colors"
+          >
+            {dateStr}
+          </Link>
+        );
+      },
       enableSorting: true,
     },
     {
@@ -140,11 +150,21 @@ export function StaffRoster() {
       accessorKey: 'details',
       header: ({ column }) => <DataGridColumnHeader title="Details" column={column} />,
       cell: ({ row }) => (
-        <div className="flex flex-col">
+        <div className="flex flex-col text-left">
           <span className="text-muted-foreground">{row.original.shift_template || 'Standard'}</span>
           <span className="text-[10px] text-muted-foreground italic">
             {row.original.start_time?.slice(0, 5)} – {row.original.end_time?.slice(0, 5)}
-            {row.original.house?.house_name ? ` at ${row.original.house.house_name}` : ''}
+            {row.original.house?.house_name && (
+              <>
+                {' at '}
+                <Link 
+                  to={`${ROUTES.HOUSE_DETAIL}/${row.original.house_id || row.original.house.id}`}
+                  className="text-blue-700 dark:text-blue-400 hover:underline transition-colors not-italic font-medium"
+                >
+                  {row.original.house.house_name}
+                </Link>
+              </>
+            )}
           </span>
         </div>
       ),

@@ -97,3 +97,26 @@ As of **June 2, 2026**, the application implements a strict "Deactivate instead 
 - **Contextual Filtering**: UI forms must implement contextual filtering logic (e.g., `getDisplayMedicationTypes`). 
 - **Behavior**: Dropdowns show only active items for new records, but include the current inactive item when editing an existing record to prevent data loss or "missing" selections.
 - **API Support**: API methods must support `includeInactive` filters to accommodate this standard.
+
+## 6. UI & Data Presentation Standards
+
+### 6.1 Detail Navigation ("InsideCare Pattern")
+To ensure a clean interface and support power-user workflows (e.g., right-click open in new tab), all primary entity navigation must follow these rules:
+- **Affordance**: Primary entities (Names, Dates) must be clickable links using the `Link` component.
+- **Color**: Use Steel Blue (`text-blue-700` / `dark:text-blue-400`).
+- **Weight**: Use `font-medium` (Non-bold).
+- **Avatars**: Always include `<SecureAvatar>` (for Staff/Participants) or a `<HouseIcon>` (for Houses) alongside the name in link contexts to provide visual recognition.
+- **Grouping**: Wrap the Avatar/Icon and Name together in a single `group` Link for a generous hit area and shared hover state (`group-hover:underline`).
+- **Centralization**: Redundant "Actions" columns for simple navigation (View/Edit) are **strictly forbidden**. Navigation must be centralized through the primary entity link.
+- **Scope**: This pattern is applied globally across all data grids, list views, and dashboards (excluding forms, inputs, and print-ready views).
+
+### 6.2 Data Grid & Table Standards
+All main list views must adhere to high data density and accessibility standards, utilizing a **Hybrid Responsive Strategy**:
+- **Desktop/Tablet Layout**: Use `width: 'fixed'` to ensure the table fits the container perfectly without horizontal scrollbars.
+- **Mobile Layout (Choice B)**: On narrow screens, allow horizontal scrolling to preserve data access, but **Pin the primary column (Name)** to the left side (`columnsPinnable: true`) so context is never lost while scrolling.
+- **Text Wrapping**: Every column must support text wrapping using `break-words` and `whitespace-normal`. Never use `truncate` for primary data columns.
+- **Alignment**: Cells must use `items-center` for vertical centering and `text-left` for standard horizontal alignment.
+- **Contact Info**: Combine Email and Phone into a single "Contact" column. Use the `select-all` utility class on text to facilitate easy one-click copying.
+- **Pagination**: Default to **25 rows per page**.
+- **State Management**: All search queries and filters (Status, Role, House, etc.) must be synced with **URL search parameters** to preserve view state during navigation or refresh.
+- **Sorting**: Enable server-side sorting for all primary data columns.

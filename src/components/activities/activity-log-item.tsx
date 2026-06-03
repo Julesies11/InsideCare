@@ -3,6 +3,8 @@ import { TimelineItem } from './timeline-item';
 import { Plus, Edit, Trash2, FileText } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { LucideIcon } from 'lucide-react';
+import { SecureAvatar } from '../ui/secure-avatar';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 
 interface ActivityLogItemProps {
   activity: ActivityLog;
@@ -53,10 +55,16 @@ export function ActivityLogItem({ activity, isLast }: ActivityLogItemProps) {
         <div className="flex items-center gap-2 text-xs text-secondary-foreground mt-1">
           <span>{timeAgo}</span>
           {activity.user_name && (
-            <>
+            <div className="flex items-center gap-1.5 ml-1">
               <span>•</span>
-              <span>by {activity.user_name}</span>
-            </>
+              <SecureAvatar 
+                src={activity.staff?.photo_url} 
+                initials={activity.user_name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)} 
+                className="size-4 shrink-0"
+                bucket={STORAGE_BUCKETS.STAFF_PHOTOS} 
+              />
+              <span className="font-medium">by {activity.user_name}</span>
+            </div>
           )}
         </div>
       </div>

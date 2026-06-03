@@ -17,6 +17,8 @@ export const PARTICIPANT_VIEWS = {
     id,
     participant_name,
     photo_url,
+    email,
+    personal_mobile,
     status,
     house_id,
     move_in_date,
@@ -249,7 +251,7 @@ export const HOUSE_VIEWS = {
     staff_assignments:${TABLES.HOUSE_STAFF_ASSIGNMENTS}!house_id(
       id, 
       end_date,
-      staff:${TABLES.STAFF}!staff_id(status)
+      staff:${TABLES.STAFF}!staff_id(id, staff_name, photo_url, status)
     )
   `,
 
@@ -290,11 +292,11 @@ export const ROSTER_VIEWS = {
    */
   SHIFT_DETAIL: `
     id, staff_id, start_date, end_date, start_time, end_time, house_id, shift_template, shift_template_id, notes,
-    staff_info:${TABLES.STAFF}!staff_id(id, staff_name),
+    staff_info:${TABLES.STAFF}!staff_id(id, staff_name, photo_url),
     house_info:${TABLES.HOUSES}!house_id(id, house_name),
     type_details:${TABLES.HOUSE_SHIFT_TEMPLATES}!shift_template_id(color_theme, icon_name),
     participants:${TABLES.SHIFT_PARTICIPANTS}!shift_id(
-      participant:${TABLES.PARTICIPANTS}!participant_id(id, participant_name)
+      participant:${TABLES.PARTICIPANTS}!participant_id(id, participant_name, photo_url)
     ),
     assigned_checklists:${TABLES.SHIFT_ASSIGNED_CHECKLISTS}!shift_id(
       id, checklist_id, assignment_title,
@@ -319,7 +321,7 @@ export const ROSTER_VIEWS = {
    * Leave request view with type info.
    */
   LEAVE_LIST: `
-    id, start_date, end_date, status, staff_id, reason, admin_notes, created_at,
+    id, start_date, end_date, status, staff_id, reason, admin_notes, created_at, attachment_url,
     leave_type:${TABLES.LEAVE_TYPES}!leave_type_id(leave_type_name)
   `,
 } as const;
@@ -342,8 +344,8 @@ export const CHECKLIST_VIEWS = {
   HISTORY: `
     id, checklist_id, house_id, submitted_by, status, scheduled_date, started_at, completed_at, created_at, updated_at,
     house_checklists:${TABLES.HOUSE_CHECKLISTS}(house_checklist_name),
-    staff:${TABLES.STAFF}!house_checklist_submissions_submitted_by_fkey(staff_name),
-    houses:${TABLES.HOUSES}(house_name),
+    staff:${TABLES.STAFF}!house_checklist_submissions_submitted_by_fkey(id, staff_name, photo_url),
+    houses:${TABLES.HOUSES}(id, house_name),
     ic_house_checklist_submission_items:ic_house_checklist_submission_items(is_completed)
   `,
 
@@ -464,8 +466,8 @@ export const SHIFT_NOTE_VIEWS = {
     hygiene_notes,
     created_at, 
     updated_at,
-    participant:${TABLES.PARTICIPANTS}!participant_id(id, participant_name),
-    staff:${TABLES.STAFF}!staff_id(id, staff_name),
+    participant:${TABLES.PARTICIPANTS}!participant_id(id, participant_name, photo_url),
+    staff:${TABLES.STAFF}!staff_id(id, staff_name, photo_url),
     house:${TABLES.HOUSES}!house_id(id, house_name),
     shift:${TABLES.STAFF_SHIFTS}!shift_id(id, start_time, end_time, shift_template)
   `,
@@ -477,9 +479,9 @@ export const INCIDENT_VIEWS = {
    */
   DETAIL: `
     *,
-    participant:${TABLES.PARTICIPANTS}!involved_participant_id(id, participant_name),
-    staff:${TABLES.STAFF}!involved_staff_id(id, staff_name),
-    reporter:${TABLES.STAFF}!reported_by(id, staff_name),
+    participant:${TABLES.PARTICIPANTS}!involved_participant_id(id, participant_name, photo_url),
+    staff:${TABLES.STAFF}!involved_staff_id(id, staff_name, photo_url),
+    reporter:${TABLES.STAFF}!reported_by(id, staff_name, photo_url),
     house:${TABLES.HOUSES}!house_id(id, house_name)
   `,
 } as const;
@@ -488,12 +490,18 @@ export const ACTIVITY_VIEWS = {
   /**
    * Detailed activity log view.
    */
-  DETAIL: 'id, activity_type, entity_type, entity_id, entity_name, description, user_name, user_id, table_name, parent_name, parent_type, metadata, created_at',
-  
+  DETAIL: `
+    id, activity_type, entity_type, entity_id, entity_name, description, user_name, user_id, table_name, parent_name, parent_type, metadata, created_at,
+    staff:${TABLES.STAFF}!user_id(id, staff_name, photo_url)
+  `,
+
   /**
    * Minimal activity log view for lists.
    */
-  LIST: 'id, activity_type, entity_type, entity_id, entity_name, description, user_name, user_id, table_name, parent_name, parent_type, created_at',
+  LIST: `
+    id, activity_type, entity_type, entity_id, entity_name, description, user_name, user_id, table_name, parent_name, parent_type, created_at,
+    staff:${TABLES.STAFF}!user_id(id, staff_name, photo_url)
+  `,
 } as const;
 
 export const MEDICATION_VIEWS = {
