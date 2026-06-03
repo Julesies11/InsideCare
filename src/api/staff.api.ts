@@ -16,6 +16,7 @@ export interface StaffUpdateData extends Partial<Omit<Database['public']['Tables
 export interface StaffFilter {
   search?: string;
   statuses?: StaffStatus[];
+  roleIds?: string[];
 }
 
 export interface StaffSort {
@@ -60,16 +61,25 @@ export const staffApi = {
       .select(STAFF_VIEWS.LIST, { count: 'exact' });
 
     if (filters.search) {
-      query = query.or(`staff_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%`);
+      query = query.or(`staff_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%,phone.ilike.%${filters.search}%`);
     }
 
     if (filters.statuses && filters.statuses.length > 0) {
       query = query.in('status', filters.statuses);
     }
 
+    if (filters.roleIds && filters.roleIds.length > 0) {
+      query = query.in('role_id', filters.roleIds);
+    }
+
     if (sort.length > 0) {
       sort.forEach(s => {
-        const column = s.id === 'department' ? 'department_id' : s.id;
+        let column = s.id;
+        if (s.id === 'department') column = 'department_id';
+        if (s.id === 'role') column = 'role_id';
+        if (s.id === 'name') column = 'staff_name';
+        if (s.id === 'contact') column = 'email';
+        
         query = query.order(column as any, { ascending: !s.desc });
       });
     } else {
@@ -106,7 +116,7 @@ export const staffApi = {
     const { data, error } = await supabase
       .from(TABLES.STAFF)
       .select(`
-        id, staff_name, status, email,
+        id, staff_name, status, email, photo_url,
         house_assignments:${TABLES.HOUSE_STAFF_ASSIGNMENTS}!house_staff_assignments_staff_id_fkey(
           id,
           house_id,
@@ -246,8 +256,12 @@ export const staffApi = {
       query = query.in('status', filters.statuses);
     }
 
+    if (filters.roleIds && filters.roleIds.length > 0) {
+      query = query.in('role_id', filters.roleIds);
+    }
+
     if (filters.search) {
-      query = query.or(`staff_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%`);
+      query = query.or(`staff_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%,phone.ilike.%${filters.search}%`);
     }
 
     const { count, error } = await query;

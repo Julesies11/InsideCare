@@ -229,9 +229,17 @@ export function Contacts({
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
                           <Users className="size-4 text-muted-foreground" />
-                          <span className={cn(isPendingDelete && 'line-through')}>
+                          <button 
+                            type="button"
+                            onClick={() => handleEdit(contact)}
+                            disabled={!canEdit || isPendingDelete}
+                            className={cn(
+                              "text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline transition-colors text-left disabled:pointer-events-none",
+                              isPendingDelete && 'line-through opacity-50'
+                            )}
+                          >
                             {contact.contact_name}
-                          </span>
+                          </button>
                           {isPendingAdd && <Badge variant="outline" className="text-[10px] uppercase">New</Badge>}
                           {isPendingUpdate && <Badge variant="outline" className="text-[10px] uppercase border-warning text-warning">Pending Update</Badge>}
                           {isPendingDelete && <Badge variant="destructive" className="text-[10px] uppercase">Pending Delete</Badge>}

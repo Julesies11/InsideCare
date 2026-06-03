@@ -178,6 +178,11 @@ export function ShiftDialog({
         const initialDate = preSelectedDate || new Date().toISOString().split('T')[0];
         const initialHouseId = preSelectedHouseId || null;
         
+        // Auto-select all active participants for the house
+        const houseParticipants = initialHouseId 
+          ? participants.filter(p => p.house_id === initialHouseId && p.status === 'active').map(p => p.id) 
+          : [];
+        
         const baseData: ShiftFormData = {
           staff_id: staffId || null,
           start_date: initialDate,
@@ -188,7 +193,7 @@ export function ShiftDialog({
           shift_template: 'SIL',
           shift_template_id: null,
           notes: '',
-          participant_ids: initialHouseId ? participants.filter(p => p.house_id === initialHouseId && p.status === 'active').map(p => p.id) : [],
+          participant_ids: houseParticipants,
           assigned_checklists: [],
         };
 
@@ -206,6 +211,16 @@ export function ShiftDialog({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, shift, preSelectedDate, preSelectedHouseId, preSelectedShiftTemplateId, staffId]);
+
+  // Auto-populate participants when they finish loading for a new shift
+  useEffect(() => {
+    if (open && !shift && participants.length > 0 && formData.participant_ids.length === 0 && formData.house_id) {
+       const houseParticipants = participants.filter(p => p.house_id === formData.house_id && p.status === 'active').map(p => p.id);
+       if (houseParticipants.length > 0) {
+         setFormData(prev => ({ ...prev, participant_ids: houseParticipants }));
+       }
+    }
+  }, [open, shift, participants, formData.participant_ids.length, formData.house_id]);
 
   const handleSave = async () => {
     if (!formData.start_date || !formData.start_time || !formData.end_time) {
@@ -463,6 +478,12 @@ export function ShiftDialog({
                       checked={formData.participant_ids.includes(p.id)} 
                       onCheckedChange={() => toggleParticipant(p.id)} 
                       className="size-3.5 sm:size-4" 
+                    />
+                    <SecureAvatar 
+                      src={p.photo_url} 
+                      initials={p.participant_name?.substring(0, 2).toUpperCase() ?? '?'} 
+                      className="size-6 shrink-0"
+                      bucket={STORAGE_BUCKETS.PARTICIPANT_PHOTOS}
                     />
                     <div className="min-w-0 pointer-events-none">
                       <p className="text-[10px] sm:text-xs font-bold truncate m-0">{p.participant_name}</p>

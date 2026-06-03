@@ -5,4 +5,10 @@ export type EntityType = string; // No specific enum for entity types in schema 
 
 export type ActivityLogRow = Database['public']['Tables']['ic_activity_log']['Row'];
 
-export type ActivityLog = ActivityLogRow;
+export interface ActivityLog extends ActivityLogRow {
+  staff?: {
+    id: string;
+    staff_name: string;
+    photo_url: string | null;
+  } | null;
+}

@@ -42,6 +42,20 @@ import { DataGridColumnHeader } from '@/components/ui/data-grid-column-header';
 import { DataGridPagination } from '@/components/ui/data-grid-pagination';
 import { DataGridTable } from '@/components/ui/data-grid-table';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { ROUTES } from '@/config/routes.config';
+import { SecureAvatar } from '@/components/ui/secure-avatar';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
+import { House as HouseIcon } from 'lucide-react';
+
+const getInitials = (name?: string) => {
+  if (!name) return '??';
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+};
 
 interface HouseChecklistHistoryProps {
   houseId?: string | null;
@@ -283,25 +297,51 @@ export const HouseChecklistHistory = forwardRef<HouseChecklistHistoryRef, HouseC
         id: 'house_name',
         accessorKey: 'house_name',
         header: ({ column }) => <DataGridColumnHeader title="House" column={column} />,
-        cell: ({ row }) => <span className="text-gray-600">{row.original.house_name}</span>,
+        cell: ({ row }) => {
+          const houseInfo = (row.original as any).house_info;
+          if (!houseInfo?.id) return <span className="text-gray-600">{row.original.house_name}</span>;
+
+          return (
+            <Link 
+              to={`${ROUTES.HOUSE_DETAIL}/${houseInfo.id}`}
+              className="flex items-center gap-2 group/house w-fit"
+            >
+              <div className="size-6 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center group-hover/house:ring-2 group-hover/house:ring-primary/20 transition-all shrink-0">
+                <HouseIcon className="size-3 text-gray-600 dark:text-gray-400 group-hover/house:text-primary transition-colors" />
+              </div>
+              <span className="text-sm font-medium text-blue-700 dark:text-blue-400 group-hover/house:underline transition-colors">
+                {row.original.house_name}
+              </span>
+            </Link>
+          );
+        },
         size: 150,
       },
       {
         id: 'staff_name',
         accessorKey: 'staff_name',
         header: ({ column }) => <DataGridColumnHeader title="Staff Member" column={column} />,
-        cell: ({ row }) => (
-          row.original.submitted_by ? (
+        cell: ({ row }) => {
+          const staffInfo = (row.original as any).staff_info;
+          if (!staffInfo?.id) return <span className="text-gray-600">{row.original.staff_name}</span>;
+
+          return (
             <Link 
-              to={`/employees/staff-detail/${row.original.submitted_by}`}
-              className="text-gray-900 font-bold hover:text-primary hover:underline transition-colors"
+              to={`${ROUTES.STAFF_DETAIL}/${staffInfo.id}`}
+              className="flex items-center gap-2 group/staff w-fit"
             >
-              {row.original.staff_name}
+              <SecureAvatar 
+                src={staffInfo.photo_url} 
+                initials={getInitials(row.original.staff_name)} 
+                className="size-6 transition-all group-hover/staff:ring-2 group-hover/staff:ring-primary/20"
+                bucket={STORAGE_BUCKETS.STAFF_PHOTOS} 
+              />
+              <span className="text-sm font-medium text-blue-700 dark:text-blue-400 group-hover/staff:underline transition-colors">
+                {row.original.staff_name}
+              </span>
             </Link>
-          ) : (
-            <span className="text-gray-600">{row.original.staff_name}</span>
-          )
-        ),
+          );
+        },
         size: 150,
       },
       {

@@ -58,7 +58,7 @@ export const housesApi = {
     }
 
     if (filters.search) {
-      query = query.or(`house_name.ilike.%${filters.search}%,address.ilike.%${filters.search}%,phone.ilike.%${filters.search}%,house_manager.ilike.%${filters.search}%`);
+      query = query.or(`house_name.ilike.%${filters.search}%,address.ilike.%${filters.search}%,phone.ilike.%${filters.search}%`);
     }
 
     if (filters.statuses && filters.statuses.length > 0) {
@@ -67,8 +67,17 @@ export const housesApi = {
 
     if (sort.length > 0) {
       sort.forEach(s => {
-        const column = s.id === 'name' || s.id === 'house_name' ? 'house_name' : s.id;
-        query = query.order(column as any, { ascending: !s.desc });
+        let column = s.id === 'name' || s.id === 'house_name' ? 'house_name' : s.id;
+        
+        // Map UI columns to database columns
+        if (s.id === 'occupancy') column = 'current_occupancy';
+        if (s.id === 'contact') column = 'address';
+        
+        // Only order by columns that exist on the ic_houses table
+        const validColumns = ['house_name', 'address', 'phone', 'status', 'capacity', 'current_occupancy'];
+        if (validColumns.includes(column)) {
+          query = query.order(column as any, { ascending: !s.desc });
+        }
       });
     } else {
       query = query.order('house_name', { ascending: true });
@@ -81,22 +90,7 @@ export const housesApi = {
     const { data, error, count } = await query;
     if (error) throw error;
 
-    // Calculate active staff count on the client side for each house
-    const formattedData = (data || []).map((house: any) => {
-      const activeStaffCount = (house.staff_assignments || []).filter((assignment: any) => {
-        const staffObj = Array.isArray(assignment.staff) ? assignment.staff[0] : assignment.staff;
-        const isStaffActive = staffObj?.status === 'active';
-        const isAssignmentActive = !assignment.end_date || assignment.end_date >= today;
-        return isStaffActive && isAssignmentActive;
-      }).length;
-
-      return {
-        ...house,
-        staff_assignments: [{ count: activeStaffCount }]
-      };
-    });
-
-    return { data: formattedData, count: count || 0 };
+    return { data: data || [], count: count || 0 };
   },
 
   /**
@@ -127,17 +121,7 @@ export const housesApi = {
     if (error) throw error;
     if (!data) return null;
 
-    const activeStaffCount = ((data as any).staff_assignments || []).filter((assignment: any) => {
-      const staffObj = Array.isArray(assignment.staff) ? assignment.staff[0] : assignment.staff;
-      const isStaffActive = staffObj?.status === 'active';
-      const isAssignmentActive = !assignment.end_date || assignment.end_date >= today;
-      return isStaffActive && isAssignmentActive;
-    }).length;
-
-    return {
-      ...data,
-      staff_assignments: [{ count: activeStaffCount }]
-    };
+    return data;
   },
 
   /**

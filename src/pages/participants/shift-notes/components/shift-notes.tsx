@@ -13,11 +13,10 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import {
-  Edit,
   Filter,
   Search,
   X,
-  Plus,
+  House as HouseIcon,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -52,9 +51,21 @@ import { Alert } from '@/components/ui/alert';
 import { formatTime } from '@/components/roster/roster-utils';
 import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
 import { RBAC_MODULES } from '@/config/rbac-modules';
-import { useNavigate } from 'react-router';
+import { useNavigate, Link } from 'react-router';
 import { ROUTES } from '@/config/routes.config';
 import { useAuth } from '@/auth/context/auth-context';
+import { SecureAvatar } from '@/components/ui/secure-avatar';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
+
+const getInitials = (name?: string) => {
+  if (!name) return '??';
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+};
 
 interface ShiftNotesProps {
   participantId?: string;
@@ -74,11 +85,6 @@ const ShiftNotes = ({ participantId }: ShiftNotesProps) => {
   });
   
   const { houses } = useHouses();
-
-  const canEdit = hasAccess({ 
-    resource: RBAC_MODULES.SHIFT_NOTES, 
-    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE 
-  });
 
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
@@ -149,20 +155,6 @@ const ShiftNotes = ({ participantId }: ShiftNotesProps) => {
     );
   };
 
-  const handleAction = useCallback((task: ShiftNoteTask) => {
-    if (task.note_id) {
-      navigate(`${ROUTES.SHIFT_NOTES_DETAIL}/${task.note_id}`);
-    } else {
-      // Pre-fill shift and participant for new note
-      const params = new URLSearchParams();
-      params.set('shiftId', task.shift_id);
-      if (task.participant_id) {
-        params.set('participantId', task.participant_id);
-      }
-      navigate(`${ROUTES.SHIFT_NOTES_DETAIL}/new?${params.toString()}`);
-    }
-  }, [navigate]);
-
   const isPast = (startDate: string, endDate: string | null | undefined, time: string) => {
     try {
       const effectiveEndDate = endDate || startDate;
@@ -181,16 +173,32 @@ const ShiftNotes = ({ participantId }: ShiftNotesProps) => {
         header: ({ column }) => (
           <DataGridColumnHeader title="Shift" column={column} />
         ),
-        cell: ({ row }) => (
-          <div className="flex flex-col gap-0.5">
-            <span className="font-bold text-sm text-gray-900 dark:text-gray-100">
-              {format(parseISO(row.original.start_date), 'dd MMM yyyy')}
-            </span>
-            <span className="text-xs text-gray-500">
-              {formatTime(row.original.start_time)} – {formatTime(row.original.end_time)} ({row.original.shift_template})
-            </span>
-          </div>
-        ),
+        cell: ({ row }) => {
+          const detailUrl = row.original.note_id 
+            ? `${ROUTES.SHIFT_NOTES_DETAIL}/${row.original.note_id}`
+            : (() => {
+                const params = new URLSearchParams();
+                params.set('shiftId', row.original.shift_id);
+                if (row.original.participant_id) {
+                  params.set('participantId', row.original.participant_id);
+                }
+                return `${ROUTES.SHIFT_NOTES_DETAIL}/new?${params.toString()}`;
+              })();
+
+          return (
+            <Link 
+              to={detailUrl}
+              className="flex flex-col gap-0.5 group w-fit"
+            >
+              <span className="font-medium text-sm text-blue-700 dark:text-blue-400 group-hover:underline transition-colors">
+                {format(parseISO(row.original.start_date), 'dd MMM yyyy')}
+              </span>
+              <span className="text-xs text-gray-500">
+                {formatTime(row.original.start_time)} – {formatTime(row.original.end_time)} ({row.original.shift_template})
+              </span>
+            </Link>
+          );
+        },
         enableSorting: true,
         size: 200,
       },
@@ -200,11 +208,29 @@ const ShiftNotes = ({ participantId }: ShiftNotesProps) => {
         header: ({ column }) => (
           <DataGridColumnHeader title="Participant" column={column} />
         ),
-        cell: ({ row }) => (
-          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-            {row.original.participant_names || row.original.participant_name || '-'}
-          </span>
-        ),
+        cell: ({ row }) => {
+          const pId = row.original.participant_id;
+          const pName = row.original.participant_names || row.original.participant_name;
+          
+          if (!pId) return <span className="text-sm font-medium">{pName || '-'}</span>;
+
+          return (
+            <Link 
+              to={`${ROUTES.PARTICIPANT_DETAIL}/${pId}`}
+              className="flex items-center gap-2 group/participant w-fit"
+            >
+              <SecureAvatar 
+                src={row.original.participant_photo_url} 
+                initials={getInitials(pName)} 
+                className="size-6 transition-all group-hover/participant:ring-2 group-hover/participant:ring-primary/20"
+                bucket={STORAGE_BUCKETS.PARTICIPANT_PHOTOS} 
+              />
+              <span className="text-sm font-medium text-blue-700 dark:text-blue-400 group-hover/participant:underline transition-colors truncate max-w-[180px]">
+                {pName}
+              </span>
+            </Link>
+          );
+        },
         enableSorting: true,
         size: 220,
       },
@@ -214,11 +240,58 @@ const ShiftNotes = ({ participantId }: ShiftNotesProps) => {
         header: ({ column }) => (
           <DataGridColumnHeader title="Staff Member" column={column} />
         ),
-        cell: ({ row }) => (
-          <span className="text-sm text-gray-700 dark:text-gray-300">
-            {row.original.staff_name || '-'}
-          </span>
+        cell: ({ row }) => {
+          const sId = row.original.staff_id;
+          const sName = row.original.staff_name;
+          
+          if (!sId) return <span className="text-sm text-gray-700 dark:text-gray-300">{sName || '-'}</span>;
+
+          return (
+            <Link 
+              to={`${ROUTES.STAFF_DETAIL}/${sId}`}
+              className="flex items-center gap-2 group/staff w-fit"
+            >
+              <SecureAvatar 
+                src={row.original.staff_photo_url} 
+                initials={getInitials(sName || '??')} 
+                className="size-6 transition-all group-hover/staff:ring-2 group-hover/staff:ring-primary/20"
+                bucket={STORAGE_BUCKETS.STAFF_PHOTOS} 
+              />
+              <span className="text-sm font-medium text-blue-700 dark:text-blue-400 group-hover/staff:underline transition-colors truncate max-w-[150px]">
+                {sName}
+              </span>
+            </Link>
+          );
+        },
+        enableSorting: true,
+        size: 180,
+      },
+      {
+        id: 'house',
+        accessorFn: (row) => row.house_name,
+        header: ({ column }) => (
+          <DataGridColumnHeader title="House" column={column} />
         ),
+        cell: ({ row }) => {
+          const hId = row.original.house_id;
+          const hName = row.original.house_name;
+          
+          if (!hId) return <span className="text-sm text-muted-foreground">{hName || '-'}</span>;
+
+          return (
+            <Link 
+              to={`${ROUTES.HOUSE_DETAIL}/${hId}`}
+              className="flex items-center gap-2 group/house w-fit"
+            >
+              <div className="size-6 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center group-hover/house:ring-2 group-hover/house:ring-primary/20 transition-all shrink-0">
+                <HouseIcon className="size-3 text-gray-600 dark:text-gray-400 group-hover/house:text-primary transition-colors" />
+              </div>
+              <span className="text-sm font-medium text-blue-700 dark:text-blue-400 group-hover/house:underline transition-colors truncate max-w-[150px]">
+                {hName}
+              </span>
+            </Link>
+          );
+        },
         enableSorting: true,
         size: 180,
       },
@@ -228,48 +301,25 @@ const ShiftNotes = ({ participantId }: ShiftNotesProps) => {
           <DataGridColumnHeader title="Status" column={column} />
         ),
         cell: ({ row }) => {
+          let badge = null;
           if (row.original.note_id) {
-            return <Badge variant="success" appearance="light">Note Done</Badge>;
+            badge = <Badge variant="success" appearance="light">Note Done</Badge>;
+          } else if (isPast(row.original.start_date, row.original.end_date, row.original.end_time)) {
+            badge = <Badge variant="destructive" appearance="light">Missing Note</Badge>;
+          } else {
+            badge = <Badge variant="secondary" appearance="light">Upcoming</Badge>;
           }
           
-          if (isPast(row.original.start_date, row.original.end_date, row.original.end_time)) {
-            return <Badge variant="destructive" appearance="light">Missing Note</Badge>;
-          }
-          
-          return <Badge variant="secondary" appearance="light">Upcoming</Badge>;
+          return (
+            <div className="break-words whitespace-normal text-left">
+              {badge}
+            </div>
+          );
         },
         size: 130,
       },
-      {
-        id: 'actions',
-        header: 'Actions',
-        cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleAction(row.original)}
-              className="h-8"
-            >
-              {row.original.note_id ? (
-                <>
-                  <Edit className="size-4 me-1.5" />
-                  {canEdit ? 'Edit' : 'View'}
-                </>
-              ) : (
-                <>
-                  <Plus className="size-4 me-1.5" />
-                  Add Note
-                </>
-              )}
-            </Button>
-          </div>
-        ),
-        enableSorting: false,
-        size: 120,
-      },
     ],
-    [canEdit, handleAction]
+    []
   );
 
   const table = useReactTable({
@@ -280,6 +330,11 @@ const ShiftNotes = ({ participantId }: ShiftNotesProps) => {
     state: {
       pagination,
       sorting,
+    },
+    initialState: {
+      columnPinning: {
+        left: ['shift'],
+      },
     },
     onPaginationChange: setPagination,
     onSortingChange: setSorting,

@@ -22,7 +22,7 @@ export const timesheetsApi = {
       .from(TABLES.TIMESHEETS)
       .select(`
         *,
-        staff:${TABLES.STAFF}!timesheets_staff_id_fkey(id, staff_name, auth_user_id),
+        staff:${TABLES.STAFF}!timesheets_staff_id_fkey(id, staff_name, photo_url, auth_user_id),
         shift:${TABLES.STAFF_SHIFTS}!timesheets_shift_id_fkey(
           id,
           start_date,
@@ -57,6 +57,7 @@ export const timesheetsApi = {
         break_minutes, shift_notes_text, status, admin_notes,
         rejection_reason, submitted_at, incident_tag, sick_shift,
         overtime_hours, travel_km, created_at,
+        staff:ic_staff!timesheets_staff_id_fkey(id, staff_name, photo_url),
         shift:ic_staff_shifts!timesheets_shift_id_fkey(id, start_date, end_date, start_time, end_time, shift_template, house:ic_houses(house_name))
       `)
       .eq('staff_id', staffId)

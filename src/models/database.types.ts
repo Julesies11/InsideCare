@@ -24,6 +24,7 @@ export type Database = {
           entity_type: string
           id: string
           metadata: Json | null
+          parent_id: string | null
           parent_name: string | null
           parent_type: string | null
           table_name: string | null
@@ -39,6 +40,7 @@ export type Database = {
           entity_type: string
           id?: string
           metadata?: Json | null
+          parent_id?: string | null
           parent_name?: string | null
           parent_type?: string | null
           table_name?: string | null
@@ -54,6 +56,7 @@ export type Database = {
           entity_type?: string
           id?: string
           metadata?: Json | null
+          parent_id?: string | null
           parent_name?: string | null
           parent_type?: string | null
           table_name?: string | null

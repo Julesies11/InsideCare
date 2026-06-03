@@ -16,8 +16,6 @@ import {
   Search,
   House as HouseIcon,
   X,
-  Archive,
-  Edit,
   MapPin,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -54,6 +52,8 @@ import { ROUTES } from '@/config/routes.config';
 import { useSearchParams } from 'react-router';
 import { useDebounce } from '@/hooks/use-debounce';
 import { Skeleton } from '@/components/ui/skeleton';
+import { SecureAvatar } from '@/components/ui/secure-avatar';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 
 const HOUSE_STATUS_OPTIONS: StatusOption[] = [
   { value: 'active', label: 'Active', badge: 'success' },
@@ -62,10 +62,14 @@ const HOUSE_STATUS_OPTIONS: StatusOption[] = [
 ];
 
 // Helper function to get participants for a house
-function getHouseParticipants(houseId: string, allParticipants: Array<{ id: string; participant_name: string; house_id?: string; status: string }>) {
+function getHouseParticipants(houseId: string, allParticipants: Array<{ id: string; participant_name: string; house_id?: string; status: string; photo_url?: string }>) {
   return allParticipants
     .filter(participant => participant.house_id === houseId && participant.status === 'active')
-    .map(participant => ({ id: participant.id, name: participant.participant_name }))
+    .map(participant => ({ 
+      id: participant.id, 
+      name: participant.participant_name,
+      photo_url: participant.photo_url 
+    }))
     .filter(p => p.name);
 }
 
@@ -74,61 +78,6 @@ function createGoogleMapsUrl(address: string) {
   if (!address) return '#';
   const encodedAddress = encodeURIComponent(address);
   return `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
-}
-
-function ActionsCell({ row, updateHouse }: { row: Row<House>; updateHouse: (params: { id: string; updates: Partial<House> }) => Promise<void> }) {
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  const { hasAccess } = useRBAC();
-
-  const canEdit = hasAccess({ 
-    resource: RBAC_MODULES.HOUSES, 
-    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE
-  });
-
-  const handleEdit = () => {
-    navigate(`${ROUTES.HOUSE_DETAIL}/${row.original.id}`);
-  };
-
-  const handleArchive = async () => {
-    if (!canEdit) return;
-    
-    try {
-      await updateHouse({ id: row.original.id, updates: { status: 'inactive' } });
-
-      toast.success('House archived successfully');
-    } catch (error) {
-      const err = error as Error;
-      const parsedError = parseSupabaseError(err);
-      toast.error(parsedError.title, { description: parsedError.description });
-      console.error('Error archiving house:', error);
-    }
-  };
-
-  return (
-    <div className="flex items-center gap-2">
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={handleEdit}
-        className="h-8"
-      >
-        <Edit className="size-4 me-1.5" />
-        {canEdit ? 'Edit' : 'View'}
-      </Button>
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={handleArchive}
-        disabled={!canEdit}
-        className="h-8"
-        title={!canEdit ? 'You do not have permission to archive houses' : ''}
-      >
-        <Archive className="size-4 me-1.5" />
-        Archive
-      </Button>
-    </div>
-  );
 }
 
 export function Houses() {
@@ -143,7 +92,7 @@ export function Houses() {
 
   // Helper functions to parse URL params
   const page = useMemo(() => Math.max(1, parseInt(searchParams.get('page') || '1')), [searchParams]);
-  const pageSize = useMemo(() => parseInt(searchParams.get('pageSize') || '10'), [searchParams]);
+  const pageSize = useMemo(() => parseInt(searchParams.get('pageSize') || '25'), [searchParams]);
   const sortParam = useMemo(() => searchParams.get('sort') || '', [searchParams]);
   const searchParam = useMemo(() => searchParams.get('search') || '', [searchParams]);
   const statusParam = useMemo(() => searchParams.get('statuses') || 'active', [searchParams]);
@@ -263,86 +212,170 @@ export function Houses() {
             tooltip="House name and location"
           />
         ),
-        cell: ({ row }) => (
-          <div className="flex items-center gap-3">
-            <div className="size-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-              <HouseIcon className="size-4 text-gray-600 dark:text-gray-400" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+        cell: ({ row }) => {
+          const detailUrl = `${ROUTES.HOUSE_DETAIL}/${row.original.id}`;
+          return (
+            <Link 
+              to={detailUrl}
+              className="flex items-center gap-3 group w-full max-w-full text-left"
+            >
+              <div className="size-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center group-hover:ring-2 group-hover:ring-primary/20 transition-all shrink-0">
+                <HouseIcon className="size-4 text-gray-600 dark:text-gray-400 group-hover:text-primary transition-colors" />
+              </div>
+              <span className="text-sm font-medium text-blue-700 dark:text-blue-400 group-hover:underline transition-colors break-words whitespace-normal">
                 {row.getValue('house_name') || 'Unnamed House'}
               </span>
-              {row.original.address && (
-                <a
-                  href={createGoogleMapsUrl(row.original.address)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-xs text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors"
-                >
-                  <MapPin className="size-3" />
-                  <span className="truncate max-w-[200px]">{row.original.address}</span>
-                </a>
-              )}
-            </div>
-          </div>
-        ),
+            </Link>
+          );
+        },
         meta: {
           skeleton: (
             <div className="flex items-center gap-3">
               <Skeleton className="size-8 rounded-full" />
               <div className="flex flex-col gap-1">
                 <Skeleton className="h-3 w-32" />
-                <Skeleton className="h-2.5 w-40" />
               </div>
             </div>
           ),
         },
+        enableSorting: true,
+        size: 220,
+      },
+      {
+        id: 'contact',
+        accessorKey: 'address',
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Contact" column={column} />
+        ),
+        cell: ({ row }) => (
+          <div className="flex flex-col text-left break-words whitespace-normal">
+            {row.original.address ? (
+              <span className="text-sm text-gray-700 dark:text-gray-300 select-all">
+                {row.original.address}
+              </span>
+            ) : (
+              <span className="text-sm text-gray-500">-</span>
+            )}
+            {row.original.phone && (
+              <span className="text-xs text-muted-foreground select-all mt-0.5">
+                {row.original.phone}
+              </span>
+            )}
+          </div>
+        ),
+        enableSorting: true,
         size: 250,
       },
       {
-        id: 'occupancy',
+        id: 'linked_staff',
         header: ({ column }) => (
           <DataGridColumnHeader
             column={column}
-            title="Occupancy"
-            tooltip="Current occupancy vs house ratio"
+            title="Linked Staff"
+            tooltip="Active staff members assigned to this house"
           />
         ),
         cell: ({ row }) => {
-          const participantsForHouse = getHouseParticipants(row.original.id, participants);
-          const currentOccupancy = participantsForHouse.length;
-          const capacity = row.original.capacity || 0;
+          const assignments = (row.original as any).staff_assignments || [];
+          const activeAssignments = assignments.filter((a: any) => 
+            a.staff && a.staff.status === 'active' && (!a.end_date || new Date(a.end_date) >= new Date())
+          );
           
-          // Handle divide by zero
-          const percentage = capacity > 0 ? (currentOccupancy / capacity) * 100 : 0;
-          const occupancyText = capacity > 0 ? `${currentOccupancy}/${capacity}` : `${currentOccupancy}/0`;
+          if (activeAssignments.length === 0) return <span className="text-xs text-gray-500">No active staff</span>;
           
           return (
-            <div className="flex flex-col gap-1">
-              <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                {occupancyText}
-              </div>
-              <div className="flex items-center gap-2">
-                <Progress 
-                  value={Math.min(percentage, 100)} 
-                  className="flex-1 h-2" 
-                />
-                <span className="text-xs text-gray-500 dark:text-gray-400 min-w-[35px]">
-                  {Math.round(percentage)}%
-                </span>
-              </div>
+            <div className="flex flex-col gap-1.5 break-words whitespace-normal text-left">
+              {activeAssignments.map((assignment: any) => {
+                const staff = assignment.staff;
+                if (!staff) return null;
+                const initials = staff.staff_name
+                  ? staff.staff_name.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2)
+                  : '??';
+                
+                return (
+                  <Link 
+                    key={assignment.id}
+                    to={`${ROUTES.STAFF_DETAIL}/${staff.id}`}
+                    className="flex items-center gap-2 group/staff w-fit"
+                  >
+                    <SecureAvatar 
+                      src={staff.photo_url} 
+                      initials={initials} 
+                      className="size-6 transition-all group-hover/staff:ring-2 group-hover/staff:ring-primary/20"
+                      bucket={STORAGE_BUCKETS.STAFF_PHOTOS} 
+                    />
+                    <span className="text-xs font-medium text-gray-700 dark:text-gray-300 group-hover/staff:text-primary transition-colors truncate max-w-[120px]">
+                      {staff.staff_name}
+                    </span>
+                  </Link>
+                );
+              })}
             </div>
           );
         },
         meta: {
           skeleton: (
-            <div className="flex flex-col gap-2">
-              <Skeleton className="h-3 w-12" />
-              <Skeleton className="h-2 w-full" />
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center gap-2">
+                <Skeleton className="size-6 rounded-full" />
+                <Skeleton className="h-2 w-16" />
+              </div>
+              <div className="flex items-center gap-2">
+                <Skeleton className="size-6 rounded-full" />
+                <Skeleton className="h-2 w-20" />
+              </div>
             </div>
           ),
         },
-        size: 150,
+        enableSorting: true,
+        size: 200,
+      },
+      {
+        id: 'participants',
+        header: ({ column }) => (
+          <DataGridColumnHeader
+            column={column}
+            title="Participants"
+            tooltip="Active participants linked to this house"
+          />
+        ),
+        cell: ({ row }) => {
+          const participantsForHouse = getHouseParticipants(row.original.id, participants);
+          if (participantsForHouse.length === 0) return <span className="text-xs text-gray-500">No participants</span>;
+          
+          return (
+            <div className="flex flex-col gap-1.5 break-words whitespace-normal text-left">
+              {participantsForHouse.map((p) => {
+                const initials = p.name
+                  ? p.name.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2)
+                  : '??';
+                
+                return (
+                  <Link
+                    key={p.id}
+                    to={`${ROUTES.PARTICIPANT_DETAIL}/${p.id}`}
+                    className="flex items-center gap-2 group/participant w-fit"
+                  >
+                    <SecureAvatar 
+                      src={p.photo_url} 
+                      initials={initials} 
+                      className="size-6 transition-all group-hover/participant:ring-2 group-hover/participant:ring-primary/20"
+                      bucket={STORAGE_BUCKETS.PARTICIPANT_PHOTOS} 
+                    />
+                    <span className="text-xs font-medium text-gray-700 dark:text-gray-300 group-hover/participant:text-primary transition-colors truncate max-w-[120px]">
+                      {p.name}
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          );
+        },
+        meta: {
+          skeleton: <Skeleton className="h-3 w-32" />,
+        },
+        enableSorting: true,
+        size: 200,
       },
       {
         accessorKey: 'status',
@@ -366,102 +399,72 @@ export function Houses() {
             maintenance: 'Maintenance',
           };
           return (
-            <Badge
-              variant={variantMap[status] as any || 'secondary'}
-              appearance="light"
-              size="sm"
-            >
-              {labelMap[status] || status}
-            </Badge>
+            <div className="break-words whitespace-normal">
+              <Badge
+                variant={variantMap[status] as any || 'secondary'}
+                appearance="light"
+                size="sm"
+              >
+                {labelMap[status] || status}
+              </Badge>
+            </div>
           );
         },
         meta: {
           skeleton: <Skeleton className="h-5 w-16 rounded-full" />,
         },
+        enableSorting: true,
         size: 100,
       },
       {
-        id: 'linked_staff',
+        id: 'occupancy',
+        accessorKey: 'current_occupancy',
         header: ({ column }) => (
           <DataGridColumnHeader
             column={column}
-            title="Linked Staff"
-            tooltip="Number of active staff assigned to this house"
+            title="Occupancy"
+            tooltip="Current occupancy vs house ratio"
           />
         ),
         cell: ({ row }) => {
-          // staff_assignments is an array with one object { count: X } because of how Supabase returns aggregate counts
-          const staffCountData = (row.original as any).staff_assignments;
-          const staffCount = Array.isArray(staffCountData) ? (staffCountData[0]?.count || 0) : (staffCountData?.count || 0);
+          const participantsForHouse = getHouseParticipants(row.original.id, participants);
+          const currentOccupancy = participantsForHouse.length;
+          const capacity = row.original.capacity || 0;
+          
+          // Handle divide by zero
+          const percentage = capacity > 0 ? (currentOccupancy / capacity) * 100 : 0;
+          const occupancyText = capacity > 0 ? `${currentOccupancy}/${capacity}` : `${currentOccupancy}/0`;
           
           return (
-            <div className="text-sm text-gray-900 dark:text-gray-100">
+            <div className="flex flex-col gap-1 break-words whitespace-normal text-left">
+              <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                {occupancyText}
+              </div>
               <div className="flex items-center gap-2">
-                <div className="size-6 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
-                  <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
-                    {staffCount}
-                  </span>
-                </div>
-                <span className="text-sm">
-                  {staffCount === 1 ? 'staff member' : 'staff members'}
+                <Progress 
+                  value={Math.min(percentage, 100)} 
+                  className="flex-1 h-2" 
+                />
+                <span className="text-xs text-gray-500 dark:text-gray-400 min-w-[35px]">
+                  {Math.round(percentage)}%
                 </span>
               </div>
             </div>
           );
         },
         meta: {
-          skeleton: <Skeleton className="h-6 w-24 rounded-full" />,
-        },
-        size: 120,
-      },
-      {
-        id: 'participants',
-        header: ({ column }) => (
-          <DataGridColumnHeader
-            column={column}
-            title="Participants"
-            tooltip="Active participants linked to this house"
-          />
-        ),
-        cell: ({ row }) => {
-          const participantsForHouse = getHouseParticipants(row.original.id, participants);
-          return (
-            <div className="text-sm text-gray-900 dark:text-gray-100">
-              {participantsForHouse.length > 0 ? (
-                <div className="flex flex-col gap-1">
-                  {participantsForHouse.map((p) => (
-                    <Link
-                      key={p.id}
-                      to={`${ROUTES.PARTICIPANT_DETAIL}/${p.id}`}
-                      className="text-xs font-medium text-gray-700 hover:text-primary hover:underline transition-colors"
-                    >
-                      {p.name}
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-xs text-gray-500">No participants</div>
-              )}
+          skeleton: (
+            <div className="flex flex-col gap-2">
+              <Skeleton className="h-3 w-12" />
+              <Skeleton className="h-2 w-full" />
             </div>
-          );
+          ),
         },
-        meta: {
-          skeleton: <Skeleton className="h-3 w-32" />,
-        },
-        size: 200,
-      },
-      {
-        id: 'actions',
-        header: 'Actions',
-        cell: ({ row }) => <ActionsCell row={row} updateHouse={updateHouseMutation} />,
-        meta: {
-          skeleton: <Skeleton className="h-8 w-20" />,
-        },
-        enableSorting: false,
+        enableSorting: true,
         size: 150,
       },
     ],
-    [updateHouseMutation, participants]
+    [participants]
   );
 
   const pageCount = useMemo(() => {
@@ -479,6 +482,11 @@ export function Houses() {
     state: {
       pagination,
       sorting,
+    },
+    initialState: {
+      columnPinning: {
+        left: ['house_name'],
+      },
     },
     onPaginationChange: handlePaginationChange,
     onSortingChange: handleSortingChange,
@@ -509,10 +517,11 @@ export function Houses() {
         columnsMovable: true,
         columnsVisibility: true,
         cellBorder: true,
+        width: 'fixed'
       }}
     >
       <Card id="houses_table">
-        <CardHeader>
+        <CardHeader className="flex-wrap gap-2.5">
           <div className="flex items-center gap-2.5">
             <div className="relative">
               <Search className="size-4 text-muted-foreground absolute start-3 top-1/2 -translate-y-1/2" />
@@ -547,10 +556,9 @@ export function Houses() {
           </div>
         </CardHeader>
 
-        <CardTable>
-          <ScrollArea>
+        <CardTable className="overflow-hidden">
+          <ScrollArea className="w-full">
             <DataGridTable />
-            <ScrollBar orientation="horizontal" />
           </ScrollArea>
         </CardTable>
         <CardFooter>

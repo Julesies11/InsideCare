@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, Link } from 'react-router';
 import { useAuth } from '@/auth/context/auth-context';
 import { format } from 'date-fns';
-import { Plus, Umbrella, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Umbrella, Paperclip } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTable } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -54,8 +54,6 @@ export function StaffLeaveList() {
   const navigate = useNavigate();
   const [requests, setRequests] = useState<LeaveRequest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [deleteTarget, setDeleteTarget] = useState<LeaveRequest | null>(null);
-  const [deleting, setDeleting] = useState(false);
 
   const fetchRequests = useCallback(async () => {
     if (!user?.staff_id) { setLoading(false); return; }
@@ -74,21 +72,6 @@ export function StaffLeaveList() {
   const dayCount = (req: LeaveRequest) => {
     const ms = new Date(req.end_date).getTime() - new Date(req.start_date).getTime();
     return Math.round(ms / 86400000) + 1;
-  };
-
-  const handleDelete = async () => {
-    if (!deleteTarget) return;
-    setDeleting(true);
-    try {
-      await rosterApi.deleteLeaveRequest(deleteTarget.id);
-      toast.success('Leave request deleted');
-      setRequests(prev => prev.filter(r => r.id !== deleteTarget.id));
-    } catch (error) {
-      toast.error('Failed to delete leave request');
-    } finally {
-      setDeleteTarget(null);
-      setDeleting(false);
-    }
   };
 
   return (
@@ -151,8 +134,15 @@ export function StaffLeaveList() {
                   </thead>
                   <tbody className="divide-y">
                     {requests.map((req) => (
-                      <tr key={req.id} className="hover:bg-muted/30 transition-colors">
-                        <td className="px-5 py-3.5 font-medium">{req.leave_type?.leave_type_name ?? 'Leave'}</td>
+                      <tr key={req.id} className="group hover:bg-muted/30 transition-colors">
+                        <td className="px-5 py-3.5 font-medium">
+                          <Link 
+                            to={`${ROUTES.MY_LEAVE}/${req.id}/edit`}
+                            className="text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline transition-colors"
+                          >
+                            {req.leave_type?.leave_type_name ?? 'Leave'}
+                          </Link>
+                        </td>
                         <td className="px-5 py-3.5 text-muted-foreground">
                           {format(new Date(req.start_date), 'dd MMM yyyy')}
                           {req.start_date !== req.end_date && (
@@ -167,6 +157,22 @@ export function StaffLeaveList() {
                             {statusLabel[req.status] ?? req.status}
                           </Badge>
                         </td>
+                        <td className="px-5 py-3.5 hidden sm:table-cell">
+                          {req.attachment_url ? (
+                            <a
+                              href={req.attachment_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline transition-colors"
+                              title="View attachment"
+                            >
+                              <Paperclip className="size-3.5" />
+                              View
+                            </a>
+                          ) : (
+                            <span className="text-muted-foreground/50">—</span>
+                          )}
+                        </td>
                         <td className="px-5 py-3.5 text-muted-foreground hidden md:table-cell max-w-xs">
                           {req.admin_notes ? (
                             <span className="italic">{req.admin_notes}</span>
@@ -174,30 +180,6 @@ export function StaffLeaveList() {
                             <span className="truncate block">{req.reason}</span>
                           ) : (
                             <span className="text-muted-foreground/50">—</span>
-                          )}
-                        </td>
-                        <td className="px-5 py-3.5">
-                          {req.status === 'pending' && (
-                            <div className="flex items-center gap-1">
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-7 w-7 p-0"
-                                title="Edit"
-                                onClick={() => navigate(`${ROUTES.MY_LEAVE}/${req.id}/edit`)}
-                              >
-                                <Pencil className="size-3.5" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-7 w-7 p-0 text-destructive hover:text-destructive"
-                                title="Delete"
-                                onClick={() => setDeleteTarget(req)}
-                              >
-                                <Trash2 className="size-3.5" />
-                              </Button>
-                            </div>
                           )}
                         </td>
                       </tr>
@@ -209,30 +191,6 @@ export function StaffLeaveList() {
           )}
         </div>
       </Container>
-      {/* Delete confirmation dialog */}
-      <Dialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Leave Request</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this {deleteTarget?.leave_type?.leave_type_name ?? 'leave'} request
-              ({deleteTarget ? format(new Date(deleteTarget.start_date), 'dd MMM') : ''}
-              {deleteTarget && deleteTarget.start_date !== deleteTarget.end_date
-                ? ` – ${format(new Date(deleteTarget.end_date), 'dd MMM yyyy')}`
-                : deleteTarget ? ` ${format(new Date(deleteTarget.start_date), 'yyyy')}` : ''})?
-              This cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteTarget(null)} disabled={deleting}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
-              {deleting ? 'Deleting...' : 'Delete'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </>
   );
 }

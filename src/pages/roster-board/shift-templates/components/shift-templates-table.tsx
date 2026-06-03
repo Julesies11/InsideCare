@@ -26,7 +26,7 @@ import {
 
 import { useQuery } from '@tanstack/react-query';
 import { housesApi } from '@/api/houses.api';
-import { useNavigate } from 'react-router';
+import { useNavigate, Link } from 'react-router';
 import { getPeriodTheme } from '@/lib/utils';
 import { ROUTES } from '@/config/routes.config';
 
@@ -43,10 +43,12 @@ export function ShiftTemplatesTable() {
       accessorKey: 'house_name',
       header: 'House Name',
       cell: ({ row }) => (
-        <div className="flex items-center gap-2">
-          <Home className="size-4 text-muted-foreground" />
-          <span className="font-bold text-gray-900 dark:text-gray-100">{row.original.house_name}</span>
-        </div>
+        <Link 
+          to={`${ROUTES.HOUSE_DETAIL}/${row.original.id}`}
+          className="text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline transition-colors"
+        >
+          {row.original.house_name}
+        </Link>
       )
     },
     {

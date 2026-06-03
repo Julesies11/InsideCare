@@ -226,15 +226,17 @@ export const checklistsApi = {
 
     const submissions = (data || []).map(sub => {
       const checklists = (sub as any).house_checklists as unknown as { house_checklist_name?: string } | null;
-      const staff = (sub as any).staff as unknown as { staff_name?: string } | null;
-      const house = (sub as any).houses as unknown as { house_name?: string } | null;
+      const staff = (sub as any).staff as unknown as { id: string; staff_name?: string; photo_url?: string } | null;
+      const house = (sub as any).houses as unknown as { id: string; house_name?: string } | null;
       const items = ((sub as any).ic_house_checklist_submission_items as unknown as Array<{ is_completed: boolean }>) || [];
       
       return {
         ...sub,
         checklist_name: checklists?.house_checklist_name || 'Deleted Checklist',
         staff_name: staff?.staff_name || 'Unknown Staff',
+        staff_info: staff,
         house_name: house?.house_name || 'Unknown House',
+        house_info: house,
         item_count: items.length || 0,
         completed_item_count: items.filter((i) => i.is_completed).length || 0
       };

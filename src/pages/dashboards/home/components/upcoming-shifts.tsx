@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { Link } from 'react-router';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Clock, MapPin, Users } from 'lucide-react';
@@ -8,6 +9,19 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ShiftDialog, ShiftFormData } from '@/components/roster/shift-dialog';
 import { toast } from 'sonner';
 import { useAuth } from '@/auth/context/auth-context';
+import { ROUTES } from '@/config/routes.config';
+import { SecureAvatar } from '@/components/ui/secure-avatar';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
+
+const getInitials = (name?: string) => {
+  if (!name) return '??';
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+};
 
 export function UpcomingShifts() {
   const [showShiftDialog, setShowShiftDialog] = useState(false);
@@ -153,15 +167,62 @@ export function UpcomingShifts() {
                         {shift.shift_template.toLowerCase()}
                       </Badge>
                     </div>
-                    <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
-                      {shift.staff_name} with {shift.participants?.map(p => p.participant_name).join(', ') || 'No Participants'}
-                    </p>
+                    <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                      <Link 
+                        to={`${ROUTES.STAFF_DETAIL}/${shift.staff_id}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="flex items-center gap-1.5 group/staff"
+                      >
+                        <SecureAvatar 
+                          src={shift.staff_photo_url} 
+                          initials={getInitials(shift.staff_name)} 
+                          className="size-5 transition-all group-hover/staff:ring-2 group-hover/staff:ring-primary/20"
+                          bucket={STORAGE_BUCKETS.STAFF_PHOTOS} 
+                        />
+                        <span className="text-sm font-semibold text-blue-700 dark:text-blue-400 hover:underline">
+                          {shift.staff_name}
+                        </span>
+                      </Link>
+                      
+                      <span className="text-gray-400 text-xs font-normal px-0.5">with</span>
+
+                      {shift.participants && shift.participants.length > 0 ? (
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {shift.participants.map((p, i) => (
+                            <div key={p.id} className="flex items-center gap-1.5">
+                              <Link 
+                                to={`${ROUTES.PARTICIPANT_DETAIL}/${p.id}`}
+                                onClick={(e) => e.stopPropagation()}
+                                className="flex items-center gap-1.5 group/p"
+                              >
+                                <SecureAvatar 
+                                  src={p.photo_url} 
+                                  initials={getInitials(p.participant_name)} 
+                                  className="size-5 transition-all group-hover/p:ring-2 group-hover/p:ring-primary/20"
+                                  bucket={STORAGE_BUCKETS.PARTICIPANT_PHOTOS} 
+                                />
+                                <span className="text-sm font-semibold text-blue-700 dark:text-blue-400 hover:underline">
+                                  {p.participant_name}
+                                </span>
+                              </Link>
+                              {i < (shift.participants?.length || 0) - 1 && <span className="text-gray-300">,</span>}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-gray-500 text-xs font-normal italic">No Participants</span>
+                      )}
+                    </div>
                     <div className="flex items-center gap-3 mt-1">
                       {shift.house?.house_name && (
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Link 
+                          to={`${ROUTES.HOUSE_DETAIL}/${shift.house_id || shift.house.id}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
+                        >
                           <MapPin className="size-3" />
                           {shift.house.house_name}
-                        </div>
+                        </Link>
                       )}
                       <div className="flex items-center gap-1 text-xs text-muted-foreground">
                         <Users className="size-3" />

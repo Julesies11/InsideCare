@@ -6,6 +6,7 @@ import { Database } from '@/models/database.types';
 export interface ParticipantsFilter {
   search?: string;
   statuses?: string[];
+  houseIds?: string[];
 }
 
 export interface ParticipantsSort {
@@ -50,16 +51,25 @@ export const participantsApi = {
       .select(PARTICIPANT_VIEWS.LIST, { count: 'exact' });
 
     if (filters.search) {
-      query = query.or(`participant_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%,ndis_number.ilike.%${filters.search}%`);
+      query = query.or(`participant_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%,personal_mobile.ilike.%${filters.search}%,ndis_number.ilike.%${filters.search}%`);
     }
 
     if (filters.statuses && filters.statuses.length > 0) {
       query = query.in('status', filters.statuses);
     }
 
+    if (filters.houseIds && filters.houseIds.length > 0) {
+      query = query.in('house_id', filters.houseIds);
+    }
+
     if (sort.length > 0) {
       sort.forEach(s => {
-        const column = s.id === 'house' ? 'house_id' : s.id;
+        let column = s.id;
+        if (s.id === 'house') column = 'house_id';
+        if (s.id === 'participant') column = 'participant_name';
+        if (s.id === 'contact') column = 'email';
+        if (s.id === 'ndis') column = 'ndis_number';
+        
         query = query.order(column as any, { ascending: !s.desc });
       });
     } else {
@@ -89,7 +99,7 @@ export const participantsApi = {
   async listActive() {
     const { data, error } = await supabase
       .from(TABLES.PARTICIPANTS)
-      .select('id, participant_name, status, house_id')
+      .select('id, participant_name, status, house_id, photo_url')
       .eq('status', 'active')
       .order('participant_name');
     if (error) throw error;
@@ -201,8 +211,12 @@ export const participantsApi = {
       query = query.in('status', filters.statuses);
     }
 
+    if (filters.houseIds && filters.houseIds.length > 0) {
+      query = query.in('house_id', filters.houseIds);
+    }
+
     if (filters.search) {
-      query = query.or(`participant_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%,ndis_number.ilike.%${filters.search}%`);
+      query = query.or(`participant_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%,personal_mobile.ilike.%${filters.search}%,ndis_number.ilike.%${filters.search}%`);
     }
 
     const { count, error } = await query;

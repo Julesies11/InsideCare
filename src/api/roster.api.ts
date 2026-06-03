@@ -305,21 +305,6 @@ export const rosterApi = {
       delete dbPayload.participants;
     }
 
-    // [TELEMETRY] Deep audit of JWT and RLS context
-    const { data: { session } } = await supabase.auth.getSession();
-    const appMetadata = session?.user?.app_metadata || {};
-    const rosterPerm = appMetadata.permissions?.roster_board || 'none';
-    const assignedHouses = appMetadata.assigned_houses || [];
-    
-    console.log(`[RLS Debug] Attempting updateShift | ID: ${id}`, {
-      userId: session?.user?.id,
-      staffId: appMetadata.staff_id,
-      isAdmin: appMetadata.is_admin,
-      rosterPerm,
-      assignedHouses,
-      payload: dbPayload
-    });
-
     const { data, error } = await supabase
       .from(TABLES.STAFF_SHIFTS)
       .update(dbPayload)
@@ -327,19 +312,8 @@ export const rosterApi = {
       .select()
       .maybeSingle();
     
-    if (error) {
-      console.error(`[RLS Debug] Update FAILED for Shift ${id}:`, error);
-      throw error;
-    }
-
-    if (!data) {
-      console.error(`[RLS Debug] Update returned NULL for Shift ${id}. This confirms an RLS VIOLATION (Missing UPDATE or SELECT permission).`, {
-        reason: "The update either didn't match any rows or the post-update SELECT was blocked."
-      });
-      throw new Error("You do not have permission to perform this action");
-    }
-
-    console.log(`[RLS Debug] Update SUCCESS for Shift ${id}`, data);
+    if (error) throw error;
+    if (!data) throw new Error("You do not have permission to perform this action");
 
     if (participant_ids) {
       await this.syncShiftParticipants(id, participant_ids);
@@ -536,7 +510,7 @@ export const rosterApi = {
       .from(TABLES.LEAVE_REQUESTS)
       .select(`
         *, 
-        staff:${TABLES.STAFF}!leave_requests_staff_id_fkey(id, staff_name, auth_user_id), 
+        staff:${TABLES.STAFF}!leave_requests_staff_id_fkey(id, staff_name, photo_url, auth_user_id), 
         leave_type:${TABLES.LEAVE_TYPES}!leave_type_id(leave_type_name)
       `)
       .order('created_at', { ascending: false });

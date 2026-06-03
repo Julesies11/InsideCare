@@ -13,10 +13,10 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import {
-  Eye,
   Filter,
   Search,
   X,
+  House as HouseIcon,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -43,31 +43,21 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { useShiftNotes, ShiftNote } from '@/hooks/use-shift-notes';
 import { useHouses } from '@/hooks/use-houses';
 import { useStaff } from '@/hooks/use-staff';
-import { useNavigate } from 'react-router';
+import { useNavigate, Link } from 'react-router';
 import { format } from 'date-fns';
 import { ROUTES } from '@/config/routes.config';
+import { SecureAvatar } from '@/components/ui/secure-avatar';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 
-function ActionsCell({ row }: { row: Row<ShiftNote> }) {
-  const navigate = useNavigate();
-
-  const handleView = () => {
-    navigate(`${ROUTES.SHIFT_NOTES_DETAIL}/${row.original.id}`);
-  };
-
-  return (
-    <div className="flex items-center gap-2">
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={handleView}
-        className="h-8"
-      >
-        <Eye className="size-4 me-1.5" />
-        View
-      </Button>
-    </div>
-  );
-}
+const getInitials = (name?: string) => {
+  if (!name) return '??';
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+};
 
 const ShiftNotes = () => {
   const { shiftNotes, loading, error } = useShiftNotes();
@@ -151,9 +141,12 @@ const ShiftNotes = () => {
           <DataGridColumnHeader title="Date" column={column} />
         ),
         cell: ({ row }) => (
-          <span className="text-foreground font-normal">
+          <Link 
+            to={`${ROUTES.SHIFT_NOTES_DETAIL}/${row.original.id}`}
+            className="text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline transition-colors break-words whitespace-normal w-full max-w-full block text-left"
+          >
             {format(new Date(row.original.start_date), 'MMM dd, yyyy')}
-          </span>
+          </Link>
         ),
         enableSorting: true,
         size: 130,
@@ -165,7 +158,7 @@ const ShiftNotes = () => {
           <DataGridColumnHeader title="Time" column={column} />
         ),
         cell: ({ row }) => (
-          <span className="text-foreground font-normal">
+          <span className="text-foreground font-normal break-words whitespace-normal text-left block">
             {row.original.shift_time || '-'}
           </span>
         ),
@@ -178,11 +171,27 @@ const ShiftNotes = () => {
         header: ({ column }) => (
           <DataGridColumnHeader title="Participant" column={column} />
         ),
-        cell: ({ row }) => (
-          <span className="text-foreground font-normal">
-            {row.original.participant?.participant_name || 'General Note'}
-          </span>
-        ),
+        cell: ({ row }) => {
+          const participant = row.original.participant;
+          if (!participant) return <span className="text-muted-foreground italic text-xs">General Note</span>;
+
+          return (
+            <Link 
+              to={`${ROUTES.PARTICIPANT_DETAIL}/${participant.id}`}
+              className="flex items-center gap-2 group/participant w-fit"
+            >
+              <SecureAvatar 
+                src={participant.photo_url} 
+                initials={getInitials(participant.participant_name)} 
+                className="size-6 transition-all group-hover/participant:ring-2 group-hover/participant:ring-primary/20"
+                bucket={STORAGE_BUCKETS.PARTICIPANT_PHOTOS} 
+              />
+              <span className="text-sm font-medium text-blue-700 dark:text-blue-400 group-hover/participant:underline transition-colors truncate max-w-[150px]">
+                {participant.participant_name}
+              </span>
+            </Link>
+          );
+        },
         enableSorting: true,
         size: 180,
       },
@@ -192,11 +201,27 @@ const ShiftNotes = () => {
         header: ({ column }) => (
           <DataGridColumnHeader title="Staff" column={column} />
         ),
-        cell: ({ row }) => (
-          <span className="text-foreground font-normal">
-            {row.original.staff?.staff_name || '-'}
-          </span>
-        ),
+        cell: ({ row }) => {
+          const staffMember = row.original.staff;
+          if (!staffMember) return <span className="text-muted-foreground">-</span>;
+
+          return (
+            <Link 
+              to={`${ROUTES.STAFF_DETAIL}/${staffMember.id}`}
+              className="flex items-center gap-2 group/staff w-fit"
+            >
+              <SecureAvatar 
+                src={staffMember.photo_url} 
+                initials={getInitials(staffMember.staff_name)} 
+                className="size-6 transition-all group-hover/staff:ring-2 group-hover/staff:ring-primary/20"
+                bucket={STORAGE_BUCKETS.STAFF_PHOTOS} 
+              />
+              <span className="text-sm font-medium text-blue-700 dark:text-blue-400 group-hover/staff:underline transition-colors truncate max-w-[120px]">
+                {staffMember.staff_name}
+              </span>
+            </Link>
+          );
+        },
         enableSorting: true,
         size: 150,
       },
@@ -206,11 +231,24 @@ const ShiftNotes = () => {
         header: ({ column }) => (
           <DataGridColumnHeader title="House" column={column} />
         ),
-        cell: ({ row }) => (
-          <span className="text-foreground font-normal">
-            {row.original.house?.house_name || '-'}
-          </span>
-        ),
+        cell: ({ row }) => {
+          const house = row.original.house;
+          if (!house) return <span className="text-muted-foreground">-</span>;
+
+          return (
+            <Link 
+              to={`${ROUTES.HOUSE_DETAIL}/${house.id}`}
+              className="flex items-center gap-2 group/house w-fit"
+            >
+              <div className="size-6 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center group-hover/house:ring-2 group-hover/house:ring-primary/20 transition-all shrink-0">
+                <HouseIcon className="size-3 text-gray-600 dark:text-gray-400 group-hover/house:text-primary transition-colors" />
+              </div>
+              <span className="text-sm font-medium text-blue-700 dark:text-blue-400 group-hover/house:underline transition-colors truncate max-w-[120px]">
+                {house.house_name}
+              </span>
+            </Link>
+          );
+        },
         enableSorting: true,
         size: 150,
       },
@@ -221,19 +259,12 @@ const ShiftNotes = () => {
           <DataGridColumnHeader title="Notes" column={column} />
         ),
         cell: ({ row }) => (
-          <div className="max-w-[300px] truncate text-foreground font-normal">
+          <div className="max-w-[300px] truncate text-foreground font-normal break-words whitespace-normal text-left block">
             {row.original.notes || row.original.full_note?.substring(0, 100) || '-'}
           </div>
         ),
         enableSorting: false,
         size: 300,
-      },
-      {
-        id: 'actions',
-        header: 'Actions',
-        cell: ({ row }) => <ActionsCell row={row} />,
-        enableSorting: false,
-        size: 120,
       },
     ],
     []
@@ -247,6 +278,11 @@ const ShiftNotes = () => {
     state: {
       pagination,
       sorting,
+    },
+    initialState: {
+      columnPinning: {
+        left: ['start_date'],
+      },
     },
     onPaginationChange: setPagination,
     onSortingChange: setSorting,

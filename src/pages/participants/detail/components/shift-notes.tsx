@@ -8,8 +8,20 @@ import { format, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, Link } from 'react-router';
 import { ROUTES } from '@/config/routes.config';
+import { SecureAvatar } from '@/components/ui/secure-avatar';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
+
+const getInitials = (name?: string) => {
+  if (!name) return '??';
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+};
 
 interface ShiftNotePendingChanges {
   toAdd: any[];
@@ -154,9 +166,23 @@ export function ShiftNotes({
                           {note.shift_time}
                         </div>
                       )}
-                      <Badge variant="secondary" appearance="light" className="text-[10px]">
-                        By: {note.staff?.staff_name || getStaffName(note.staff_id)}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight">By:</span>
+                        <Link 
+                          to={`${ROUTES.STAFF_DETAIL}/${note.staff?.id || note.staff_id}`}
+                          className="flex items-center gap-1.5 group/staff"
+                        >
+                          <SecureAvatar 
+                            src={note.staff?.photo_url} 
+                            initials={getInitials(note.staff?.staff_name || getStaffName(note.staff_id))} 
+                            className="size-5 transition-all group-hover/staff:ring-2 group-hover/staff:ring-primary/20"
+                            bucket={STORAGE_BUCKETS.STAFF_PHOTOS} 
+                          />
+                          <span className="text-xs font-medium text-blue-700 dark:text-blue-400 group-hover/staff:underline transition-colors">
+                            {note.staff?.staff_name || getStaffName(note.staff_id)}
+                          </span>
+                        </Link>
+                      </div>
                       {isPendingAdd && <Badge variant="outline" className="text-[10px] uppercase">New</Badge>}
                       {isPendingUpdate && <Badge variant="outline" className="text-[10px] uppercase border-warning text-warning">Pending Update</Badge>}
                       {isPendingDelete && <Badge variant="destructive" className="text-[10px] uppercase">Pending Delete</Badge>}

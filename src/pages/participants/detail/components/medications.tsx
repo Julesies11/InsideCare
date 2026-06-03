@@ -6,6 +6,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Plus, Edit, Trash2, Pill } from 'lucide-react';
+import { Link } from 'react-router';
+import { ROUTES } from '@/config/routes.config';
 import { MedicationCombobox } from './medication-components/medication-combobox';
 import { useParticipantMedications } from '@/hooks/use-participant-medications';
 import { useMedicationsMaster } from '@/hooks/use-medications-master';
@@ -237,9 +239,15 @@ export function Medications({
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
                           <Pill className="size-4 text-muted-foreground" />
-                          <span className={cn(isPendingDelete && 'line-through')}>
+                          <Link 
+                            to={`${ROUTES.MEDICATION_REGISTER}/${med.medication_id}`}
+                            className={cn(
+                              "text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline transition-colors",
+                              isPendingDelete && 'line-through opacity-50 pointer-events-none'
+                            )}
+                          >
                             {getMedicationName(med.medication_id)}
-                          </span>
+                          </Link>
                           {isPendingAdd && <Badge variant="outline" className="text-[10px] uppercase">New</Badge>}
                           {isPendingUpdate && <Badge variant="outline" className="text-[10px] uppercase border-warning text-warning">Pending Update</Badge>}
                           {isPendingDelete && <Badge variant="destructive" className="text-[10px] uppercase">Pending Delete</Badge>}
