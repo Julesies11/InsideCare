@@ -9,6 +9,7 @@ export interface ShiftNote {
   staff_id?: string | null;
   start_date: string;
   shift_time?: string | null;
+  end_time?: string | null;
   house_id?: string | null;
   shift_id?: string | null;
   notes?: string | null;
@@ -36,7 +37,18 @@ export interface ShiftNote {
     end_time: string;
     shift_template: string;
     status: string;
+    participants?: Array<{
+      participant: {
+        id: string;
+        participant_name: string;
+      };
+    }>;
   } | null;
+  // MTM Notes
+  mtm_texture_notes?: string | null;
+  mtm_consistency_notes?: string | null;
+  mtm_positioning_notes?: string | null;
+  mtm_supervision_notes?: string | null;
   // Legacy aliases
   participant_name?: string;
   staff_name?: string;

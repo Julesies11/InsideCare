@@ -8,7 +8,8 @@ export interface IncidentListOptions {
   staffId?: string;
   houseId?: string;
   status?: string | string[];
-  type?: string | string[];
+  typeId?: string | string[];
+  severity?: string | string[];
   priority?: string | string[];
   startDate?: string;
   endDate?: string;
@@ -27,7 +28,8 @@ export const incidentsApi = {
     staffId,
     houseId,
     status,
-    type,
+    typeId,
+    severity,
     priority,
     startDate,
     endDate,
@@ -52,17 +54,25 @@ export const incidentsApi = {
 
     if (status) {
       if (Array.isArray(status)) {
-        query = query.in('status', status);
+        query = query.in('admin_status', status);
       } else {
-        query = query.eq('status', status);
+        query = query.eq('admin_status', status);
       }
     }
 
-    if (type) {
-      if (Array.isArray(type)) {
-        query = query.in('incident_type', type);
+    if (typeId) {
+      if (Array.isArray(typeId)) {
+        query = query.in('incident_type_id', typeId);
       } else {
-        query = query.eq('incident_type', type);
+        query = query.eq('incident_type_id', typeId);
+      }
+    }
+
+    if (severity) {
+      if (Array.isArray(severity)) {
+        query = query.in('severity', severity);
+      } else {
+        query = query.eq('severity', severity);
       }
     }
 
@@ -84,7 +94,7 @@ export const incidentsApi = {
     }
 
     if (search) {
-      query = query.or(`description.ilike.%${search}%,incident_type.ilike.%${search}%`);
+      query = query.or(`summary.ilike.%${search}%,details.ilike.%${search}%`);
     }
 
     if (sort.length > 0) {
@@ -103,7 +113,14 @@ export const incidentsApi = {
 
     if (error) throw error;
     return { 
-      data: data as (IncidentReport & { participant: any, staff: any, reporter: any, house: any })[], 
+      data: data as (IncidentReport & { 
+        participant: any, 
+        staff: any, 
+        reporter: any, 
+        house: any,
+        incident_type_info: any,
+        restrictive_practice_type_info: any
+      })[], 
       count 
     };
   },
@@ -119,7 +136,14 @@ export const incidentsApi = {
       .single();
 
     if (error) throw error;
-    return data as (IncidentReport & { participant: any, staff: any, reporter: any, house: any });
+    return data as (IncidentReport & { 
+      participant: any, 
+      staff: any, 
+      reporter: any, 
+      house: any,
+      incident_type_info: any,
+      restrictive_practice_type_info: any
+    });
   },
 
   /**
@@ -134,7 +158,14 @@ export const incidentsApi = {
       .single();
 
     if (error) throw error;
-    return data as (IncidentReport & { participant: any, staff: any, reporter: any, house: any });
+    return data as (IncidentReport & { 
+      participant: any, 
+      staff: any, 
+      reporter: any, 
+      house: any,
+      incident_type_info: any,
+      restrictive_practice_type_info: any
+    });
   },
 
   /**
@@ -148,6 +179,13 @@ export const incidentsApi = {
       .single();
 
     if (error) throw error;
-    return data as (IncidentReport & { participant: any, staff: any, reporter: any, house: any });
+    return data as (IncidentReport & { 
+      participant: any, 
+      staff: any, 
+      reporter: any, 
+      house: any,
+      incident_type_info: any,
+      restrictive_practice_type_info: any
+    });
   }
 };

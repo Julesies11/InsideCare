@@ -103,7 +103,7 @@ describe('House Detail Smoke Tests', () => {
     await waitFor(() => {
       // Check for sidebar navigation items which should be present
       expect(screen.getAllByText(/House Details/i).length).toBeGreaterThan(0);
-      expect(screen.getByText(/Daily Operations/i)).toBeDefined();
+      expect(screen.getAllByText(/Daily Operations/i).length).toBeGreaterThan(0);
       expect(screen.getAllByText(/Checklist Setup/i).length).toBeGreaterThan(0);
     });
   });

@@ -114,7 +114,7 @@ export function ChecklistCard({
                 </div>
               ) : (
                 checklistItems.slice(0, maxTasksPreview).map((item, index: number) => (
-                  <div key={item.id || item.tempId} className="flex items-start gap-3 relative z-10">
+                  <div key={item.id || item.tempId || index} className="flex items-start gap-3 relative z-10">
                     <div className="shrink-0 size-5 rounded-full bg-background border border-muted-foreground/30 flex items-center justify-center text-[10px] font-bold text-muted-foreground">
                       {index + 1}
                     </div>

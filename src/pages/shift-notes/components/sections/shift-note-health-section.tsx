@@ -3,6 +3,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 interface ShiftNoteHealthSectionProps {
   canEdit: boolean;
@@ -47,20 +48,21 @@ export function ShiftNoteHealthSection({
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <Label htmlFor="prn_medication_given">PRN medication given?</Label>
-                <Select
-                  value={formData.prn_medication_given === true ? 'yes' : formData.prn_medication_given === false ? 'no' : 'none'}
+                <RadioGroup
+                  value={formData.prn_medication_given === true ? 'yes' : formData.prn_medication_given === false ? 'no' : ''}
                   onValueChange={(val) => onFormChange('prn_medication_given', val === 'yes' ? true : val === 'no' ? false : null)}
                   disabled={!canEdit}
+                  className="flex items-center gap-4"
                 >
-                  <SelectTrigger className="w-32">
-                    <SelectValue placeholder="Select" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">N/A</SelectItem>
-                    <SelectItem value="yes">Yes</SelectItem>
-                    <SelectItem value="no">No</SelectItem>
-                  </SelectContent>
-                </Select>
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="yes" id="prn_yes" />
+                    <Label htmlFor="prn_yes" className="font-normal cursor-pointer">Yes</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="no" id="prn_no" />
+                    <Label htmlFor="prn_no" className="font-normal cursor-pointer">No</Label>
+                  </div>
+                </RadioGroup>
               </div>
               
               {formData.prn_medication_given && (
@@ -95,20 +97,21 @@ export function ShiftNoteHealthSection({
                 <Label htmlFor="pbs_strategies_used">Were PBS strategies used?</Label>
                 <p className="text-[10px] text-muted-foreground">Select if any strategies were used to support the participant.</p>
               </div>
-              <Select
-                value={formData.pbs_strategies_used === true ? 'yes' : formData.pbs_strategies_used === false ? 'no' : 'none'}
+              <RadioGroup
+                value={formData.pbs_strategies_used === true ? 'yes' : formData.pbs_strategies_used === false ? 'no' : ''}
                 onValueChange={(val) => onFormChange('pbs_strategies_used', val === 'yes' ? true : val === 'no' ? false : null)}
                 disabled={!canEdit}
+                className="flex items-center gap-4"
               >
-                <SelectTrigger className="w-32">
-                  <SelectValue placeholder="Select" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">N/A</SelectItem>
-                  <SelectItem value="yes">Yes</SelectItem>
-                  <SelectItem value="no">No</SelectItem>
-                </SelectContent>
-              </Select>
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="yes" id="pbs_yes" />
+                  <Label htmlFor="pbs_yes" className="font-normal cursor-pointer">Yes</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="no" id="pbs_no" />
+                  <Label htmlFor="pbs_no" className="font-normal cursor-pointer">No</Label>
+                </div>
+              </RadioGroup>
             </div>
             
             {formData.pbs_strategies_used && (

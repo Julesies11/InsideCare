@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { houseOperationsApi } from '@/api/house-operations.api';
 import { CALENDAR_VIEWS } from '@/config/query-views';
+import { QUERY_KEYS } from '@/config/query-keys';
 
 export interface HouseCalendarEventType {
   id: string;
@@ -65,20 +66,11 @@ export interface HouseCalendarEvent {
 }
 
 export function useHouseCalendarEvents(houseId?: string, staffId?: string, startDate?: string, endDate?: string) {
-  const [houseCalendarEvents, setHouseCalendarEvents] = useState<HouseCalendarEvent[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const query = useQuery({
+    queryKey: [QUERY_KEYS.CALENDAR_EVENTS, { houseId, staffId, startDate, endDate }],
+    queryFn: async ({ signal }) => {
+      if (!houseId) return [];
 
-  const fetchHouseCalendarEvents = async (signal?: AbortSignal): Promise<void> => {
-    if (!houseId) {
-      setHouseCalendarEvents([]);
-      setLoading(false);
-      return;
-    }
-
-    try {
-      setLoading(true);
-      
       const events = await houseOperationsApi.calendar.list({
         houseId,
         startDate,
@@ -87,7 +79,7 @@ export function useHouseCalendarEvents(houseId?: string, staffId?: string, start
         signal
       });
 
-      const combinedEvents = (events || []).map((e: any) => {
+      return (events || []).map((e: any) => {
         let type = 'other';
         const typeName = e.type?.event_type_name || '';
         
@@ -106,35 +98,14 @@ export function useHouseCalendarEvents(houseId?: string, staffId?: string, start
           type
         };
       });
-
-      setHouseCalendarEvents(combinedEvents);
-      setError(null);
-    } catch (err: any) {
-      // Correctly ignore AbortError (common on unmount or re-fetch)
-      if (err.name === 'AbortError' || err.message === 'AbortError' || (err.hint && err.hint.includes('Request was aborted'))) {
-        return;
-      }
-      
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch house calendar events';
-      console.error('Error fetching house calendar events:', err);
-      setError(errorMessage);
-    } finally {
-      if (!signal?.aborted) {
-        setLoading(false);
-      }
-    }
-  };
-
-  useEffect(() => {
-    const controller = new AbortController();
-    fetchHouseCalendarEvents(controller.signal);
-    return () => controller.abort();
-  }, [houseId, staffId, startDate, endDate]);
+    },
+    enabled: !!houseId,
+  });
 
   return {
-    houseCalendarEvents,
-    loading,
-    error,
-    refresh: fetchHouseCalendarEvents
+    houseCalendarEvents: query.data || [],
+    loading: query.isLoading,
+    error: query.error ? (query.error as Error).message : null,
+    refresh: query.refetch
   };
 }

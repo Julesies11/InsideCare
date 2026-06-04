@@ -8,37 +8,82 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Download, Trash2, FileText, Clock, MapPin, Phone, Edit, Upload, X } from 'lucide-react';
+import { Plus, Download, FileText, Clock, MapPin, Phone, Upload, X } from 'lucide-react';
 import { useHouseResources } from '@/hooks/useHouseResources';
 import { cn } from '@/lib/utils';
 import { KeenIcon } from '@/components/keenicons';
 import { HousePendingChanges } from '@/models/house-pending-changes';
+import { toAbsoluteUrl } from '@/lib/helpers';
+import { Switch } from '@/components/ui/switch';
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
-  ContextMenuSeparator,
   ContextMenuTrigger,
 } from '@/components/ui/context-menu';
 
 interface HouseResourcesProps {
   houseId?: string;
   canAdd: boolean;
-  canDelete: boolean;
   pendingChanges?: HousePendingChanges;
   onPendingChangesChange?: (changes: HousePendingChanges) => void;
 }
 
+interface ResourceItem {
+  id?: string;
+  tempId?: string;
+  title: string;
+  category: string;
+  type: string;
+  description?: string;
+  priority?: string;
+  phone?: string;
+  address?: string;
+  notes?: string;
+  file_url?: string;
+  file_name?: string;
+  is_active?: boolean;
+}
+
+const getFileIcon = (fileName?: string) => {
+  if (!fileName) return 'doc.svg';
+  const extension = fileName.split('.').pop()?.toLowerCase();
+  switch (extension) {
+    case 'pdf':
+      return 'pdf.svg';
+    case 'doc':
+    case 'docx':
+      return 'word.svg';
+    case 'xls':
+    case 'xlsx':
+      return 'excel.svg';
+    case 'jpg':
+    case 'jpeg':
+    case 'png':
+    case 'svg':
+    case 'webp':
+      return 'image.svg';
+    case 'txt':
+      return 'text.svg';
+    case 'zip':
+    case 'rar':
+    case '7z':
+      return 'zip.svg';
+    default:
+      return 'doc.svg';
+  }
+};
+
 export function HouseResources({ 
   houseId, 
   canAdd, 
-  canDelete,
   pendingChanges,
   onPendingChangesChange 
 }: HouseResourcesProps) {
   const [showResourceDialog, setShowResourceDialog] = useState(false);
+  const [showOnlyActive, setShowOnlyActive] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [editingResource, setEditingResource] = useState<{ id?: string; tempId?: string; title: string; category: string; type: string; description?: string; priority?: string; phone?: string; address?: string; notes?: string; file_url?: string; file_name?: string } | null>(null);
+  const [editingResource, setEditingResource] = useState<ResourceItem | null>(null);
   const [formData, setFormData] = useState({
     title: '',
     category: '',
@@ -51,6 +96,7 @@ export function HouseResources({
     file: null as File | null,
     fileName: '',
     toDeleteFile: false,
+    is_active: true,
   });
 
   const { houseResources, loading, getFileUrl } = useHouseResources(houseId);
@@ -69,24 +115,29 @@ export function HouseResources({
       file: null,
       fileName: '',
       toDeleteFile: false,
+      is_active: true,
     });
     setShowResourceDialog(true);
   };
 
-  const handleEdit = (resource: { id?: string; tempId?: string; title: string; category: string; type: string; description?: string; priority?: string; phone?: string; address?: string; notes?: string; file_url?: string; file_name?: string }) => {
-    setEditingResource(resource);
+  const handleEdit = (resource: ResourceItem) => {
+    const pendingUpdate = resource.id ? pendingChanges?.resources.toUpdate.find(r => r.id === resource.id) : null;
+    const mergedResource = { ...resource, ...pendingUpdate };
+    
+    setEditingResource(mergedResource);
     setFormData({
-      title: resource.title,
-      category: resource.category,
-      type: resource.type,
-      description: resource.description || '',
-      priority: resource.priority || 'Medium',
-      phone: resource.phone || '',
-      address: resource.address || '',
-      notes: resource.notes || '',
+      title: mergedResource.title,
+      category: mergedResource.category,
+      type: mergedResource.type,
+      description: mergedResource.description || '',
+      priority: mergedResource.priority || 'Medium',
+      phone: mergedResource.phone || '',
+      address: mergedResource.address || '',
+      notes: mergedResource.notes || '',
       file: null,
-      fileName: resource.file_name || '',
+      fileName: mergedResource.file_name || '',
       toDeleteFile: false,
+      is_active: mergedResource.is_active ?? true,
     });
     setShowResourceDialog(true);
   };
@@ -135,6 +186,7 @@ export function HouseResources({
       file_name: formData.file ? formData.file.name : (formData.toDeleteFile ? undefined : formData.fileName),
       file_size: formData.file ? formData.file.size : undefined,
       toDeleteFile: formData.toDeleteFile,
+      is_active: formData.is_active,
       house_id: houseId,
     };
 
@@ -184,76 +236,32 @@ export function HouseResources({
     setShowResourceDialog(false);
   };
 
-  const handleDelete = (resource: { id: string; tempId?: string; file_url?: string }) => {
-    if (!pendingChanges || !onPendingChangesChange) return;
-
-    // If it's a pending add, just remove it from the pending adds list
-    if (resource.tempId) {
-      handleCancelPendingAdd(resource.tempId);
-      return;
-    }
-
-    // Otherwise, mark existing resource for deletion
-    if (confirm('Mark this resource for deletion? It will be removed when you click Save Changes.')) {
-      const newPending = {
-        ...pendingChanges,
-        resources: {
-          ...pendingChanges.resources,
-          toDelete: [...pendingChanges.resources.toDelete, { id: resource.id, filePath: resource.file_url }],
-        },
-      };
-      onPendingChangesChange(newPending);
-    }
-  };
-
-  const handleCancelPendingAdd = (tempId: string) => {
-    if (!pendingChanges || !onPendingChangesChange) return;
-
-    const newPending = {
-      ...pendingChanges,
-      resources: {
-        ...pendingChanges.resources,
-        toAdd: pendingChanges.resources.toAdd.filter(resource => resource.tempId !== tempId),
-      },
-    };
-    onPendingChangesChange(newPending);
-  };
-
-  const handleCancelPendingUpdate = (id: string) => {
-    if (!pendingChanges || !onPendingChangesChange) return;
-
-    const newPending = {
-      ...pendingChanges,
-      resources: {
-        ...pendingChanges.resources,
-        toUpdate: pendingChanges.resources.toUpdate.filter(resource => resource.id !== id),
-      },
-    };
-    onPendingChangesChange(newPending);
-  };
-
-  const handleCancelPendingDelete = (id: string) => {
-    if (!pendingChanges || !onPendingChangesChange) return;
-
-    const newPending = {
-      ...pendingChanges,
-      resources: {
-        ...pendingChanges.resources,
-        toDelete: pendingChanges.resources.toDelete.filter(resource => resource.id !== id),
-      },
-    };
-    onPendingChangesChange(newPending);
-  };
-
   const handleDownload = async (filePath: string, fileName: string) => {
     const url = await getFileUrl(filePath, fileName);
     if (url) window.open(url, '_blank');
   };
 
+  const handleView = async (filePath: string) => {
+    const url = await getFileUrl(filePath, false);
+    if (url) window.open(url, '_blank');
+  };
+
   // Filter out resources marked for deletion
   const visibleResources = [
-    ...houseResources.filter(resource => !pendingChanges?.resources.toDelete.some(r => r.id === resource.id)),
-    ...(pendingChanges?.resources.toAdd || []),
+    ...houseResources.filter(resource => {
+      const isDeleted = pendingChanges?.resources.toDelete.some(r => r.id === resource.id);
+      if (isDeleted) return false;
+
+      const isPendingUpdate = pendingChanges?.resources.toUpdate.find(r => r.id === resource.id);
+      const isActive = isPendingUpdate?.is_active !== undefined ? isPendingUpdate.is_active : resource.is_active;
+
+      if (showOnlyActive && !isActive) return false;
+      return true;
+    }),
+    ...(pendingChanges?.resources.toAdd || []).filter(resource => {
+      if (showOnlyActive && !resource.is_active) return false;
+      return true;
+    }),
   ];
 
   // Format file size
@@ -292,14 +300,26 @@ export function HouseResources({
     <>
       <Card className="pb-2.5" id="resources">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="size-5" />
-            Resources
-          </CardTitle>
-          <Button variant="secondary" size="sm" className="border border-gray-300" onClick={handleAdd} disabled={!houseId || !canAdd}>
-            <Plus className="size-4 me-1.5" />
-            Add Resource
-          </Button>
+          <div className="flex flex-col gap-1">
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="size-5" />
+              Resources
+            </CardTitle>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
+              <Switch
+                id="show-only-active-resources"
+                checked={showOnlyActive}
+                onCheckedChange={setShowOnlyActive}
+              />
+              <Label htmlFor="show-only-active-resources" className="text-xs font-bold cursor-pointer">Active Only</Label>
+            </div>
+            <Button variant="secondary" size="sm" className="border border-gray-300" onClick={handleAdd} disabled={!houseId || !canAdd}>
+              <Plus className="size-4 me-1.5" />
+              Add Resource
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -318,11 +338,10 @@ export function HouseResources({
                 <TableRow>
                   <TableHead>Title</TableHead>
                   <TableHead>Category</TableHead>
-                  <TableHead>Type</TableHead>
                   <TableHead>Priority</TableHead>
                   <TableHead>Contact</TableHead>
                   <TableHead>File</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -330,12 +349,17 @@ export function HouseResources({
                   const isPendingAdd = 'tempId' in resource;
                   const isPendingUpdate = pendingChanges?.resources.toUpdate.some(r => r.id === resource.id);
                   const isPendingDelete = pendingChanges?.resources.toDelete.some(r => r.id === resource.id);
-                  const currentFile = isPendingAdd ? resource.file : null;
-                  const fileName = currentFile ? currentFile.name : resource.file_name;
-                  const fileSize = currentFile ? currentFile.size : resource.file_size;
+                  
+                  const pendingUpdate = pendingChanges?.resources.toUpdate.find(r => r.id === resource.id);
+                  const mergedResource = isPendingUpdate ? { ...resource, ...pendingUpdate } : resource;
+                  const isActive = mergedResource.is_active !== false;
+
+                  const currentFile = isPendingAdd ? mergedResource.file : null;
+                  const fileName = currentFile ? currentFile.name : mergedResource.file_name;
+                  const fileSize = currentFile ? currentFile.size : mergedResource.file_size;
 
                   return (
-                    <ContextMenu key={resource.id || resource.tempId}>
+                    <ContextMenu key={mergedResource.id || mergedResource.tempId}>
                       <ContextMenuTrigger asChild>
                         <TableRow 
                           className={cn(
@@ -346,13 +370,22 @@ export function HouseResources({
                           )}
                         >
                           <TableCell>
-                            <div className="flex items-center gap-2">
-                              <FileText className="size-4 text-muted-foreground" />
+                            <div className="flex items-center gap-3">
+                              <img 
+                                src={toAbsoluteUrl(`/media/file-types/${getFileIcon(fileName)}`)} 
+                                className="size-8 shrink-0" 
+                                alt="file icon" 
+                              />
                               <div className={`flex flex-col ${isPendingDelete ? 'line-through' : ''}`}>
-                                <span className="font-medium">{resource.title}</span>
-                                {resource.description && (
+                                <button 
+                                  onClick={() => handleEdit(mergedResource)}
+                                  className="text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline text-left"
+                                >
+                                  {mergedResource.title}
+                                </button>
+                                {mergedResource.description && (
                                   <span className="text-xs text-muted-foreground line-clamp-2">
-                                    {resource.description}
+                                    {mergedResource.description}
                                   </span>
                                 )}
                               </div>
@@ -377,30 +410,27 @@ export function HouseResources({
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Badge variant="outline" className={`text-xs border-${getCategoryColor(resource.category)}-500 text-${getCategoryColor(resource.category)}-700`}>
-                              {resource.category}
+                            <Badge variant="outline" className={`text-xs border-${getCategoryColor(mergedResource.category)}-500 text-${getCategoryColor(mergedResource.category)}-700`}>
+                              {mergedResource.category}
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <span className="text-sm">{resource.type}</span>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className={`text-xs border-${getPriorityColor(resource.priority)}-500 text-${getPriorityColor(resource.priority)}-700`}>
-                              {resource.priority}
+                            <Badge variant="outline" className={`text-xs border-${getPriorityColor(mergedResource.priority)}-500 text-${getPriorityColor(mergedResource.priority)}-700`}>
+                              {mergedResource.priority}
                             </Badge>
                           </TableCell>
                           <TableCell>
                             <div className="text-sm space-y-1">
-                              {resource.phone && (
+                              {mergedResource.phone && (
                                 <div className="flex items-center gap-2">
                                   <Phone className="size-4 text-muted-foreground" />
-                                  <span>{resource.phone}</span>
+                                  <span>{mergedResource.phone}</span>
                                 </div>
                               )}
-                              {resource.address && (
+                              {mergedResource.address && (
                                 <div className="flex items-center gap-2">
                                   <MapPin className="size-4 text-muted-foreground" />
-                                  <span className="line-clamp-2">{resource.address}</span>
+                                  <span className="line-clamp-2">{mergedResource.address}</span>
                                 </div>
                               )}
                             </div>
@@ -409,106 +439,48 @@ export function HouseResources({
                             <div className="text-sm">
                               {fileName ? (
                                 <div 
-                                  className="flex items-center gap-2 cursor-pointer select-none"
-                                  onDoubleClick={() => resource.file_url && handleDownload(resource.file_url, resource.file_name || 'resource')}
-                                  title="Double-click to download"
+                                  className="flex items-center gap-2 cursor-pointer select-none group"
+                                  onClick={() => mergedResource.file_url && handleView(mergedResource.file_url)}
+                                  title="Click to view"
                                 >
-                                  <FileText className="size-4 text-muted-foreground" />
+                                  <Download className="size-4 text-muted-foreground group-hover:text-primary transition-colors" />
                                   <div>
-                                    <div className="line-clamp-1">{fileName}</div>
+                                    <div className="line-clamp-1 group-hover:text-primary group-hover:underline transition-colors">{fileName}</div>
                                     <div className="text-xs text-muted-foreground">
                                       {formatFileSize(fileSize)}
                                     </div>
                                   </div>
                                 </div>
                               ) : (
-                                <span className="text-muted-foreground">No file</span>
+                                <span className="text-muted-foreground text-xs italic">No attachment</span>
                               )}
                             </div>
                           </TableCell>
                           <TableCell>
-                            <div className="flex justify-end gap-1">
-                              {!isPendingDelete && (
-                                <>
-                                  {resource.file_url && (
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => handleDownload(resource.file_url!, resource.file_name || 'resource')}
-                                    >
-                                      <Download className="size-4" />
-                                    </Button>
-                                  )}
-                                  <Button variant="ghost" size="sm" onClick={() => handleEdit(resource)} disabled={!canAdd}>
-                                   <Edit className="size-4" />
-                                  </Button>                              {canDelete && (
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="text-destructive"
-                                      onClick={() => handleDelete(resource)}
-                                    >
-                                      <Trash2 className="size-4" />
-                                    </Button>
-                                  )}
-                                </>
+                            <Badge 
+                              variant={isActive ? "outline" : "secondary"}
+                              className={cn(
+                                "text-[10px] uppercase font-bold",
+                                isActive ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-gray-100 text-gray-500 border-gray-200"
                               )}
-                              {isPendingAdd && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleCancelPendingAdd(resource.tempId!)}
-                                >
-                                  Remove
-                                </Button>
-                              )}
-                              {isPendingUpdate && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleCancelPendingUpdate(resource.id)}
-                                >
-                                  Undo
-                                </Button>
-                              )}
-                              {isPendingDelete && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleCancelPendingDelete(resource.id)}
-                                >
-                                  Undo
-                                </Button>
-                              )}
-                            </div>
+                            >
+                              {isActive ? 'Active' : 'Inactive'}
+                            </Badge>
                           </TableCell>
                         </TableRow>
                       </ContextMenuTrigger>
                       
                       <ContextMenuContent className="w-48">
-                        {resource.file_url && (
-                          <ContextMenuItem onClick={() => handleDownload(resource.file_url!, resource.file_name || 'resource')}>
+                        {mergedResource.file_url && (
+                          <ContextMenuItem onClick={() => handleDownload(mergedResource.file_url!, mergedResource.file_name || 'resource')}>
                             <KeenIcon icon="cloud-download" className="me-2" />
                             Download File
                           </ContextMenuItem>
                         )}
-                        <ContextMenuItem onClick={() => handleEdit(resource)} disabled={!canAdd}>
+                        <ContextMenuItem onClick={() => handleEdit(mergedResource)} disabled={!canAdd}>
                           <KeenIcon icon="pencil" className="me-2" />
                           Edit Resource
                         </ContextMenuItem>
-                        
-                        {canDelete && !isPendingDelete && (
-                          <>
-                            <ContextMenuSeparator />
-                            <ContextMenuItem 
-                              variant="destructive"
-                              onClick={() => handleDelete(resource)}
-                            >
-                              <KeenIcon icon="trash" className="me-2" />
-                              Delete
-                            </ContextMenuItem>
-                          </>
-                        )}
                       </ContextMenuContent>
                     </ContextMenu>
                   );
@@ -629,7 +601,11 @@ export function HouseResources({
                 {formData.fileName ? (
                   <div className="flex items-center justify-between p-3 border rounded-lg bg-gray-50">
                     <div className="flex items-center gap-3 overflow-hidden">
-                      <FileText className="size-5 text-muted-foreground shrink-0" />
+                      <img 
+                        src={toAbsoluteUrl(`/media/file-types/${getFileIcon(formData.fileName)}`)} 
+                        className="size-8 shrink-0" 
+                        alt="file icon" 
+                      />
                       <div className="flex flex-col overflow-hidden">
                         <span className="text-sm font-medium truncate">{formData.fileName}</span>
                         {formData.file && (
@@ -667,12 +643,32 @@ export function HouseResources({
                 />
               </div>
             </div>
+
+            <div className="flex items-center justify-between p-4 border rounded-xl bg-gray-50/50">
+              <div className="flex flex-col gap-1">
+                <Label htmlFor="resource-status" className="text-sm font-bold">Resource Status</Label>
+                <p className="text-xs text-muted-foreground">Inactive resources are hidden by default</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className={cn("text-xs font-bold uppercase tracking-tight", formData.is_active ? "text-emerald-600" : "text-gray-400")}>
+                  {formData.is_active ? 'Active' : 'Inactive'}
+                </span>
+                <Switch
+                  id="resource-status"
+                  checked={formData.is_active}
+                  onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
+                />
+              </div>
+            </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowResourceDialog(false)}>
+
+          <DialogFooter className="border-t pt-4 mt-2">
+            <Button variant="outline" size="sm" onClick={() => setShowResourceDialog(false)}>
               Cancel
             </Button>
-            <Button variant="primary" onClick={handleSave}>Save</Button>
+            <Button variant="primary" size="sm" onClick={handleSave}>
+              {editingResource ? 'Update Resource' : 'Save Resource'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

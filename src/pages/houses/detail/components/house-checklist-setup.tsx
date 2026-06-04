@@ -6,6 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Edit, Trash2, Clock, CheckSquare, Download, Info, Loader2 } from 'lucide-react';
 import { useHouseChecklists } from '@/hooks/use-house-checklists';
+import { useChecklistMaster } from '@/hooks/use-checklist-master';
+import { useHouseShiftTemplates } from '@/hooks/use-house-shift-templates';
 import { checklistsApi } from '@/api/checklists.api';
 import { useHouses } from '@/hooks/use-houses';
 import { toast } from 'sonner';
@@ -41,6 +43,8 @@ export function HouseChecklistSetup({
   onRefresh
 }: HouseChecklistSetupProps) {
   const { houseChecklists, refresh: refreshChecklists, loading } = useHouseChecklists(houseId);
+  const { masterChecklists, loading: loadingMaster } = useChecklistMaster();
+  const { shiftTemplates } = useHouseShiftTemplates(houseId);
   const { houses: allHouses } = useHouses(0, 100, [], { statuses: [STATUS.active] });
 
   const [showChecklistDialog, setShowChecklistDialog] = useState(false);
@@ -53,6 +57,7 @@ export function HouseChecklistSetup({
   const [selectedItem, setSelectedItem] = useState<any>(null);
   
   // Import State
+  const [importSourceType, setImportSourceType] = useState<'house' | 'master'>('house');
   const [importSourceHouseId, setImportSourceHouseId] = useState<string>('');
   const [sourceChecklists, setSourceChecklists] = useState<any[]>([]);
   const [selectedImportIds, setSelectedImportIds] = useState<string[]>([]);
@@ -75,7 +80,7 @@ export function HouseChecklistSetup({
     title: '',
     instructions: '',
     group_id: '',
-    group_title: 'Morning',
+    group_title: '',
     priority: 'medium',
     is_required: true,
     sort_order: 0,
@@ -244,7 +249,7 @@ export function HouseChecklistSetup({
       title: '',
       instructions: '',
       group_id: '',
-      group_title: 'Morning',
+      group_title: '',
       priority: 'medium',
       is_required: true,
       sort_order: checklistFormData.items.length,
@@ -277,6 +282,15 @@ export function HouseChecklistSetup({
   };
 
   const handleFetchSourceChecklists = async (sourceId: string) => {
+    if (importSourceType === 'master') {
+      const master = masterChecklists.find(m => m.id === sourceId);
+      if (master) {
+        setSourceChecklists([master]);
+        setSelectedImportIds([master.id]);
+      }
+      return;
+    }
+
     setImportSourceHouseId(sourceId);
     if (!sourceId) return;
 
@@ -307,18 +321,27 @@ export function HouseChecklistSetup({
       let importCounter = 0;
       
       for (const id of selectedImportIds) {
-        const source = sourceChecklists.find(cl => cl.id === id);
+        let source;
+        if (importSourceType === 'master') {
+          source = masterChecklists.find(m => m.id === id);
+        } else {
+          source = sourceChecklists.find(cl => cl.id === id);
+        }
+        
         if (!source) continue;
 
         const checklistData = {
           house_id: houseId,
-          house_checklist_name: source.house_checklist_name || source.name,
+          house_checklist_name: source.house_checklist_name || source.checklist_name || source.name,
           description: source.description,
+          master_id: importSourceType === 'master' ? source.id : (source.master_id || null),
           sort_order: (visibleChecklists.length + importCounter),
           items: (source.items || []).map((item: any) => ({
+            tempId: `temp-item-${Date.now()}-${Math.random()}`,
             title: item.title,
             instructions: item.instructions,
             group_title: item.group_title,
+            group_id: item.group_id || null,
             priority: item.priority,
             is_required: item.is_required,
             sort_order: item.sort_order
@@ -376,9 +399,9 @@ export function HouseChecklistSetup({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {visibleChecklists.map((checklist) => (
+        {visibleChecklists.map((checklist, index) => (
           <ChecklistCard
-            key={checklist.id || checklist.tempId}
+            key={checklist.id || checklist.tempId || index}
             checklist={checklist}
             onEdit={() => handleEditChecklist(checklist)}
             onDelete={() => handleDeleteChecklist(checklist)}
@@ -386,6 +409,7 @@ export function HouseChecklistSetup({
               setSelectedForSchedule(checklist);
               setShowScheduleModal(true);
             }}
+            isMaster={!!checklist.master_id}
             canDelete={canDelete}
             canEdit={canEdit}
           />
@@ -526,14 +550,33 @@ export function HouseChecklistSetup({
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Group / Shift Period</Label>
-                <Select value={itemFormData.group_title} onValueChange={v => setItemFormData({ ...itemFormData, group_title: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                <Select 
+                  value={itemFormData.group_id || itemFormData.group_title} 
+                  onValueChange={v => {
+                    const template = shiftTemplates.find(t => t.id === v);
+                    setItemFormData({ 
+                      ...itemFormData, 
+                      group_id: template ? template.id : '', 
+                      group_title: template ? template.shift_template_name : v 
+                    });
+                  }}
+                >
+                  <SelectTrigger><SelectValue placeholder="Select shift..." /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Morning">Morning</SelectItem>
-                    <SelectItem value="Afternoon">Afternoon</SelectItem>
-                    <SelectItem value="Evening">Evening</SelectItem>
-                    <SelectItem value="Sleepover">Sleepover</SelectItem>
-                    <SelectItem value="Daily">General/Daily</SelectItem>
+                    {shiftTemplates.map(template => (
+                      <SelectItem key={template.id} value={template.id}>
+                        {template.shift_template_name}
+                      </SelectItem>
+                    ))}
+                    {shiftTemplates.length === 0 && (
+                      <>
+                        <SelectItem value="Morning">Morning</SelectItem>
+                        <SelectItem value="Afternoon">Afternoon</SelectItem>
+                        <SelectItem value="Evening">Evening</SelectItem>
+                        <SelectItem value="Sleepover">Sleepover</SelectItem>
+                        <SelectItem value="Daily">General/Daily</SelectItem>
+                      </>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -575,34 +618,53 @@ export function HouseChecklistSetup({
               <Download className="size-5 text-primary" />
               Import Checklists
             </DialogTitle>
-            <DialogDescription>Quickly copy existing routines from another house.</DialogDescription>
+            <DialogDescription>Quickly copy existing routines from another house or master templates.</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-6 py-4">
-            <div className="space-y-2">
-              <Label>Source House</Label>
-              <Select value={importSourceHouseId} onValueChange={handleFetchSourceChecklists}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select source house..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {allHouses.filter(h => h.id !== houseId).map(h => (
-                    <SelectItem key={h.id} value={h.id}>{h.house_name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Source Type</Label>
+                <Select value={importSourceType} onValueChange={(v: any) => { setImportSourceType(v); setImportSourceHouseId(''); setSourceChecklists([]); setSelectedImportIds([]); }}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="house">Other House</SelectItem>
+                    <SelectItem value="master">Master Templates</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>{importSourceType === 'master' ? 'Master Templates' : 'Source House'}</Label>
+                {importSourceType === 'master' ? (
+                   <div className="text-[10px] text-muted-foreground pt-3 italic">Select from global organization-wide templates below.</div>
+                ) : (
+                  <Select value={importSourceHouseId} onValueChange={handleFetchSourceChecklists}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select source house..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {allHouses.filter(h => h.id !== houseId).map(h => (
+                        <SelectItem key={h.id} value={h.id}>{h.house_name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
             </div>
 
-            {importSourceHouseId && (
+            {(importSourceHouseId || importSourceType === 'master') && (
               <div className="space-y-4">
-                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Available Checklists</Label>
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  {importSourceType === 'master' ? 'Available Global Templates' : 'Available House Checklists'}
+                </Label>
                 <div className="grid grid-cols-1 gap-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
-                  {isFetchingSource ? (
+                  {isFetchingSource || (importSourceType === 'master' && loadingMaster) ? (
                     <div className="py-8 text-center text-muted-foreground italic">Fetching checklists...</div>
-                  ) : sourceChecklists.length === 0 ? (
-                    <div className="py-8 text-center text-muted-foreground italic">No checklists found in this house.</div>
+                  ) : (importSourceType === 'master' ? masterChecklists : sourceChecklists).length === 0 ? (
+                    <div className="py-8 text-center text-muted-foreground italic">No checklists found.</div>
                   ) : (
-                    sourceChecklists.map(cl => (
+                    (importSourceType === 'master' ? masterChecklists : sourceChecklists).map(cl => (
                       <div 
                         key={cl.id} 
                         className={cn(
@@ -616,7 +678,7 @@ export function HouseChecklistSetup({
                         }}
                       >
                         <div className="flex flex-col gap-0.5">
-                          <span className="font-bold text-sm">{cl.house_checklist_name || cl.name}</span>
+                          <span className="font-bold text-sm">{cl.house_checklist_name || cl.checklist_name || cl.name}</span>
                           <span className="text-[10px] text-muted-foreground">{cl.items?.length || 0} tasks</span>
                         </div>
                         <div className={cn(

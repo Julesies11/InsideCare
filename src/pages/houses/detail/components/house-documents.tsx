@@ -75,6 +75,11 @@ export function HouseDocuments({
     if (url) window.open(url, '_blank');
   };
 
+  const handleView = async (filePath: string) => {
+    const url = await getFileUrl(filePath, false);
+    if (url) window.open(url, '_blank');
+  };
+
   const handleDelete = (id: string, filePath: string, fileName: string) => {
     if (!pendingChanges || !onPendingChangesChange) return;
     
@@ -169,10 +174,14 @@ export function HouseDocuments({
                   return (
                     <ContextMenu key={doc.id}>
                       <ContextMenuTrigger asChild>
-                        <TableRow className={cn(
-                          "cursor-context-menu",
-                          isPendingDelete && 'opacity-50 bg-destructive/5'
-                        )}>
+                        <TableRow 
+                          className={cn(
+                            "cursor-pointer hover:bg-gray-50/50 transition-colors",
+                            isPendingDelete && 'opacity-50 bg-destructive/5'
+                          )}
+                          onClick={() => !isPendingDelete && handleView(doc.file_path)}
+                          title="Click to view"
+                        >
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <FileText className="size-4 text-muted-foreground" />
@@ -203,7 +212,10 @@ export function HouseDocuments({
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    onClick={() => handleDownload(doc.file_path, doc.file_name)}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDownload(doc.file_path, doc.file_name);
+                                    }}
                                   >
                                     <Download className="size-4" />
                                   </Button>
@@ -212,7 +224,10 @@ export function HouseDocuments({
                                       variant="ghost"
                                       size="sm"
                                       className="text-destructive"
-                                      onClick={() => handleDelete(doc.id, doc.file_path, doc.file_name)}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDelete(doc.id, doc.file_path, doc.file_name);
+                                      }}
                                     >
                                       <Trash2 className="size-4" />
                                     </Button>
@@ -223,7 +238,10 @@ export function HouseDocuments({
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  onClick={() => handleCancelPendingDelete(doc.id)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleCancelPendingDelete(doc.id);
+                                  }}
                                 >
                                   Undo
                                 </Button>
@@ -344,7 +362,7 @@ export function HouseDocuments({
               Cancel
             </Button>
             <Button variant="primary" onClick={handleUpload} disabled={!selectedFile}>
-              Add to Upload Queue
+              Save
             </Button>
           </SheetFooter>
         </SheetContent>

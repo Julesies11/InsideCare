@@ -62,7 +62,7 @@ export function ShiftNoteDetailPage() {
   const [saving, setSaving] = useState(false);
   const saveHandlerRef = useRef<(() => Promise<void>) | null>(null);
 
-  const isNewNote = id === 'new';
+  const isNewNote = id === 'new' || id === 'undefined' || !id;
 
   // Check if form is dirty
   const { isDirty } = useDirtyTracker({
@@ -96,9 +96,15 @@ export function ShiftNoteDetailPage() {
     // Refresh the table data before going back
     await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SHIFT_NOTES] });
 
-    // Navigate back to the shift notes list
-    navigate(ROUTES.SHIFT_NOTES);
-  }, [navigate, isDirty, queryClient]);
+    // If we have a participant context, go back to their detail page
+    const participantId = formData?.participant_id || new URLSearchParams(window.location.search).get('participantId');
+    if (participantId) {
+      navigate(`${ROUTES.PARTICIPANT_DETAIL}/${participantId}?tab=shift_notes`);
+    } else {
+      // Navigate back to the general shift notes list
+      navigate(ROUTES.SHIFT_NOTES);
+    }
+  }, [navigate, isDirty, queryClient, formData]);
 
   const handleSave = async () => {
     if (saveHandlerRef.current) {
@@ -120,7 +126,13 @@ export function ShiftNoteDetailPage() {
       await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SHIFT_NOTES] });
 
       toast.success('Shift note deleted successfully');
-      navigate(ROUTES.SHIFT_NOTES);
+      
+      const participantId = formData?.participant_id || new URLSearchParams(window.location.search).get('participantId');
+      if (participantId) {
+        navigate(`${ROUTES.PARTICIPANT_DETAIL}/${participantId}?tab=shift_notes`);
+      } else {
+        navigate(ROUTES.SHIFT_NOTES);
+      }
     } catch (err: any) {
       console.error('Error deleting shift note:', err);
       toast.error(err.message || 'Failed to delete shift note');

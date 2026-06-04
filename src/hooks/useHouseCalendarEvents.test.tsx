@@ -32,13 +32,13 @@ describe('useHouseCalendarEvents Integration', () => {
             id: 'evt-1', 
             title: 'Team Meeting', 
             is_checklist_event: false,
-            event_type_info: { event_type_name: 'Meeting' }
+            type: { event_type_name: 'Meeting' }
           },
           { 
             id: 'evt-2', 
             title: 'Doctor Appointment', 
             is_checklist_event: false,
-            event_type_info: { event_type_name: 'Appointment' }
+            type: { event_type_name: 'Appointment' }
           },
           { 
             id: 'cl-1', 

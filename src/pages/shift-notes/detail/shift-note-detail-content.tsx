@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, MutableRefObject } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef, MutableRefObject } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -36,6 +36,7 @@ export function ShiftNoteDetailContent({
   const queryClient = useQueryClient();
 
   const [loading, setLoading] = useState(true);
+  const originalDataRef = useRef<Record<string, unknown> | null>(null);
   const [formData, setFormData] = useState<Record<string, unknown>>({
     start_date: new Date().toISOString().split('T')[0],
     shift_time: '',
@@ -111,6 +112,10 @@ export function ShiftNoteDetailContent({
     mtm_fluid_intake_notes: '',
     mtm_concerns: '',
     mtm_notes: '',
+    mtm_texture_notes: '',
+    mtm_consistency_notes: '',
+    mtm_positioning_notes: '',
+    mtm_supervision_notes: '',
     hygiene_support_required: false,
     hygiene_shower: null,
     hygiene_oral_care: null,
@@ -120,7 +125,7 @@ export function ShiftNoteDetailContent({
     hygiene_notes: '',
   });
 
-  const isNewNote = id === 'new';
+  const isNewNote = id === 'new' || id === 'undefined' || !id;
 
   const { isShiftLocked, isParticipantLocked } = useMemo(() => {
     const params = new URLSearchParams(window.location.search);
@@ -149,25 +154,6 @@ export function ShiftNoteDetailContent({
     }
   };
 
-  // Check if a note already exists for this shift and staff
-  const checkExistingNote = async (shiftId: string, staffId: string) => {
-    if (!shiftId || !staffId || !isNewNote) return null;
-
-    try {
-      const existing = await shiftNotesApi.getByShiftAndStaff(shiftId, staffId);
-      if (existing) {
-        // If found, load it and change URL to edit mode
-        setFormData(existing);
-        onOriginalDataChange?.(existing);
-        navigate(`${ROUTES.SHIFT_NOTES_DETAIL}/${existing.id}`, { replace: true });
-        return existing;
-      }
-    } catch (err) {
-      console.error('Error checking for existing shift note:', err);
-    }
-    return null;
-  };
-
   // Fetch shift details if creating from a shift
   const fetchShiftDetails = async (shiftId: string) => {
     if (!shiftId) return;
@@ -176,12 +162,6 @@ export function ShiftNoteDetailContent({
       const data = await rosterApi.getShift(shiftId);
 
       if (data) {
-        // PROACTIVE CHECK: Does a note already exist for this shift/staff?
-        if (data.staff_id) {
-          const existing = await checkExistingNote(shiftId, data.staff_id);
-          if (existing) return; // Exit if we loaded an existing note
-        }
-
         const mappedType = data.shift_template?.toLowerCase();
         const isValidType = Object.values(SHIFT_PERIODS).includes(mappedType as any);
 
@@ -190,6 +170,7 @@ export function ShiftNoteDetailContent({
           shift_id: shiftId,
           start_date: data.start_date,
           shift_time: data.start_time,
+          end_time: data.end_time,
           house_id: data.house_id,
           staff_id: data.staff_id
         };
@@ -206,7 +187,7 @@ export function ShiftNoteDetailContent({
   };
 
   const fetchShiftNote = useCallback(async () => {
-    if (!id || id === 'new') return;
+    if (!id || id === 'new' || id === 'undefined') return;
 
     try {
       setLoading(true);
@@ -215,6 +196,7 @@ export function ShiftNoteDetailContent({
       if (!data) throw new Error("Shift note not found");
 
       setFormData(data);
+      originalDataRef.current = data;
       if (onFormDataChange) onFormDataChange(data);
       if (onOriginalDataChange) onOriginalDataChange(data);
     } catch (err) {
@@ -223,7 +205,7 @@ export function ShiftNoteDetailContent({
     } finally {
       setLoading(false);
     }
-  }, [id, onFormDataChange, onOriginalDataChange]);
+  }, [id, queryClient, onFormDataChange, onOriginalDataChange]);
 
   useEffect(() => {
     if (isNewNote) {
@@ -258,7 +240,8 @@ export function ShiftNoteDetailContent({
   }, [loading, onLoadingChange]);
 
   useEffect(() => {
-    if (!loading) {
+    if (!loading && !originalDataRef.current) {
+      originalDataRef.current = formData;
       onOriginalDataChange?.(formData);
     }
   }, [loading, formData, onOriginalDataChange]);
@@ -284,11 +267,6 @@ export function ShiftNoteDetailContent({
     if (!canEdit) return;
 
     setFormData(prev => ({ ...prev, ...changes }));
-
-    // Side effect: Check for existing note if shift and staff are provided
-    if (changes.shift_id && changes.staff_id && isNewNote) {
-      checkExistingNote(changes.shift_id as string, changes.staff_id as string);
-    }
 
     // Side effect: Auto-populate MTM if participant_id is in the changes
     if (changes.participant_id && isNewNote) {
@@ -334,6 +312,7 @@ export function ShiftNoteDetailContent({
         'mtm_consistency_correct', 'mtm_positioning_appropriate', 'mtm_supervision_required', 
         'mtm_swallowing_concerns', 'mtm_meal_intake', 'mtm_meal_intake_notes', 
         'mtm_fluid_intake', 'mtm_fluid_intake_notes', 'mtm_concerns', 'mtm_notes', 
+        'mtm_texture_notes', 'mtm_consistency_notes', 'mtm_positioning_notes', 'mtm_supervision_notes',
         'hygiene_support_required', 'hygiene_shower', 'hygiene_oral_care', 
         'hygiene_toileting', 'hygiene_grooming', 'hygiene_observed_concerns', 'hygiene_notes'
       ];
@@ -363,11 +342,14 @@ export function ShiftNoteDetailContent({
       } else {
         await shiftNotesApi.update(id as string, dataToSave);
 
+        // Update original data to match current form data after successful save
+        originalDataRef.current = formData;
+        if (onOriginalDataChange) onOriginalDataChange(formData);
+
         // Invalidate queries to refresh lists
         await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SHIFT_NOTES] });
 
         toast.success('Shift note updated successfully');
-        if (onOriginalDataChange) onOriginalDataChange(formData);
       }
     } catch (err: unknown) {
       const error = err as Error;

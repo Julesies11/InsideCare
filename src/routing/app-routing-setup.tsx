@@ -47,6 +47,7 @@ const LeaveTypeMasterPage = lazy(() => import('@/pages/admin/leave-types/leave-t
 const RolesPage = lazy(() => import('@/pages/admin/roles/roles-page').then(m => ({ default: m.RolesPage })));
 const ActivityLogPage = lazy(() => import('@/pages/admin/activity-log/activity-log-page').then(m => ({ default: m.ActivityLogPage })));
 const ReportingHubPage = lazy(() => import('@/pages/admin/reporting/reporting-hub-page').then(m => ({ default: m.ReportingHubPage })));
+const IncidentManagementPage = lazy(() => import('@/pages/admin/reporting/incident-management-page').then(m => ({ default: m.IncidentManagementPage })));
 const IncidentManagementReportPage = lazy(() => import('@/pages/admin/reporting/incident-management-report-page').then(m => ({ default: m.IncidentManagementReportPage })));
 const NotificationCenter = lazy(() => import('@/pages/account/notifications/notification-center').then(m => ({ default: m.NotificationCenter })));
 
@@ -167,6 +168,7 @@ export function AppRoutingSetup() {
             </Route>
 
             <Route path={ROUTES.REPORTING} element={<ReportingHubPage />} />
+            <Route path={ROUTES.INCIDENT_REPORT} element={<IncidentManagementPage />} />
             <Route element={<RequirePermission module={RBAC_MODULES.REPORTING_CLINICAL} />}>
               <Route path={ROUTES.REPORTING_CLINICAL_INCIDENTS} element={<IncidentManagementReportPage />} />
             </Route>

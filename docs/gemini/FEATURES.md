@@ -34,8 +34,13 @@ The core operational engine of the care system.
 - **Schedule Checklists**: Standalone tool to bulk schedule facility-wide checklists (e.g., "Weekly Deep Clean", "Vehicle Check") across multiple weeks independently of specific shifts.
 - **Roster Board**: Visual representation of staff shifts and house assignments with intelligent staff filtering (showing active staff assigned to the house).
 - **Shift Routines**: Automated, shift-locked task lists that staff must complete and sign off on during their active shift. Completion is enforced; staff cannot submit timesheets if mandatory shift routines are incomplete.
+- **Shift Documentation Command Center**: A specialized hub for monitoring clinical compliance across all shifts.
+    - **5-Status Intelligence Model**: Precisely categorizes every shift as **Upcoming**, **Current Shift** (in-progress), **Missing** (past with no note), **Draft Note**, or **Note Submitted**.
+    - **Compliance-First Filters**: Multi-select status buttons allow Admins and Staff to overlay documentation gaps, defaulting to "Note Submitted" for a clean audit trail.
+    - **Visual Compliance Strips**: High-density color indicators (Green, Amber, Red, Gray) on every row for millisecond-level status recognition.
 - **Enhanced Clinical Notes**: Comprehensive clinical documentation completed at the end of every shift. Includes:
     - **Structured Tracking**: Dedicated sections for Risks, Overall Presentation, ADL Supports, Domestic Tasks, and Capacity Building goals.
+    - **Interactive Binary Inputs**: All Yes/No fields (Risks, PBS, Medication, Trackers) use high-clarity Radio Button Groups for faster, more accurate entry.
     - **Health & Medication**: Integrated logging of regular and PRN medication statuses with prompt-based guidance.
     - **Positive Behaviour Support (PBS)**: Detailed tracking of PBS strategies, timing, and outcomes.
     - **Modular Clinical Trackers**: Toggleable, event-based trackers for:
@@ -43,7 +48,7 @@ The core operational engine of the care system.
         - **Seizure Activity**: Detailed logs of time, duration, and type (linked to master list).
         - **Sleep Tracking**: Day/Night quality and support needs.
         - **Behaviour Observations**: Intensity and type tracking (linked to master list).
-        - **Nutrition & Mealtime**: Detailed intake tracking and auto-population of Mealtime Management plans from participant profiles.
+        - **Mealtime Management (MTM)**: Advanced tracking with **Conditional Integrity Checks**. Automatically forces detailed documentation if texture, consistency, or positioning requirements aren't met, or if specific supervision is required.
         - **Hygiene & Community**: Support levels and engagement tracking.
     - **Master List Management**: Integrated administrative dialogs to manage Seizure and Behaviour types (matching Medication Register patterns).
     - **Automation**: Automatic shift type detection from roster templates and Care Plan data injection.
@@ -70,7 +75,10 @@ Management of the physical locations where care is provided.
     - **Risk Management**: Dedicated section for tracking house-level risks, environmental alerts, and interaction strategies.
     - **Participant Context**: Qualitative breakdown of individuals and social dynamics within the house to improve care quality and safety.
     - **House Intelligence**: Consolidated views for general house details, routines, and staff observations.
-    - **Resources**: Repository for house-specific contacts, emergency procedures, and operational guides. Supports document attachments (PDF, Docs, Images) stored securely in Supabase.
+    - **Resources**: Repository for house-specific contacts, emergency procedures, and operational guides. 
+        - **Modern UI**: Streamlined interface with specific file icons (PDF, Word, etc.) and single-click downloads.
+        - **Soft Delete**: Integrated "Active Only" filtering and deactivation workflow to maintain audit trails while keeping active views clean.
+        - **Security**: Supports secure document attachments stored in Supabase with house-level RLS.
 - **Setup Wizard**: Interactive guide for configuring shift templates and facility routines.
 - **House Directory**: Searchable list view with real-time occupancy tracking and deep links to participant profiles.
 - **Checklists**: Recurring operational tasks for house maintenance and compliance.
@@ -105,7 +113,16 @@ Comprehensive alert system for critical updates and workflows.
 - **Visual Locking**: Intuitive UI that "ghost-locks" dependent sub-permissions when a parent gateway is disabled, guiding administrators toward logical configurations.
 - **JWT-Driven RLS**: High-performance database security that enforces these granular rules directly at the data layer using Supabase Row Level Security.
 
-## 9. Reporting Hub
+## 9. Incident Report Management
+Comprehensive module for lodging, managing, and resolving clinical and operational incidents.
+- **Structured Reporting**: Specialized form for detailed incident accounts, including severity, priority, and structured classifications.
+- **Restrictive Practice Compliance**: Integrated tracking of Restrictive Practices (Seclusion, Restraint, etc.) with mandatory NDIS-compliant fields (start/end times, triggers, outcomes).
+- **NDIS Integration**: Dedicated flagging for NDIS Reportable incidents with administrative oversight.
+- **Admin Review Console**: RBAC-guarded interface for administrators to review, action, and close incident reports with a full audit trail.
+- **Contextual Search & Filter**: High-performance DataGrid allowing filtering by Participant, Staff, Status, Severity, and Date range.
+- **Master List Integration**: Centrally managed Incident and Restrictive Practice types to ensure data consistency.
+
+## 10. Reporting Hub
 Central registry for system-wide analytics and compliance exports.
 - **Incident Management Report**: Provides a comprehensive, chronological view of all clinical incidents with advanced date filtering (preset periods and custom ranges) and print-optimized PDF layouts. Cleanly links incidents to specific participants and staff.
 - **Extensible Architecture**: Designed to seamlessly integrate future clinical, operational, and financial reports, utilizing visual locks for reports currently under development.

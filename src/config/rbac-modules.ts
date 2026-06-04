@@ -54,6 +54,7 @@ export const RBAC_MODULES = {
   MASTER_LISTS: 'master_lists',
   ACTIVITY_LOG: 'activity_log',
   HOUSE_ACTIVITY_LOG: 'house_activity_log',
+  INCIDENT_MANAGEMENT: 'incident_management',
 
   // Reporting
   REPORTING_CLINICAL: 'reporting_clinical',

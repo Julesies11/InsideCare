@@ -64,6 +64,6 @@ export function useUpdateParticipantDocument() {
   });
 }
 
-export const getParticipantFileUrl = async (filePath: string, downloadName?: string) => {
+export const getParticipantFileUrl = async (filePath: string, downloadName?: string | boolean) => {
   return await participantDetailsApi.documents.getAttachmentSignedUrl(filePath, downloadName);
 };

@@ -266,7 +266,7 @@ export const HOUSE_VIEWS = {
    * View for house resources and documentation.
    */
   RESOURCES: `
-    id, house_id, title, category, type, description, priority, phone, address, notes, file_url, file_name, file_size, created_at, updated_at
+    id, house_id, title, category, type, description, priority, phone, address, notes, file_url, file_name, file_size, is_active, created_at, updated_at
   `,
 
   /**
@@ -469,20 +469,30 @@ export const SHIFT_NOTE_VIEWS = {
     participant:${TABLES.PARTICIPANTS}!participant_id(id, participant_name, photo_url),
     staff:${TABLES.STAFF}!staff_id(id, staff_name, photo_url),
     house:${TABLES.HOUSES}!house_id(id, house_name),
-    shift:${TABLES.STAFF_SHIFTS}!shift_id(id, start_time, end_time, shift_template)
+    shift:${TABLES.STAFF_SHIFTS}!shift_id(
+      id, 
+      start_time, 
+      end_time, 
+      shift_template,
+      participants:${TABLES.SHIFT_PARTICIPANTS}!shift_id(
+        participant:${TABLES.PARTICIPANTS}!participant_id(id, participant_name)
+      )
+    )
   `,
 } as const;
 
 export const INCIDENT_VIEWS = {
   /**
-   * Comprehensive incident report view with all involved parties.
+   * Comprehensive incident report view with all involved parties and types.
    */
   DETAIL: `
     *,
     participant:${TABLES.PARTICIPANTS}!involved_participant_id(id, participant_name, photo_url),
     staff:${TABLES.STAFF}!involved_staff_id(id, staff_name, photo_url),
     reporter:${TABLES.STAFF}!reported_by(id, staff_name, photo_url),
-    house:${TABLES.HOUSES}!house_id(id, house_name)
+    house:${TABLES.HOUSES}!house_id(id, house_name),
+    incident_type_info:${TABLES.INCIDENT_TYPES_MASTER}!incident_type_id(id, name),
+    restrictive_practice_type_info:${TABLES.RESTRICTIVE_PRACTICE_TYPES_MASTER}!restrictive_practice_type_id(id, name)
   `,
 } as const;
 

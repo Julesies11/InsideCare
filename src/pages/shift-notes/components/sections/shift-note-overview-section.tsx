@@ -1,15 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useParticipants } from '@/hooks/use-participants';
 import { useStaff } from '@/hooks/use-staff';
 import { useHouses } from '@/hooks/use-houses';
-import { useStaffShifts } from '@/hooks/use-staff-shifts';
-import { format, subDays, parseISO } from 'date-fns';
-import { useMemo } from 'react';
-import { SHIFT_PERIODS } from '@/config/enums';
+import { format, parseISO } from 'date-fns';
 
 interface ShiftNoteOverviewSectionProps {
   canEdit: boolean;
@@ -37,42 +34,6 @@ export function ShiftNoteOverviewSection({
     statuses: ['active'],
   });
 
-  // Fetch shifts for the last 14 days to provide a good selection
-  const startDate = format(subDays(new Date(), 14), 'yyyy-MM-dd');
-  const endDate = format(new Date(), 'yyyy-MM-dd');
-  
-  // We fetch all shifts for the "Select Shift" dropdown. 
-  const { shifts, loading: loadingShifts } = useStaffShifts('all', startDate, endDate);
-
-  const handleShiftChange = (shiftId: string) => {
-    if (shiftId === 'none') {
-      onBulkChange?.({
-        shift_id: null,
-        start_date: format(new Date(), 'yyyy-MM-dd'),
-        shift_time: null,
-        house_id: null,
-        staff_id: null,
-        shift_type: null
-      });
-      return;
-    }
-
-    const shift = shifts.find(s => s.id === shiftId);
-    if (shift) {
-      const mappedType = shift.shift_template?.toLowerCase();
-      const isValidType = Object.values(SHIFT_PERIODS).includes(mappedType as any);
-
-      onBulkChange?.({
-        shift_id: shift.id,
-        start_date: shift.start_date,
-        shift_time: shift.start_time,
-        house_id: shift.house_id,
-        staff_id: shift.staff_id,
-        shift_type: isValidType ? mappedType : null
-      });
-    }
-  };
-
   const selectedStaff = staff.find(s => s.id === formData.staff_id);
   const selectedHouse = houses.find(h => h.id === formData.house_id);
 
@@ -83,34 +44,32 @@ export function ShiftNoteOverviewSection({
           <CardTitle>Shift Overview</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="shift_id">Select Shift *</Label>
-              <Select
-                value={(formData.shift_id as string) || 'none'}
-                onValueChange={handleShiftChange}
-                disabled={!canEdit || isShiftLocked}
-              >
-                <SelectTrigger id="shift_id">
-                  <SelectValue placeholder={loadingShifts ? "Loading shifts..." : "Select a shift"} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Select a shift...</SelectItem>
-                  {shifts.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>
-                      {format(parseISO(s.start_date), 'EEE, MMM d')} - {s.start_time.substring(0, 5)} ({s.staff_info?.staff_name || 'Unassigned'})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground">
-                {isShiftLocked 
-                  ? "This note is locked to the selected shift."
-                  : "Selecting a shift automatically fills date, time, house, and staff."
-                }
-              </p>
+          {formData.shift_id && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-muted/30 rounded-lg border border-border/50 mb-4">
+              <div className="space-y-1">
+                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Date</span>
+                <p className="text-sm font-medium">{formData.start_date ? format(parseISO(formData.start_date as string), 'PPP') : 'N/A'}</p>
+              </div>
+              <div className="space-y-1">
+                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Time</span>
+                <p className="text-sm font-medium">
+                  {formData.shift_time ? (formData.shift_time as string).substring(0, 5) : 'N/A'}
+                  {(formData.end_time || (formData as any).shift?.end_time) && 
+                    ` - ${(formData.end_time as string || (formData as any).shift?.end_time as string || '').substring(0, 5)}`}
+                </p>
+              </div>
+              <div className="space-y-1">
+                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Staff</span>
+                <p className="text-sm font-medium">{selectedStaff?.staff_name || 'Unassigned'}</p>
+              </div>
+              <div className="space-y-1">
+                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">House</span>
+                <p className="text-sm font-medium">{selectedHouse?.house_name || 'N/A'}</p>
+              </div>
             </div>
+          )}
 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="participant_id">Participant *</Label>
               <Select
@@ -134,47 +93,29 @@ export function ShiftNoteOverviewSection({
                 </p>
               )}
             </div>
+            
+            <div className="hidden md:block" /> 
           </div>
-
-          {formData.shift_id && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-muted/30 rounded-lg border border-border/50">
-              <div className="space-y-1">
-                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Date</span>
-                <p className="text-sm font-medium">{formData.start_date ? format(parseISO(formData.start_date as string), 'PPP') : 'N/A'}</p>
-              </div>
-              <div className="space-y-1">
-                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Time</span>
-                <p className="text-sm font-medium">{formData.shift_time ? (formData.shift_time as string).substring(0, 5) : 'N/A'}</p>
-              </div>
-              <div className="space-y-1">
-                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Staff</span>
-                <p className="text-sm font-medium">{selectedStaff?.staff_name || 'N/A'}</p>
-              </div>
-              <div className="space-y-1">
-                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">House</span>
-                <p className="text-sm font-medium">{selectedHouse?.house_name || 'N/A'}</p>
-              </div>
-            </div>
-          )}
 
           <div className="space-y-4 pt-2">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="risks_observed">Risks observed during shift?</Label>
-                <Select
-                  value={formData.risks_observed === true ? 'yes' : formData.risks_observed === false ? 'no' : 'none'}
+                <RadioGroup
+                  value={formData.risks_observed === true ? 'yes' : formData.risks_observed === false ? 'no' : ''}
                   onValueChange={(val) => onFormChange('risks_observed', val === 'yes' ? true : val === 'no' ? false : null)}
                   disabled={!canEdit}
+                  className="flex items-center gap-4"
                 >
-                  <SelectTrigger className="w-32">
-                    <SelectValue placeholder="Select" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">N/A</SelectItem>
-                    <SelectItem value="yes">Yes</SelectItem>
-                    <SelectItem value="no">No</SelectItem>
-                  </SelectContent>
-                </Select>
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="yes" id="risks_yes" />
+                    <Label htmlFor="risks_yes" className="font-normal cursor-pointer">Yes</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="no" id="risks_no" />
+                    <Label htmlFor="risks_no" className="font-normal cursor-pointer">No</Label>
+                  </div>
+                </RadioGroup>
               </div>
               
               {formData.risks_observed && (

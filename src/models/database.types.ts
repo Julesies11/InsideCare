@@ -1952,6 +1952,7 @@ export type Database = {
           file_url: string | null
           house_id: string | null
           id: string
+          is_active: boolean | null
           notes: string | null
           phone: string | null
           priority: string | null
@@ -1971,6 +1972,7 @@ export type Database = {
           file_url?: string | null
           house_id?: string | null
           id?: string
+          is_active?: boolean | null
           notes?: string | null
           phone?: string | null
           priority?: string | null
@@ -1990,6 +1992,7 @@ export type Database = {
           file_url?: string | null
           house_id?: string | null
           id?: string
+          is_active?: boolean | null
           notes?: string | null
           phone?: string | null
           priority?: string | null
@@ -2320,55 +2323,115 @@ export type Database = {
       }
       ic_incident_reports: {
         Row: {
+          admin_actions_taken: string | null
+          admin_status: string | null
           created_at: string | null
           created_by: string | null
-          description: string
+          description: string | null
+          details: string | null
           follow_up_required: boolean
           house_id: string | null
           id: string
           incident_date: string
-          incident_type: string
-          involved_participant_id: string | null
+          incident_type: string | null
+          incident_type_id: string | null
+          involved_participant_id: string
           involved_staff_id: string | null
+          is_ndis_reportable: boolean
+          is_restrictive_practice: boolean
+          ndis_reported_date: string | null
+          notified_parties: string | null
+          outcome: string | null
           priority: string
           reported_by: string
-          status: string
+          restrictive_practice_description: string | null
+          restrictive_practice_type_id: string | null
+          rp_end_time: string | null
+          rp_observed_behaviours: string | null
+          rp_outcome: string | null
+          rp_reason: string | null
+          rp_start_time: string | null
+          rp_triggers: string | null
+          severity: string | null
+          status: string | null
+          summary: string | null
           updated_at: string | null
           updated_by: string | null
+          witnesses: string | null
         }
         Insert: {
+          admin_actions_taken?: string | null
+          admin_status?: string | null
           created_at?: string | null
           created_by?: string | null
-          description: string
+          description?: string | null
+          details?: string | null
           follow_up_required?: boolean
           house_id?: string | null
           id?: string
           incident_date: string
-          incident_type: string
-          involved_participant_id?: string | null
+          incident_type?: string | null
+          incident_type_id?: string | null
+          involved_participant_id: string
           involved_staff_id?: string | null
+          is_ndis_reportable?: boolean
+          is_restrictive_practice?: boolean
+          ndis_reported_date?: string | null
+          notified_parties?: string | null
+          outcome?: string | null
           priority?: string
           reported_by: string
-          status?: string
+          restrictive_practice_description?: string | null
+          restrictive_practice_type_id?: string | null
+          rp_end_time?: string | null
+          rp_observed_behaviours?: string | null
+          rp_outcome?: string | null
+          rp_reason?: string | null
+          rp_start_time?: string | null
+          rp_triggers?: string | null
+          severity?: string | null
+          status?: string | null
+          summary?: string | null
           updated_at?: string | null
           updated_by?: string | null
+          witnesses?: string | null
         }
         Update: {
+          admin_actions_taken?: string | null
+          admin_status?: string | null
           created_at?: string | null
           created_by?: string | null
-          description?: string
+          description?: string | null
+          details?: string | null
           follow_up_required?: boolean
           house_id?: string | null
           id?: string
           incident_date?: string
-          incident_type?: string
-          involved_participant_id?: string | null
+          incident_type?: string | null
+          incident_type_id?: string | null
+          involved_participant_id?: string
           involved_staff_id?: string | null
+          is_ndis_reportable?: boolean
+          is_restrictive_practice?: boolean
+          ndis_reported_date?: string | null
+          notified_parties?: string | null
+          outcome?: string | null
           priority?: string
           reported_by?: string
-          status?: string
+          restrictive_practice_description?: string | null
+          restrictive_practice_type_id?: string | null
+          rp_end_time?: string | null
+          rp_observed_behaviours?: string | null
+          rp_outcome?: string | null
+          rp_reason?: string | null
+          rp_start_time?: string | null
+          rp_triggers?: string | null
+          severity?: string | null
+          status?: string | null
+          summary?: string | null
           updated_at?: string | null
           updated_by?: string | null
+          witnesses?: string | null
         }
         Relationships: [
           {
@@ -2393,6 +2456,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "ic_incident_reports_incident_type_id_fkey"
+            columns: ["incident_type_id"]
+            isOneToOne: false
+            referencedRelation: "ic_incident_types_master"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "ic_incident_reports_involved_participant_id_fkey"
             columns: ["involved_participant_id"]
             isOneToOne: false
@@ -2413,7 +2483,47 @@ export type Database = {
             referencedRelation: "ic_staff"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "ic_incident_reports_restrictive_practice_type_id_fkey"
+            columns: ["restrictive_practice_type_id"]
+            isOneToOne: false
+            referencedRelation: "ic_restrictive_practice_types_master"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      ic_incident_types_master: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
       }
       ic_leave_requests: {
         Row: {
@@ -3939,6 +4049,39 @@ export type Database = {
           },
         ]
       }
+      ic_restrictive_practice_types_master: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       ic_role_permissions: {
         Row: {
           access_control: Database["public"]["Enums"]["ic_access_level_enum"]
@@ -3955,6 +4098,7 @@ export type Database = {
           house_staff: Database["public"]["Enums"]["ic_access_level_enum"]
           houses: Database["public"]["Enums"]["ic_access_level_enum"]
           id: string
+          incident_management: Database["public"]["Enums"]["ic_access_level_enum"]
           leave_requests: Database["public"]["Enums"]["ic_access_level_enum"]
           master_lists: Database["public"]["Enums"]["ic_access_level_enum"]
           my_leave: Database["public"]["Enums"]["ic_access_level_enum"]
@@ -4008,6 +4152,7 @@ export type Database = {
           house_staff?: Database["public"]["Enums"]["ic_access_level_enum"]
           houses?: Database["public"]["Enums"]["ic_access_level_enum"]
           id?: string
+          incident_management?: Database["public"]["Enums"]["ic_access_level_enum"]
           leave_requests?: Database["public"]["Enums"]["ic_access_level_enum"]
           master_lists?: Database["public"]["Enums"]["ic_access_level_enum"]
           my_leave?: Database["public"]["Enums"]["ic_access_level_enum"]
@@ -4061,6 +4206,7 @@ export type Database = {
           house_staff?: Database["public"]["Enums"]["ic_access_level_enum"]
           houses?: Database["public"]["Enums"]["ic_access_level_enum"]
           id?: string
+          incident_management?: Database["public"]["Enums"]["ic_access_level_enum"]
           leave_requests?: Database["public"]["Enums"]["ic_access_level_enum"]
           master_lists?: Database["public"]["Enums"]["ic_access_level_enum"]
           my_leave?: Database["public"]["Enums"]["ic_access_level_enum"]
@@ -4514,6 +4660,7 @@ export type Database = {
           meal_provided: boolean | null
           mtm_concerns: string | null
           mtm_consistency_correct: boolean | null
+          mtm_consistency_notes: string | null
           mtm_diet_type: string | null
           mtm_fluid_intake: string | null
           mtm_fluid_intake_notes: string | null
@@ -4523,9 +4670,12 @@ export type Database = {
           mtm_meal_provided: boolean | null
           mtm_notes: string | null
           mtm_positioning_appropriate: boolean | null
+          mtm_positioning_notes: string | null
+          mtm_supervision_notes: string | null
           mtm_supervision_required: boolean | null
           mtm_swallowing_concerns: string | null
           mtm_texture_correct: boolean | null
+          mtm_texture_notes: string | null
           notes: string | null
           nutrition_assistance_needed: string | null
           nutrition_fluids_intake: string | null
@@ -4604,6 +4754,7 @@ export type Database = {
           meal_provided?: boolean | null
           mtm_concerns?: string | null
           mtm_consistency_correct?: boolean | null
+          mtm_consistency_notes?: string | null
           mtm_diet_type?: string | null
           mtm_fluid_intake?: string | null
           mtm_fluid_intake_notes?: string | null
@@ -4613,9 +4764,12 @@ export type Database = {
           mtm_meal_provided?: boolean | null
           mtm_notes?: string | null
           mtm_positioning_appropriate?: boolean | null
+          mtm_positioning_notes?: string | null
+          mtm_supervision_notes?: string | null
           mtm_supervision_required?: boolean | null
           mtm_swallowing_concerns?: string | null
           mtm_texture_correct?: boolean | null
+          mtm_texture_notes?: string | null
           notes?: string | null
           nutrition_assistance_needed?: string | null
           nutrition_fluids_intake?: string | null
@@ -4696,6 +4850,7 @@ export type Database = {
           meal_provided?: boolean | null
           mtm_concerns?: string | null
           mtm_consistency_correct?: boolean | null
+          mtm_consistency_notes?: string | null
           mtm_diet_type?: string | null
           mtm_fluid_intake?: string | null
           mtm_fluid_intake_notes?: string | null
@@ -4705,9 +4860,12 @@ export type Database = {
           mtm_meal_provided?: boolean | null
           mtm_notes?: string | null
           mtm_positioning_appropriate?: boolean | null
+          mtm_positioning_notes?: string | null
+          mtm_supervision_notes?: string | null
           mtm_supervision_required?: boolean | null
           mtm_swallowing_concerns?: string | null
           mtm_texture_correct?: boolean | null
+          mtm_texture_notes?: string | null
           notes?: string | null
           nutrition_assistance_needed?: string | null
           nutrition_fluids_intake?: string | null

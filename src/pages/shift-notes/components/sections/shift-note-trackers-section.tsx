@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Settings2, Activity, Droplet, Moon, Utensils, Navigation, ShowerHead, Brain, LucideIcon } from 'lucide-react';
 import { BristolScalePicker } from '../bristol-scale-picker';
 import { SeizureTypeMasterDialog } from '../seizure-type-master-dialog';
@@ -38,22 +38,30 @@ export function ShiftNoteTrackersSection({
     onChange 
   }: { id: string, label: string, icon: LucideIcon, checked: boolean, onChange: (val: boolean) => void }) => (
     <div className={cn(
-      "flex items-center justify-between p-3 rounded-lg border transition-all cursor-pointer",
+      "flex flex-col gap-3 p-3 rounded-lg border transition-all",
       checked ? "bg-primary/5 border-primary/20 shadow-sm" : "bg-muted/30 border-transparent grayscale hover:grayscale-0 hover:border-border"
-    )} onClick={() => !disabled && onChange(!checked)}>
+    )}>
       <div className="flex items-center gap-3">
         <div className={cn("p-2 rounded-md", checked ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground")}>
           <Icon className="size-4" />
         </div>
         <span className={cn("text-sm font-medium", checked ? "text-primary" : "text-muted-foreground")}>{label}</span>
       </div>
-      <Checkbox 
-        id={id} 
-        checked={checked} 
-        onCheckedChange={(val) => onChange(val === true)}
+      <RadioGroup
+        value={checked ? 'yes' : 'no'}
+        onValueChange={(val) => onChange(val === 'yes')}
         disabled={!canEdit}
-        className="pointer-events-none"
-      />
+        className="flex items-center gap-4 mt-auto"
+      >
+        <div className="flex items-center gap-2">
+          <RadioGroupItem value="yes" id={`${id}_yes`} size="sm" />
+          <Label htmlFor={`${id}_yes`} className="text-xs font-normal cursor-pointer">Yes</Label>
+        </div>
+        <div className="flex items-center gap-2">
+          <RadioGroupItem value="no" id={`${id}_no`} size="sm" />
+          <Label htmlFor={`${id}_no`} className="text-xs font-normal cursor-pointer">No</Label>
+        </div>
+      </RadioGroup>
     </div>
   );
 
@@ -84,28 +92,28 @@ export function ShiftNoteTrackersSection({
             />
             <ModuleToggle 
               id="sleep_toggle" 
-              label="Sleep Tracking" 
+              label="Sleep during shift" 
               icon={Moon} 
               checked={!!formData.sleep_occurred} 
               onChange={(v) => onFormChange('sleep_occurred', v)} 
             />
             <ModuleToggle 
               id="behaviour_toggle" 
-              label="Behaviour Observations" 
+              label="Behaviour observed" 
               icon={Brain} 
               checked={!!formData.behaviour_observed} 
               onChange={(v) => onFormChange('behaviour_observed', v)} 
             />
             <ModuleToggle 
               id="community_toggle" 
-              label="Community Participation" 
+              label="Community access occurred" 
               icon={Navigation} 
               checked={!!formData.community_access_occurred} 
               onChange={(v) => onFormChange('community_access_occurred', v)} 
             />
             <ModuleToggle 
               id="nutrition_toggle" 
-              label="Nutrition Tracker" 
+              label="Meal provided" 
               icon={Utensils} 
               checked={!!formData.meal_provided} 
               onChange={(v) => onFormChange('meal_provided', v)} 
@@ -119,7 +127,7 @@ export function ShiftNoteTrackersSection({
             />
             <ModuleToggle 
               id="hygiene_toggle" 
-              label="Hygiene Tracking" 
+              label="Hygiene support required" 
               icon={ShowerHead} 
               checked={!!formData.hygiene_support_required} 
               onChange={(v) => onFormChange('hygiene_support_required', v)} 
@@ -292,13 +300,22 @@ export function ShiftNoteTrackersSection({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 border-t border-dashed">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="seizure_injury_occurred">Injury sustained?</Label>
-                  <Checkbox 
-                    id="seizure_injury_occurred" 
-                    checked={!!formData.seizure_injury_occurred}
-                    onCheckedChange={(val) => onFormChange('seizure_injury_occurred', val === true)}
+                  <Label htmlFor="seizure_injury_occurred">Seizure Injury?</Label>
+                  <RadioGroup
+                    value={formData.seizure_injury_occurred === true ? 'yes' : formData.seizure_injury_occurred === false ? 'no' : ''}
+                    onValueChange={(val) => onFormChange('seizure_injury_occurred', val === 'yes' ? true : val === 'no' ? false : null)}
                     disabled={disabled}
-                  />
+                    className="flex items-center gap-4"
+                  >
+                    <div className="flex items-center gap-2">
+                      <RadioGroupItem value="yes" id="seizure_injury_yes" size="sm" />
+                      <Label htmlFor="seizure_injury_yes" className="text-xs font-normal cursor-pointer">Yes</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <RadioGroupItem value="no" id="seizure_injury_no" size="sm" />
+                      <Label htmlFor="seizure_injury_no" className="text-xs font-normal cursor-pointer">No</Label>
+                    </div>
+                  </RadioGroup>
                 </div>
                 {formData.seizure_injury_occurred && (
                   <div className="space-y-1.5 animate-in fade-in slide-in-from-left-1">
@@ -315,13 +332,22 @@ export function ShiftNoteTrackersSection({
               </div>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="seizure_emergency_services">Emergency services called?</Label>
-                  <Checkbox 
-                    id="seizure_emergency_services" 
-                    checked={!!formData.seizure_emergency_services}
-                    onCheckedChange={(val) => onFormChange('seizure_emergency_services', val === true)}
+                  <Label htmlFor="seizure_emergency_services">Emergency services?</Label>
+                  <RadioGroup
+                    value={formData.seizure_emergency_services === true ? 'yes' : formData.seizure_emergency_services === false ? 'no' : ''}
+                    onValueChange={(val) => onFormChange('seizure_emergency_services', val === 'yes' ? true : val === 'no' ? false : null)}
                     disabled={disabled}
-                  />
+                    className="flex items-center gap-4"
+                  >
+                    <div className="flex items-center gap-2">
+                      <RadioGroupItem value="yes" id="seizure_emergency_yes" size="sm" />
+                      <Label htmlFor="seizure_emergency_yes" className="text-xs font-normal cursor-pointer">Yes</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <RadioGroupItem value="no" id="seizure_emergency_no" size="sm" />
+                      <Label htmlFor="seizure_emergency_no" className="text-xs font-normal cursor-pointer">No</Label>
+                    </div>
+                  </RadioGroup>
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="seizure_notes">Other Concerns / Notes</Label>
@@ -693,38 +719,141 @@ export function ShiftNoteTrackersSection({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2 border-t border-dashed">
-              <div className="flex items-center justify-between p-2 rounded-md bg-muted/20 border">
-                <Label className="text-xs">Texture Correct?</Label>
-                <Checkbox 
-                  checked={!!formData.mtm_texture_correct}
-                  onCheckedChange={(v) => onFormChange('mtm_texture_correct', v === true)}
-                  disabled={disabled}
-                />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 border-t border-dashed">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-2 rounded-md bg-muted/20 border">
+                  <Label className="text-xs">Correct food texture provided?</Label>
+                  <RadioGroup
+                    value={formData.mtm_texture_correct === true ? 'yes' : formData.mtm_texture_correct === false ? 'no' : ''}
+                    onValueChange={(val) => onFormChange('mtm_texture_correct', val === 'yes' ? true : val === 'no' ? false : null)}
+                    disabled={disabled}
+                    className="flex items-center gap-4"
+                  >
+                    <div className="flex items-center gap-2">
+                      <RadioGroupItem value="yes" id="mtm_texture_yes" size="sm" />
+                      <Label htmlFor="mtm_texture_yes" className="text-xs font-normal cursor-pointer">Yes</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <RadioGroupItem value="no" id="mtm_texture_no" size="sm" />
+                      <Label htmlFor="mtm_texture_no" className="text-xs font-normal cursor-pointer">No</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+                {formData.mtm_texture_correct === false && (
+                  <div className="space-y-1.5 animate-in fade-in slide-in-from-top-1">
+                    <Label htmlFor="mtm_texture_notes" className="text-xs text-muted-foreground">Describe why food texture was not correct</Label>
+                    <Textarea 
+                      id="mtm_texture_notes"
+                      value={(formData.mtm_texture_notes as string) || ''}
+                      onChange={(e) => onFormChange('mtm_texture_notes', e.target.value)}
+                      placeholder="Enter details..."
+                      rows={2}
+                      disabled={disabled}
+                    />
+                  </div>
+                )}
               </div>
-              <div className="flex items-center justify-between p-2 rounded-md bg-muted/20 border">
-                <Label className="text-xs">Fluid Correct?</Label>
-                <Checkbox 
-                  checked={!!formData.mtm_consistency_correct}
-                  onCheckedChange={(v) => onFormChange('mtm_consistency_correct', v === true)}
-                  disabled={disabled}
-                />
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-2 rounded-md bg-muted/20 border">
+                  <Label className="text-xs">Correct fluid consistency?</Label>
+                  <RadioGroup
+                    value={formData.mtm_consistency_correct === true ? 'yes' : formData.mtm_consistency_correct === false ? 'no' : ''}
+                    onValueChange={(val) => onFormChange('mtm_consistency_correct', val === 'yes' ? true : val === 'no' ? false : null)}
+                    disabled={disabled}
+                    className="flex items-center gap-4"
+                  >
+                    <div className="flex items-center gap-2">
+                      <RadioGroupItem value="yes" id="mtm_fluid_yes" size="sm" />
+                      <Label htmlFor="mtm_fluid_yes" className="text-xs font-normal cursor-pointer">Yes</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <RadioGroupItem value="no" id="mtm_fluid_no" size="sm" />
+                      <Label htmlFor="mtm_fluid_no" className="text-xs font-normal cursor-pointer">No</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+                {formData.mtm_consistency_correct === false && (
+                  <div className="space-y-1.5 animate-in fade-in slide-in-from-top-1">
+                    <Label htmlFor="mtm_consistency_notes" className="text-xs text-muted-foreground">Describe why fluid consistency was not correct</Label>
+                    <Textarea 
+                      id="mtm_consistency_notes"
+                      value={(formData.mtm_consistency_notes as string) || ''}
+                      onChange={(e) => onFormChange('mtm_consistency_notes', e.target.value)}
+                      placeholder="Enter details..."
+                      rows={2}
+                      disabled={disabled}
+                    />
+                  </div>
+                )}
               </div>
-              <div className="flex items-center justify-between p-2 rounded-md bg-muted/20 border">
-                <Label className="text-xs">Positioning Appropriate?</Label>
-                <Checkbox 
-                  checked={!!formData.mtm_positioning_appropriate}
-                  onCheckedChange={(v) => onFormChange('mtm_positioning_appropriate', v === true)}
-                  disabled={disabled}
-                />
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-2 rounded-md bg-muted/20 border">
+                  <Label className="text-xs">Positioning appropriate?</Label>
+                  <RadioGroup
+                    value={formData.mtm_positioning_appropriate === true ? 'yes' : formData.mtm_positioning_appropriate === false ? 'no' : ''}
+                    onValueChange={(val) => onFormChange('mtm_positioning_appropriate', val === 'yes' ? true : val === 'no' ? false : null)}
+                    disabled={disabled}
+                    className="flex items-center gap-4"
+                  >
+                    <div className="flex items-center gap-2">
+                      <RadioGroupItem value="yes" id="mtm_pos_yes" size="sm" />
+                      <Label htmlFor="mtm_pos_yes" className="text-xs font-normal cursor-pointer">Yes</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <RadioGroupItem value="no" id="mtm_pos_no" size="sm" />
+                      <Label htmlFor="mtm_pos_no" className="text-xs font-normal cursor-pointer">No</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+                {formData.mtm_positioning_appropriate === false && (
+                  <div className="space-y-1.5 animate-in fade-in slide-in-from-top-1">
+                    <Label htmlFor="mtm_positioning_notes" className="text-xs text-muted-foreground">Describe why positioning was not appropriate</Label>
+                    <Textarea 
+                      id="mtm_positioning_notes"
+                      value={(formData.mtm_positioning_notes as string) || ''}
+                      onChange={(e) => onFormChange('mtm_positioning_notes', e.target.value)}
+                      placeholder="Enter details..."
+                      rows={2}
+                      disabled={disabled}
+                    />
+                  </div>
+                )}
               </div>
-              <div className="flex items-center justify-between p-2 rounded-md bg-muted/20 border">
-                <Label className="text-xs">Supervision Provided?</Label>
-                <Checkbox 
-                  checked={!!formData.mtm_supervision_required}
-                  onCheckedChange={(v) => onFormChange('mtm_supervision_required', v === true)}
-                  disabled={disabled}
-                />
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-2 rounded-md bg-muted/20 border">
+                  <Label className="text-xs">Supervision required?</Label>
+                  <RadioGroup
+                    value={formData.mtm_supervision_required === true ? 'yes' : formData.mtm_supervision_required === false ? 'no' : ''}
+                    onValueChange={(val) => onFormChange('mtm_supervision_required', val === 'yes' ? true : val === 'no' ? false : null)}
+                    disabled={disabled}
+                    className="flex items-center gap-4"
+                  >
+                    <div className="flex items-center gap-2">
+                      <RadioGroupItem value="yes" id="mtm_sup_yes" size="sm" />
+                      <Label htmlFor="mtm_sup_yes" className="text-xs font-normal cursor-pointer">Yes</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <RadioGroupItem value="no" id="mtm_sup_no" size="sm" />
+                      <Label htmlFor="mtm_sup_no" className="text-xs font-normal cursor-pointer">No</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+                {formData.mtm_supervision_required === true && (
+                  <div className="space-y-1.5 animate-in fade-in slide-in-from-top-1">
+                    <Label htmlFor="mtm_supervision_notes" className="text-xs text-muted-foreground">Describe supervision required</Label>
+                    <Textarea 
+                      id="mtm_supervision_notes"
+                      value={(formData.mtm_supervision_notes as string) || ''}
+                      onChange={(e) => onFormChange('mtm_supervision_notes', e.target.value)}
+                      placeholder="Enter details..."
+                      rows={2}
+                      disabled={disabled}
+                    />
+                  </div>
+                )}
               </div>
             </div>
 

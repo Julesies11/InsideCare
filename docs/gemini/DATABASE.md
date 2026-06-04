@@ -57,11 +57,20 @@ The employees providing care. Linked to many Houses via `house_staff_assignments
 ### 3. Houses (`public.ic_houses`)
 The care facilities. Includes setup fields: `setup_step`, `is_configured`.
 
+#### House Documentation & Resources (`public.ic_house_resources`)
+Facility-level documentation, contacts, and guidelines.
+- **Soft Delete**: Uses `is_active: boolean` to manage visibility. Inactive resources are preserved for audit purposes.
+- **Attachments**: Links to private storage files.
+
 ### 4. Operational Tables
-- **`ic_shift_notes`**: Flat normalization with 70+ clinical columns.
+- **`ic_shift_notes`**: Flat normalization with 75+ clinical columns.
+    - **Clinical Integrity Fields**: Includes specialized description columns (`mtm_texture_notes`, `mtm_consistency_notes`, `mtm_positioning_notes`, `mtm_supervision_notes`) to capture detailed clinical context when standard requirements are not met.
 - **`ic_staff_shifts`**: Scheduled work periods.
 - **`ic_house_checklists`**: Facility and shift routines.
 - **`ic_timesheets`**: Tracked actual hours vs rostered.
+- **`ic_incident_reports`**: Structured incident reporting with NDIS and Restrictive Practice support.
+    - **Refactored Architecture**: As of **June 4, 2026**, moved to a fully structured schema using `incident_type_id`, `summary`, and `details`. Legacy columns (`incident_type`, `description`, `status`) are preserved as nullable for backward compatibility.
+    - **RBAC Guarded**: Admin-only fields (`admin_status`, `admin_actions_taken`, `ndis_reported_date`) are protected via column-level checks in the application and hardened RLS policies.
 
 ### 5. Automated Audit Columns
 All operational tables use a unified, hardened trigger (`ic_trigger_set_audit_columns`) to manage standard audit fields (`created_at`, `updated_at`, `created_by`, `updated_by`).
@@ -71,5 +80,7 @@ All operational tables use a unified, hardened trigger (`ic_trigger_set_audit_co
 ### 6. Master Lists & Deactivation Standard
 To preserve data integrity and historical clinical records, the application follows a **"Deactivate, Don't Delete"** pattern for master list items.
 - **`ic_medication_types_master`**: Lookup table for medication categories.
+- **`ic_incident_types_master`**: NDIS-compliant incident classifications.
+- **`ic_restrictive_practice_types_master`**: Standard restrictive practice categories.
     - `is_active`: Boolean (Default: true). Deactivating a type hides it from new selections but preserves existing clinical records.
 - **Implementation**: API methods must support `includeInactive` filters, and UI components must implement **Contextual Filtering** (showing active types plus the currently assigned inactive type during editing).

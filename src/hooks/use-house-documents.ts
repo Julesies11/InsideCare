@@ -40,7 +40,7 @@ export function useHouseDocuments(houseId?: string) {
   };
 }
 
-export const getHouseFileUrl = async (filePath: string, downloadName?: string) => {
+export const getHouseFileUrl = async (filePath: string, downloadName?: string | boolean) => {
   try {
     return await houseOperationsApi.files.getAttachmentSignedUrl(filePath, downloadName);
   } catch (error) {

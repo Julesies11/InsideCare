@@ -124,4 +124,26 @@ describe('Documents Smoke Test', () => {
     
     expect(screen.queryByText('Document Name')).toBeNull();
   });
+
+  it('triggers document view on single click', async () => {
+    // We need to mock window.open
+    const windowOpenSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
+    
+    render(<Documents participantId="part-1" canAdd={true} canDelete={true} canEdit={true} />, {
+      wrapper: createWrapper(),
+    });
+
+    // Find the document card (it should have the filename)
+    const docCard = screen.getByText('Test Doc').closest('div');
+    if (!docCard) throw new Error('Document card not found');
+
+    // Click it
+    fireEvent.click(docCard);
+
+    await waitFor(() => {
+      expect(windowOpenSpy).toHaveBeenCalled();
+    });
+    
+    windowOpenSpy.mockRestore();
+  });
 });

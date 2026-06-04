@@ -9,7 +9,8 @@ import {
   ClipboardList,
   Activity,
   UserCheck,
-  BarChart3
+  BarChart3,
+  ShieldAlert
 } from 'lucide-react';
 import { MenuItemConfig } from '@/layouts/demo1/sidebar/SidebarMenu';
 import { RBAC_MODULES } from './rbac-modules';
@@ -83,7 +84,7 @@ export const MENU_SIDEBAR: MenuItemConfig[] = [
   },
   {
     heading: 'Roster & Staff Scheduling',
-    permission: [RBAC_MODULES.ROSTER_BOARD, RBAC_MODULES.TIMESHEETS, RBAC_MODULES.LEAVE_REQUESTS],
+    permission: [RBAC_MODULES.ROSTER_BOARD, RBAC_MODULES.TIMESHEETS, RBAC_MODULES.LEAVE_REQUESTS, RBAC_MODULES.REPORTING_CLINICAL],
   },
   {
     title: 'Roster Board',
@@ -108,6 +109,12 @@ export const MENU_SIDEBAR: MenuItemConfig[] = [
     icon: ClipboardList,
     path: ROUTES.LEAVE_APPROVALS,
     permission: RBAC_MODULES.LEAVE_REQUESTS,
+  },
+  {
+    title: 'Lodge an Incident',
+    icon: ShieldAlert,
+    path: ROUTES.INCIDENT_REPORT,
+    permission: RBAC_MODULES.REPORTING_CLINICAL,
   },
   { 
     heading: 'Administration', 

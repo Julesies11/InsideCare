@@ -18,10 +18,10 @@ const VALID_SHIFT_NOTE_COLUMNS: (keyof ShiftNoteInsert)[] = [
   'community_location', 'community_notes', 'domestic_tasks', 'full_note', 'house_id', 
   'hygiene_grooming', 'hygiene_notes', 'hygiene_observed_concerns', 'hygiene_oral_care', 
   'hygiene_shower', 'hygiene_support_required', 'hygiene_toileting', 'id', 'meal_provided', 
-  'mtm_concerns', 'mtm_consistency_correct', 'mtm_diet_type', 'mtm_fluid_intake', 
+  'mtm_concerns', 'mtm_consistency_correct', 'mtm_consistency_notes', 'mtm_diet_type', 'mtm_fluid_intake', 
   'mtm_fluid_intake_notes', 'mtm_fluids', 'mtm_meal_intake', 'mtm_meal_intake_notes', 
-  'mtm_meal_provided', 'mtm_notes', 'mtm_positioning_appropriate', 'mtm_supervision_required', 
-  'mtm_swallowing_concerns', 'mtm_texture_correct', 'notes', 'nutrition_assistance_needed', 
+  'mtm_meal_provided', 'mtm_notes', 'mtm_positioning_appropriate', 'mtm_positioning_notes', 'mtm_supervision_required', 
+  'mtm_supervision_notes', 'mtm_swallowing_concerns', 'mtm_texture_correct', 'mtm_texture_notes', 'notes', 'nutrition_assistance_needed', 
   'nutrition_fluids_intake', 'nutrition_intake', 'nutrition_meal_type', 'nutrition_notes', 
   'nutrition_refusal_alternatives', 'overall_presentation', 'participant_id', 'pbs_outcome', 
   'pbs_strategies_details', 'pbs_strategies_used', 'pbs_when_used', 'prn_description', 
@@ -262,16 +262,22 @@ export const shiftNotesApi = {
   },
 
   /**
-   * Get specific shift notes by shift ID and staff ID.
+   * Get specific shift notes by shift ID, staff ID, and participant ID.
    * Note: Returns an array to handle potential data duplicates gracefully.
    */
-  async getByShiftAndStaff(shiftId: string, staffId: string) {
-    const { data, error } = await supabase
+  async getByShiftAndStaff(shiftId: string, staffId: string, participantId?: string) {
+    let query = supabase
       .from(TABLES.SHIFT_NOTES)
       .select(SHIFT_NOTE_VIEWS.DETAIL)
       .eq('shift_id', shiftId)
       .eq('staff_id', staffId)
-      .eq('status', 'active')
+      .eq('status', 'active');
+
+    if (participantId) {
+      query = query.eq('participant_id', participantId);
+    }
+
+    const { data, error } = await query
       // Prioritize notes that are likely more complete
       .order('overall_presentation', { ascending: false })
       .order('created_at', { ascending: false });
@@ -310,7 +316,7 @@ export const shiftNotesApi = {
     const { data, error } = await supabase
       .from(TABLES.SHIFT_NOTES)
       .upsert({ ...payload, status: payload.status || 'active' }, { 
-        onConflict: 'ic_shift_notes_shift_staff_participant_key' 
+        onConflict: 'shift_id,staff_id,participant_id' 
       })
       .select(SHIFT_NOTE_VIEWS.DETAIL)
       .maybeSingle();

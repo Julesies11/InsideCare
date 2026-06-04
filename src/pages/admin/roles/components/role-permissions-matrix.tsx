@@ -96,6 +96,7 @@ const GROUPS: GroupConfig[] = [
     modules: [
       { id: RBAC_MODULES.ACCESS_CONTROL, label: 'Access Control' },
       { id: RBAC_MODULES.MASTER_LISTS, label: 'Master Lists' },
+      { id: RBAC_MODULES.INCIDENT_MANAGEMENT, label: 'Incident Management' },
       { id: RBAC_MODULES.ACTIVITY_LOG, label: 'System Activity Log' },
       { label: 'Reporting', isLabelOnly: true },
       { id: RBAC_MODULES.REPORTING_CLINICAL, label: 'Clinical Reports', isChild: true },
@@ -122,7 +123,8 @@ export const getContextDescription = (moduleId: RBACModule, level: AccessLevel):
     RBAC_MODULES.EMPLOYEES, 
     RBAC_MODULES.TIMESHEETS, 
     RBAC_MODULES.LEAVE_REQUESTS, 
-    RBAC_MODULES.ROSTER_BOARD
+    RBAC_MODULES.ROSTER_BOARD,
+    RBAC_MODULES.INCIDENT_MANAGEMENT
   ].includes(moduleId);
 
   const isOperational = [
