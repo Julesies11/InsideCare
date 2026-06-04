@@ -469,7 +469,15 @@ export const SHIFT_NOTE_VIEWS = {
     participant:${TABLES.PARTICIPANTS}!participant_id(id, participant_name, photo_url),
     staff:${TABLES.STAFF}!staff_id(id, staff_name, photo_url),
     house:${TABLES.HOUSES}!house_id(id, house_name),
-    shift:${TABLES.STAFF_SHIFTS}!shift_id(id, start_time, end_time, shift_template)
+    shift:${TABLES.STAFF_SHIFTS}!shift_id(
+      id, 
+      start_time, 
+      end_time, 
+      shift_template,
+      participants:${TABLES.SHIFT_PARTICIPANTS}!shift_id(
+        participant:${TABLES.PARTICIPANTS}!participant_id(id, participant_name)
+      )
+    )
   `,
 } as const;
 

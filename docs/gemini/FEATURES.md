@@ -34,8 +34,13 @@ The core operational engine of the care system.
 - **Schedule Checklists**: Standalone tool to bulk schedule facility-wide checklists (e.g., "Weekly Deep Clean", "Vehicle Check") across multiple weeks independently of specific shifts.
 - **Roster Board**: Visual representation of staff shifts and house assignments with intelligent staff filtering (showing active staff assigned to the house).
 - **Shift Routines**: Automated, shift-locked task lists that staff must complete and sign off on during their active shift. Completion is enforced; staff cannot submit timesheets if mandatory shift routines are incomplete.
+- **Shift Documentation Command Center**: A specialized hub for monitoring clinical compliance across all shifts.
+    - **5-Status Intelligence Model**: Precisely categorizes every shift as **Upcoming**, **Current Shift** (in-progress), **Missing** (past with no note), **Draft Note**, or **Note Submitted**.
+    - **Compliance-First Filters**: Multi-select status buttons allow Admins and Staff to overlay documentation gaps, defaulting to "Note Submitted" for a clean audit trail.
+    - **Visual Compliance Strips**: High-density color indicators (Green, Amber, Red, Gray) on every row for millisecond-level status recognition.
 - **Enhanced Clinical Notes**: Comprehensive clinical documentation completed at the end of every shift. Includes:
     - **Structured Tracking**: Dedicated sections for Risks, Overall Presentation, ADL Supports, Domestic Tasks, and Capacity Building goals.
+    - **Interactive Binary Inputs**: All Yes/No fields (Risks, PBS, Medication, Trackers) use high-clarity Radio Button Groups for faster, more accurate entry.
     - **Health & Medication**: Integrated logging of regular and PRN medication statuses with prompt-based guidance.
     - **Positive Behaviour Support (PBS)**: Detailed tracking of PBS strategies, timing, and outcomes.
     - **Modular Clinical Trackers**: Toggleable, event-based trackers for:
@@ -43,7 +48,7 @@ The core operational engine of the care system.
         - **Seizure Activity**: Detailed logs of time, duration, and type (linked to master list).
         - **Sleep Tracking**: Day/Night quality and support needs.
         - **Behaviour Observations**: Intensity and type tracking (linked to master list).
-        - **Nutrition & Mealtime**: Detailed intake tracking and auto-population of Mealtime Management plans from participant profiles.
+        - **Mealtime Management (MTM)**: Advanced tracking with **Conditional Integrity Checks**. Automatically forces detailed documentation if texture, consistency, or positioning requirements aren't met, or if specific supervision is required.
         - **Hygiene & Community**: Support levels and engagement tracking.
     - **Master List Management**: Integrated administrative dialogs to manage Seizure and Behaviour types (matching Medication Register patterns).
     - **Automation**: Automatic shift type detection from roster templates and Care Plan data injection.

@@ -8,7 +8,6 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   PaginationState,
-  Row,
   SortingState,
   useReactTable,
 } from '@tanstack/react-table';
@@ -43,7 +42,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { useShiftNotes, ShiftNote } from '@/hooks/use-shift-notes';
 import { useHouses } from '@/hooks/use-houses';
 import { useStaff } from '@/hooks/use-staff';
-import { useNavigate, Link } from 'react-router';
+import { Link } from 'react-router';
 import { format } from 'date-fns';
 import { ROUTES } from '@/config/routes.config';
 import { SecureAvatar } from '@/components/ui/secure-avatar';

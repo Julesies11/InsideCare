@@ -63,7 +63,8 @@ Facility-level documentation, contacts, and guidelines.
 - **Attachments**: Links to private storage files.
 
 ### 4. Operational Tables
-- **`ic_shift_notes`**: Flat normalization with 70+ clinical columns.
+- **`ic_shift_notes`**: Flat normalization with 75+ clinical columns.
+    - **Clinical Integrity Fields**: Includes specialized description columns (`mtm_texture_notes`, `mtm_consistency_notes`, `mtm_positioning_notes`, `mtm_supervision_notes`) to capture detailed clinical context when standard requirements are not met.
 - **`ic_staff_shifts`**: Scheduled work periods.
 - **`ic_house_checklists`**: Facility and shift routines.
 - **`ic_timesheets`**: Tracked actual hours vs rostered.
