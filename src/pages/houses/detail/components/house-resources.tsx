@@ -241,6 +241,11 @@ export function HouseResources({
     if (url) window.open(url, '_blank');
   };
 
+  const handleView = async (filePath: string) => {
+    const url = await getFileUrl(filePath, false);
+    if (url) window.open(url, '_blank');
+  };
+
   // Filter out resources marked for deletion
   const visibleResources = [
     ...houseResources.filter(resource => {
@@ -435,8 +440,8 @@ export function HouseResources({
                               {fileName ? (
                                 <div 
                                   className="flex items-center gap-2 cursor-pointer select-none group"
-                                  onClick={() => mergedResource.file_url && handleDownload(mergedResource.file_url, mergedResource.file_name || 'resource')}
-                                  title="Click to download"
+                                  onClick={() => mergedResource.file_url && handleView(mergedResource.file_url)}
+                                  title="Click to view"
                                 >
                                   <Download className="size-4 text-muted-foreground group-hover:text-primary transition-colors" />
                                   <div>

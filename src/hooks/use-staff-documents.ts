@@ -73,6 +73,6 @@ export function useDeleteStaffDocument() {
   });
 }
 
-export const getStaffFileUrl = async (filePath: string, downloadName?: string) => {
+export const getStaffFileUrl = async (filePath: string, downloadName?: string | boolean) => {
   return await staffDetailsApi.documents.getAttachmentSignedUrl(filePath, downloadName);
 };

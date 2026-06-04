@@ -123,11 +123,11 @@ export const staffDetailsApi = {
       return data;
     },
 
-    async getAttachmentSignedUrl(filePath: string, fileName?: string) {
+    async getAttachmentSignedUrl(filePath: string, downloadName?: string | boolean) {
       const { data, error } = await supabase.storage
         .from(STORAGE_BUCKETS.STAFF_DOCUMENTS)
         .createSignedUrl(filePath, 3600, {
-          download: fileName || true
+          download: downloadName || false
         });
 
       if (error) throw error;

@@ -358,11 +358,11 @@ export const houseOperationsApi = {
       return true;
     },
 
-    async getAttachmentSignedUrl(filePath: string, downloadName?: string) {
+    async getAttachmentSignedUrl(filePath: string, downloadName?: string | boolean) {
       const { data, error } = await supabase.storage
         .from(STORAGE_BUCKETS.HOUSE_DOCUMENTS)
         .createSignedUrl(filePath, 3600, {
-          download: downloadName || true
+          download: downloadName || false
         });
       
       if (error) throw error;

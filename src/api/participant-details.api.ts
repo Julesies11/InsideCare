@@ -274,11 +274,11 @@ export const participantDetailsApi = {
       return data || [];
     },
 
-    async getAttachmentSignedUrl(filePath: string, downloadName?: string) {
+    async getAttachmentSignedUrl(filePath: string, downloadName?: string | boolean) {
       const { data, error } = await supabase.storage
         .from(STORAGE_BUCKETS.PARTICIPANT_DOCUMENTS)
         .createSignedUrl(filePath, 3600, {
-          download: downloadName || true
+          download: downloadName || false
         });
       
       if (error) throw error;
@@ -310,6 +310,17 @@ export const participantDetailsApi = {
         .eq('id', id);
 
       if (error) throw error;
+      return true;
+    },
+
+    async bulkDelete(ids: string[], filePaths: string[]) {
+      if (filePaths.length > 0) {
+        await supabase.storage.from(STORAGE_BUCKETS.PARTICIPANT_DOCUMENTS).remove(filePaths);
+      }
+      if (ids.length > 0) {
+        const { error } = await supabase.from(TABLES.PARTICIPANT_DOCUMENTS).delete().in('id', ids);
+        if (error) throw error;
+      }
       return true;
     },
 

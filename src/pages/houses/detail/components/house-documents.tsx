@@ -75,6 +75,11 @@ export function HouseDocuments({
     if (url) window.open(url, '_blank');
   };
 
+  const handleView = async (filePath: string) => {
+    const url = await getFileUrl(filePath, false);
+    if (url) window.open(url, '_blank');
+  };
+
   const handleDelete = (id: string, filePath: string, fileName: string) => {
     if (!pendingChanges || !onPendingChangesChange) return;
     
@@ -174,7 +179,8 @@ export function HouseDocuments({
                             "cursor-pointer hover:bg-gray-50/50 transition-colors",
                             isPendingDelete && 'opacity-50 bg-destructive/5'
                           )}
-                          onClick={() => !isPendingDelete && handleDownload(doc.file_path, doc.file_name)}
+                          onClick={() => !isPendingDelete && handleView(doc.file_path)}
+                          title="Click to view"
                         >
                           <TableCell>
                             <div className="flex items-center gap-2">
@@ -356,7 +362,7 @@ export function HouseDocuments({
               Cancel
             </Button>
             <Button variant="primary" onClick={handleUpload} disabled={!selectedFile}>
-              Add to Upload Queue
+              Save
             </Button>
           </SheetFooter>
         </SheetContent>

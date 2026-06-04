@@ -109,6 +109,7 @@ To ensure a clean interface and support power-user workflows (e.g., right-click 
 - **Avatars**: Always include `<SecureAvatar>` (for Staff/Participants) or a `<HouseIcon>` (for Houses) alongside the name in link contexts to provide visual recognition.
 - **Grouping**: Wrap the Avatar/Icon and Name together in a single `group` Link for a generous hit area and shared hover state (`group-hover:underline`).
 - **Centralization**: Redundant "Actions" columns for simple navigation (View/Edit) are **strictly forbidden**. Navigation must be centralized through the primary entity link.
+- **Documents**: To optimize user workflow, documents are accessed via a **Single-Click** to view inline in a new tab. This avoids unnecessary downloads for quick reference. Explicit downloads are still available via the right-click context menu or dedicated action buttons.
 - **Scope**: This pattern is applied globally across all data grids, list views, and dashboards (excluding forms, inputs, and print-ready views).
 
 ### 6.2 Data Grid & Table Standards
@@ -121,3 +122,8 @@ All main list views must adhere to high data density and accessibility standards
 - **Pagination**: Default to **25 rows per page**.
 - **State Management**: All search queries and filters (Status, Role, House, etc.) must be synced with **URL search parameters** to preserve view state during navigation or refresh.
 - **Sorting**: Enable server-side sorting for all primary data columns.
+
+### 6.3 Master List Comboboxes
+To ensure users can always find the correct entry in a master list dropdown (e.g., Medications), the application follows these rules:
+- **Large Fetch Size**: Components using `useMedicationsMaster` for dropdown selection must request a large `pageSize` (e.g., 1000) to ensure the full active list is available locally for the combobox.
+- **Selection Persistence**: Combobox filters must explicitly include the *currently selected* item, even if that item has been deactivated in the master list, to ensure historical records can be viewed and edited without losing data.

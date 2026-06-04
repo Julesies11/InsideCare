@@ -75,7 +75,7 @@ describe('Medication Type Mutation Hooks', () => {
 
       await result.current.mutateAsync({ id: '1', name: 'Updated Type', oldName: 'Old Type' });
 
-      expect(masterListsApi.medications.updateMedicationType).toHaveBeenCalledWith('1', 'Updated Type');
+      expect(masterListsApi.medications.updateMedicationType).toHaveBeenCalledWith('1', { name: 'Updated Type', is_active: undefined });
       expect(logActivity).toHaveBeenCalledWith(expect.objectContaining({
         activityType: 'update',
         entityType: 'medication_type_master',

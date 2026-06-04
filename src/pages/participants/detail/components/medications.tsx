@@ -53,7 +53,7 @@ export function Medications({
   const [editingMedication, setEditingMedication] = useState<{ id?: string; tempId?: string; medication_id: string; is_active: boolean } | null>(null);
 
   const { data: medications = [], isLoading: loading, refetch } = useParticipantMedications(participantId);
-  const { medications: medicationsMaster = [] } = useMedicationsMaster();
+  const { medications: medicationsMaster = [] } = useMedicationsMaster(0, 1000);
 
   useEffect(() => {
     if (refreshTrigger !== undefined && refreshTrigger > 0) {

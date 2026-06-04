@@ -30,9 +30,9 @@ export function MedicationCombobox({
   canEdit,
 }: MedicationComboboxProps) {
   const [open, setOpen] = useState(false);
-  const { medications = [], isLoading: loading } = useMedicationsMaster();
+  const { medications = [], isLoading: loading } = useMedicationsMaster(0, 1000);
 
-  const activeMedications = medications.filter((med) => med.is_active);
+  const activeMedications = medications.filter((med) => med.is_active || med.id === value);
   const selectedMedication = medications.find((med) => med.id === value);
 
   const handleSelect = (medicationId: string) => {

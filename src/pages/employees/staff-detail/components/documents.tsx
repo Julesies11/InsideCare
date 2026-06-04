@@ -254,6 +254,11 @@ export function Documents({
     if (url) window.open(url, '_blank');
   };
 
+  const handleView = async (filePath: string) => {
+    const url = await getFileUrl(filePath, false);
+    if (url) window.open(url, '_blank');
+  };
+
   const handleDelete = (id: string, filePath: string, fileName: string) => {
     if (!pendingChanges || !onPendingChangesChange) return;
     
@@ -363,8 +368,8 @@ export function Documents({
                           isPendingDelete && "opacity-60 grayscale bg-destructive/5",
                           hasOverrides && "bg-amber-50/30 border border-amber-100/50 shadow-xs"
                         )}
-                        onDoubleClick={() => !isPendingDelete && handleDownload(doc.file_path, doc.file_name)}
-                        title="Double-click to download"
+                        onClick={() => !isPendingDelete && handleView(doc.file_path)}
+                        title="Click to view"
                       >
                         <div className="size-10 flex items-center justify-center shrink-0 mb-1 group-hover:scale-110 transition-transform relative">
                           <img 
@@ -540,8 +545,8 @@ export function Documents({
                         <TableCell>
                           <div 
                             className="flex items-center gap-2.5 cursor-pointer select-none"
-                            onDoubleClick={() => !isPendingDelete && handleDownload(doc.file_path, doc.file_name)}
-                            title="Double-click to download"
+                            onClick={() => !isPendingDelete && handleView(doc.file_path)}
+                            title="Click to view"
                           >
                             <img 
                               src={toAbsoluteUrl(`/media/file-types/${getFileIcon(doc.file_name)}`)} 
@@ -777,7 +782,7 @@ export function Documents({
               disabled={uploadQueue.length === 0}
               className="rounded-lg shadow-sm"
             >
-              Add {uploadQueue.length > 0 ? `${uploadQueue.length} Files` : 'to Queue'}
+              Save
             </Button>
           </SheetFooter>
         </SheetContent>
@@ -926,7 +931,7 @@ export function Documents({
             <Button 
               variant="primary" 
               onClick={handleUpdateAccess}
-              loading={updatePermissions.isPending}
+              disabled={updatePermissions.isPending}
               className="rounded-lg"
             >
               Apply All Overrides
