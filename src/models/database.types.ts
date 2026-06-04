@@ -1952,6 +1952,7 @@ export type Database = {
           file_url: string | null
           house_id: string | null
           id: string
+          is_active: boolean | null
           notes: string | null
           phone: string | null
           priority: string | null
@@ -1971,6 +1972,7 @@ export type Database = {
           file_url?: string | null
           house_id?: string | null
           id?: string
+          is_active?: boolean | null
           notes?: string | null
           phone?: string | null
           priority?: string | null
@@ -1990,6 +1992,7 @@ export type Database = {
           file_url?: string | null
           house_id?: string | null
           id?: string
+          is_active?: boolean | null
           notes?: string | null
           phone?: string | null
           priority?: string | null

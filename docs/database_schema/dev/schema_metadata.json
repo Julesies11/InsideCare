@@ -94,6 +94,13 @@
             "type": "text",
             "default": null,
             "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "parent_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
           }
         ],
         "rls_enabled": true,
@@ -3087,6 +3094,13 @@
             "type": "uuid",
             "default": null,
             "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "is_active",
+            "type": "boolean",
+            "default": "true",
+            "nullable": "YES"
           }
         ],
         "rls_enabled": true,
@@ -3970,6 +3984,13 @@
             "name": "updated_by",
             "type": "uuid",
             "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "is_active",
+            "type": "boolean",
+            "default": "true",
             "nullable": "YES"
           }
         ],
@@ -7136,7 +7157,7 @@
             "ref_table": "ic_staff_shifts"
           }
         ],
-        "policy_count": 2
+        "policy_count": 4
       },
       {
         "name": "ic_shift_notes",
@@ -7879,7 +7900,7 @@
             "ref_table": "ic_staff_shifts"
           }
         ],
-        "policy_count": 2
+        "policy_count": 4
       },
       {
         "name": "ic_shift_template_checklists",
@@ -8335,7 +8356,7 @@
             "ref_table": "ic_roles"
           }
         ],
-        "policy_count": 6
+        "policy_count": 7
       },
       {
         "name": "ic_staff_compliance",
@@ -8754,7 +8775,7 @@
             "ref_table": "ic_staff"
           }
         ],
-        "policy_count": 2
+        "policy_count": 3
       },
       {
         "name": "ic_staff_training",
@@ -9227,7 +9248,7 @@
         "args": "",
         "name": "ic_audit_trigger_func",
         "returns": "trigger",
-        "definition": "\nDECLARE\n    old_data JSONB;\n    new_data JSONB;\n    target_data JSONB;\n    changes JSONB := '{}'::JSONB;\n    key TEXT;\n    changed_fields_detailed TEXT[] := ARRAY[]::TEXT[];\n    entity_name_val TEXT;\n    user_name_val TEXT;\n    parent_name_val TEXT;\n    parent_type_val TEXT;\n    acting_staff_id UUID;\n    norm_entity_type TEXT;\n    final_description TEXT;\n    target_entity_id TEXT; -- Using TEXT for maximum ID compatibility\n    v_link_id uuid;\nBEGIN\n    -- Resolve acting staff ID using gold standard helper\n    acting_staff_id := public.ic_jwt_get_staff_id();\n\n    -- Resolve acting user name from ic_staff\n    IF acting_staff_id IS NOT NULL THEN\n        SELECT staff_name INTO user_name_val FROM public.ic_staff WHERE id = acting_staff_id LIMIT 1;\n    END IF;\n    \n    -- Fallback to JWT/Auth metadata\n    IF user_name_val IS NULL THEN\n        user_name_val := COALESCE(\n            auth.jwt() -> 'user_metadata' ->> 'full_name', \n            auth.jwt() ->> 'email', \n            'System'\n        );\n    END IF;\n\n    -- Standardize entity labels\n    norm_entity_type := CASE \n        WHEN TG_TABLE_NAME = 'ic_incident_reports' THEN 'Incident Report'\n        WHEN TG_TABLE_NAME = 'ic_staff' THEN 'Staff'\n        WHEN TG_TABLE_NAME = 'ic_participants' THEN 'Participant'\n        WHEN TG_TABLE_NAME = 'ic_houses' THEN 'House'\n        WHEN TG_TABLE_NAME = 'ic_shift_notes' THEN 'Shift Note'\n        ELSE INITCAP(REPLACE(REPLACE(TG_TABLE_NAME, 'ic_', ''), '_', ' '))\n    END;\n\n    target_data := CASE WHEN TG_OP = 'DELETE' THEN to_jsonb(OLD) ELSE to_jsonb(NEW) END;\n    target_entity_id := (target_data->>'id'); -- Store as text to handle any PK type\n\n    -- Resolve display name\n    entity_name_val := COALESCE(\n        target_data->>'incident_type', \n        target_data->>'staff_name', \n        target_data->>'participant_name', \n        target_data->>'house_name',\n        target_data->>'title'\n    );\n\n    -- 🔍 SMART AGGREGATE ROOT RESOLUTION\n    v_link_id := COALESCE((target_data->>'involved_participant_id')::uuid, (target_data->>'participant_id')::uuid);\n    IF v_link_id IS NOT NULL THEN\n        SELECT participant_name INTO parent_name_val FROM public.ic_participants WHERE id = v_link_id LIMIT 1;\n        parent_type_val := 'Participant';\n    ELSE\n        v_link_id := COALESCE((target_data->>'involved_staff_id')::uuid, (target_data->>'staff_id')::uuid);\n        IF v_link_id IS NOT NULL THEN\n            SELECT staff_name INTO parent_name_val FROM public.ic_staff WHERE id = v_link_id LIMIT 1;\n            parent_type_val := 'Staff';\n        ELSE\n            v_link_id := (target_data->>'house_id')::uuid;\n            IF v_link_id IS NOT NULL THEN\n                SELECT house_name INTO parent_name_val FROM public.ic_houses WHERE id = v_link_id LIMIT 1;\n                parent_type_val := 'House';\n            END IF;\n        END IF;\n    END IF;\n\n    -- Dispatch Logs\n    IF (TG_OP = 'INSERT') THEN\n        final_description := 'Added ' || norm_entity_type || COALESCE(' \"' || entity_name_val || '\"', '');\n        IF parent_name_val IS NOT NULL THEN\n            final_description := final_description || ' to ' || parent_type_val || ': ' || parent_name_val;\n        END IF;\n\n        INSERT INTO public.ic_activity_log (\n            activity_type, entity_type, entity_id, entity_name, description, \n            user_name, user_id, table_name, parent_name, parent_type, metadata\n        )\n        VALUES (\n            'create', REPLACE(TG_TABLE_NAME, 'ic_', ''), target_entity_id, entity_name_val, final_description, \n            user_name_val, acting_staff_id, TG_TABLE_NAME, parent_name_val, parent_type_val, jsonb_build_object('new_data', target_data)\n        );\n        RETURN NEW;\n\n    ELSIF (TG_OP = 'DELETE') THEN\n        final_description := 'Removed ' || norm_entity_type || COALESCE(' \"' || entity_name_val || '\"', '');\n        \n        INSERT INTO public.ic_activity_log (\n            activity_type, entity_type, entity_id, entity_name, description, \n            user_name, user_id, table_name, parent_name, parent_type, metadata\n        )\n        VALUES (\n            'delete', REPLACE(TG_TABLE_NAME, 'ic_', ''), target_entity_id, entity_name_val, final_description, \n            user_name_val, acting_staff_id, TG_TABLE_NAME, parent_name_val, parent_type_val, jsonb_build_object('old_data', target_data)\n        );\n        RETURN OLD;\n\n    ELSIF (TG_OP = 'UPDATE') THEN\n        old_data := to_jsonb(OLD);\n        new_data := to_jsonb(NEW);\n        \n        FOR key IN SELECT jsonb_object_keys(new_data) LOOP\n            IF (new_data->key IS DISTINCT FROM old_data->key) AND (key NOT IN ('updated_at', 'updated_by', 'created_at', 'created_by')) THEN\n                changes := changes || jsonb_build_object(key, jsonb_build_array(old_data->key, new_data->key));\n                changed_fields_detailed := array_append(changed_fields_detailed, INITCAP(REPLACE(key, '_', ' ')) || ': ' || COALESCE(old_data->>key, 'empty') || ' → ' || COALESCE(new_data->>key, 'empty'));\n            END IF;\n        END LOOP;\n\n        IF changes <> '{}'::JSONB THEN\n            final_description := 'Updated ' || norm_entity_type || COALESCE(' \"' || entity_name_val || '\"', '');\n            IF array_length(changed_fields_detailed, 1) IS NOT NULL THEN\n                final_description := final_description || ' (' || array_to_string(changed_fields_detailed, ', ') || ')';\n            END IF;\n\n            INSERT INTO public.ic_activity_log (\n                activity_type, entity_type, entity_id, entity_name, description, \n                user_name, user_id, table_name, parent_name, parent_type, metadata\n            )\n            VALUES (\n                'update', REPLACE(TG_TABLE_NAME, 'ic_', ''), target_entity_id, entity_name_val, final_description, \n                user_name_val, acting_staff_id, TG_TABLE_NAME, parent_name_val, parent_type_val, jsonb_build_object('changes', changes)\n            );\n        END IF;\n        RETURN NEW;\n    END IF;\n    RETURN NULL;\nEND;\n"
+        "definition": "\nDECLARE\n    old_data JSONB;\n    new_data JSONB;\n    target_data JSONB;\n    changes JSONB := '{}'::JSONB;\n    key TEXT;\n    changed_fields_detailed TEXT[] := ARRAY[]::TEXT[];\n    entity_name_val TEXT;\n    user_name_val TEXT;\n    parent_name_val TEXT;\n    parent_type_val TEXT;\n    acting_staff_id UUID;\n    norm_entity_type TEXT;\n    final_description TEXT;\n    target_entity_id TEXT;\n    v_link_id uuid;\nBEGIN\n    -- 1. SECURITY & IDENTITY RESOLUTION\n    acting_staff_id := public.ic_jwt_get_staff_id();\n\n    -- Resolve acting user name from ic_staff\n    IF acting_staff_id IS NOT NULL THEN\n        SELECT staff_name INTO user_name_val FROM public.ic_staff WHERE id = acting_staff_id LIMIT 1;\n    END IF;\n    \n    -- Fallback to JWT/Auth metadata\n    IF user_name_val IS NULL THEN\n        user_name_val := COALESCE(\n            auth.jwt() -> 'user_metadata' ->> 'full_name', \n            auth.jwt() ->> 'email', \n            'System'\n        );\n    END IF;\n\n    -- 2. ENTITY LABEL STANDARDIZATION\n    norm_entity_type := CASE \n        WHEN TG_TABLE_NAME = 'ic_incident_reports' THEN 'Incident Report'\n        WHEN TG_TABLE_NAME = 'ic_staff' THEN 'Staff'\n        WHEN TG_TABLE_NAME = 'ic_participants' THEN 'Participant'\n        WHEN TG_TABLE_NAME = 'ic_houses' THEN 'House'\n        WHEN TG_TABLE_NAME = 'ic_shift_notes' THEN 'Shift Note'\n        WHEN TG_TABLE_NAME = 'ic_staff_documents' THEN 'Document'\n        WHEN TG_TABLE_NAME = 'ic_participant_documents' THEN 'Document'\n        WHEN TG_TABLE_NAME = 'ic_medications_master' THEN 'Medication Master'\n        WHEN TG_TABLE_NAME = 'ic_leave_types' THEN 'Leave Type'\n        ELSE INITCAP(REPLACE(REPLACE(TG_TABLE_NAME, 'ic_', ''), '_', ' '))\n    END;\n\n    target_data := CASE WHEN TG_OP = 'DELETE' THEN to_jsonb(OLD) ELSE to_jsonb(NEW) END;\n    target_entity_id := (target_data->>'id');\n\n    -- 3. ENHANCED NAME RESOLUTION (Peer Reviewed for child entities)\n    entity_name_val := COALESCE(\n        target_data->>'file_name',          -- Documents / Files / Training attachments\n        target_data->>'compliance_name',    -- ic_staff_compliance\n        target_data->>'contact_name',       -- ic_participant_contacts\n        target_data->>'house_checklist_name',-- ic_house_checklists\n        target_data->>'house_form_name',     -- ic_house_forms\n        target_data->>'medication_name',    -- ic_medications_master\n        target_data->>'leave_type_name',    -- ic_leave_types\n        target_data->>'goal_type',          -- ic_participant_goals\n        target_data->>'note_type',          -- ic_participant_notes\n        target_data->>'incident_type', \n        target_data->>'staff_name', \n        target_data->>'participant_name', \n        target_data->>'house_name',\n        target_data->>'title',\n        target_data->>'name'                -- Generic fallback\n    );\n\n    -- Relational Lookups for ID-only tables (Medications / Leave Requests)\n    IF entity_name_val IS NULL THEN\n        IF TG_TABLE_NAME = 'ic_participant_medications' THEN\n            SELECT medication_name INTO entity_name_val FROM public.ic_medications_master WHERE id = (target_data->>'medication_id')::uuid LIMIT 1;\n        ELSIF TG_TABLE_NAME = 'ic_leave_requests' THEN\n            SELECT leave_type_name INTO entity_name_val FROM public.ic_leave_types WHERE id = (target_data->>'leave_type_id')::uuid LIMIT 1;\n        END IF;\n    END IF;\n\n    -- 4. SMART AGGREGATE ROOT RESOLUTION\n    v_link_id := COALESCE((target_data->>'involved_participant_id')::uuid, (target_data->>'participant_id')::uuid);\n    IF v_link_id IS NOT NULL THEN\n        SELECT participant_name INTO parent_name_val FROM public.ic_participants WHERE id = v_link_id LIMIT 1;\n        parent_type_val := 'Participant';\n    ELSE\n        v_link_id := COALESCE((target_data->>'involved_staff_id')::uuid, (target_data->>'staff_id')::uuid);\n        IF v_link_id IS NOT NULL THEN\n            SELECT staff_name INTO parent_name_val FROM public.ic_staff WHERE id = v_link_id LIMIT 1;\n            parent_type_val := 'Staff';\n        ELSE\n            v_link_id := (target_data->>'house_id')::uuid;\n            IF v_link_id IS NOT NULL THEN\n                SELECT house_name INTO parent_name_val FROM public.ic_houses WHERE id = v_link_id LIMIT 1;\n                parent_type_val := 'House';\n            END IF;\n        END IF;\n    END IF;\n\n    -- 5. OPERATION DISPATCH\n    IF (TG_OP = 'INSERT') THEN\n        final_description := 'Added ' || norm_entity_type || COALESCE(' \"' || entity_name_val || '\"', '');\n        IF parent_name_val IS NOT NULL THEN\n            final_description := final_description || ' to ' || parent_type_val || ': ' || parent_name_val;\n        END IF;\n\n        INSERT INTO public.ic_activity_log (\n            activity_type, entity_type, entity_id, entity_name, description, \n            user_name, user_id, table_name, parent_name, parent_type, parent_id, metadata\n        )\n        VALUES (\n            'create', REPLACE(TG_TABLE_NAME, 'ic_', ''), target_entity_id, entity_name_val, final_description, \n            user_name_val, acting_staff_id, TG_TABLE_NAME, parent_name_val, parent_type_val, v_link_id, jsonb_build_object('new_data', target_data)\n        );\n        RETURN NEW;\n\n    ELSIF (TG_OP = 'DELETE') THEN\n        final_description := 'Removed ' || norm_entity_type || COALESCE(' \"' || entity_name_val || '\"', '');\n        \n        INSERT INTO public.ic_activity_log (\n            activity_type, entity_type, entity_id, entity_name, description, \n            user_name, user_id, table_name, parent_name, parent_type, parent_id, metadata\n        )\n        VALUES (\n            'delete', REPLACE(TG_TABLE_NAME, 'ic_', ''), target_entity_id, entity_name_val, final_description, \n            user_name_val, acting_staff_id, TG_TABLE_NAME, parent_name_val, parent_type_val, v_link_id, jsonb_build_object('old_data', target_data)\n        );\n        RETURN OLD;\n\n    ELSIF (TG_OP = 'UPDATE') THEN\n        old_data := to_jsonb(OLD);\n        new_data := to_jsonb(NEW);\n        \n        FOR key IN SELECT jsonb_object_keys(new_data) LOOP\n            -- Efficient JSONB comparison, skipping system/audit columns\n            IF (new_data->key IS DISTINCT FROM old_data->key) AND (key NOT IN ('updated_at', 'updated_by', 'created_at', 'created_by')) THEN\n                changes := changes || jsonb_build_object(key, jsonb_build_array(old_data->key, new_data->key));\n                changed_fields_detailed := array_append(changed_fields_detailed, INITCAP(REPLACE(key, '_', ' ')) || ': ' || COALESCE(old_data->>key, 'empty') || ' → ' || COALESCE(new_data->>key, 'empty'));\n            END IF;\n        END LOOP;\n\n        IF changes <> '{}'::JSONB THEN\n            final_description := 'Updated ' || norm_entity_type || COALESCE(' \"' || entity_name_val || '\"', '');\n            IF array_length(changed_fields_detailed, 1) IS NOT NULL THEN\n                final_description := final_description || ' (' || array_to_string(changed_fields_detailed, ', ') || ')';\n            END IF;\n\n            INSERT INTO public.ic_activity_log (\n                activity_type, entity_type, entity_id, entity_name, description, \n                user_name, user_id, table_name, parent_name, parent_type, parent_id, metadata\n            )\n            VALUES (\n                'update', REPLACE(TG_TABLE_NAME, 'ic_', ''), target_entity_id, entity_name_val, final_description, \n                user_name_val, acting_staff_id, TG_TABLE_NAME, parent_name_val, parent_type_val, v_link_id, jsonb_build_object('changes', changes)\n            );\n        END IF;\n        RETURN NEW;\n    END IF;\n    RETURN NULL;\nEND;\n"
       },
       {
         "args": "",

@@ -57,6 +57,11 @@ The employees providing care. Linked to many Houses via `house_staff_assignments
 ### 3. Houses (`public.ic_houses`)
 The care facilities. Includes setup fields: `setup_step`, `is_configured`.
 
+#### House Documentation & Resources (`public.ic_house_resources`)
+Facility-level documentation, contacts, and guidelines.
+- **Soft Delete**: Uses `is_active: boolean` to manage visibility. Inactive resources are preserved for audit purposes.
+- **Attachments**: Links to private storage files.
+
 ### 4. Operational Tables
 - **`ic_shift_notes`**: Flat normalization with 70+ clinical columns.
 - **`ic_staff_shifts`**: Scheduled work periods.

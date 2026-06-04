@@ -70,7 +70,10 @@ Management of the physical locations where care is provided.
     - **Risk Management**: Dedicated section for tracking house-level risks, environmental alerts, and interaction strategies.
     - **Participant Context**: Qualitative breakdown of individuals and social dynamics within the house to improve care quality and safety.
     - **House Intelligence**: Consolidated views for general house details, routines, and staff observations.
-    - **Resources**: Repository for house-specific contacts, emergency procedures, and operational guides. Supports document attachments (PDF, Docs, Images) stored securely in Supabase.
+    - **Resources**: Repository for house-specific contacts, emergency procedures, and operational guides. 
+        - **Modern UI**: Streamlined interface with specific file icons (PDF, Word, etc.) and single-click downloads.
+        - **Soft Delete**: Integrated "Active Only" filtering and deactivation workflow to maintain audit trails while keeping active views clean.
+        - **Security**: Supports secure document attachments stored in Supabase with house-level RLS.
 - **Setup Wizard**: Interactive guide for configuring shift templates and facility routines.
 - **House Directory**: Searchable list view with real-time occupancy tracking and deep links to participant profiles.
 - **Checklists**: Recurring operational tasks for house maintenance and compliance.

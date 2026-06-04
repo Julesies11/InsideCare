@@ -203,6 +203,7 @@ export interface HousePendingChanges {
       address?: string;
       file?: File;
       toDeleteFile?: boolean;
+      is_active?: boolean;
       file_url?: string;
       file_name?: string;
       file_size?: number;

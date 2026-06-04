@@ -266,7 +266,7 @@ export const HOUSE_VIEWS = {
    * View for house resources and documentation.
    */
   RESOURCES: `
-    id, house_id, title, category, type, description, priority, phone, address, notes, file_url, file_name, file_size, created_at, updated_at
+    id, house_id, title, category, type, description, priority, phone, address, notes, file_url, file_name, file_size, is_active, created_at, updated_at
   `,
 
   /**
