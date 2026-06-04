@@ -42,6 +42,8 @@ export const QUERY_KEYS = {
   HOUSE_SHIFT_TEMPLATES: 'house-shift-templates',
   SEIZURE_TYPES_MASTER: 'seizure-types-master',
   BEHAVIOUR_TYPES_MASTER: 'behaviour-types-master',
+  INCIDENT_TYPES_MASTER: 'incident-types-master',
+  RESTRICTIVE_PRACTICE_TYPES_MASTER: 'restrictive-practice-types-master',
 
   // Sub-entities
   STAFF_COMPLIANCE: 'staff-compliance',

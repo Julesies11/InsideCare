@@ -113,7 +113,16 @@ Comprehensive alert system for critical updates and workflows.
 - **Visual Locking**: Intuitive UI that "ghost-locks" dependent sub-permissions when a parent gateway is disabled, guiding administrators toward logical configurations.
 - **JWT-Driven RLS**: High-performance database security that enforces these granular rules directly at the data layer using Supabase Row Level Security.
 
-## 9. Reporting Hub
+## 9. Incident Report Management
+Comprehensive module for lodging, managing, and resolving clinical and operational incidents.
+- **Structured Reporting**: Specialized form for detailed incident accounts, including severity, priority, and structured classifications.
+- **Restrictive Practice Compliance**: Integrated tracking of Restrictive Practices (Seclusion, Restraint, etc.) with mandatory NDIS-compliant fields (start/end times, triggers, outcomes).
+- **NDIS Integration**: Dedicated flagging for NDIS Reportable incidents with administrative oversight.
+- **Admin Review Console**: RBAC-guarded interface for administrators to review, action, and close incident reports with a full audit trail.
+- **Contextual Search & Filter**: High-performance DataGrid allowing filtering by Participant, Staff, Status, Severity, and Date range.
+- **Master List Integration**: Centrally managed Incident and Restrictive Practice types to ensure data consistency.
+
+## 10. Reporting Hub
 Central registry for system-wide analytics and compliance exports.
 - **Incident Management Report**: Provides a comprehensive, chronological view of all clinical incidents with advanced date filtering (preset periods and custom ranges) and print-optimized PDF layouts. Cleanly links incidents to specific participants and staff.
 - **Extensible Architecture**: Designed to seamlessly integrate future clinical, operational, and financial reports, utilizing visual locks for reports currently under development.

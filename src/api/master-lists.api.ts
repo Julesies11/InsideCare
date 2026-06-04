@@ -684,5 +684,77 @@ export const masterListsApi = {
         }
       }
     }
+  },
+
+  /**
+   * Incident Types Master
+   */
+  incidentTypes: {
+    async list(includeInactive = true) {
+      let query = supabase
+        .from(TABLES.INCIDENT_TYPES_MASTER)
+        .select('id, name, description, is_active, created_at, updated_at')
+        .order('name', { ascending: true });
+
+      if (!includeInactive) {
+        query = query.eq('is_active', true);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data;
+    },
+
+    async upsert(record: Database['public']['Tables']['ic_incident_types_master']['Insert']) {
+      const { data, error } = await supabase
+        .from(TABLES.INCIDENT_TYPES_MASTER)
+        .upsert([record])
+        .select()
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+
+    async delete(id: string) {
+      const { error } = await supabase.from(TABLES.INCIDENT_TYPES_MASTER).delete().eq('id', id);
+      if (error) throw error;
+    }
+  },
+
+  /**
+   * Restrictive Practice Types Master
+   */
+  restrictivePracticeTypes: {
+    async list(includeInactive = true) {
+      let query = supabase
+        .from(TABLES.RESTRICTIVE_PRACTICE_TYPES_MASTER)
+        .select('id, name, description, is_active, created_at, updated_at')
+        .order('name', { ascending: true });
+
+      if (!includeInactive) {
+        query = query.eq('is_active', true);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data;
+    },
+
+    async upsert(record: Database['public']['Tables']['ic_restrictive_practice_types_master']['Insert']) {
+      const { data, error } = await supabase
+        .from(TABLES.RESTRICTIVE_PRACTICE_TYPES_MASTER)
+        .upsert([record])
+        .select()
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+
+    async delete(id: string) {
+      const { error } = await supabase.from(TABLES.RESTRICTIVE_PRACTICE_TYPES_MASTER).delete().eq('id', id);
+      if (error) throw error;
+    }
   }
 };

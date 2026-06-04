@@ -72,6 +72,8 @@ export const TABLES = {
   LEAVE_TYPES: 'ic_leave_types',
   SEIZURE_TYPES_MASTER: 'ic_seizure_types_master',
   BEHAVIOUR_TYPES_MASTER: 'ic_behaviour_types_master',
+  INCIDENT_TYPES_MASTER: 'ic_incident_types_master',
+  RESTRICTIVE_PRACTICE_TYPES_MASTER: 'ic_restrictive_practice_types_master',
   
   // Enums (PostgreSQL Enums don't need 'ic_' prefix in queries but might be useful to track)
   SHIFT_PERIOD_ENUM: 'ic_shift_period_enum',

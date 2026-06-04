@@ -483,14 +483,16 @@ export const SHIFT_NOTE_VIEWS = {
 
 export const INCIDENT_VIEWS = {
   /**
-   * Comprehensive incident report view with all involved parties.
+   * Comprehensive incident report view with all involved parties and types.
    */
   DETAIL: `
     *,
     participant:${TABLES.PARTICIPANTS}!involved_participant_id(id, participant_name, photo_url),
     staff:${TABLES.STAFF}!involved_staff_id(id, staff_name, photo_url),
     reporter:${TABLES.STAFF}!reported_by(id, staff_name, photo_url),
-    house:${TABLES.HOUSES}!house_id(id, house_name)
+    house:${TABLES.HOUSES}!house_id(id, house_name),
+    incident_type_info:${TABLES.INCIDENT_TYPES_MASTER}!incident_type_id(id, name),
+    restrictive_practice_type_info:${TABLES.RESTRICTIVE_PRACTICE_TYPES_MASTER}!restrictive_practice_type_id(id, name)
   `,
 } as const;
 
