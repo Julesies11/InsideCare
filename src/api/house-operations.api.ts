@@ -129,6 +129,73 @@ export const houseOperationsApi = {
       const { error } = await supabase.from(TABLES.HOUSE_CALENDAR_EVENT_ATTACHMENTS).delete().eq('id', id);
       if (error) throw error;
       return true;
+    },
+
+    async createWithRelations(event: any, participantIds: string[], staffIds: string[], attachments: any[], userId?: string) {
+      const { data: newEvent, error } = await supabase
+        .from(TABLES.HOUSE_CALENDAR_EVENTS)
+        .insert(event)
+        .select()
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!newEvent) throw new Error('Failed to create event');
+
+      // Add participants
+      if (participantIds.length > 0) {
+        await supabase.from(TABLES.HOUSE_CALENDAR_EVENT_PARTICIPANTS).insert(
+          participantIds.map(pId => ({ event_id: newEvent.id, participant_id: pId }))
+        );
+      }
+
+      // Add staff
+      if (staffIds.length > 0) {
+        await supabase.from(TABLES.HOUSE_CALENDAR_EVENT_STAFF).insert(
+          staffIds.map(sId => ({ event_id: newEvent.id, staff_id: sId }))
+        );
+      }
+
+      // Add attachments
+      if (attachments?.length > 0) {
+        for (const attachment of attachments) {
+          if (attachment.file) {
+            await this.uploadAttachment(newEvent.house_id, newEvent.id, attachment.file, userId);
+          }
+        }
+      }
+
+      return newEvent;
+    },
+
+    async updateWithRelations(id: string, eventUpdates: any, attachmentsToDelete: any[], newAttachments: any[], userId?: string) {
+      // 1. Update main event
+      const { data: updatedEvent, error } = await supabase
+        .from(TABLES.HOUSE_CALENDAR_EVENTS)
+        .update(eventUpdates)
+        .eq('id', id)
+        .select()
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!updatedEvent) throw new Error('Event not found');
+
+      // 2. Delete attachments
+      if (attachmentsToDelete?.length > 0) {
+        for (const att of attachmentsToDelete) {
+          await this.deleteAttachment(att.id, att.file_path);
+        }
+      }
+
+      // 3. Upload new attachments
+      if (newAttachments?.length > 0) {
+        for (const att of newAttachments) {
+          if (att.file) {
+            await this.uploadAttachment(updatedEvent.house_id, id, att.file, userId);
+          }
+        }
+      }
+
+      return updatedEvent;
     }
   },
 
@@ -422,7 +489,10 @@ export const houseOperationsApi = {
         if (error) errors.push(`Checklist Add ${cl.house_checklist_name}: ${error.message}`);
         else if (data && cl.items?.length > 0) {
           const { error: itemsError } = await supabase.from(TABLES.HOUSE_CHECKLIST_ITEMS).insert(
-            cl.items.map(i => ({ ...i, checklist_id: data.id, tempId: undefined }))
+            cl.items.map(i => {
+              const { tempId, ...itemData } = i;
+              return { ...itemData, checklist_id: data.id };
+            })
           );
           if (itemsError) errors.push(`Checklist Items Add for ${cl.house_checklist_name}: ${itemsError.message}`);
         }
@@ -430,6 +500,7 @@ export const houseOperationsApi = {
     }
     if (pending?.checklists?.toUpdate?.length > 0) {
       for (const cl of pending.checklists.toUpdate) {
+        // 1. Update main checklist details
         const { error } = await supabase.from(TABLES.HOUSE_CHECKLISTS).update({
           house_checklist_name: cl.house_checklist_name,
           days_of_week: cl.days_of_week,
@@ -438,13 +509,65 @@ export const houseOperationsApi = {
           sort_order: cl.sort_order
         }).eq('id', cl.id);
         
-        if (error) errors.push(`Checklist Update ${cl.id}: ${error.message}`);
-        // Note: Items update for checklists is handled separately or not supported in this bulk sync
+        if (error) {
+          errors.push(`Checklist Update ${cl.id}: ${error.message}`);
+          continue;
+        }
+
+        // 2. Synchronize Items (Surgical Sync)
+        if (cl.items) {
+          const incomingIds = cl.items.map(i => i.id).filter(Boolean);
+          
+          // Delete items that are no longer in the list
+          try {
+            const deleteQuery = supabase.from(TABLES.HOUSE_CHECKLIST_ITEMS)
+              .delete()
+              .eq('checklist_id', cl.id);
+            
+            if (incomingIds.length > 0) {
+              await deleteQuery.not('id', 'in', `(${incomingIds.join(',')})`);
+            } else {
+              await deleteQuery;
+            }
+          } catch (delErr) {
+            // Silently ignore deletion failures for items with history (FK constraint)
+            // They will simply remain in the DB and reappear on refresh
+          }
+          
+          // Upsert current items (Add/Update)
+          if (cl.items.length > 0) {
+            const { error: itemsError } = await supabase.from(TABLES.HOUSE_CHECKLIST_ITEMS).upsert(
+              cl.items.map(i => {
+                const { tempId, ...itemData } = i;
+                return { ...itemData, checklist_id: cl.id };
+              })
+            );
+            if (itemsError) errors.push(`Checklist Items Update for ${cl.house_checklist_name}: ${itemsError.message}`);
+          }
+        }
       }
     }
     if (pending?.checklists?.toDelete?.length > 0) {
+      // 1. Delete associated items first to avoid FK constraint violations
+      await supabase.from(TABLES.HOUSE_CHECKLIST_ITEMS).delete().in('checklist_id', pending.checklists.toDelete);
+      
+      // 2. Delete associated schedules
+      await supabase.from(TABLES.CHECKLIST_SCHEDULES).delete().in('house_checklist_id', pending.checklists.toDelete);
+      
+      // 3. Nullify calendar event references so they don't block deletion
+      await supabase.from(TABLES.HOUSE_CALENDAR_EVENTS)
+        .update({ house_checklist_id: null, is_checklist_event: false })
+        .in('house_checklist_id', pending.checklists.toDelete);
+
+      // 4. Finally delete the checklists
       const { error } = await supabase.from(TABLES.HOUSE_CHECKLISTS).delete().in('id', pending.checklists.toDelete);
-      if (error) errors.push(`Checklist Delete: ${error.message}`);
+      if (error) {
+        if (error.code === '23503') {
+          errors.push(`Checklist Delete: Cannot delete checklists that have clinical submissions (history).`);
+        } else {
+          errors.push(`Checklist Delete: ${error.message}`);
+        }
+      }
     }
 
     // 5. Resources

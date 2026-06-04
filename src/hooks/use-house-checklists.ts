@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { checklistsApi } from '@/api/checklists.api';
+import { QUERY_KEYS } from '@/config/query-keys';
 
 export type HouseChecklistWithRelations = any; // Will be typed by api response
 export type HouseChecklistItem = any;
@@ -25,7 +26,7 @@ export interface HouseChecklist {
 
 export function useHouseChecklists(houseId?: string, scheduledDate?: string) {
   const query = useQuery({
-    queryKey: ['house-checklists', houseId, scheduledDate],
+    queryKey: [QUERY_KEYS.CHECKLISTS, houseId, scheduledDate],
     queryFn: async () => {
       if (!houseId) return [];
       return await checklistsApi.listHouseChecklists(houseId, scheduledDate) as unknown as HouseChecklist[];

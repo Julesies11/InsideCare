@@ -67,6 +67,7 @@ The application uses a combination of local state, TanStack Query, and Context P
     - **Standard (staleTime: 30s - 5m)**: General operational data.
     - **Static (staleTime: 1h+)**: Master lists and configuration.
 - **Pending Changes Management**: For complex entities, a "pending changes" pattern (`src/models/*-pending-changes.ts`) is used to track batch updates locally before committing to the DAL.
+- **Surgical Synchronization (Transactional Safety)**: For nested sub-entities (like Checklist Items), the DAL implements a "Surgical Sync" pattern using `upsert` and targeted `delete`. This ensures clinical history and foreign key links (e.g. from submissions) are preserved while still allowing full CRUD flexibility on the parent entity.
 
 ## 4. Advanced Data Fetching (Roster Module)
 The Roster module implements a highly optimized data fetching strategy.

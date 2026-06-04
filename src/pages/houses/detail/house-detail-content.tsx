@@ -232,7 +232,7 @@ export function HouseDetailContent({
       await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.HOUSE_STAFF_ASSIGNMENTS] });
       await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PARTICIPANTS] });
       await queryClient.invalidateQueries({ queryKey: ['house-participants', { houseId: id }] });
-      await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.CALENDAR_EVENTS, { houseId: id }] });
+      await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.CALENDAR_EVENTS] });
       await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.CHECKLISTS, id] });
       await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.HOUSE_RESOURCES, id] });
       await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.HOUSE_COMMS, id] });
