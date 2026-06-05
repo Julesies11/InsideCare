@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { Houses } from './houses';
 import { describe, it, expect, vi } from 'vitest';
 import { MemoryRouter, Routes, Route } from 'react-router';
@@ -9,7 +9,8 @@ import { AuthContext } from '@/auth/context/auth-context';
 // Mock hooks
 vi.mock('@/hooks/use-houses', () => ({
   useHouses: vi.fn(() => ({
-    data: { data: [], count: 0 },
+    houses: [],
+    count: 0,
     isLoading: false,
     error: null
   })),
@@ -33,7 +34,7 @@ vi.mock('@/hooks/use-house-staff-assignments', () => ({
 }));
 
 describe('Houses List Persistence', () => {
-  it('initializes pagination and search from URL parameters', () => {
+  it('initializes pagination and search from URL parameters', async () => {
     const useHousesMock = vi.mocked(useHousesHook.useHouses);
     const queryClient = new QueryClient();
     
@@ -51,11 +52,13 @@ describe('Houses List Persistence', () => {
 
     // Verify that useHouses was called with the correct parameters from the URL
     // pageIndex should be 2 (3-1), pageSize should be 25, search should be 'test-house'
-    expect(useHousesMock).toHaveBeenCalledWith(
-      2, 
-      25, 
-      expect.anything(), 
-      expect.objectContaining({ search: 'test-house' })
-    );
+    await waitFor(() => {
+      expect(useHousesMock).toHaveBeenCalledWith(
+        2, 
+        25, 
+        expect.anything(), 
+        expect.objectContaining({ search: 'test-house' })
+      );
+    });
   });
 });

@@ -60,26 +60,27 @@ describe('useHouseChecklistEvents', () => {
         return HttpResponse.json([
           { 
             id: 'cl-shift-1', 
-            name: 'Generic Shift Template', 
+            house_checklist_name: 'Generic Shift Template', 
             type: 'start_of_shift',
             target_shift: 'morning',
             frequency: 'daily', 
-            items: [
+            house_checklist_items: [
               {
                 id: 'item-1',
                 title: 'Check Meds',
                 group_id: 'st-1',
-                group: { id: 'st-1', name: 'Morning', color_theme: 'morning' }
+                group: { id: 'st-1', shift_template_name: 'Morning', color_theme: 'morning' },
+                sort_order: 1
               }
             ]
           },
           { 
             id: 'cl-daily-1', 
-            name: 'House Cleaning Template', 
+            house_checklist_name: 'House Cleaning Template', 
             type: 'daily_house',
             target_shift: 'all',
             frequency: 'daily', 
-            items: []
+            house_checklist_items: []
           },
         ]);
       })
@@ -102,6 +103,6 @@ describe('useHouseChecklistEvents', () => {
     // Verify item group information
     const item = shiftEvent?.checklist?.items[0];
     expect(item?.title).toBe('Check Meds');
-    expect(item?.group?.name).toBe('Morning');
+    expect(item?.group?.shift_template_name).toBe('Morning');
   });
 });

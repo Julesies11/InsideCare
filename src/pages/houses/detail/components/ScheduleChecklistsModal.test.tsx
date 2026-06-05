@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { ScheduleChecklistsModal } from './ScheduleChecklistsModal';
 
 // Create a more robust mock for chained calls
-const mockInsert = vi.fn(() => Promise.resolve({ error: null }));
+const mockUpsert = vi.fn(() => Promise.resolve({ error: null }));
 const mockFrom = vi.fn((table: string) => {
   return {
     select: vi.fn(() => ({
@@ -14,7 +14,8 @@ const mockFrom = vi.fn((table: string) => {
         ], error: null }))
       })),
     })),
-    insert: mockInsert,
+    insert: vi.fn(() => Promise.resolve({ error: null })),
+    upsert: mockUpsert,
   };
 });
 
@@ -87,7 +88,7 @@ describe('ScheduleChecklistsModal', () => {
     fireEvent.click(confirmButton);
 
     await waitFor(() => {
-      expect(mockInsert).toHaveBeenCalled();
+      expect(mockUpsert).toHaveBeenCalled();
     });
   });
 });

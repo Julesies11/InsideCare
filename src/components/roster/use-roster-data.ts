@@ -55,7 +55,7 @@ export interface AssignedChecklist {
 
 export function useGlobalShiftTemplatesQuery() {
   return useQuery({
-    queryKey: ['global-shift-templates'],
+    queryKey: [QUERY_KEYS.SHIFT_TEMPLATES],
     queryFn: () => rosterApi.listGlobalShiftTemplates(),
     staleTime: 1000 * 60 * 30, // 30 minutes
   });
@@ -77,7 +77,7 @@ export function useLeaveRequestsQuery(staffId: string, startDate: string, endDat
         reason: r.reason,
       }));
     },
-    enabled: staffId !== 'skip',
+    enabled: staffId !== 'skip' && staffId !== 'undefined' && staffId !== 'null' && !!staffId,
     staleTime: 1000 * 60 * 5,
   });
 
@@ -91,8 +91,9 @@ export function useShiftsQuery(staffId: string, startDate: string, endDate: stri
   const { houses, staff } = useRosterData('all', { includeMetadata: options.includeMetadata });
 
   const query = useQuery({
-    queryKey: ['roster-shifts', staffId, startDate, endDate, houseId, includeEvents, options.includeMetadata],
+    queryKey: [QUERY_KEYS.ROSTER_SHIFTS, staffId, startDate, endDate, houseId, includeEvents, options.includeMetadata],
     queryFn: () => rosterApi.listShifts({ staffId, startDate, endDate, houseId, includeEvents }),
+    enabled: !!staffId && staffId !== 'undefined' && staffId !== 'null',
     staleTime: 1000 * 60 * 5,
   });
 
@@ -193,63 +194,63 @@ export function useRosterData(staffId?: string, options: { includeMetadata?: boo
   const createShiftMutation = useMutation({
     mutationFn: (newShift: any) => rosterApi.createShift(newShift),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['roster-shifts'] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ROSTER_SHIFTS] });
     },
   });
 
   const updateShiftMutation = useMutation({
     mutationFn: ({ id, updates }: { id: string; updates: any }) => rosterApi.updateShift(id, updates),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['roster-shifts'] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ROSTER_SHIFTS] });
     },
   });
 
   const deleteShiftMutation = useMutation({
     mutationFn: (id: string) => rosterApi.deleteShift(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['roster-shifts'] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ROSTER_SHIFTS] });
     },
   });
 
   const bulkUpdateShiftsMutation = useMutation({
     mutationFn: ({ params, updates }: { params: any; updates: any }) => rosterApi.bulkUpdateShifts(params, updates),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['roster-shifts'] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ROSTER_SHIFTS] });
     },
   });
 
   const bulkDeleteShiftsMutation = useMutation({
     mutationFn: (params: any) => rosterApi.bulkDeleteShifts(params),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['roster-shifts'] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ROSTER_SHIFTS] });
     },
   });
 
   const syncShiftParticipantsMutation = useMutation({
     mutationFn: ({ shiftId, participantIds }: { shiftId: string; participantIds: string[] }) => rosterApi.syncShiftParticipants(shiftId, participantIds),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['roster-shifts'] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ROSTER_SHIFTS] });
     },
   });
 
   const addShiftParticipantMutation = useMutation({
     mutationFn: ({ shiftId, participantId }: { shiftId: string; participantId: string }) => rosterApi.addShiftParticipant(shiftId, participantId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['roster-shifts'] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ROSTER_SHIFTS] });
     },
   });
 
   const materializePatternMutation = useMutation({
     mutationFn: (params: any) => rosterApi.materializePattern(params),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['roster-shifts'] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ROSTER_SHIFTS] });
     },
   });
 
   const syncShiftChecklistsMutation = useMutation({
     mutationFn: ({ shiftId, checklists }: { shiftId: string; checklists: any[] }) => rosterApi.syncShiftChecklists(shiftId, checklists),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['roster-shifts'] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ROSTER_SHIFTS] });
     },
   });
 

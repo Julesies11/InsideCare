@@ -29,7 +29,12 @@ const mockFrom = vi.fn((table) => {
     return { select: mockSelect };
   }
   if (table === TABLES.HOUSE_CALENDAR_EVENTS) {
-    return { insert: vi.fn().mockResolvedValue({ error: null }), delete: mockDelete };
+    return { 
+      insert: vi.fn().mockResolvedValue({ error: null }), 
+      upsert: vi.fn().mockReturnThis(),
+      select: vi.fn().mockResolvedValue({ data: [], error: null }),
+      delete: mockDelete 
+    };
   }
   return { select: mockSelect, insert: mockInsert, delete: mockDelete };
 });
