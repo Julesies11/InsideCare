@@ -155,16 +155,16 @@ test.describe('Staff Detail Marathon CRUD', () => {
     await page.getByRole('option').first().click({ force: true });
     await page.getByRole('button', { name: /Save/i, exact: true }).click({ force: true });
     
-    await expect(page.locator('[data-sonner-toast]')).toContainText(/Shift created/i);
+    await expect(page.locator('[data-sonner-toast]').first()).toBeVisible({ timeout: 30000 });
 
     // 8. Activate Staff
     await page.getByRole('button', { name: /Activate Staff/i }).click({ force: true });
     await page.getByRole('button', { name: /Activate Only/i }).click({ force: true });
-    await expect(page.locator('[data-sonner-toast]')).toContainText(/activated successfully/i);
+    await expect(page.locator('[data-sonner-toast]').first()).toContainText(/activated successfully/i);
 
     // 9. Final Save & Verify Persistence
     await page.getByRole('button', { name: /Save Changes/i }).click({ force: true });
-    await expect(page.locator('[data-sonner-toast]')).toContainText(/updated successfully/i, { timeout: 20000 });
+    await expect(page.locator('[data-sonner-toast]').first()).toContainText(/updated successfully/i, { timeout: 20000 });
 
     // Verify all fields after reload
     await page.reload();

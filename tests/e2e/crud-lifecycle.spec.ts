@@ -49,7 +49,7 @@ test.describe('Staff Lifecycle CRUD', () => {
     const saveButton = page.getByRole('button', { name: /Save Changes/i });
     await expect(saveButton).toBeEnabled({ timeout: 20000 });
     await saveButton.click({ force: true });
-    await expect(page.locator('[data-sonner-toast]')).toContainText(/success|updated/i, { timeout: 30000 });
+    await expect(page.locator('[data-sonner-toast]').filter({ hasText: /success|updated/i }).first()).toBeVisible({ timeout: 30000 });
 
     // 6. Activation (Business Logic)
     await page.getByRole('button', { name: /Activate Staff/i }).click({ force: true });
@@ -59,7 +59,7 @@ test.describe('Staff Lifecycle CRUD', () => {
     await expect(activationDialog).toBeVisible({ timeout: 10000 });
     await activationDialog.getByRole('button', { name: /Activate Only/i }).or(activationDialog.getByRole('button', { name: /Activate Staff/i })).click({ force: true });
     
-    await expect(page.locator('[data-sonner-toast]')).toContainText(/activated/i, { timeout: 30000 });
+    await expect(page.locator('[data-sonner-toast]').filter({ hasText: /activated/i }).first()).toBeVisible({ timeout: 30000 });
     await expect(activationDialog).not.toBeVisible();
 
     // 7. Cleanup (Deactivate)
@@ -72,7 +72,7 @@ test.describe('Staff Lifecycle CRUD', () => {
     await deactivateBtn.scrollIntoViewIfNeeded();
     await deactivateBtn.click({ force: true });
     await page.getByRole('button', { name: /Deactivate Only/i }).or(page.getByRole('button', { name: /Deactivate Staff/i })).click({ force: true });
-    await expect(page.locator('[data-sonner-toast]')).toContainText(/deactivated/i, { timeout: 30000 });
+    await expect(page.locator('[data-sonner-toast]').filter({ hasText: /deactivated/i }).first()).toBeVisible({ timeout: 30000 });
   });
 });
 
@@ -91,7 +91,9 @@ test.describe('Participant Lifecycle CRUD', () => {
     await expect(page.getByRole('heading', { name: /Participant Profile/i }).or(page.getByText(/Participant Profile/i)).first()).toBeVisible({ timeout: 30000 });
 
     // 2. Update Details
-    await page.locator('input#participant_name').fill(participantName, { timeout: 30000 });
+    const nameInput = page.locator('input#participant_name');
+    await expect(nameInput).toBeVisible({ timeout: 30000 });
+    await nameInput.fill(participantName);
     await page.locator('input#ndis_number').fill('123456789');
 
     // 3. Add Goal
@@ -109,15 +111,13 @@ test.describe('Participant Lifecycle CRUD', () => {
     const saveButton = page.getByRole('button', { name: /Save Changes/i });
     await expect(saveButton).toBeEnabled({ timeout: 20000 });
     await saveButton.click({ force: true });
-    await expect(page.locator('[data-sonner-toast]')).toContainText(/success|saved/i, { timeout: 30000 });
+    await expect(page.locator('[data-sonner-toast]').filter({ hasText: /success|saved/i }).first()).toBeVisible({ timeout: 30000 });
 
-    // 5. Cleanup (Archive)
-    await page.goto('/participants/profiles');
-    await page.getByPlaceholder(/Search Participants/i).fill(participantName);
-    const row = page.locator('tr', { hasText: participantName });
-    await expect(row.first()).toBeVisible({ timeout: 30000 });
-    await row.first().getByRole('button', { name: /Archive/i }).click({ force: true });
-    await expect(page.locator('[data-sonner-toast]')).toContainText(/archived/i, { timeout: 30000 });
+    // 5. Cleanup (Inactive)
+    await page.getByLabel(/Status/i).first().click({ force: true });
+    await page.getByRole('option', { name: /Inactive/i }).click({ force: true });
+    await page.getByRole('button', { name: /Save Changes/i }).click({ force: true });
+    await expect(page.locator('[data-sonner-toast]').filter({ hasText: /success|saved/i }).first()).toBeVisible({ timeout: 30000 });
   });
 });
 
@@ -135,7 +135,9 @@ test.describe('House Lifecycle CRUD', () => {
     await expect(page.getByRole('heading', { name: /House Details/i }).first()).toBeVisible({ timeout: 30000 });
 
     // 2. Edit Basic Details
-    await page.locator('input#house_name').fill(houseName, { timeout: 30000 });
+    const nameInput = page.locator('input#house_name');
+    await expect(nameInput).toBeVisible({ timeout: 30000 });
+    await nameInput.fill(houseName);
     await page.locator('textarea#address').fill('123 Testing Lane');
     
     // 3. Add Checklist (Section CRUD)
@@ -152,15 +154,10 @@ test.describe('House Lifecycle CRUD', () => {
     const saveButton = page.getByRole('button', { name: /Save Changes/i });
     await expect(saveButton).toBeEnabled({ timeout: 20000 });
     await saveButton.click({ force: true });
-    await expect(page.locator('[data-sonner-toast]')).toContainText(/success|saved/i, { timeout: 30000 });
+    await expect(page.locator('[data-sonner-toast]').filter({ hasText: /success|saved/i }).first()).toBeVisible({ timeout: 30000 });
 
-    // 5. Verify & Cleanup
-    await page.goto('/houses');
-    await page.getByPlaceholder(/Search Houses/i).fill(houseName);
-    const row = page.locator('tr', { hasText: houseName });
-    await expect(row.first()).toBeVisible({ timeout: 30000 });
-    
-    await row.first().getByRole('button', { name: /Archive/i }).click({ force: true });
-    await expect(page.locator('[data-sonner-toast]')).toContainText(/archived/i, { timeout: 30000 });
+    // 5. Verification (Skip status update as it is missing from UI)
+    await page.reload();
+    await expect(page.locator('input#house_name')).toHaveValue(houseName);
   });
 });

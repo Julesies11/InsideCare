@@ -28,12 +28,11 @@ test.describe('Participant Management Comprehensive', () => {
   });
 
   test('Navigate to participant detail and verify sections', async ({ page }) => {
-    // Click on the first "Edit" or "View" button
+    // Click on the participant link (name)
     const firstRow = page.locator('table tbody tr').first();
     await expect(firstRow).toBeVisible({ timeout: 15000 });
     
-    const viewButton = firstRow.getByRole('button', { name: /Edit/i }).or(firstRow.getByRole('button', { name: /View/i }));
-    await viewButton.click();
+    await firstRow.getByRole('link').first().click();
 
     // Verify redirection to detail page
     await expect(page).toHaveURL(/\/participants\/detail\//);
@@ -46,7 +45,7 @@ test.describe('Participant Management Comprehensive', () => {
 
   test('Edit participant basic info and verify dirty tracking', async ({ page }) => {
     const firstRow = page.locator('table tbody tr').first();
-    await firstRow.getByRole('button', { name: /Edit/i }).click();
+    await firstRow.getByRole('link').first().click();
 
     // Modify a field (e.g., Full Name)
     const nameInput = page.locator('input#participant_name');
@@ -73,7 +72,7 @@ test.describe('Participant Management Comprehensive', () => {
 
   test('Manage Medications - Add Medication dialog', async ({ page }) => {
     const firstRow = page.locator('table tbody tr').first();
-    await firstRow.getByRole('button', { name: /Edit/i }).click({ force: true });
+    await firstRow.getByRole('link').first().click({ force: true });
 
     // Scroll to Medications section or use deep link
     await page.goto(`${page.url()}?tab=medications`);
@@ -97,7 +96,7 @@ test.describe('Participant Management Comprehensive', () => {
 
   test('Manage Documents - List and Action buttons', async ({ page }) => {
     const firstRow = page.locator('table tbody tr').first();
-    await firstRow.getByRole('button', { name: /Edit/i }).click();
+    await firstRow.getByRole('link').first().click();
 
     await page.goto(`${page.url()}?tab=documents`);
     await expect(page.locator('#documents')).toBeVisible();
