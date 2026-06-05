@@ -1,4 +1,4 @@
-import { PropsWithChildren, useCallback, useEffect, useState } from 'react';
+import { PropsWithChildren, useCallback, useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { SupabaseAdapter } from '@/auth/adapters/supabase-adapter';
 import { AuthContext } from '@/auth/context/auth-context';
@@ -45,16 +45,14 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<UserModel | undefined>();
   const [auth, setAuth] = useState<AuthModel | undefined>(undefined);
+  const authInitialized = useRef(false);
 
   // Derive role flags directly from currentUser
   const isAdmin = currentUser?.is_admin === true;
   const isStaff = !currentUser?.is_admin && !!currentUser?.staff_id;
 
   const handleAuthStateChange = useCallback(async (event: string, session: any) => {
-    // Only trigger global loading for initial bootstrap or sign-in if we are currently "empty"
-    if ((event === 'INITIAL_SESSION' || event === 'SIGNED_IN') && !session) {
-      setLoading(true);
-    }
+    const isProfileEvent = event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED' || event === 'VERIFY';
     
     if (session) {
       setAuth({
@@ -62,7 +60,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
         refresh_token: session.refresh_token,
       });
 
-      if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'USER_UPDATED' || event === 'VERIFY') {
+      if (isProfileEvent) {
         try {
           // Hardening: Ensure permissions are synced on login
           if (event === 'SIGNED_IN') {
@@ -87,22 +85,46 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, []);
 
   useEffect(() => {
-    // Subscribe to auth state changes. This will also fire immediately 
-    // with the INITIAL_SESSION event.
+    let isMounted = true;
+
+    // 1. Subscribe to auth state changes.
+    // The supabase-js client handles internal locking for the subscription.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        handleAuthStateChange(event, session);
+        if (isMounted) {
+          console.log(`[Auth] Event: ${event}`);
+          authInitialized.current = true;
+          handleAuthStateChange(event, session);
+        }
       }
     );
 
-    // Safety fallback: If auth doesn't initialize within 5 seconds, stop loading
-    // This prevents WSoD/stuck loader if Supabase URL is invalid or blocked
+    // 2. "Quiet" Fallback: Only check manually if the subscription hasn't initialized 
+    // within a small grace period. This prevents double-fetching on startup.
+    const fallbackTimeout = setTimeout(() => {
+      if (isMounted && !authInitialized.current) {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          if (isMounted && !authInitialized.current) {
+            console.log('[Auth] Fallback session check triggered');
+            authInitialized.current = true;
+            handleAuthStateChange('INITIAL_SESSION', session);
+          }
+        });
+      }
+    }, 200); // 200ms grace period for the subscription to fire first
+
+    // 3. Safety fallback: If auth doesn't initialize within 10 seconds, stop loading
     const safetyTimeout = setTimeout(() => {
-      setLoading(false);
-    }, 5000);
+      if (isMounted && !authInitialized.current) {
+        console.warn('[Auth] Initialization safety timeout reached');
+        setLoading(false);
+      }
+    }, 10000);
 
     return () => {
+      isMounted = false;
       subscription.unsubscribe();
+      clearTimeout(fallbackTimeout);
       clearTimeout(safetyTimeout);
     };
   }, [handleAuthStateChange]);

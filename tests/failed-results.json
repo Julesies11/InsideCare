@@ -1,10 +1,42 @@
 [
   {
+    "title": "Complete Staff Record Lifecycle",
+    "file": "tests/e2e/crud-lifecycle.spec.ts",
+    "line": 13,
+    "status": "failed",
+    "durationMs": 26073,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-sonner-toast]')\nExpected pattern: \u001b[32m/activated/i\u001b[39m\nError: strict mode violation: locator('[data-sonner-toast]') resolved to 2 elements:\n    1) <li tabindex=\"0\" data-index=\"0\" data-front=\"true\" data-styled=\"true\" data-mounted=\"true\" data-swiped=\"false\" data-visible=\"true\" data-type=\"success\" data-sonner-toast=\"\" data-promise=\"false\" data-removed=\"false\" data-swiping=\"false\" data-expanded=\"false\" data-swipe-out=\"false\" data-x-position=\"right\" data-dismissible=\"true\" data-y-position=\"bottom\" class=\"group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground! group-[.toaster]:border-border group-[.toaster]:shadow-lg has-[[rol…>…</li> aka getByRole('listitem').filter({ hasText: 'Staff member activated' })\n    2) <li tabindex=\"0\" data-index=\"1\" data-styled=\"true\" data-front=\"false\" data-mounted=\"true\" data-swiped=\"false\" data-visible=\"true\" data-type=\"success\" data-sonner-toast=\"\" data-promise=\"false\" data-removed=\"false\" data-swiping=\"false\" data-expanded=\"false\" data-swipe-out=\"false\" data-x-position=\"right\" data-dismissible=\"true\" data-y-position=\"bottom\" class=\"group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground! group-[.toaster]:border-border group-[.toaster]:shadow-lg has-[[ro…>…</li> aka getByRole('listitem').filter({ hasText: 'Staff member updated' })\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 30000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-sonner-toast]')\u001b[22m\n\u001b[2m    3 × locator resolved to <li tabindex=\"0\" data-index=\"0\" data-front=\"true\" data-styled=\"true\" data-mounted=\"true\" data-swiped=\"false\" data-visible=\"true\" data-type=\"success\" data-sonner-toast=\"\" data-promise=\"false\" data-removed=\"false\" data-swiping=\"false\" data-expanded=\"false\" data-swipe-out=\"false\" data-x-position=\"right\" data-dismissible=\"true\" data-y-position=\"bottom\" class=\"group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground! group-[.toaster]:border-border group-[.toaster]:shadow-lg has-[[rol…>…</li>\u001b[22m\n\u001b[2m      - unexpected value \"Staff member updated successfully\"\u001b[22m\n"
+  },
+  {
+    "title": "Complete Participant Record Lifecycle",
+    "file": "tests/e2e/crud-lifecycle.spec.ts",
+    "line": 82,
+    "status": "failed",
+    "durationMs": 39132,
+    "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('tr').filter({ hasText: 'Test Participant 1780622089058' }).first().getByRole('button', { name: /Archive/i })\u001b[22m\n"
+  },
+  {
+    "title": "Create and Configure House",
+    "file": "tests/e2e/crud-lifecycle.spec.ts",
+    "line": 127,
+    "status": "failed",
+    "durationMs": 44422,
+    "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('tr').filter({ hasText: 'Automation House 1780622114518' }).first().getByRole('button', { name: /Archive/i })\u001b[22m\n"
+  },
+  {
+    "title": "Deep linking to Participant Medications tab",
+    "file": "tests/e2e/house-participant.spec.ts",
+    "line": 20,
+    "status": "failed",
+    "durationMs": 19235,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('button', { name: /Edit/i }).first().or(getByText(/No data available/i))\nExpected: visible\nTimeout: 15000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: /Edit/i }).first().or(getByText(/No data available/i))\u001b[22m\n"
+  },
+  {
     "title": "Create and Fully Configure House Record",
     "file": "tests/e2e/house-marathon.spec.ts",
     "line": 10,
     "status": "failed",
-    "durationMs": 37102,
+    "durationMs": 48328,
     "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('button', { name: /Add Template/i })\nExpected: visible\nTimeout: 20000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 20000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: /Add Template/i })\u001b[22m\n"
   },
   {
@@ -12,215 +44,31 @@
     "file": "tests/e2e/operations-comprehensive.spec.ts",
     "line": 33,
     "status": "failed",
-    "durationMs": 39102,
-    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('E2E Test Template 1780370085636').first()\nExpected: visible\nTimeout: 30000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 30000ms\u001b[22m\n\u001b[2m  - waiting for getByText('E2E Test Template 1780370085636').first()\u001b[22m\n"
+    "durationMs": 40409,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('E2E Test Template 1780622225420').first()\nExpected: visible\nTimeout: 30000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 30000ms\u001b[22m\n\u001b[2m  - waiting for getByText('E2E Test Template 1780622225420').first()\u001b[22m\n"
   },
   {
     "title": "Create and Fully Populate Participant Record",
     "file": "tests/e2e/participant-marathon.spec.ts",
     "line": 10,
     "status": "failed",
-    "durationMs": 41359,
-    "error": "TimeoutError: page.waitForEvent: Timeout 15000ms exceeded while waiting for event \"filechooser\"\n=========================== logs ===========================\nwaiting for event \"filechooser\"\n============================================================"
-  },
-  {
-    "title": "Edit participant basic info and verify dirty tracking",
-    "file": "tests/e2e/participants-comprehensive.spec.ts",
-    "line": 47,
-    "status": "failed",
-    "durationMs": 25493,
-    "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /Back/i })\u001b[22m\n\u001b[2m    - locator resolved to <button data-slot=\"button\" class=\"cursor-pointer group focus-visible:outline-hidden inline-flex items-center justify-center has-data-[arrow=true]:justify-between whitespace-nowrap font-medium ring-offset-background transition-[color,box-shadow] disabled:pointer-events-none disabled:opacity-60 [&_svg]:shrink-0 bg-background text-accent-foreground border border-input hover:bg-accent data-[state=open]:bg-accent h-7 rounded-md px-2.5 gap-1.25 text-xs [&_svg:not([class*=size-])]:size-3.5 focus-visible:ring…>…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - forcing action\u001b[22m\n\u001b[2m    - performing click action\u001b[22m\n"
-  },
-  {
-    "title": "Manage Medications - Add Medication dialog",
-    "file": "tests/e2e/participants-comprehensive.spec.ts",
-    "line": 74,
-    "status": "failed",
-    "durationMs": 24034,
-    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[role=\"dialog\"]').or(locator('.fixed.inset-0')).first().getByText(/Medication/i)\nExpected: visible\nTimeout: 15000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for locator('[role=\"dialog\"]').or(locator('.fixed.inset-0')).first().getByText(/Medication/i)\u001b[22m\n"
-  },
-  {
-    "title": "Support Worker: Full CRUD Lifecycle (Conditional on available shifts)",
-    "file": "tests/e2e/shift-notes-lifecycle.spec.ts",
-    "line": 29,
-    "status": "failed",
-    "durationMs": 19703,
-    "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /Add Shift Note/i })\u001b[22m\n"
-  },
-  {
-    "title": "Navigate to detailed shift note form and verify sections",
-    "file": "tests/e2e/shift-notes.spec.ts",
-    "line": 14,
-    "status": "failed",
-    "durationMs": 34120,
-    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('button', { name: /Add Shift Note/i })\nExpected: visible\nTimeout: 30000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 30000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: /Add Shift Note/i })\u001b[22m\n"
-  },
-  {
-    "title": "Create and Fully Populate Staff Record",
-    "file": "tests/e2e/staff-marathon.spec.ts",
-    "line": 10,
-    "status": "failed",
-    "durationMs": 46244,
-    "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /Add Requirement/i })\u001b[22m\n"
-  },
-  {
-    "title": "Form Dirty Tracking and Navigation Blocking",
-    "file": "tests/e2e/ui-components.spec.ts",
-    "line": 50,
-    "status": "failed",
-    "durationMs": 27576,
-    "error": "TimeoutError: page.waitForEvent: Timeout 15000ms exceeded while waiting for event \"dialog\"\n=========================== logs ===========================\nwaiting for event \"dialog\"\n============================================================"
-  },
-  {
-    "title": "Admin can access Roster Board and see management tools",
-    "file": "tests/e2e/admin.spec.ts",
-    "line": 6,
-    "status": "failed",
-    "durationMs": 17567,
-    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('button', { name: /Today/i })\nExpected: visible\nTimeout: 15000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: /Today/i })\u001b[22m\n"
-  },
-  {
-    "title": "Admin can view Activity Log",
-    "file": "tests/e2e/admin.spec.ts",
-    "line": 12,
-    "status": "failed",
-    "durationMs": 32638,
-    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('heading', { name: /Activity Log/i, level: 1 })\nExpected: visible\nTimeout: 30000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 30000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('heading', { name: /Activity Log/i, level: 1 })\u001b[22m\n"
-  },
-  {
-    "title": "Admin can access Role Management",
-    "file": "tests/e2e/admin.spec.ts",
-    "line": 19,
-    "status": "failed",
-    "durationMs": 31972,
-    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('heading', { name: /Roles/i, level: 1 })\nExpected: visible\nTimeout: 30000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 30000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('heading', { name: /Roles/i, level: 1 })\u001b[22m\n"
-  },
-  {
-    "title": "Admin can view Staff Profiles table",
-    "file": "tests/e2e/admin.spec.ts",
-    "line": 25,
-    "status": "failed",
-    "durationMs": 16860,
-    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByPlaceholder(/Search staff/i)\nExpected: visible\nTimeout: 15000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for getByPlaceholder(/Search staff/i)\u001b[22m\n"
-  },
-  {
-    "title": "Complete Staff Record Lifecycle",
-    "file": "tests/e2e/crud-lifecycle.spec.ts",
-    "line": 13,
-    "status": "failed",
-    "durationMs": 18649,
-    "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /Add Staff/i })\u001b[22m\n"
-  },
-  {
-    "title": "Complete Participant Record Lifecycle",
-    "file": "tests/e2e/crud-lifecycle.spec.ts",
-    "line": 82,
-    "status": "failed",
-    "durationMs": 18312,
-    "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /Add Participant/i })\u001b[22m\n"
-  },
-  {
-    "title": "Create and Configure House",
-    "file": "tests/e2e/crud-lifecycle.spec.ts",
-    "line": 127,
-    "status": "failed",
-    "durationMs": 18662,
-    "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /Add House/i })\u001b[22m\n"
-  },
-  {
-    "title": "Create and Fully Configure House Record",
-    "file": "tests/e2e/house-marathon.spec.ts",
-    "line": 10,
-    "status": "failed",
-    "durationMs": 17724,
-    "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /Add House/i })\u001b[22m\n"
-  },
-  {
-    "title": "Search participants filters profiles",
-    "file": "tests/e2e/house-participant.spec.ts",
-    "line": 7,
-    "status": "failed",
-    "durationMs": 18011,
-    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByPlaceholder(/Search Participants/i)\nExpected: visible\nTimeout: 15000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for getByPlaceholder(/Search Participants/i)\u001b[22m\n"
-  },
-  {
-    "title": "Deep linking to Participant Medications tab",
-    "file": "tests/e2e/house-participant.spec.ts",
-    "line": 20,
-    "status": "failed",
-    "durationMs": 18434,
-    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('button', { name: /Edit/i }).first().or(getByText(/No data available/i))\nExpected: visible\nTimeout: 15000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: /Edit/i }).first().or(getByText(/No data available/i))\u001b[22m\n"
-  },
-  {
-    "title": "Navigate to House Profiles and search",
-    "file": "tests/e2e/house-participant.spec.ts",
-    "line": 54,
-    "status": "failed",
-    "durationMs": 32416,
-    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText(/House Management/i)\nExpected: visible\nTimeout: 30000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 30000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/House Management/i)\u001b[22m\n"
-  },
-  {
-    "title": "Admin can access Leave Types page and manage list",
-    "file": "tests/e2e/leave-types.spec.ts",
-    "line": 6,
-    "status": "failed",
-    "durationMs": 17457,
-    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('heading', { name: /Leave Types Configuration/i })\nExpected: visible\nTimeout: 15000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('heading', { name: /Leave Types Configuration/i })\u001b[22m\n"
-  },
-  {
-    "title": "Roster Board - View and Open Shift Dialog",
-    "file": "tests/e2e/operations-comprehensive.spec.ts",
-    "line": 11,
-    "status": "failed",
-    "durationMs": 32611,
-    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1:has-text(\"Roster Board\")')\nExpected: visible\nTimeout: 30000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 30000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1:has-text(\"Roster Board\")')\u001b[22m\n"
-  },
-  {
-    "title": "Manage Shift Templates - Full CRUD lifecycle",
-    "file": "tests/e2e/operations-comprehensive.spec.ts",
-    "line": 33,
-    "status": "failed",
-    "durationMs": 33443,
-    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1:has-text(\"Shift Templates\")')\nExpected: visible\nTimeout: 30000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 30000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1:has-text(\"Shift Templates\")')\u001b[22m\n"
-  },
-  {
-    "title": "Manage Checklist Templates - Full CRUD lifecycle",
-    "file": "tests/e2e/operations-comprehensive.spec.ts",
-    "line": 83,
-    "status": "failed",
-    "durationMs": 32899,
-    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1:has-text(\"Checklist Master\")')\nExpected: visible\nTimeout: 30000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 30000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1:has-text(\"Checklist Master\")')\u001b[22m\n"
-  },
-  {
-    "title": "Create and Fully Populate Participant Record",
-    "file": "tests/e2e/participant-marathon.spec.ts",
-    "line": 10,
-    "status": "failed",
-    "durationMs": 16738,
-    "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /Add Participant/i })\u001b[22m\n"
+    "durationMs": 34342,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('heading', { name: /Participant Details/i }).first()\nExpected: visible\nTimeout: 30000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 30000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('heading', { name: /Participant Details/i }).first()\u001b[22m\n"
   },
   {
     "title": "Navigate to participant detail and verify sections",
     "file": "tests/e2e/participants-comprehensive.spec.ts",
     "line": 30,
     "status": "failed",
-    "durationMs": 19152,
-    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('table tbody tr').first()\nExpected: visible\nTimeout: 15000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for locator('table tbody tr').first()\u001b[22m\n"
-  },
-  {
-    "title": "Search and filter participants",
-    "file": "tests/e2e/participants-comprehensive.spec.ts",
-    "line": 17,
-    "status": "failed",
-    "durationMs": 34910,
-    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByPlaceholder(/Search Participants/i)\nExpected: visible\nTimeout: 30000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 30000ms\u001b[22m\n\u001b[2m  - waiting for getByPlaceholder(/Search Participants/i)\u001b[22m\n"
+    "durationMs": 18376,
+    "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('table tbody tr').first().getByRole('button', { name: /Edit/i }).or(locator('table tbody tr').first().getByRole('button', { name: /View/i }))\u001b[22m\n"
   },
   {
     "title": "Edit participant basic info and verify dirty tracking",
     "file": "tests/e2e/participants-comprehensive.spec.ts",
     "line": 47,
     "status": "failed",
-    "durationMs": 19698,
+    "durationMs": 17116,
     "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('table tbody tr').first().getByRole('button', { name: /Edit/i })\u001b[22m\n"
   },
   {
@@ -228,7 +76,7 @@
     "file": "tests/e2e/participants-comprehensive.spec.ts",
     "line": 74,
     "status": "failed",
-    "durationMs": 18245,
+    "durationMs": 17953,
     "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('table tbody tr').first().getByRole('button', { name: /Edit/i })\u001b[22m\n"
   },
   {
@@ -236,23 +84,15 @@
     "file": "tests/e2e/participants-comprehensive.spec.ts",
     "line": 98,
     "status": "failed",
-    "durationMs": 18993,
+    "durationMs": 18489,
     "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('table tbody tr').first().getByRole('button', { name: /Edit/i })\u001b[22m\n"
-  },
-  {
-    "title": "Admin has full access to management tools",
-    "file": "tests/e2e/rbac-granular-comprehensive.spec.ts",
-    "line": 8,
-    "status": "failed",
-    "durationMs": 28412,
-    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('link', { name: /Access Control/i }).or(getByText(/Access Control/i)).first()\nExpected: visible\nTimeout: 25000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 25000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('link', { name: /Access Control/i }).or(getByText(/Access Control/i)).first()\u001b[22m\n"
   },
   {
     "title": "Support Worker: Full CRUD Lifecycle (Conditional on available shifts)",
     "file": "tests/e2e/shift-notes-lifecycle.spec.ts",
     "line": 29,
     "status": "failed",
-    "durationMs": 18272,
+    "durationMs": 23119,
     "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /Add Shift Note/i })\u001b[22m\n"
   },
   {
@@ -260,7 +100,303 @@
     "file": "tests/e2e/shift-notes.spec.ts",
     "line": 14,
     "status": "failed",
-    "durationMs": 17089,
+    "durationMs": 33713,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('button', { name: /Add Shift Note/i })\nExpected: visible\nTimeout: 30000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 30000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: /Add Shift Note/i })\u001b[22m\n"
+  },
+  {
+    "title": "Toggle clinical trackers and verify visibility",
+    "file": "tests/e2e/shift-notes.spec.ts",
+    "line": 35,
+    "status": "failed",
+    "durationMs": 24408,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('#tracker_bowel')\nExpected: visible\nTimeout: 15000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for locator('#tracker_bowel')\u001b[22m\n"
+  },
+  {
+    "title": "Create and Fully Populate Staff Record",
+    "file": "tests/e2e/staff-marathon.spec.ts",
+    "line": 10,
+    "status": "failed",
+    "durationMs": 41666,
+    "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /Add Requirement/i })\u001b[22m\n"
+  },
+  {
+    "title": "Form Dirty Tracking and Navigation Blocking",
+    "file": "tests/e2e/ui-components.spec.ts",
+    "line": 50,
+    "status": "failed",
+    "durationMs": 29632,
+    "error": "TimeoutError: page.waitForEvent: Timeout 15000ms exceeded while waiting for event \"dialog\"\n=========================== logs ===========================\nwaiting for event \"dialog\"\n============================================================"
+  },
+  {
+    "title": "Staff Leave Edit page loads",
+    "file": "tests/smoke.spec.ts",
+    "line": 279,
+    "status": "failed",
+    "durationMs": 30725,
+    "error": "TimeoutError: page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/my-leave/leave-1/edit\", waiting until \"load\"\u001b[22m\n"
+  },
+  {
+    "title": "Shift Template Edit page loads",
+    "file": "tests/smoke.spec.ts",
+    "line": 284,
+    "status": "failed",
+    "durationMs": 30546,
+    "error": "TimeoutError: page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/shift-setup/template-1\", waiting until \"load\"\u001b[22m\n"
+  },
+  {
+    "title": "Staff member is blocked from Admin Roster Board",
+    "file": "tests/smoke.spec.ts",
+    "line": 295,
+    "status": "failed",
+    "durationMs": 34873,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected pattern: \u001b[32m/\\/error\\/403/\u001b[39m\nReceived string:  \u001b[31m\"http://localhost:5173/auth/signin?next=%2Froster-board\"\u001b[39m\nTimeout: 30000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 30000ms\u001b[22m\n\u001b[2m    2 × unexpected value \"http://localhost:5173/roster-board\"\u001b[22m\n\u001b[2m    52 × unexpected value \"http://localhost:5173/auth/signin?next=%2Froster-board\"\u001b[22m\n"
+  },
+  {
+    "title": "Staff member is blocked from Admin Activity Log",
+    "file": "tests/smoke.spec.ts",
+    "line": 300,
+    "status": "failed",
+    "durationMs": 34582,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected pattern: \u001b[32m/\\/error\\/403/\u001b[39m\nReceived string:  \u001b[31m\"http://localhost:5173/auth/signin?next=%2Factivity-log\"\u001b[39m\nTimeout: 30000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 30000ms\u001b[22m\n\u001b[2m    2 × unexpected value \"http://localhost:5173/activity-log\"\u001b[22m\n\u001b[2m    58 × unexpected value \"http://localhost:5173/auth/signin?next=%2Factivity-log\"\u001b[22m\n"
+  },
+  {
+    "title": "Admin can access Roster Board and see management tools",
+    "file": "tests/e2e/admin.spec.ts",
+    "line": 6,
+    "status": "failed",
+    "durationMs": 17780,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('button', { name: /Today/i })\nExpected: visible\nTimeout: 15000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: /Today/i })\u001b[22m\n"
+  },
+  {
+    "title": "Admin can view Activity Log",
+    "file": "tests/e2e/admin.spec.ts",
+    "line": 12,
+    "status": "failed",
+    "durationMs": 33158,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('heading', { name: /Activity Log/i, level: 1 })\nExpected: visible\nTimeout: 30000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 30000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('heading', { name: /Activity Log/i, level: 1 })\u001b[22m\n"
+  },
+  {
+    "title": "Admin can access Role Management",
+    "file": "tests/e2e/admin.spec.ts",
+    "line": 19,
+    "status": "failed",
+    "durationMs": 34086,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('heading', { name: /Roles/i, level: 1 })\nExpected: visible\nTimeout: 30000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 30000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('heading', { name: /Roles/i, level: 1 })\u001b[22m\n"
+  },
+  {
+    "title": "Admin can view Staff Profiles table",
+    "file": "tests/e2e/admin.spec.ts",
+    "line": 25,
+    "status": "failed",
+    "durationMs": 18204,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByPlaceholder(/Search staff/i)\nExpected: visible\nTimeout: 15000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for getByPlaceholder(/Search staff/i)\u001b[22m\n"
+  },
+  {
+    "title": "Complete Staff Record Lifecycle",
+    "file": "tests/e2e/crud-lifecycle.spec.ts",
+    "line": 13,
+    "status": "failed",
+    "durationMs": 18945,
+    "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /Add Staff/i })\u001b[22m\n"
+  },
+  {
+    "title": "RBAC: Staff cannot access Admin Role management",
+    "file": "tests/e2e/auth.spec.ts",
+    "line": 21,
+    "status": "failed",
+    "durationMs": 33234,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected pattern: \u001b[32m/\\/error\\/403/\u001b[39m\nReceived string:  \u001b[31m\"http://localhost:5173/auth/signin?next=%2Faccess-control\"\u001b[39m\nTimeout: 30000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 30000ms\u001b[22m\n\u001b[2m    2 × unexpected value \"http://localhost:5173/access-control\"\u001b[22m\n\u001b[2m    57 × unexpected value \"http://localhost:5173/auth/signin?next=%2Faccess-control\"\u001b[22m\n"
+  },
+  {
+    "title": "Complete Participant Record Lifecycle",
+    "file": "tests/e2e/crud-lifecycle.spec.ts",
+    "line": 82,
+    "status": "failed",
+    "durationMs": 16761,
+    "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /Add Participant/i })\u001b[22m\n"
+  },
+  {
+    "title": "Create and Configure House",
+    "file": "tests/e2e/crud-lifecycle.spec.ts",
+    "line": 127,
+    "status": "failed",
+    "durationMs": 19025,
+    "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /Add House/i })\u001b[22m\n"
+  },
+  {
+    "title": "Create and Fully Configure House Record",
+    "file": "tests/e2e/house-marathon.spec.ts",
+    "line": 10,
+    "status": "failed",
+    "durationMs": 17384,
+    "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /Add House/i })\u001b[22m\n"
+  },
+  {
+    "title": "Search participants filters profiles",
+    "file": "tests/e2e/house-participant.spec.ts",
+    "line": 7,
+    "status": "failed",
+    "durationMs": 17291,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByPlaceholder(/Search Participants/i)\nExpected: visible\nTimeout: 15000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for getByPlaceholder(/Search Participants/i)\u001b[22m\n"
+  },
+  {
+    "title": "Deep linking to Participant Medications tab",
+    "file": "tests/e2e/house-participant.spec.ts",
+    "line": 20,
+    "status": "failed",
+    "durationMs": 19182,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('button', { name: /Edit/i }).first().or(getByText(/No data available/i))\nExpected: visible\nTimeout: 15000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: /Edit/i }).first().or(getByText(/No data available/i))\u001b[22m\n"
+  },
+  {
+    "title": "Navigate to House Profiles and search",
+    "file": "tests/e2e/house-participant.spec.ts",
+    "line": 54,
+    "status": "failed",
+    "durationMs": 33543,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText(/House Management/i)\nExpected: visible\nTimeout: 30000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 30000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/House Management/i)\u001b[22m\n"
+  },
+  {
+    "title": "Admin can access Leave Types page and manage list",
+    "file": "tests/e2e/leave-types.spec.ts",
+    "line": 6,
+    "status": "failed",
+    "durationMs": 17839,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('heading', { name: /Leave Types Configuration/i })\nExpected: visible\nTimeout: 15000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('heading', { name: /Leave Types Configuration/i })\u001b[22m\n"
+  },
+  {
+    "title": "Roster Board - View and Open Shift Dialog",
+    "file": "tests/e2e/operations-comprehensive.spec.ts",
+    "line": 11,
+    "status": "failed",
+    "durationMs": 31928,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1:has-text(\"Roster Board\")')\nExpected: visible\nTimeout: 30000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 30000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1:has-text(\"Roster Board\")')\u001b[22m\n"
+  },
+  {
+    "title": "Manage Shift Templates - Full CRUD lifecycle",
+    "file": "tests/e2e/operations-comprehensive.spec.ts",
+    "line": 33,
+    "status": "failed",
+    "durationMs": 31789,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1:has-text(\"Shift Templates\")')\nExpected: visible\nTimeout: 30000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 30000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1:has-text(\"Shift Templates\")')\u001b[22m\n"
+  },
+  {
+    "title": "Manage Checklist Templates - Full CRUD lifecycle",
+    "file": "tests/e2e/operations-comprehensive.spec.ts",
+    "line": 83,
+    "status": "failed",
+    "durationMs": 32084,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1:has-text(\"Checklist Master\")')\nExpected: visible\nTimeout: 30000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 30000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1:has-text(\"Checklist Master\")')\u001b[22m\n"
+  },
+  {
+    "title": "Staff Dashboard - Check for active shift or missing timesheets",
+    "file": "tests/e2e/operations-comprehensive.spec.ts",
+    "line": 135,
+    "status": "failed",
+    "durationMs": 32377,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText(/Upcoming Schedule/i).first()\nExpected: visible\nTimeout: 30000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 30000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/Upcoming Schedule/i).first()\u001b[22m\n"
+  },
+  {
+    "title": "Staff Checklists - Sign-off flow",
+    "file": "tests/e2e/operations-comprehensive.spec.ts",
+    "line": 143,
+    "status": "failed",
+    "durationMs": 32077,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText(/House Checklists/i)\nExpected: visible\nTimeout: 30000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 30000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/House Checklists/i)\u001b[22m\n"
+  },
+  {
+    "title": "Staff Timesheets - Create and View",
+    "file": "tests/e2e/operations-comprehensive.spec.ts",
+    "line": 160,
+    "status": "failed",
+    "durationMs": 31621,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1:has-text(\"My Timesheets\")')\nExpected: visible\nTimeout: 30000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 30000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1:has-text(\"My Timesheets\")')\u001b[22m\n"
+  },
+  {
+    "title": "Create and Fully Populate Participant Record",
+    "file": "tests/e2e/participant-marathon.spec.ts",
+    "line": 10,
+    "status": "failed",
+    "durationMs": 17569,
+    "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /Add Participant/i })\u001b[22m\n"
+  },
+  {
+    "title": "Navigate to participant detail and verify sections",
+    "file": "tests/e2e/participants-comprehensive.spec.ts",
+    "line": 30,
+    "status": "failed",
+    "durationMs": 17492,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('table tbody tr').first()\nExpected: visible\nTimeout: 15000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for locator('table tbody tr').first()\u001b[22m\n"
+  },
+  {
+    "title": "Search and filter participants",
+    "file": "tests/e2e/participants-comprehensive.spec.ts",
+    "line": 17,
+    "status": "failed",
+    "durationMs": 33068,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByPlaceholder(/Search Participants/i)\nExpected: visible\nTimeout: 30000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 30000ms\u001b[22m\n\u001b[2m  - waiting for getByPlaceholder(/Search Participants/i)\u001b[22m\n"
+  },
+  {
+    "title": "Edit participant basic info and verify dirty tracking",
+    "file": "tests/e2e/participants-comprehensive.spec.ts",
+    "line": 47,
+    "status": "failed",
+    "durationMs": 18270,
+    "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('table tbody tr').first().getByRole('button', { name: /Edit/i })\u001b[22m\n"
+  },
+  {
+    "title": "Manage Medications - Add Medication dialog",
+    "file": "tests/e2e/participants-comprehensive.spec.ts",
+    "line": 74,
+    "status": "failed",
+    "durationMs": 17738,
+    "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('table tbody tr').first().getByRole('button', { name: /Edit/i })\u001b[22m\n"
+  },
+  {
+    "title": "Manage Documents - List and Action buttons",
+    "file": "tests/e2e/participants-comprehensive.spec.ts",
+    "line": 98,
+    "status": "failed",
+    "durationMs": 17612,
+    "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('table tbody tr').first().getByRole('button', { name: /Edit/i })\u001b[22m\n"
+  },
+  {
+    "title": "Admin has full access to management tools",
+    "file": "tests/e2e/rbac-granular-comprehensive.spec.ts",
+    "line": 8,
+    "status": "failed",
+    "durationMs": 27622,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('link', { name: /Access Control/i }).or(getByText(/Access Control/i)).first()\nExpected: visible\nTimeout: 25000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 25000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('link', { name: /Access Control/i }).or(getByText(/Access Control/i)).first()\u001b[22m\n"
+  },
+  {
+    "title": "Staff is restricted from management tools",
+    "file": "tests/e2e/rbac-granular-comprehensive.spec.ts",
+    "line": 44,
+    "status": "failed",
+    "durationMs": 32969,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected pattern: \u001b[32m/\\/error\\/403/\u001b[39m\nReceived string:  \u001b[31m\"http://localhost:5173/auth/signin?next=%2Factivity-log\"\u001b[39m\nTimeout: 30000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 30000ms\u001b[22m\n\u001b[2m    63 × unexpected value \"http://localhost:5173/auth/signin?next=%2Factivity-log\"\u001b[22m\n"
+  },
+  {
+    "title": "Smoke: New Shift Note Form renders correctly",
+    "file": "tests/e2e/shift-notes-lifecycle.spec.ts",
+    "line": 7,
+    "status": "failed",
+    "durationMs": 16542,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1').filter({ hasText: 'New Shift Note' })\nExpected: visible\nTimeout: 15000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1').filter({ hasText: 'New Shift Note' })\u001b[22m\n"
+  },
+  {
+    "title": "Support Worker: Full CRUD Lifecycle (Conditional on available shifts)",
+    "file": "tests/e2e/shift-notes-lifecycle.spec.ts",
+    "line": 29,
+    "status": "failed",
+    "durationMs": 17148,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('heading', { name: 'Shift Notes', exact: true, level: 1 })\nExpected: visible\nTimeout: 15000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('heading', { name: 'Shift Notes', exact: true, level: 1 })\u001b[22m\n"
+  },
+  {
+    "title": "Navigate to detailed shift note form and verify sections",
+    "file": "tests/e2e/shift-notes.spec.ts",
+    "line": 14,
+    "status": "failed",
+    "durationMs": 16972,
     "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('heading', { name: 'Shift Notes', exact: true, level: 1 })\nExpected: visible\nTimeout: 15000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('heading', { name: 'Shift Notes', exact: true, level: 1 })\u001b[22m\n"
   },
   {
@@ -268,7 +404,7 @@
     "file": "tests/e2e/shift-notes.spec.ts",
     "line": 35,
     "status": "failed",
-    "durationMs": 17391,
+    "durationMs": 17255,
     "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('heading', { name: 'Shift Notes', exact: true, level: 1 })\nExpected: visible\nTimeout: 15000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('heading', { name: 'Shift Notes', exact: true, level: 1 })\u001b[22m\n"
   },
   {
@@ -276,23 +412,47 @@
     "file": "tests/e2e/shift-notes.spec.ts",
     "line": 56,
     "status": "failed",
-    "durationMs": 16594,
+    "durationMs": 17462,
     "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('heading', { name: 'Shift Notes', exact: true, level: 1 })\nExpected: visible\nTimeout: 15000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('heading', { name: 'Shift Notes', exact: true, level: 1 })\u001b[22m\n"
+  },
+  {
+    "title": "Staff can initiate a Leave Request",
+    "file": "tests/e2e/staff.spec.ts",
+    "line": 6,
+    "status": "failed",
+    "durationMs": 16604,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('#leaveType')\nExpected: visible\nTimeout: 15000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for locator('#leaveType')\u001b[22m\n"
   },
   {
     "title": "Create and Fully Populate Staff Record",
     "file": "tests/e2e/staff-marathon.spec.ts",
     "line": 10,
     "status": "failed",
-    "durationMs": 32847,
+    "durationMs": 32651,
     "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('button', { name: /Add Staff/i })\nExpected: visible\nTimeout: 30000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 30000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: /Add Staff/i })\u001b[22m\n"
+  },
+  {
+    "title": "Staff can view their Leave Requests",
+    "file": "tests/e2e/staff.spec.ts",
+    "line": 34,
+    "status": "failed",
+    "durationMs": 17116,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('table')\nExpected: visible\nTimeout: 15000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('table')\u001b[22m\n"
+  },
+  {
+    "title": "Staff can view their Roster",
+    "file": "tests/e2e/staff.spec.ts",
+    "line": 41,
+    "status": "failed",
+    "durationMs": 16682,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('button', { name: /Today/i })\nExpected: visible\nTimeout: 15000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: /Today/i })\u001b[22m\n"
   },
   {
     "title": "Global Search and Table Interactions",
     "file": "tests/e2e/ui-components.spec.ts",
     "line": 9,
     "status": "failed",
-    "durationMs": 16840,
+    "durationMs": 16935,
     "error": "TimeoutError: locator.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByPlaceholder(/Search Participants/i)\u001b[22m\n"
   },
   {
@@ -300,15 +460,23 @@
     "file": "tests/e2e/ui-components.spec.ts",
     "line": 30,
     "status": "failed",
-    "durationMs": 17130,
+    "durationMs": 16847,
     "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('header button').filter({ has: locator('svg.lucide-menu') }).first()\nExpected: visible\nTimeout: 15000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for locator('header button').filter({ has: locator('svg.lucide-menu') }).first()\u001b[22m\n"
+  },
+  {
+    "title": "Staff can access House Checklists",
+    "file": "tests/e2e/staff.spec.ts",
+    "line": 46,
+    "status": "failed",
+    "durationMs": 47309,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText(/House Checklists/i).or(locator('.card')).first()\nExpected: visible\nTimeout: 45000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 45000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/House Checklists/i).or(locator('.card')).first()\u001b[22m\n"
   },
   {
     "title": "Form Dirty Tracking and Navigation Blocking",
     "file": "tests/e2e/ui-components.spec.ts",
     "line": 50,
     "status": "failed",
-    "durationMs": 18008,
+    "durationMs": 17697,
     "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /Add House/i })\u001b[22m\n"
   },
   {
@@ -316,7 +484,7 @@
     "file": "tests/e2e/ui-components.spec.ts",
     "line": 79,
     "status": "failed",
-    "durationMs": 17815,
+    "durationMs": 17731,
     "error": "TimeoutError: locator.isEnabled: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /Save Changes/i })\u001b[22m\n"
   }
 ]

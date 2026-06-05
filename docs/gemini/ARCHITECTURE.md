@@ -5,7 +5,7 @@ This document describes the architectural patterns and state management strategi
 ## 1. Backend + Supabase Logic Rules
 **All complex business logic should be implemented in testable environments.**
 
-1.  **Supabase Client**: Use `@supabase/ssr` (via `createBrowserClient`) for robust session management and cookie-based persistence.
+1.  **Supabase Client**: Use standard `@supabase/supabase-js` (via `createClient`) with `localStorage` persistence. This is the preferred standard for InsideCare to ensure robust cross-tab session management and prevent refresh token race conditions (the "Refresh Token Reuse" error) which are common in cookie-based SSR clients when multiple tabs are opened simultaneously.
 2.  **Auth Security**: Always use `supabase.auth.getUser()` for authorization checks to ensure the JWT is verified by the Supabase server.
 3.  **Edge Functions (Preferred for Backend Logic)**: Supabase Edge Functions are permitted and encouraged for complex business logic, transactional operations, and security-sensitive tasks. They must be unit-tested using Deno's native testing framework or compatible Vitest configurations.
 4.  **No SQL-Based Logic**: Do NOT create Supabase SQL functions, triggers, stored procedures, RPC endpoints, or views for business logic. These are restricted because they cannot be easily unit-tested or version-controlled as part of the application's testing suite.

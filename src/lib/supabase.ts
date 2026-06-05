@@ -1,5 +1,4 @@
 import { createBrowserClient } from '@supabase/ssr';
-import type { SupabaseClient } from '@supabase/supabase-js';
 import { Database } from '@/models/database.types';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
@@ -49,9 +48,9 @@ const customFetch = async (url: RequestInfo | URL, options?: RequestInit) => {
 
 /**
  * Creates and exports a Supabase client instance configured with
- * @supabase/ssr for robust session management and payload size logging.
+ * cookie persistence via @supabase/ssr for robust session management.
  */
-export const supabase: SupabaseClient<Database> = createBrowserClient<Database>(
+export const supabase = createBrowserClient<Database>(
   supabaseUrl || 'https://placeholder.supabase.co',
   supabaseAnonKey || 'placeholder-key',
   {
