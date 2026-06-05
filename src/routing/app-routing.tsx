@@ -13,23 +13,13 @@ export function AppRouting() {
     height: 2,
   });
 
-  const { verify, setLoading } = useAuth();
+  const { loading } = useAuth();
   const [previousLocation, setPreviousLocation] = useState('');
-  const [firstLoad, setFirstLoad] = useState(true);
   const location = useLocation();
   const path = location.pathname.trim();
 
   useEffect(() => {
-    if (firstLoad) {
-      verify().finally(() => {
-        setFirstLoad(false);
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (!firstLoad) {
+    if (!loading) {
       start('static');
       setPreviousLocation(path);
       complete();
@@ -38,7 +28,7 @@ export function AppRouting() {
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location]);
+  }, [location, loading]);
 
   useEffect(() => {
     if (!CSS.escape(window.location.hash)) {
