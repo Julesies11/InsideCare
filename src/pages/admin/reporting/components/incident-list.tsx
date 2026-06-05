@@ -8,7 +8,7 @@ import {
   SortingState,
   useReactTable,
 } from '@tanstack/react-table';
-import { Search, X, Edit } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import { useSearchParams, Link } from 'react-router';
 import { useDebounce } from '@/hooks/use-debounce';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +27,7 @@ import { IncidentReport } from '@/models/incident-report';
 import { cn } from '@/lib/utils';
 import { StatusFilter, StatusOption } from '@/components/ui/status-filter';
 import { SecureAvatar } from '@/components/ui/secure-avatar';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 
 const INCIDENT_STATUS_OPTIONS: StatusOption[] = [
   { value: 'New', label: 'New', badge: 'warning' },
@@ -70,37 +71,72 @@ export function IncidentList({ onEdit }: IncidentListProps) {
       id: 'incident_date',
       accessorKey: 'incident_date',
       header: ({ column }) => <DataGridColumnHeader title="Date & Time" column={column} />,
+      size: 160,
+      enablePinning: true,
       cell: ({ row }) => (
-        <div className="flex flex-col">
-          <span className="font-bold text-gray-900">{format(new Date(row.original.incident_date), 'dd MMM yyyy')}</span>
-          <span className="text-xs text-gray-400">{format(new Date(row.original.incident_date), 'HH:mm')}</span>
-        </div>
+        <button 
+          onClick={() => onEdit(row.original)}
+          className="group flex flex-col text-left hover:underline transition-colors cursor-pointer"
+        >
+          <span className="font-medium text-blue-700 dark:text-blue-400">{format(new Date(row.original.incident_date), 'dd MMM yyyy')}</span>
+          <span className="text-xs text-gray-400 group-hover:text-blue-600 transition-colors">{format(new Date(row.original.incident_date), 'HH:mm')}</span>
+        </button>
       ),
     },
     {
       id: 'involved_participant_id',
       accessorKey: 'participant.participant_name',
       header: ({ column }) => <DataGridColumnHeader title="Participant" column={column} />,
-      cell: ({ row }) => (
-        <Link 
-          to={`${ROUTES.PARTICIPANT_DETAIL}/${row.original.participant?.id}`}
-          className="group flex items-center gap-3 text-sm font-medium text-blue-700 transition-colors"
-        >
-          <SecureAvatar
-            src={row.original.participant?.photo_url}
-            alt={row.original.participant?.participant_name}
-            size="xs"
-          />
-          <span className="group-hover:underline">
-            {row.original.participant?.participant_name || 'General Context'}
-          </span>
-        </Link>
-      ),
+      size: 200,
+      cell: ({ row }) => {
+        if (!row.original.participant) return null;
+        return (
+          <Link 
+            to={`${ROUTES.PARTICIPANT_DETAIL}/${row.original.participant.id}`}
+            className="group flex items-center gap-3 text-sm font-medium text-blue-700 dark:text-blue-400 transition-colors"
+          >
+            <SecureAvatar
+              src={row.original.participant.photo_url}
+              alt={row.original.participant.participant_name}
+              className="size-8"
+              bucket={STORAGE_BUCKETS.PARTICIPANT_PHOTOS}
+            />
+            <span className="group-hover:underline">
+              {row.original.participant.participant_name}
+            </span>
+          </Link>
+        );
+      },
+    },
+    {
+      id: 'involved_staff_id',
+      accessorKey: 'staff.staff_name',
+      header: ({ column }) => <DataGridColumnHeader title="Staff" column={column} />,
+      size: 200,
+      cell: ({ row }) => {
+        if (!row.original.staff) return null;
+        return (
+          <Link 
+            to={`${ROUTES.STAFF_DETAIL}/${row.original.staff.id}`}
+            className="group flex items-center gap-3 text-sm font-medium text-blue-700 dark:text-blue-400 transition-colors"
+          >
+            <SecureAvatar
+              src={row.original.staff.photo_url}
+              alt={row.original.staff.staff_name}
+              className="size-8"
+            />
+            <span className="group-hover:underline">
+              {row.original.staff.staff_name}
+            </span>
+          </Link>
+        );
+      },
     },
     {
       id: 'type',
       accessorKey: 'incident_type_info.name',
       header: ({ column }) => <DataGridColumnHeader title="Type" column={column} />,
+      size: 150,
       cell: ({ row }) => (
         <div className="flex flex-col gap-1">
           <span className="text-xs font-bold uppercase">{row.original.incident_type_info?.name || 'Unknown'}</span>
@@ -119,9 +155,10 @@ export function IncidentList({ onEdit }: IncidentListProps) {
       id: 'summary',
       accessorKey: 'summary',
       header: ({ column }) => <DataGridColumnHeader title="Summary" column={column} />,
+      size: 350,
       cell: ({ row }) => (
-        <div className="max-w-[300px]">
-          <p className="text-sm line-clamp-2 italic text-gray-600">"{row.original.summary}"</p>
+        <div className="max-w-[350px]">
+          <p className="text-sm line-clamp-2 italic text-gray-600 break-words whitespace-normal">"{row.original.summary}"</p>
         </div>
       ),
     },
@@ -129,6 +166,7 @@ export function IncidentList({ onEdit }: IncidentListProps) {
       id: 'severity',
       accessorKey: 'severity',
       header: ({ column }) => <DataGridColumnHeader title="Severity" column={column} />,
+      size: 120,
       cell: ({ row }) => (
         <Badge 
           variant="outline" 
@@ -143,41 +181,17 @@ export function IncidentList({ onEdit }: IncidentListProps) {
         </Badge>
       ),
     },
-    {
-      id: 'admin_status',
-      accessorKey: 'admin_status',
-      header: ({ column }) => <DataGridColumnHeader title="Status" column={column} />,
-      cell: ({ row }) => (
-        <Badge 
-          variant={
-            row.original.admin_status === 'Closed' ? 'success' :
-            row.original.admin_status === 'Actioned' ? 'info' :
-            row.original.admin_status === 'Referred' ? 'primary' :
-            'warning'
-          }
-        >
-          {row.original.admin_status}
-        </Badge>
-      ),
-    },
-    {
-      id: 'actions',
-      header: () => <div className="text-right pr-4">Actions</div>,
-      cell: ({ row }) => (
-        <div className="flex justify-end gap-2 pr-2">
-          <Button variant="ghost" size="icon" onClick={() => onEdit(row.original)} title="View/Edit Details">
-            <Edit className="size-4" />
-          </Button>
-        </div>
-      ),
-    },
   ], [onEdit]);
 
   const table = useReactTable({
     data: data?.data || [],
     columns,
     pageCount: Math.ceil((data?.count || 0) / pagination.pageSize),
-    state: { pagination, sorting },
+    state: { 
+      pagination, 
+      sorting,
+      columnPinning: { left: ['incident_date'] }
+    },
     onPaginationChange: setPagination,
     onSortingChange: setSorting,
     manualPagination: true,
@@ -211,7 +225,15 @@ export function IncidentList({ onEdit }: IncidentListProps) {
           />
         </div>
       </CardHeader>
-      <DataGrid table={table} recordCount={data?.count || 0} isLoading={isLoading}>
+      <DataGrid 
+        table={table} 
+        recordCount={data?.count || 0} 
+        isLoading={isLoading}
+        tableLayout={{ 
+          width: 'auto',
+          columnsPinnable: true 
+        }}
+      >
         <CardTable>
           <ScrollArea className="w-full">
             <DataGridTable />
@@ -224,3 +246,4 @@ export function IncidentList({ onEdit }: IncidentListProps) {
     </Card>
   );
 }
+

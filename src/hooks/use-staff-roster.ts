@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { rosterApi } from '@/api/roster.api';
+import { QUERY_KEYS } from '@/config/query-keys';
 
 export interface RosterEntry {
   id: string;
@@ -23,12 +24,12 @@ export interface RosterEntry {
 
 export function useStaffRoster(staffId?: string) {
   return useQuery({
-    queryKey: ['staff-roster', staffId],
+    queryKey: [QUERY_KEYS.MY_ROSTER, staffId],
     queryFn: async () => {
-      if (!staffId) return [];
+      if (!staffId || staffId === 'undefined' || staffId === 'null') return [];
       return await rosterApi.getStaffRoster(staffId) as unknown as RosterEntry[];
     },
-    enabled: !!staffId,
+    enabled: !!staffId && staffId !== 'undefined' && staffId !== 'null',
     staleTime: 0, // Real-time RLS enforcement
   });
 }
@@ -42,12 +43,12 @@ export function useStaffShiftsPaginated(params: {
 }) {
   const { staffId, pageIndex = 0, pageSize = 50, search, sorting } = params;
   return useQuery({
-    queryKey: ['staff-shifts-paginated', staffId, pageIndex, pageSize, search, sorting],
+    queryKey: [QUERY_KEYS.SHIFTS, 'paginated', staffId, pageIndex, pageSize, search, sorting],
     queryFn: async () => {
-      if (!staffId) return { data: [], count: 0 };
+      if (!staffId || staffId === 'undefined' || staffId === 'null') return { data: [], count: 0 };
       return await rosterApi.listStaffShiftsPaginated({ staffId, pageIndex, pageSize, search, sorting });
     },
-    enabled: !!staffId,
+    enabled: !!staffId && staffId !== 'undefined' && staffId !== 'null',
     staleTime: 0,
   });
 }

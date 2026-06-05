@@ -33,7 +33,7 @@ const mockTimesheet: Partial<TimesheetRow> & {
     start_time: '09:00:00',
     end_time: '17:00:00',
     shift_template: 'day',
-    house: { house_name: 'Sunset House' },
+    house: { id: 'house-1', house_name: 'Sunset House' },
   },
 };
 
@@ -61,10 +61,8 @@ describe('AdminTimesheetsPage', () => {
 
     expect(screen.getByRole('heading', { name: /timesheets/i })).toBeInTheDocument();
     
-    await waitFor(() => {
-      expect(screen.getByText('John Doe')).toBeInTheDocument();
-      expect(screen.getByText('Sunset House')).toBeInTheDocument();
-    });
+    expect(await screen.findByText(/John Doe/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Sunset House/i)).toBeInTheDocument();
   });
 
   it('allows approving a timesheet', async () => {

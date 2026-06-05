@@ -24,6 +24,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { format } from 'date-fns';
 import { Loader2, AlertCircle, Save, X } from 'lucide-react';
 import { IncidentReport, IncidentStatus, IncidentSeverity, IncidentPriority } from '@/models/incident-report';
+import { SecureAvatar } from '@/components/ui/secure-avatar';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 
 const incidentSchema = z.object({
   involved_participant_id: z.string().uuid('Please select a participant'),
@@ -176,7 +178,17 @@ export function IncidentForm({ initialData, onSave, onCancel, isSaving }: Incide
                     </SelectTrigger>
                     <SelectContent>
                       {participants.map(p => (
-                        <SelectItem key={p.id} value={p.id}>{p.participant_name}</SelectItem>
+                        <SelectItem key={p.id} value={p.id}>
+                          <div className="flex items-center gap-2">
+                            <SecureAvatar 
+                              src={p.photo_url} 
+                              alt={p.participant_name} 
+                              className="size-6" 
+                              bucket={STORAGE_BUCKETS.PARTICIPANT_PHOTOS}
+                            />
+                            <span>{p.participant_name}</span>
+                          </div>
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -195,7 +207,16 @@ export function IncidentForm({ initialData, onSave, onCancel, isSaving }: Incide
                     <SelectContent>
                       <SelectItem value="none">None / General</SelectItem>
                       {staffList.map(s => (
-                        <SelectItem key={s.id} value={s.id}>{s.staff_name}</SelectItem>
+                        <SelectItem key={s.id} value={s.id}>
+                          <div className="flex items-center gap-2">
+                            <SecureAvatar 
+                              src={s.photo_url} 
+                              alt={s.staff_name} 
+                              className="size-6" 
+                            />
+                            <span>{s.staff_name}</span>
+                          </div>
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -213,11 +234,17 @@ export function IncidentForm({ initialData, onSave, onCancel, isSaving }: Incide
 
                 <div className="space-y-2">
                   <Label>Reported By</Label>
-                  <Input 
-                    value={user?.staff_name || 'System User'} 
-                    disabled 
-                    className="bg-gray-50 italic"
-                  />
+                  <div className="flex items-center gap-3 p-2.5 bg-gray-50 border border-border rounded-lg">
+                    <SecureAvatar 
+                      src={user?.photo_url} 
+                      alt={user?.staff_name || 'System User'} 
+                      className="size-10" 
+                    />
+                    <div className="flex flex-col">
+                      <span className="text-sm font-bold text-gray-900">{user?.staff_name || 'System User'}</span>
+                      <span className="text-[10px] text-gray-500 font-medium uppercase tracking-wider">{user?.role_name || 'Staff Member'}</span>
+                    </div>
+                  </div>
                   <p className="text-[10px] text-gray-400">Automatic timestamp: {format(new Date(), 'dd/MM/yyyy HH:mm')}</p>
                 </div>
               </div>

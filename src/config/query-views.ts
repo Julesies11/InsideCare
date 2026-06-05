@@ -263,6 +263,32 @@ export const HOUSE_VIEWS = {
   `,
 
   /**
+   * Comprehensive view for house forms with assignments and staff info.
+   */
+  FORMS_FULL: `
+    *,
+    creator:${TABLES.STAFF}!fk_ic_house_forms_created_by(id, staff_name, email),
+    house_form_assignments:${TABLES.HOUSE_FORM_ASSIGNMENTS}(
+      id,
+      form_id,
+      participant_id,
+      staff_id,
+      assigned_by,
+      due_date,
+      status,
+      completed_at,
+      completed_by,
+      notes,
+      created_at,
+      updated_at,
+      participant:${TABLES.PARTICIPANTS}(id, participant_name, email),
+      staff:${TABLES.STAFF}!house_form_assignments_staff_id_fkey(id, staff_name, email),
+      assigned_by_staff:${TABLES.STAFF}!house_form_assignments_assigned_by_fkey(id, staff_name, email),
+      completed_by_staff:${TABLES.STAFF}!house_form_assignments_completed_by_fkey(id, staff_name, email)
+    )
+  `,
+
+  /**
    * View for house resources and documentation.
    */
   RESOURCES: `

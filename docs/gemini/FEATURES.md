@@ -115,10 +115,13 @@ Comprehensive alert system for critical updates and workflows.
 
 ## 9. Incident Report Management
 Comprehensive module for lodging, managing, and resolving clinical and operational incidents.
-- **Structured Reporting**: Specialized form for detailed incident accounts, including severity, priority, and structured classifications.
+- **Structured Reporting**: Specialized form for detailed incident accounts, including severity, priority, and structured classifications. Includes visual confirmation with participant and staff avatars in dropdowns and the "Reported By" section.
 - **Restrictive Practice Compliance**: Integrated tracking of Restrictive Practices (Seclusion, Restraint, etc.) with mandatory NDIS-compliant fields (start/end times, triggers, outcomes).
 - **NDIS Integration**: Dedicated flagging for NDIS Reportable incidents with administrative oversight.
-- **Admin Review Console**: RBAC-guarded interface for administrators to review, action, and close incident reports with a full audit trail.
+- **Admin Review Console**: RBAC-guarded interface for administrators to review, action, and close incident reports with a full audit trail. Features a high-performance DataGrid with:
+    - **Interactive Navigation**: Primary edit action centralized on the **Date & Time** field (Steel Blue, hand cursor).
+    - **Visual Recognition**: Dedicated columns for Participant and Staff with profile avatars and deep links.
+    - **Optimized Layout**: Pinned context columns and responsive horizontal scrolling.
 - **Contextual Search & Filter**: High-performance DataGrid allowing filtering by Participant, Staff, Status, Severity, and Date range.
 - **Master List Integration**: Centrally managed Incident and Restrictive Practice types to ensure data consistency.
 

@@ -160,16 +160,19 @@ describe('StaffTimesheetForm', () => {
   });
 
   it('blocks submission if checklists are incomplete', async () => {
-    // Override checklist mock to return an incomplete routine
+    // Override shift mock to return an incomplete routine
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.SHIFT_ASSIGNED_CHECKLISTS}`, () => {
-        return HttpResponse.json([
-          { 
-            checklist_id: 'cl-1', 
-            assignment_title: 'Morning Routine',
-            submissions: [{ shift_id: 'shift-1', status: 'in_progress' }]
-          }
-        ]);
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF_SHIFTS}`, () => {
+        return HttpResponse.json([{
+          ...mockShift,
+          assigned_checklists: [
+            { 
+              checklist_id: 'cl-1', 
+              assignment_title: 'Morning Routine',
+              submissions: [{ status: 'in_progress' }]
+            }
+          ]
+        }]);
       })
     );
 

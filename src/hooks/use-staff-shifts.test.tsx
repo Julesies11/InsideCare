@@ -37,15 +37,12 @@ describe('useStaffShifts', () => {
             house_id: 'house-1',
             shift_template: 'day',
             status: 'confirmed',
-            house: { id: 'house-1', house_name: 'Test House 1' }
-          },
-        ]);
-      }),
-      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.SHIFT_PARTICIPANTS}`, () => {
-        return HttpResponse.json([
-          {
-            shift_id: 'shift-1',
-            participant: { id: 'participant-1', participant_name: 'John Doe' }
+            house_info: { id: 'house-1', house_name: 'Test House 1' },
+            participants: [
+              {
+                participant: { id: 'participant-1', participant_name: 'John Doe' }
+              }
+            ]
           },
         ]);
       })

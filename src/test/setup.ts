@@ -60,6 +60,11 @@ if (typeof window !== 'undefined' && !HTMLElement.prototype.hasPointerCapture) {
 }
 
 // Mock scrollIntoView
-if (typeof window !== 'undefined' && !HTMLElement.prototype.scrollIntoView) {
-  HTMLElement.prototype.scrollIntoView = () => {};
+if (typeof window !== 'undefined') {
+  if (!HTMLElement.prototype.scrollIntoView) {
+    HTMLElement.prototype.scrollIntoView = () => {};
+  }
+  if (!window.scrollTo) {
+    window.scrollTo = vi.fn();
+  }
 }
