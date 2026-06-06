@@ -11,7 +11,7 @@ import { getDateRange, ViewMode } from '@/components/roster/roster-utils';
 import { rosterApi } from '@/api/roster.api';
 import { useHouseShiftTemplates } from '@/hooks/use-house-shift-templates';
 import { useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router';
+import { useNavigate, useLocation } from 'react-router';
 import { ROUTES } from '@/config/routes.config';
 
 export interface LeaveBlock {
@@ -66,6 +66,7 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
 }, ref) => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const location = useLocation();
   const [showShiftDialog, setShowShiftDialog] = useState(false);
   const [isCopying, setIsCopying] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -138,7 +139,9 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
 
   const handleWriteNote = (shift: any) => {
     const firstParticipantId = shift.participants?.[0]?.id || '';
-    navigate(`${ROUTES.SHIFT_NOTES_DETAIL}/new?shiftId=${shift.id}&staffId=${shift.staff_id || ''}&participantId=${firstParticipantId}`);
+    navigate(`${ROUTES.SHIFT_NOTES_DETAIL}/new?shiftId=${shift.id}&staffId=${shift.staff_id || ''}&participantId=${firstParticipantId}`, {
+      state: { from: location.pathname + location.search }
+    });
   };
 
   const handleNotesClick = (shift: StaffShift) => {
@@ -193,9 +196,9 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
       await deleteShift(shiftId);
       toast.success('Shift deleted successfully');
       setShowShiftDialog(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting shift:', error);
-      toast.error('Failed to delete shift');
+      toast.error(error.message || 'Failed to delete shift');
     } finally {
       setSaving(false);
     }
@@ -406,7 +409,7 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
           onBulkAction={onBulkAction}
           onPopulateRoster={onPopulateRoster}
           groupByHouse={staffId === 'all'}
-          houses={houses}
+          houses={houseFilter !== 'all' ? houses.filter(h => h.id === houseFilter) : houses}
           staffList={staff}
           onQuickAssign={handleQuickAssign}
           onEditLeave={handleEditLeave}

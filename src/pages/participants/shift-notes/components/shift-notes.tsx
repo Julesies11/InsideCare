@@ -48,12 +48,12 @@ import { format, parseISO } from 'date-fns';
 import { Alert } from '@/components/ui/alert';
 import { formatTime } from '@/components/roster/roster-utils';
 import { useRBAC } from '@/hooks/useRBAC';
-import { Link } from 'react-router';
+import { Link, useLocation } from 'react-router';
 import { ROUTES } from '@/config/routes.config';
 import { useAuth } from '@/auth/context/auth-context';
 import { SecureAvatar } from '@/components/ui/secure-avatar';
 import { STORAGE_BUCKETS } from '@/config/storage-buckets';
-import { STATUS_FILTERS, StatusFilter, getRowStatus } from '../utils/status-utils';
+import { STATUS_FILTERS, StatusFilter, getRowStatus, isCurrent } from '../utils/status-utils';
 
 const getInitials = (name?: string) => {
   if (!name) return '??';
@@ -72,6 +72,7 @@ interface ShiftNotesProps {
 const ShiftNotes = ({ participantId }: ShiftNotesProps) => {
   const { user } = useAuth();
   const { isAdmin } = useRBAC();
+  const location = useLocation();
 
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
@@ -81,7 +82,7 @@ const ShiftNotes = ({ participantId }: ShiftNotesProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedHouses, setSelectedHouses] = useState<string[]>([]);
   const [selectedStaff, setSelectedStaff] = useState<string[]>([]);
-  const [activeStatusFilters, setActiveStatusFilters] = useState<StatusFilter[]>(['Note Submitted']);
+  const [activeStatusFilters, setActiveStatusFilters] = useState<StatusFilter[]>(['Draft', 'Overdue']);
 
   // If Support Worker, filter by their staffId. If Admin, show all.
   const staffId = isAdmin ? undefined : user?.staff_id;
@@ -91,7 +92,7 @@ const ShiftNotes = ({ participantId }: ShiftNotesProps) => {
     participantId 
   });
   
-  const { houses } = useHouses();
+  const { houses } = useHouses(0, 1000);
   const { staff } = useStaff();
 
   // Filtered data based on search, house, staff, and status filters
@@ -99,7 +100,7 @@ const ShiftNotes = ({ participantId }: ShiftNotesProps) => {
     return tasks.filter((item) => {
       // Status filter
       const status = getRowStatus(item);
-      if (!activeStatusFilters.includes(status)) return false;
+      if (!activeStatusFilters.includes(status as any)) return false;
 
       // House filter
       const matchesHouse =
@@ -157,9 +158,13 @@ const ShiftNotes = ({ participantId }: ShiftNotesProps) => {
           let colorClass = 'bg-gray-200';
           
           switch (status) {
-            case 'Note Submitted': colorClass = 'bg-emerald-500'; break;
-            case 'Draft Note': colorClass = 'bg-amber-400'; break;
-            case 'Missing': colorClass = 'bg-red-600'; break;
+            case 'Completed': colorClass = 'bg-emerald-500'; break;
+            case 'Draft': colorClass = 'bg-amber-400'; break;
+            case 'Overdue': {
+              const isCurr = isCurrent(row.original.start_date, row.original.end_date, row.original.start_time, row.original.end_time);
+              colorClass = isCurr ? 'bg-violet-500' : 'bg-red-600';
+              break;
+            }
             case 'Current Shift': colorClass = 'bg-gray-400'; break;
             case 'Upcoming': colorClass = 'bg-gray-200'; break;
           }
@@ -186,7 +191,11 @@ const ShiftNotes = ({ participantId }: ShiftNotesProps) => {
               })();
 
           return (
-            <Link to={detailUrl} className="flex flex-col gap-0.5 group w-fit">
+            <Link 
+              to={detailUrl} 
+              state={{ from: location.pathname + location.search }}
+              className="flex flex-col gap-0.5 group w-fit"
+            >
               <span className="font-medium text-sm text-blue-700 dark:text-blue-400 group-hover:underline transition-colors">
                 {format(parseISO(row.original.start_date), 'dd MMM yyyy')}
               </span>
@@ -282,9 +291,17 @@ const ShiftNotes = ({ participantId }: ShiftNotesProps) => {
           let badge = null;
 
           switch (status) {
-            case 'Note Submitted': badge = <Badge variant="success" appearance="light">Note Submitted</Badge>; break;
-            case 'Draft Note': badge = <Badge variant="warning" appearance="light">Draft Note</Badge>; break;
-            case 'Missing': badge = <Badge variant="destructive" appearance="light">Missing</Badge>; break;
+            case 'Completed': badge = <Badge variant="success" appearance="light">Completed</Badge>; break;
+            case 'Draft': badge = <Badge variant="warning" appearance="light">Draft</Badge>; break;
+            case 'Overdue': {
+              const isCurr = isCurrent(row.original.start_date, row.original.end_date, row.original.start_time, row.original.end_time);
+              if (isCurr) {
+                badge = <Badge variant="info" appearance="light">In Progress</Badge>;
+              } else {
+                badge = <Badge variant="destructive" appearance="light">Overdue</Badge>;
+              }
+              break;
+            }
             case 'Current Shift': badge = <Badge variant="secondary" appearance="light">Current Shift</Badge>; break;
             case 'Upcoming': badge = <Badge variant="outline" appearance="light">Upcoming</Badge>; break;
           }

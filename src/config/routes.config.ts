@@ -59,6 +59,7 @@ export const ROUTES = {
   ACCESS_CONTROL: '/access-control',
   CHECKLIST_TEMPLATES: '/checklist-templates',
   LEAVE_TYPES: '/admin/leave-types',
+  COMPLIANCE_SETTINGS: '/admin/compliance-settings',
   ACTIVITY_LOG: '/activity-log',
 
   // Staff Portal Extras

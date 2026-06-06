@@ -21,7 +21,10 @@ export function PersonalDetails({
   onFormChange,
   validationErrors = {},
 }: PersonalDetailsProps) {
-  const { houses } = useHouses();
+  const { houses: allHouses } = useHouses(0, 1000);
+  const houses = (allHouses || []).filter(
+    (house) => house.status === 'active' || house.id === formData.house_id
+  );
 
   const handlePhotoChange = (file: File | null, dataURL: string | null) => {
     // Store the file and dataURL locally, will upload when Save is clicked
@@ -198,7 +201,7 @@ export function PersonalDetails({
               <SelectContent>
                 {houses?.map((house) => (
                   <SelectItem key={house.id} value={house.id}>
-                    {house.house_name}
+                    {house.house_name}{house.status !== 'active' ? ` (${house.status})` : ''}
                   </SelectItem>
                 ))}
               </SelectContent>

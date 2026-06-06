@@ -26,7 +26,7 @@ export function ShiftNoteOverviewSection({
   isParticipantLocked = false,
 }: ShiftNoteOverviewSectionProps) {
   const { staff } = useStaff();
-  const { houses } = useHouses();
+  const { houses } = useHouses(0, 1000);
 
   // Filter participants to only show active ones from the selected house (if any)
   const { participants } = useParticipants(0, 1000, [], {

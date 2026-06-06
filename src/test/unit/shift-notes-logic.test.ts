@@ -44,23 +44,23 @@ describe('Shift Notes Status Logic', () => {
   });
 
   describe('getRowStatus', () => {
-    it('returns "Note Submitted" if note_id exists and status is active', () => {
+    it('returns "Completed" if note_id exists and status is active', () => {
       const task = { ...baseTask, note_id: 'n-1', note_status: 'active' };
-      expect(getRowStatus(task, mockNow)).toBe('Note Submitted');
+      expect(getRowStatus(task, mockNow)).toBe('Completed');
     });
 
-    it('returns "Draft Note" if note_id exists and status is draft', () => {
+    it('returns "Draft" if note_id exists and status is draft', () => {
       const task = { ...baseTask, note_id: 'n-1', note_status: 'draft' };
-      expect(getRowStatus(task, mockNow)).toBe('Draft Note');
+      expect(getRowStatus(task, mockNow)).toBe('Draft');
     });
 
-    it('returns "Missing" if shift is past and no note_id', () => {
+    it('returns "Overdue" if shift is past and no note_id', () => {
       const task = { ...baseTask, start_date: '2026-06-03' };
-      expect(getRowStatus(task, mockNow)).toBe('Missing');
+      expect(getRowStatus(task, mockNow)).toBe('Overdue');
     });
 
-    it('returns "Current Shift" if shift is current and no note_id', () => {
-      expect(getRowStatus(baseTask, mockNow)).toBe('Current Shift');
+    it('returns "Overdue" if shift is current and no note_id', () => {
+      expect(getRowStatus(baseTask, mockNow)).toBe('Overdue');
     });
 
     it('returns "Upcoming" if shift is in the future and no note_id', () => {

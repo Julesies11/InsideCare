@@ -480,6 +480,57 @@ export type Database = {
           },
         ]
       }
+      ic_compliance_types_master: {
+        Row: {
+          compliance_name: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          is_default_global: boolean | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          compliance_name: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_default_global?: boolean | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          compliance_name?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_default_global?: boolean | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ic_compliance_types_master_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_compliance_types_master_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ic_contact_types_master: {
         Row: {
           contact_type_name: string
@@ -1604,6 +1655,65 @@ export type Database = {
             columns: ["house_id"]
             isOneToOne: false
             referencedRelation: "ic_houses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ic_house_compliance_requirements: {
+        Row: {
+          compliance_type_id: string
+          created_at: string | null
+          created_by: string | null
+          house_id: string
+          id: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          compliance_type_id: string
+          created_at?: string | null
+          created_by?: string | null
+          house_id: string
+          id?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          compliance_type_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          house_id?: string
+          id?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ic_house_compliance_requirements_compliance_type_id_fkey"
+            columns: ["compliance_type_id"]
+            isOneToOne: false
+            referencedRelation: "ic_compliance_types_master"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_house_compliance_requirements_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_house_compliance_requirements_house_id_fkey"
+            columns: ["house_id"]
+            isOneToOne: false
+            referencedRelation: "ic_houses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_house_compliance_requirements_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
             referencedColumns: ["id"]
           },
         ]
@@ -5311,6 +5421,7 @@ export type Database = {
         Row: {
           completion_date: string | null
           compliance_name: string
+          compliance_type_id: string | null
           created_at: string | null
           created_by: string | null
           expiry_date: string | null
@@ -5323,6 +5434,7 @@ export type Database = {
         Insert: {
           completion_date?: string | null
           compliance_name: string
+          compliance_type_id?: string | null
           created_at?: string | null
           created_by?: string | null
           expiry_date?: string | null
@@ -5335,6 +5447,7 @@ export type Database = {
         Update: {
           completion_date?: string | null
           compliance_name?: string
+          compliance_type_id?: string | null
           created_at?: string | null
           created_by?: string | null
           expiry_date?: string | null
@@ -5357,6 +5470,13 @@ export type Database = {
             columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_staff_compliance_compliance_type_id_fkey"
+            columns: ["compliance_type_id"]
+            isOneToOne: false
+            referencedRelation: "ic_compliance_types_master"
             referencedColumns: ["id"]
           },
           {

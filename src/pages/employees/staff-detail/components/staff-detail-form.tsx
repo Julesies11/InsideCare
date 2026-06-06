@@ -130,9 +130,10 @@ export function StaffDetailForm({
       {/* 5. Compliance */}
       {canViewCompliance && (
         <StaffComplianceSection
-          formData={formData}
-          onFormChange={handleFormChange}
+          staffId={staffId}
           canEdit={canEditCompliance}
+          pendingChanges={pendingChanges}
+          onPendingChangesChange={onPendingChangesChange}
         />
       )}
 

@@ -82,6 +82,11 @@ export function HouseDetailSidebar() {
       hidden: !hasAccess({ resource: RBAC_MODULES.HOUSE_STAFF, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY }),
     },
     {
+      title: 'Compliance Requirements',
+      target: 'compliance_settings',
+      hidden: !hasAccess({ resource: RBAC_MODULES.HOUSES, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY }),
+    },
+    {
       title: 'Activity Log',
       target: 'activity_log',
       hidden: !hasAccess({ resource: RBAC_MODULES.HOUSE_ACTIVITY_LOG, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY }),

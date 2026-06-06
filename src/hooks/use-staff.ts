@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { staffApi, StaffUpdateData, StaffFilter, StaffSort, StaffStatus, StaffCompliance, StaffTraining } from '@/api/staff.api';
 import { syncUserPermissionsByStaffId } from '@/lib/rbac-sync';
+import { staffDetailsApi, StaffComplianceSummaryRow } from '@/api/staff-details.api';
+import { complianceApi } from '@/api/compliance.api';
 import { Database } from '@/models/database.types';
 import { QUERY_KEYS } from '@/config/query-keys';
 
@@ -199,6 +201,27 @@ export function useStaffCompliance(staffId?: string) {
   };
 }
 
+export function useStaffComplianceSummary(staffId?: string) {
+  const query = useQuery({
+    queryKey: [QUERY_KEYS.STAFF_COMPLIANCE_SUMMARY, staffId],
+    queryFn: async () => {
+      if (!staffId) return [];
+      return staffDetailsApi.compliance.getSummary(staffId);
+    },
+    enabled: !!staffId,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+
+  return {
+    ...query,
+    data: query.data || [],
+    isLoading: query.isLoading,
+    loading: query.isLoading,
+    error: query.error ? (query.error as any).message : null,
+    refresh: query.refetch,
+  };
+}
+
 export function useStaffByRole(roleId?: string) {
   const query = useQuery({
     queryKey: [QUERY_KEYS.STAFF, 'by-role', roleId],
@@ -243,4 +266,85 @@ export function useStaffCount(filters: StaffFilter = {}) {
     loading: query.isLoading,
     error: query.error ? (query.error as any).message : null,
   };
+}
+
+export function useRequiredStaffCompliance(staffId?: string) {
+  const query = useQuery({
+    queryKey: [QUERY_KEYS.STAFF_COMPLIANCE, 'required', staffId],
+    queryFn: async () => {
+      if (!staffId) return [];
+      return staffDetailsApi.compliance.listRequired(staffId);
+    },
+    enabled: !!staffId,
+  });
+
+  return {
+    ...query,
+    requiredCompliance: query.data || [],
+    loading: query.isLoading,
+    error: query.error ? (query.error as any).message : null,
+    refresh: query.refetch,
+  };
+}
+
+export function useComplianceTypes(includeInactive = false) {
+  const query = useQuery({
+    queryKey: [QUERY_KEYS.COMPLIANCE_TYPES_MASTER, { includeInactive }],
+    queryFn: () => complianceApi.types.list(includeInactive),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+
+  return {
+    ...query,
+    types: query.data || [],
+    loading: query.isLoading,
+    error: query.error ? (query.error as any).message : null,
+    refresh: query.refetch,
+  };
+}
+
+export function useHouseComplianceRequirements(houseId?: string) {
+  const query = useQuery({
+    queryKey: [QUERY_KEYS.HOUSE_COMPLIANCE_REQUIREMENTS, houseId],
+    queryFn: async () => {
+      if (!houseId) return [];
+      return complianceApi.house.listRequirements(houseId);
+    },
+    enabled: !!houseId,
+    staleTime: 1000 * 60 * 2, // 2 minutes
+  });
+
+  return {
+    ...query,
+    requirements: query.data || [],
+    loading: query.isLoading,
+    error: query.error ? (query.error as any).message : null,
+    refresh: query.refetch,
+  };
+}
+
+export function useAddComplianceType() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (newType: Partial<Database['public']['Tables']['ic_compliance_types_master']['Insert']>) =>
+      complianceApi.types.upsert(newType),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.COMPLIANCE_TYPES_MASTER] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF_COMPLIANCE] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF_COMPLIANCE_SUMMARY] });
+    },
+  });
+}
+
+export function useUpdateComplianceType() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, updates }: { id: string; updates: Partial<Database['public']['Tables']['ic_compliance_types_master']['Update']> }) =>
+      complianceApi.types.upsert({ id, ...updates }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.COMPLIANCE_TYPES_MASTER] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF_COMPLIANCE] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF_COMPLIANCE_SUMMARY] });
+    },
+  });
 }

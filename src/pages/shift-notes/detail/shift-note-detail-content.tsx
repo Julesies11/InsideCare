@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef, MutableRefObject } from 'react';
-import { useParams, useNavigate } from 'react-router';
+import { useParams, useNavigate, useLocation } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { shiftNotesApi } from '@/api/shift-notes.api';
@@ -33,6 +33,7 @@ export function ShiftNoteDetailContent({
 }: ShiftNoteDetailContentProps) {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const queryClient = useQueryClient();
 
   const [loading, setLoading] = useState(true);
@@ -130,13 +131,12 @@ export function ShiftNoteDetailContent({
   const { isShiftLocked, isParticipantLocked } = useMemo(() => {
     const params = new URLSearchParams(window.location.search);
     const queryShiftId = params.get('shiftId');
-    const queryParticipantId = params.get('participantId');
 
     return {
       isShiftLocked: !!queryShiftId || (!isNewNote && !!formData.shift_id),
-      isParticipantLocked: !!queryParticipantId || (!isNewNote && !!formData.participant_id),
+      isParticipantLocked: false,
     };
-  }, [isNewNote, formData.shift_id, formData.participant_id]);
+  }, [isNewNote, formData.shift_id]);
 
   // Auto-populate Mealtime Management from Participant Profile
   const fetchParticipantMtm = async (participantId: string) => {
@@ -338,7 +338,10 @@ export function ShiftNoteDetailContent({
         await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SHIFT_NOTES] });
 
         toast.success('Shift note created successfully');
-        navigate(`${ROUTES.SHIFT_NOTES_DETAIL}/${data.id}`, { replace: true });
+        navigate(`${ROUTES.SHIFT_NOTES_DETAIL}/${data.id}`, { 
+          replace: true,
+          state: { from: location.state?.from }
+        });
       } else {
         await shiftNotesApi.update(id as string, dataToSave);
 

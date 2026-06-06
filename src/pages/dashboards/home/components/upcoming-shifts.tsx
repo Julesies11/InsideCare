@@ -102,14 +102,10 @@ export function UpcomingShifts() {
   const handleDeleteShift = async (shiftId: string) => {
     try {
       await deleteShift(shiftId);
-      
-      const staffMember = staff.find(s => s.id === selectedShift?.staff_id);
-      await deleteShift(shiftId);
-
       toast.success('Shift deleted successfully');
       setShowShiftDialog(false);
-    } catch (error) {
-      toast.error('Failed to delete shift');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to delete shift');
       console.error(error);
     }
   };

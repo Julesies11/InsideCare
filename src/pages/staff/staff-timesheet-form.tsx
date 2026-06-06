@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router';
 import { useAuth } from '@/auth/context/auth-context';
 import { format, parseISO, differenceInMinutes } from 'date-fns';
@@ -24,6 +24,8 @@ import { rosterApi } from '@/api/roster.api';
 import { timesheetsApi } from '@/api/timesheets.api';
 import { shiftNotesApi } from '@/api/shift-notes.api';
 import { staffApi } from '@/api/staff.api';
+import { SecureAvatar } from '@/components/ui/secure-avatar';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 
 interface Shift {
   id: string;
@@ -34,6 +36,7 @@ interface Shift {
   end_time: string;
   shift_template: string;
   house: { house_name: string } | null;
+  participants?: any[];
 }
 
 interface AssignedChecklist {
@@ -41,6 +44,16 @@ interface AssignedChecklist {
   assignment_title: string;
   status?: string;
 }
+
+const getInitials = (name?: string) => {
+  if (!name) return '??';
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+};
 
 export function StaffTimesheetForm() {
   const { shiftId } = useParams<{ shiftId: string }>();
@@ -61,8 +74,7 @@ export function StaffTimesheetForm() {
     navigate(ROUTES.MY_TIMESHEETS, { state: { activeTab: fromTab } });
   };
 
-  const [shiftNoteStatus, setShiftNoteStatus]         = useState<'not_started' | 'draft' | 'completed'>('not_started');
-  const [shiftNoteId, setShiftNoteId]                 = useState<string | null>(null);
+  const [shiftNotes, setShiftNotes]                   = useState<any[]>([]);
   const [actualStart, setActualStart]                 = useState('');
   const [actualEnd, setActualEnd]                     = useState('');
   const [breakMins, setBreakMins]                     = useState('0');
@@ -113,13 +125,10 @@ export function StaffTimesheetForm() {
           }
         }
 
-        if (shiftNoteRes && Array.isArray(shiftNoteRes) && shiftNoteRes.length > 0) {
-          const note = shiftNoteRes[0] as any; // Pick the newest one
-          setShiftNoteId(note.id);
-          const isCompleted = !!(note.overall_presentation || note.shift_summary || note.full_note);
-          setShiftNoteStatus(isCompleted ? 'completed' : 'draft');
+        if (shiftNoteRes && Array.isArray(shiftNoteRes)) {
+          setShiftNotes(shiftNoteRes);
         } else {
-          setShiftNoteStatus('not_started');
+          setShiftNotes([]);
         }
 
         if (tsRes && Array.isArray(tsRes) && tsRes.length > 0) {
@@ -149,6 +158,56 @@ export function StaffTimesheetForm() {
     load();
   }, [shiftId, user?.staff_id]);
 
+  const shiftParticipants = useMemo(() => {
+    if (!shift) return [];
+    return (shift.participants || [])?.map((p: any) => {
+      const part = p.participant || p;
+      const actualPart = Array.isArray(part) ? part[0] : part;
+      return {
+        id: actualPart?.id || p.id || p.participant_id,
+        participant_name: actualPart?.participant_name || p.participant_name,
+        photo_url: actualPart?.photo_url || p.photo_url || null
+      };
+    }).filter((p: any) => p.id && p.participant_name) || [];
+  }, [shift]);
+
+  const participantNotes = useMemo(() => {
+    if (!shift) return [];
+    
+    if (shiftParticipants.length === 0) {
+      // General House Note
+      const note = shiftNotes.find(n => !n.participant_id);
+      const exists = !!note;
+      const isCompleted = exists && !!(note.overall_presentation || note.shift_summary || note.full_note);
+      const status: 'Completed' | 'Draft' | 'Overdue' = isCompleted ? 'Completed' : (exists ? 'Draft' : 'Overdue');
+      return [{
+        id: 'general',
+        participant_name: 'General House Note',
+        status,
+        noteId: note?.id || null,
+        photo_url: null
+      }];
+    }
+
+    return shiftParticipants.map(p => {
+      const note = shiftNotes.find(n => n.participant_id === p.id);
+      const exists = !!note;
+      const isCompleted = exists && !!(note.overall_presentation || note.shift_summary || note.full_note);
+      const status: 'Completed' | 'Draft' | 'Overdue' = isCompleted ? 'Completed' : (exists ? 'Draft' : 'Overdue');
+      return {
+        id: p.id,
+        participant_name: p.participant_name,
+        photo_url: p.photo_url,
+        status,
+        noteId: note?.id || null
+      };
+    });
+  }, [shift, shiftParticipants, shiftNotes]);
+
+  const allNotesCompleted = useMemo(() => {
+    return participantNotes.every(pn => pn.status === 'Completed');
+  }, [participantNotes]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user?.staff_id || !shiftId || !shift) return;
@@ -160,17 +219,6 @@ export function StaffTimesheetForm() {
         action: {
           label: 'Go to Checklists',
           onClick: () => navigate(ROUTES.MY_CHECKLISTS)
-        }
-      });
-      return;
-    }
-    
-    if (shiftNoteStatus !== 'completed') {
-      toast.error('Shift Note Incomplete', {
-        description: 'Please complete your comprehensive Shift Note before submitting your timesheet.',
-        action: {
-          label: 'Complete Note',
-          onClick: () => navigate(`${ROUTES.SHIFT_NOTES_DETAIL}/${shiftNoteId || 'new'}?shiftId=${shiftId}&staffId=${user?.staff_id || ''}`)
         }
       });
       return;
@@ -300,43 +348,67 @@ export function StaffTimesheetForm() {
 
           <Card className={cn(
               "border-0 sm:border",
-              shiftNoteStatus === 'completed' ? "border-green-200 bg-green-50/10" : "border-orange-200 bg-orange-50/10"
+              allNotesCompleted ? "border-green-200 bg-green-50/10" : "border-orange-200 bg-orange-50/10"
             )}>
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <FileText className={cn(
                     "size-4",
-                    shiftNoteStatus === 'completed' ? "text-green-600" : "text-orange-600"
+                    allNotesCompleted ? "text-green-600" : "text-orange-600"
                   )} />
                   Clinical Documentation
                 </CardTitle>
-                {!isReadOnly && <Badge variant={shiftNoteStatus === 'completed' ? "success" : "warning"} appearance="light" className="text-xs">
-                  {shiftNoteStatus === 'completed' ? 'Completed' : 'Required'}
+                {!isReadOnly && <Badge variant={allNotesCompleted ? "success" : "warning"} appearance="light" className="text-xs">
+                  {allNotesCompleted ? 'Completed' : 'Action Recommended'}
                 </Badge>}
               </div>
               <p className="text-sm text-muted-foreground mt-1">
-                You must complete your comprehensive Shift Note before submitting your timesheet.
+                {allNotesCompleted 
+                  ? 'All required shift notes for this shift are completed.' 
+                  : 'Please complete a shift note for each participant. This is recommended before submitting your timesheet.'}
               </p>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-between p-4 bg-white border rounded-lg">
-                <div className="flex flex-col gap-1">
-                  <span className="text-sm font-medium text-gray-900">Shift Note Detail</span>
-                  <span className="text-xs text-gray-500">
-                    {shiftNoteStatus === 'completed' 
-                      ? 'Documentation has been completed and saved.'
-                      : 'Please complete all required fields in the shift note.'}
-                  </span>
-                </div>
-                <Button
-                  type="button"
-                  variant={isReadOnly || shiftNoteStatus === 'completed' ? 'outline' : 'primary'}
-                  size="sm"
-                  onClick={() => navigate(`${ROUTES.SHIFT_NOTES_DETAIL}/${shiftNoteId || 'new'}?shiftId=${shiftId}&staffId=${user?.staff_id || ''}`)}
-                >
-                  {isReadOnly ? 'View Note' : shiftNoteStatus === 'completed' ? 'Edit Note' : 'Complete Note'}
-                </Button>
+              <div className="divide-y border rounded-lg bg-white overflow-hidden">
+                {participantNotes.map((pn) => (
+                  <div key={pn.id} className="flex items-center justify-between p-3">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      {pn.id !== 'general' ? (
+                        <SecureAvatar 
+                          src={pn.photo_url} 
+                          initials={getInitials(pn.participant_name)} 
+                          className="size-6 shrink-0"
+                          bucket={STORAGE_BUCKETS.PARTICIPANT_PHOTOS} 
+                        />
+                      ) : (
+                        <div className="size-6 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+                          <FileText className="size-3 text-gray-500" />
+                        </div>
+                      )}
+                      <span className="text-sm font-medium text-gray-700 truncate">{pn.participant_name}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Badge 
+                        variant={pn.status === 'Completed' ? 'success' : pn.status === 'Draft' ? 'warning' : 'destructive'} 
+                        appearance="light" 
+                        className="text-[10px] font-bold uppercase shrink-0"
+                      >
+                        {pn.status}
+                      </Badge>
+                      <Button
+                        type="button"
+                        variant={isReadOnly || pn.status === 'Completed' ? 'outline' : 'primary'}
+                        size="xs"
+                        onClick={() => navigate(`${ROUTES.SHIFT_NOTES_DETAIL}/${pn.noteId || 'new'}?shiftId=${shiftId}&staffId=${user?.staff_id || ''}${pn.id !== 'general' ? `&participantId=${pn.id}` : ''}`, {
+                          state: { from: location.pathname + location.search }
+                        })}
+                      >
+                        {isReadOnly ? 'View' : pn.status === 'Completed' ? 'Edit' : 'Complete'}
+                      </Button>
+                    </div>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
@@ -553,7 +625,7 @@ export function StaffTimesheetForm() {
                   disabled={saving} 
                   className={cn(
                     "flex-1 sm:flex-none sm:min-w-[160px]",
-                    (assignedChecklists.some(cl => cl.status !== 'completed') || shiftNoteStatus !== 'completed') && "opacity-50 grayscale cursor-not-allowed"
+                    assignedChecklists.some(cl => cl.status !== 'completed') && "opacity-50 grayscale cursor-not-allowed"
                   )}
                 >
                   {saving ? 'Submitting...' : 'Submit Timesheet'}

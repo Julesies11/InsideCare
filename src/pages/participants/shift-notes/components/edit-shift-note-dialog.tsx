@@ -65,7 +65,7 @@ export function EditShiftNoteDialog({
 }: EditShiftNoteDialogProps) {
   const { data: staffData } = useStaff();
   const staff = staffData?.data || [];
-  const { houses } = useHouses();
+  const { houses } = useHouses(0, 1000);
   const { hasAccess } = useRBAC();
 
   const [formData, setFormData] = useState<ShiftNoteUpdateData>({

@@ -11,6 +11,7 @@ import { BulkActionModal } from './components/BulkActionModal';
 import { PopulateRosterModal } from '@/pages/houses/detail/components/PopulateRosterModal';
 import { RBAC_MODULES } from '@/config/rbac-modules';
 import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
+import { useSearchParams } from 'react-router';
 
 export function RosterBoardContent() {
   const { hasAccess } = useRBAC();
@@ -20,14 +21,75 @@ export function RosterBoardContent() {
   });
 
   const calendarRef = useRef<StaffRosterCalendarHandle>(null);
-  const [viewMode, setViewMode] = useState<ViewMode>('week');
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedStaffId, setSelectedStaffId] = useState<string>('all');
-  const [showLeave, setShowLeave] = useState(true);
   
-  const [houseFilter, setHouseFilter] = useState<string>('all');
-  const [participantFilter, setParticipantFilter] = useState<string>('all');
-  const [shiftTemplateFilter, setShiftTemplateFilter] = useState<string>('all');
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Parse search parameters
+  const viewMode = useMemo(() => {
+    const val = searchParams.get('viewMode');
+    if (val === 'today' || val === 'week' || val === 'month') return val as ViewMode;
+    return 'week';
+  }, [searchParams]);
+
+  const currentDate = useMemo(() => {
+    const val = searchParams.get('date');
+    if (val) {
+      const parsed = new Date(val + 'T00:00:00');
+      if (!isNaN(parsed.getTime())) return parsed;
+    }
+    return new Date();
+  }, [searchParams]);
+
+  const selectedStaffId = useMemo(() => searchParams.get('staffFilter') || 'all', [searchParams]);
+  const showLeave = useMemo(() => searchParams.get('showLeave') !== 'false', [searchParams]);
+  const houseFilter = useMemo(() => searchParams.get('houseFilter') || 'all', [searchParams]);
+  const participantFilter = useMemo(() => searchParams.get('participantFilter') || 'all', [searchParams]);
+  const shiftTemplateFilter = useMemo(() => searchParams.get('shiftTemplateFilter') || 'all', [searchParams]);
+
+  // URL State updates
+  const updateUrlParam = useCallback((key: string, value: string | boolean) => {
+    const newParams = new URLSearchParams(searchParams);
+    if (value === undefined || value === null || value === 'all' || value === '' || (key === 'showLeave' && value === true)) {
+      newParams.delete(key);
+    } else {
+      newParams.set(key, String(value));
+    }
+    setSearchParams(newParams, { replace: true });
+  }, [searchParams, setSearchParams]);
+
+  const setViewMode = useCallback((mode: ViewMode) => {
+    updateUrlParam('viewMode', mode);
+  }, [updateUrlParam]);
+
+  const setCurrentDate = useCallback((date: Date | ((prev: Date) => Date)) => {
+    let nextDate: Date;
+    if (typeof date === 'function') {
+      nextDate = date(currentDate);
+    } else {
+      nextDate = date;
+    }
+    updateUrlParam('date', format(nextDate, 'yyyy-MM-dd'));
+  }, [currentDate, updateUrlParam]);
+
+  const setSelectedStaffId = useCallback((val: string) => {
+    updateUrlParam('staffFilter', val);
+  }, [updateUrlParam]);
+
+  const setShowLeave = useCallback((val: boolean) => {
+    updateUrlParam('showLeave', val);
+  }, [updateUrlParam]);
+
+  const setHouseFilter = useCallback((val: string) => {
+    updateUrlParam('houseFilter', val);
+  }, [updateUrlParam]);
+
+  const setParticipantFilter = useCallback((val: string) => {
+    updateUrlParam('participantFilter', val);
+  }, [updateUrlParam]);
+
+  const setShiftTemplateFilter = useCallback((val: string) => {
+    updateUrlParam('shiftTemplateFilter', val);
+  }, [updateUrlParam]);
 
   const { houseChecklists } = useHouseChecklists();
   const { 
@@ -48,12 +110,14 @@ export function RosterBoardContent() {
 
   const handleBulkAction = useCallback(async (params: any, action: 'update' | 'delete', updates?: any) => {
     try {
+      let result;
       if (action === 'delete') {
-        await bulkDeleteShifts(params);
+        result = await bulkDeleteShifts(params);
       } else {
-        await bulkUpdateShifts(params, updates);
+        result = await bulkUpdateShifts(params, updates);
       }
       calendarRef.current?.refresh();
+      return result;
     } catch (error) {
       throw error;
     }

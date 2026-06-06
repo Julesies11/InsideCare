@@ -1,5 +1,5 @@
 import { Fragment, useState, useRef, useCallback, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router';
+import { useNavigate, useParams, useLocation } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { Container } from '@/components/common/container';
 import { Button } from '@/components/ui/button';
@@ -41,6 +41,7 @@ const stickySidebarClasses: Record<string, string> = {
 
 export function ShiftNoteDetailPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const queryClient = useQueryClient();
   const { settings } = useSettings();
   const { id } = useParams();
@@ -96,15 +97,20 @@ export function ShiftNoteDetailPage() {
     // Refresh the table data before going back
     await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SHIFT_NOTES] });
 
-    // If we have a participant context, go back to their detail page
-    const participantId = formData?.participant_id || new URLSearchParams(window.location.search).get('participantId');
-    if (participantId) {
-      navigate(`${ROUTES.PARTICIPANT_DETAIL}/${participantId}?tab=shift_notes`);
+    const fromPath = location.state?.from;
+    if (fromPath) {
+      navigate(fromPath);
     } else {
-      // Navigate back to the general shift notes list
-      navigate(ROUTES.SHIFT_NOTES);
+      // If we have a participant context, go back to their detail page
+      const participantId = formData?.participant_id || new URLSearchParams(window.location.search).get('participantId');
+      if (participantId) {
+        navigate(`${ROUTES.PARTICIPANT_DETAIL}/${participantId}?tab=shift_notes`);
+      } else {
+        // Navigate back to the general shift notes list
+        navigate(ROUTES.SHIFT_NOTES);
+      }
     }
-  }, [navigate, isDirty, queryClient, formData]);
+  }, [navigate, isDirty, queryClient, formData, location]);
 
   const handleSave = async () => {
     if (saveHandlerRef.current) {
@@ -127,11 +133,16 @@ export function ShiftNoteDetailPage() {
 
       toast.success('Shift note deleted successfully');
       
-      const participantId = formData?.participant_id || new URLSearchParams(window.location.search).get('participantId');
-      if (participantId) {
-        navigate(`${ROUTES.PARTICIPANT_DETAIL}/${participantId}?tab=shift_notes`);
+      const fromPath = location.state?.from;
+      if (fromPath) {
+        navigate(fromPath);
       } else {
-        navigate(ROUTES.SHIFT_NOTES);
+        const participantId = formData?.participant_id || new URLSearchParams(window.location.search).get('participantId');
+        if (participantId) {
+          navigate(`${ROUTES.PARTICIPANT_DETAIL}/${participantId}?tab=shift_notes`);
+        } else {
+          navigate(ROUTES.SHIFT_NOTES);
+        }
       }
     } catch (err: any) {
       console.error('Error deleting shift note:', err);

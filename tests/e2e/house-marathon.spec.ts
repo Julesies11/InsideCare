@@ -84,7 +84,7 @@ test.describe('House Detail Marathon CRUD', () => {
     await page.getByText(/Comms/i).first().click();
     await page.getByRole('button', { name: /Add Entry/i }).click();
     await page.locator('textarea#comm_content').fill('Initial setup log entry for house audit.');
-    await page.getByRole('button', { name: /Add to Queue/i }).click();
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
     await expect(page.getByText('Initial setup log entry')).toBeVisible();
 
     // 8. Staff Assignment

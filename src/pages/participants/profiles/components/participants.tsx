@@ -142,7 +142,7 @@ const Participants = () => {
 
   console.log('[DEBUG] Participants rendering:', { pCount: participants.length, count, loading, error, filters });
 
-  const { data: housesData } = useHouses();
+  const { data: housesData } = useHouses(0, 1000);
   const houses = useMemo(() => housesData?.data || [], [housesData]);
 
   // Count of participants per house (This still uses the full list if we want accurate badges, 

@@ -44,9 +44,12 @@ export const QUERY_KEYS = {
   BEHAVIOUR_TYPES_MASTER: 'behaviour-types-master',
   INCIDENT_TYPES_MASTER: 'incident-types-master',
   RESTRICTIVE_PRACTICE_TYPES_MASTER: 'restrictive-practice-types-master',
+  COMPLIANCE_TYPES_MASTER: 'compliance-types-master',
+  HOUSE_COMPLIANCE_REQUIREMENTS: 'house-compliance-requirements',
 
   // Sub-entities
   STAFF_COMPLIANCE: 'staff-compliance',
+  STAFF_COMPLIANCE_SUMMARY: 'staff-compliance-summary',
   STAFF_TRAINING: 'staff-training',
   STAFF_DOCUMENTS: 'staff-documents',
   PARTICIPANT_CONTACTS: 'participant-contacts',

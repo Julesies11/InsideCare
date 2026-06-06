@@ -35,12 +35,13 @@ For detailed information on the project architecture, database, and features, re
 # ===============================
 # 4. DATABASE STANDARDS
 # ===============================
-- **Source of Truth**: Before generating any SQL, migrations, or RLS policies, you **MUST** read:
-    - `migrations/schema_metadata.json`: For exact table names, columns, and types.
-    - `migrations/current_database_rbac.json`: For current RLS policies and RBAC state.
+- **Source of Truth**: To view the live database schema (updated manually by the user running a query), you **MUST** read:
+    - `docs/database_schema/dev/schema_metadata.json`: For exact live table names, columns, and types.
+    - `docs/database_schema/dev/current_database_rbac.json`: For live RLS policies and RBAC state.
 - **Prefixing Requirement**: To support a shared database environment with multiple applications, ALL database objects (tables, enums, functions, triggers, and storage buckets) MUST be prefixed with `ic_`.
     - Example: `ic_participants`, `ic_status_enum`, `ic_trigger_sync_staff`.
     - Edge Functions must be prefixed with `ic-`.
+- **No Reserved Words in Columns**: NEVER use reserved Postgres keywords (like `'name'`) as column names. Always prefix/suffix them to be context-specific (e.g., `'compliance_name'`, `'house_name'`, `'leave_type_name'`).
 - **No Hard-coding Roles/Permissions**: 
     - NEVER hard-code role names (e.g., 'Admin', 'Staff') in Edge Functions or SQL. Roles are database-driven.
     - NEVER hard-code permission levels.

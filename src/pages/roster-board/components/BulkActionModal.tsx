@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Trash2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useHouseShiftTemplates } from '@/hooks/use-house-shift-templates';
 
 interface BulkActionModalProps {
   open: boolean;
@@ -40,6 +41,14 @@ export function BulkActionModal({
     endDate: initialFilters?.endDate || new Date().toISOString().split('T')[0],
   });
 
+  const { shiftTemplates: houseTemplates } = useHouseShiftTemplates(
+    filters.houseId !== 'all' ? filters.houseId : undefined
+  );
+
+  const displayTemplates = filters.houseId !== 'all'
+    ? houseTemplates.map(t => ({ id: t.id, name: t.shift_template_name }))
+    : shiftTemplates;
+
   const selectedHouse = houses.find(h => h.id === filters.houseId);
   const houseName = selectedHouse ? selectedHouse.name : (filters.houseId === 'all' ? 'All Houses' : 'Selected House');
 
@@ -54,8 +63,12 @@ export function BulkActionModal({
 
     setIsSubmitting(true);
     try {
-      await onConfirm(filters, 'delete');
-      toast.success(`Deletion completed successfully`);
+      const result = await onConfirm(filters, 'delete');
+      if (result && result.skippedCount > 0) {
+        toast.warning(`Deleted ${result.deletedCount} shifts. Skipped ${result.skippedCount} shifts with notes, timesheets, or checklists.`);
+      } else {
+        toast.success(`Deleted ${result?.deletedCount || 0} shifts successfully.`);
+      }
       onClose();
     } catch (error: any) {
       console.error('Deletion failed:', error);
@@ -91,7 +104,7 @@ export function BulkActionModal({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Types</SelectItem>
-                {shiftTemplates.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+                {displayTemplates.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>

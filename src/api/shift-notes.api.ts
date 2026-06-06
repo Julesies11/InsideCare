@@ -150,36 +150,39 @@ export const shiftNotesApi = {
       } else {
         // Filter out participants if we are looking for a specific one
         const filteredParticipants = participantId 
-          ? shiftParticipants.filter((p: any) => p.participant?.id === participantId)
+          ? shiftParticipants.filter((p: any) => {
+              const part = p.participant || p;
+              const actualPart = Array.isArray(part) ? part[0] : part;
+              return actualPart?.id === participantId;
+            })
           : shiftParticipants;
 
-        if (filteredParticipants.length === 0) return;
+        filteredParticipants.forEach((sp: any) => {
+          const part = sp.participant || sp;
+          const actualPart = Array.isArray(part) ? part[0] : part;
+          if (!actualPart) return;
 
-        // Find a relevant note for status tracking:
-        // 1. If we are filtering by participantId, find a note for THAT participant.
-        // 2. Otherwise, find ANY note for this shift.
-        const note = participantId 
-          ? (shift as any).notes?.find((n: any) => n.participant_id === participantId)
-          : (shift as any).notes?.[0];
-        
-        tasks.push({
-          id: shift.id,
-          shift_id: shift.id,
-          participant_id: filteredParticipants[0]?.participant?.id || null,
-          participant_name: participantNames,
-          participant_names: participantNames,
-          participant_photo_url: filteredParticipants[0]?.participant?.photo_url || null,
-          staff_id: shift.staff_id,
-          staff_name: (shift as any).staff?.staff_name,
-          staff_photo_url: (shift as any).staff?.photo_url,
-          house_id: shift.house_id,
-          house_name: (shift as any).house?.house_name,
-          start_date: shift.start_date,
-          start_time: shift.start_time,
-          end_time: shift.end_time,
-          shift_template: shift.shift_template,
-          note_id: note?.id,
-          note_status: note?.status || null
+          const note = (shift as any).notes?.find((n: any) => n.participant_id === actualPart.id);
+          
+          tasks.push({
+            id: `${shift.id}-${actualPart.id}`,
+            shift_id: shift.id,
+            participant_id: actualPart.id,
+            participant_name: actualPart.participant_name,
+            participant_names: actualPart.participant_name,
+            participant_photo_url: actualPart.photo_url || null,
+            staff_id: shift.staff_id,
+            staff_name: (shift as any).staff?.staff_name,
+            staff_photo_url: (shift as any).staff?.photo_url,
+            house_id: shift.house_id,
+            house_name: (shift as any).house?.house_name,
+            start_date: shift.start_date,
+            start_time: shift.start_time,
+            end_time: shift.end_time,
+            shift_template: shift.shift_template,
+            note_id: note?.id,
+            note_status: note?.status || null
+          });
         });
       }
     });

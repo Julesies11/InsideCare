@@ -16,11 +16,11 @@ As of **May 31, 2026**, the application has achieved **100% DAL adherence** for 
 
 ## Database Source of Truth
 The schema source of truth is maintained in:
-- **Directory:** `docs/database_schema/`
-- **Schema Metadata:** `docs/database_schema/schema_metadata.json` (Tables, Columns, Enums, Logic).
-- **RBAC Policies:** `docs/database_schema/current_database_rbac.json` (Live RLS policy state).
+- **Directory:** `docs/database_schema/dev/`
+- **Schema Metadata:** `docs/database_schema/dev/schema_metadata.json` (Tables, Columns, Enums, Logic).
+- **RBAC Policies:** `docs/database_schema/dev/current_database_rbac.json` (Live RLS policy state).
 
-**AI Workflow:** Before generating any SQL, always audit these metadata files.
+**AI Workflow:** Before generating any SQL, always audit these live metadata files.
 
 ### Security Model (Gold Standard RLS)
 The project employs a **Gold Standard RLS architecture**:

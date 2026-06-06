@@ -4,6 +4,7 @@
 export interface PendingStaffCompliance {
   tempId?: string;
   id?: string;
+  compliance_type_id?: string | null;
   compliance_name: string;
   completion_date?: string | null;
   expiry_date?: string | null;

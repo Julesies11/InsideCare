@@ -42,7 +42,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { useShiftNotes, ShiftNote } from '@/hooks/use-shift-notes';
 import { useHouses } from '@/hooks/use-houses';
 import { useStaff } from '@/hooks/use-staff';
-import { Link } from 'react-router';
+import { Link, useLocation } from 'react-router';
 import { format } from 'date-fns';
 import { ROUTES } from '@/config/routes.config';
 import { SecureAvatar } from '@/components/ui/secure-avatar';
@@ -60,8 +60,9 @@ const getInitials = (name?: string) => {
 
 const ShiftNotes = () => {
   const { shiftNotes, loading, error } = useShiftNotes();
-  const { houses } = useHouses();
+  const { houses } = useHouses(0, 1000);
   const { staff } = useStaff();
+  const location = useLocation();
 
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
@@ -142,6 +143,7 @@ const ShiftNotes = () => {
         cell: ({ row }) => (
           <Link 
             to={`${ROUTES.SHIFT_NOTES_DETAIL}/${row.original.id}`}
+            state={{ from: location.pathname + location.search }}
             className="text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline transition-colors break-words whitespace-normal w-full max-w-full block text-left"
           >
             {format(new Date(row.original.start_date), 'MMM dd, yyyy')}

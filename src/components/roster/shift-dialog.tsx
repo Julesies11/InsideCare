@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { format } from 'date-fns';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -49,7 +50,7 @@ interface ShiftDialogProps {
   shift?: any;
   onSave: (data: ShiftFormData) => Promise<void>;
   onDelete?: (id: string) => Promise<void>;
-  preSelectedDate?: string;
+  preSelectedDate?: string | Date;
   preSelectedHouseId?: string;
   preSelectedShiftTemplateId?: string;
   staffId?: string | null;
@@ -175,7 +176,27 @@ export function ShiftDialog({
           entry_type: shift.entry_type || 'shift',
         });
       } else {
-        const initialDate = preSelectedDate || new Date().toISOString().split('T')[0];
+        let initialDate = '';
+        if (preSelectedDate) {
+          if (preSelectedDate instanceof Date) {
+            initialDate = format(preSelectedDate, 'yyyy-MM-dd');
+          } else {
+            const dateStr = String(preSelectedDate);
+            const match = dateStr.match(/^(\d{4}-\d{2}-\d{2})/);
+            if (match) {
+              initialDate = match[1];
+            } else {
+              const parsed = new Date(dateStr);
+              if (!isNaN(parsed.getTime())) {
+                initialDate = format(parsed, 'yyyy-MM-dd');
+              } else {
+                initialDate = dateStr;
+              }
+            }
+          }
+        } else {
+          initialDate = format(new Date(), 'yyyy-MM-dd');
+        }
         const initialHouseId = preSelectedHouseId || null;
         
         // Auto-select all active participants for the house

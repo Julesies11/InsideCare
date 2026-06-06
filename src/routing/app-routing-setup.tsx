@@ -44,6 +44,7 @@ const StaffChecklists = lazy(() => import('@/pages/staff').then(m => ({ default:
 
 const ChecklistMasterPage = lazy(() => import('@/pages/admin/checklists/checklist-master-page').then(m => ({ default: m.ChecklistMasterPage })));
 const LeaveTypeMasterPage = lazy(() => import('@/pages/admin/leave-types/leave-type-master-page').then(m => ({ default: m.LeaveTypeMasterPage })));
+const ComplianceSettingsPage = lazy(() => import('@/pages/admin/compliance-settings/compliance-settings-page').then(m => ({ default: m.ComplianceSettingsPage })));
 const RolesPage = lazy(() => import('@/pages/admin/roles/roles-page').then(m => ({ default: m.RolesPage })));
 const ActivityLogPage = lazy(() => import('@/pages/admin/activity-log/activity-log-page').then(m => ({ default: m.ActivityLogPage })));
 const ReportingHubPage = lazy(() => import('@/pages/admin/reporting/reporting-hub-page').then(m => ({ default: m.ReportingHubPage })));
@@ -182,6 +183,10 @@ export function AppRoutingSetup() {
                 <Route
                   path={ROUTES.LEAVE_TYPES}
                   element={<LeaveTypeMasterPage />}
+                />
+                <Route
+                  path={ROUTES.COMPLIANCE_SETTINGS}
+                  element={<ComplianceSettingsPage />}
                 />
               </Route>
               <Route
