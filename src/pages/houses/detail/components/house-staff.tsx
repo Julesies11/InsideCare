@@ -13,7 +13,7 @@ import { Plus, Edit, Trash2, Clock, Star } from 'lucide-react';
 import { Link } from 'react-router';
 import { ROUTES } from '@/config/routes.config';
 import { useHouseStaffAssignments } from '@/hooks/use-house-staff-assignments';
-import { useStaff } from '@/hooks/use-staff';
+import { useActiveStaff } from '@/hooks/use-staff';
 import { StaffCombobox } from './staff-combobox';
 import { HousePendingChanges } from '@/models/house-pending-changes';
 import { STORAGE_BUCKETS } from '@/config/storage-buckets';
@@ -45,7 +45,7 @@ export function HouseStaff({
   });
 
   const { data: houseStaffAssignments = [], isLoading: loading } = useHouseStaffAssignments(houseId);
-  const { staff } = useStaff(0, 100, [], { statuses: ['active'] });
+  const { staff } = useActiveStaff({ enabled: showDialog });
 
   const handleAdd = () => {
     setEditingStaff(null);
@@ -80,7 +80,14 @@ export function HouseStaff({
     const staffMember = staff.find(s => s.id === formData.staff_id);
     const payload = {
       ...formData,
-      staff_name: staffMember?.name || undefined,
+      staff_name: staffMember?.staff_name || staffMember?.name || undefined,
+      staff: staffMember ? {
+        id: staffMember.id,
+        staff_name: staffMember.staff_name,
+        photo_url: staffMember.photo_url,
+        status: staffMember.status,
+        role: staffMember.role
+      } : undefined
     };
 
     if (editingStaff) {

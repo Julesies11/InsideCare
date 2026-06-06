@@ -42,7 +42,7 @@ export function BulkActionModal({
   });
 
   const { shiftTemplates: houseTemplates } = useHouseShiftTemplates(
-    filters.houseId !== 'all' ? filters.houseId : undefined
+    open && filters.houseId !== 'all' ? filters.houseId : undefined
   );
 
   const displayTemplates = filters.houseId !== 'all'

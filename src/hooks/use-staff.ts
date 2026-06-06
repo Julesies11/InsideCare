@@ -97,6 +97,32 @@ export function useStaff(
   };
 }
 
+export function useStaffLightweight() {
+  return useQuery({
+    queryKey: [QUERY_KEYS.STAFF, 'lightweight'],
+    queryFn: () => staffApi.listLightweight(),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+}
+
+export function useActiveStaff(options?: { enabled?: boolean }) {
+  const query = useQuery({
+    queryKey: [QUERY_KEYS.STAFF, 'active'],
+    queryFn: () => staffApi.listActive(),
+    staleTime: 1000 * 60 * 5, // 5 minutes cache
+    ...options
+  });
+
+  return {
+    ...query,
+    staff: (query.data || []) as unknown as Staff[],
+    loading: query.isLoading,
+    error: query.error ? (query.error as any).message : null,
+    refresh: query.refetch,
+  };
+}
+
+
 export function useStaffMember(id?: string) {
   const query = useQuery({
     queryKey: [QUERY_KEYS.STAFF, id],

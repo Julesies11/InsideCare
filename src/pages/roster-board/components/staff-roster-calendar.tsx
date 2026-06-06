@@ -120,6 +120,28 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
     }).sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
   }, [shifts, participantFilter, shiftTemplateFilter]);
 
+  // Pre-compute a house → active staff Map to avoid O(n²) filter inside every calendar cell.
+  // Note: today is re-computed on each render so the map stays accurate if the component
+  // stays mounted past midnight and staff/house data updates.
+  const houseStaffMap = useMemo(() => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const map = new Map<string, typeof staff>();
+    houses.forEach(house => {
+      const assigned = staff.filter(s => {
+        const assignments: Array<{ house_id?: string; house?: { id: string }; end_date?: string | null }> =
+          (s as any).house_assignments || [];
+        return assignments.some(a => {
+          const assignmentHouseId = (a.house_id || a.house?.id || '').toLowerCase();
+          const isTargetHouse = assignmentHouseId === house.id.toLowerCase();
+          const isAssignmentActive = !a.end_date || a.end_date >= todayStr;
+          return isTargetHouse && isAssignmentActive;
+        });
+      });
+      map.set(house.id, assigned);
+    });
+    return map;
+  }, [houses, staff]);
+
   const handleAddShift = (date: Date, houseId?: string, shiftTemplateId?: string) => {
     setSelectedShift(null);
     setPreSelectedDate(date);
@@ -411,6 +433,7 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
           groupByHouse={staffId === 'all'}
           houses={houseFilter !== 'all' ? houses.filter(h => h.id === houseFilter) : houses}
           staffList={staff}
+          houseStaffMap={houseStaffMap}
           onQuickAssign={handleQuickAssign}
           onEditLeave={handleEditLeave}
         />

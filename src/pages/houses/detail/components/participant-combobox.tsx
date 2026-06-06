@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useParticipants } from '@/hooks/use-participants';
+import { useActiveParticipants } from '@/hooks/use-participants';
 
 interface ParticipantComboboxProps {
   value: string;
@@ -20,7 +20,7 @@ export function ParticipantCombobox({
   disabled = false 
 }: ParticipantComboboxProps) {
   const [open, setOpen] = useState(false);
-  const { participants, loading } = useParticipants();
+  const { participants, loading } = useActiveParticipants();
 
   const selectedParticipant = participants.find(p => p.id === value);
 

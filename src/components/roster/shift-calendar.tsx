@@ -28,6 +28,10 @@ export interface ShiftCalendarProps {
   onPopulateRoster?: (houseId: string) => void;
   houses?: Array<{ id: string; name: string }>;
   staffList?: Array<{ id: string; name: string }>;
+  /** Pre-computed map of houseId -> assigned active staff. Used to avoid O(n²) lookups per cell. */
+  houseStaffMap?: Map<string, Array<{ id: string; name: string }>>;
+  /** Shift templates for the selected house filter, passed down to child cards. */
+  shiftTemplates?: Array<{ id: string; shift_template_name: string; [key: string]: any }>;
   groupByHouse?: boolean;
   onQuickAssign?: (shiftId: string, staffId: string) => void;
   onEditLeave?: (leave: LeaveBlock) => void;
@@ -74,6 +78,8 @@ export function ShiftCalendar({
   onPopulateRoster,
   houses = [],
   staffList,
+  houseStaffMap,
+  // shiftTemplates is accepted for type-compat but rendered by child cards, not this component
   groupByHouse = false,
   onQuickAssign,
   onEditLeave,
@@ -400,21 +406,21 @@ export function ShiftCalendar({
           
           <div className="space-y-2">
             {allHouses.map((house) => {
-              // Filter staff assigned to this house (active assignment = no end_date or in future)
-              const today = new Date().toISOString().split('T')[0];
-              const houseStaffList = house.id.toLowerCase() === 'unassigned' 
-                ? staffList 
-                : staffList?.filter(s => {
-                    const assignments: Array<{ house_id?: string; house?: { id: string }; end_date?: string | null }> = (s as any).house_assignments || [];
-                    return assignments.some((a) => {
-                      const assignmentHouseId = (a.house_id || a.house?.id || '').toLowerCase();
-                      const targetHouseId = house.id.toLowerCase();
-                      const isTargetHouse = assignmentHouseId === targetHouseId;
-                      
-                      const isAssignmentActive = !a.end_date || a.end_date >= today;
-                      return isTargetHouse && isAssignmentActive;
-                    });
-                  }) || [];
+              // Use pre-computed Map for O(1) lookup; fall back to O(n) filter if map is unavailable
+              const houseStaffList: Array<{ id: string; name: string }> = 
+                house.id.toLowerCase() === 'unassigned'
+                  ? (staffList || [])
+                  : (houseStaffMap?.get(house.id) ?? staffList?.filter(s => {
+                      const today = new Date().toISOString().split('T')[0];
+                      const assignments: Array<{ house_id?: string; house?: { id: string }; end_date?: string | null }> = (s as any).house_assignments || [];
+                      return assignments.some((a) => {
+                        const assignmentHouseId = (a.house_id || a.house?.id || '').toLowerCase();
+                        const targetHouseId = house.id.toLowerCase();
+                        const isTargetHouse = assignmentHouseId === targetHouseId;
+                        const isAssignmentActive = !a.end_date || a.end_date >= today;
+                        return isTargetHouse && isAssignmentActive;
+                      });
+                    }) ?? []);
 
               return (
                 <div key={house.id} className={cn("grid gap-2 border-b border-gray-50 hover:bg-gray-50/30 transition-all rounded-xl p-1 group/row", gridColsClass)}>

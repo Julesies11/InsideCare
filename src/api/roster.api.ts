@@ -42,7 +42,7 @@ export const rosterApi = {
 
     let shiftQuery = supabase
       .from(TABLES.STAFF_SHIFTS)
-      .select(ROSTER_VIEWS.SHIFT_DETAIL)
+      .select(ROSTER_VIEWS.CALENDAR_SHIFTS)
       .order('start_date', { ascending: true })
       .order('start_time', { ascending: true });
 
@@ -377,7 +377,7 @@ export const rosterApi = {
     const [shiftsRes, eventsRes, leaveRes] = await Promise.all([
       supabase
         .from(TABLES.STAFF_SHIFTS)
-        .select(ROSTER_VIEWS.SHIFT_DETAIL)
+        .select(ROSTER_VIEWS.CALENDAR_SHIFTS)
         .eq('staff_id', staffId)
         .order('start_date', { ascending: false }),
       supabase

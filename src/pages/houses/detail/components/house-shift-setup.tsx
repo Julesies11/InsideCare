@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, Edit, Trash2, Clock, CheckSquare, Download, Info, Loader2 } from 'lucide-react';
 import { useHouseShiftTemplates } from '@/hooks/use-house-shift-templates';
 import { useHouseChecklists } from '@/hooks/use-house-checklists';
-import { useHouses } from '@/hooks/use-houses';
+import { useActiveHouses } from '@/hooks/use-houses';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { cn, getPeriodTheme } from '@/lib/utils';
@@ -27,6 +27,13 @@ interface HouseShiftSetupProps {
 }
 
 export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChange, directSave = false, canEdit: _canEdit, refreshKey }: HouseShiftSetupProps) {
+  const [showTypeDialog, setShowTypeDialog] = useState(false);
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importSourceId, setImportSourceId] = useState<string>('');
+  const [houseShiftCounts, setHouseShiftCounts] = useState<Record<string, number>>({});
+  const [editingType, setEditingType] = useState<any | null>(null);
+
   const { shiftTemplates, refresh: refreshShiftTemplates, defaults } = useHouseShiftTemplates(houseId);
   const { houseChecklists } = useHouseChecklists(houseId);
 
@@ -36,16 +43,8 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
     }
   }, [refreshKey, refreshShiftTemplates]);
   
-  const housesFilter = useMemo(() => ({ statuses: [STATUS.active] }), []);
-  const { houses: allHouses } = useHouses(0, 100, [], housesFilter);
-
-  const [showTypeDialog, setShowTypeDialog] = useState(false);
-  const [showImportDialog, setShowImportDialog] = useState(false);
-  const [isImporting, setIsImporting] = useState(false);
-  const [importSourceId, setImportSourceId] = useState<string>('');
-  const [houseShiftCounts, setHouseShiftCounts] = useState<Record<string, number>>({});
-
-  const [editingType, setEditingType] = useState<any | null>(null);
+  const { data: allHousesData } = useActiveHouses({ enabled: showImportDialog });
+  const allHouses = allHousesData || [];
 
   // Fetch shift template counts for the import dialog
   useEffect(() => {

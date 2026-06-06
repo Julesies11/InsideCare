@@ -145,6 +145,18 @@ export const staffApi = {
   },
 
   /**
+   * Fetches all staff members with minimal fields (lightweight).
+   */
+  async listLightweight() {
+    const { data, error } = await supabase
+      .from(TABLES.STAFF)
+      .select('id, staff_name, status, role_id, photo_url')
+      .order('staff_name');
+    if (error) throw error;
+    return (data || []).map((s: any) => ({ ...s, name: s.staff_name }));
+  },
+
+  /**
    * Fetches a single staff member by ID with full details.
    */
   async get(id: string) {

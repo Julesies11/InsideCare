@@ -241,6 +241,18 @@ export const STAFF_VIEWS = {
 
 export const HOUSE_VIEWS = {
   /**
+   * Minimal view for house lists and tables.
+   */
+  LIST: `
+    id, house_name, branch_id, address, phone, capacity, current_occupancy, house_manager, status,
+    staff_assignments:${TABLES.HOUSE_STAFF_ASSIGNMENTS}!house_id(
+      id, 
+      end_date,
+      staff:${TABLES.STAFF}!staff_id(id, staff_name, photo_url, status)
+    )
+  `,
+
+  /**
    * Standard view for house lists and details.
    */
   STANDARD: `
@@ -338,6 +350,23 @@ export const ROSTER_VIEWS = {
         house_checklist_name,
         items:${TABLES.HOUSE_CHECKLIST_ITEMS}!checklist_id(id, title, sort_order)
       )
+    ),
+    notes_count:${TABLES.SHIFT_NOTES}!shift_id(count)
+  `,
+
+  /**
+   * Optimized view for rendering multiple shifts on the calendar/roster board.
+   * Excludes heavy checklist items mapping and resolves staff/house metadata client-side.
+   */
+  CALENDAR_SHIFTS: `
+    id, staff_id, start_date, end_date, start_time, end_time, house_id, shift_template, shift_template_id, notes,
+    type_details:${TABLES.HOUSE_SHIFT_TEMPLATES}!shift_template_id(color_theme, icon_name),
+    participants:${TABLES.SHIFT_PARTICIPANTS}!shift_id(
+      participant:${TABLES.PARTICIPANTS}!participant_id(id, participant_name)
+    ),
+    assigned_checklists:${TABLES.SHIFT_ASSIGNED_CHECKLISTS}!shift_id(
+      id, checklist_id, assignment_title,
+      submissions:${TABLES.HOUSE_CHECKLIST_SUBMISSIONS}!shift_assignment_id(status)
     ),
     notes_count:${TABLES.SHIFT_NOTES}!shift_id(count)
   `,

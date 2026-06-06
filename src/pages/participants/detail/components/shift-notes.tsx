@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Edit, Trash2, Calendar, Clock, Home, Users, FileText, Plus } from 'lucide-react';
 import { useShiftNotesByParticipantId, ShiftNote } from '@/hooks/use-shift-notes';
-import { useStaff } from '@/hooks/use-staff';
+import { useStaffLightweight } from '@/hooks/use-staff';
 import { format, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -53,8 +53,7 @@ export function ShiftNotes({
 
   const { data: shiftNotesData = [], isLoading: loading, refetch } = useShiftNotesByParticipantId(participantId);
   const shiftNotes = shiftNotesData as unknown as ShiftNote[];
-  const { data: staffData } = useStaff(0, 1000);
-  const staff = staffData?.data || [];
+  const { data: staff = [] } = useStaffLightweight();
 
   useEffect(() => {
     if (refreshTrigger !== undefined && refreshTrigger > 0) {

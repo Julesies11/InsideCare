@@ -10,8 +10,8 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Edit, Trash2, FileText, Clock, Calendar, User, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { useHouseForms } from '@/hooks/useHouseForms';
-import { useParticipants } from '@/hooks/use-participants';
-import { useStaff } from '@/hooks/use-staff';
+import { useActiveParticipants } from '@/hooks/use-participants';
+import { useActiveStaff } from '@/hooks/use-staff';
 import { useAuth } from '@/auth/context/auth-context';
 import { HousePendingChanges } from '@/models/house-pending-changes';
 import { useForm } from 'react-hook-form';
@@ -63,8 +63,8 @@ export function HouseForms({
   const [editingAssignment, setEditingAssignment] = useState<{ id?: string; tempId?: string; participant_id?: string; staff_id?: string; due_date?: string; status: string; notes?: string } | null>(null);
 
   const { houseForms, loading } = useHouseForms(houseId);
-  const { participants } = useParticipants();
-  const { staff } = useStaff();
+  const { participants } = useActiveParticipants();
+  const { staff } = useActiveStaff();
   const { user } = useAuth();
 
   const form = useForm<FormFormValues>({

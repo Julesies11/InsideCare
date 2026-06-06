@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -22,7 +22,7 @@ import { Input } from '@/components/ui/input';
 import { format, parseISO } from 'date-fns';
 import { toast } from 'sonner';
 import { useAuth } from '@/auth/context/auth-context';
-import { useParticipants } from '@/hooks/use-participants';
+import { useActiveParticipants } from '@/hooks/use-participants';
 import { useShiftNotes } from '@/hooks/use-shift-notes';
 import { StaffShift } from './use-roster-data';
 import { FileText, User, Clock, Home, Calendar, Loader2 } from 'lucide-react';
@@ -52,11 +52,12 @@ export function StaffShiftNoteDialog({
     notes: '',
   });
 
-  // Filter participants to only show active ones from the shift's house
-  const { participants, loading: loadingParticipants } = useParticipants(0, 1000, [], {
-    houses: shift?.house_id ? [shift.house_id] : [],
-    statuses: ['active'],
-  });
+  const { participants: allParticipants, loading: loadingParticipants } = useActiveParticipants();
+
+  const participants = useMemo(() => {
+    if (!shift?.house_id) return [];
+    return allParticipants.filter(p => p.house_id === shift.house_id);
+  }, [allParticipants, shift?.house_id]);
 
   useEffect(() => {
     if (open && shift && user?.staff_id) {

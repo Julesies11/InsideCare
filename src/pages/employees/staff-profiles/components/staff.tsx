@@ -308,8 +308,10 @@ const StaffTable = () => {
     }
 
     // Update URL immediately without adding to history to ensure state is preserved if user navigates away
-    setSearchParams(params, { replace: true });
-  }, [pagination, sorting, searchQuery, selectedStatuses, selectedRoles, setSearchParams]);
+    if (params.toString() !== searchParams.toString()) {
+      setSearchParams(params, { replace: true });
+    }
+  }, [pagination, sorting, searchQuery, selectedStatuses, selectedRoles, setSearchParams, searchParams]);
 
   const pageCount = useMemo(() => {
     return Math.ceil(count / pagination.pageSize);

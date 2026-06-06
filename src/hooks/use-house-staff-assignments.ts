@@ -29,13 +29,15 @@ export interface HouseStaffAssignment {
   };
 }
 
-export function useHouseStaffAssignments(houseId?: string) {
+export function useHouseStaffAssignments(houseId?: string, options?: { enabled?: boolean }) {
   const query = useQuery({
     queryKey: [QUERY_KEYS.HOUSE_STAFF_ASSIGNMENTS, { houseId }],
     queryFn: async () => {
       return await housesApi.listStaffAssignments(houseId);
     },
     staleTime: 1000 * 60 * 5,
+    // Default: only run when houseId is present; caller can further restrict with enabled: false
+    enabled: options?.enabled !== undefined ? options.enabled : !!houseId,
   });
 
   return {
