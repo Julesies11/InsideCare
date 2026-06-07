@@ -8,6 +8,10 @@ import { ReactNode } from 'react';
 // Mock hooks
 vi.mock('@/hooks/use-participants', () => ({
   useParticipants: () => ({ participants: [{ id: 'p-1', participant_name: 'John Doe' }] }),
+  useActiveParticipants: () => ({
+    participants: [{ id: 'p-1', participant_name: 'John Doe' }],
+    loading: false
+  })
 }));
 vi.mock('@/hooks/use-staff', () => ({
   useStaff: () => ({ staff: [{ id: 's-1', staff_name: 'Jane Staff' }] }),

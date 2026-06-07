@@ -34,7 +34,7 @@ vi.mock('@/hooks/use-shift-notes', () => ({
         house_name: 'House A',
         shift_template: 'Morning',
         note_id: 'note-1',
-        note_status: 'done'
+        note_status: 'draft'
       }
     ],
     isLoading: false,
@@ -45,6 +45,13 @@ vi.mock('@/hooks/use-shift-notes', () => ({
 vi.mock('@/hooks/use-houses', () => ({
   useHouses: () => ({
     houses: [
+      { id: 'h-1', house_name: 'House A', status: 'active' },
+      { id: 'h-2', house_name: 'House B', status: 'active' }
+    ],
+    loading: false
+  }),
+  useActiveHouses: () => ({
+    data: [
       { id: 'h-1', house_name: 'House A', status: 'active' },
       { id: 'h-2', house_name: 'House B', status: 'active' }
     ],

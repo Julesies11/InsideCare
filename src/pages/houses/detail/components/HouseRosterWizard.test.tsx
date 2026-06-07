@@ -36,6 +36,10 @@ vi.mock('@/hooks/use-houses', () => ({
   }),
   useUpdateHouse: () => ({
     mutateAsync: vi.fn().mockResolvedValue({})
+  }),
+  useActiveHouses: () => ({
+    data: [],
+    isLoading: false
   })
 }));
 

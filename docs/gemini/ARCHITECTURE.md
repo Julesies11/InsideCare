@@ -84,11 +84,14 @@ The application uses a combination of local state, TanStack Query, and Context P
 - **Pending Changes Management**: For complex entities, a "pending changes" pattern (`src/models/*-pending-changes.ts`) is used to track batch updates locally before committing to the DAL.
 - **Surgical Synchronization (Transactional Safety)**: For nested sub-entities (like Checklist Items), the DAL implements a "Surgical Sync" pattern using `upsert` and targeted `delete`. This ensures clinical history and foreign key links (e.g. from submissions) are preserved while still allowing full CRUD flexibility on the parent entity.
 
-## 4. Advanced Data Fetching (Roster Module)
-The Roster module implements a highly optimized data fetching strategy.
+## 4. Advanced Data Fetching & Performance Optimization (Roster Module)
+The Roster module implements a highly optimized data fetching and rendering strategy.
 
 - **Frontend Joining**: To reduce SQL execution time, the system avoids heavy joins for static metadata. The UI maps IDs from cached metadata arrays (Houses, Staff) to shift records.
 - **Active Staff Enforcement**: The system strictly enforces the definition of "Active Staff" (status='active' + future house assignment) across all dropdowns and roster logic.
+- **`houseStaffMap` O(1) Lookup Cache**: The Roster Board components construct a memoized `houseStaffMap` mapping each `houseId` to a set of active assigned `staffId`s. During grid/calendar rendering, check operations are performed in O(1) time using `houseStaffMap[houseId]?.has(staffId)`, preventing expensive nested array scans and eliminating layout thrashing during drag-and-drop actions.
+- **Deferred Query Loading (`enabled` Pattern)**: Form and dialog components (e.g., `ShiftDialog`, `BulkActionModal`, `HouseChecklistSetup`) defer loading heavy master lists (such as all active participants, houses, or staff) by binding the React Query `enabled` option to the visibility/open state of the dialog or dropdown. This avoids redundant query executions on initial page load.
+- **`useHouseStaffAssignments` Fetch Safety**: The query hook is guarded by default (`enabled: options?.enabled !== undefined ? options.enabled : !!houseId`) to prevent network calls when `houseId` is undefined, while still allowing callers to manually control the query lifecycle.
 
 ## 5. Activity Logging & Auditing (Gold Standard)
 Every operational table includes standard audit columns (`created_at`, `created_by`, etc.) managed at the database level via triggers.

@@ -54,6 +54,10 @@ vi.mock('@/hooks/useHouseParticipants', () => ({
 vi.mock('@/hooks/use-houses', () => ({
   useHouses: () => ({
     houses: [{ id: 'house-1', name: 'Test House' }]
+  }),
+  useActiveHouses: () => ({
+    data: [{ id: 'house-1', house_name: 'Test House' }],
+    isLoading: false
   })
 }));
 
