@@ -20,7 +20,7 @@ vi.mock('@/auth/context/auth-context', () => ({
 }));
 
 vi.mock('@/hooks/use-incident-reports', () => ({
-  useIncidentReports: () => ({ data: [], isLoading: false }),
+  useIncidentReports: () => ({ data: { data: [], count: 0 }, isLoading: false }),
 }));
 
 describe('IncidentManagementReportPage Smoke Test', () => {

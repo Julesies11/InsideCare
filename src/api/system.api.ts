@@ -292,5 +292,36 @@ export const systemApi = {
       }
       return true;
     }
+  },
+
+  /**
+   * Report Preferences
+   */
+  reportPreferences: {
+    async get(staffId: string, reportType: string) {
+      const { data, error } = await supabase
+        .from(TABLES.REPORT_PREFERENCES)
+        .select('criteria')
+        .eq('staff_id', staffId)
+        .eq('report_type', reportType)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data?.criteria || null;
+    },
+
+    async save(staffId: string, reportType: string, criteria: any) {
+      const { data, error } = await supabase
+        .from(TABLES.REPORT_PREFERENCES)
+        .upsert(
+          { staff_id: staffId, report_type: reportType, criteria, updated_at: new Date().toISOString() },
+          { onConflict: 'staff_id,report_type' }
+        )
+        .select()
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    }
   }
 };

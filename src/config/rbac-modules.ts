@@ -16,6 +16,7 @@ export const RBAC_MODULES = {
   PARTICIPANT_SUPPORT_NEEDS: 'participant_support_needs',
   PARTICIPANT_MEALTIME: 'participant_mealtime',
   PARTICIPANT_MEDICAL_ROUTINE: 'participant_medical_routine',
+  PARTICIPANT_CLINICAL_TRACKERS: 'participant_clinical_trackers',
   PARTICIPANT_MEDICATIONS: 'participant_medications',
   PARTICIPANT_EMERGENCY: 'participant_emergency',
   PARTICIPANT_CONTACTS: 'participant_contacts',

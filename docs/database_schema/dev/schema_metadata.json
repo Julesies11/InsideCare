@@ -176,12 +176,12 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -307,11 +307,6 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "created_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
             "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
@@ -320,6 +315,11 @@
             "col": "branch_id",
             "ref_col": "id",
             "ref_table": "ic_branches"
+          },
+          {
+            "col": "created_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 2
@@ -464,12 +464,12 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -579,9 +579,9 @@
             "ref_table": "ic_checklist_master"
           },
           {
-            "col": "group_id",
+            "col": "created_by",
             "ref_col": "id",
-            "ref_table": "ic_house_shift_templates"
+            "ref_table": "ic_staff"
           },
           {
             "col": "updated_by",
@@ -589,9 +589,9 @@
             "ref_table": "ic_staff"
           },
           {
-            "col": "created_by",
+            "col": "group_id",
             "ref_col": "id",
-            "ref_table": "ic_staff"
+            "ref_table": "ic_house_shift_templates"
           }
         ],
         "policy_count": 4
@@ -659,12 +659,12 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -762,6 +762,98 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
+            "col": "house_id",
+            "ref_col": "id",
+            "ref_table": "ic_houses"
+          },
+          {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "house_checklist_id",
+            "ref_col": "id",
+            "ref_table": "ic_house_checklists"
+          },
+          {
+            "col": "created_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "ic_compliance_types_master",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "compliance_name",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "description",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "is_active",
+            "type": "boolean",
+            "default": "true",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "is_default_global",
+            "type": "boolean",
+            "default": "false",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
             "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
@@ -770,19 +862,9 @@
             "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
-          },
-          {
-            "col": "house_id",
-            "ref_col": "id",
-            "ref_table": "ic_houses"
-          },
-          {
-            "col": "house_checklist_id",
-            "ref_col": "id",
-            "ref_table": "ic_house_checklists"
           }
         ],
-        "policy_count": 2
+        "policy_count": 4
       },
       {
         "name": "ic_contact_types_master",
@@ -922,12 +1004,12 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -1307,7 +1389,7 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
@@ -1317,7 +1399,7 @@
             "ref_table": "ic_house_calendar_events"
           },
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -1380,16 +1462,6 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "event_id",
-            "ref_col": "id",
-            "ref_table": "ic_house_calendar_events"
-          },
-          {
-            "col": "participant_id",
-            "ref_col": "id",
-            "ref_table": "ic_participants"
-          },
-          {
             "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
@@ -1398,6 +1470,16 @@
             "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
+          },
+          {
+            "col": "participant_id",
+            "ref_col": "id",
+            "ref_table": "ic_participants"
+          },
+          {
+            "col": "event_id",
+            "ref_col": "id",
+            "ref_table": "ic_house_calendar_events"
           }
         ],
         "policy_count": 2
@@ -1458,7 +1540,7 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
@@ -1473,7 +1555,7 @@
             "ref_table": "ic_house_calendar_events"
           },
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -1550,12 +1632,12 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -1688,9 +1770,14 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "checklist_schedule_id",
+            "col": "house_id",
             "ref_col": "id",
-            "ref_table": "ic_checklist_schedules"
+            "ref_table": "ic_houses"
+          },
+          {
+            "col": "house_checklist_id",
+            "ref_col": "id",
+            "ref_table": "ic_house_checklists"
           },
           {
             "col": "event_type_id",
@@ -1698,9 +1785,9 @@
             "ref_table": "ic_house_calendar_event_types_master"
           },
           {
-            "col": "house_id",
+            "col": "checklist_schedule_id",
             "ref_col": "id",
-            "ref_table": "ic_houses"
+            "ref_table": "ic_checklist_schedules"
           },
           {
             "col": "updated_by",
@@ -1711,11 +1798,6 @@
             "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
-          },
-          {
-            "col": "house_checklist_id",
-            "ref_col": "id",
-            "ref_table": "ic_house_checklists"
           }
         ],
         "policy_count": 2
@@ -1811,9 +1893,9 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "item_id",
+            "col": "updated_by",
             "ref_col": "id",
-            "ref_table": "ic_house_checklist_items"
+            "ref_table": "ic_staff"
           },
           {
             "col": "created_by",
@@ -1821,19 +1903,19 @@
             "ref_table": "ic_staff"
           },
           {
-            "col": "updated_by",
+            "col": "item_id",
             "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
-            "col": "uploaded_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
+            "ref_table": "ic_house_checklist_items"
           },
           {
             "col": "submission_id",
             "ref_col": "id",
             "ref_table": "ic_house_checklist_submissions"
+          },
+          {
+            "col": "uploaded_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 2
@@ -1943,11 +2025,6 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "checklist_id",
-            "ref_col": "id",
-            "ref_table": "ic_house_checklists"
-          },
-          {
             "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
@@ -1958,14 +2035,19 @@
             "ref_table": "ic_staff"
           },
           {
+            "col": "group_id",
+            "ref_col": "id",
+            "ref_table": "ic_house_shift_templates"
+          },
+          {
             "col": "master_item_id",
             "ref_col": "id",
             "ref_table": "ic_checklist_item_master"
           },
           {
-            "col": "group_id",
+            "col": "checklist_id",
             "ref_col": "id",
-            "ref_table": "ic_house_shift_templates"
+            "ref_table": "ic_house_checklists"
           }
         ],
         "policy_count": 2
@@ -2068,24 +2150,14 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "submission_id",
-            "ref_col": "id",
-            "ref_table": "ic_house_checklist_submissions"
-          },
-          {
             "col": "master_item_id",
             "ref_col": "id",
             "ref_table": "ic_checklist_item_master"
           },
           {
-            "col": "item_id",
+            "col": "submission_id",
             "ref_col": "id",
-            "ref_table": "ic_house_checklist_items"
-          },
-          {
-            "col": "completed_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
+            "ref_table": "ic_house_checklist_submissions"
           },
           {
             "col": "created_by",
@@ -2096,6 +2168,16 @@
             "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
+          },
+          {
+            "col": "completed_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "item_id",
+            "ref_col": "id",
+            "ref_table": "ic_house_checklist_items"
           }
         ],
         "policy_count": 2
@@ -2226,24 +2308,9 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "shift_assignment_id",
+            "col": "created_by",
             "ref_col": "id",
-            "ref_table": "ic_shift_assigned_checklists"
-          },
-          {
-            "col": "checklist_id",
-            "ref_col": "id",
-            "ref_table": "ic_house_checklists"
-          },
-          {
-            "col": "calendar_event_id",
-            "ref_col": "id",
-            "ref_table": "ic_house_calendar_events"
-          },
-          {
-            "col": "house_id",
-            "ref_col": "id",
-            "ref_table": "ic_houses"
+            "ref_table": "ic_staff"
           },
           {
             "col": "master_id",
@@ -2256,9 +2323,19 @@
             "ref_table": "ic_staff"
           },
           {
-            "col": "shift_id",
+            "col": "calendar_event_id",
             "ref_col": "id",
-            "ref_table": "ic_staff_shifts"
+            "ref_table": "ic_house_calendar_events"
+          },
+          {
+            "col": "checklist_id",
+            "ref_col": "id",
+            "ref_table": "ic_house_checklists"
+          },
+          {
+            "col": "house_id",
+            "ref_col": "id",
+            "ref_table": "ic_houses"
           },
           {
             "col": "shift_template_id",
@@ -2271,9 +2348,14 @@
             "ref_table": "ic_staff"
           },
           {
-            "col": "created_by",
+            "col": "shift_id",
             "ref_col": "id",
-            "ref_table": "ic_staff"
+            "ref_table": "ic_staff_shifts"
+          },
+          {
+            "col": "shift_assignment_id",
+            "ref_col": "id",
+            "ref_table": "ic_shift_assigned_checklists"
           }
         ],
         "policy_count": 4
@@ -2374,6 +2456,11 @@
             "ref_table": "ic_staff"
           },
           {
+            "col": "created_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
             "col": "house_id",
             "ref_col": "id",
             "ref_table": "ic_houses"
@@ -2382,11 +2469,6 @@
             "col": "master_id",
             "ref_col": "id",
             "ref_table": "ic_checklist_master"
-          },
-          {
-            "col": "created_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 4
@@ -2454,14 +2536,14 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "house_id",
-            "ref_col": "id",
-            "ref_table": "ic_houses"
-          },
-          {
             "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
+          },
+          {
+            "col": "house_id",
+            "ref_col": "id",
+            "ref_table": "ic_houses"
           },
           {
             "col": "created_by",
@@ -2470,6 +2552,84 @@
           }
         ],
         "policy_count": 2
+      },
+      {
+        "name": "ic_house_compliance_requirements",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "house_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "compliance_type_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "compliance_type_id",
+            "ref_col": "id",
+            "ref_table": "ic_compliance_types_master"
+          },
+          {
+            "col": "created_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "house_id",
+            "ref_col": "id",
+            "ref_table": "ic_houses"
+          }
+        ],
+        "policy_count": 4
       },
       {
         "name": "ic_house_files",
@@ -2588,12 +2748,12 @@
             "ref_table": "ic_houses"
           },
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -2705,9 +2865,9 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "participant_id",
+            "col": "staff_id",
             "ref_col": "id",
-            "ref_table": "ic_participants"
+            "ref_table": "ic_staff"
           },
           {
             "col": "created_by",
@@ -2735,9 +2895,9 @@
             "ref_table": "ic_house_forms"
           },
           {
-            "col": "staff_id",
+            "col": "participant_id",
             "ref_col": "id",
-            "ref_table": "ic_staff"
+            "ref_table": "ic_participants"
           }
         ],
         "policy_count": 2
@@ -2833,7 +2993,12 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "submitted_by",
+            "col": "assignment_id",
+            "ref_col": "id",
+            "ref_table": "ic_house_form_assignments"
+          },
+          {
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
@@ -2843,24 +3008,19 @@
             "ref_table": "ic_staff"
           },
           {
-            "col": "updated_by",
+            "col": "submitted_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
-          },
-          {
-            "col": "assignment_id",
-            "ref_col": "id",
-            "ref_table": "ic_house_form_assignments"
-          },
-          {
-            "col": "form_id",
-            "ref_col": "id",
-            "ref_table": "ic_house_forms"
           },
           {
             "col": "participant_id",
             "ref_col": "id",
             "ref_table": "ic_participants"
+          },
+          {
+            "col": "form_id",
+            "ref_col": "id",
+            "ref_table": "ic_house_forms"
           }
         ],
         "policy_count": 2
@@ -2961,14 +3121,14 @@
             "ref_table": "ic_staff"
           },
           {
-            "col": "updated_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
             "col": "house_id",
             "ref_col": "id",
             "ref_table": "ic_houses"
+          },
+          {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 2
@@ -3106,7 +3266,7 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
@@ -3116,7 +3276,7 @@
             "ref_table": "ic_houses"
           },
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -3233,12 +3393,12 @@
             "ref_table": "ic_houses"
           },
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -3329,6 +3489,11 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
+            "col": "house_id",
+            "ref_col": "id",
+            "ref_table": "ic_houses"
+          },
+          {
             "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
@@ -3337,11 +3502,6 @@
             "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
-          },
-          {
-            "col": "house_id",
-            "ref_col": "id",
-            "ref_table": "ic_houses"
           },
           {
             "col": "staff_id",
@@ -3587,16 +3747,6 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "updated_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
-            "col": "created_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
             "col": "house_type_id",
             "ref_col": "id",
             "ref_table": "ic_house_types_master"
@@ -3605,6 +3755,16 @@
             "col": "branch_id",
             "ref_col": "id",
             "ref_table": "ic_branches"
+          },
+          {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "created_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 4
@@ -3631,7 +3791,7 @@
             "name": "incident_type",
             "type": "text",
             "default": null,
-            "nullable": "NO"
+            "nullable": "YES"
           },
           {
             "pk": false,
@@ -3652,14 +3812,14 @@
             "name": "description",
             "type": "text",
             "default": null,
-            "nullable": "NO"
+            "nullable": "YES"
           },
           {
             "pk": false,
             "name": "status",
             "type": "text",
             "default": "'Under Review'::text",
-            "nullable": "NO"
+            "nullable": "YES"
           },
           {
             "pk": false,
@@ -3861,12 +4021,7 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "involved_staff_id",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
-            "col": "reported_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
@@ -3874,6 +4029,16 @@
             "col": "restrictive_practice_type_id",
             "ref_col": "id",
             "ref_table": "ic_restrictive_practice_types_master"
+          },
+          {
+            "col": "reported_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "involved_staff_id",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
           },
           {
             "col": "involved_participant_id",
@@ -3892,11 +4057,6 @@
           },
           {
             "col": "updated_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
-            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -4065,7 +4225,7 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
@@ -4080,7 +4240,7 @@
             "ref_table": "ic_leave_types"
           },
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -4328,7 +4488,7 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
@@ -4338,7 +4498,7 @@
             "ref_table": "ic_medication_types_master"
           },
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -4546,14 +4706,9 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "contact_type_id",
+            "col": "participant_id",
             "ref_col": "id",
-            "ref_table": "ic_contact_types_master"
-          },
-          {
-            "col": "updated_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
+            "ref_table": "ic_participants"
           },
           {
             "col": "created_by",
@@ -4561,9 +4716,14 @@
             "ref_table": "ic_staff"
           },
           {
-            "col": "participant_id",
+            "col": "updated_by",
             "ref_col": "id",
-            "ref_table": "ic_participants"
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "contact_type_id",
+            "ref_col": "id",
+            "ref_table": "ic_contact_types_master"
           }
         ],
         "policy_count": 2
@@ -4631,6 +4791,16 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
+            "col": "role_id",
+            "ref_col": "id",
+            "ref_table": "ic_roles"
+          },
+          {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
             "col": "document_id",
             "ref_col": "id",
             "ref_table": "ic_participant_documents"
@@ -4639,16 +4809,6 @@
             "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
-          },
-          {
-            "col": "updated_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
-            "col": "role_id",
-            "ref_col": "id",
-            "ref_table": "ic_roles"
           }
         ],
         "policy_count": 2
@@ -4730,14 +4890,14 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "participant_id",
-            "ref_col": "id",
-            "ref_table": "ic_participants"
-          },
-          {
             "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
+          },
+          {
+            "col": "participant_id",
+            "ref_col": "id",
+            "ref_table": "ic_participants"
           },
           {
             "col": "updated_by",
@@ -4831,11 +4991,6 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "submitted_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
             "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
@@ -4844,6 +4999,11 @@
             "col": "participant_id",
             "ref_col": "id",
             "ref_table": "ic_participants"
+          },
+          {
+            "col": "submitted_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
           },
           {
             "col": "updated_by",
@@ -4979,9 +5139,9 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "funding_type_id",
+            "col": "updated_by",
             "ref_col": "id",
-            "ref_table": "ic_funding_types_master"
+            "ref_table": "ic_staff"
           },
           {
             "col": "participant_id",
@@ -4994,19 +5154,19 @@
             "ref_table": "ic_houses"
           },
           {
-            "col": "created_by",
+            "col": "funding_type_id",
             "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
-            "col": "updated_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
+            "ref_table": "ic_funding_types_master"
           },
           {
             "col": "funding_source_id",
             "ref_col": "id",
             "ref_table": "ic_funding_sources_master"
+          },
+          {
+            "col": "created_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 2
@@ -5072,14 +5232,14 @@
             "ref_table": "ic_staff"
           },
           {
-            "col": "updated_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
             "col": "goal_id",
             "ref_col": "id",
             "ref_table": "ic_participant_goals"
+          },
+          {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 1
@@ -5276,6 +5436,11 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
             "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
@@ -5284,11 +5449,6 @@
             "col": "participant_id",
             "ref_col": "id",
             "ref_table": "ic_participants"
-          },
-          {
-            "col": "updated_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 2
@@ -5363,11 +5523,6 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "updated_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
             "col": "participant_id",
             "ref_col": "id",
             "ref_table": "ic_participants"
@@ -5376,6 +5531,11 @@
             "col": "medication_id",
             "ref_col": "id",
             "ref_table": "ic_medications_master"
+          },
+          {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
           },
           {
             "col": "created_by",
@@ -5462,7 +5622,7 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
@@ -5472,7 +5632,7 @@
             "ref_table": "ic_participants"
           },
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -5612,12 +5772,12 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
@@ -6072,10 +6232,71 @@
             "type": "uuid",
             "default": null,
             "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "track_bowel",
+            "type": "boolean",
+            "default": "false",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "track_seizure",
+            "type": "boolean",
+            "default": "false",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "track_sleep",
+            "type": "boolean",
+            "default": "false",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "track_behaviour",
+            "type": "boolean",
+            "default": "false",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "track_community",
+            "type": "boolean",
+            "default": "false",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "track_nutrition",
+            "type": "boolean",
+            "default": "false",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "track_mtm",
+            "type": "boolean",
+            "default": "false",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "track_hygiene",
+            "type": "boolean",
+            "default": "false",
+            "nullable": "YES"
           }
         ],
         "rls_enabled": true,
         "foreign_keys": [
+          {
+            "col": "house_id",
+            "ref_col": "id",
+            "ref_table": "ic_houses"
+          },
           {
             "col": "created_by",
             "ref_col": "id",
@@ -6085,11 +6306,6 @@
             "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
-          },
-          {
-            "col": "house_id",
-            "ref_col": "id",
-            "ref_table": "ic_houses"
           }
         ],
         "policy_count": 5
@@ -6274,6 +6490,11 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
+            "col": "created_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
             "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
@@ -6282,11 +6503,6 @@
             "col": "department_id",
             "ref_col": "id",
             "ref_table": "ic_departments"
-          },
-          {
-            "col": "created_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 5
@@ -6347,14 +6563,14 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "created_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
             "col": "participant_id",
             "ref_col": "id",
             "ref_table": "ic_participants"
+          },
+          {
+            "col": "created_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
           },
           {
             "col": "updated_by",
@@ -6462,17 +6678,73 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
         ],
         "policy_count": 3
+      },
+      {
+        "name": "ic_report_preferences",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "staff_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "report_type",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "criteria",
+            "type": "jsonb",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "staff_id",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          }
+        ],
+        "policy_count": 4
       },
       {
         "name": "ic_restrictive_practice_types_master",
@@ -6904,15 +7176,17 @@
             "type": "USER-DEFINED",
             "default": "'none'::ic_access_level_enum",
             "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "participant_clinical_trackers",
+            "type": "USER-DEFINED",
+            "default": "'none'::ic_access_level_enum",
+            "nullable": "NO"
           }
         ],
         "rls_enabled": true,
         "foreign_keys": [
-          {
-            "col": "updated_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
           {
             "col": "role_id",
             "ref_col": "id",
@@ -6920,6 +7194,11 @@
           },
           {
             "col": "created_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -7151,9 +7430,9 @@
             "ref_table": "ic_services"
           },
           {
-            "col": "created_by",
+            "col": "participant_id",
             "ref_col": "id",
-            "ref_table": "ic_staff"
+            "ref_table": "ic_participants"
           },
           {
             "col": "updated_by",
@@ -7161,9 +7440,9 @@
             "ref_table": "ic_staff"
           },
           {
-            "col": "participant_id",
+            "col": "created_by",
             "ref_col": "id",
-            "ref_table": "ic_participants"
+            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 3
@@ -7224,9 +7503,9 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "created_by",
+            "col": "service_id",
             "ref_col": "id",
-            "ref_table": "ic_staff"
+            "ref_table": "ic_services"
           },
           {
             "col": "staff_id",
@@ -7234,12 +7513,12 @@
             "ref_table": "ic_staff"
           },
           {
-            "col": "service_id",
+            "col": "updated_by",
             "ref_col": "id",
-            "ref_table": "ic_services"
+            "ref_table": "ic_staff"
           },
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -7316,12 +7595,12 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -7412,9 +7691,14 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "shift_template_id",
+            "col": "created_by",
             "ref_col": "id",
-            "ref_table": "ic_house_shift_templates"
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
           },
           {
             "col": "house_id",
@@ -7427,19 +7711,14 @@
             "ref_table": "ic_staff_shifts"
           },
           {
-            "col": "created_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
             "col": "checklist_id",
             "ref_col": "id",
             "ref_table": "ic_house_checklists"
           },
           {
-            "col": "updated_by",
+            "col": "shift_template_id",
             "ref_col": "id",
-            "ref_table": "ic_staff"
+            "ref_table": "ic_house_shift_templates"
           }
         ],
         "policy_count": 4
@@ -8090,25 +8369,17 @@
             "type": "text",
             "default": null,
             "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "reference_id",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
           }
         ],
         "rls_enabled": true,
         "foreign_keys": [
-          {
-            "col": "house_id",
-            "ref_col": "id",
-            "ref_table": "ic_houses"
-          },
-          {
-            "col": "created_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
-            "col": "participant_id",
-            "ref_col": "id",
-            "ref_table": "ic_participants"
-          },
           {
             "col": "shift_id",
             "ref_col": "id",
@@ -8118,6 +8389,16 @@
             "col": "staff_id",
             "ref_col": "id",
             "ref_table": "ic_staff"
+          },
+          {
+            "col": "participant_id",
+            "ref_col": "id",
+            "ref_table": "ic_participants"
+          },
+          {
+            "col": "house_id",
+            "ref_col": "id",
+            "ref_table": "ic_houses"
           },
           {
             "col": "seizure_type_id",
@@ -8131,6 +8412,11 @@
           },
           {
             "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -8193,9 +8479,9 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "participant_id",
+            "col": "created_by",
             "ref_col": "id",
-            "ref_table": "ic_participants"
+            "ref_table": "ic_staff"
           },
           {
             "col": "shift_id",
@@ -8203,9 +8489,9 @@
             "ref_table": "ic_staff_shifts"
           },
           {
-            "col": "created_by",
+            "col": "participant_id",
             "ref_col": "id",
-            "ref_table": "ic_staff"
+            "ref_table": "ic_participants"
           },
           {
             "col": "updated_by",
@@ -8344,11 +8630,6 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "shift_template_id",
-            "ref_col": "id",
-            "ref_table": "ic_house_shift_templates"
-          },
-          {
             "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
@@ -8362,6 +8643,11 @@
             "col": "checklist_id",
             "ref_col": "id",
             "ref_table": "ic_house_checklists"
+          },
+          {
+            "col": "shift_template_id",
+            "ref_col": "id",
+            "ref_table": "ic_house_shift_templates"
           }
         ],
         "policy_count": 5
@@ -8639,12 +8925,12 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "employment_type_id",
+            "col": "department_id",
             "ref_col": "id",
-            "ref_table": "ic_employment_types_master"
+            "ref_table": "ic_departments"
           },
           {
-            "col": "created_by",
+            "col": "manager_id",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
@@ -8654,19 +8940,19 @@
             "ref_table": "ic_roles"
           },
           {
+            "col": "created_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
             "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "department_id",
+            "col": "employment_type_id",
             "ref_col": "id",
-            "ref_table": "ic_departments"
-          },
-          {
-            "col": "manager_id",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
+            "ref_table": "ic_employment_types_master"
           }
         ],
         "policy_count": 7
@@ -8743,10 +9029,22 @@
             "type": "uuid",
             "default": null,
             "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "compliance_type_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
           }
         ],
         "rls_enabled": true,
         "foreign_keys": [
+          {
+            "col": "compliance_type_id",
+            "ref_col": "id",
+            "ref_table": "ic_compliance_types_master"
+          },
           {
             "col": "created_by",
             "ref_col": "id",
@@ -8828,16 +9126,6 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "document_id",
-            "ref_col": "id",
-            "ref_table": "ic_staff_documents"
-          },
-          {
-            "col": "role_id",
-            "ref_col": "id",
-            "ref_table": "ic_roles"
-          },
-          {
             "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
@@ -8846,6 +9134,16 @@
             "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
+          },
+          {
+            "col": "document_id",
+            "ref_col": "id",
+            "ref_table": "ic_staff_documents"
+          },
+          {
+            "col": "role_id",
+            "ref_col": "id",
+            "ref_table": "ic_roles"
           }
         ],
         "policy_count": 2
@@ -8934,17 +9232,17 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
+            "col": "staff_id",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
             "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
             "col": "created_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
-            "col": "staff_id",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -9063,7 +9361,12 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "staff_id",
+            "col": "house_id",
+            "ref_col": "id",
+            "ref_table": "ic_houses"
+          },
+          {
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
@@ -9073,12 +9376,7 @@
             "ref_table": "ic_house_shift_templates"
           },
           {
-            "col": "house_id",
-            "ref_col": "id",
-            "ref_table": "ic_houses"
-          },
-          {
-            "col": "updated_by",
+            "col": "staff_id",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
@@ -9408,12 +9706,7 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "updated_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
-            "col": "created_by",
+            "col": "approved_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
@@ -9423,14 +9716,19 @@
             "ref_table": "ic_staff"
           },
           {
+            "col": "created_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
             "col": "shift_id",
             "ref_col": "id",
             "ref_table": "ic_staff_shifts"
-          },
-          {
-            "col": "approved_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 4
@@ -9505,12 +9803,12 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "updated_by",
+            "col": "staff_id",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "staff_id",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
@@ -9573,7 +9871,7 @@
         "args": "p_module text",
         "name": "ic_jwt_get_perm",
         "returns": "text",
-        "definition": "\nDECLARE\n  v_perm_text text;\nBEGIN\n  -- FIRST: Try to get from JWT (Fastest, no recursion)\n  v_perm_text := auth.jwt() -> 'app_metadata' -> 'permissions' ->> p_module;\n  \n  IF v_perm_text IS NOT NULL THEN\n    RETURN v_perm_text;\n  END IF;\n\n  -- SECOND: Fallback to database lookup\n  SELECT \n    CASE p_module\n      WHEN 'my_roster' THEN my_roster::text\n      WHEN 'my_timesheets' THEN my_timesheets::text\n      WHEN 'my_leave' THEN my_leave::text\n      WHEN 'shift_routines' THEN shift_routines::text\n      WHEN 'participants' THEN participants::text\n      WHEN 'shift_notes' THEN shift_notes::text\n      WHEN 'employees' THEN employees::text\n      WHEN 'timesheets' THEN timesheets::text\n      WHEN 'leave_requests' THEN leave_requests::text\n      WHEN 'roster_board' THEN roster_board::text\n      WHEN 'houses' THEN houses::text\n      WHEN 'house_checklists' THEN house_checklists::text\n      WHEN 'access_control' THEN access_control::text\n      WHEN 'master_lists' THEN master_lists::text\n      WHEN 'activity_log' THEN activity_log::text\n      WHEN 'reporting_clinical' THEN reporting_clinical::text\n      WHEN 'reporting_operational' THEN reporting_operational::text\n      WHEN 'reporting_compliance' THEN reporting_compliance::text\n      ELSE 'none'\n    END INTO v_perm_text\n  FROM public.ic_role_permissions rp\n  JOIN public.ic_staff s ON s.role_id = rp.role_id\n  WHERE s.auth_user_id = auth.uid()\n  LIMIT 1;\n\n  RETURN COALESCE(v_perm_text, 'none');\nEND;\n"
+        "definition": "\nDECLARE\n  v_perm_text text;\nBEGIN\n  -- FIRST: Try to get from JWT (Fastest, no recursion)\n  v_perm_text := auth.jwt() -> 'app_metadata' -> 'permissions' ->> p_module;\n  \n  IF v_perm_text IS NOT NULL THEN\n    RETURN v_perm_text;\n  END IF;\n\n  -- SECOND: Fallback to database lookup\n  SELECT \n    CASE p_module\n      -- Personal Modules (Staff Portal)\n      WHEN 'my_roster' THEN my_roster::text\n      WHEN 'my_timesheets' THEN my_timesheets::text\n      WHEN 'my_leave' THEN my_leave::text\n      WHEN 'shift_routines' THEN shift_routines::text\n      \n      -- Care Management (Base and Granular)\n      WHEN 'participants' THEN participants::text\n      WHEN 'participant_goals' THEN participant_goals::text\n      WHEN 'participant_behaviour' THEN participant_behaviour::text\n      WHEN 'participant_support_needs' THEN participant_support_needs::text\n      WHEN 'participant_mealtime' THEN participant_mealtime::text\n      WHEN 'participant_medical_routine' THEN participant_medical_routine::text\n      WHEN 'participant_clinical_trackers' THEN participant_clinical_trackers::text\n      WHEN 'participant_medications' THEN participant_medications::text\n      WHEN 'participant_emergency' THEN participant_emergency::text\n      WHEN 'participant_contacts' THEN participant_contacts::text\n      WHEN 'participant_documents' THEN participant_documents::text\n      WHEN 'participant_shift_notes' THEN participant_shift_notes::text\n      WHEN 'participant_activity_log' THEN participant_activity_log::text\n      WHEN 'shift_notes' THEN shift_notes::text\n      \n      -- Employees & HR (Base and Granular)\n      WHEN 'employees' THEN employees::text\n      WHEN 'staff_employment' THEN staff_employment::text\n      WHEN 'staff_availability' THEN staff_availability::text\n      WHEN 'staff_emergency' THEN staff_emergency::text\n      WHEN 'staff_compliance' THEN staff_compliance::text\n      WHEN 'staff_training' THEN staff_training::text\n      WHEN 'staff_documents' THEN staff_documents::text\n      WHEN 'staff_roster' THEN staff_roster::text\n      WHEN 'staff_leave' THEN staff_leave::text\n      WHEN 'staff_warnings' THEN staff_warnings::text\n      WHEN 'staff_activity_log' THEN staff_activity_log::text\n      WHEN 'timesheets' THEN timesheets::text\n      WHEN 'leave_requests' THEN leave_requests::text\n      WHEN 'roster_board' THEN roster_board::text\n      \n      -- Operations & Facilities (Base and Granular)\n      WHEN 'houses' THEN houses::text\n      WHEN 'house_management' THEN house_management::text\n      WHEN 'house_operations' THEN house_operations::text\n      WHEN 'house_checklists' THEN house_checklists::text\n      WHEN 'house_checklist_history' THEN house_checklist_history::text\n      WHEN 'house_resources' THEN house_resources::text\n      WHEN 'house_staff' THEN house_staff::text\n      WHEN 'house_activity_log' THEN house_activity_log::text\n      \n      -- System Administration\n      WHEN 'access_control' THEN access_control::text\n      WHEN 'master_lists' THEN master_lists::text\n      WHEN 'activity_log' THEN activity_log::text\n      WHEN 'incident_management' THEN incident_management::text\n      \n      -- Reporting\n      WHEN 'reporting_clinical' THEN reporting_clinical::text\n      WHEN 'reporting_operational' THEN reporting_operational::text\n      WHEN 'reporting_compliance' THEN reporting_compliance::text\n      ELSE 'none'\n    END INTO v_perm_text\n  FROM public.ic_role_permissions rp\n  JOIN public.ic_staff s ON s.role_id = rp.role_id\n  WHERE s.auth_user_id = auth.uid()\n  LIMIT 1;\n\n  RETURN COALESCE(v_perm_text, 'none');\nEND;\n"
       },
       {
         "args": "",
@@ -9663,6 +9961,13 @@
     "triggers": [
       {
         "name": "ic_audit_universal_trigger",
+        "event": "INSERT",
+        "table": "ic_behaviour_types_master",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
+        "name": "ic_audit_universal_trigger",
         "event": "DELETE",
         "table": "ic_behaviour_types_master",
         "timing": "AFTER",
@@ -9670,24 +9975,10 @@
       },
       {
         "name": "ic_audit_universal_trigger",
-        "event": "INSERT",
-        "table": "ic_behaviour_types_master",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
-      },
-      {
-        "name": "ic_audit_universal_trigger",
         "event": "UPDATE",
         "table": "ic_behaviour_types_master",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
-      },
-      {
-        "name": "ic_trigger_set_audit_columns",
-        "event": "INSERT",
-        "table": "ic_behaviour_types_master",
-        "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
         "name": "ic_trigger_set_audit_columns",
@@ -9697,11 +9988,11 @@
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
-        "name": "ic_audit_universal_trigger",
+        "name": "ic_trigger_set_audit_columns",
         "event": "INSERT",
-        "table": "ic_branch_policies",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+        "table": "ic_behaviour_types_master",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
         "name": "ic_audit_universal_trigger",
@@ -9718,15 +10009,22 @@
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
-        "name": "ic_trigger_set_audit_columns",
+        "name": "ic_audit_universal_trigger",
         "event": "INSERT",
+        "table": "ic_branch_policies",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
+        "name": "ic_trigger_set_audit_columns",
+        "event": "UPDATE",
         "table": "ic_branch_policies",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
         "name": "ic_trigger_set_audit_columns",
-        "event": "UPDATE",
+        "event": "INSERT",
         "table": "ic_branch_policies",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
@@ -9789,19 +10087,33 @@
       },
       {
         "name": "ic_trigger_set_audit_columns",
-        "event": "INSERT",
-        "table": "ic_checklist_item_master",
-        "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
-      },
-      {
-        "name": "ic_trigger_set_audit_columns",
         "event": "UPDATE",
         "table": "ic_checklist_item_master",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
+        "name": "ic_trigger_set_audit_columns",
+        "event": "INSERT",
+        "table": "ic_checklist_item_master",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
+      },
+      {
+        "name": "ic_audit_universal_trigger",
+        "event": "UPDATE",
+        "table": "ic_checklist_master",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
+        "name": "ic_audit_universal_trigger",
+        "event": "INSERT",
+        "table": "ic_checklist_master",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
         "name": "ic_audit_universal_trigger",
         "event": "DELETE",
         "table": "ic_checklist_master",
@@ -9809,18 +10121,11 @@
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
-        "name": "ic_audit_universal_trigger",
-        "event": "INSERT",
-        "table": "ic_checklist_master",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
-      },
-      {
-        "name": "ic_audit_universal_trigger",
+        "name": "ic_trigger_set_audit_columns",
         "event": "UPDATE",
         "table": "ic_checklist_master",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
         "name": "ic_trigger_set_audit_columns",
@@ -9830,15 +10135,8 @@
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
-        "name": "ic_trigger_set_audit_columns",
-        "event": "UPDATE",
-        "table": "ic_checklist_master",
-        "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
-      },
-      {
         "name": "ic_audit_universal_trigger",
-        "event": "UPDATE",
+        "event": "INSERT",
         "table": "ic_checklist_schedules",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
@@ -9852,7 +10150,7 @@
       },
       {
         "name": "ic_audit_universal_trigger",
-        "event": "INSERT",
+        "event": "UPDATE",
         "table": "ic_checklist_schedules",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
@@ -9870,6 +10168,55 @@
         "table": "ic_checklist_schedules",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
+      },
+      {
+        "name": "ic_audit_universal_trigger_delete",
+        "event": "DELETE",
+        "table": "ic_compliance_types_master",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
+        "name": "ic_audit_universal_trigger_insert",
+        "event": "INSERT",
+        "table": "ic_compliance_types_master",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
+        "name": "ic_audit_universal_trigger_update",
+        "event": "UPDATE",
+        "table": "ic_compliance_types_master",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
+        "name": "ic_trigger_set_audit_columns_insert",
+        "event": "INSERT",
+        "table": "ic_compliance_types_master",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
+      },
+      {
+        "name": "ic_trigger_set_audit_columns_update",
+        "event": "UPDATE",
+        "table": "ic_compliance_types_master",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
+      },
+      {
+        "name": "ic_audit_universal_trigger",
+        "event": "INSERT",
+        "table": "ic_contact_types_master",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
+        "name": "ic_audit_universal_trigger",
+        "event": "UPDATE",
+        "table": "ic_contact_types_master",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_audit_universal_trigger",
@@ -9879,18 +10226,11 @@
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
-        "name": "ic_audit_universal_trigger",
-        "event": "INSERT",
-        "table": "ic_contact_types_master",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
-      },
-      {
-        "name": "ic_audit_universal_trigger",
+        "name": "ic_trigger_set_audit_columns",
         "event": "UPDATE",
         "table": "ic_contact_types_master",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
         "name": "ic_trigger_set_audit_columns",
@@ -9900,15 +10240,15 @@
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
-        "name": "ic_trigger_set_audit_columns",
-        "event": "UPDATE",
-        "table": "ic_contact_types_master",
-        "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
+        "name": "ic_audit_universal_trigger",
+        "event": "INSERT",
+        "table": "ic_departments",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_audit_universal_trigger",
-        "event": "INSERT",
+        "event": "UPDATE",
         "table": "ic_departments",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
@@ -9921,11 +10261,11 @@
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
-        "name": "ic_audit_universal_trigger",
+        "name": "ic_trigger_set_audit_columns",
         "event": "UPDATE",
         "table": "ic_departments",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
         "name": "ic_trigger_set_audit_columns",
@@ -9935,11 +10275,11 @@
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
-        "name": "ic_trigger_set_audit_columns",
-        "event": "UPDATE",
-        "table": "ic_departments",
-        "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
+        "name": "ic_audit_universal_trigger",
+        "event": "INSERT",
+        "table": "ic_employment_types_master",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_audit_universal_trigger",
@@ -9956,11 +10296,11 @@
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
-        "name": "ic_audit_universal_trigger",
+        "name": "ic_trigger_set_audit_columns",
         "event": "INSERT",
         "table": "ic_employment_types_master",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
         "name": "ic_trigger_set_audit_columns",
@@ -9970,11 +10310,18 @@
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
-        "name": "ic_trigger_set_audit_columns",
-        "event": "INSERT",
-        "table": "ic_employment_types_master",
-        "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
+        "name": "ic_audit_universal_trigger",
+        "event": "UPDATE",
+        "table": "ic_error_logs",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
+        "name": "ic_audit_universal_trigger",
+        "event": "DELETE",
+        "table": "ic_error_logs",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_audit_universal_trigger",
@@ -9986,27 +10333,6 @@
       {
         "name": "ic_audit_universal_trigger",
         "event": "UPDATE",
-        "table": "ic_error_logs",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
-      },
-      {
-        "name": "ic_audit_universal_trigger",
-        "event": "DELETE",
-        "table": "ic_error_logs",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
-      },
-      {
-        "name": "ic_audit_universal_trigger",
-        "event": "DELETE",
-        "table": "ic_funding_sources_master",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
-      },
-      {
-        "name": "ic_audit_universal_trigger",
-        "event": "UPDATE",
         "table": "ic_funding_sources_master",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
@@ -10019,11 +10345,11 @@
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
-        "name": "ic_trigger_set_audit_columns",
-        "event": "UPDATE",
+        "name": "ic_audit_universal_trigger",
+        "event": "DELETE",
         "table": "ic_funding_sources_master",
-        "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_trigger_set_audit_columns",
@@ -10033,8 +10359,15 @@
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
-        "name": "ic_audit_universal_trigger",
+        "name": "ic_trigger_set_audit_columns",
         "event": "UPDATE",
+        "table": "ic_funding_sources_master",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
+      },
+      {
+        "name": "ic_audit_universal_trigger",
+        "event": "INSERT",
         "table": "ic_funding_types_master",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
@@ -10048,10 +10381,17 @@
       },
       {
         "name": "ic_audit_universal_trigger",
-        "event": "INSERT",
+        "event": "UPDATE",
         "table": "ic_funding_types_master",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
+        "name": "ic_trigger_set_audit_columns",
+        "event": "INSERT",
+        "table": "ic_funding_types_master",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
         "name": "ic_trigger_set_audit_columns",
@@ -10059,20 +10399,6 @@
         "table": "ic_funding_types_master",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
-      },
-      {
-        "name": "ic_trigger_set_audit_columns",
-        "event": "INSERT",
-        "table": "ic_funding_types_master",
-        "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
-      },
-      {
-        "name": "ic_audit_universal_trigger",
-        "event": "DELETE",
-        "table": "ic_house_calendar_event_attachments",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_audit_universal_trigger",
@@ -10084,6 +10410,13 @@
       {
         "name": "ic_audit_universal_trigger",
         "event": "INSERT",
+        "table": "ic_house_calendar_event_attachments",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
+        "name": "ic_audit_universal_trigger",
+        "event": "DELETE",
         "table": "ic_house_calendar_event_attachments",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
@@ -10104,26 +10437,26 @@
       },
       {
         "name": "ic_audit_universal_trigger",
-        "event": "UPDATE",
-        "table": "ic_house_calendar_event_participants",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
-      },
-      {
-        "name": "ic_audit_universal_trigger",
-        "event": "INSERT",
-        "table": "ic_house_calendar_event_participants",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
-      },
-      {
-        "name": "ic_audit_universal_trigger",
         "event": "DELETE",
         "table": "ic_house_calendar_event_participants",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
+        "name": "ic_audit_universal_trigger",
+        "event": "INSERT",
+        "table": "ic_house_calendar_event_participants",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
+        "name": "ic_audit_universal_trigger",
+        "event": "UPDATE",
+        "table": "ic_house_calendar_event_participants",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
         "name": "ic_trigger_set_audit_columns",
         "event": "INSERT",
         "table": "ic_house_calendar_event_participants",
@@ -10136,20 +10469,6 @@
         "table": "ic_house_calendar_event_participants",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
-      },
-      {
-        "name": "ic_audit_universal_trigger",
-        "event": "UPDATE",
-        "table": "ic_house_calendar_event_staff",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
-      },
-      {
-        "name": "ic_audit_universal_trigger",
-        "event": "INSERT",
-        "table": "ic_house_calendar_event_staff",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_audit_universal_trigger",
@@ -10159,15 +10478,29 @@
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
-        "name": "ic_trigger_set_audit_columns",
+        "name": "ic_audit_universal_trigger",
+        "event": "UPDATE",
+        "table": "ic_house_calendar_event_staff",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
+        "name": "ic_audit_universal_trigger",
         "event": "INSERT",
+        "table": "ic_house_calendar_event_staff",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
+        "name": "ic_trigger_set_audit_columns",
+        "event": "UPDATE",
         "table": "ic_house_calendar_event_staff",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
         "name": "ic_trigger_set_audit_columns",
-        "event": "UPDATE",
+        "event": "INSERT",
         "table": "ic_house_calendar_event_staff",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
@@ -10181,14 +10514,14 @@
       },
       {
         "name": "ic_audit_universal_trigger",
-        "event": "UPDATE",
+        "event": "INSERT",
         "table": "ic_house_calendar_event_types_master",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_audit_universal_trigger",
-        "event": "INSERT",
+        "event": "UPDATE",
         "table": "ic_house_calendar_event_types_master",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
@@ -10209,14 +10542,14 @@
       },
       {
         "name": "ic_audit_universal_trigger",
-        "event": "UPDATE",
+        "event": "INSERT",
         "table": "ic_house_calendar_events",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_audit_universal_trigger",
-        "event": "INSERT",
+        "event": "UPDATE",
         "table": "ic_house_calendar_events",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
@@ -10230,14 +10563,14 @@
       },
       {
         "name": "ic_trigger_set_audit_columns",
-        "event": "INSERT",
+        "event": "UPDATE",
         "table": "ic_house_calendar_events",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
         "name": "ic_trigger_set_audit_columns",
-        "event": "UPDATE",
+        "event": "INSERT",
         "table": "ic_house_calendar_events",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
@@ -10279,6 +10612,13 @@
       },
       {
         "name": "ic_audit_universal_trigger",
+        "event": "INSERT",
+        "table": "ic_house_checklist_items",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
+        "name": "ic_audit_universal_trigger",
         "event": "DELETE",
         "table": "ic_house_checklist_items",
         "timing": "AFTER",
@@ -10286,31 +10626,31 @@
       },
       {
         "name": "ic_audit_universal_trigger",
-        "event": "INSERT",
+        "event": "UPDATE",
         "table": "ic_house_checklist_items",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
+        "name": "ic_trigger_set_audit_columns",
+        "event": "INSERT",
+        "table": "ic_house_checklist_items",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
+      },
+      {
+        "name": "ic_trigger_set_audit_columns",
+        "event": "UPDATE",
+        "table": "ic_house_checklist_items",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
         "name": "ic_audit_universal_trigger",
         "event": "UPDATE",
-        "table": "ic_house_checklist_items",
+        "table": "ic_house_checklist_submission_items",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
-      },
-      {
-        "name": "ic_trigger_set_audit_columns",
-        "event": "UPDATE",
-        "table": "ic_house_checklist_items",
-        "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
-      },
-      {
-        "name": "ic_trigger_set_audit_columns",
-        "event": "INSERT",
-        "table": "ic_house_checklist_items",
-        "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
         "name": "ic_audit_universal_trigger",
@@ -10321,13 +10661,6 @@
       },
       {
         "name": "ic_audit_universal_trigger",
-        "event": "UPDATE",
-        "table": "ic_house_checklist_submission_items",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
-      },
-      {
-        "name": "ic_audit_universal_trigger",
         "event": "INSERT",
         "table": "ic_house_checklist_submission_items",
         "timing": "AFTER",
@@ -10346,13 +10679,6 @@
         "table": "ic_house_checklist_submission_items",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
-      },
-      {
-        "name": "ic_audit_universal_trigger",
-        "event": "DELETE",
-        "table": "ic_house_checklist_submissions",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_audit_universal_trigger",
@@ -10369,6 +10695,13 @@
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
+        "name": "ic_audit_universal_trigger",
+        "event": "DELETE",
+        "table": "ic_house_checklist_submissions",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
         "name": "ic_trigger_set_audit_columns",
         "event": "INSERT",
         "table": "ic_house_checklist_submissions",
@@ -10384,24 +10717,31 @@
       },
       {
         "name": "ic_audit_universal_trigger",
+        "event": "INSERT",
+        "table": "ic_house_checklists",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
+        "name": "ic_audit_universal_trigger",
+        "event": "UPDATE",
+        "table": "ic_house_checklists",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
+        "name": "ic_audit_universal_trigger",
         "event": "DELETE",
         "table": "ic_house_checklists",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
-        "name": "ic_audit_universal_trigger",
+        "name": "ic_trigger_set_audit_columns",
         "event": "INSERT",
         "table": "ic_house_checklists",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
-      },
-      {
-        "name": "ic_audit_universal_trigger",
-        "event": "UPDATE",
-        "table": "ic_house_checklists",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
         "name": "ic_trigger_set_audit_columns",
@@ -10411,15 +10751,8 @@
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
-        "name": "ic_trigger_set_audit_columns",
-        "event": "INSERT",
-        "table": "ic_house_checklists",
-        "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
-      },
-      {
         "name": "ic_audit_universal_trigger",
-        "event": "UPDATE",
+        "event": "INSERT",
         "table": "ic_house_comms",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
@@ -10433,7 +10766,7 @@
       },
       {
         "name": "ic_audit_universal_trigger",
-        "event": "INSERT",
+        "event": "UPDATE",
         "table": "ic_house_comms",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
@@ -10453,8 +10786,50 @@
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
+        "name": "ic_audit_universal_trigger_delete",
+        "event": "DELETE",
+        "table": "ic_house_compliance_requirements",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
+        "name": "ic_audit_universal_trigger_insert",
+        "event": "INSERT",
+        "table": "ic_house_compliance_requirements",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
+        "name": "ic_audit_universal_trigger_update",
+        "event": "UPDATE",
+        "table": "ic_house_compliance_requirements",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
+        "name": "ic_trigger_set_audit_columns_insert",
+        "event": "INSERT",
+        "table": "ic_house_compliance_requirements",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
+      },
+      {
+        "name": "ic_trigger_set_audit_columns_update",
+        "event": "UPDATE",
+        "table": "ic_house_compliance_requirements",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
+      },
+      {
         "name": "ic_audit_universal_trigger",
         "event": "UPDATE",
+        "table": "ic_house_files",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
+        "name": "ic_audit_universal_trigger",
+        "event": "INSERT",
         "table": "ic_house_files",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
@@ -10467,13 +10842,6 @@
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
-        "name": "ic_audit_universal_trigger",
-        "event": "INSERT",
-        "table": "ic_house_files",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
-      },
-      {
         "name": "ic_trigger_set_audit_columns",
         "event": "UPDATE",
         "table": "ic_house_files",
@@ -10486,20 +10854,6 @@
         "table": "ic_house_files",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
-      },
-      {
-        "name": "ic_audit_universal_trigger",
-        "event": "UPDATE",
-        "table": "ic_house_form_assignments",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
-      },
-      {
-        "name": "ic_audit_universal_trigger",
-        "event": "INSERT",
-        "table": "ic_house_form_assignments",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_audit_universal_trigger",
@@ -10509,11 +10863,18 @@
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
-        "name": "ic_trigger_set_audit_columns",
+        "name": "ic_audit_universal_trigger",
+        "event": "UPDATE",
+        "table": "ic_house_form_assignments",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
+        "name": "ic_audit_universal_trigger",
         "event": "INSERT",
         "table": "ic_house_form_assignments",
-        "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_trigger_set_audit_columns",
@@ -10521,6 +10882,20 @@
         "table": "ic_house_form_assignments",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
+      },
+      {
+        "name": "ic_trigger_set_audit_columns",
+        "event": "INSERT",
+        "table": "ic_house_form_assignments",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
+      },
+      {
+        "name": "ic_audit_universal_trigger",
+        "event": "INSERT",
+        "table": "ic_house_form_submissions",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_audit_universal_trigger",
@@ -10532,13 +10907,6 @@
       {
         "name": "ic_audit_universal_trigger",
         "event": "DELETE",
-        "table": "ic_house_form_submissions",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
-      },
-      {
-        "name": "ic_audit_universal_trigger",
-        "event": "INSERT",
         "table": "ic_house_form_submissions",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
@@ -10566,28 +10934,28 @@
       },
       {
         "name": "ic_audit_universal_trigger",
-        "event": "INSERT",
-        "table": "ic_house_forms",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
-      },
-      {
-        "name": "ic_audit_universal_trigger",
         "event": "DELETE",
         "table": "ic_house_forms",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
-        "name": "ic_trigger_set_audit_columns",
+        "name": "ic_audit_universal_trigger",
         "event": "INSERT",
+        "table": "ic_house_forms",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
+        "name": "ic_trigger_set_audit_columns",
+        "event": "UPDATE",
         "table": "ic_house_forms",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
         "name": "ic_trigger_set_audit_columns",
-        "event": "UPDATE",
+        "event": "INSERT",
         "table": "ic_house_forms",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
@@ -10601,24 +10969,17 @@
       },
       {
         "name": "ic_audit_universal_trigger",
-        "event": "UPDATE",
-        "table": "ic_house_resources",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
-      },
-      {
-        "name": "ic_audit_universal_trigger",
         "event": "INSERT",
         "table": "ic_house_resources",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
-        "name": "ic_trigger_set_audit_columns",
+        "name": "ic_audit_universal_trigger",
         "event": "UPDATE",
         "table": "ic_house_resources",
-        "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_trigger_set_audit_columns",
@@ -10628,11 +10989,11 @@
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
-        "name": "ic_audit_universal_trigger",
+        "name": "ic_trigger_set_audit_columns",
         "event": "UPDATE",
-        "table": "ic_house_shift_templates",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+        "table": "ic_house_resources",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
         "name": "ic_audit_universal_trigger",
@@ -10643,6 +11004,13 @@
       },
       {
         "name": "ic_audit_universal_trigger",
+        "event": "UPDATE",
+        "table": "ic_house_shift_templates",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
+        "name": "ic_audit_universal_trigger",
         "event": "INSERT",
         "table": "ic_house_shift_templates",
         "timing": "AFTER",
@@ -10664,7 +11032,7 @@
       },
       {
         "name": "ic_audit_universal_trigger",
-        "event": "INSERT",
+        "event": "DELETE",
         "table": "ic_house_staff_assignments",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
@@ -10678,28 +11046,28 @@
       },
       {
         "name": "ic_audit_universal_trigger",
-        "event": "DELETE",
+        "event": "INSERT",
         "table": "ic_house_staff_assignments",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_trigger_set_audit_columns",
-        "event": "UPDATE",
+        "event": "INSERT",
         "table": "ic_house_staff_assignments",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
         "name": "ic_trigger_set_audit_columns",
-        "event": "INSERT",
+        "event": "UPDATE",
         "table": "ic_house_staff_assignments",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
         "name": "ic_webhook_jwt_assignments",
-        "event": "INSERT",
+        "event": "DELETE",
         "table": "ic_house_staff_assignments",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_dispatch_jwt_sync_webhook()"
@@ -10713,10 +11081,17 @@
       },
       {
         "name": "ic_webhook_jwt_assignments",
-        "event": "DELETE",
+        "event": "INSERT",
         "table": "ic_house_staff_assignments",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_dispatch_jwt_sync_webhook()"
+      },
+      {
+        "name": "sync_jwt_on_assignment_change",
+        "event": "INSERT",
+        "table": "ic_house_staff_assignments",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION supabase_functions.http_request('https://rdnaqrzqpcicskylmsyl.supabase.co/functions/v1/ic-update-user-roles', 'POST', '{\"Content-type\":\"application/json\",\"Authorization\":\"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJkbmFxcnpxcGNpY3NreWxtc3lsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MTc1NDM5MSwiZXhwIjoyMDg3MzMwMzkxfQ.bR9MwbQY0QpjvcNJF14-FFPhAiEjpvjH3_KQzyu31ZQ\"}', '{}', '5000')"
       },
       {
         "name": "sync_jwt_on_assignment_change",
@@ -10733,27 +11108,6 @@
         "definition": "EXECUTE FUNCTION supabase_functions.http_request('https://rdnaqrzqpcicskylmsyl.supabase.co/functions/v1/ic-update-user-roles', 'POST', '{\"Content-type\":\"application/json\",\"Authorization\":\"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJkbmFxcnpxcGNpY3NreWxtc3lsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MTc1NDM5MSwiZXhwIjoyMDg3MzMwMzkxfQ.bR9MwbQY0QpjvcNJF14-FFPhAiEjpvjH3_KQzyu31ZQ\"}', '{}', '5000')"
       },
       {
-        "name": "sync_jwt_on_assignment_change",
-        "event": "INSERT",
-        "table": "ic_house_staff_assignments",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION supabase_functions.http_request('https://rdnaqrzqpcicskylmsyl.supabase.co/functions/v1/ic-update-user-roles', 'POST', '{\"Content-type\":\"application/json\",\"Authorization\":\"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJkbmFxcnpxcGNpY3NreWxtc3lsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MTc1NDM5MSwiZXhwIjoyMDg3MzMwMzkxfQ.bR9MwbQY0QpjvcNJF14-FFPhAiEjpvjH3_KQzyu31ZQ\"}', '{}', '5000')"
-      },
-      {
-        "name": "ic_audit_universal_trigger",
-        "event": "INSERT",
-        "table": "ic_house_types_master",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
-      },
-      {
-        "name": "ic_audit_universal_trigger",
-        "event": "UPDATE",
-        "table": "ic_house_types_master",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
-      },
-      {
         "name": "ic_audit_universal_trigger",
         "event": "DELETE",
         "table": "ic_house_types_master",
@@ -10761,6 +11115,20 @@
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
+        "name": "ic_audit_universal_trigger",
+        "event": "UPDATE",
+        "table": "ic_house_types_master",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
+        "name": "ic_audit_universal_trigger",
+        "event": "INSERT",
+        "table": "ic_house_types_master",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
         "name": "ic_trigger_set_audit_columns",
         "event": "UPDATE",
         "table": "ic_house_types_master",
@@ -10773,20 +11141,6 @@
         "table": "ic_house_types_master",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
-      },
-      {
-        "name": "ic_audit_universal_trigger",
-        "event": "UPDATE",
-        "table": "ic_houses",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
-      },
-      {
-        "name": "ic_audit_universal_trigger",
-        "event": "INSERT",
-        "table": "ic_houses",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_audit_universal_trigger",
@@ -10796,11 +11150,18 @@
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
-        "name": "ic_trigger_set_audit_columns",
+        "name": "ic_audit_universal_trigger",
+        "event": "INSERT",
+        "table": "ic_houses",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
+        "name": "ic_audit_universal_trigger",
         "event": "UPDATE",
         "table": "ic_houses",
-        "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_trigger_set_audit_columns",
@@ -10810,11 +11171,11 @@
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
-        "name": "ic_audit_universal_trigger",
+        "name": "ic_trigger_set_audit_columns",
         "event": "UPDATE",
-        "table": "ic_incident_reports",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+        "table": "ic_houses",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
         "name": "ic_audit_universal_trigger",
@@ -10831,6 +11192,13 @@
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
+        "name": "ic_audit_universal_trigger",
+        "event": "UPDATE",
+        "table": "ic_incident_reports",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
         "name": "ic_trigger_set_audit_columns",
         "event": "UPDATE",
         "table": "ic_incident_reports",
@@ -10843,13 +11211,6 @@
         "table": "ic_incident_reports",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
-      },
-      {
-        "name": "ic_audit_universal_trigger",
-        "event": "UPDATE",
-        "table": "ic_incident_types_master",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_audit_universal_trigger",
@@ -10860,6 +11221,13 @@
       },
       {
         "name": "ic_audit_universal_trigger",
+        "event": "UPDATE",
+        "table": "ic_incident_types_master",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
+        "name": "ic_audit_universal_trigger",
         "event": "INSERT",
         "table": "ic_incident_types_master",
         "timing": "AFTER",
@@ -10881,7 +11249,7 @@
       },
       {
         "name": "ic_audit_universal_trigger",
-        "event": "INSERT",
+        "event": "DELETE",
         "table": "ic_leave_requests",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
@@ -10895,21 +11263,21 @@
       },
       {
         "name": "ic_audit_universal_trigger",
-        "event": "DELETE",
+        "event": "INSERT",
         "table": "ic_leave_requests",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_trigger_set_audit_columns",
-        "event": "UPDATE",
+        "event": "INSERT",
         "table": "ic_leave_requests",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
         "name": "ic_trigger_set_audit_columns",
-        "event": "INSERT",
+        "event": "UPDATE",
         "table": "ic_leave_requests",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
@@ -10923,14 +11291,14 @@
       },
       {
         "name": "ic_audit_universal_trigger",
-        "event": "INSERT",
+        "event": "DELETE",
         "table": "ic_leave_types",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_audit_universal_trigger",
-        "event": "DELETE",
+        "event": "INSERT",
         "table": "ic_leave_types",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
@@ -10986,14 +11354,14 @@
       },
       {
         "name": "ic_audit_universal_trigger",
-        "event": "DELETE",
+        "event": "UPDATE",
         "table": "ic_medications_master",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_audit_universal_trigger",
-        "event": "UPDATE",
+        "event": "DELETE",
         "table": "ic_medications_master",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
@@ -11007,24 +11375,17 @@
       },
       {
         "name": "ic_trigger_set_audit_columns",
-        "event": "UPDATE",
+        "event": "INSERT",
         "table": "ic_medications_master",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
         "name": "ic_trigger_set_audit_columns",
-        "event": "INSERT",
+        "event": "UPDATE",
         "table": "ic_medications_master",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
-      },
-      {
-        "name": "ic_audit_universal_trigger",
-        "event": "INSERT",
-        "table": "ic_notifications",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_audit_universal_trigger",
@@ -11036,6 +11397,13 @@
       {
         "name": "ic_audit_universal_trigger",
         "event": "DELETE",
+        "table": "ic_notifications",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
+        "name": "ic_audit_universal_trigger",
+        "event": "INSERT",
         "table": "ic_notifications",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
@@ -11063,14 +11431,14 @@
       },
       {
         "name": "ic_audit_universal_trigger",
-        "event": "UPDATE",
+        "event": "DELETE",
         "table": "ic_participant_contacts",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_audit_universal_trigger",
-        "event": "DELETE",
+        "event": "UPDATE",
         "table": "ic_participant_contacts",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
@@ -11140,6 +11508,13 @@
       },
       {
         "name": "ic_audit_universal_trigger",
+        "event": "INSERT",
+        "table": "ic_participant_forms",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
+        "name": "ic_audit_universal_trigger",
         "event": "UPDATE",
         "table": "ic_participant_forms",
         "timing": "AFTER",
@@ -11153,13 +11528,6 @@
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
-        "name": "ic_audit_universal_trigger",
-        "event": "INSERT",
-        "table": "ic_participant_forms",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
-      },
-      {
         "name": "ic_trigger_set_audit_columns",
         "event": "INSERT",
         "table": "ic_participant_forms",
@@ -11175,14 +11543,14 @@
       },
       {
         "name": "ic_audit_universal_trigger",
-        "event": "UPDATE",
+        "event": "INSERT",
         "table": "ic_participant_funding",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_audit_universal_trigger",
-        "event": "INSERT",
+        "event": "UPDATE",
         "table": "ic_participant_funding",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
@@ -11196,17 +11564,24 @@
       },
       {
         "name": "ic_trigger_set_audit_columns",
-        "event": "UPDATE",
+        "event": "INSERT",
         "table": "ic_participant_funding",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
         "name": "ic_trigger_set_audit_columns",
-        "event": "INSERT",
+        "event": "UPDATE",
         "table": "ic_participant_funding",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
+      },
+      {
+        "name": "ic_audit_universal_trigger",
+        "event": "UPDATE",
+        "table": "ic_participant_goal_progress",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_audit_universal_trigger",
@@ -11223,13 +11598,6 @@
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
-        "name": "ic_audit_universal_trigger",
-        "event": "UPDATE",
-        "table": "ic_participant_goal_progress",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
-      },
-      {
         "name": "ic_trigger_set_audit_columns",
         "event": "INSERT",
         "table": "ic_participant_goal_progress",
@@ -11245,7 +11613,7 @@
       },
       {
         "name": "ic_audit_universal_trigger",
-        "event": "UPDATE",
+        "event": "INSERT",
         "table": "ic_participant_goals",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
@@ -11259,21 +11627,21 @@
       },
       {
         "name": "ic_audit_universal_trigger",
-        "event": "INSERT",
+        "event": "UPDATE",
         "table": "ic_participant_goals",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_trigger_set_audit_columns",
-        "event": "INSERT",
+        "event": "UPDATE",
         "table": "ic_participant_goals",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
         "name": "ic_trigger_set_audit_columns",
-        "event": "UPDATE",
+        "event": "INSERT",
         "table": "ic_participant_goals",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
@@ -11301,14 +11669,14 @@
       },
       {
         "name": "ic_trigger_set_audit_columns",
-        "event": "INSERT",
+        "event": "UPDATE",
         "table": "ic_participant_hygiene_routines",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
         "name": "ic_trigger_set_audit_columns",
-        "event": "UPDATE",
+        "event": "INSERT",
         "table": "ic_participant_hygiene_routines",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
@@ -11343,28 +11711,21 @@
       },
       {
         "name": "ic_trigger_set_audit_columns",
-        "event": "UPDATE",
-        "table": "ic_participant_medications",
-        "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
-      },
-      {
-        "name": "ic_trigger_set_audit_columns",
         "event": "INSERT",
         "table": "ic_participant_medications",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
-        "name": "ic_audit_universal_trigger",
-        "event": "INSERT",
-        "table": "ic_participant_notes",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+        "name": "ic_trigger_set_audit_columns",
+        "event": "UPDATE",
+        "table": "ic_participant_medications",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
         "name": "ic_audit_universal_trigger",
-        "event": "UPDATE",
+        "event": "INSERT",
         "table": "ic_participant_notes",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
@@ -11377,6 +11738,20 @@
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
+        "name": "ic_audit_universal_trigger",
+        "event": "UPDATE",
+        "table": "ic_participant_notes",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
+        "name": "ic_trigger_set_audit_columns",
+        "event": "UPDATE",
+        "table": "ic_participant_notes",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
+      },
+      {
         "name": "ic_trigger_set_audit_columns",
         "event": "INSERT",
         "table": "ic_participant_notes",
@@ -11384,15 +11759,8 @@
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
-        "name": "ic_trigger_set_audit_columns",
-        "event": "UPDATE",
-        "table": "ic_participant_notes",
-        "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
-      },
-      {
         "name": "ic_audit_universal_trigger",
-        "event": "UPDATE",
+        "event": "DELETE",
         "table": "ic_participant_restrictive_practices",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
@@ -11406,7 +11774,7 @@
       },
       {
         "name": "ic_audit_universal_trigger",
-        "event": "DELETE",
+        "event": "UPDATE",
         "table": "ic_participant_restrictive_practices",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
@@ -11434,24 +11802,17 @@
       },
       {
         "name": "ic_audit_universal_trigger",
-        "event": "INSERT",
+        "event": "UPDATE",
         "table": "ic_participants",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_audit_universal_trigger",
-        "event": "UPDATE",
+        "event": "INSERT",
         "table": "ic_participants",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
-      },
-      {
-        "name": "ic_trigger_set_audit_columns",
-        "event": "UPDATE",
-        "table": "ic_participants",
-        "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
         "name": "ic_trigger_set_audit_columns",
@@ -11461,11 +11822,11 @@
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
-        "name": "ic_audit_universal_trigger",
+        "name": "ic_trigger_set_audit_columns",
         "event": "UPDATE",
-        "table": "ic_permission_mappings",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+        "table": "ic_participants",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
         "name": "ic_audit_universal_trigger",
@@ -11482,6 +11843,13 @@
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
+        "name": "ic_audit_universal_trigger",
+        "event": "UPDATE",
+        "table": "ic_permission_mappings",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
         "name": "ic_trigger_set_audit_columns",
         "event": "INSERT",
         "table": "ic_permission_mappings",
@@ -11497,6 +11865,13 @@
       },
       {
         "name": "ic_audit_universal_trigger",
+        "event": "INSERT",
+        "table": "ic_positions",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
+        "name": "ic_audit_universal_trigger",
         "event": "DELETE",
         "table": "ic_positions",
         "timing": "AFTER",
@@ -11504,13 +11879,6 @@
       },
       {
         "name": "ic_audit_universal_trigger",
-        "event": "INSERT",
-        "table": "ic_positions",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
-      },
-      {
-        "name": "ic_audit_universal_trigger",
         "event": "UPDATE",
         "table": "ic_positions",
         "timing": "AFTER",
@@ -11529,13 +11897,6 @@
         "table": "ic_positions",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
-      },
-      {
-        "name": "ic_audit_universal_trigger",
-        "event": "UPDATE",
-        "table": "ic_provider_participants",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_audit_universal_trigger",
@@ -11546,17 +11907,17 @@
       },
       {
         "name": "ic_audit_universal_trigger",
-        "event": "INSERT",
+        "event": "UPDATE",
         "table": "ic_provider_participants",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
-        "name": "ic_trigger_set_audit_columns",
+        "name": "ic_audit_universal_trigger",
         "event": "INSERT",
         "table": "ic_provider_participants",
-        "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_trigger_set_audit_columns",
@@ -11566,11 +11927,11 @@
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
-        "name": "ic_audit_universal_trigger",
+        "name": "ic_trigger_set_audit_columns",
         "event": "INSERT",
-        "table": "ic_providers",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+        "table": "ic_provider_participants",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
         "name": "ic_audit_universal_trigger",
@@ -11587,11 +11948,11 @@
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
-        "name": "ic_trigger_set_audit_columns",
+        "name": "ic_audit_universal_trigger",
         "event": "INSERT",
         "table": "ic_providers",
-        "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_trigger_set_audit_columns",
@@ -11601,15 +11962,22 @@
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
+        "name": "ic_trigger_set_audit_columns",
+        "event": "INSERT",
+        "table": "ic_providers",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
+      },
+      {
         "name": "ic_audit_universal_trigger",
-        "event": "DELETE",
+        "event": "UPDATE",
         "table": "ic_restrictive_practice_types_master",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_audit_universal_trigger",
-        "event": "UPDATE",
+        "event": "DELETE",
         "table": "ic_restrictive_practice_types_master",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
@@ -11644,14 +12012,14 @@
       },
       {
         "name": "ic_audit_universal_trigger",
-        "event": "INSERT",
+        "event": "DELETE",
         "table": "ic_role_permissions",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_audit_universal_trigger",
-        "event": "DELETE",
+        "event": "INSERT",
         "table": "ic_role_permissions",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
@@ -11665,19 +12033,33 @@
       },
       {
         "name": "ic_trigger_set_audit_columns",
-        "event": "INSERT",
-        "table": "ic_role_permissions",
-        "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
-      },
-      {
-        "name": "ic_trigger_set_audit_columns",
         "event": "UPDATE",
         "table": "ic_role_permissions",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
+        "name": "ic_trigger_set_audit_columns",
+        "event": "INSERT",
+        "table": "ic_role_permissions",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
+      },
+      {
+        "name": "ic_audit_universal_trigger",
+        "event": "UPDATE",
+        "table": "ic_roles",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
+        "name": "ic_audit_universal_trigger",
+        "event": "INSERT",
+        "table": "ic_roles",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
         "name": "ic_audit_universal_trigger",
         "event": "DELETE",
         "table": "ic_roles",
@@ -11685,18 +12067,11 @@
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
-        "name": "ic_audit_universal_trigger",
-        "event": "UPDATE",
-        "table": "ic_roles",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
-      },
-      {
-        "name": "ic_audit_universal_trigger",
+        "name": "ic_trigger_set_audit_columns",
         "event": "INSERT",
         "table": "ic_roles",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
         "name": "ic_trigger_set_audit_columns",
@@ -11706,11 +12081,11 @@
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
-        "name": "ic_trigger_set_audit_columns",
-        "event": "INSERT",
-        "table": "ic_roles",
-        "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
+        "name": "ic_audit_universal_trigger",
+        "event": "UPDATE",
+        "table": "ic_seizure_types_master",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_audit_universal_trigger",
@@ -11727,13 +12102,6 @@
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
-        "name": "ic_audit_universal_trigger",
-        "event": "UPDATE",
-        "table": "ic_seizure_types_master",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
-      },
-      {
         "name": "ic_trigger_set_audit_columns",
         "event": "UPDATE",
         "table": "ic_seizure_types_master",
@@ -11746,6 +12114,13 @@
         "table": "ic_seizure_types_master",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
+      },
+      {
+        "name": "ic_audit_universal_trigger",
+        "event": "INSERT",
+        "table": "ic_service_participants",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_audit_universal_trigger",
@@ -11756,31 +12131,31 @@
       },
       {
         "name": "ic_audit_universal_trigger",
-        "event": "INSERT",
+        "event": "UPDATE",
         "table": "ic_service_participants",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
+        "name": "ic_trigger_set_audit_columns",
+        "event": "INSERT",
+        "table": "ic_service_participants",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
+      },
+      {
+        "name": "ic_trigger_set_audit_columns",
+        "event": "UPDATE",
+        "table": "ic_service_participants",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
         "name": "ic_audit_universal_trigger",
-        "event": "UPDATE",
-        "table": "ic_service_participants",
+        "event": "INSERT",
+        "table": "ic_service_staff",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
-      },
-      {
-        "name": "ic_trigger_set_audit_columns",
-        "event": "UPDATE",
-        "table": "ic_service_participants",
-        "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
-      },
-      {
-        "name": "ic_trigger_set_audit_columns",
-        "event": "INSERT",
-        "table": "ic_service_participants",
-        "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
         "name": "ic_audit_universal_trigger",
@@ -11791,13 +12166,6 @@
       },
       {
         "name": "ic_audit_universal_trigger",
-        "event": "INSERT",
-        "table": "ic_service_staff",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
-      },
-      {
-        "name": "ic_audit_universal_trigger",
         "event": "UPDATE",
         "table": "ic_service_staff",
         "timing": "AFTER",
@@ -11805,14 +12173,14 @@
       },
       {
         "name": "ic_trigger_set_audit_columns",
-        "event": "INSERT",
+        "event": "UPDATE",
         "table": "ic_service_staff",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
         "name": "ic_trigger_set_audit_columns",
-        "event": "UPDATE",
+        "event": "INSERT",
         "table": "ic_service_staff",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
@@ -11840,19 +12208,33 @@
       },
       {
         "name": "ic_trigger_set_audit_columns",
-        "event": "UPDATE",
-        "table": "ic_services",
-        "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
-      },
-      {
-        "name": "ic_trigger_set_audit_columns",
         "event": "INSERT",
         "table": "ic_services",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
+        "name": "ic_trigger_set_audit_columns",
+        "event": "UPDATE",
+        "table": "ic_services",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
+      },
+      {
+        "name": "ic_audit_universal_trigger",
+        "event": "UPDATE",
+        "table": "ic_shift_assigned_checklists",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
+        "name": "ic_audit_universal_trigger",
+        "event": "INSERT",
+        "table": "ic_shift_assigned_checklists",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
         "name": "ic_audit_universal_trigger",
         "event": "DELETE",
         "table": "ic_shift_assigned_checklists",
@@ -11860,20 +12242,6 @@
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
-        "name": "ic_audit_universal_trigger",
-        "event": "INSERT",
-        "table": "ic_shift_assigned_checklists",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
-      },
-      {
-        "name": "ic_audit_universal_trigger",
-        "event": "UPDATE",
-        "table": "ic_shift_assigned_checklists",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
-      },
-      {
         "name": "ic_trigger_set_audit_columns",
         "event": "INSERT",
         "table": "ic_shift_assigned_checklists",
@@ -11886,6 +12254,13 @@
         "table": "ic_shift_assigned_checklists",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
+      },
+      {
+        "name": "ic_audit_universal_trigger",
+        "event": "UPDATE",
+        "table": "ic_shift_notes",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_audit_universal_trigger",
@@ -11902,13 +12277,6 @@
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
-        "name": "ic_audit_universal_trigger",
-        "event": "UPDATE",
-        "table": "ic_shift_notes",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
-      },
-      {
         "name": "ic_trigger_set_audit_columns",
         "event": "INSERT",
         "table": "ic_shift_notes",
@@ -11921,6 +12289,20 @@
         "table": "ic_shift_notes",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
+      },
+      {
+        "name": "ic_audit_universal_trigger",
+        "event": "UPDATE",
+        "table": "ic_shift_participants",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
+        "name": "ic_audit_universal_trigger",
+        "event": "INSERT",
+        "table": "ic_shift_participants",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_audit_universal_trigger",
@@ -11930,27 +12312,6 @@
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
-        "name": "ic_audit_universal_trigger",
-        "event": "INSERT",
-        "table": "ic_shift_participants",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
-      },
-      {
-        "name": "ic_audit_universal_trigger",
-        "event": "UPDATE",
-        "table": "ic_shift_participants",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
-      },
-      {
-        "name": "ic_trigger_set_audit_columns",
-        "event": "UPDATE",
-        "table": "ic_shift_participants",
-        "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
-      },
-      {
         "name": "ic_trigger_set_audit_columns",
         "event": "INSERT",
         "table": "ic_shift_participants",
@@ -11958,11 +12319,11 @@
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
-        "name": "ic_audit_universal_trigger",
+        "name": "ic_trigger_set_audit_columns",
         "event": "UPDATE",
-        "table": "ic_shift_template_checklists",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+        "table": "ic_shift_participants",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
         "name": "ic_audit_universal_trigger",
@@ -11979,6 +12340,13 @@
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
+        "name": "ic_audit_universal_trigger",
+        "event": "UPDATE",
+        "table": "ic_shift_template_checklists",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
         "name": "ic_trigger_set_audit_columns",
         "event": "UPDATE",
         "table": "ic_shift_template_checklists",
@@ -11991,20 +12359,6 @@
         "table": "ic_shift_template_checklists",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
-      },
-      {
-        "name": "ic_audit_universal_trigger",
-        "event": "UPDATE",
-        "table": "ic_shift_template_default_checklists",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
-      },
-      {
-        "name": "ic_audit_universal_trigger",
-        "event": "INSERT",
-        "table": "ic_shift_template_default_checklists",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_audit_universal_trigger",
@@ -12014,11 +12368,18 @@
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
-        "name": "ic_trigger_set_audit_columns",
+        "name": "ic_audit_universal_trigger",
         "event": "INSERT",
         "table": "ic_shift_template_default_checklists",
-        "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
+        "name": "ic_audit_universal_trigger",
+        "event": "UPDATE",
+        "table": "ic_shift_template_default_checklists",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_trigger_set_audit_columns",
@@ -12026,6 +12387,20 @@
         "table": "ic_shift_template_default_checklists",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
+      },
+      {
+        "name": "ic_trigger_set_audit_columns",
+        "event": "INSERT",
+        "table": "ic_shift_template_default_checklists",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
+      },
+      {
+        "name": "ic_audit_universal_trigger",
+        "event": "INSERT",
+        "table": "ic_staff",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_audit_universal_trigger",
@@ -12037,13 +12412,6 @@
       {
         "name": "ic_audit_universal_trigger",
         "event": "UPDATE",
-        "table": "ic_staff",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
-      },
-      {
-        "name": "ic_audit_universal_trigger",
-        "event": "INSERT",
         "table": "ic_staff",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
@@ -12064,14 +12432,14 @@
       },
       {
         "name": "ic_trigger_set_audit_columns",
-        "event": "UPDATE",
+        "event": "INSERT",
         "table": "ic_staff",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
         "name": "ic_trigger_set_audit_columns",
-        "event": "INSERT",
+        "event": "UPDATE",
         "table": "ic_staff",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
@@ -12079,6 +12447,13 @@
       {
         "name": "ic_webhook_jwt_staff",
         "event": "UPDATE",
+        "table": "ic_staff",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_dispatch_jwt_sync_webhook()"
+      },
+      {
+        "name": "ic_webhook_jwt_staff",
+        "event": "INSERT",
         "table": "ic_staff",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_dispatch_jwt_sync_webhook()"
@@ -12086,13 +12461,6 @@
       {
         "name": "ic_webhook_jwt_staff",
         "event": "DELETE",
-        "table": "ic_staff",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_dispatch_jwt_sync_webhook()"
-      },
-      {
-        "name": "ic_webhook_jwt_staff",
-        "event": "INSERT",
         "table": "ic_staff",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_dispatch_jwt_sync_webhook()"
@@ -12106,13 +12474,6 @@
       },
       {
         "name": "ic_audit_universal_trigger",
-        "event": "INSERT",
-        "table": "ic_staff_compliance",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
-      },
-      {
-        "name": "ic_audit_universal_trigger",
         "event": "DELETE",
         "table": "ic_staff_compliance",
         "timing": "AFTER",
@@ -12120,6 +12481,13 @@
       },
       {
         "name": "ic_audit_universal_trigger",
+        "event": "INSERT",
+        "table": "ic_staff_compliance",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
+        "name": "ic_audit_universal_trigger",
         "event": "UPDATE",
         "table": "ic_staff_compliance",
         "timing": "AFTER",
@@ -12127,14 +12495,14 @@
       },
       {
         "name": "ic_trigger_set_audit_columns",
-        "event": "UPDATE",
+        "event": "INSERT",
         "table": "ic_staff_compliance",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
         "name": "ic_trigger_set_audit_columns",
-        "event": "INSERT",
+        "event": "UPDATE",
         "table": "ic_staff_compliance",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
@@ -12148,24 +12516,17 @@
       },
       {
         "name": "ic_trigger_set_audit_columns",
-        "event": "INSERT",
-        "table": "ic_staff_document_roles",
-        "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
-      },
-      {
-        "name": "ic_trigger_set_audit_columns",
         "event": "UPDATE",
         "table": "ic_staff_document_roles",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
-        "name": "ic_audit_universal_trigger",
-        "event": "UPDATE",
-        "table": "ic_staff_documents",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+        "name": "ic_trigger_set_audit_columns",
+        "event": "INSERT",
+        "table": "ic_staff_document_roles",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
         "name": "ic_audit_universal_trigger",
@@ -12182,6 +12543,13 @@
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
+        "name": "ic_audit_universal_trigger",
+        "event": "UPDATE",
+        "table": "ic_staff_documents",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
         "name": "ic_trigger_set_audit_columns",
         "event": "UPDATE",
         "table": "ic_staff_documents",
@@ -12204,19 +12572,19 @@
       },
       {
         "name": "ic_audit_universal_trigger",
+        "event": "UPDATE",
+        "table": "ic_staff_shifts",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+      },
+      {
+        "name": "ic_audit_universal_trigger",
         "event": "DELETE",
         "table": "ic_staff_shifts",
         "timing": "AFTER",
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
-        "name": "ic_audit_universal_trigger",
-        "event": "UPDATE",
-        "table": "ic_staff_shifts",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
-      },
-      {
         "name": "ic_trigger_set_audit_columns",
         "event": "UPDATE",
         "table": "ic_staff_shifts",
@@ -12229,13 +12597,6 @@
         "table": "ic_staff_shifts",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
-      },
-      {
-        "name": "ic_audit_universal_trigger",
-        "event": "INSERT",
-        "table": "ic_staff_training",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_audit_universal_trigger",
@@ -12252,11 +12613,11 @@
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
-        "name": "ic_trigger_set_audit_columns",
+        "name": "ic_audit_universal_trigger",
         "event": "INSERT",
         "table": "ic_staff_training",
-        "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_trigger_set_audit_columns",
@@ -12266,11 +12627,11 @@
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
-        "name": "ic_audit_universal_trigger",
+        "name": "ic_trigger_set_audit_columns",
         "event": "INSERT",
-        "table": "ic_timesheets",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
+        "table": "ic_staff_training",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
         "name": "ic_audit_universal_trigger",
@@ -12287,11 +12648,11 @@
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
-        "name": "ic_trigger_set_audit_columns",
+        "name": "ic_audit_universal_trigger",
         "event": "INSERT",
         "table": "ic_timesheets",
-        "timing": "BEFORE",
-        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_trigger_set_audit_columns",
@@ -12299,6 +12660,20 @@
         "table": "ic_timesheets",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
+      },
+      {
+        "name": "ic_trigger_set_audit_columns",
+        "event": "INSERT",
+        "table": "ic_timesheets",
+        "timing": "BEFORE",
+        "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
+      },
+      {
+        "name": "ic_audit_universal_trigger",
+        "event": "UPDATE",
+        "table": "ic_user_roles",
+        "timing": "AFTER",
+        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
         "name": "ic_audit_universal_trigger",
@@ -12315,22 +12690,15 @@
         "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
       },
       {
-        "name": "ic_audit_universal_trigger",
-        "event": "UPDATE",
-        "table": "ic_user_roles",
-        "timing": "AFTER",
-        "definition": "EXECUTE FUNCTION ic_audit_trigger_func()"
-      },
-      {
         "name": "ic_trigger_set_audit_columns",
-        "event": "INSERT",
+        "event": "UPDATE",
         "table": "ic_user_roles",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"
       },
       {
         "name": "ic_trigger_set_audit_columns",
-        "event": "UPDATE",
+        "event": "INSERT",
         "table": "ic_user_roles",
         "timing": "BEFORE",
         "definition": "EXECUTE FUNCTION ic_set_audit_columns()"

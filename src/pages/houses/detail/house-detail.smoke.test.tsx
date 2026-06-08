@@ -40,6 +40,10 @@ vi.mock('@/hooks/use-participants', () => ({
   useHouseParticipants: vi.fn(() => ({
     participants: [],
     loading: false
+  })),
+  useActiveParticipants: vi.fn(() => ({
+    participants: [],
+    loading: false
   }))
 }));
 

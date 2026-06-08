@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { SecureAvatar } from '@/components/ui/secure-avatar';
-import { useStaff } from '@/hooks/use-staff';
+import { useActiveStaff } from '@/hooks/use-staff';
 import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 
 interface StaffComboboxProps {
@@ -17,7 +17,7 @@ interface StaffComboboxProps {
 
 export function StaffCombobox({ value, onChange, placeholder = "Select staff...", disabled = false }: StaffComboboxProps) {
   const [open, setOpen] = useState(false);
-  const { staff, loading } = useStaff(0, 1000, [], { statuses: ['active'] });
+  const { staff, loading } = useActiveStaff();
 
   const selectedStaff = staff.find(s => s.id === value);
 

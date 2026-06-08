@@ -1,9 +1,9 @@
 import { Fragment, useState, useRef, useCallback, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router';
+import { useNavigate, useParams, useLocation } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { Container } from '@/components/common/container';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Trash2 } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { ShiftNoteDetailContent } from './shift-note-detail-content';
 import { ShiftNoteDetailSidebar } from './shift-note-detail-sidebar';
 import { Scrollspy } from '@/components/ui/scrollspy';
@@ -21,10 +21,11 @@ import { useSettings } from '@/providers/settings-provider';
 import { useDirtyTracker } from '@/hooks/useDirtyTracker';
 import { RBAC_MODULES } from '@/config/rbac-modules';
 import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
-import { useArchiveShiftNote } from '@/hooks/use-shift-notes';
+
 import { toast } from 'sonner';
 import { ROUTES } from '@/config/routes.config';
 import { QUERY_KEYS } from '@/config/query-keys';
+import { Badge } from '@/components/ui/badge';
 
 const stickySidebarClasses: Record<string, string> = {
   'demo1-layout': 'top-[calc(var(--header-height)+1rem)]',
@@ -41,6 +42,7 @@ const stickySidebarClasses: Record<string, string> = {
 
 export function ShiftNoteDetailPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const queryClient = useQueryClient();
   const { settings } = useSettings();
   const { id } = useParams();
@@ -49,7 +51,7 @@ export function ShiftNoteDetailPage() {
   const parentRef = useRef<HTMLElement | Document>(document);
   const scrollPosition = useScrollPosition({ targetRef: parentRef });
   const [sidebarSticky, setSidebarSticky] = useState(false);
-  const archiveNote = useArchiveShiftNote();
+
   
   const canEdit = hasAccess({ 
     resource: RBAC_MODULES.SHIFT_NOTES, 
@@ -60,7 +62,7 @@ export function ShiftNoteDetailPage() {
   const [originalData, setOriginalData] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const saveHandlerRef = useRef<(() => Promise<void>) | null>(null);
+  const saveHandlerRef = useRef<((status?: 'draft' | 'active') => Promise<void>) | null>(null);
 
   const isNewNote = id === 'new' || id === 'undefined' || !id;
 
@@ -96,50 +98,28 @@ export function ShiftNoteDetailPage() {
     // Refresh the table data before going back
     await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SHIFT_NOTES] });
 
-    // If we have a participant context, go back to their detail page
-    const participantId = formData?.participant_id || new URLSearchParams(window.location.search).get('participantId');
-    if (participantId) {
-      navigate(`${ROUTES.PARTICIPANT_DETAIL}/${participantId}?tab=shift_notes`);
+    const fromPath = location.state?.from;
+    if (fromPath) {
+      navigate(fromPath);
     } else {
-      // Navigate back to the general shift notes list
-      navigate(ROUTES.SHIFT_NOTES);
-    }
-  }, [navigate, isDirty, queryClient, formData]);
-
-  const handleSave = async () => {
-    if (saveHandlerRef.current) {
-      await saveHandlerRef.current();
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!id || id === 'new') return;
-    
-    const confirmed = window.confirm('Are you sure you want to delete this shift note? This will mark it as inactive.');
-    if (!confirmed) return;
-
-    try {
-      setSaving(true);
-      await archiveNote.mutateAsync(id);
-      
-      // Refresh the table data
-      await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SHIFT_NOTES] });
-
-      toast.success('Shift note deleted successfully');
-      
+      // If we have a participant context, go back to their detail page
       const participantId = formData?.participant_id || new URLSearchParams(window.location.search).get('participantId');
       if (participantId) {
         navigate(`${ROUTES.PARTICIPANT_DETAIL}/${participantId}?tab=shift_notes`);
       } else {
+        // Navigate back to the general shift notes list
         navigate(ROUTES.SHIFT_NOTES);
       }
-    } catch (err: any) {
-      console.error('Error deleting shift note:', err);
-      toast.error(err.message || 'Failed to delete shift note');
-    } finally {
-      setSaving(false);
+    }
+  }, [navigate, isDirty, queryClient, formData, location]);
+
+  const handleSave = async (targetStatus?: 'draft' | 'active') => {
+    if (saveHandlerRef.current) {
+      await saveHandlerRef.current(targetStatus);
     }
   };
+
+
 
   // Allow "Create" for new notes even if technically clean (due to defaults), 
   // provided they have the minimum required fields.
@@ -163,7 +143,18 @@ export function ShiftNoteDetailPage() {
                     Back
                   </Button>
                   <div>
-                    <ToolbarPageTitle text={isNewNote ? 'New Shift Note' : 'Shift Note Details'} />
+                    <div className="flex items-center gap-2">
+                      <ToolbarPageTitle text={isNewNote ? 'New Shift Note' : `Shift Note Details${formData?.reference_id ? ` · ${formData.reference_id}` : ''}`} />
+                      {!loading && formData && (
+                        <Badge 
+                          variant={formData.status === 'active' ? 'success' : 'warning'} 
+                          appearance="light"
+                          className="text-[10px] font-bold uppercase shrink-0"
+                        >
+                          {formData.status === 'active' ? 'Completed' : 'Draft'}
+                        </Badge>
+                      )}
+                    </div>
                     <ToolbarDescription>
                       {isNewNote ? 'Create a new shift note' : 'View and edit shift note'}
                     </ToolbarDescription>
@@ -171,24 +162,25 @@ export function ShiftNoteDetailPage() {
                 </div>
               </ToolbarHeading>
               <ToolbarActions>
-                {!isNewNote && (
-                  <Button 
-                    variant="destructive" 
-                    size="sm" 
-                    onClick={handleDelete}
-                    disabled={saving || !canEdit}
-                  >
-                    <Trash2 className="size-4 me-1.5" />
-                    Delete
-                  </Button>
+                {canEdit && formData?.status !== 'active' && (
+                  <>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => handleSave('draft')} 
+                      disabled={!isDirty || saving} 
+                      size="sm"
+                    >
+                      Save Draft
+                    </Button>
+                    <Button 
+                      onClick={() => handleSave('active')} 
+                      disabled={saving} 
+                      size="sm"
+                    >
+                      {saving ? 'Submitting...' : 'Submit Note'}
+                    </Button>
+                  </>
                 )}
-                <Button 
-                  onClick={handleSave} 
-                  disabled={!canSave || saving || !canEdit}
-                  variant={canSave ? 'primary' : 'secondary'}
-                >
-                  {saving ? 'Saving...' : isNewNote ? 'Create' : 'Save Changes'}
-                </Button>
               </ToolbarActions>
             </Toolbar>
           </Container>

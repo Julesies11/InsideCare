@@ -9,7 +9,7 @@ import { useHouseChecklists } from '@/hooks/use-house-checklists';
 import { useChecklistMaster } from '@/hooks/use-checklist-master';
 import { useHouseShiftTemplates } from '@/hooks/use-house-shift-templates';
 import { checklistsApi } from '@/api/checklists.api';
-import { useHouses } from '@/hooks/use-houses';
+import { useActiveHouses } from '@/hooks/use-houses';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -42,11 +42,6 @@ export function HouseChecklistSetup({
   canDelete = true,
   onRefresh
 }: HouseChecklistSetupProps) {
-  const { houseChecklists, refresh: refreshChecklists, loading } = useHouseChecklists(houseId);
-  const { masterChecklists, loading: loadingMaster } = useChecklistMaster();
-  const { shiftTemplates } = useHouseShiftTemplates(houseId);
-  const { houses: allHouses } = useHouses(0, 100, [], { statuses: [STATUS.active] });
-
   const [showChecklistDialog, setShowChecklistDialog] = useState(false);
   const [showItemDialog, setShowItemDialog] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
@@ -55,6 +50,12 @@ export function HouseChecklistSetup({
   const [selectedForSchedule, setSelectedForSchedule] = useState<any>(null);
   const [selectedChecklist, setSelectedChecklist] = useState<any>(null);
   const [selectedItem, setSelectedItem] = useState<any>(null);
+
+  const { houseChecklists, refresh: refreshChecklists, loading } = useHouseChecklists(houseId);
+  const { masterChecklists, loading: loadingMaster } = useChecklistMaster();
+  const { shiftTemplates } = useHouseShiftTemplates(houseId);
+  const { data: allHousesData } = useActiveHouses({ enabled: showImportDialog });
+  const allHouses = allHousesData || [];
   
   // Import State
   const [importSourceType, setImportSourceType] = useState<'house' | 'master'>('house');

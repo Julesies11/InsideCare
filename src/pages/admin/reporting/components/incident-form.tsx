@@ -9,6 +9,7 @@ import { useStaff } from '@/hooks/use-staff';
 import { useIncidentTypesMaster } from '@/hooks/use-incident-types-master';
 import { useRestrictivePracticeTypesMaster } from '@/hooks/use-restrictive-practice-types-master';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -26,8 +27,10 @@ import { Loader2, AlertCircle, Save, X } from 'lucide-react';
 import { IncidentReport, IncidentStatus, IncidentSeverity, IncidentPriority } from '@/models/incident-report';
 import { SecureAvatar } from '@/components/ui/secure-avatar';
 import { STORAGE_BUCKETS } from '@/config/storage-buckets';
+import { generateIncidentReferenceId } from '@/lib/incident-utils';
 
 const incidentSchema = z.object({
+  reference_id: z.string().optional().nullable(),
   involved_participant_id: z.string().uuid('Please select a participant'),
   involved_staff_id: z.string().uuid().optional().nullable(),
   incident_date: z.string().min(1, 'Incident date and time is required'),
@@ -56,14 +59,43 @@ const incidentSchema = z.object({
   admin_status: z.enum(['New', 'Actioned', 'Referred', 'Closed']).optional(),
   admin_actions_taken: z.string().optional().nullable(),
   ndis_reported_date: z.string().optional().nullable(),
-}).refine((data) => {
-  if (data.is_restrictive_practice && data.rp_start_time && data.rp_end_time) {
-    return new Date(data.rp_end_time) >= new Date(data.rp_start_time);
+}).superRefine((data, ctx) => {
+  if (data.is_restrictive_practice) {
+    if (!data.restrictive_practice_type_id || data.restrictive_practice_type_id.trim() === '') {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Please select a restrictive practice type",
+        path: ["restrictive_practice_type_id"],
+      });
+    }
+    if (!data.restrictive_practice_description || data.restrictive_practice_description.trim() === '') {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Description of the restraint used is required",
+        path: ["restrictive_practice_description"],
+      });
+    }
+    if (!data.rp_start_time || data.rp_start_time.trim() === '') {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Start time is required",
+        path: ["rp_start_time"],
+      });
+    }
+    if (!data.rp_end_time || data.rp_end_time.trim() === '') {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "End time is required",
+        path: ["rp_end_time"],
+      });
+    } else if (data.rp_start_time && new Date(data.rp_end_time) < new Date(data.rp_start_time)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "End time must be after start time",
+        path: ["rp_end_time"],
+      });
+    }
   }
-  return true;
-}, {
-  message: "End time must be after start time",
-  path: ["rp_end_time"],
 });
 
 type IncidentFormData = z.infer<typeof incidentSchema>;
@@ -122,6 +154,7 @@ export function IncidentForm({ initialData, onSave, onCancel, isSaving }: Incide
       admin_status: initialData?.admin_status || 'New',
       admin_actions_taken: initialData?.admin_actions_taken || '',
       ndis_reported_date: initialData?.ndis_reported_date || '',
+      reference_id: initialData?.reference_id || '',
     },
   });
 
@@ -142,6 +175,18 @@ export function IncidentForm({ initialData, onSave, onCancel, isSaving }: Incide
     // Add reported_by if this is a new incident
     if (!initialData?.id && user?.staff_id) {
       sanitizedData.reported_by = user.staff_id;
+    }
+    
+    // Generate reference_id if new
+    if (!initialData?.id) {
+      const participant = participants.find(p => p.id === data.involved_participant_id);
+      const participantName = participant ? participant.participant_name : '';
+      sanitizedData.reference_id = generateIncidentReferenceId({
+        incidentDate: data.incident_date,
+        participantName,
+      });
+    } else {
+      sanitizedData.reference_id = initialData.reference_id || null;
     }
     
     await onSave(sanitizedData);
@@ -166,6 +211,17 @@ export function IncidentForm({ initialData, onSave, onCancel, isSaving }: Incide
               <CardTitle className="text-base font-bold">Involved Parties & Timing</CardTitle>
             </CardHeader>
             <CardContent className="pt-6 space-y-4">
+              {initialData?.reference_id && (
+                <div className="bg-gray-50 border border-border p-3 rounded-lg flex items-center justify-between mb-4">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-gray-400 block tracking-wider">Incident ID (Reference ID)</span>
+                    <span className="font-mono text-sm font-bold text-gray-900">{initialData.reference_id}</span>
+                  </div>
+                  <Badge variant="outline" className="font-bold uppercase tracking-wider text-[9px] bg-white">
+                    Generated System ID
+                  </Badge>
+                </div>
+              )}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Participant <span className="text-destructive">*</span></Label>
@@ -384,7 +440,7 @@ export function IncidentForm({ initialData, onSave, onCancel, isSaving }: Incide
                     value={watch('restrictive_practice_type_id') || ''} 
                     onValueChange={(val) => setValue('restrictive_practice_type_id', val)}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className={errors.restrictive_practice_type_id ? 'border-destructive' : ''}>
                       <SelectValue placeholder="Select type" />
                     </SelectTrigger>
                     <SelectContent>
@@ -393,6 +449,9 @@ export function IncidentForm({ initialData, onSave, onCancel, isSaving }: Incide
                       ))}
                     </SelectContent>
                   </Select>
+                  {errors.restrictive_practice_type_id && (
+                    <p className="text-xs text-destructive">{errors.restrictive_practice_type_id.message}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -401,17 +460,35 @@ export function IncidentForm({ initialData, onSave, onCancel, isSaving }: Incide
                     {...register('restrictive_practice_description')} 
                     placeholder="Specific details of the restraint used..."
                     rows={3}
+                    className={errors.restrictive_practice_description ? 'border-destructive' : ''}
                   />
+                  {errors.restrictive_practice_description && (
+                    <p className="text-xs text-destructive">{errors.restrictive_practice_description.message}</p>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 gap-4">
                   <div className="space-y-2">
-                    <Label>Start Time</Label>
-                    <Input type="datetime-local" {...register('rp_start_time')} />
+                    <Label>Start Time <span className="text-destructive">*</span></Label>
+                    <Input 
+                      type="datetime-local" 
+                      {...register('rp_start_time')} 
+                      className={errors.rp_start_time ? 'border-destructive' : ''}
+                    />
+                    {errors.rp_start_time && (
+                      <p className="text-xs text-destructive">{errors.rp_start_time.message}</p>
+                    )}
                   </div>
                   <div className="space-y-2">
-                    <Label>End Time</Label>
-                    <Input type="datetime-local" {...register('rp_end_time')} />
+                    <Label>End Time <span className="text-destructive">*</span></Label>
+                    <Input 
+                      type="datetime-local" 
+                      {...register('rp_end_time')} 
+                      className={errors.rp_end_time ? 'border-destructive' : ''}
+                    />
+                    {errors.rp_end_time && (
+                      <p className="text-xs text-destructive">{errors.rp_end_time.message}</p>
+                    )}
                   </div>
                 </div>
 

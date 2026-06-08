@@ -42,7 +42,7 @@ export const rosterApi = {
 
     let shiftQuery = supabase
       .from(TABLES.STAFF_SHIFTS)
-      .select(ROSTER_VIEWS.SHIFT_DETAIL)
+      .select(ROSTER_VIEWS.CALENDAR_SHIFTS)
       .order('start_date', { ascending: true })
       .order('start_time', { ascending: true });
 
@@ -332,6 +332,36 @@ export const rosterApi = {
    * Delete a shift.
    */
   async deleteShift(id: string) {
+    // Check for references in shift notes, timesheets, and checklist submissions
+    const [notesRes, timesheetsRes, submissionsRes] = await Promise.all([
+      supabase.from(TABLES.SHIFT_NOTES).select('id').eq('shift_id', id),
+      supabase.from(TABLES.TIMESHEETS).select('id').eq('shift_id', id),
+      supabase.from(TABLES.HOUSE_CHECKLIST_SUBMISSIONS).select('id').eq('shift_id', id)
+    ]);
+
+    if (notesRes.error) throw notesRes.error;
+    if (timesheetsRes.error) throw timesheetsRes.error;
+    if (submissionsRes.error) throw submissionsRes.error;
+
+    const hasNotes = (notesRes.data || []).length > 0;
+    const hasTimesheets = (timesheetsRes.data || []).length > 0;
+    const hasSubmissions = (submissionsRes.data || []).length > 0;
+
+    if (hasNotes || hasTimesheets || hasSubmissions) {
+      const reasons: string[] = [];
+      if (hasNotes) reasons.push('shift notes');
+      if (hasTimesheets) reasons.push('timesheets');
+      if (hasSubmissions) reasons.push('checklist submissions');
+      
+      throw new Error(`This shift cannot be deleted because it is referenced by: ${reasons.join(', ')}.`);
+    }
+
+    // Delete child associations first
+    await Promise.all([
+      supabase.from(TABLES.SHIFT_PARTICIPANTS).delete().eq('shift_id', id),
+      supabase.from(TABLES.SHIFT_ASSIGNED_CHECKLISTS).delete().eq('shift_id', id)
+    ]);
+
     const { error } = await supabase
       .from(TABLES.STAFF_SHIFTS)
       .delete()
@@ -347,7 +377,7 @@ export const rosterApi = {
     const [shiftsRes, eventsRes, leaveRes] = await Promise.all([
       supabase
         .from(TABLES.STAFF_SHIFTS)
-        .select(ROSTER_VIEWS.SHIFT_DETAIL)
+        .select(ROSTER_VIEWS.CALENDAR_SHIFTS)
         .eq('staff_id', staffId)
         .order('start_date', { ascending: false }),
       supabase
@@ -450,6 +480,14 @@ export const rosterApi = {
     } else {
       if (params.houseId && params.houseId !== 'all') query = query.eq('house_id', params.houseId);
       if (params.staffId && params.staffId !== 'all') query = query.eq('staff_id', params.staffId);
+      if (params.shiftTemplateId && params.shiftTemplateId !== 'all') {
+        const isUuid = params.shiftTemplateId.length === 36;
+        if (isUuid) {
+          query = query.eq('shift_template_id', params.shiftTemplateId);
+        } else {
+          query = query.eq('shift_template', params.shiftTemplateId);
+        }
+      }
       if (params.startDate) query = query.gte('start_date', params.startDate);
       if (params.endDate) query = query.lte('start_date', params.endDate);
     }
@@ -459,23 +497,76 @@ export const rosterApi = {
     return data;
   },
 
-  /**
-   * Bulk delete shifts.
-   */
   async bulkDeleteShifts(params: string[] | any) {
-    let query = supabase.from(TABLES.STAFF_SHIFTS).delete();
-    
+    let shiftIds: string[] = [];
+
     if (Array.isArray(params)) {
-      query = query.in('id', params);
+      shiftIds = params;
     } else {
-      if (params.houseId && params.houseId !== 'all') query = query.eq('house_id', params.houseId);
-      if (params.staffId && params.staffId !== 'all') query = query.eq('staff_id', params.staffId);
-      if (params.startDate) query = query.gte('start_date', params.startDate);
-      if (params.endDate) query = query.lte('start_date', params.endDate);
+      let selectQuery = supabase
+        .from(TABLES.STAFF_SHIFTS)
+        .select('id');
+        
+      if (params.houseId && params.houseId !== 'all') selectQuery = selectQuery.eq('house_id', params.houseId);
+      if (params.staffId && params.staffId !== 'all') selectQuery = selectQuery.eq('staff_id', params.staffId);
+      if (params.shiftTemplateId && params.shiftTemplateId !== 'all') {
+        const isUuid = params.shiftTemplateId.length === 36;
+        if (isUuid) {
+          selectQuery = selectQuery.eq('shift_template_id', params.shiftTemplateId);
+        } else {
+          selectQuery = selectQuery.eq('shift_template', params.shiftTemplateId);
+        }
+      }
+      if (params.startDate) selectQuery = selectQuery.gte('start_date', params.startDate);
+      if (params.endDate) selectQuery = selectQuery.lte('start_date', params.endDate);
+
+      const { data, error: selectError } = await selectQuery;
+      if (selectError) throw selectError;
+      shiftIds = (data || []).map(s => s.id);
     }
-    
-    const { error } = await query;
-    if (error) throw error;
+
+    if (shiftIds.length === 0) {
+      return { deletedCount: 0, skippedCount: 0 };
+    }
+
+    // Check for references in shift notes, timesheets, and checklist submissions
+    const [notesRes, timesheetsRes, submissionsRes] = await Promise.all([
+      supabase.from(TABLES.SHIFT_NOTES).select('shift_id').in('shift_id', shiftIds),
+      supabase.from(TABLES.TIMESHEETS).select('shift_id').in('shift_id', shiftIds),
+      supabase.from(TABLES.HOUSE_CHECKLIST_SUBMISSIONS).select('shift_id').in('shift_id', shiftIds)
+    ]);
+
+    if (notesRes.error) throw notesRes.error;
+    if (timesheetsRes.error) throw timesheetsRes.error;
+    if (submissionsRes.error) throw submissionsRes.error;
+
+    const referencedShiftIds = new Set([
+      ...(notesRes.data || []).map(n => n.shift_id),
+      ...(timesheetsRes.data || []).map(t => t.shift_id),
+      ...(submissionsRes.data || []).map(s => s.shift_id)
+    ].filter(Boolean) as string[]);
+
+    const deleteShiftIds = shiftIds.filter(id => !referencedShiftIds.has(id));
+
+    if (deleteShiftIds.length > 0) {
+      // Delete child associations first
+      await Promise.all([
+        supabase.from(TABLES.SHIFT_PARTICIPANTS).delete().in('shift_id', deleteShiftIds),
+        supabase.from(TABLES.SHIFT_ASSIGNED_CHECKLISTS).delete().in('shift_id', deleteShiftIds)
+      ]);
+
+      const { error: deleteError } = await supabase
+        .from(TABLES.STAFF_SHIFTS)
+        .delete()
+        .in('id', deleteShiftIds);
+
+      if (deleteError) throw deleteError;
+    }
+
+    return {
+      deletedCount: deleteShiftIds.length,
+      skippedCount: referencedShiftIds.size
+    };
   },
 
   /**

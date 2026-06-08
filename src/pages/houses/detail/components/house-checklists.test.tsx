@@ -18,6 +18,13 @@ vi.mock('@/hooks/use-houses', () => ({
       { id: 'house-2', house_name: 'Other House', status: 'active' }
     ],
     loading: false
+  })),
+  useActiveHouses: vi.fn(() => ({
+    data: [
+      { id: 'house-1', house_name: 'Source House', status: 'active' },
+      { id: 'house-2', house_name: 'Other House', status: 'active' }
+    ],
+    loading: false
   }))
 }));
 

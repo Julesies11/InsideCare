@@ -12,8 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Clock, MapPin, Edit, Trash2, Plus, CalendarDays, ChevronLeft, ChevronRight, Loader2, CheckSquare, CalendarCheck } from 'lucide-react';
 import { format, addMonths, addWeeks, addDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameDay, isBefore, startOfDay, eachDayOfInterval, isSameMonth } from 'date-fns';
 import { useHouseCalendarEvents } from '@/hooks/useHouseCalendarEvents';
-import { useParticipants } from '@/hooks/use-participants';
-import { useStaff } from '@/hooks/use-staff';
+import { useActiveParticipants } from '@/hooks/use-participants';
+import { useActiveStaff } from '@/hooks/use-staff';
 import { useHouseStaffAssignments } from '@/hooks/use-house-staff-assignments';
 import { useAuth } from '@/auth/context/auth-context';
 import { useHouseChecklists } from '@/hooks/use-house-checklists';
@@ -127,9 +127,8 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(({
   const { houseChecklists } = useHouseChecklists(houseId);
 
   const { deleteSchedule, deleteEvent, loading: deleting } = useChecklistSchedules(houseId);
-  const { participants } = useParticipants(0, 1000);
-  const { staff: systemStaff } = useStaff(0, 1000, [], { statuses: ['active'] }); // Fetch more staff for general events
-  const { assignments: houseStaffAssignments } = useHouseStaffAssignments(houseId);
+  const { participants } = useActiveParticipants({ enabled: showEventDialog });
+  const { staff: systemStaff } = useActiveStaff({ enabled: showEventDialog });
   const { user, isAdmin = false } = useAuth();
   
   // Refresh when refreshKey changes

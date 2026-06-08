@@ -5,14 +5,29 @@ This document describes the architectural patterns and state management strategi
 ## 1. Backend + Supabase Logic Rules
 **All complex business logic should be implemented in testable environments.**
 
-1.  **Supabase Client**: Use standard `@supabase/supabase-js` (via `createClient`) with `localStorage` persistence. This is the preferred standard for InsideCare to ensure robust cross-tab session management and prevent refresh token race conditions (the "Refresh Token Reuse" error) which are common in cookie-based SSR clients when multiple tabs are opened simultaneously.
+1.  **Supabase Client**: Use `@supabase/ssr` (via `createBrowserClient`) with **Cookie-based persistence**. This is the "Gold Standard" for InsideCare, providing maximum security (XSS protection) and a unified session store across all browser tabs.
 2.  **Auth Security**: Always use `supabase.auth.getUser()` for authorization checks to ensure the JWT is verified by the Supabase server.
 3.  **Edge Functions (Preferred for Backend Logic)**: Supabase Edge Functions are permitted and encouraged for complex business logic, transactional operations, and security-sensitive tasks. They must be unit-tested using Deno's native testing framework or compatible Vitest configurations.
 4.  **No SQL-Based Logic**: Do NOT create Supabase SQL functions, triggers, stored procedures, RPC endpoints, or views for business logic. These are restricted because they cannot be easily unit-tested or version-controlled as part of the application's testing suite.
 5.  **Client-Side Transforms**: While Edge Functions are preferred for heavy lifting, lightweight data transformations, joins, and aggregations can still be performed within the React app for immediate UI responsiveness.
 6.  **Enum Querying**: Enum columns (like `status`) do NOT support `.ilike()`. Always use `.eq()` or `.in()` for these fields.
 
-## 2. Security & Row Level Security (RLS)
+## 2. Authentication & Session Strategy ("Gold Standard")
+The application implements a robust authentication lifecycle designed for high-performance multi-tab stability.
+
+### 2.1 Implementation Details
+- **Persistence**: Auth tokens are stored in `httpOnly` cookies, shared across all tabs on the same origin.
+- **Security Flow**: Strictly uses the **PKCE (Proof Key for Code Exchange)** flow.
+- **Provider**: The `AuthProvider` (in `src/auth/providers/supabase-provider.tsx`) serves as the single source of truth for auth state.
+
+### 2.2 Multi-Tab Stability (Race Condition Protection)
+To prevent the "Refresh Token Reuse" security lockout common in multi-tab SPAs:
+1.  **Quiet Initialization**: The `AuthProvider` implements a 200ms "quiet period" on mount. It waits for the automatic `onAuthStateChange` event before attempting a manual session fallback, preventing "Double Call" collisions.
+2.  **Singleton Profile Fetching**: Profile network requests are managed via a singleton promise, ensuring only one profile fetch is active across any state change event.
+3.  **Observer Pattern**: The system relies on the Supabase listener to sync state across tabs. When one tab refreshes or logs out, all other tabs pick up the event via the shared cookie store.
+4.  **Reuse Interval**: This architecture requires a **10-30 second "Refresh Token Reuse Interval"** in the Supabase Dashboard (Auth Settings) to handle browser-throttled background tabs.
+
+## 3. Security & Row Level Security (RLS)
 The application enforces strict role-based access control (RBAC) via a normalized permissions model and Supabase RLS.
 
 ### 2.1 Granular RBAC (JWT-Based High Performance)
@@ -69,11 +84,14 @@ The application uses a combination of local state, TanStack Query, and Context P
 - **Pending Changes Management**: For complex entities, a "pending changes" pattern (`src/models/*-pending-changes.ts`) is used to track batch updates locally before committing to the DAL.
 - **Surgical Synchronization (Transactional Safety)**: For nested sub-entities (like Checklist Items), the DAL implements a "Surgical Sync" pattern using `upsert` and targeted `delete`. This ensures clinical history and foreign key links (e.g. from submissions) are preserved while still allowing full CRUD flexibility on the parent entity.
 
-## 4. Advanced Data Fetching (Roster Module)
-The Roster module implements a highly optimized data fetching strategy.
+## 4. Advanced Data Fetching & Performance Optimization (Roster Module)
+The Roster module implements a highly optimized data fetching and rendering strategy.
 
 - **Frontend Joining**: To reduce SQL execution time, the system avoids heavy joins for static metadata. The UI maps IDs from cached metadata arrays (Houses, Staff) to shift records.
 - **Active Staff Enforcement**: The system strictly enforces the definition of "Active Staff" (status='active' + future house assignment) across all dropdowns and roster logic.
+- **`houseStaffMap` O(1) Lookup Cache**: The Roster Board components construct a memoized `houseStaffMap` mapping each `houseId` to a set of active assigned `staffId`s. During grid/calendar rendering, check operations are performed in O(1) time using `houseStaffMap[houseId]?.has(staffId)`, preventing expensive nested array scans and eliminating layout thrashing during drag-and-drop actions.
+- **Deferred Query Loading (`enabled` Pattern)**: Form and dialog components (e.g., `ShiftDialog`, `BulkActionModal`, `HouseChecklistSetup`) defer loading heavy master lists (such as all active participants, houses, or staff) by binding the React Query `enabled` option to the visibility/open state of the dialog or dropdown. This avoids redundant query executions on initial page load.
+- **`useHouseStaffAssignments` Fetch Safety**: The query hook is guarded by default (`enabled: options?.enabled !== undefined ? options.enabled : !!houseId`) to prevent network calls when `houseId` is undefined, while still allowing callers to manually control the query lifecycle.
 
 ## 5. Activity Logging & Auditing (Gold Standard)
 Every operational table includes standard audit columns (`created_at`, `created_by`, etc.) managed at the database level via triggers.

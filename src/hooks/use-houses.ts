@@ -32,6 +32,23 @@ export function useHouses(
   };
 }
 
+export function useActiveHouses(options?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: [QUERY_KEYS.HOUSES, 'active'],
+    queryFn: () => housesApi.listActive(),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    ...options
+  });
+}
+
+export function useHousesLightweight() {
+  return useQuery({
+    queryKey: [QUERY_KEYS.HOUSES, 'lightweight'],
+    queryFn: () => housesApi.listLightweight(),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+}
+
 export function useAddHouse() {
   const queryClient = useQueryClient();
   const { mutateAsync: logActivity } = useLogActivity();

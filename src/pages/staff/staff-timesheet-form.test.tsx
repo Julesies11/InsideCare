@@ -34,7 +34,7 @@ vi.mock('react-router', async () => {
     useNavigate: () => mockNavigate,
     useLocation: () => ({
       state: {},
-      pathname: `${ROUTES.MY_ROSTER}/shift-1/timesheet`,
+      pathname: `${ROUTES.MY_TIMESHEETS}/shift-1`,
     }),
   };
 });

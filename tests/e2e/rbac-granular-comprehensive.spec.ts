@@ -10,22 +10,26 @@ test.describe('RBAC Comprehensive', () => {
     const page = await context.newPage();
 
     await page.goto('/');
-    
-    // In mobile view, we might need to open the sidebar
-    const mobileToggle = page.locator('header button').filter({ has: page.locator('svg.lucide-menu') }).first();
-    if (await mobileToggle.isVisible()) {
+
+    // On mobile, open the sidebar drawer first
+    const mobileToggle = page.locator('header button').filter({ has: page.locator('svg') }).first();
+    if (await mobileToggle.isVisible({ timeout: 3000 })) {
       await mobileToggle.click({ force: true });
+      await page.waitForTimeout(500);
     }
-    
-    // Sidebar Management links should be visible - use more flexible locators
-    const accessControlLink = page.getByRole('link', { name: /Access Control/i }).or(page.getByText(/Access Control/i));
-    await expect(accessControlLink.first()).toBeVisible({ timeout: 25000 });
-    
-    const activityLogLink = page.getByRole('link', { name: /Activity Log/i }).or(page.getByText(/Activity Log/i));
-    await expect(activityLogLink.first()).toBeVisible({ timeout: 15000 });
-    
-    const housesLink = page.getByRole('link', { name: /Houses/i }).or(page.getByText(/Houses/i));
-    await expect(housesLink.first()).toBeVisible({ timeout: 15000 });
+
+    // Use href-based locators — these are in the DOM even when sidebar is collapsed to icon mode
+    // Access Control page
+    const accessControlLink = page.locator('a[href="/access-control"]');
+    await expect(accessControlLink.first()).toBeAttached({ timeout: 25000 });
+
+    // Activity Log page
+    const activityLogLink = page.locator('a[href="/activity-log"]');
+    await expect(activityLogLink.first()).toBeAttached({ timeout: 15000 });
+
+    // Houses page
+    const housesLink = page.locator('a[href="/houses"]');
+    await expect(housesLink.first()).toBeAttached({ timeout: 15000 });
 
     // Check for Archive buttons in Participant list
     await page.goto('/participants/profiles');

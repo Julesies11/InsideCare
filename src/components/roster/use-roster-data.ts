@@ -3,9 +3,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { QUERY_KEYS } from '@/config/query-keys';
 import { CHECKLIST_STATUS } from '@/config/enums';
 import { rosterApi } from '@/api/roster.api';
+import { useActiveHouses } from '@/hooks/use-houses';
+import { useActiveParticipants } from '@/hooks/use-participants';
+import { useActiveStaff } from '@/hooks/use-staff';
 import { housesApi } from '@/api/houses.api';
-import { participantsApi } from '@/api/participants.api';
-import { staffApi } from '@/api/staff.api';
 
 export interface StaffShift {
   id: string;
@@ -161,35 +162,18 @@ export function useRosterData(staffId?: string, options: { includeMetadata?: boo
   const queryClient = useQueryClient();
   const { includeMetadata = true } = options;
 
+  const activeHouses = useActiveHouses({ enabled: includeMetadata && (!staffId || staffId === 'all') });
+  const activeParticipants = useActiveParticipants({ enabled: includeMetadata });
+  const activeStaff = useActiveStaff({ enabled: includeMetadata });
+
   const housesQuery = useQuery({
     queryKey: [QUERY_KEYS.HOUSES, staffId],
-    queryFn: async () => {
-      if (staffId && staffId !== 'all') {
-        return await housesApi.listStaffAssignmentsByStaff(staffId);
-      }
-      return await housesApi.listActive();
-    },
-    enabled: includeMetadata,
+    queryFn: () => housesApi.listStaffAssignmentsByStaff(staffId!),
+    enabled: includeMetadata && !!staffId && staffId !== 'all',
     staleTime: 1000 * 60 * 60, // 1 hour
   });
 
-  const participantsQuery = useQuery({
-    queryKey: [QUERY_KEYS.PARTICIPANTS],
-    queryFn: async () => {
-      return await participantsApi.listActive();
-    },
-    enabled: includeMetadata,
-    staleTime: 1000 * 60 * 60, // 1 hour
-  });
-
-  const staffQuery = useQuery({
-    queryKey: [QUERY_KEYS.STAFF],
-    queryFn: async () => {
-      return await staffApi.listActive();
-    },
-    enabled: includeMetadata,
-    staleTime: 1000 * 60 * 60, // 1 hour
-  });
+  const houses = staffId && staffId !== 'all' ? (housesQuery.data || []) : (activeHouses.data || []);
 
   const createShiftMutation = useMutation({
     mutationFn: (newShift: any) => rosterApi.createShift(newShift),
@@ -255,14 +239,18 @@ export function useRosterData(staffId?: string, options: { includeMetadata?: boo
   });
 
   return {
-    houses: housesQuery.data || [],
-    participants: participantsQuery.data || [],
-    staff: staffQuery.data || [],
-    loading: housesQuery.isLoading || participantsQuery.isLoading || staffQuery.isLoading,
+    houses,
+    participants: activeParticipants.participants || [],
+    staff: activeStaff.staff || [],
+    loading: (staffId && staffId !== 'all' ? housesQuery.isLoading : activeHouses.isLoading) || activeParticipants.loading || activeStaff.loading,
     refresh: () => {
-      housesQuery.refetch();
-      participantsQuery.refetch();
-      staffQuery.refetch();
+      if (staffId && staffId !== 'all') {
+        housesQuery.refetch();
+      } else {
+        activeHouses.refetch();
+      }
+      activeParticipants.refetch();
+      activeStaff.refetch();
     },
     createShift: createShiftMutation.mutateAsync,
     updateShift: (id: string, updates: any) => updateShiftMutation.mutateAsync({ id, updates }),

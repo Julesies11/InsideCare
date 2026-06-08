@@ -46,22 +46,24 @@ export function PopulateRosterModal({ open, onOpenChange, houseId, houseName, on
   const { materializePattern } = useRosterData();
 
   const [selectedParticipantIds, setSelectedParticipantIds] = useState<string[]>([]);
-  const [hasInitializedParticipants, setHasInitializedParticipants] = useState(false);
+  const hasInitializedParticipants = useRef(false);
   const hasInitializedPattern = useRef(false);
 
   useEffect(() => {
     if (open) {
-      setHasInitializedParticipants(false);
+      hasInitializedParticipants.current = false;
       hasInitializedPattern.current = false;
+      setSelectedParticipantIds([]);
+      setPattern([{ 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 0: [] }]);
     }
-  }, [open]);
+  }, [open, houseId]);
 
   useEffect(() => {
-    if (open && !hasInitializedParticipants && houseParticipants.length > 0) {
+    if (open && !hasInitializedParticipants.current && houseParticipants.length > 0) {
       setSelectedParticipantIds(houseParticipants.map(p => p.id));
-      setHasInitializedParticipants(true);
+      hasInitializedParticipants.current = true;
     }
-  }, [open, hasInitializedParticipants, houseParticipants]);
+  }, [open, houseParticipants]);
 
   // Handle changing weeks to generate
   useEffect(() => {

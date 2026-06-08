@@ -25,6 +25,22 @@ export function useParticipants(
   };
 }
 
+export function useActiveParticipants(options?: { enabled?: boolean }) {
+  const query = useQuery({
+    queryKey: [QUERY_KEYS.PARTICIPANTS, 'active'],
+    queryFn: () => participantsApi.listActive(),
+    staleTime: 1000 * 60 * 5, // 5 minutes cache
+    ...options
+  });
+
+  return {
+    ...query,
+    participants: query.data || [],
+    loading: query.isLoading,
+    error: query.error ? (query.error as any).message : null,
+  };
+}
+
 export function useParticipantsCount(filters: ParticipantsFilter = {}) {
   const query = useQuery({
     queryKey: ['participants-count', { filters }],

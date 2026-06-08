@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ColumnDef,
   getCoreRowModel,
@@ -49,8 +49,16 @@ export function IncidentList({ onEdit }: IncidentListProps) {
     pageSize: parseInt(searchParams.get('pageSize') || '25'),
   });
 
+  const getInitialSorting = (): SortingState => {
+    const sortParam = searchParams.get('sort');
+    if (!sortParam) return [];
+    
+    const [field, direction] = sortParam.split('.');
+    return [{ id: field, desc: direction === 'desc' }];
+  };
+
   const [pagination, setPagination] = useState<PaginationState>(getInitialPagination());
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const [sorting, setSorting] = useState<SortingState>(getInitialSorting());
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>(
     searchParams.get('statuses')?.split(',').filter(Boolean) || []
@@ -66,7 +74,67 @@ export function IncidentList({ onEdit }: IncidentListProps) {
     sort: sorting.map(s => ({ id: s.id, desc: s.desc }))
   });
 
+  // Sync state changes to URL query parameters
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams);
+    
+    // Pagination - update URL as soon as page changes
+    if (pagination.pageIndex > 0) {
+      params.set('page', (pagination.pageIndex + 1).toString()); // Convert to 1-indexed
+    } else {
+      params.delete('page');
+    }
+
+    if (pagination.pageSize !== 25) {
+      params.set('pageSize', pagination.pageSize.toString());
+    } else {
+      params.delete('pageSize');
+    }
+    
+    // Sorting
+    if (sorting.length > 0) {
+      const sort = sorting[0];
+      params.set('sort', `${sort.id}.${sort.desc ? 'desc' : 'asc'}`);
+    } else {
+      params.delete('sort');
+    }
+    
+    // Search - sync raw query to URL immediately for responsiveness
+    if (searchQuery) {
+      params.set('search', searchQuery);
+    } else {
+      params.delete('search');
+    }
+    
+    // Status Filter
+    if (selectedStatuses.length > 0) {
+      params.set('statuses', selectedStatuses.join(','));
+    } else {
+      params.delete('statuses');
+    }
+
+    // Update URL immediately without adding to history if changed
+    if (params.toString() !== searchParams.toString()) {
+      setSearchParams(params, { replace: true });
+    }
+  }, [pagination, sorting, searchQuery, selectedStatuses, setSearchParams, searchParams]);
+
   const columns = useMemo<ColumnDef<any>[]>(() => [
+    {
+      id: 'reference_id',
+      accessorKey: 'reference_id',
+      header: ({ column }) => <DataGridColumnHeader title="Incident ID" column={column} />,
+      size: 150,
+      enablePinning: true,
+      cell: ({ row }) => (
+        <button 
+          onClick={() => onEdit(row.original)}
+          className="font-mono font-bold text-blue-700 dark:text-blue-400 hover:underline cursor-pointer text-left font-sans"
+        >
+          {row.original.reference_id || '—'}
+        </button>
+      ),
+    },
     {
       id: 'incident_date',
       accessorKey: 'incident_date',
@@ -190,7 +258,7 @@ export function IncidentList({ onEdit }: IncidentListProps) {
     state: { 
       pagination, 
       sorting,
-      columnPinning: { left: ['incident_date'] }
+      columnPinning: { left: ['reference_id', 'incident_date'] }
     },
     onPaginationChange: setPagination,
     onSortingChange: setSorting,

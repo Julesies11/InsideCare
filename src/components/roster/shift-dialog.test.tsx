@@ -11,12 +11,22 @@ vi.mock('@/hooks/use-staff', () => ({
       { id: 's2', staff_name: 'Inactive Staff', status: 'inactive' }
     ] as Partial<StaffRow>[],
     isLoading: false
+  }),
+  useActiveStaff: () => ({
+    staff: [
+      { id: 's1', staff_name: 'Active Staff', status: 'active' }
+    ] as Partial<StaffRow>[],
+    isLoading: false
   })
 }));
 
 vi.mock('@/hooks/use-houses', () => ({
   useHouses: () => ({
     houses: [{ id: 'h1', house_name: 'House 1' }] as Partial<HouseRow>[],
+    isLoading: false
+  }),
+  useActiveHouses: () => ({
+    data: [{ id: 'h1', house_name: 'House 1' }] as Partial<HouseRow>[],
     isLoading: false
   })
 }));
@@ -26,6 +36,12 @@ vi.mock('@/hooks/use-participants', () => ({
     participants: [
       { id: 'p1', participant_name: 'UniqueActive Participant', status: 'active', house_id: 'h1' },
       { id: 'p2', participant_name: 'UniqueInactive Participant', status: 'inactive', house_id: 'h1' }
+    ] as Partial<ParticipantRow>[],
+    isLoading: false
+  }),
+  useActiveParticipants: () => ({
+    participants: [
+      { id: 'p1', participant_name: 'UniqueActive Participant', status: 'active', house_id: 'h1' }
     ] as Partial<ParticipantRow>[],
     isLoading: false
   })

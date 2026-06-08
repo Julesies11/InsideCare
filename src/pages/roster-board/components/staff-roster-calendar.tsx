@@ -11,7 +11,7 @@ import { getDateRange, ViewMode } from '@/components/roster/roster-utils';
 import { rosterApi } from '@/api/roster.api';
 import { useHouseShiftTemplates } from '@/hooks/use-house-shift-templates';
 import { useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router';
+import { useNavigate, useLocation } from 'react-router';
 import { ROUTES } from '@/config/routes.config';
 
 export interface LeaveBlock {
@@ -66,6 +66,7 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
 }, ref) => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const location = useLocation();
   const [showShiftDialog, setShowShiftDialog] = useState(false);
   const [isCopying, setIsCopying] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -119,6 +120,28 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
     }).sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
   }, [shifts, participantFilter, shiftTemplateFilter]);
 
+  // Pre-compute a house → active staff Map to avoid O(n²) filter inside every calendar cell.
+  // Note: today is re-computed on each render so the map stays accurate if the component
+  // stays mounted past midnight and staff/house data updates.
+  const houseStaffMap = useMemo(() => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const map = new Map<string, typeof staff>();
+    houses.forEach(house => {
+      const assigned = staff.filter(s => {
+        const assignments: Array<{ house_id?: string; house?: { id: string }; end_date?: string | null }> =
+          (s as any).house_assignments || [];
+        return assignments.some(a => {
+          const assignmentHouseId = (a.house_id || a.house?.id || '').toLowerCase();
+          const isTargetHouse = assignmentHouseId === house.id.toLowerCase();
+          const isAssignmentActive = !a.end_date || a.end_date >= todayStr;
+          return isTargetHouse && isAssignmentActive;
+        });
+      });
+      map.set(house.id, assigned);
+    });
+    return map;
+  }, [houses, staff]);
+
   const handleAddShift = (date: Date, houseId?: string, shiftTemplateId?: string) => {
     setSelectedShift(null);
     setPreSelectedDate(date);
@@ -138,7 +161,9 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
 
   const handleWriteNote = (shift: any) => {
     const firstParticipantId = shift.participants?.[0]?.id || '';
-    navigate(`${ROUTES.SHIFT_NOTES_DETAIL}/new?shiftId=${shift.id}&staffId=${shift.staff_id || ''}&participantId=${firstParticipantId}`);
+    navigate(`${ROUTES.SHIFT_NOTES_DETAIL}/new?shiftId=${shift.id}&staffId=${shift.staff_id || ''}&participantId=${firstParticipantId}`, {
+      state: { from: location.pathname + location.search }
+    });
   };
 
   const handleNotesClick = (shift: StaffShift) => {
@@ -193,9 +218,9 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
       await deleteShift(shiftId);
       toast.success('Shift deleted successfully');
       setShowShiftDialog(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting shift:', error);
-      toast.error('Failed to delete shift');
+      toast.error(error.message || 'Failed to delete shift');
     } finally {
       setSaving(false);
     }
@@ -406,8 +431,9 @@ export const StaffRosterCalendar = forwardRef<StaffRosterCalendarHandle, StaffRo
           onBulkAction={onBulkAction}
           onPopulateRoster={onPopulateRoster}
           groupByHouse={staffId === 'all'}
-          houses={houses}
+          houses={houseFilter !== 'all' ? houses.filter(h => h.id === houseFilter) : houses}
           staffList={staff}
+          houseStaffMap={houseStaffMap}
           onQuickAssign={handleQuickAssign}
           onEditLeave={handleEditLeave}
         />

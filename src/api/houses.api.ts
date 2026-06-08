@@ -51,7 +51,7 @@ export const housesApi = {
     
     let query = supabase
       .from(TABLES.HOUSES)
-      .select(HOUSE_VIEWS.STANDARD, { count: 'exact' });
+      .select(HOUSE_VIEWS.LIST, { count: 'exact' });
 
     if (branchId) {
       query = query.eq('branch_id', branchId);
@@ -101,6 +101,18 @@ export const housesApi = {
       .from(TABLES.HOUSES)
       .select('id, house_name, status, branch_id')
       .eq('status', 'active')
+      .order('house_name');
+    if (error) throw error;
+    return (data || []).map((h: any) => ({ ...h, name: h.house_name }));
+  },
+
+  /**
+   * Fetches all houses with minimal fields (lightweight).
+   */
+  async listLightweight() {
+    const { data, error } = await supabase
+      .from(TABLES.HOUSES)
+      .select('id, house_name, status, branch_id')
       .order('house_name');
     if (error) throw error;
     return (data || []).map((h: any) => ({ ...h, name: h.house_name }));

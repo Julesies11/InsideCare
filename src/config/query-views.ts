@@ -90,6 +90,14 @@ export const PARTICIPANT_VIEWS = {
     psychiatrist_location, 
     medical_routine_other, 
     medical_routine_general_process, 
+    track_bowel,
+    track_seizure,
+    track_sleep,
+    track_behaviour,
+    track_community,
+    track_nutrition,
+    track_mtm,
+    track_hygiene,
     created_by, 
     updated_by, 
     created_at, 
@@ -216,7 +224,7 @@ export const STAFF_VIEWS = {
   /**
    * View for staff compliance records.
    */
-  COMPLIANCE: 'id, staff_id, compliance_name, completion_date, expiry_date, status, created_at, updated_at',
+  COMPLIANCE: 'id, staff_id, compliance_type_id, compliance_name, completion_date, expiry_date, status, created_at, updated_at',
 
   /**
    * View for staff training records.
@@ -240,6 +248,18 @@ export const STAFF_VIEWS = {
 } as const;
 
 export const HOUSE_VIEWS = {
+  /**
+   * Minimal view for house lists and tables.
+   */
+  LIST: `
+    id, house_name, branch_id, address, phone, capacity, current_occupancy, house_manager, status,
+    staff_assignments:${TABLES.HOUSE_STAFF_ASSIGNMENTS}!house_id(
+      id, 
+      end_date,
+      staff:${TABLES.STAFF}!staff_id(id, staff_name, photo_url, status)
+    )
+  `,
+
   /**
    * Standard view for house lists and details.
    */
@@ -310,6 +330,13 @@ export const HOUSE_VIEWS = {
     id, house_id, file_name, file_path, file_size, mime_type, category, created_at, updated_at,
     uploader_info:${TABLES.STAFF}!created_by(id, staff_name)
   `,
+  /**
+   * View for house compliance requirements.
+   */
+  COMPLIANCE: `
+    id, house_id, compliance_type_id,
+    compliance_type:${TABLES.COMPLIANCE_TYPES_MASTER}!compliance_type_id(id, name, description, is_active, is_default_global)
+  `,
 } as const;
 
 export const ROSTER_VIEWS = {
@@ -331,6 +358,23 @@ export const ROSTER_VIEWS = {
         house_checklist_name,
         items:${TABLES.HOUSE_CHECKLIST_ITEMS}!checklist_id(id, title, sort_order)
       )
+    ),
+    notes_count:${TABLES.SHIFT_NOTES}!shift_id(count)
+  `,
+
+  /**
+   * Optimized view for rendering multiple shifts on the calendar/roster board.
+   * Excludes heavy checklist items mapping and resolves staff/house metadata client-side.
+   */
+  CALENDAR_SHIFTS: `
+    id, staff_id, start_date, end_date, start_time, end_time, house_id, shift_template, shift_template_id, notes,
+    type_details:${TABLES.HOUSE_SHIFT_TEMPLATES}!shift_template_id(color_theme, icon_name),
+    participants:${TABLES.SHIFT_PARTICIPANTS}!shift_id(
+      participant:${TABLES.PARTICIPANTS}!participant_id(id, participant_name)
+    ),
+    assigned_checklists:${TABLES.SHIFT_ASSIGNED_CHECKLISTS}!shift_id(
+      id, checklist_id, assignment_title,
+      submissions:${TABLES.HOUSE_CHECKLIST_SUBMISSIONS}!shift_assignment_id(status)
     ),
     notes_count:${TABLES.SHIFT_NOTES}!shift_id(count)
   `,
@@ -416,6 +460,7 @@ export const SHIFT_NOTE_VIEWS = {
     notes, 
     full_note, 
     status,
+    reference_id,
     shift_type,
     risks_observed,
     risk_description,
@@ -492,7 +537,7 @@ export const SHIFT_NOTE_VIEWS = {
     hygiene_notes,
     created_at, 
     updated_at,
-    participant:${TABLES.PARTICIPANTS}!participant_id(id, participant_name, photo_url),
+    participant:${TABLES.PARTICIPANTS}!participant_id(id, participant_name, photo_url, track_bowel, track_seizure, track_sleep, track_behaviour, track_community, track_nutrition, track_mtm, track_hygiene),
     staff:${TABLES.STAFF}!staff_id(id, staff_name, photo_url),
     house:${TABLES.HOUSES}!house_id(id, house_name),
     shift:${TABLES.STAFF_SHIFTS}!shift_id(
@@ -593,6 +638,11 @@ export const MASTER_LIST_VIEWS = {
    * View for funding types.
    */
   FUNDING_TYPES: 'id, funding_type_name, is_active, created_at, updated_at',
+
+  /**
+   * View for compliance types.
+   */
+  COMPLIANCE_TYPES: 'id, name, description, is_active, is_default_global, created_at, updated_at',
 } as const;
 
 export const CALENDAR_VIEWS = {

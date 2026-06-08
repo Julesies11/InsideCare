@@ -372,6 +372,7 @@ export function StaffDetailContent({
       // Invalidate and refresh
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF, staffId] });
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF_COMPLIANCE, staffId] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF_COMPLIANCE_SUMMARY, staffId] });
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF_TRAINING, staffId] });
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF_DOCUMENTS, staffId] });
 

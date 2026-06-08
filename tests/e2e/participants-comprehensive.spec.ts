@@ -28,12 +28,11 @@ test.describe('Participant Management Comprehensive', () => {
   });
 
   test('Navigate to participant detail and verify sections', async ({ page }) => {
-    // Click on the first "Edit" or "View" button
+    // Click on the participant link (name)
     const firstRow = page.locator('table tbody tr').first();
     await expect(firstRow).toBeVisible({ timeout: 15000 });
     
-    const viewButton = firstRow.getByRole('button', { name: /Edit/i }).or(firstRow.getByRole('button', { name: /View/i }));
-    await viewButton.click();
+    await firstRow.getByRole('link').first().click();
 
     // Verify redirection to detail page
     await expect(page).toHaveURL(/\/participants\/detail\//);
@@ -46,7 +45,7 @@ test.describe('Participant Management Comprehensive', () => {
 
   test('Edit participant basic info and verify dirty tracking', async ({ page }) => {
     const firstRow = page.locator('table tbody tr').first();
-    await firstRow.getByRole('button', { name: /Edit/i }).click();
+    await firstRow.getByRole('link').first().click();
 
     // Modify a field (e.g., Full Name)
     const nameInput = page.locator('input#participant_name');
@@ -55,49 +54,56 @@ test.describe('Participant Management Comprehensive', () => {
     const originalValue = await nameInput.inputValue();
     await nameInput.fill(`${originalValue} Updated`);
 
-    // Verify "Save Changes" button becomes enabled (if it's tied to dirty tracking)
+    // Verify "Save Changes" button becomes enabled (dirty tracking)
     const saveButton = page.getByRole('button', { name: /Save Changes/i });
     await expect(saveButton).toBeEnabled();
 
-    // Attempt to navigate away and check for unsaved changes prompt
-    const dialogPromise = page.waitForEvent('dialog');
-    // Clicking the Back button on the toolbar triggers window.confirm
+    // Attempt to navigate away — the Back button uses window.confirm when dirty
     const backBtn = page.getByRole('button', { name: /Back/i });
     await expect(backBtn).toBeVisible({ timeout: 15000 });
-    await backBtn.click({ force: true });
+    // Scroll the sticky toolbar into view by scrolling to top first, then click
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.waitForTimeout(300);
     
-    const dialog = await dialogPromise;
+    const [dialog] = await Promise.all([
+      page.waitForEvent('dialog', { timeout: 15000 }),
+      backBtn.click({ force: true }),
+    ]);
+    
     expect(dialog.message().toLowerCase()).toContain('unsaved');
     await dialog.dismiss();
   });
 
   test('Manage Medications - Add Medication dialog', async ({ page }) => {
     const firstRow = page.locator('table tbody tr').first();
-    await firstRow.getByRole('button', { name: /Edit/i }).click({ force: true });
+    await firstRow.getByRole('link').first().click({ force: true });
 
-    // Scroll to Medications section or use deep link
+    // Deep-link to the medications tab
     await page.goto(`${page.url()}?tab=medications`);
-    await expect(page.locator('#medications')).toBeVisible();
+    await expect(page.locator('#medications')).toBeVisible({ timeout: 20000 });
 
-    // Click "Add Medication" button
+    // Click "Add Medication" button — scroll to it first to avoid sticky header overlap
     const addMedBtn = page.getByRole('button', { name: /Add Medication/i });
     await expect(addMedBtn).toBeVisible({ timeout: 20000 });
     await addMedBtn.scrollIntoViewIfNeeded();
+    await page.evaluate(() => window.scrollBy(0, -100)); // clear sticky header
+    await page.waitForTimeout(200);
     await addMedBtn.click({ force: true });
 
-    // Verify dialog appears
-    const dialog = page.locator('[role="dialog"]').or(page.locator('.fixed.inset-0')).first();
-    await expect(dialog).toBeVisible({ timeout: 30000 });
-    await expect(dialog.getByText(/Medication/i)).toBeVisible({ timeout: 15000 });
+    // Verify dialog appears — Radix Dialog uses role="dialog"
+    const dialog = page.locator('[role="dialog"]');
+    await expect(dialog).toBeVisible({ timeout: 15000 });
+    // The dialog title is "Add Medication"
+    await expect(dialog.getByRole('heading', { name: /Add Medication/i })).toBeVisible({ timeout: 10000 });
 
-    // Close dialog
-    await dialog.getByRole('button', { name: /Cancel/i }).or(dialog.locator('button[aria-label="Close"]')).click();
-    await expect(dialog).not.toBeVisible();
+    // Close dialog via Cancel button
+    await dialog.getByRole('button', { name: /Cancel/i }).click();
+    await expect(dialog).not.toBeVisible({ timeout: 5000 });
   });
 
   test('Manage Documents - List and Action buttons', async ({ page }) => {
     const firstRow = page.locator('table tbody tr').first();
-    await firstRow.getByRole('button', { name: /Edit/i }).click();
+    await firstRow.getByRole('link').first().click();
 
     await page.goto(`${page.url()}?tab=documents`);
     await expect(page.locator('#documents')).toBeVisible();

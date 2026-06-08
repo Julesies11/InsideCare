@@ -7,6 +7,7 @@ Central hub for all information related to care recipients.
 - **Profiles**: Comprehensive views of personal information, medical history, and goals.
 - **Medication Register**: Centralized master list of all medications used in care. Supports server-side pagination (50 per page), remote sorting, and category filtering. Provides an administrative interface for clinical guidance (side effects, interactions).
 - **Child Entities**: Detailed management of medications, documents, goals, notes, funding, contacts, hygiene routines, and restrictive practices.
+- **Clinical Trackers Setup**: Dedicated setup section to configure active clinical trackers (Bowel, Seizure, Sleep, Behaviour, Community, Nutrition, Mealtime Management, Hygiene) on a participant's care plan, dynamically controlling which trackers are shown during shift note documentation.
 - **Optimized Saving**: Uses `json-diff-ts` to only update changed fields.
 
 ## 2. Staff Management
@@ -35,9 +36,9 @@ The core operational engine of the care system.
 - **Roster Board**: Visual representation of staff shifts and house assignments with intelligent staff filtering (showing active staff assigned to the house).
 - **Shift Routines**: Automated, shift-locked task lists that staff must complete and sign off on during their active shift. Completion is enforced; staff cannot submit timesheets if mandatory shift routines are incomplete.
 - **Shift Documentation Command Center**: A specialized hub for monitoring clinical compliance across all shifts.
-    - **5-Status Intelligence Model**: Precisely categorizes every shift as **Upcoming**, **Current Shift** (in-progress), **Missing** (past with no note), **Draft Note**, or **Note Submitted**.
-    - **Compliance-First Filters**: Multi-select status buttons allow Admins and Staff to overlay documentation gaps, defaulting to "Note Submitted" for a clean audit trail.
-    - **Visual Compliance Strips**: High-density color indicators (Green, Amber, Red, Gray) on every row for millisecond-level status recognition.
+    - **3-Status Model**: Precisely categorizes every shift as **Completed**, **Draft**, or **Overdue**.
+    - **Compliance-First Filters**: Multi-select status buttons allow Admins and Staff to overlay documentation gaps, defaulting to 'Draft' and 'Overdue' filters.
+    - **Visual Compliance Strips**: High-density color indicators on every row for millisecond-level status recognition.
 - **Enhanced Clinical Notes**: Comprehensive clinical documentation completed at the end of every shift. Includes:
     - **Structured Tracking**: Dedicated sections for Risks, Overall Presentation, ADL Supports, Domestic Tasks, and Capacity Building goals.
     - **Interactive Binary Inputs**: All Yes/No fields (Risks, PBS, Medication, Trackers) use high-clarity Radio Button Groups for faster, more accurate entry.
@@ -52,11 +53,12 @@ The core operational engine of the care system.
         - **Hygiene & Community**: Support levels and engagement tracking.
     - **Master List Management**: Integrated administrative dialogs to manage Seizure and Behaviour types (matching Medication Register patterns).
     - **Automation**: Automatic shift type detection from roster templates and Care Plan data injection.
+    - **Multi-Participant Shift Notes Uniqueness**: Partial unique index protection enforces one active or draft note per staff, shift, and participant. This prevents duplicate note submissions while ensuring staff members can successfully submit separate shift notes for multiple different participants assigned to the exact same shift.
 - **Overnight Shift Logic**: Intelligent date-range querying ensures that overnight shifts (starting yesterday but ending today) are correctly recognized in "Today's" views and "Active Shift" detection.
 - **Smart Timesheets**: Proactive timesheet management system.
     - **Missing Shift Detection**: Automatically identifies completed shifts that are missing timesheets and flags them for creation.
     - **Robust Submission**: Optimized submission flow prevents autosave race conditions, ensuring a single click successfully transitions a timesheet from draft to pending.
-    - **Clinical Documentation Blocking**: Enforces completion of comprehensive Shift Notes before a timesheet can be submitted, guaranteeing critical clinical context is always recorded.
+    - **No Shift Note Blocking**: Shift note completion is no longer enforced at the time of timesheet submission, allowing independent completion.
     - **Audit Trail Visibility**: Staff can now view a full read-only version of their submitted timesheets exactly as they were reported.
     - **Action-Oriented Alerts**: The Staff Dashboard displays high-visibility prompts when timesheets are required for past work.
     - **Consolidated Tracking**: Real-time visibility across Needs Submission (Drafts/Missing), Awaiting Approval, Approved, and Rejected states with tab state persistence.
@@ -124,8 +126,15 @@ Comprehensive module for lodging, managing, and resolving clinical and operation
     - **Optimized Layout**: Pinned context columns and responsive horizontal scrolling.
 - **Contextual Search & Filter**: High-performance DataGrid allowing filtering by Participant, Staff, Status, Severity, and Date range.
 - **Master List Integration**: Centrally managed Incident and Restrictive Practice types to ensure data consistency.
+- **Incident Reference ID**: Main list table presents the human-readable **Incident ID** in the first pinned column. Clicking the ID or date transitions to the detail view.
+- **Single Incident Print Layout**: Form view includes a **"Print Preview"** action which renders a print-optimized layout of all incident record fields (Overview details, full narrative description, witnesses, notified parties, restrictive practices start/end/triggers/observed behaviours, NDIS report status, administrative oversight actions, and clinical manager signature sign-offs).
+- **URL Routing & Bookmarking**: derived view state directly handles URL search parameters (`?id=uuid`, `?mode=new`, `?print=true`), allowing direct link sharing and browser bookmarking of specific incident records.
 
 ## 10. Reporting Hub
 Central registry for system-wide analytics and compliance exports.
 - **Incident Management Report**: Provides a comprehensive, chronological view of all clinical incidents with advanced date filtering (preset periods and custom ranges) and print-optimized PDF layouts. Cleanly links incidents to specific participants and staff.
+- **Single Participant Profile Report**: Creates custom print-ready clinical reports for a chosen participant.
+    - **Exact Field Alignment**: Form field names, labels, and table layouts match the Participant Detail page tabs precisely (including required fields with asterisks, such as "Full Name *", and clinical plans like the "Mental Health Plan" or "Medical Plan").
+    - **Criteria Persistence**: Toggled sections checklist and selected participant selection automatically save to the database (`ic_report_preferences`) for the logged-in staff member, instantly restoring their workspace parameters when they reload the page.
+    - **Status Highlighting**: Displays the participant's secure avatar in the selection list, highlighting inactive or draft participants using styled status badges.
 - **Extensible Architecture**: Designed to seamlessly integrate future clinical, operational, and financial reports, utilizing visual locks for reports currently under development.

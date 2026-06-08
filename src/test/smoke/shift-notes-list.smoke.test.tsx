@@ -32,9 +32,9 @@ describe('ShiftNotes List Smoke Test', () => {
     // Check for the Search input which is always present
     expect(screen.getByPlaceholderText(/Search shifts.../i)).toBeInTheDocument();
     
-    // Verify our new status buttons are present
-    expect(screen.getByText(/Note Submitted/i)).toBeInTheDocument();
-    expect(screen.getByText(/Missing/i)).toBeInTheDocument();
-    expect(screen.getByText(/Current Shift/i)).toBeInTheDocument();
+    // Verify our status filter buttons are present
+    expect(screen.getByText(/Completed/i)).toBeInTheDocument();
+    expect(screen.getByText(/Draft/i)).toBeInTheDocument();
+    expect(screen.getByText(/Overdue/i)).toBeInTheDocument();
   });
 });

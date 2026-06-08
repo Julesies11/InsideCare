@@ -556,6 +556,104 @@ export const checklistsApi = {
   },
 
   /**
+   * Fetches shift-assigned checklists and house checklist submissions for a list of shifts.
+   */
+  async getChecklistDetailsForShifts(params: {
+    shiftIds: string[];
+    houseIds: string[];
+    startDate: string;
+    endDate: string;
+  }) {
+    const { shiftIds, houseIds, startDate, endDate } = params;
+    if (shiftIds.length === 0 && houseIds.length === 0) return { assigned: [], submissions: [], events: [] };
+
+    // 1. Fetch shift-assigned checklists
+    const fetchAssigned = async () => {
+      if (shiftIds.length === 0) return [];
+      const { data, error } = await supabase
+        .from(TABLES.SHIFT_ASSIGNED_CHECKLISTS)
+        .select(`
+          id,
+          shift_id,
+          checklist_id,
+          assignment_title,
+          sort_order
+        `)
+        .in('shift_id', shiftIds);
+      if (error) throw error;
+      return data || [];
+    };
+
+    // 2. Fetch submissions (both shift-specific and house-wide scheduled)
+    const fetchSubmissions = async () => {
+      let shiftSubmissions: any[] = [];
+      let houseSubmissions: any[] = [];
+
+      const subPromises: Promise<any>[] = [];
+
+      if (shiftIds.length > 0) {
+        subPromises.push(
+          supabase
+            .from(TABLES.HOUSE_CHECKLIST_SUBMISSIONS)
+            .select('id, checklist_id, house_id, shift_id, status, scheduled_date')
+            .in('shift_id', shiftIds)
+            .then(({ data, error }) => {
+              if (error) throw error;
+              shiftSubmissions = data || [];
+            })
+        );
+      }
+
+      if (houseIds.length > 0) {
+        subPromises.push(
+          supabase
+            .from(TABLES.HOUSE_CHECKLIST_SUBMISSIONS)
+            .select('id, checklist_id, house_id, shift_id, status, scheduled_date')
+            .in('house_id', houseIds)
+            .gte('scheduled_date', startDate)
+            .lte('scheduled_date', endDate)
+            .is('shift_id', null)
+            .then(({ data, error }) => {
+              if (error) throw error;
+              houseSubmissions = data || [];
+            })
+        );
+      }
+
+      await Promise.all(subPromises);
+      return [...shiftSubmissions, ...houseSubmissions];
+    };
+
+    // 3. Fetch scheduled calendar events for houses
+    const fetchEvents = async () => {
+      if (houseIds.length === 0) return [];
+      const { data, error } = await supabase
+        .from(TABLES.HOUSE_CALENDAR_EVENTS)
+        .select(`
+          id,
+          house_id,
+          house_checklist_id,
+          event_date,
+          title
+        `)
+        .in('house_id', houseIds)
+        .eq('is_checklist_event', true)
+        .gte('event_date', startDate)
+        .lte('event_date', endDate);
+      if (error) throw error;
+      return data || [];
+    };
+
+    const [assigned, submissions, events] = await Promise.all([
+      fetchAssigned(),
+      fetchSubmissions(),
+      fetchEvents()
+    ]);
+
+    return { assigned, submissions, events };
+  },
+
+  /**
    * Synchronizes items for a checklist template.
    */
   async syncChecklistItems(checklistId: string, items: any[]) {

@@ -13,6 +13,8 @@ import { BehaviourSupport } from './components/behaviour-support';
 import { SupportNeeds } from './components/support-needs';
 import { EmergencyManagement } from './components/emergency-management';
 import { MedicalRoutine } from './components/medical-routine';
+import { ClinicalDetails } from './components/clinical-details';
+import { ClinicalTrackersSetup } from './components/clinical-trackers-setup';
 import { Goals } from './components/goals';
 import { Documents } from './components/documents';
 import { Medications } from './components/medications';
@@ -123,6 +125,9 @@ export function ParticipantDetailContent({
   const canViewMedicalRoutine = hasAccess({ resource: RBAC_MODULES.PARTICIPANT_MEDICAL_ROUTINE, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY });
   const canEditMedicalRoutine = hasAccess({ resource: RBAC_MODULES.PARTICIPANT_MEDICAL_ROUTINE, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE });
 
+  const canViewClinicalTrackers = hasAccess({ resource: RBAC_MODULES.PARTICIPANT_CLINICAL_TRACKERS, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY });
+  const canEditClinicalTrackers = hasAccess({ resource: RBAC_MODULES.PARTICIPANT_CLINICAL_TRACKERS, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE });
+
   const canViewMedications = hasAccess({ resource: RBAC_MODULES.PARTICIPANT_MEDICATIONS, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY });
   const canEditMedications = hasAccess({ resource: RBAC_MODULES.PARTICIPANT_MEDICATIONS, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE });
   const canAddMedications = canEditMedications;
@@ -208,6 +213,14 @@ export function ParticipantDetailContent({
     restrictive_practice_details: '',
     mtmp_required: null,
     mtmp_details: '',
+    track_bowel: false,
+    track_seizure: false,
+    track_sleep: false,
+    track_behaviour: false,
+    track_community: false,
+    track_nutrition: false,
+    track_mtm: false,
+    track_hygiene: false,
   });
 
   const { data: participantData, isLoading: participantLoading } = useParticipant(id);
@@ -283,6 +296,14 @@ export function ParticipantDetailContent({
         mtmp_required: participantData.mtmp_required ?? null,
         mtmp_details: participantData.mtmp_details ?? '',
         photo_url: participantData.photo_url ?? '',
+        track_bowel: participantData.track_bowel ?? false,
+        track_seizure: participantData.track_seizure ?? false,
+        track_sleep: participantData.track_sleep ?? false,
+        track_behaviour: participantData.track_behaviour ?? false,
+        track_community: participantData.track_community ?? false,
+        track_nutrition: participantData.track_nutrition ?? false,
+        track_mtm: participantData.track_mtm ?? false,
+        track_hygiene: participantData.track_hygiene ?? false,
       };
       
       setFormData(mappedData);
@@ -404,6 +425,7 @@ export function ParticipantDetailContent({
         const supportNeedsFields = ['routine', 'hygiene_support', 'mobility_support', 'meal_prep_support', 'household_support', 'communication_type', 'communication_notes', 'communication_language_needs', 'finance_support', 'health_wellbeing_support', 'cultural_religious_support', 'other_support'];
         const mealtimeFields = ['mtmp_required', 'mtmp_details'];
         const medicalRoutineFields = ['pharmacy_name', 'pharmacy_contact', 'pharmacy_location', 'gp_name', 'gp_contact', 'gp_location', 'psychiatrist_name', 'psychiatrist_contact', 'psychiatrist_location', 'medical_routine_other', 'medical_routine_general_process', 'mental_health_plan', 'medical_plan', 'primary_diagnosis', 'secondary_diagnosis', 'allergies'];
+        const clinicalTrackersFields = ['track_bowel', 'track_seizure', 'track_sleep', 'track_behaviour', 'track_community', 'track_nutrition', 'track_mtm', 'track_hygiene'];
         const emergencyFields = ['natural_disaster_plan'];
 
         if (personalFields.includes(key)) canUpdateField = canEditPersonal;
@@ -411,6 +433,7 @@ export function ParticipantDetailContent({
         else if (supportNeedsFields.includes(key)) canUpdateField = canEditSupportNeeds;
         else if (mealtimeFields.includes(key)) canUpdateField = canEditMealtime;
         else if (medicalRoutineFields.includes(key)) canUpdateField = canEditMedicalRoutine;
+        else if (clinicalTrackersFields.includes(key)) canUpdateField = canEditClinicalTrackers;
         else if (emergencyFields.includes(key)) canUpdateField = canEditEmergency;
 
         if (newValue !== oldValue && canUpdateField) changedFields[key] = newValue;
@@ -559,6 +582,14 @@ export function ParticipantDetailContent({
           <MealtimeManagement formData={formData} onFormChange={handleFormChange} canEdit={canEditMealtime} />
         )}
         
+        {canViewMedicalRoutine && (
+          <ClinicalDetails formData={formData} onFormChange={handleFormChange} canEdit={canEditMedicalRoutine} />
+        )}
+
+        {canViewClinicalTrackers && (
+          <ClinicalTrackersSetup formData={formData} onFormChange={handleFormChange} canEdit={canEditClinicalTrackers} />
+        )}
+
         {canViewMedicalRoutine && (
           <MedicalRoutine formData={formData} onFormChange={handleFormChange} canEdit={canEditMedicalRoutine} />
         )}

@@ -50,13 +50,11 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { SecureAvatar } from '@/components/ui/secure-avatar';
 import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 import { ROUTES } from '@/config/routes.config';
-
+import { useParticipants } from '@/hooks/use-participants';
+import { useActiveHouses } from '@/hooks/use-houses';
+import { Link } from 'react-router';
 import { Participant, ParticipantWithHouse }  from '@/models/participant';
-import { Edit } from 'lucide-react';
-import { useParticipants, useUpdateParticipant } from '@/hooks/use-participants';
-import { useHouses } from '@/hooks/use-houses';
-import { useNavigate, Link } from 'react-router';
-import { useAuth } from '@/auth/context/auth-context';
+
 import { parseSupabaseError } from '@/lib/error-parser';
 
 import { RBAC_MODULES } from '@/config/rbac-modules';
@@ -142,8 +140,7 @@ const Participants = () => {
 
   console.log('[DEBUG] Participants rendering:', { pCount: participants.length, count, loading, error, filters });
 
-  const { data: housesData } = useHouses();
-  const houses = useMemo(() => housesData?.data || [], [housesData]);
+  const { data: activeHouses = [] } = useActiveHouses();
 
   // Count of participants per house (This still uses the full list if we want accurate badges, 
   // but for now we'll simplify or keep it as is if useHouses has the counts)
@@ -156,51 +153,11 @@ const Participants = () => {
     }, {} as Record<string, number>);
   }, [participants]);
 
-  // Get active houses:ic_houses(houses with status 'active')
-  const activeHouses = useMemo(() => {
-    return houses.filter(h => h.status === 'active');
-  }, [houses]);
-
   const handleHouseChange = (checked: boolean, houseId: string) => {
     setSelectedHouses((prev) =>
       checked ? [...prev, houseId] : prev.filter((id) => id !== houseId)
     );
   };
-
-  // Sync state changes to URL query parameters
-  useEffect(() => {
-    const params = new URLSearchParams();
-    
-    // Pagination - only add if not default
-    if (pagination.pageIndex > 0) {
-      params.set('page', (pagination.pageIndex + 1).toString()); // Convert to 1-indexed
-    }
-    if (pagination.pageSize !== 25) {
-      params.set('pageSize', pagination.pageSize.toString());
-    }
-    
-    // Sorting
-    if (sorting.length > 0) {
-      const sort = sorting[0];
-      params.set('sort', `${sort.id}.${sort.desc ? 'desc' : 'asc'}`);
-    }
-    
-    // Search
-    if (searchQuery) {
-      params.set('search', searchQuery);
-    }
-    
-    // House filters
-    if (selectedHouses.length > 0) {
-      params.set('houses', selectedHouses.join(','));
-    }
-    
-    // Status filters - always update the URL with the current list
-    params.set('statuses', selectedStatuses.join(','));
-    
-    // Update URL without adding to history
-    setSearchParams(params, { replace: true });
-  }, [pagination, sorting, searchQuery, selectedHouses, selectedStatuses, setSearchParams]);
 
   const columns = useMemo<ColumnDef<ParticipantWithHouse>[]>(
     () => [
@@ -417,8 +374,10 @@ const Participants = () => {
       params.delete('statuses');
     }
 
-    // Update URL immediately without adding to history
-    setSearchParams(params, { replace: true });
+    // Update URL immediately without adding to history if changed
+    if (params.toString() !== searchParams.toString()) {
+      setSearchParams(params, { replace: true });
+    }
   }, [pagination, sorting, searchQuery, selectedHouses, selectedStatuses, setSearchParams, searchParams]);
 
   return (

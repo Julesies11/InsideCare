@@ -58,7 +58,7 @@ export const MENU_SIDEBAR: MenuItemConfig[] = [
   },
   {
     heading: 'People & Houses',
-    permission: [RBAC_MODULES.EMPLOYEES, RBAC_MODULES.HOUSES, RBAC_MODULES.PARTICIPANTS],
+    permission: [RBAC_MODULES.EMPLOYEES, RBAC_MODULES.HOUSES, RBAC_MODULES.PARTICIPANTS, RBAC_MODULES.REPORTING_CLINICAL],
   },
   {
     title: 'Staff',
@@ -83,8 +83,14 @@ export const MENU_SIDEBAR: MenuItemConfig[] = [
     ],
   },
   {
+    title: 'Lodge an Incident',
+    icon: ShieldAlert,
+    path: ROUTES.INCIDENT_REPORT,
+    permission: RBAC_MODULES.REPORTING_CLINICAL,
+  },
+  {
     heading: 'Roster & Staff Scheduling',
-    permission: [RBAC_MODULES.ROSTER_BOARD, RBAC_MODULES.TIMESHEETS, RBAC_MODULES.LEAVE_REQUESTS, RBAC_MODULES.REPORTING_CLINICAL],
+    permission: [RBAC_MODULES.ROSTER_BOARD, RBAC_MODULES.TIMESHEETS, RBAC_MODULES.LEAVE_REQUESTS],
   },
   {
     title: 'Roster Board',
@@ -109,12 +115,6 @@ export const MENU_SIDEBAR: MenuItemConfig[] = [
     icon: ClipboardList,
     path: ROUTES.LEAVE_APPROVALS,
     permission: RBAC_MODULES.LEAVE_REQUESTS,
-  },
-  {
-    title: 'Lodge an Incident',
-    icon: ShieldAlert,
-    path: ROUTES.INCIDENT_REPORT,
-    permission: RBAC_MODULES.REPORTING_CLINICAL,
   },
   { 
     heading: 'Administration', 

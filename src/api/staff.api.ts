@@ -145,6 +145,18 @@ export const staffApi = {
   },
 
   /**
+   * Fetches all staff members with minimal fields (lightweight).
+   */
+  async listLightweight() {
+    const { data, error } = await supabase
+      .from(TABLES.STAFF)
+      .select('id, staff_name, status, role_id, photo_url')
+      .order('staff_name');
+    if (error) throw error;
+    return (data || []).map((s: any) => ({ ...s, name: s.staff_name }));
+  },
+
+  /**
    * Fetches a single staff member by ID with full details.
    */
   async get(id: string) {
@@ -445,13 +457,18 @@ export const staffApi = {
         .not('shift_id', 'is', null),
       supabase
         .from(TABLES.STAFF_SHIFTS)
-        .select('id, end_date, end_time')
+        .select(`
+          id, 
+          end_date, 
+          end_time,
+          participants:ic_shift_participants(participant_id)
+        `)
         .eq('staff_id', staffId)
         .gte('end_date', thirtyDaysAgo)
         .lt('end_date', today),
       supabase
         .from(TABLES.SHIFT_NOTES)
-        .select('shift_id')
+        .select('shift_id, participant_id, status')
         .eq('staff_id', staffId)
         .not('shift_id', 'is', null)
     ]);
@@ -460,7 +477,12 @@ export const staffApi = {
     const events = (eventsRes.data as any[]) || [];
 
     const timesheetedShiftIds = new Set((allTimesheetsRes.data as any[])?.map(ts => ts.shift_id) || []);
-    const shiftNotedIds = new Set((allShiftNotesRes.data as any[])?.map(sn => sn.shift_id) || []);
+    const allShiftNotes = (allShiftNotesRes.data as any[]) || [];
+    const completedNoteKeys = new Set(
+      allShiftNotes
+        .filter((n: any) => n.status === 'active')
+        .map((n: any) => `${n.shift_id}-${n.participant_id || 'general'}`)
+    );
     const now = new Date();
     
     const missingShifts = (pastShiftsRes.data as any[])?.filter(s => {
@@ -469,11 +491,26 @@ export const staffApi = {
       return shiftEnd < now;
     }) || [];
 
-    const missingNotes = (pastShiftsRes.data as any[])?.filter(s => {
-      if (shiftNotedIds.has(s.id)) return false;
+    let missingNotesCount = 0;
+    (pastShiftsRes.data as any[] || []).forEach(s => {
       const shiftEnd = new Date(`${s.end_date}T${s.end_time}`);
-      return shiftEnd < now;
-    }) || [];
+      if (shiftEnd >= now) return;
+
+      const shiftParticipants = s.participants || [];
+      if (shiftParticipants.length === 0) {
+        const key = `${s.id}-general`;
+        if (!completedNoteKeys.has(key)) {
+          missingNotesCount++;
+        }
+      } else {
+        shiftParticipants.forEach((sp: any) => {
+          const key = `${s.id}-${sp.participant_id}`;
+          if (!completedNoteKeys.has(key)) {
+            missingNotesCount++;
+          }
+        });
+      }
+    });
 
     const upcomingShifts = shifts.map(shift => {
       const checklists = shift.assigned_checklists || [];
@@ -513,7 +550,7 @@ export const staffApi = {
     return {
       upcomingSchedule,
       missingTimesheetsCount: missingShifts.length,
-      missingShiftNotesCount: missingNotes.length,
+      missingShiftNotesCount: missingNotesCount,
       pendingLeave: (leaveRes.data as any[]) || [],
       pendingTimesheets: (timesheetsRes.data as any[]) || [],
     };

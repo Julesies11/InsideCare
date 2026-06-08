@@ -41,12 +41,20 @@ vi.mock('@/hooks/useChecklistSchedules', () => ({
 vi.mock('@/hooks/use-participants', () => ({
   useParticipants: () => ({
     participants: []
+  }),
+  useActiveParticipants: () => ({
+    participants: [],
+    loading: false
   })
 }));
 
 vi.mock('@/hooks/use-staff', () => ({
   useStaff: () => ({
     staff: []
+  }),
+  useActiveStaff: () => ({
+    staff: [],
+    loading: false
   })
 }));
 

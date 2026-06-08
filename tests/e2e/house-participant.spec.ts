@@ -24,22 +24,22 @@ test.describe('House & Participant Management', () => {
     await page.goto('/participants/profiles');
     
     // Wait for data to load or empty state, avoiding the "Loading" state
-    const editButton = page.getByRole('button', { name: /Edit/i }).first();
+    const participantLink = page.getByRole('row').nth(1).getByRole('link').first();
     const noData = page.getByText(/No data available/i);
     const loading = page.getByText(/Loading participants/i);
     
     // First, ensure loading is gone (it might appear and then disappear)
     await expect(loading).not.toBeVisible({ timeout: 30000 });
     
-    await expect(editButton.or(noData)).toBeVisible({ timeout: 15000 });
+    await expect(participantLink.or(noData)).toBeVisible({ timeout: 15000 });
     
     if (await noData.isVisible()) {
       console.log('Skipping deep link test: No participants found in database');
       return;
     }
     
-    // Click edit to go to detail page (which is the same as detail in this app)
-    await editButton.click();
+    // Click the participant name link to go to detail page (InsideCare Pattern)
+    await participantLink.click();
     
     // Wait for navigation and then append tab
     await expect(page).toHaveURL(/\/participants\/detail\//);

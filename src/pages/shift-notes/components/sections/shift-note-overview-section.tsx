@@ -1,12 +1,26 @@
+import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useParticipants } from '@/hooks/use-participants';
 import { useStaff } from '@/hooks/use-staff';
 import { useHouses } from '@/hooks/use-houses';
 import { format, parseISO } from 'date-fns';
+import { Link } from 'react-router';
+import { SecureAvatar } from '@/components/ui/secure-avatar';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
+import { ROUTES } from '@/config/routes.config';
+
+const getInitials = (name?: string) => {
+  if (!name) return '??';
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+};
 
 interface ShiftNoteOverviewSectionProps {
   canEdit: boolean;
@@ -26,7 +40,7 @@ export function ShiftNoteOverviewSection({
   isParticipantLocked = false,
 }: ShiftNoteOverviewSectionProps) {
   const { staff } = useStaff();
-  const { houses } = useHouses();
+  const { houses } = useHouses(0, 1000);
 
   // Filter participants to only show active ones from the selected house (if any)
   const { participants } = useParticipants(0, 1000, [], {
@@ -34,7 +48,25 @@ export function ShiftNoteOverviewSection({
     statuses: ['active'],
   });
 
-  const selectedStaff = staff.find(s => s.id === formData.staff_id);
+  const selectedStaff = useMemo(() => {
+    const sId = formData.staff_id;
+    if (sId) {
+      return staff.find(s => s.id === sId) || (formData.staff as any);
+    }
+    return (formData.staff as any) || null;
+  }, [formData.staff_id, formData.staff, staff]);
+
+  const selectedParticipant = useMemo(() => {
+    if (formData.participant) {
+      return formData.participant as any;
+    }
+    const pId = formData.participant_id;
+    if (pId) {
+      return participants.find((p: any) => p.id === pId) || null;
+    }
+    return null;
+  }, [formData.participant, formData.participant_id, participants]);
+
   const selectedHouse = houses.find(h => h.id === formData.house_id);
 
   return (
@@ -45,57 +77,67 @@ export function ShiftNoteOverviewSection({
         </CardHeader>
         <CardContent className="space-y-4">
           {formData.shift_id && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-muted/30 rounded-lg border border-border/50 mb-4">
-              <div className="space-y-1">
-                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Date</span>
-                <p className="text-sm font-medium">{formData.start_date ? format(parseISO(formData.start_date as string), 'PPP') : 'N/A'}</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 p-4 bg-muted/30 rounded-lg border border-border/50 mb-4 min-w-0">
+              <div className="space-y-1 min-w-0">
+                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider block mb-1">Date</span>
+                <p className="text-sm font-medium pt-1 break-words whitespace-normal">{formData.start_date ? format(parseISO(formData.start_date as string), 'PPP') : 'N/A'}</p>
               </div>
-              <div className="space-y-1">
-                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Time</span>
-                <p className="text-sm font-medium">
+              <div className="space-y-1 min-w-0">
+                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider block mb-1">Time</span>
+                <p className="text-sm font-medium pt-1 break-words whitespace-normal">
                   {formData.shift_time ? (formData.shift_time as string).substring(0, 5) : 'N/A'}
                   {(formData.end_time || (formData as any).shift?.end_time) && 
                     ` - ${(formData.end_time as string || (formData as any).shift?.end_time as string || '').substring(0, 5)}`}
                 </p>
               </div>
-              <div className="space-y-1">
-                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Staff</span>
-                <p className="text-sm font-medium">{selectedStaff?.staff_name || 'Unassigned'}</p>
+              <div className="space-y-1 min-w-0">
+                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider block mb-1">Staff</span>
+                {selectedStaff ? (
+                  <Link 
+                    to={`${ROUTES.STAFF_DETAIL}/${selectedStaff.id}`}
+                    className="flex items-center gap-2 group/staff w-full min-w-0 pt-0.5"
+                  >
+                    <SecureAvatar 
+                      src={selectedStaff.photo_url} 
+                      initials={getInitials(selectedStaff.staff_name || selectedStaff.name)} 
+                      className="size-6 transition-all group-hover/staff:ring-2 group-hover/staff:ring-primary/20 shrink-0"
+                      bucket={STORAGE_BUCKETS.STAFF_PHOTOS} 
+                    />
+                    <span className="text-sm font-medium text-blue-700 dark:text-blue-400 group-hover/staff:underline transition-colors break-words whitespace-normal">
+                      {selectedStaff.staff_name || selectedStaff.name}
+                    </span>
+                  </Link>
+                ) : (
+                  <p className="text-sm font-medium pt-1 break-words whitespace-normal">Unassigned</p>
+                )}
               </div>
-              <div className="space-y-1">
-                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">House</span>
-                <p className="text-sm font-medium">{selectedHouse?.house_name || 'N/A'}</p>
+              <div className="space-y-1 min-w-0">
+                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider block mb-1">Participant</span>
+                {selectedParticipant ? (
+                  <Link 
+                    to={`${ROUTES.PARTICIPANT_DETAIL}/${selectedParticipant.id}`}
+                    className="flex items-center gap-2 group/participant w-full min-w-0 pt-0.5"
+                  >
+                    <SecureAvatar 
+                      src={selectedParticipant.photo_url} 
+                      initials={getInitials(selectedParticipant.participant_name || selectedParticipant.name)} 
+                      className="size-6 transition-all group-hover/participant:ring-2 group-hover/participant:ring-primary/20 shrink-0"
+                      bucket={STORAGE_BUCKETS.PARTICIPANT_PHOTOS} 
+                    />
+                    <span className="text-sm font-medium text-blue-700 dark:text-blue-400 group-hover/participant:underline transition-colors break-words whitespace-normal">
+                      {selectedParticipant.participant_name || selectedParticipant.name}
+                    </span>
+                  </Link>
+                ) : (
+                  <p className="text-sm font-medium pt-1 break-words whitespace-normal">General House Note</p>
+                )}
+              </div>
+              <div className="space-y-1 min-w-0">
+                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider block mb-1">House</span>
+                <p className="text-sm font-medium pt-1 break-words whitespace-normal">{selectedHouse?.house_name || 'N/A'}</p>
               </div>
             </div>
           )}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="participant_id">Participant *</Label>
-              <Select
-                value={(formData.participant_id as string) || 'none'}
-                onValueChange={(val) => onFormChange('participant_id', val === 'none' ? null : val)}
-                disabled={!canEdit || isParticipantLocked}
-              >
-                <SelectTrigger id="participant_id">
-                  <SelectValue placeholder="Select participant" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Select participant...</SelectItem>
-                  {participants.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>{p.participant_name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {isParticipantLocked && (
-                <p className="text-xs text-muted-foreground">
-                  This note is locked to the selected participant.
-                </p>
-              )}
-            </div>
-            
-            <div className="hidden md:block" /> 
-          </div>
 
           <div className="space-y-4 pt-2">
             <div className="space-y-2">

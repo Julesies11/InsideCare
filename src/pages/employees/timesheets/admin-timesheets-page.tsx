@@ -207,7 +207,11 @@ export function AdminTimesheetsPage() {
       updatePayload.approved_at = now;
       updatePayload.approved_by = user.staff_id ?? null;
     }
-    if (action === 'reject') updatePayload.rejection_reason = rejectionReason || null;
+    if (action === 'reject') {
+      updatePayload.rejection_reason = rejectionReason || null;
+      updatePayload.approved_at = now;
+      updatePayload.approved_by = user.staff_id ?? null;
+    }
 
     try {
       await timesheetsApi.update(selected.id, updatePayload);

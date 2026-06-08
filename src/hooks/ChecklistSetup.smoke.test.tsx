@@ -22,6 +22,10 @@ vi.mock('@/hooks/use-houses', () => ({
   useHouses: () => ({
     houses: [],
     isLoading: false
+  }),
+  useActiveHouses: () => ({
+    data: [],
+    isLoading: false
   })
 }));
 

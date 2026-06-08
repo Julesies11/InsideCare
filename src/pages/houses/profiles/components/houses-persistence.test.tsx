@@ -23,6 +23,10 @@ vi.mock('@/hooks/use-participants', () => ({
   useParticipants: () => ({
     data: { data: [] },
     isLoading: false
+  }),
+  useActiveParticipants: () => ({
+    participants: [],
+    loading: false
   })
 }));
 

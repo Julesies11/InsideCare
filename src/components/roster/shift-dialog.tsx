@@ -1,13 +1,14 @@
 import { useState, useEffect, useMemo } from 'react';
+import { format } from 'date-fns';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useStaff } from '@/hooks/use-staff';
-import { useHouses } from '@/hooks/use-houses';
-import { useParticipants } from '@/hooks/use-participants';
+import { useActiveStaff } from '@/hooks/use-staff';
+import { useActiveHouses } from '@/hooks/use-houses';
+import { useActiveParticipants } from '@/hooks/use-participants';
 import { useHouseShiftTemplates } from '@/hooks/use-house-shift-templates';
 import { useHouseStaffAssignments } from '@/hooks/use-house-staff-assignments';
 import { useAuth } from '@/auth/context/auth-context';
@@ -49,7 +50,7 @@ interface ShiftDialogProps {
   shift?: any;
   onSave: (data: ShiftFormData) => Promise<void>;
   onDelete?: (id: string) => Promise<void>;
-  preSelectedDate?: string;
+  preSelectedDate?: string | Date;
   preSelectedHouseId?: string;
   preSelectedShiftTemplateId?: string;
   staffId?: string | null;
@@ -88,11 +89,17 @@ export function ShiftDialog({
   // Disable staff selection ONLY if explicitly requested AND user is NOT an admin
   const isStaffSelectionDisabled = staffSelectionDisabled && !isAdmin;
 
-  // Use passed props if available, otherwise fallback to local hooks (though props are preferred for Roster Board)
-  const { staff: localStaff } = useStaff(0, 1000, [], { statuses: ['active'] });
-  const { houses: localHouses } = useHouses(0, 100, [], { statuses: ['active'] });
-  const { participants: localParticipants } = useParticipants(0, 1000);
-  
+  // Only fire fallback queries when the dialog is open AND the caller hasn't provided the lists.
+  // On the Roster Board, all three lists are passed as props, so these queries stay disabled.
+  const needsLocalStaff = open && !passedStaffList;
+  const needsLocalHouses = open && !passedHouses;
+  const needsLocalParticipants = open && !passedParticipants;
+
+  const { staff: localStaff } = useActiveStaff({ enabled: needsLocalStaff });
+  const { data: localHousesData } = useActiveHouses({ enabled: needsLocalHouses });
+  const localHouses = localHousesData || [];
+  const { participants: localParticipants } = useActiveParticipants({ enabled: needsLocalParticipants });
+
   const staffList = passedStaffList || localStaff || [];
   const houses = passedHouses || localHouses || [];
   const participants = passedParticipants || localParticipants || [];
@@ -111,10 +118,16 @@ export function ShiftDialog({
     assigned_checklists: [],
   });
   
-  const { houseChecklists } = useHouseChecklists(formData.house_id || undefined);
+  // Only fetch house checklists when dialog is open and no checklists were passed
+  const needsLocalChecklists = open && (!passedChecklists || passedChecklists.length === 0);
+  const { houseChecklists } = useHouseChecklists(needsLocalChecklists ? (formData.house_id || undefined) : undefined);
   const currentChecklists = (passedChecklists && passedChecklists.length > 0) ? passedChecklists : houseChecklists;
 
-  const { assignments: houseStaffAssignments } = useHouseStaffAssignments(formData.house_id || undefined);
+  // Only fetch house staff assignments when dialog is open and a house is selected
+  const { assignments: houseStaffAssignments } = useHouseStaffAssignments(
+    formData.house_id || undefined,
+    { enabled: open && !!formData.house_id }
+  );
 
   // Filter staff list by house if house_id is present
   const filteredStaffList = useMemo(() => {
@@ -149,7 +162,7 @@ export function ShiftDialog({
     return list;
   }, [formData.house_id, formData.staff_id, staffList, houseStaffAssignments]);
 
-  const { shiftTemplates } = useHouseShiftTemplates(formData.house_id || undefined);
+  const { shiftTemplates } = useHouseShiftTemplates(open && formData.house_id ? formData.house_id : undefined);
   
   const currentHouse = useMemo(() => {
     return houses.find(h => h.id === (formData.house_id || preSelectedHouseId));
@@ -175,7 +188,27 @@ export function ShiftDialog({
           entry_type: shift.entry_type || 'shift',
         });
       } else {
-        const initialDate = preSelectedDate || new Date().toISOString().split('T')[0];
+        let initialDate = '';
+        if (preSelectedDate) {
+          if (preSelectedDate instanceof Date) {
+            initialDate = format(preSelectedDate, 'yyyy-MM-dd');
+          } else {
+            const dateStr = String(preSelectedDate);
+            const match = dateStr.match(/^(\d{4}-\d{2}-\d{2})/);
+            if (match) {
+              initialDate = match[1];
+            } else {
+              const parsed = new Date(dateStr);
+              if (!isNaN(parsed.getTime())) {
+                initialDate = format(parsed, 'yyyy-MM-dd');
+              } else {
+                initialDate = dateStr;
+              }
+            }
+          }
+        } else {
+          initialDate = format(new Date(), 'yyyy-MM-dd');
+        }
         const initialHouseId = preSelectedHouseId || null;
         
         // Auto-select all active participants for the house

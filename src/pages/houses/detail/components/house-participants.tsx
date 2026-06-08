@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Plus, Edit, Trash2, Users, Clock, Calendar } from 'lucide-react';
 import { useHouseParticipants } from '@/hooks/useHouseParticipants';
-import { useParticipants } from '@/hooks/use-participants';
+import { useActiveParticipants } from '@/hooks/use-participants';
 import { ParticipantCombobox } from './participant-combobox';
 import { useForm } from 'react-hook-form';
 import { useNavigate, Link } from 'react-router';
@@ -64,7 +64,7 @@ export function HouseParticipants({
   const [editingParticipant, setEditingParticipant] = useState<any>(null);
 
   const { houseParticipants, loading } = useHouseParticipants(houseId);
-  const { participants } = useParticipants();
+  const { participants } = useActiveParticipants({ enabled: showDialog });
   const navigate = useNavigate();
 
   // Helper function to get participant name
@@ -153,6 +153,7 @@ export function HouseParticipants({
     const payload = {
       ...data,
       participant_name: participantMember?.participant_name || undefined,
+      photo_url: participantMember?.photo_url || undefined,
     };
 
     if (editingParticipant) {

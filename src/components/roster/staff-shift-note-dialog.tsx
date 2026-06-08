@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -22,11 +22,12 @@ import { Input } from '@/components/ui/input';
 import { format, parseISO } from 'date-fns';
 import { toast } from 'sonner';
 import { useAuth } from '@/auth/context/auth-context';
-import { useParticipants } from '@/hooks/use-participants';
+import { useActiveParticipants } from '@/hooks/use-participants';
 import { useShiftNotes } from '@/hooks/use-shift-notes';
 import { StaffShift } from './use-roster-data';
 import { FileText, User, Clock, Home, Calendar, Loader2 } from 'lucide-react';
 import { shiftNotesApi } from '@/api/shift-notes.api';
+import { generateShiftNoteReferenceId } from '@/lib/shift-note-utils';
 
 interface StaffShiftNoteDialogProps {
   open: boolean;
@@ -52,11 +53,12 @@ export function StaffShiftNoteDialog({
     notes: '',
   });
 
-  // Filter participants to only show active ones from the shift's house
-  const { participants, loading: loadingParticipants } = useParticipants(0, 1000, [], {
-    houses: shift?.house_id ? [shift.house_id] : [],
-    statuses: ['active'],
-  });
+  const { participants: allParticipants, loading: loadingParticipants } = useActiveParticipants();
+
+  const participants = useMemo(() => {
+    if (!shift?.house_id) return [];
+    return allParticipants.filter(p => p.house_id === shift.house_id);
+  }, [allParticipants, shift?.house_id]);
 
   useEffect(() => {
     if (open && shift && user?.staff_id) {
@@ -72,11 +74,12 @@ export function StaffShiftNoteDialog({
         try {
           const data = await shiftNotesApi.getByShiftAndStaff(shift.id, user.staff_id!);
 
-          if (data) {
+          if (data && data.length > 0) {
+            const note = data[0];
             setFormData({
-              participant_id: data.participant_id || 'none',
-              shift_time: data.shift_time || format(new Date(), 'HH:mm'),
-              notes: data.full_note || '',
+              participant_id: note.participant_id || 'none',
+              shift_time: note.shift_time || format(new Date(), 'HH:mm'),
+              notes: note.full_note || '',
             });
           }
         } catch (err) {
@@ -100,15 +103,27 @@ export function StaffShiftNoteDialog({
 
     setSaving(true);
     try {
+      const pId = formData.participant_id === 'none' || !formData.participant_id ? null : formData.participant_id;
+      const selectedPart = pId ? participants.find(p => p.id === pId) : null;
+
+      const reference_id = generateShiftNoteReferenceId({
+        startDate: shift.start_date,
+        shiftTime: formData.shift_time,
+        staffName: user?.fullname,
+        participantName: selectedPart?.participant_name || selectedPart?.name,
+        orgPrefix: 'SC'
+      });
+
       await createShiftNote({
         shift_id: shift.id,
         staff_id: user?.staff_id,
         house_id: shift.house_id,
         start_date: shift.start_date,
         shift_time: formData.shift_time,
-        participant_id: formData.participant_id === 'none' || !formData.participant_id ? null : formData.participant_id,
+        participant_id: pId,
         full_note: formData.notes,
         notes: formData.notes.slice(0, 100),
+        reference_id,
       });
 
       toast.success('Shift note saved successfully');
@@ -116,7 +131,11 @@ export function StaffShiftNoteDialog({
       onSuccess?.();
     } catch (error: any) {
       console.error('Failed to save shift note:', error);
-      toast.error(`Failed to save note: ${error.message || 'Unknown error'}`);
+      let errorMessage = `Failed to save note: ${error.message || 'Unknown error'}`;
+      if (error?.code === '23505' || error?.message?.includes('unique constraint')) {
+        errorMessage = 'A shift note already exists for this participant on this shift.';
+      }
+      toast.error(errorMessage);
     } finally {
       setSaving(false);
     }

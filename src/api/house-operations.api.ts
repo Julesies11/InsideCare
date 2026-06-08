@@ -5,6 +5,7 @@ import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 import { HOUSE_VIEWS, CALENDAR_VIEWS } from '@/config/query-views';
 import { Database } from '@/models/database.types';
 import { HousePendingChanges } from '@/models/house-pending-changes';
+import { complianceApi } from '@/api/compliance.api';
 
 /**
  * Data Access Layer (DAL) for House Operational Entities.
@@ -684,6 +685,25 @@ export const houseOperationsApi = {
         }))
       );
       if (error) errors.push(`Comms Add: ${error.message}`);
+    }
+
+    if (pending?.comms?.toUpdate?.length > 0) {
+      for (const c of pending.comms.toUpdate) {
+        const { error } = await supabase
+          .from(TABLES.HOUSE_COMMS)
+          .update({ content: c.content })
+          .eq('id', c.id);
+        if (error) errors.push(`Comms Update ${c.id}: ${error.message}`);
+      }
+    }
+
+    // 7. Compliance Requirements
+    if (pending?.complianceTypeIds !== undefined) {
+      try {
+        await complianceApi.house.updateRequirements(houseId, pending.complianceTypeIds);
+      } catch (err: any) {
+        errors.push(`Compliance Requirements: ${err.message}`);
+      }
     }
 
     if (errors.length > 0) {

@@ -3,7 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useHouses } from '@/hooks/use-houses';
+import { useHousesLightweight } from '@/hooks/use-houses';
 import { AvatarInput } from '@/components/image-input/avatar-input';
 import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 
@@ -21,7 +21,10 @@ export function PersonalDetails({
   onFormChange,
   validationErrors = {},
 }: PersonalDetailsProps) {
-  const { houses } = useHouses();
+  const { data: allHouses = [] } = useHousesLightweight();
+  const houses = allHouses.filter(
+    (house) => house.status === 'active' || house.id === formData.house_id
+  );
 
   const handlePhotoChange = (file: File | null, dataURL: string | null) => {
     // Store the file and dataURL locally, will upload when Save is clicked
@@ -198,7 +201,7 @@ export function PersonalDetails({
               <SelectContent>
                 {houses?.map((house) => (
                   <SelectItem key={house.id} value={house.id}>
-                    {house.house_name}
+                    {house.house_name}{house.status !== 'active' ? ` (${house.status})` : ''}
                   </SelectItem>
                 ))}
               </SelectContent>

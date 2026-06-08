@@ -1,4 +1,4 @@
-import { Database } from './database.types';
+
 
 export type IncidentStatus = 'New' | 'Actioned' | 'Referred' | 'Closed';
 export type IncidentPriority = 'Critical' | 'High' | 'Medium' | 'Low';
@@ -6,6 +6,7 @@ export type IncidentSeverity = 'Low' | 'Moderate' | 'High';
 
 export interface IncidentReport {
   id: string;
+  reference_id?: string;
   incident_date: string;
   incident_type_id: string;
   involved_participant_id: string;

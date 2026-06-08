@@ -35,11 +35,13 @@ describe('Shift Note Sections Smoke Tests', () => {
   });
 
   describe('ShiftNoteTrackersSection', () => {
+    const mockParticipant = { track_mtm: true };
+
     it('renders Mealtime Management RadioGroups and conditional textareas', async () => {
       renderWithProviders(
         <ShiftNoteTrackersSection 
           canEdit={true} 
-          formData={{ ...baseFormData, mtm_meal_provided: true }} 
+          formData={{ ...baseFormData, mtm_meal_provided: true, participant: mockParticipant }} 
           onFormChange={onFormChange} 
         />
       );
@@ -50,7 +52,7 @@ describe('Shift Note Sections Smoke Tests', () => {
       renderWithProviders(
         <ShiftNoteTrackersSection 
           canEdit={true} 
-          formData={{ ...baseFormData, mtm_meal_provided: true, mtm_texture_correct: false }} 
+          formData={{ ...baseFormData, mtm_meal_provided: true, mtm_texture_correct: false, participant: mockParticipant }} 
           onFormChange={onFormChange} 
         />
       );
@@ -60,7 +62,7 @@ describe('Shift Note Sections Smoke Tests', () => {
       renderWithProviders(
         <ShiftNoteTrackersSection 
           canEdit={true} 
-          formData={{ ...baseFormData, mtm_meal_provided: true, mtm_supervision_required: true }} 
+          formData={{ ...baseFormData, mtm_meal_provided: true, mtm_supervision_required: true, participant: mockParticipant }} 
           onFormChange={onFormChange} 
         />
       );

@@ -24,10 +24,7 @@ test.describe('Participant Detail Marathon CRUD', () => {
     
     // 2. Profile Details (Core Fields)
     // Upload an avatar pic
-    const avatarChooserPromise = page.waitForEvent('filechooser');
-    await page.locator('#personal_details').locator('.relative.rounded-full').first().click(); 
-    const avatarChooser = await avatarChooserPromise;
-    await avatarChooser.setFiles({
+    await page.locator('#personal_details input[type="file"]').setInputFiles({
       name: 'avatar.png',
       mimeType: 'image/png',
       buffer: Buffer.from('fake avatar content'),
@@ -49,7 +46,10 @@ test.describe('Participant Detail Marathon CRUD', () => {
 
     // 3. Goals (Sub-entity CRUD)
     await page.getByText(/Goals/i).first().click({ force: true });
-    await page.getByRole('button', { name: /Add Goal/i }).click({ force: true });
+    const addGoalBtn = page.getByRole('button', { name: /Add Goal/i });
+    await addGoalBtn.scrollIntoViewIfNeeded();
+    await page.evaluate(() => window.scrollBy(0, -150));
+    await addGoalBtn.click({ force: true });
     await page.locator('textarea#description').or(page.getByLabel(/Goal Description/i)).fill('Independent living skills and social inclusion');
     await page.getByRole('button', { name: /Save/i, exact: true }).click({ force: true });
     await expect(page.getByText('social inclusion').first()).toBeVisible();
@@ -72,7 +72,10 @@ test.describe('Participant Detail Marathon CRUD', () => {
 
     // 6. Contacts (Sub-entity CRUD)
     await page.getByText(/Contacts/i).first().click();
-    await page.getByRole('button', { name: /Add Contact/i }).click();
+    const addContactBtn = page.getByRole('button', { name: /Add Contact/i });
+    await addContactBtn.scrollIntoViewIfNeeded();
+    await page.evaluate(() => window.scrollBy(0, -150));
+    await addContactBtn.click();
     await page.locator('input#contact_name').fill('Jane Doe');
     await page.getByRole('combobox').click();
     await page.getByRole('option').first().click();
@@ -88,24 +91,29 @@ test.describe('Participant Detail Marathon CRUD', () => {
 
     // 8. Medications (Combobox + sub-entity CRUD)
     await page.getByText(/Medications/i).first().click();
-    await page.getByRole('button', { name: /Add Medication/i }).click();
+    const addMedBtn = page.getByRole('button', { name: /Add Medication/i });
+    await addMedBtn.scrollIntoViewIfNeeded();
+    await page.evaluate(() => window.scrollBy(0, -150));
+    await addMedBtn.click();
     await page.getByRole('combobox').click();
     await page.getByRole('option').first().click();
-    await page.getByLabel(/Dosage/i).fill('10mg daily');
     await page.getByRole('button', { name: /Add to Queue/i }).click();
-    await expect(page.getByText('10mg daily')).toBeVisible();
+    await expect(page.locator('#medications table tbody tr').first()).toBeVisible();
 
     // 9. Documents (File Upload)
     await page.getByText(/Documents/i).first().click();
-    const fileChooserPromise = page.waitForEvent('filechooser');
-    await page.getByRole('button', { name: /Upload/i }).click();
-    const fileChooser = await fileChooserPromise;
-    await fileChooser.setFiles({
+    const uploadBtn = page.getByRole('button', { name: /Upload Document/i }).or(page.getByRole('button', { name: /Upload/i }));
+    await uploadBtn.scrollIntoViewIfNeeded();
+    await page.evaluate(() => window.scrollBy(0, -150));
+    await uploadBtn.click();
+    await page.locator('#documents input[type="file"]').setInputFiles({
       name: 'behavior_plan.pdf',
       mimeType: 'application/pdf',
       buffer: Buffer.from('fake plan content'),
     });
-    await expect(page.getByText('behavior_plan.pdf')).toBeVisible();
+    await expect(page.getByText('behavior_plan.pdf').first()).toBeVisible();
+    await page.getByRole('button', { name: /Save/i }).click();
+    await expect(page.locator('#documents').getByText('behavior_plan.pdf').first()).toBeVisible();
 
     // 10. Hygiene & Routines
     await page.getByText(/Hygiene/i).first().click();

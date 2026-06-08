@@ -3,12 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Edit, Trash2, Calendar, Clock, Home, Users, FileText, Plus } from 'lucide-react';
 import { useShiftNotesByParticipantId, ShiftNote } from '@/hooks/use-shift-notes';
-import { useStaff } from '@/hooks/use-staff';
+import { useStaffLightweight } from '@/hooks/use-staff';
 import { format, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useEffect } from 'react';
-import { useNavigate, Link } from 'react-router';
+import { useNavigate, Link, useLocation } from 'react-router';
 import { ROUTES } from '@/config/routes.config';
 import { SecureAvatar } from '@/components/ui/secure-avatar';
 import { STORAGE_BUCKETS } from '@/config/storage-buckets';
@@ -49,11 +49,11 @@ export function ShiftNotes({
   refreshTrigger,
 }: ShiftNotesProps) {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const { data: shiftNotesData = [], isLoading: loading, refetch } = useShiftNotesByParticipantId(participantId);
   const shiftNotes = shiftNotesData as unknown as ShiftNote[];
-  const { data: staffData } = useStaff(0, 1000);
-  const staff = staffData?.data || [];
+  const { data: staff = [] } = useStaffLightweight();
 
   useEffect(() => {
     if (refreshTrigger !== undefined && refreshTrigger > 0) {
@@ -75,7 +75,9 @@ export function ShiftNotes({
       return;
     }
     
-    navigate(`${ROUTES.SHIFT_NOTES_DETAIL}/${note.id}`);
+    navigate(`${ROUTES.SHIFT_NOTES_DETAIL}/${note.id}`, {
+      state: { from: location.pathname + location.search }
+    });
   };
 
   const handleDelete = (note: any) => {
@@ -143,7 +145,9 @@ export function ShiftNotes({
           <Button 
             size="sm" 
             variant="outline" 
-            onClick={() => navigate(`${ROUTES.SHIFT_NOTES_DETAIL}/new?participantId=${participantId}`)}
+            onClick={() => navigate(`${ROUTES.SHIFT_NOTES_DETAIL}/new?participantId=${participantId}`, {
+              state: { from: location.pathname + location.search }
+            })}
             className="h-8 gap-1.5"
           >
             <Plus className="size-3.5" />

@@ -480,6 +480,57 @@ export type Database = {
           },
         ]
       }
+      ic_compliance_types_master: {
+        Row: {
+          compliance_name: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          is_default_global: boolean | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          compliance_name: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_default_global?: boolean | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          compliance_name?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_default_global?: boolean | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ic_compliance_types_master_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_compliance_types_master_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ic_contact_types_master: {
         Row: {
           contact_type_name: string
@@ -1608,6 +1659,65 @@ export type Database = {
           },
         ]
       }
+      ic_house_compliance_requirements: {
+        Row: {
+          compliance_type_id: string
+          created_at: string | null
+          created_by: string | null
+          house_id: string
+          id: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          compliance_type_id: string
+          created_at?: string | null
+          created_by?: string | null
+          house_id: string
+          id?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          compliance_type_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          house_id?: string
+          id?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ic_house_compliance_requirements_compliance_type_id_fkey"
+            columns: ["compliance_type_id"]
+            isOneToOne: false
+            referencedRelation: "ic_compliance_types_master"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_house_compliance_requirements_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_house_compliance_requirements_house_id_fkey"
+            columns: ["house_id"]
+            isOneToOne: false
+            referencedRelation: "ic_houses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_house_compliance_requirements_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ic_house_files: {
         Row: {
           category: string | null
@@ -2343,6 +2453,7 @@ export type Database = {
           notified_parties: string | null
           outcome: string | null
           priority: string
+          reference_id: string | null
           reported_by: string
           restrictive_practice_description: string | null
           restrictive_practice_type_id: string | null
@@ -2380,6 +2491,7 @@ export type Database = {
           notified_parties?: string | null
           outcome?: string | null
           priority?: string
+          reference_id?: string | null
           reported_by: string
           restrictive_practice_description?: string | null
           restrictive_practice_type_id?: string | null
@@ -2417,6 +2529,7 @@ export type Database = {
           notified_parties?: string | null
           outcome?: string | null
           priority?: string
+          reference_id?: string | null
           reported_by?: string
           restrictive_practice_description?: string | null
           restrictive_practice_type_id?: string | null
@@ -3656,6 +3769,14 @@ export type Database = {
           status: Database["public"]["Enums"]["ic_status_enum"]
           support_coordinator: string | null
           support_level: string | null
+          track_behaviour: boolean | null
+          track_bowel: boolean | null
+          track_community: boolean | null
+          track_hygiene: boolean | null
+          track_mtm: boolean | null
+          track_nutrition: boolean | null
+          track_seizure: boolean | null
+          track_sleep: boolean | null
           updated_at: string | null
           updated_by: string | null
         }
@@ -3721,6 +3842,14 @@ export type Database = {
           status?: Database["public"]["Enums"]["ic_status_enum"]
           support_coordinator?: string | null
           support_level?: string | null
+          track_behaviour?: boolean | null
+          track_bowel?: boolean | null
+          track_community?: boolean | null
+          track_hygiene?: boolean | null
+          track_mtm?: boolean | null
+          track_nutrition?: boolean | null
+          track_seizure?: boolean | null
+          track_sleep?: boolean | null
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -3786,6 +3915,14 @@ export type Database = {
           status?: Database["public"]["Enums"]["ic_status_enum"]
           support_coordinator?: string | null
           support_level?: string | null
+          track_behaviour?: boolean | null
+          track_bowel?: boolean | null
+          track_community?: boolean | null
+          track_hygiene?: boolean | null
+          track_mtm?: boolean | null
+          track_nutrition?: boolean | null
+          track_seizure?: boolean | null
+          track_sleep?: boolean | null
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -4049,6 +4186,41 @@ export type Database = {
           },
         ]
       }
+      ic_report_preferences: {
+        Row: {
+          created_at: string | null
+          criteria: Json
+          id: string
+          report_type: string
+          staff_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          criteria: Json
+          id?: string
+          report_type: string
+          staff_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          criteria?: Json
+          id?: string
+          report_type?: string
+          staff_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ic_report_preferences_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ic_restrictive_practice_types_master: {
         Row: {
           created_at: string | null
@@ -4106,6 +4278,7 @@ export type Database = {
           my_timesheets: Database["public"]["Enums"]["ic_access_level_enum"]
           participant_activity_log: Database["public"]["Enums"]["ic_access_level_enum"]
           participant_behaviour: Database["public"]["Enums"]["ic_access_level_enum"]
+          participant_clinical_trackers: Database["public"]["Enums"]["ic_access_level_enum"]
           participant_contacts: Database["public"]["Enums"]["ic_access_level_enum"]
           participant_documents: Database["public"]["Enums"]["ic_access_level_enum"]
           participant_emergency: Database["public"]["Enums"]["ic_access_level_enum"]
@@ -4160,6 +4333,7 @@ export type Database = {
           my_timesheets?: Database["public"]["Enums"]["ic_access_level_enum"]
           participant_activity_log?: Database["public"]["Enums"]["ic_access_level_enum"]
           participant_behaviour?: Database["public"]["Enums"]["ic_access_level_enum"]
+          participant_clinical_trackers?: Database["public"]["Enums"]["ic_access_level_enum"]
           participant_contacts?: Database["public"]["Enums"]["ic_access_level_enum"]
           participant_documents?: Database["public"]["Enums"]["ic_access_level_enum"]
           participant_emergency?: Database["public"]["Enums"]["ic_access_level_enum"]
@@ -4214,6 +4388,7 @@ export type Database = {
           my_timesheets?: Database["public"]["Enums"]["ic_access_level_enum"]
           participant_activity_log?: Database["public"]["Enums"]["ic_access_level_enum"]
           participant_behaviour?: Database["public"]["Enums"]["ic_access_level_enum"]
+          participant_clinical_trackers?: Database["public"]["Enums"]["ic_access_level_enum"]
           participant_contacts?: Database["public"]["Enums"]["ic_access_level_enum"]
           participant_documents?: Database["public"]["Enums"]["ic_access_level_enum"]
           participant_emergency?: Database["public"]["Enums"]["ic_access_level_enum"]
@@ -4691,6 +4866,7 @@ export type Database = {
           pbs_when_used: string | null
           prn_description: string | null
           prn_medication_given: boolean | null
+          reference_id: string | null
           regular_medication_status: string | null
           restrictive_practices_status: string | null
           risk_description: string | null
@@ -4785,6 +4961,7 @@ export type Database = {
           pbs_when_used?: string | null
           prn_description?: string | null
           prn_medication_given?: boolean | null
+          reference_id?: string | null
           regular_medication_status?: string | null
           restrictive_practices_status?: string | null
           risk_description?: string | null
@@ -4881,6 +5058,7 @@ export type Database = {
           pbs_when_used?: string | null
           prn_description?: string | null
           prn_medication_given?: boolean | null
+          reference_id?: string | null
           regular_medication_status?: string | null
           restrictive_practices_status?: string | null
           risk_description?: string | null
@@ -5311,6 +5489,7 @@ export type Database = {
         Row: {
           completion_date: string | null
           compliance_name: string
+          compliance_type_id: string | null
           created_at: string | null
           created_by: string | null
           expiry_date: string | null
@@ -5323,6 +5502,7 @@ export type Database = {
         Insert: {
           completion_date?: string | null
           compliance_name: string
+          compliance_type_id?: string | null
           created_at?: string | null
           created_by?: string | null
           expiry_date?: string | null
@@ -5335,6 +5515,7 @@ export type Database = {
         Update: {
           completion_date?: string | null
           compliance_name?: string
+          compliance_type_id?: string | null
           created_at?: string | null
           created_by?: string | null
           expiry_date?: string | null
@@ -5357,6 +5538,13 @@ export type Database = {
             columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_staff_compliance_compliance_type_id_fkey"
+            columns: ["compliance_type_id"]
+            isOneToOne: false
+            referencedRelation: "ic_compliance_types_master"
             referencedColumns: ["id"]
           },
           {

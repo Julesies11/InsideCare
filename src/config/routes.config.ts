@@ -36,6 +36,7 @@ export const ROUTES = {
   MEDICATION_REGISTER: '/participants/medication-register',
   SHIFT_NOTES: '/participants/shift-notes',
   SHIFT_NOTES_DETAIL: '/shift-notes/detail', // Base for dynamic: /shift-notes/detail/:id
+  INCIDENT_REPORT: '/incidents',
 
   // Roster & Scheduling
   ROSTER_BOARD: '/roster-board',
@@ -46,7 +47,7 @@ export const ROUTES = {
   // Reporting
   REPORTING: '/reporting',
   REPORTING_CLINICAL_INCIDENTS: '/reporting/clinical/incidents',
-  INCIDENT_REPORT: '/reporting/incident-management',
+  REPORTING_CLINICAL_PARTICIPANTS: '/reporting/clinical/participants',
 
   // Account & Settings
   ACCOUNT: '/account',
@@ -59,6 +60,7 @@ export const ROUTES = {
   ACCESS_CONTROL: '/access-control',
   CHECKLIST_TEMPLATES: '/checklist-templates',
   LEAVE_TYPES: '/admin/leave-types',
+  COMPLIANCE_SETTINGS: '/admin/compliance-settings',
   ACTIVITY_LOG: '/activity-log',
 
   // Staff Portal Extras

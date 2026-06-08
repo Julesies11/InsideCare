@@ -4,7 +4,7 @@
   "version": "9.4.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "NODE_OPTIONS=--max-http-header-size=32768 vite",
     "build": "tsc && vite build",
     "lint": "eslint . --fix",
     "type-check": "tsc --noEmit",
