@@ -1,162 +1,122 @@
 [
   {
-    "title": "Complete Staff Record Lifecycle",
-    "file": "tests/e2e/crud-lifecycle.spec.ts",
-    "line": 13,
-    "status": "failed",
-    "durationMs": 40288,
-    "error": "TimeoutError: locator.fill: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input#staff_name')\u001b[22m\n"
-  },
-  {
-    "title": "Complete Participant Record Lifecycle",
-    "file": "tests/e2e/crud-lifecycle.spec.ts",
-    "line": 82,
-    "status": "failed",
-    "durationMs": 39383,
-    "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('tr').filter({ hasText: 'Test Participant 1780624886269' }).first().getByRole('button', { name: /Archive/i })\u001b[22m\n"
-  },
-  {
     "title": "Create and Fully Configure House Record",
     "file": "tests/e2e/house-marathon.spec.ts",
     "line": 10,
     "status": "failed",
-    "durationMs": 49327,
-    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('button', { name: /Add Template/i })\nExpected: visible\nTimeout: 20000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 20000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: /Add Template/i })\u001b[22m\n"
-  },
-  {
-    "title": "Create and Configure House",
-    "file": "tests/e2e/crud-lifecycle.spec.ts",
-    "line": 127,
-    "status": "failed",
-    "durationMs": 50745,
-    "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('tr').filter({ hasText: 'Automation House 1780624928902' }).first().getByRole('button', { name: /Archive/i })\u001b[22m\n"
-  },
-  {
-    "title": "Deep linking to Participant Medications tab",
-    "file": "tests/e2e/house-participant.spec.ts",
-    "line": 20,
-    "status": "failed",
-    "durationMs": 18997,
-    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('button', { name: /Edit/i }).first().or(getByText(/No data available/i))\nExpected: visible\nTimeout: 15000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: /Edit/i }).first().or(getByText(/No data available/i))\u001b[22m\n"
+    "durationMs": 30906,
+    "error": "TimeoutError: page.waitForEvent: Timeout 15000ms exceeded while waiting for event \"filechooser\"\n=========================== logs ===========================\nwaiting for event \"filechooser\"\n============================================================"
   },
   {
     "title": "Manage Shift Templates - Full CRUD lifecycle",
     "file": "tests/e2e/operations-comprehensive.spec.ts",
     "line": 33,
     "status": "failed",
-    "durationMs": 52267,
-    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('E2E Test Template 1780625041185').first()\nExpected: visible\nTimeout: 30000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 30000ms\u001b[22m\n\u001b[2m  - waiting for getByText('E2E Test Template 1780625041185').first()\u001b[22m\n"
+    "durationMs": 22834,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('E2E Test Template 1780898059648').first()\nExpected: visible\nTimeout: 15000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for getByText('E2E Test Template 1780898059648').first()\u001b[22m\n"
   },
   {
-    "title": "Navigate to participant detail and verify sections",
+    "title": "Edit participant basic info and verify dirty tracking",
     "file": "tests/e2e/participants-comprehensive.spec.ts",
-    "line": 30,
+    "line": 46,
     "status": "failed",
-    "durationMs": 24289,
-    "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('table tbody tr').first().getByRole('button', { name: /Edit/i }).or(locator('table tbody tr').first().getByRole('button', { name: /View/i }))\u001b[22m\n"
+    "durationMs": 26801,
+    "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /Back/i })\u001b[22m\n\u001b[2m    - locator resolved to <button data-slot=\"button\" class=\"cursor-pointer group focus-visible:outline-hidden inline-flex items-center justify-center has-data-[arrow=true]:justify-between whitespace-nowrap font-medium ring-offset-background transition-[color,box-shadow] disabled:pointer-events-none disabled:opacity-60 [&_svg]:shrink-0 bg-background text-accent-foreground border border-input hover:bg-accent data-[state=open]:bg-accent h-7 rounded-md px-2.5 gap-1.25 text-xs [&_svg:not([class*=size-])]:size-3.5 focus-visible:ring…>…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - forcing action\u001b[22m\n\u001b[2m    - performing click action\u001b[22m\n"
   },
   {
     "title": "Create and Fully Populate Participant Record",
     "file": "tests/e2e/participant-marathon.spec.ts",
     "line": 10,
     "status": "failed",
-    "durationMs": 57812,
+    "durationMs": 40689,
     "error": "TimeoutError: locator.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByLabel(/Dosage/i)\u001b[22m\n"
-  },
-  {
-    "title": "Edit participant basic info and verify dirty tracking",
-    "file": "tests/e2e/participants-comprehensive.spec.ts",
-    "line": 47,
-    "status": "failed",
-    "durationMs": 18479,
-    "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('table tbody tr').first().getByRole('button', { name: /Edit/i })\u001b[22m\n"
-  },
-  {
-    "title": "Manage Medications - Add Medication dialog",
-    "file": "tests/e2e/participants-comprehensive.spec.ts",
-    "line": 74,
-    "status": "failed",
-    "durationMs": 25591,
-    "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('table tbody tr').first().getByRole('button', { name: /Edit/i })\u001b[22m\n"
-  },
-  {
-    "title": "Manage Documents - List and Action buttons",
-    "file": "tests/e2e/participants-comprehensive.spec.ts",
-    "line": 98,
-    "status": "failed",
-    "durationMs": 19406,
-    "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('table tbody tr').first().getByRole('button', { name: /Edit/i })\u001b[22m\n"
-  },
-  {
-    "title": "Support Worker: Full CRUD Lifecycle (Conditional on available shifts)",
-    "file": "tests/e2e/shift-notes-lifecycle.spec.ts",
-    "line": 29,
-    "status": "failed",
-    "durationMs": 22269,
-    "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /Add Shift Note/i })\u001b[22m\n"
-  },
-  {
-    "title": "Toggle clinical trackers and verify visibility",
-    "file": "tests/e2e/shift-notes.spec.ts",
-    "line": 35,
-    "status": "failed",
-    "durationMs": 17482,
-    "error": "Error: locator.click: Element is not visible\nCall log:\n\u001b[2m  - waiting for locator('label[for=\"bowel_toggle\"]').or(locator('div').filter({ hasText: /^Bowel Tracking$/ }).first()).first()\u001b[22m\n\u001b[2m    - locator resolved to <div class=\"flex items-center gap-3\">…</div>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n"
-  },
-  {
-    "title": "Navigate to detailed shift note form and verify sections",
-    "file": "tests/e2e/shift-notes.spec.ts",
-    "line": 14,
-    "status": "failed",
-    "durationMs": 36672,
-    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('button', { name: /Add Shift Note/i })\nExpected: visible\nTimeout: 30000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 30000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: /Add Shift Note/i })\u001b[22m\n"
   },
   {
     "title": "Create and Fully Populate Staff Record",
     "file": "tests/e2e/staff-marathon.spec.ts",
     "line": 10,
     "status": "failed",
-    "durationMs": 78732,
-    "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /Add Requirement/i })\u001b[22m\n"
+    "durationMs": 25850,
+    "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('option').first()\u001b[22m\n"
   },
   {
     "title": "Form Dirty Tracking and Navigation Blocking",
     "file": "tests/e2e/ui-components.spec.ts",
     "line": 50,
     "status": "failed",
-    "durationMs": 34317,
-    "error": "TimeoutError: page.waitForEvent: Timeout 15000ms exceeded while waiting for event \"dialog\"\n=========================== logs ===========================\nwaiting for event \"dialog\"\n============================================================"
-  },
-  {
-    "title": "Public Page /auth/branded/signin loads without WSoD",
-    "file": "tests/smoke.spec.ts",
-    "line": 109,
-    "status": "failed",
-    "durationMs": 30994,
-    "error": "TimeoutError: page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/auth/branded/signin\", waiting until \"load\"\u001b[22m\n"
-  },
-  {
-    "title": "Admin can access Roster Board and see management tools",
-    "file": "tests/e2e/admin.spec.ts",
-    "line": 6,
-    "status": "failed",
-    "durationMs": 31282,
-    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('button', { name: /Build Roster/i }).or(getByRole('button', { name: /Add Shift/i })).first()\nExpected: visible\nTimeout: 15000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: /Build Roster/i }).or(getByRole('button', { name: /Add Shift/i })).first()\u001b[22m\n"
+    "durationMs": 30251,
+    "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /Back/i })\u001b[22m\n\u001b[2m    - locator resolved to <button data-slot=\"button\" class=\"cursor-pointer group focus-visible:outline-hidden inline-flex items-center justify-center has-data-[arrow=true]:justify-between whitespace-nowrap font-medium ring-offset-background transition-[color,box-shadow] disabled:pointer-events-none disabled:opacity-60 [&_svg]:shrink-0 bg-background text-accent-foreground border border-input hover:bg-accent data-[state=open]:bg-accent h-7 rounded-md px-2.5 gap-1.25 text-xs [&_svg:not([class*=size-])]:size-3.5 focus-visible:ring…>…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - forcing action\u001b[22m\n\u001b[2m    - performing click action\u001b[22m\n"
   },
   {
     "title": "Complete Participant Record Lifecycle",
     "file": "tests/e2e/crud-lifecycle.spec.ts",
-    "line": 82,
-    "status": "interrupted",
-    "durationMs": 954,
-    "error": "Error: browserContext.newPage: Test ended."
+    "line": 83,
+    "status": "failed",
+    "durationMs": 36023,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('heading', { name: /Participant Profile/i }).or(getByText(/Participant Profile/i)).first()\nExpected: visible\nTimeout: 30000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 30000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('heading', { name: /Participant Profile/i }).or(getByText(/Participant Profile/i)).first()\u001b[22m\n"
   },
   {
-    "title": "Complete Staff Record Lifecycle",
-    "file": "tests/e2e/crud-lifecycle.spec.ts",
-    "line": 13,
-    "status": "interrupted",
-    "durationMs": 9487,
-    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected pattern: \u001b[32m/\\/employees\\/staff-detail\\//\u001b[39m\nReceived string:  \u001b[31m\"http://localhost:5173/staff?statuses=active%2Cdraft\"\u001b[39m\n\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 45000ms\u001b[22m\n"
+    "title": "Create and Fully Configure House Record",
+    "file": "tests/e2e/house-marathon.spec.ts",
+    "line": 10,
+    "status": "failed",
+    "durationMs": 28764,
+    "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /Add Checklist/i })\u001b[22m\n\u001b[2m    - locator resolved to <button data-slot=\"button\" class=\"cursor-pointer group focus-visible:outline-hidden inline-flex items-center justify-center has-data-[arrow=true]:justify-between whitespace-nowrap font-medium ring-offset-background transition-[color,box-shadow] disabled:pointer-events-none disabled:opacity-60 [&_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 data-[state=open]:bg-primary/90 h-7 rounded-md px-2.5 text-xs [&_svg:not([class*=size-])]:size-3.5 focus-visible:ring-2 focus-visible:ring-r…>…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <button data-slot=\"button\" class=\"cursor-pointer group focus-visible:outline-hidden inline-flex items-center justify-center has-data-[arrow=true]:justify-between whitespace-nowrap font-medium ring-offset-background transition-[color,box-shadow] disabled:pointer-events-none disabled:opacity-60 [&_svg]:shrink-0 bg-background text-accent-foreground border border-input hover:bg-accent data-[state=open]:bg-accent h-7 rounded-md px-2.5 text-xs [&_svg:not([class*=size-])]:size-3.5 focus-visible:ring-2 focus-…>…</button> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - <div class=\"py-12 text-center bg-gray-50/50 rounded-xl border border-dashed border-gray-200\">…</div> from <div id=\"daily_operations\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  2 × retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m      - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"flex flex-wrap items-center lg:items-end justify-between gap-5 py-4\">…</div> from <div class=\"sticky top-0 z-20 bg-background border-b border-border\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  6 × retrying click action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n\u001b[2m      - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <button data-slot=\"button\" class=\"cursor-pointer group focus-visible:outline-hidden inline-flex items-center justify-center has-data-[arrow=true]:justify-between whitespace-nowrap font-medium ring-offset-background transition-[color,box-shadow] disabled:pointer-events-none disabled:opacity-60 [&_svg]:shrink-0 bg-background text-accent-foreground border border-input hover:bg-accent data-[state=open]:bg-accent h-7 rounded-md px-2.5 text-xs [&_svg:not([class*=size-])]:size-3.5 focus-visible:ring-2 focus-…>…</button> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n\u001b[2m      - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"py-12 text-center bg-gray-50/50 rounded-xl border border-dashed border-gray-200\">…</div> from <div id=\"daily_operations\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n\u001b[2m      - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"flex flex-wrap items-center lg:items-end justify-between gap-5 py-4\">…</div> from <div class=\"sticky top-0 z-20 bg-background border-b border-border\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n\u001b[2m      - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"flex flex-wrap items-center lg:items-end justify-between gap-5 py-4\">…</div> from <div class=\"sticky top-0 z-20 bg-background border-b border-border\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  - retrying click action\u001b[22m\n\u001b[2m    - waiting 500ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - <button data-slot=\"button\" class=\"cursor-pointer group focus-visible:outline-hidden inline-flex items-center justify-center has-data-[arrow=true]:justify-between whitespace-nowrap font-medium ring-offset-background transition-[color,box-shadow] disabled:pointer-events-none disabled:opacity-60 [&_svg]:shrink-0 bg-background text-accent-foreground border border-input hover:bg-accent data-[state=open]:bg-accent h-7 rounded-md px-2.5 text-xs [&_svg:not([class*=size-])]:size-3.5 focus-visible:ring-2 focus-…>…</button> intercepts pointer events\u001b[22m\n\u001b[2m  - retrying click action\u001b[22m\n\u001b[2m    - waiting 500ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - <div class=\"py-12 text-center bg-gray-50/50 rounded-xl border border-dashed border-gray-200\">…</div> from <div id=\"daily_operations\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  - retrying click action\u001b[22m\n\u001b[2m    - waiting 500ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - <div class=\"flex flex-wrap items-center lg:items-end justify-between gap-5 py-4\">…</div> from <div class=\"sticky top-0 z-20 bg-background border-b border-border\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  - retrying click action\u001b[22m\n\u001b[2m    - waiting 500ms\u001b[22m\n"
+  },
+  {
+    "title": "Manage Shift Templates - Full CRUD lifecycle",
+    "file": "tests/e2e/operations-comprehensive.spec.ts",
+    "line": 33,
+    "status": "failed",
+    "durationMs": 26277,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('E2E Test Template 1780898488010').first()\nExpected: visible\nTimeout: 15000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for getByText('E2E Test Template 1780898488010').first()\u001b[22m\n"
+  },
+  {
+    "title": "Create and Fully Populate Participant Record",
+    "file": "tests/e2e/participant-marathon.spec.ts",
+    "line": 10,
+    "status": "failed",
+    "durationMs": 52632,
+    "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /Add Contact/i })\u001b[22m\n\u001b[2m    - locator resolved to <button data-slot=\"button\" class=\"cursor-pointer group focus-visible:outline-hidden inline-flex items-center justify-center has-data-[arrow=true]:justify-between whitespace-nowrap font-medium ring-offset-background transition-[color,box-shadow] disabled:pointer-events-none disabled:opacity-60 [&_svg]:shrink-0 bg-secondary text-secondary-foreground hover:bg-secondary/90 data-[state=open]:bg-secondary/90 h-7 rounded-md px-2.5 gap-1.25 text-xs [&_svg:not([class*=size-])]:size-3.5 focus-visible:ring-2 foc…>…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div data-slot=\"card-header\" class=\"flex items-center justify-between flex-wrap px-5 min-h-14 gap-2.5 border-b border-border\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - <textarea rows=\"5\" id=\"medical_plan\" data-slot=\"textarea\" placeholder=\"Describe medical emergency plan...\" class=\"w-full border border-input bg-background shadow-xs shadow-black/5 transition-[color,box-shadow] text-foreground placeholder:text-muted-foreground/80 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-50 [&[readonly]]:opacity-70 aria-invalid:border-destructive/60 aria-invalid:ring-destructive/10…></textarea> from <div data-slot=\"card\" id=\"emergency-management\" class=\"flex flex-col items-stretch text-card-foreground rounded-xl bg-card border border-border shadow-xs black/5 pb-2.5\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  2 × retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m      - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"flex flex-wrap items-center lg:items-end justify-between gap-5 py-4\">…</div> from <div class=\"sticky top-0 z-20 bg-background border-b border-border\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  6 × retrying click action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n\u001b[2m      - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div data-slot=\"card-header\" class=\"flex items-center justify-between flex-wrap px-5 min-h-14 gap-2.5 border-b border-border\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n\u001b[2m      - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <textarea rows=\"5\" id=\"medical_plan\" data-slot=\"textarea\" placeholder=\"Describe medical emergency plan...\" class=\"w-full border border-input bg-background shadow-xs shadow-black/5 transition-[color,box-shadow] text-foreground placeholder:text-muted-foreground/80 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-50 [&[readonly]]:opacity-70 aria-invalid:border-destructive/60 aria-invalid:ring-destructive/10…></textarea> from <div data-slot=\"card\" id=\"emergency-management\" class=\"flex flex-col items-stretch text-card-foreground rounded-xl bg-card border border-border shadow-xs black/5 pb-2.5\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n\u001b[2m      - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"flex flex-wrap items-center lg:items-end justify-between gap-5 py-4\">…</div> from <div class=\"sticky top-0 z-20 bg-background border-b border-border\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n\u001b[2m      - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"flex flex-wrap items-center lg:items-end justify-between gap-5 py-4\">…</div> from <div class=\"sticky top-0 z-20 bg-background border-b border-border\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  - retrying click action\u001b[22m\n\u001b[2m    - waiting 500ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - <div data-slot=\"card-header\" class=\"flex items-center justify-between flex-wrap px-5 min-h-14 gap-2.5 border-b border-border\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m  - retrying click action\u001b[22m\n\u001b[2m    - waiting 500ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - <textarea rows=\"5\" id=\"medical_plan\" data-slot=\"textarea\" placeholder=\"Describe medical emergency plan...\" class=\"w-full border border-input bg-background shadow-xs shadow-black/5 transition-[color,box-shadow] text-foreground placeholder:text-muted-foreground/80 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-50 [&[readonly]]:opacity-70 aria-invalid:border-destructive/60 aria-invalid:ring-destructive/10…></textarea> from <div data-slot=\"card\" id=\"emergency-management\" class=\"flex flex-col items-stretch text-card-foreground rounded-xl bg-card border border-border shadow-xs black/5 pb-2.5\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  - retrying click action\u001b[22m\n\u001b[2m    - waiting 500ms\u001b[22m\n"
+  },
+  {
+    "title": "Edit participant basic info and verify dirty tracking",
+    "file": "tests/e2e/participants-comprehensive.spec.ts",
+    "line": 46,
+    "status": "failed",
+    "durationMs": 30459,
+    "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /Back/i })\u001b[22m\n\u001b[2m    - locator resolved to <button data-slot=\"button\" class=\"cursor-pointer group focus-visible:outline-hidden inline-flex items-center justify-center has-data-[arrow=true]:justify-between whitespace-nowrap font-medium ring-offset-background transition-[color,box-shadow] disabled:pointer-events-none disabled:opacity-60 [&_svg]:shrink-0 bg-background text-accent-foreground border border-input hover:bg-accent data-[state=open]:bg-accent h-7 rounded-md px-2.5 gap-1.25 text-xs [&_svg:not([class*=size-])]:size-3.5 focus-visible:ring…>…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - forcing action\u001b[22m\n\u001b[2m    - performing click action\u001b[22m\n"
+  },
+  {
+    "title": "Admin has full access to management tools",
+    "file": "tests/e2e/rbac-granular-comprehensive.spec.ts",
+    "line": 8,
+    "status": "failed",
+    "durationMs": 27635,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('a[href=\"/access-control\"]').first()\nExpected: visible\nTimeout: 25000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 25000ms\u001b[22m\n\u001b[2m  - waiting for locator('a[href=\"/access-control\"]').first()\u001b[22m\n"
+  },
+  {
+    "title": "Navigate to detailed shift note form and verify sections",
+    "file": "tests/e2e/shift-notes.spec.ts",
+    "line": 14,
+    "status": "failed",
+    "durationMs": 37875,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('Overview', { exact: true }).first()\nExpected: visible\nTimeout: 30000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 30000ms\u001b[22m\n\u001b[2m  - waiting for getByText('Overview', { exact: true }).first()\u001b[22m\n"
+  },
+  {
+    "title": "Create and Fully Populate Staff Record",
+    "file": "tests/e2e/staff-marathon.spec.ts",
+    "line": 10,
+    "status": "failed",
+    "durationMs": 36887,
+    "error": "TimeoutError: locator.isChecked: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#staff_compliance table tbody tr').first().locator('input[type=\"checkbox\"]')\u001b[22m\n"
+  },
+  {
+    "title": "Form Dirty Tracking and Navigation Blocking",
+    "file": "tests/e2e/ui-components.spec.ts",
+    "line": 50,
+    "status": "failed",
+    "durationMs": 35565,
+    "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /Back/i })\u001b[22m\n\u001b[2m    - locator resolved to <button data-slot=\"button\" class=\"cursor-pointer group focus-visible:outline-hidden inline-flex items-center justify-center has-data-[arrow=true]:justify-between whitespace-nowrap font-medium ring-offset-background transition-[color,box-shadow] disabled:pointer-events-none disabled:opacity-60 [&_svg]:shrink-0 bg-background text-accent-foreground border border-input hover:bg-accent data-[state=open]:bg-accent h-7 rounded-md px-2.5 gap-1.25 text-xs [&_svg:not([class*=size-])]:size-3.5 focus-visible:ring…>…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - forcing action\u001b[22m\n\u001b[2m    - performing click action\u001b[22m\n"
   }
 ]

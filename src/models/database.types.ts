@@ -3766,6 +3766,14 @@ export type Database = {
           status: Database["public"]["Enums"]["ic_status_enum"]
           support_coordinator: string | null
           support_level: string | null
+          track_behaviour: boolean | null
+          track_bowel: boolean | null
+          track_community: boolean | null
+          track_hygiene: boolean | null
+          track_mtm: boolean | null
+          track_nutrition: boolean | null
+          track_seizure: boolean | null
+          track_sleep: boolean | null
           updated_at: string | null
           updated_by: string | null
         }
@@ -3831,6 +3839,14 @@ export type Database = {
           status?: Database["public"]["Enums"]["ic_status_enum"]
           support_coordinator?: string | null
           support_level?: string | null
+          track_behaviour?: boolean | null
+          track_bowel?: boolean | null
+          track_community?: boolean | null
+          track_hygiene?: boolean | null
+          track_mtm?: boolean | null
+          track_nutrition?: boolean | null
+          track_seizure?: boolean | null
+          track_sleep?: boolean | null
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -3896,6 +3912,14 @@ export type Database = {
           status?: Database["public"]["Enums"]["ic_status_enum"]
           support_coordinator?: string | null
           support_level?: string | null
+          track_behaviour?: boolean | null
+          track_bowel?: boolean | null
+          track_community?: boolean | null
+          track_hygiene?: boolean | null
+          track_mtm?: boolean | null
+          track_nutrition?: boolean | null
+          track_seizure?: boolean | null
+          track_sleep?: boolean | null
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -4216,6 +4240,7 @@ export type Database = {
           my_timesheets: Database["public"]["Enums"]["ic_access_level_enum"]
           participant_activity_log: Database["public"]["Enums"]["ic_access_level_enum"]
           participant_behaviour: Database["public"]["Enums"]["ic_access_level_enum"]
+          participant_clinical_trackers: Database["public"]["Enums"]["ic_access_level_enum"]
           participant_contacts: Database["public"]["Enums"]["ic_access_level_enum"]
           participant_documents: Database["public"]["Enums"]["ic_access_level_enum"]
           participant_emergency: Database["public"]["Enums"]["ic_access_level_enum"]
@@ -4270,6 +4295,7 @@ export type Database = {
           my_timesheets?: Database["public"]["Enums"]["ic_access_level_enum"]
           participant_activity_log?: Database["public"]["Enums"]["ic_access_level_enum"]
           participant_behaviour?: Database["public"]["Enums"]["ic_access_level_enum"]
+          participant_clinical_trackers?: Database["public"]["Enums"]["ic_access_level_enum"]
           participant_contacts?: Database["public"]["Enums"]["ic_access_level_enum"]
           participant_documents?: Database["public"]["Enums"]["ic_access_level_enum"]
           participant_emergency?: Database["public"]["Enums"]["ic_access_level_enum"]
@@ -4324,6 +4350,7 @@ export type Database = {
           my_timesheets?: Database["public"]["Enums"]["ic_access_level_enum"]
           participant_activity_log?: Database["public"]["Enums"]["ic_access_level_enum"]
           participant_behaviour?: Database["public"]["Enums"]["ic_access_level_enum"]
+          participant_clinical_trackers?: Database["public"]["Enums"]["ic_access_level_enum"]
           participant_contacts?: Database["public"]["Enums"]["ic_access_level_enum"]
           participant_documents?: Database["public"]["Enums"]["ic_access_level_enum"]
           participant_emergency?: Database["public"]["Enums"]["ic_access_level_enum"]

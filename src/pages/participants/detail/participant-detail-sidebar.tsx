@@ -74,6 +74,16 @@ export function ParticipantDetailSidebar() {
       hidden: !hasAccess({ resource: RBAC_MODULES.PARTICIPANT_MEALTIME, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY }),
     },
     {
+      title: 'Clinical Details',
+      target: 'clinical',
+      hidden: !hasAccess({ resource: RBAC_MODULES.PARTICIPANT_MEDICAL_ROUTINE, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY }),
+    },
+    {
+      title: 'Clinical Trackers',
+      target: 'clinical-trackers',
+      hidden: !hasAccess({ resource: RBAC_MODULES.PARTICIPANT_CLINICAL_TRACKERS, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY }),
+    },
+    {
       title: 'Medical Routine',
       target: 'medical-routine',
       hidden: !hasAccess({ resource: RBAC_MODULES.PARTICIPANT_MEDICAL_ROUTINE, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY }),

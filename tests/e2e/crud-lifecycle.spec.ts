@@ -31,7 +31,8 @@ test.describe('Staff Lifecycle CRUD', () => {
 
     // 3. Set Compliance
     await page.getByText(/Compliance/i).first().click({ force: true });
-    const ndisCheck = page.locator('button#ndis_worker_screening_check').or(page.locator('input#ndis_worker_screening_check'));
+    const ndisRow = page.getByRole('row', { name: /NDIS Worker Screening Check/i }).first();
+    const ndisCheck = ndisRow.getByRole('checkbox');
     await expect(ndisCheck).toBeVisible({ timeout: 20000 });
     await ndisCheck.click({ force: true });
     
@@ -88,7 +89,7 @@ test.describe('Participant Lifecycle CRUD', () => {
     await page.getByRole('button', { name: /Add Participant/i }).click({ force: true });
     
     await expect(page).toHaveURL(/\/participants\/detail\//, { timeout: 45000 });
-    await expect(page.getByRole('heading', { name: /Participant Profile/i }).or(page.getByText(/Participant Profile/i)).first()).toBeVisible({ timeout: 30000 });
+    await expect(page.getByRole('heading', { name: /Participant Details/i }).or(page.getByText(/Participant Details/i)).first()).toBeVisible({ timeout: 30000 });
 
     // 2. Update Details
     const nameInput = page.locator('input#participant_name');

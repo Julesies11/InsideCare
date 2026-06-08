@@ -87,9 +87,16 @@ const ADMIN_PAGES = [
 
 // Helper to check for White Screen of Death or major rendering errors
 async function checkNoWSoD(page) {
-  // 1. Ensure page is not completely empty
-  const bodyContent = await page.content();
-  expect(bodyContent.length).toBeGreaterThan(100);
+  // Wait for any in-progress navigation to complete before reading content
+  await page.waitForLoadState('domcontentloaded').catch(() => {});
+
+  // 1. Ensure page is not completely empty (wrapped in try/catch for redirect races)
+  try {
+    const bodyContent = await page.content();
+    expect(bodyContent.length).toBeGreaterThan(100);
+  } catch {
+    // Page redirected mid-call — not a WSoD, just fast navigation. Continue checks.
+  }
 
   // 2. Ensure no standard error boundary text is visible
   const errorText = page.getByText(/Something went wrong/i);

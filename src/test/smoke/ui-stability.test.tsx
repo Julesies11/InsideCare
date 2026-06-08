@@ -22,7 +22,8 @@ vi.mock('@/api/houses.api', () => ({
   housesApi: { 
     listActive: vi.fn().mockResolvedValue([]), 
     listWithTemplates: vi.fn().mockResolvedValue([]),
-    listForms: vi.fn().mockResolvedValue([])
+    listForms: vi.fn().mockResolvedValue([]),
+    listLightweight: vi.fn().mockResolvedValue([])
   } 
 }));
 vi.mock('@/api/roster.api', () => ({ 

@@ -30,114 +30,22 @@ export function ShiftNoteTrackersSection({
   const { data: seizureTypes = [] } = useSeizureTypesMaster();
   const { data: behaviourTypes = [] } = useBehaviourTypesMaster();
 
-  const ModuleToggle = ({ 
-    id, 
-    label, 
-    icon: Icon, 
-    checked, 
-    onChange 
-  }: { id: string, label: string, icon: LucideIcon, checked: boolean, onChange: (val: boolean) => void }) => (
-    <div className={cn(
-      "flex flex-col gap-3 p-3 rounded-lg border transition-all",
-      checked ? "bg-primary/5 border-primary/20 shadow-sm" : "bg-muted/30 border-transparent grayscale hover:grayscale-0 hover:border-border"
-    )}>
-      <div className="flex items-center gap-3">
-        <div className={cn("p-2 rounded-md", checked ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground")}>
-          <Icon className="size-4" />
-        </div>
-        <span className={cn("text-sm font-medium", checked ? "text-primary" : "text-muted-foreground")}>{label}</span>
-      </div>
-      <RadioGroup
-        value={checked ? 'yes' : 'no'}
-        onValueChange={(val) => onChange(val === 'yes')}
-        disabled={!canEdit}
-        className="flex items-center gap-4 mt-auto"
-      >
-        <div className="flex items-center gap-2">
-          <RadioGroupItem value="yes" id={`${id}_yes`} size="sm" />
-          <Label htmlFor={`${id}_yes`} className="text-xs font-normal cursor-pointer">Yes</Label>
-        </div>
-        <div className="flex items-center gap-2">
-          <RadioGroupItem value="no" id={`${id}_no`} size="sm" />
-          <Label htmlFor={`${id}_no`} className="text-xs font-normal cursor-pointer">No</Label>
-        </div>
-      </RadioGroup>
-    </div>
-  );
-
   const disabled = !canEdit;
+
+  const participant = formData.participant as any;
+  const showBowel = !!participant?.track_bowel;
+  const showSeizure = !!participant?.track_seizure;
+  const showSleep = !!participant?.track_sleep;
+  const showBehaviour = !!participant?.track_behaviour;
+  const showCommunity = !!participant?.track_community;
+  const showNutrition = !!participant?.track_nutrition;
+  const showMtm = !!participant?.track_mtm;
+  const showHygiene = !!participant?.track_hygiene;
 
   return (
     <div className="space-y-6">
-      {/* Module Selection */}
-      <Card className="bg-muted/10">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Active Clinical Modules</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            <ModuleToggle 
-              id="bowel_toggle" 
-              label="Bowel Tracking" 
-              icon={Droplet} 
-              checked={!!formData.bowel_movement_occurred} 
-              onChange={(v) => onFormChange('bowel_movement_occurred', v)} 
-            />
-            <ModuleToggle 
-              id="seizure_toggle" 
-              label="Seizure Activity" 
-              icon={Activity} 
-              checked={!!formData.seizure_occurred} 
-              onChange={(v) => onFormChange('seizure_occurred', v)} 
-            />
-            <ModuleToggle 
-              id="sleep_toggle" 
-              label="Sleep during shift" 
-              icon={Moon} 
-              checked={!!formData.sleep_occurred} 
-              onChange={(v) => onFormChange('sleep_occurred', v)} 
-            />
-            <ModuleToggle 
-              id="behaviour_toggle" 
-              label="Behaviour observed" 
-              icon={Brain} 
-              checked={!!formData.behaviour_observed} 
-              onChange={(v) => onFormChange('behaviour_observed', v)} 
-            />
-            <ModuleToggle 
-              id="community_toggle" 
-              label="Community access occurred" 
-              icon={Navigation} 
-              checked={!!formData.community_access_occurred} 
-              onChange={(v) => onFormChange('community_access_occurred', v)} 
-            />
-            <ModuleToggle 
-              id="nutrition_toggle" 
-              label="Meal provided" 
-              icon={Utensils} 
-              checked={!!formData.meal_provided} 
-              onChange={(v) => onFormChange('meal_provided', v)} 
-            />
-            <ModuleToggle 
-              id="mtm_toggle" 
-              label="Mealtime Management" 
-              icon={Utensils} 
-              checked={!!formData.mtm_meal_provided} 
-              onChange={(v) => onFormChange('mtm_meal_provided', v)} 
-            />
-            <ModuleToggle 
-              id="hygiene_toggle" 
-              label="Hygiene support required" 
-              icon={ShowerHead} 
-              checked={!!formData.hygiene_support_required} 
-              onChange={(v) => onFormChange('hygiene_support_required', v)} 
-            />
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Bowel Tracking */}
-      {formData.bowel_movement_occurred && (
+      {showBowel && (
         <Card id="tracker_bowel" className="animate-in fade-in slide-in-from-top-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -222,7 +130,7 @@ export function ShiftNoteTrackersSection({
       )}
 
       {/* Seizure Activity */}
-      {formData.seizure_occurred && (
+      {showSeizure && (
         <Card id="tracker_seizure" className="animate-in fade-in slide-in-from-top-2">
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -366,7 +274,7 @@ export function ShiftNoteTrackersSection({
       )}
 
       {/* Sleep Tracking */}
-      {formData.sleep_occurred && (
+      {showSleep && (
         <Card id="tracker_sleep" className="animate-in fade-in slide-in-from-top-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -440,7 +348,7 @@ export function ShiftNoteTrackersSection({
       )}
 
       {/* Behaviour Observation */}
-      {formData.behaviour_observed && (
+      {showBehaviour && (
         <Card id="tracker_behaviour" className="animate-in fade-in slide-in-from-top-2">
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -514,7 +422,7 @@ export function ShiftNoteTrackersSection({
       )}
 
       {/* Community Participation */}
-      {formData.community_access_occurred && (
+      {showCommunity && (
         <Card id="tracker_community" className="animate-in fade-in slide-in-from-top-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -571,7 +479,7 @@ export function ShiftNoteTrackersSection({
       )}
 
       {/* Nutrition Tracker */}
-      {formData.meal_provided && (
+      {showNutrition && (
         <Card id="tracker_nutrition" className="animate-in fade-in slide-in-from-top-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -669,7 +577,7 @@ export function ShiftNoteTrackersSection({
       )}
 
       {/* Mealtime Management */}
-      {formData.mtm_meal_provided && (
+      {showMtm && (
         <Card id="tracker_mtm" className="animate-in fade-in slide-in-from-top-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -950,7 +858,7 @@ export function ShiftNoteTrackersSection({
       )}
 
       {/* Hygiene Tracking */}
-      {formData.hygiene_support_required && (
+      {showHygiene && (
         <Card id="tracker_hygiene" className="animate-in fade-in slide-in-from-top-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">

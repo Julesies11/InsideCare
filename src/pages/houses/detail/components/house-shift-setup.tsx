@@ -34,7 +34,14 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
   const [houseShiftCounts, setHouseShiftCounts] = useState<Record<string, number>>({});
   const [editingType, setEditingType] = useState<any | null>(null);
 
-  const { shiftTemplates, refresh: refreshShiftTemplates, defaults } = useHouseShiftTemplates(houseId);
+  const { 
+    shiftTemplates, 
+    refresh: refreshShiftTemplates, 
+    defaults,
+    createShiftTemplate,
+    updateShiftTemplate,
+    deleteShiftTemplate
+  } = useHouseShiftTemplates(houseId);
   const { houseChecklists } = useHouseChecklists(houseId);
 
   useEffect(() => {
@@ -152,13 +159,18 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
 
     try {
       if (directSave) {
-        await shiftTemplatesApi.upsert({
-          ...typeFormData,
-          house_id: houseId
-        }, editingType?.id);
-
-        toast.success('Shift template updated');
-        refreshShiftTemplates();
+        if (editingType) {
+          await updateShiftTemplate.mutateAsync({
+            ...typeFormData,
+            id: editingType.id,
+            house_id: houseId
+          });
+        } else {
+          await createShiftTemplate.mutateAsync({
+            ...typeFormData,
+            house_id: houseId
+          });
+        }
       } else {
         if (!onPendingChangesChange || !pendingChanges) return;
 
@@ -206,9 +218,7 @@ export function HouseShiftSetup({ houseId, pendingChanges, onPendingChangesChang
 
     try {
       if (directSave) {
-        await shiftTemplatesApi.delete(type.id);
-        toast.success('Shift template removed');
-        refreshShiftTemplates();
+        await deleteShiftTemplate.mutateAsync(type.id);
       } else {
         if (!onPendingChangesChange || !pendingChanges) return;
         if (type.tempId) {

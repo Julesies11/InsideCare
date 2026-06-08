@@ -26,6 +26,7 @@ vi.mock('@/lib/supabase', () => {
     eq: vi.fn(() => queryBuilder),
     neq: vi.fn(() => queryBuilder),
     not: vi.fn(() => queryBuilder),
+    in: vi.fn(() => queryBuilder),
     gte: vi.fn(() => queryBuilder),
     lte: vi.fn(() => queryBuilder),
     order: vi.fn(() => queryBuilder),

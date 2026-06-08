@@ -10,22 +10,28 @@ test.describe('Staff Workflows', () => {
     const trigger = page.locator('#leaveType');
     await expect(trigger).toBeVisible({ timeout: 15000 });
     
-    // Select a leave type (Annual Leave)
+    // Select a leave type (Annual Leave) via the Radix Select trigger
     await trigger.click();
     const annualLeaveOption = page.getByRole('option', { name: /Annual Leave/i }).first();
     await expect(annualLeaveOption).toBeVisible({ timeout: 10000 });
     await annualLeaveOption.click();
 
-    // Fill in dates
-    await page.getByLabel(/Start Date/i).fill('2026-06-01');
-    await page.getByLabel(/End Date/i).fill('2026-06-07');
-    await page.getByLabel(/Reason/i).fill('Test leave request');
+    // Fill in dates (use future dates to avoid validation errors)
+    await page.getByLabel(/Start Date/i).fill('2027-01-10');
+    await page.getByLabel(/End Date/i).fill('2027-01-14');
+    await page.getByLabel(/Reason/i).fill('Test leave request from Playwright');
 
-    // Submit
+    // Submit the form
     await page.getByRole('button', { name: /Submit/i }).click();
     
-    // Check for success toast - using a more specific locator to avoid strict mode violations
-    await expect(page.locator('[data-sonner-toast]')).toContainText(/submitted successfully|request updated/i, { timeout: 15000 });
+    // Wait for network to settle after submission
+    await page.waitForLoadState('networkidle', { timeout: 20000 }).catch(() => {});
+
+    // Check for success toast — use .last() to target the most recent toast
+    await expect(page.locator('[data-sonner-toast]').last()).toContainText(
+      /submitted successfully|request updated/i,
+      { timeout: 20000 }
+    );
     
     // Should be redirected to leave list
     await expect(page).toHaveURL(/\/my-leave/);

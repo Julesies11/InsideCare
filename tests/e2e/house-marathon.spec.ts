@@ -35,23 +35,17 @@ test.describe('House Detail Marathon CRUD', () => {
     await page.getByPlaceholder(/risk management/i).fill('Wet floors in laundry during morning shifts.');
     await page.getByPlaceholder(/recent observations/i).fill('Increased engagement during communal activities.');
 
-    // 4. Shift Setup (Operational CRUD)
-    const shiftSetupTab = page.locator('#shift_setup').or(page.getByText(/Shift Setup/i)).first();
-    await expect(shiftSetupTab).toBeVisible({ timeout: 20000 });
-    await shiftSetupTab.click({ force: true });
-    
-    const addTemplateBtn = page.getByRole('button', { name: /Add Template/i });
-    await expect(addTemplateBtn).toBeVisible({ timeout: 20000 });
-    await addTemplateBtn.scrollIntoViewIfNeeded();
-    await addTemplateBtn.click({ force: true });
-    await page.getByLabel(/Template Name/i).fill('Sleepover');
-    await page.getByLabel(/Short Name/i).fill('SO');
-    await page.getByRole('button', { name: /Save Template/i }).click();
-    await expect(page.getByText('Sleepover')).toBeVisible();
+    // 4. NOTE: Shift Setup is a separate admin route (/shift-setup/:houseId),
+    // NOT a tab inside the House Detail page. Shift template CRUD is covered
+    // in operations-comprehensive.spec.ts.
+
 
     // 5. Checklist Setup
     await page.getByText(/Checklist Setup/i).first().click();
-    await page.getByRole('button', { name: /Add Checklist/i }).click();
+    const addChecklistBtn = page.getByRole('button', { name: /Add Checklist/i });
+    await addChecklistBtn.scrollIntoViewIfNeeded();
+    await page.evaluate(() => window.scrollBy(0, -150));
+    await addChecklistBtn.click();
     await page.getByPlaceholder(/e.g. Morning Routine/i).fill('Kitchen Deep Clean');
     
     // Add a Task to the checklist
@@ -65,13 +59,13 @@ test.describe('House Detail Marathon CRUD', () => {
 
     // 6. Resources (File Upload)
     await page.getByText(/Resources/i).first().click();
-    await page.getByRole('button', { name: /Add Resource/i }).click();
+    const addResourceBtn = page.getByRole('button', { name: /Add Resource/i });
+    await addResourceBtn.scrollIntoViewIfNeeded();
+    await page.evaluate(() => window.scrollBy(0, -150));
+    await addResourceBtn.click();
     await page.getByPlaceholder(/Resource title/i).fill('Emergency Contacts List');
     
-    const fileChooserPromise = page.waitForEvent('filechooser');
-    await page.locator('input[type="file"]').click();
-    const fileChooser = await fileChooserPromise;
-    await fileChooser.setFiles({
+    await page.locator('input[type="file"]').setInputFiles({
       name: 'emergency_list.pdf',
       mimeType: 'application/pdf',
       buffer: Buffer.from('fake emergency content'),
@@ -82,14 +76,20 @@ test.describe('House Detail Marathon CRUD', () => {
 
     // 7. Daily Comms (Note CRUD)
     await page.getByText(/Comms/i).first().click();
-    await page.getByRole('button', { name: /Add Entry/i }).click();
+    const addEntryBtn = page.getByRole('button', { name: /Add Entry/i });
+    await addEntryBtn.scrollIntoViewIfNeeded();
+    await page.evaluate(() => window.scrollBy(0, -150));
+    await addEntryBtn.click();
     await page.locator('textarea#comm_content').fill('Initial setup log entry for house audit.');
     await page.getByRole('button', { name: 'Save', exact: true }).click();
     await expect(page.getByText('Initial setup log entry')).toBeVisible();
 
     // 8. Staff Assignment
     await page.getByText(/Staff/i).first().click();
-    await page.getByRole('button', { name: /Add Staff/i }).click();
+    const addStaffBtn = page.getByRole('button', { name: /Add Staff/i });
+    await addStaffBtn.scrollIntoViewIfNeeded();
+    await page.evaluate(() => window.scrollBy(0, -150));
+    await addStaffBtn.click();
     await page.getByRole('combobox').click();
     await page.getByRole('option').first().click();
     await page.locator('input#start_date').fill('2026-06-01');
@@ -107,10 +107,7 @@ test.describe('House Detail Marathon CRUD', () => {
     await page.locator('input#title').fill('House Inspection');
     await page.locator('input#event_date').fill('2026-06-15');
     
-    const calFileChooserPromise = page.waitForEvent('filechooser');
-    await page.locator('input[type="file"]').click();
-    const calFileChooser = await calFileChooserPromise;
-    await calFileChooser.setFiles({
+    await page.locator('input[type="file"]').setInputFiles({
       name: 'inspection_notice.pdf',
       mimeType: 'application/pdf',
       buffer: Buffer.from('fake inspection content'),
@@ -132,9 +129,6 @@ test.describe('House Detail Marathon CRUD', () => {
     await page.getByText(/Management/i).first().click();
     await expect(page.getByPlaceholder(/Enter general house routines/i)).toHaveValue('Always check perimeter gates at 9 PM.');
     await expect(page.getByPlaceholder(/recent observations/i)).toHaveValue('Increased engagement during communal activities.');
-    
-    await page.getByText(/Shift Setup/i).first().click();
-    await expect(page.getByText('Sleepover')).toBeVisible();
     
     await page.getByText(/Checklist Setup/i).first().click();
     await expect(page.getByText('Kitchen Deep Clean')).toBeVisible();

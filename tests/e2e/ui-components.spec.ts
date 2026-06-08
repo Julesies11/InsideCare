@@ -48,30 +48,41 @@ test.describe('UI Components & Responsiveness', () => {
   });
 
   test('Form Dirty Tracking and Navigation Blocking', async ({ page }) => {
-    // Use House Detail page as it has navigation blocking and a Back button
-    await page.goto('/houses');
-    await page.getByRole('button', { name: /Add House/i }).click();
-    
-    // Change a field
-    const nameInput = page.locator('input#house_name');
+    // The Participant Detail page uses window.confirm for unsaved changes (Back button)
+    // Navigate to the participant list first to get a real ID
+    await page.goto('/participants/profiles');
+    await expect(page.getByText(/Loading participants/i)).not.toBeVisible({ timeout: 30000 });
+
+    // Click on the first participant to open their detail page
+    const firstRow = page.locator('table tbody tr').first();
+    await expect(firstRow).toBeVisible({ timeout: 15000 });
+    await firstRow.getByRole('link').first().click();
+    await expect(page).toHaveURL(/\/participants\/detail\//);
+
+    // Change a field to make the form dirty
+    const nameInput = page.locator('input#participant_name');
     await expect(nameInput).toBeVisible({ timeout: 15000 });
-    
-    await nameInput.click();
-    await nameInput.fill('Dirty House Update'); 
-    await nameInput.blur(); // Ensure events are fired
+    const originalValue = await nameInput.inputValue();
+    await nameInput.fill(`${originalValue} Dirty`);
+    await nameInput.blur();
 
-    // Verify "Save Changes" is active - wait for it to become enabled
+    // Verify "Save Changes" becomes enabled
     const saveBtn = page.getByRole('button', { name: /Save Changes/i });
-    await expect(saveBtn).toBeEnabled({ timeout: 20000 });
+    await expect(saveBtn).toBeEnabled({ timeout: 10000 });
 
-    // Try to click another sidebar link
-    const dialogPromise = page.waitForEvent('dialog');
-    // Use the Back button to trigger the dialog
+    // Scroll to top so the Back button is not obscured by sticky header
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.waitForTimeout(300);
+
+    // Click Back — participant detail uses window.confirm when isDirty is true
     const backBtn = page.getByRole('button', { name: /Back/i });
-    await expect(backBtn).toBeVisible({ timeout: 15000 });
-    await backBtn.click({ force: true });
+    await expect(backBtn).toBeVisible({ timeout: 10000 });
+    
+    const [dialog] = await Promise.all([
+      page.waitForEvent('dialog', { timeout: 15000 }),
+      backBtn.click({ force: true }),
+    ]);
 
-    const dialog = await dialogPromise;
     expect(dialog.message().toLowerCase()).toContain('unsaved');
     await dialog.accept(); // Actually leave
   });

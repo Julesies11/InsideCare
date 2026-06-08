@@ -6232,6 +6232,62 @@
             "type": "uuid",
             "default": null,
             "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "track_bowel",
+            "type": "boolean",
+            "default": "false",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "track_seizure",
+            "type": "boolean",
+            "default": "false",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "track_sleep",
+            "type": "boolean",
+            "default": "false",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "track_behaviour",
+            "type": "boolean",
+            "default": "false",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "track_community",
+            "type": "boolean",
+            "default": "false",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "track_nutrition",
+            "type": "boolean",
+            "default": "false",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "track_mtm",
+            "type": "boolean",
+            "default": "false",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "track_hygiene",
+            "type": "boolean",
+            "default": "false",
+            "nullable": "YES"
           }
         ],
         "rls_enabled": true,
@@ -7061,6 +7117,13 @@
           {
             "pk": false,
             "name": "incident_management",
+            "type": "USER-DEFINED",
+            "default": "'none'::ic_access_level_enum",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "participant_clinical_trackers",
             "type": "USER-DEFINED",
             "default": "'none'::ic_access_level_enum",
             "nullable": "NO"
@@ -8247,6 +8310,13 @@
           {
             "pk": false,
             "name": "mtm_supervision_notes",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "reference_id",
             "type": "text",
             "default": null,
             "nullable": "YES"
@@ -9745,7 +9815,7 @@
         "args": "p_module text",
         "name": "ic_jwt_get_perm",
         "returns": "text",
-        "definition": "\nDECLARE\n  v_perm_text text;\nBEGIN\n  -- FIRST: Try to get from JWT (Fastest, no recursion)\n  v_perm_text := auth.jwt() -> 'app_metadata' -> 'permissions' ->> p_module;\n  \n  IF v_perm_text IS NOT NULL THEN\n    RETURN v_perm_text;\n  END IF;\n\n  -- SECOND: Fallback to database lookup\n  SELECT \n    CASE p_module\n      WHEN 'my_roster' THEN my_roster::text\n      WHEN 'my_timesheets' THEN my_timesheets::text\n      WHEN 'my_leave' THEN my_leave::text\n      WHEN 'shift_routines' THEN shift_routines::text\n      WHEN 'participants' THEN participants::text\n      WHEN 'shift_notes' THEN shift_notes::text\n      WHEN 'employees' THEN employees::text\n      WHEN 'timesheets' THEN timesheets::text\n      WHEN 'leave_requests' THEN leave_requests::text\n      WHEN 'roster_board' THEN roster_board::text\n      WHEN 'houses' THEN houses::text\n      WHEN 'house_checklists' THEN house_checklists::text\n      WHEN 'access_control' THEN access_control::text\n      WHEN 'master_lists' THEN master_lists::text\n      WHEN 'activity_log' THEN activity_log::text\n      WHEN 'reporting_clinical' THEN reporting_clinical::text\n      WHEN 'reporting_operational' THEN reporting_operational::text\n      WHEN 'reporting_compliance' THEN reporting_compliance::text\n      ELSE 'none'\n    END INTO v_perm_text\n  FROM public.ic_role_permissions rp\n  JOIN public.ic_staff s ON s.role_id = rp.role_id\n  WHERE s.auth_user_id = auth.uid()\n  LIMIT 1;\n\n  RETURN COALESCE(v_perm_text, 'none');\nEND;\n"
+        "definition": "\nDECLARE\n  v_perm_text text;\nBEGIN\n  -- FIRST: Try to get from JWT (Fastest, no recursion)\n  v_perm_text := auth.jwt() -> 'app_metadata' -> 'permissions' ->> p_module;\n  \n  IF v_perm_text IS NOT NULL THEN\n    RETURN v_perm_text;\n  END IF;\n\n  -- SECOND: Fallback to database lookup\n  SELECT \n    CASE p_module\n      -- Personal Modules (Staff Portal)\n      WHEN 'my_roster' THEN my_roster::text\n      WHEN 'my_timesheets' THEN my_timesheets::text\n      WHEN 'my_leave' THEN my_leave::text\n      WHEN 'shift_routines' THEN shift_routines::text\n      \n      -- Care Management (Base and Granular)\n      WHEN 'participants' THEN participants::text\n      WHEN 'participant_goals' THEN participant_goals::text\n      WHEN 'participant_behaviour' THEN participant_behaviour::text\n      WHEN 'participant_support_needs' THEN participant_support_needs::text\n      WHEN 'participant_mealtime' THEN participant_mealtime::text\n      WHEN 'participant_medical_routine' THEN participant_medical_routine::text\n      WHEN 'participant_clinical_trackers' THEN participant_clinical_trackers::text\n      WHEN 'participant_medications' THEN participant_medications::text\n      WHEN 'participant_emergency' THEN participant_emergency::text\n      WHEN 'participant_contacts' THEN participant_contacts::text\n      WHEN 'participant_documents' THEN participant_documents::text\n      WHEN 'participant_shift_notes' THEN participant_shift_notes::text\n      WHEN 'participant_activity_log' THEN participant_activity_log::text\n      WHEN 'shift_notes' THEN shift_notes::text\n      \n      -- Employees & HR (Base and Granular)\n      WHEN 'employees' THEN employees::text\n      WHEN 'staff_employment' THEN staff_employment::text\n      WHEN 'staff_availability' THEN staff_availability::text\n      WHEN 'staff_emergency' THEN staff_emergency::text\n      WHEN 'staff_compliance' THEN staff_compliance::text\n      WHEN 'staff_training' THEN staff_training::text\n      WHEN 'staff_documents' THEN staff_documents::text\n      WHEN 'staff_roster' THEN staff_roster::text\n      WHEN 'staff_leave' THEN staff_leave::text\n      WHEN 'staff_warnings' THEN staff_warnings::text\n      WHEN 'staff_activity_log' THEN staff_activity_log::text\n      WHEN 'timesheets' THEN timesheets::text\n      WHEN 'leave_requests' THEN leave_requests::text\n      WHEN 'roster_board' THEN roster_board::text\n      \n      -- Operations & Facilities (Base and Granular)\n      WHEN 'houses' THEN houses::text\n      WHEN 'house_management' THEN house_management::text\n      WHEN 'house_operations' THEN house_operations::text\n      WHEN 'house_checklists' THEN house_checklists::text\n      WHEN 'house_checklist_history' THEN house_checklist_history::text\n      WHEN 'house_resources' THEN house_resources::text\n      WHEN 'house_staff' THEN house_staff::text\n      WHEN 'house_activity_log' THEN house_activity_log::text\n      \n      -- System Administration\n      WHEN 'access_control' THEN access_control::text\n      WHEN 'master_lists' THEN master_lists::text\n      WHEN 'activity_log' THEN activity_log::text\n      WHEN 'incident_management' THEN incident_management::text\n      \n      -- Reporting\n      WHEN 'reporting_clinical' THEN reporting_clinical::text\n      WHEN 'reporting_operational' THEN reporting_operational::text\n      WHEN 'reporting_compliance' THEN reporting_compliance::text\n      ELSE 'none'\n    END INTO v_perm_text\n  FROM public.ic_role_permissions rp\n  JOIN public.ic_staff s ON s.role_id = rp.role_id\n  WHERE s.auth_user_id = auth.uid()\n  LIMIT 1;\n\n  RETURN COALESCE(v_perm_text, 'none');\nEND;\n"
       },
       {
         "args": "",

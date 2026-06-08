@@ -144,19 +144,35 @@ export function ShiftNoteDetailContent({
     };
   }, [isNewNote, formData.shift_id]);
 
-  // Auto-populate Mealtime Management from Participant Profile
-  const fetchParticipantMtm = async (participantId: string) => {
+  // Auto-populate Care Plan details & Trackers from Participant Profile
+  const fetchParticipantDetails = async (participantId: string) => {
     if (!participantId || !isNewNote) return;
 
     try {
       const data = await participantsApi.get(participantId);
 
-      if (data?.mtmp_required) {
-        handleFormChange('mtm_meal_provided', true);
-        handleFormChange('mtm_notes', `Auto-populated from Care Plan: ${data.mtmp_details || ''}`);
+      if (data) {
+        const updates: Record<string, any> = {
+          participant: data,
+          bowel_movement_occurred: !!data.track_bowel,
+          seizure_occurred: !!data.track_seizure,
+          sleep_occurred: !!data.track_sleep,
+          behaviour_observed: !!data.track_behaviour,
+          community_access_occurred: !!data.track_community,
+          meal_provided: !!data.track_nutrition,
+          mtm_meal_provided: !!data.track_mtm,
+          hygiene_support_required: !!data.track_hygiene,
+        };
+
+        if (data.mtmp_required) {
+          updates.mtm_meal_provided = true;
+          updates.mtm_notes = `Auto-populated from Care Plan: ${data.mtmp_details || ''}`;
+        }
+
+        handleBulkChange(updates);
       }
     } catch (err) {
-      console.error('Error auto-populating MTM:', err);
+      console.error('Error auto-populating participant details:', err);
     }
   };
 
@@ -262,19 +278,28 @@ export function ShiftNoteDetailContent({
           }
         }
 
-        // Fetch participant care plan details (MTM) if participantId exists
+        // Fetch participant details and configure trackers if participantId exists
         if (participantId) {
           try {
             const partData = await participantsApi.get(participantId);
             if (partData) {
               initialForm.participant = partData;
+              initialForm.bowel_movement_occurred = !!partData.track_bowel;
+              initialForm.seizure_occurred = !!partData.track_seizure;
+              initialForm.sleep_occurred = !!partData.track_sleep;
+              initialForm.behaviour_observed = !!partData.track_behaviour;
+              initialForm.community_access_occurred = !!partData.track_community;
+              initialForm.meal_provided = !!partData.track_nutrition;
+              initialForm.mtm_meal_provided = !!partData.track_mtm;
+              initialForm.hygiene_support_required = !!partData.track_hygiene;
+
               if (partData.mtmp_required) {
                 initialForm.mtm_meal_provided = true;
                 initialForm.mtm_notes = `Auto-populated from Care Plan: ${partData.mtmp_details || ''}`;
               }
             }
           } catch (err) {
-            console.error('Error auto-populating MTM for new note:', err);
+            console.error('Error auto-populating trackers for new note:', err);
           }
         }
 
@@ -323,9 +348,22 @@ export function ShiftNoteDetailContent({
 
     setFormData(prev => ({ ...prev, [field]: value }));
 
-    // Side effect: Auto-populate MTM when participant changes
-    if (field === 'participant_id' && value && isNewNote) {
-      fetchParticipantMtm(value as string);
+    if (field === 'participant_id' && isNewNote) {
+      if (value) {
+        fetchParticipantDetails(value as string);
+      } else {
+        handleBulkChange({
+          participant: null,
+          bowel_movement_occurred: false,
+          seizure_occurred: false,
+          sleep_occurred: false,
+          behaviour_observed: false,
+          community_access_occurred: false,
+          meal_provided: false,
+          mtm_meal_provided: false,
+          hygiene_support_required: false,
+        });
+      }
     }
   };
 
@@ -334,9 +372,8 @@ export function ShiftNoteDetailContent({
 
     setFormData(prev => ({ ...prev, ...changes }));
 
-    // Side effect: Auto-populate MTM if participant_id is in the changes
     if (changes.participant_id && isNewNote) {
-      fetchParticipantMtm(changes.participant_id as string);
+      fetchParticipantDetails(changes.participant_id as string);
     }
   };
 
@@ -410,6 +447,17 @@ export function ShiftNoteDetailContent({
           dataToSave[key] = value;
         }
       });
+
+      // Set tracker occurrences explicitly based on participant's flags
+      const participant = formData.participant as any;
+      dataToSave.bowel_movement_occurred = !!participant?.track_bowel;
+      dataToSave.seizure_occurred = !!participant?.track_seizure;
+      dataToSave.sleep_occurred = !!participant?.track_sleep;
+      dataToSave.behaviour_observed = !!participant?.track_behaviour;
+      dataToSave.community_access_occurred = !!participant?.track_community;
+      dataToSave.meal_provided = !!participant?.track_nutrition;
+      dataToSave.mtm_meal_provided = !!participant?.track_mtm;
+      dataToSave.hygiene_support_required = !!participant?.track_hygiene;
 
       // Explicitly set the target status
       dataToSave.status = statusToSave;

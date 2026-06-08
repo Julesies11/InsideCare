@@ -43,7 +43,7 @@ const queryClient = new QueryClient({
 const renderWithProviders = (ui: ReactNode) => {
   return render(
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={['/shift-notes/detail/new']}>
+      <MemoryRouter initialEntries={['/shift-notes/detail/new?shiftId=shift-1&participantId=participant-1']}>
         <Routes>
           <Route path="/shift-notes/detail/:id" element={ui} />
         </Routes>
@@ -53,12 +53,14 @@ const renderWithProviders = (ui: ReactNode) => {
 };
 
 describe('ShiftNoteDetailContent Smoke Test', () => {
-  it('renders initial form content correctly', () => {
+  it('renders initial form content correctly', async () => {
     renderWithProviders(<ShiftNoteDetailContent canEdit={true} />);
     
     // Check for core fields
     expect(screen.getByText('Shift Overview')).toBeDefined();
-    expect(screen.getAllByText(/Select participant/i).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/Participant/i).length).toBeGreaterThan(0);
+    
+    // Wait for the async loading flow to complete and verify participant section is rendered
+    const participantLabels = await screen.findAllByText(/Participant/i);
+    expect(participantLabels.length).toBeGreaterThan(0);
   });
 });

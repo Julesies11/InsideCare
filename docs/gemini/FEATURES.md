@@ -7,6 +7,7 @@ Central hub for all information related to care recipients.
 - **Profiles**: Comprehensive views of personal information, medical history, and goals.
 - **Medication Register**: Centralized master list of all medications used in care. Supports server-side pagination (50 per page), remote sorting, and category filtering. Provides an administrative interface for clinical guidance (side effects, interactions).
 - **Child Entities**: Detailed management of medications, documents, goals, notes, funding, contacts, hygiene routines, and restrictive practices.
+- **Clinical Trackers Setup**: Dedicated setup section to configure active clinical trackers (Bowel, Seizure, Sleep, Behaviour, Community, Nutrition, Mealtime Management, Hygiene) on a participant's care plan, dynamically controlling which trackers are shown during shift note documentation.
 - **Optimized Saving**: Uses `json-diff-ts` to only update changed fields.
 
 ## 2. Staff Management
@@ -52,6 +53,7 @@ The core operational engine of the care system.
         - **Hygiene & Community**: Support levels and engagement tracking.
     - **Master List Management**: Integrated administrative dialogs to manage Seizure and Behaviour types (matching Medication Register patterns).
     - **Automation**: Automatic shift type detection from roster templates and Care Plan data injection.
+    - **Multi-Participant Shift Notes Uniqueness**: Partial unique index protection enforces one active or draft note per staff, shift, and participant. This prevents duplicate note submissions while ensuring staff members can successfully submit separate shift notes for multiple different participants assigned to the exact same shift.
 - **Overnight Shift Logic**: Intelligent date-range querying ensures that overnight shifts (starting yesterday but ending today) are correctly recognized in "Today's" views and "Active Shift" detection.
 - **Smart Timesheets**: Proactive timesheet management system.
     - **Missing Shift Detection**: Automatically identifies completed shifts that are missing timesheets and flags them for creation.
