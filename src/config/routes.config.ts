@@ -36,6 +36,7 @@ export const ROUTES = {
   MEDICATION_REGISTER: '/participants/medication-register',
   SHIFT_NOTES: '/participants/shift-notes',
   SHIFT_NOTES_DETAIL: '/shift-notes/detail', // Base for dynamic: /shift-notes/detail/:id
+  INCIDENT_REPORT: '/incidents',
 
   // Roster & Scheduling
   ROSTER_BOARD: '/roster-board',
@@ -47,7 +48,6 @@ export const ROUTES = {
   REPORTING: '/reporting',
   REPORTING_CLINICAL_INCIDENTS: '/reporting/clinical/incidents',
   REPORTING_CLINICAL_PARTICIPANTS: '/reporting/clinical/participants',
-  INCIDENT_REPORT: '/reporting/incident-management',
 
   // Account & Settings
   ACCOUNT: '/account',

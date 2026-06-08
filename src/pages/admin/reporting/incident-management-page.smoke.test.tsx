@@ -32,6 +32,7 @@ vi.mock('@/hooks/use-incident-reports', () => ({
   useIncidentReports: () => ({ data: { data: [], count: 0 }, isLoading: false }),
   useCreateIncidentReport: () => ({ mutateAsync: vi.fn(), isPending: false }),
   useUpdateIncidentReport: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useIncidentReport: () => ({ data: null, isLoading: false }),
 }));
 
 // Mock ResizeObserver which is used by some UI components
@@ -43,7 +44,7 @@ global.ResizeObserver = vi.fn().mockImplementation(() => ({
 
 describe('IncidentManagementPage Smoke Test', () => {
   it('renders the incident management console correctly', () => {
-    const { container } = render(
+    render(
       <SettingsProvider>
         <QueryClientProvider client={queryClient}>
           <MemoryRouter>

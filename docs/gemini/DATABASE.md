@@ -70,6 +70,7 @@ Facility-level documentation, contacts, and guidelines.
 - **`ic_timesheets`**: Tracked actual hours vs rostered.
 - **`ic_incident_reports`**: Structured incident reporting with NDIS and Restrictive Practice support.
     - **Refactored Architecture**: As of **June 4, 2026**, moved to a fully structured schema using `incident_type_id`, `summary`, and `details`. Legacy columns (`incident_type`, `description`, `status`) are preserved as nullable for backward compatibility.
+    - **Incident Reference ID**: As of **June 8, 2026**, introduced a unique `reference_id` column. Formatted as `INC-YYYYMMDD-HHMM-[Participant Initials]` (e.g., `INC-20260608-2044-JG`) to match the shift note pattern, auto-computed on lodging and backfilled.
     - **RBAC Guarded**: Admin-only fields (`admin_status`, `admin_actions_taken`, `ndis_reported_date`) are protected via column-level checks in the application and hardened RLS policies.
 
 ### 5. Automated Audit Columns

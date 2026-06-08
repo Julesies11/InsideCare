@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Container } from '@/components/common/container';
 import { 
   Card, 
@@ -15,7 +15,7 @@ import {
   Printer,
   Loader2
 } from 'lucide-react';
-import { useNavigate, Link } from 'react-router';
+import { useNavigate, Link, useSearchParams } from 'react-router';
 import { ROUTES } from '@/config/routes.config';
 import { useIncidentReports } from '@/hooks/use-incident-reports';
 import { 
@@ -50,14 +50,55 @@ import { PrintableReport } from '@/components/common/printable-report';
 
 export function IncidentManagementReportPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   
   // State for date range
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: startOfMonth(new Date()),
-    to: endOfMonth(new Date()),
-  });
+  const getInitialPreset = (): string => searchParams.get('preset') || 'this-month';
 
-  const [preset, setPreset] = useState<string>('this-month');
+  const getInitialDateRange = (initialPreset: string): DateRange | undefined => {
+    if (initialPreset === 'custom') {
+      const fromStr = searchParams.get('from');
+      const toStr = searchParams.get('to');
+      if (fromStr) {
+        const from = new Date(fromStr);
+        const to = toStr ? new Date(toStr) : undefined;
+        if (!isNaN(from.getTime())) {
+          return { from, to: to && !isNaN(to.getTime()) ? to : undefined };
+        }
+      }
+    }
+    const now = new Date();
+    return {
+      from: startOfMonth(now),
+      to: endOfMonth(now),
+    };
+  };
+
+  const [preset, setPreset] = useState<string>(getInitialPreset());
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(getInitialDateRange(getInitialPreset()));
+
+  // Sync state changes to URL query parameters
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams);
+    
+    params.set('preset', preset);
+    
+    if (preset === 'custom' && dateRange?.from) {
+      params.set('from', dateRange.from.toISOString());
+      if (dateRange.to) {
+        params.set('to', dateRange.to.toISOString());
+      } else {
+        params.delete('to');
+      }
+    } else {
+      params.delete('from');
+      params.delete('to');
+    }
+    
+    if (params.toString() !== searchParams.toString()) {
+      setSearchParams(params, { replace: true });
+    }
+  }, [preset, dateRange, searchParams, setSearchParams]);
 
   // Fetch data - get all for the report preview (no pagination for the print version)
   const { data, isLoading } = useIncidentReports({
@@ -65,6 +106,16 @@ export function IncidentManagementReportPage() {
     endDate: dateRange?.to?.toISOString(),
     pageSize: 1000, // Fetch everything for the report
   });
+
+  // Auto-print if print parameter is true
+  useEffect(() => {
+    if (!isLoading && searchParams.get('print') === 'true') {
+      const timer = setTimeout(() => {
+        window.print();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading, searchParams]);
 
   const handlePrint = () => {
     window.print();

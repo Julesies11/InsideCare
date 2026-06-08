@@ -2453,6 +2453,7 @@ export type Database = {
           notified_parties: string | null
           outcome: string | null
           priority: string
+          reference_id: string | null
           reported_by: string
           restrictive_practice_description: string | null
           restrictive_practice_type_id: string | null
@@ -2490,6 +2491,7 @@ export type Database = {
           notified_parties?: string | null
           outcome?: string | null
           priority?: string
+          reference_id?: string | null
           reported_by: string
           restrictive_practice_description?: string | null
           restrictive_practice_type_id?: string | null
@@ -2527,6 +2529,7 @@ export type Database = {
           notified_parties?: string | null
           outcome?: string | null
           priority?: string
+          reference_id?: string | null
           reported_by?: string
           restrictive_practice_description?: string | null
           restrictive_practice_type_id?: string | null

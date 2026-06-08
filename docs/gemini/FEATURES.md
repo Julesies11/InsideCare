@@ -126,6 +126,9 @@ Comprehensive module for lodging, managing, and resolving clinical and operation
     - **Optimized Layout**: Pinned context columns and responsive horizontal scrolling.
 - **Contextual Search & Filter**: High-performance DataGrid allowing filtering by Participant, Staff, Status, Severity, and Date range.
 - **Master List Integration**: Centrally managed Incident and Restrictive Practice types to ensure data consistency.
+- **Incident Reference ID**: Main list table presents the human-readable **Incident ID** in the first pinned column. Clicking the ID or date transitions to the detail view.
+- **Single Incident Print Layout**: Form view includes a **"Print Preview"** action which renders a print-optimized layout of all incident record fields (Overview details, full narrative description, witnesses, notified parties, restrictive practices start/end/triggers/observed behaviours, NDIS report status, administrative oversight actions, and clinical manager signature sign-offs).
+- **URL Routing & Bookmarking**: derived view state directly handles URL search parameters (`?id=uuid`, `?mode=new`, `?print=true`), allowing direct link sharing and browser bookmarking of specific incident records.
 
 ## 10. Reporting Hub
 Central registry for system-wide analytics and compliance exports.
