@@ -125,7 +125,7 @@ export function StaffRoster() {
         const dateStr = format(new Date(row.original.start_date + 'T00:00:00'), 'EEE dd MMM yyyy');
         return (
           <Link 
-            to={`${ROUTES.MY_ROSTER}/${row.original.id}/timesheet`}
+            to={`${ROUTES.MY_TIMESHEETS}/${row.original.id}`}
             className="text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline transition-colors"
           >
             {dateStr}
@@ -183,7 +183,7 @@ export function StaffRoster() {
             <Button
               size="sm"
               variant="outline"
-              onClick={() => navigate(`/my-roster/${entry.id}/timesheet`)}
+              onClick={() => navigate(`${ROUTES.MY_TIMESHEETS}/${entry.id}`)}
             >
               <ClipboardList className="size-3.5 me-1.5" />
               Timesheet

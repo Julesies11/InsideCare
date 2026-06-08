@@ -100,7 +100,7 @@ const ShiftNotes = ({ participantId }: ShiftNotesProps) => {
     return tasks.filter((item) => {
       // Status filter
       const status = getRowStatus(item);
-      if (!activeStatusFilters.includes(status as any)) return false;
+      if (!status || !activeStatusFilters.includes(status)) return false;
 
       // House filter
       const matchesHouse =
@@ -160,19 +160,47 @@ const ShiftNotes = ({ participantId }: ShiftNotesProps) => {
           switch (status) {
             case 'Completed': colorClass = 'bg-emerald-500'; break;
             case 'Draft': colorClass = 'bg-amber-400'; break;
-            case 'Overdue': {
-              const isCurr = isCurrent(row.original.start_date, row.original.end_date, row.original.start_time, row.original.end_time);
-              colorClass = isCurr ? 'bg-violet-500' : 'bg-red-600';
-              break;
-            }
-            case 'Current Shift': colorClass = 'bg-gray-400'; break;
-            case 'Upcoming': colorClass = 'bg-gray-200'; break;
+            case 'Overdue': colorClass = 'bg-red-600'; break;
           }
           
           return <div className={cn("absolute inset-y-0 start-0 w-1", colorClass)} />;
         },
         size: 5,
         enableSorting: false,
+      },
+      {
+        id: 'reference_id',
+        accessorFn: (row) => row.note_reference_id,
+        header: ({ column }) => <DataGridColumnHeader title="Shift Note ID" column={column} />,
+        cell: ({ row }) => {
+          const refId = row.original.note_reference_id;
+          if (!refId) return <div className="break-words whitespace-normal text-left text-sm text-gray-400 dark:text-gray-600">-</div>;
+          
+          const detailUrl = row.original.note_id 
+            ? `${ROUTES.SHIFT_NOTES_DETAIL}/${row.original.note_id}`
+            : (() => {
+                const params = new URLSearchParams();
+                params.set('shiftId', row.original.shift_id);
+                if (row.original.participant_id) {
+                  params.set('participantId', row.original.participant_id);
+                }
+                return `${ROUTES.SHIFT_NOTES_DETAIL}/new?${params.toString()}`;
+              })();
+
+          return (
+            <div className="break-words whitespace-normal text-left flex items-center min-w-0 w-full">
+              <Link 
+                to={detailUrl} 
+                state={{ from: location.pathname + location.search }}
+                className="font-medium text-sm text-blue-700 dark:text-blue-400 group-hover:underline transition-colors break-words whitespace-normal"
+              >
+                {refId}
+              </Link>
+            </div>
+          );
+        },
+        enableSorting: true,
+        size: 155,
       },
       {
         id: 'shift',
@@ -191,22 +219,24 @@ const ShiftNotes = ({ participantId }: ShiftNotesProps) => {
               })();
 
           return (
-            <Link 
-              to={detailUrl} 
-              state={{ from: location.pathname + location.search }}
-              className="flex flex-col gap-0.5 group w-fit"
-            >
-              <span className="font-medium text-sm text-blue-700 dark:text-blue-400 group-hover:underline transition-colors">
-                {format(parseISO(row.original.start_date), 'dd MMM yyyy')}
-              </span>
-              <span className="text-xs text-gray-500">
-                {formatTime(row.original.start_time)} – {formatTime(row.original.end_time)} ({row.original.shift_template})
-              </span>
-            </Link>
+            <div className="break-words whitespace-normal text-left flex items-center min-w-0 w-full">
+              <Link 
+                to={detailUrl} 
+                state={{ from: location.pathname + location.search }}
+                className="flex flex-col gap-0.5 group w-full min-w-0"
+              >
+                <span className="font-medium text-sm text-blue-700 dark:text-blue-400 group-hover:underline transition-colors break-words whitespace-normal">
+                  {format(parseISO(row.original.start_date), 'dd MMM yyyy')}
+                </span>
+                <span className="text-xs text-gray-500 break-words whitespace-normal">
+                  {formatTime(row.original.start_time)} – {formatTime(row.original.end_time)} ({row.original.shift_template})
+                </span>
+              </Link>
+            </div>
           );
         },
         enableSorting: true,
-        size: 200,
+        size: 175,
       },
       {
         id: 'participant',
@@ -215,24 +245,26 @@ const ShiftNotes = ({ participantId }: ShiftNotesProps) => {
         cell: ({ row }) => {
           const pId = row.original.participant_id;
           const pName = row.original.participant_names || row.original.participant_name;
-          if (!pId) return <span className="text-sm font-medium">{pName || '-'}</span>;
+          if (!pId) return <div className="break-words whitespace-normal text-left text-sm font-medium">{pName || '-'}</div>;
 
           return (
-            <Link to={`${ROUTES.PARTICIPANT_DETAIL}/${pId}`} className="flex items-center gap-2 group/participant w-fit">
-              <SecureAvatar 
-                src={row.original.participant_photo_url} 
-                initials={getInitials(pName)} 
-                className="size-6 transition-all group-hover/participant:ring-2 group-hover/participant:ring-primary/20"
-                bucket={STORAGE_BUCKETS.PARTICIPANT_PHOTOS} 
-              />
-              <span className="text-sm font-medium text-blue-700 dark:text-blue-400 group-hover/participant:underline transition-colors truncate max-w-[180px]">
-                {pName}
-              </span>
-            </Link>
+            <div className="break-words whitespace-normal text-left flex items-center min-w-0 w-full">
+              <Link to={`${ROUTES.PARTICIPANT_DETAIL}/${pId}`} className="flex items-center gap-2 group/participant w-full min-w-0">
+                <SecureAvatar 
+                  src={row.original.participant_photo_url} 
+                  initials={getInitials(pName)} 
+                  className="size-6 transition-all group-hover/participant:ring-2 group-hover/participant:ring-primary/20 shrink-0"
+                  bucket={STORAGE_BUCKETS.PARTICIPANT_PHOTOS} 
+                />
+                <span className="text-sm font-medium text-blue-700 dark:text-blue-400 group-hover/participant:underline transition-colors break-words whitespace-normal">
+                  {pName}
+                </span>
+              </Link>
+            </div>
           );
         },
         enableSorting: true,
-        size: 220,
+        size: 180,
       },
       {
         id: 'staff',
@@ -241,24 +273,26 @@ const ShiftNotes = ({ participantId }: ShiftNotesProps) => {
         cell: ({ row }) => {
           const sId = row.original.staff_id;
           const sName = row.original.staff_name;
-          if (!sId) return <span className="text-sm text-gray-700 dark:text-gray-300">{sName || '-'}</span>;
+          if (!sId) return <div className="break-words whitespace-normal text-left text-sm text-gray-700 dark:text-gray-300">{sName || '-'}</div>;
 
           return (
-            <Link to={`${ROUTES.STAFF_DETAIL}/${sId}`} className="flex items-center gap-2 group/staff w-fit">
-              <SecureAvatar 
-                src={row.original.staff_photo_url} 
-                initials={getInitials(sName || '??')} 
-                className="size-6 transition-all group-hover/staff:ring-2 group-hover/staff:ring-primary/20"
-                bucket={STORAGE_BUCKETS.STAFF_PHOTOS} 
-              />
-              <span className="text-sm font-medium text-blue-700 dark:text-blue-400 group-hover/staff:underline transition-colors truncate max-w-[150px]">
-                {sName}
-              </span>
-            </Link>
+            <div className="break-words whitespace-normal text-left flex items-center min-w-0 w-full">
+              <Link to={`${ROUTES.STAFF_DETAIL}/${sId}`} className="flex items-center gap-2 group/staff w-full min-w-0">
+                <SecureAvatar 
+                  src={row.original.staff_photo_url} 
+                  initials={getInitials(sName || '??')} 
+                  className="size-6 transition-all group-hover/staff:ring-2 group-hover/staff:ring-primary/20 shrink-0"
+                  bucket={STORAGE_BUCKETS.STAFF_PHOTOS} 
+                />
+                <span className="text-sm font-medium text-blue-700 dark:text-blue-400 group-hover/staff:underline transition-colors break-words whitespace-normal">
+                  {sName}
+                </span>
+              </Link>
+            </div>
           );
         },
         enableSorting: true,
-        size: 180,
+        size: 150,
       },
       {
         id: 'house',
@@ -267,21 +301,23 @@ const ShiftNotes = ({ participantId }: ShiftNotesProps) => {
         cell: ({ row }) => {
           const hId = row.original.house_id;
           const hName = row.original.house_name;
-          if (!hId) return <span className="text-sm text-muted-foreground">{hName || '-'}</span>;
+          if (!hId) return <div className="break-words whitespace-normal text-left text-sm text-muted-foreground">{hName || '-'}</div>;
 
           return (
-            <Link to={`${ROUTES.HOUSE_DETAIL}/${hId}`} className="flex items-center gap-2 group/house w-fit">
-              <div className="size-6 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center group-hover/house:ring-2 group-hover/house:ring-primary/20 transition-all shrink-0">
-                <HouseIcon className="size-3 text-gray-600 dark:text-gray-400 group-hover/house:text-primary transition-colors" />
-              </div>
-              <span className="text-sm font-medium text-blue-700 dark:text-blue-400 group-hover/house:underline transition-colors truncate max-w-[150px]">
-                {hName}
-              </span>
-            </Link>
+            <div className="break-words whitespace-normal text-left flex items-center min-w-0 w-full">
+              <Link to={`${ROUTES.HOUSE_DETAIL}/${hId}`} className="flex items-center gap-2 group/house w-full min-w-0">
+                <div className="size-6 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center group-hover/house:ring-2 group-hover/house:ring-primary/20 transition-all shrink-0">
+                  <HouseIcon className="size-3 text-gray-600 dark:text-gray-400 group-hover/house:text-primary transition-colors" />
+                </div>
+                <span className="text-sm font-medium text-blue-700 dark:text-blue-400 group-hover/house:underline transition-colors break-words whitespace-normal">
+                  {hName}
+                </span>
+              </Link>
+            </div>
           );
         },
         enableSorting: true,
-        size: 180,
+        size: 130,
       },
       {
         id: 'status',
@@ -293,22 +329,12 @@ const ShiftNotes = ({ participantId }: ShiftNotesProps) => {
           switch (status) {
             case 'Completed': badge = <Badge variant="success" appearance="light">Completed</Badge>; break;
             case 'Draft': badge = <Badge variant="warning" appearance="light">Draft</Badge>; break;
-            case 'Overdue': {
-              const isCurr = isCurrent(row.original.start_date, row.original.end_date, row.original.start_time, row.original.end_time);
-              if (isCurr) {
-                badge = <Badge variant="info" appearance="light">In Progress</Badge>;
-              } else {
-                badge = <Badge variant="destructive" appearance="light">Overdue</Badge>;
-              }
-              break;
-            }
-            case 'Current Shift': badge = <Badge variant="secondary" appearance="light">Current Shift</Badge>; break;
-            case 'Upcoming': badge = <Badge variant="outline" appearance="light">Upcoming</Badge>; break;
+            case 'Overdue': badge = <Badge variant="destructive" appearance="light">Overdue</Badge>; break;
           }
           
           return <div className="break-words whitespace-normal text-left">{badge}</div>;
         },
-        size: 140,
+        size: 110,
       },
     ],
     []
@@ -333,7 +359,7 @@ const ShiftNotes = ({ participantId }: ShiftNotesProps) => {
     <DataGrid
       table={table}
       recordCount={filteredData?.length || 0}
-      tableLayout={{ columnsPinnable: true, columnsMovable: true, columnsVisibility: true, cellBorder: true }}
+      tableLayout={{ width: 'fixed', columnsPinnable: true, columnsMovable: true, columnsVisibility: true, cellBorder: true }}
     >
       <Card>
         <CardHeader>

@@ -1,11 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router';
+import { useParams, useNavigate, useLocation, Link } from 'react-router';
 import { useAuth } from '@/auth/context/auth-context';
 import { format, parseISO, differenceInMinutes } from 'date-fns';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import {
-  ArrowLeft, Clock, FileText, Info, CheckCircle2, ClipboardList, Car,
+  ArrowLeft, Clock, FileText, Info, CheckCircle2, ClipboardList, Car, Pencil,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -158,6 +158,84 @@ export function StaffTimesheetForm() {
     load();
   }, [shiftId, user?.staff_id]);
 
+  // Scroll to hash-linked section once page content is loaded
+  useEffect(() => {
+    if (!loading && shift) {
+      const hash = window.location.hash;
+      if (hash) {
+        const id = hash.slice(1);
+        const timer = setTimeout(() => {
+          const el = document.getElementById(id);
+          if (el) {
+            el.scrollIntoView({ behavior: 'auto', block: 'start' });
+          }
+        }, 100);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [loading, shift]);
+
+  // Update URL hash as user scrolls
+  useEffect(() => {
+    if (loading || !shift) return;
+
+    const sections = ['actual-hours', 'additional-options', 'shift-notes', 'required-routines'];
+    let activeSectionId = '';
+
+    const observerCallback = (entries: IntersectionObserverEntry[]) => {
+      if (window.scrollY < 100) return;
+
+      entries.forEach((entry) => {
+        if (entry.isIntersecting && entry.intersectionRatio >= 0.3) {
+          const id = entry.target.id;
+          if (activeSectionId !== id) {
+            activeSectionId = id;
+            window.history.replaceState(
+              null,
+              '',
+              window.location.pathname + window.location.search + '#' + id
+            );
+          }
+        }
+      });
+    };
+
+    const observerOptions = {
+      root: null,
+      rootMargin: '-10% 0px -60% 0px',
+      threshold: [0.3],
+    };
+
+    const observer = new IntersectionObserver(observerCallback, observerOptions);
+
+    sections.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) {
+        observer.observe(el);
+      }
+    });
+
+    const handleScroll = () => {
+      if (window.scrollY < 100) {
+        if (window.location.hash) {
+          window.history.replaceState(
+            null,
+            '',
+            window.location.pathname + window.location.search
+          );
+          activeSectionId = '';
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [loading, shift]);
+
   const shiftParticipants = useMemo(() => {
     if (!shift) return [];
     return (shift.participants || [])?.map((p: any) => {
@@ -178,35 +256,38 @@ export function StaffTimesheetForm() {
       // General House Note
       const note = shiftNotes.find(n => !n.participant_id);
       const exists = !!note;
-      const isCompleted = exists && !!(note.overall_presentation || note.shift_summary || note.full_note);
-      const status: 'Completed' | 'Draft' | 'Overdue' = isCompleted ? 'Completed' : (exists ? 'Draft' : 'Overdue');
+      const status: 'Completed' | 'Draft' | 'Overdue' = exists
+        ? (note.status === 'draft' ? 'Draft' : 'Completed')
+        : 'Overdue';
       return [{
         id: 'general',
         participant_name: 'General House Note',
         status,
         noteId: note?.id || null,
-        photo_url: null
+        photo_url: null,
+        updated_at: note?.updated_at || null,
+        reference_id: note?.reference_id || null
       }];
     }
 
     return shiftParticipants.map(p => {
       const note = shiftNotes.find(n => n.participant_id === p.id);
       const exists = !!note;
-      const isCompleted = exists && !!(note.overall_presentation || note.shift_summary || note.full_note);
-      const status: 'Completed' | 'Draft' | 'Overdue' = isCompleted ? 'Completed' : (exists ? 'Draft' : 'Overdue');
+      const status: 'Completed' | 'Draft' | 'Overdue' = exists
+        ? (note.status === 'draft' ? 'Draft' : 'Completed')
+        : 'Overdue';
       return {
         id: p.id,
         participant_name: p.participant_name,
         photo_url: p.photo_url,
         status,
-        noteId: note?.id || null
+        noteId: note?.id || null,
+        updated_at: note?.updated_at || null,
+        reference_id: note?.reference_id || null
       };
     });
   }, [shift, shiftParticipants, shiftNotes]);
 
-  const allNotesCompleted = useMemo(() => {
-    return participantNotes.every(pn => pn.status === 'Completed');
-  }, [participantNotes]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -346,74 +427,7 @@ export function StaffTimesheetForm() {
             </div>
           )}
 
-          <Card className={cn(
-              "border-0 sm:border",
-              allNotesCompleted ? "border-green-200 bg-green-50/10" : "border-orange-200 bg-orange-50/10"
-            )}>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <FileText className={cn(
-                    "size-4",
-                    allNotesCompleted ? "text-green-600" : "text-orange-600"
-                  )} />
-                  Clinical Documentation
-                </CardTitle>
-                {!isReadOnly && <Badge variant={allNotesCompleted ? "success" : "warning"} appearance="light" className="text-xs">
-                  {allNotesCompleted ? 'Completed' : 'Action Recommended'}
-                </Badge>}
-              </div>
-              <p className="text-sm text-muted-foreground mt-1">
-                {allNotesCompleted 
-                  ? 'All required shift notes for this shift are completed.' 
-                  : 'Please complete a shift note for each participant. This is recommended before submitting your timesheet.'}
-              </p>
-            </CardHeader>
-            <CardContent>
-              <div className="divide-y border rounded-lg bg-white overflow-hidden">
-                {participantNotes.map((pn) => (
-                  <div key={pn.id} className="flex items-center justify-between p-3">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      {pn.id !== 'general' ? (
-                        <SecureAvatar 
-                          src={pn.photo_url} 
-                          initials={getInitials(pn.participant_name)} 
-                          className="size-6 shrink-0"
-                          bucket={STORAGE_BUCKETS.PARTICIPANT_PHOTOS} 
-                        />
-                      ) : (
-                        <div className="size-6 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-                          <FileText className="size-3 text-gray-500" />
-                        </div>
-                      )}
-                      <span className="text-sm font-medium text-gray-700 truncate">{pn.participant_name}</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Badge 
-                        variant={pn.status === 'Completed' ? 'success' : pn.status === 'Draft' ? 'warning' : 'destructive'} 
-                        appearance="light" 
-                        className="text-[10px] font-bold uppercase shrink-0"
-                      >
-                        {pn.status}
-                      </Badge>
-                      <Button
-                        type="button"
-                        variant={isReadOnly || pn.status === 'Completed' ? 'outline' : 'primary'}
-                        size="xs"
-                        onClick={() => navigate(`${ROUTES.SHIFT_NOTES_DETAIL}/${pn.noteId || 'new'}?shiftId=${shiftId}&staffId=${user?.staff_id || ''}${pn.id !== 'general' ? `&participantId=${pn.id}` : ''}`, {
-                          state: { from: location.pathname + location.search }
-                        })}
-                      >
-                        {isReadOnly ? 'View' : pn.status === 'Completed' ? 'Edit' : 'Complete'}
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 sm:border">
+          <Card id="actual-hours" className="border-0 sm:border">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
                 <Clock className="size-4 text-primary" />
@@ -496,7 +510,7 @@ export function StaffTimesheetForm() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 sm:border">
+          <Card id="additional-options" className="border-0 sm:border">
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Additional Options</CardTitle>
             </CardHeader>
@@ -559,8 +573,105 @@ export function StaffTimesheetForm() {
             </CardContent>
           </Card>
 
+          <Card id="shift-notes" className="border-0 sm:border">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <FileText className="size-4 text-primary" />
+                  Shift Notes
+                </CardTitle>
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">
+                View and manage shift notes for each participant on this shift.
+              </p>
+            </CardHeader>
+            <CardContent>
+              <div className="w-full overflow-x-auto border rounded-lg bg-white">
+                <table className="table-fixed md:table-auto w-full text-left text-sm text-gray-700 dark:text-gray-300">
+                  <thead>
+                    <tr className="border-b border-border text-xs uppercase font-bold text-muted-foreground bg-muted/20">
+                      <th className="py-3 px-4">Participant</th>
+                      <th className="py-3 px-4">Ref ID</th>
+                      <th className="py-3 px-4">Status</th>
+                      <th className="py-3 px-4">Modified</th>
+                      <th className="py-3 px-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {participantNotes.map((pn) => (
+                      <tr key={pn.id} className="hover:bg-muted/10">
+                        <td className="py-3 px-4 min-w-0">
+                          {pn.id !== 'general' ? (
+                            <Link 
+                              to={`${ROUTES.PARTICIPANT_DETAIL}/${pn.id}`}
+                              className="flex items-center gap-2 group/participant w-fit"
+                            >
+                              <SecureAvatar 
+                                src={pn.photo_url} 
+                                initials={getInitials(pn.participant_name)} 
+                                className="size-6 shrink-0 transition-all group-hover/participant:ring-2 group-hover/participant:ring-primary/20"
+                                bucket={STORAGE_BUCKETS.PARTICIPANT_PHOTOS} 
+                              />
+                              <span className="text-sm font-medium text-blue-700 dark:text-blue-400 group-hover/participant:underline transition-colors truncate max-w-[150px] md:max-w-none">
+                                {pn.participant_name}
+                              </span>
+                            </Link>
+                          ) : (
+                            <div className="flex items-center gap-2.5">
+                              <div className="size-6 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+                                <FileText className="size-3 text-gray-500" />
+                              </div>
+                              <span className="text-sm font-medium text-gray-700 truncate">{pn.participant_name}</span>
+                            </div>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-xs font-semibold text-muted-foreground whitespace-nowrap">
+                          {pn.reference_id || '—'}
+                        </td>
+                        <td className="py-3 px-4">
+                          <Badge 
+                            variant={pn.status === 'Completed' ? 'success' : pn.status === 'Draft' ? 'warning' : 'destructive'} 
+                            appearance="light" 
+                            className="text-[10px] font-bold uppercase shrink-0"
+                          >
+                            {pn.status}
+                          </Badge>
+                        </td>
+                        <td className="py-3 px-4 text-xs text-muted-foreground whitespace-nowrap">
+                          {pn.updated_at ? format(parseISO(pn.updated_at), 'dd MMM yyyy, HH:mm') : '—'}
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="w-20 justify-center"
+                            onClick={() => navigate(`${ROUTES.SHIFT_NOTES_DETAIL}/${pn.noteId || 'new'}?shiftId=${shiftId}&staffId=${user?.staff_id || ''}${pn.id !== 'general' ? `&participantId=${pn.id}` : ''}`, {
+                              state: { from: location.pathname + location.search + '#shift-notes' }
+                            })}
+                          >
+                            {isReadOnly ? (
+                              'View'
+                            ) : pn.noteId ? (
+                              <>
+                                <Pencil className="size-3 mr-1" />
+                                <span>Edit</span>
+                              </>
+                            ) : (
+                              '+ Add'
+                            )}
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+
           {assignedChecklists.length > 0 && (
-            <Card className={cn(
+            <Card id="required-routines" className={cn(
               "border-0 sm:border",
               assignedChecklists.every(cl => cl.status === 'completed') ? "border-green-200 bg-green-50/10" : "border-orange-200 bg-orange-50/10"
             )}>

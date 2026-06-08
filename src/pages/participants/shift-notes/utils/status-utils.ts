@@ -3,7 +3,7 @@ import { ShiftNoteTask } from '@/hooks/use-shift-notes';
 export const STATUS_FILTERS = ['Completed', 'Draft', 'Overdue'] as const;
 export type StatusFilter = typeof STATUS_FILTERS[number];
 
-export const ALL_ROW_STATUSES = ['Completed', 'Draft', 'Overdue', 'Current Shift', 'Upcoming'] as const;
+export const ALL_ROW_STATUSES = ['Completed', 'Draft', 'Overdue'] as const;
 export type RowStatus = typeof ALL_ROW_STATUSES[number];
 
 export const hasStarted = (startDate: string, startTime: string, now: Date = new Date()) => {
@@ -36,13 +36,13 @@ export const isCurrent = (startDate: string, endDate: string | null | undefined,
   }
 };
 
-export const getRowStatus = (row: ShiftNoteTask, now: Date = new Date()): RowStatus => {
+export const getRowStatus = (row: ShiftNoteTask, now: Date = new Date()): RowStatus | null => {
   if (row.note_id) {
     return row.note_status === 'draft' ? 'Draft' : 'Completed';
   }
   if (hasStarted(row.start_date, row.start_time, now)) {
     return 'Overdue';
   }
-  return 'Upcoming';
+  return null;
 };
 

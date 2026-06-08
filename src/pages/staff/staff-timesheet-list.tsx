@@ -201,7 +201,7 @@ export function StaffTimesheetList() {
 
         return (
           <Link 
-            to={`${ROUTES.MY_ROSTER}/${ts.shift_id}/timesheet`}
+            to={`${ROUTES.MY_TIMESHEETS}/${ts.shift_id}`}
             state={{ fromTab: activeTab }}
             className="text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline transition-colors"
           >

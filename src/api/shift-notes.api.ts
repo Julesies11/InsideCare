@@ -31,7 +31,7 @@ const VALID_SHIFT_NOTE_COLUMNS: (keyof ShiftNoteInsert)[] = [
   'seizure_notes', 'seizure_occurred', 'seizure_time_started', 'seizure_type_id', 
   'shift_id', 'shift_summary', 'shift_time', 'shift_type', 'sleep_occurred', 
   'sleep_quality', 'sleep_start_time', 'sleep_support_required', 'sleep_type_period', 
-  'sleep_wake_time', 'staff_id', 'start_date'
+  'sleep_wake_time', 'staff_id', 'start_date', 'reference_id'
 ];
 
 export interface ShiftNoteUpdateData extends Partial<ShiftNoteInsert> {
@@ -100,7 +100,8 @@ export const shiftNotesApi = {
         notes:${TABLES.SHIFT_NOTES}!shift_id(
           id,
           status,
-          participant_id
+          participant_id,
+          reference_id
         )
       `)
       .gte('start_date', effectiveStartDate)
@@ -145,7 +146,8 @@ export const shiftNotesApi = {
           end_time: shift.end_time,
           shift_template: shift.shift_template,
           note_id: note?.id,
-          note_status: note?.status || null
+          note_status: note?.status || null,
+          note_reference_id: note?.reference_id || null
         });
       } else {
         // Filter out participants if we are looking for a specific one
@@ -181,7 +183,8 @@ export const shiftNotesApi = {
             end_time: shift.end_time,
             shift_template: shift.shift_template,
             note_id: note?.id,
-            note_status: note?.status || null
+            note_status: note?.status || null,
+            note_reference_id: note?.reference_id || null
           });
         });
       }
@@ -274,7 +277,7 @@ export const shiftNotesApi = {
       .select(SHIFT_NOTE_VIEWS.DETAIL)
       .eq('shift_id', shiftId)
       .eq('staff_id', staffId)
-      .eq('status', 'active');
+      .in('status', ['active', 'draft']);
 
     if (participantId) {
       query = query.eq('participant_id', participantId);

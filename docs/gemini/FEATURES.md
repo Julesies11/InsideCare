@@ -35,9 +35,9 @@ The core operational engine of the care system.
 - **Roster Board**: Visual representation of staff shifts and house assignments with intelligent staff filtering (showing active staff assigned to the house).
 - **Shift Routines**: Automated, shift-locked task lists that staff must complete and sign off on during their active shift. Completion is enforced; staff cannot submit timesheets if mandatory shift routines are incomplete.
 - **Shift Documentation Command Center**: A specialized hub for monitoring clinical compliance across all shifts.
-    - **5-Status Intelligence Model**: Precisely categorizes every shift as **Upcoming**, **Current Shift** (in-progress), **Missing** (past with no note), **Draft Note**, or **Note Submitted**.
-    - **Compliance-First Filters**: Multi-select status buttons allow Admins and Staff to overlay documentation gaps, defaulting to "Note Submitted" for a clean audit trail.
-    - **Visual Compliance Strips**: High-density color indicators (Green, Amber, Red, Gray) on every row for millisecond-level status recognition.
+    - **3-Status Model**: Precisely categorizes every shift as **Completed**, **Draft**, or **Overdue**.
+    - **Compliance-First Filters**: Multi-select status buttons allow Admins and Staff to overlay documentation gaps, defaulting to 'Draft' and 'Overdue' filters.
+    - **Visual Compliance Strips**: High-density color indicators on every row for millisecond-level status recognition.
 - **Enhanced Clinical Notes**: Comprehensive clinical documentation completed at the end of every shift. Includes:
     - **Structured Tracking**: Dedicated sections for Risks, Overall Presentation, ADL Supports, Domestic Tasks, and Capacity Building goals.
     - **Interactive Binary Inputs**: All Yes/No fields (Risks, PBS, Medication, Trackers) use high-clarity Radio Button Groups for faster, more accurate entry.
@@ -56,7 +56,7 @@ The core operational engine of the care system.
 - **Smart Timesheets**: Proactive timesheet management system.
     - **Missing Shift Detection**: Automatically identifies completed shifts that are missing timesheets and flags them for creation.
     - **Robust Submission**: Optimized submission flow prevents autosave race conditions, ensuring a single click successfully transitions a timesheet from draft to pending.
-    - **Clinical Documentation Blocking**: Enforces completion of comprehensive Shift Notes before a timesheet can be submitted, guaranteeing critical clinical context is always recorded.
+    - **No Shift Note Blocking**: Shift note completion is no longer enforced at the time of timesheet submission, allowing independent completion.
     - **Audit Trail Visibility**: Staff can now view a full read-only version of their submitted timesheets exactly as they were reported.
     - **Action-Oriented Alerts**: The Staff Dashboard displays high-visibility prompts when timesheets are required for past work.
     - **Consolidated Tracking**: Real-time visibility across Needs Submission (Drafts/Missing), Awaiting Approval, Approved, and Rejected states with tab state persistence.

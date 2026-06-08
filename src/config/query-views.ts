@@ -452,6 +452,7 @@ export const SHIFT_NOTE_VIEWS = {
     notes, 
     full_note, 
     status,
+    reference_id,
     shift_type,
     risks_observed,
     risk_description,

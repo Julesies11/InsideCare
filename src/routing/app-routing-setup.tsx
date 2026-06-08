@@ -79,7 +79,7 @@ export function AppRoutingSetup() {
             </Route>
 
             <Route element={<RequirePermission module={RBAC_MODULES.MY_TIMESHEETS} />}>
-              <Route path={`${ROUTES.MY_ROSTER}/:shiftId/timesheet`} element={<StaffTimesheetForm />} />
+              <Route path={`${ROUTES.MY_TIMESHEETS}/:shiftId`} element={<StaffTimesheetForm />} />
               <Route path={ROUTES.MY_TIMESHEETS} element={<StaffTimesheetList />} />
             </Route>
 

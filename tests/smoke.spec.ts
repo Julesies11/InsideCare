@@ -272,7 +272,7 @@ adminTest(`Medication Detail page loads`, async ({ page }) => {
 });
 
 staffTest(`Staff Timesheet Form page loads`, async ({ page }) => {
-  await page.goto(`/my-roster/${MOCK_SHIFT_ID}/timesheet`);
+  await page.goto(`/my-timesheets/${MOCK_SHIFT_ID}`);
   await checkNoWSoD(page);
 });
 

@@ -74,6 +74,7 @@ export interface ShiftNoteTask {
   shift_template: string;
   note_id?: string;
   note_status?: string | null;
+  note_reference_id?: string | null;
 }
 
 export function useShiftNoteTasks(params: { staffId?: string; participantId?: string; houseId?: string; startDate?: string } = {}) {

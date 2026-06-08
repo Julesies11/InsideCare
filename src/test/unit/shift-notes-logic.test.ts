@@ -63,9 +63,9 @@ describe('Shift Notes Status Logic', () => {
       expect(getRowStatus(baseTask, mockNow)).toBe('Overdue');
     });
 
-    it('returns "Upcoming" if shift is in the future and no note_id', () => {
+    it('returns null if shift is in the future and no note_id', () => {
       const task = { ...baseTask, start_date: '2026-06-05' };
-      expect(getRowStatus(task, mockNow)).toBe('Upcoming');
+      expect(getRowStatus(task, mockNow)).toBeNull();
     });
   });
 });

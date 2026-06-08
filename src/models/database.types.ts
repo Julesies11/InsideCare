@@ -4801,6 +4801,7 @@ export type Database = {
           pbs_when_used: string | null
           prn_description: string | null
           prn_medication_given: boolean | null
+          reference_id: string | null
           regular_medication_status: string | null
           restrictive_practices_status: string | null
           risk_description: string | null
@@ -4895,6 +4896,7 @@ export type Database = {
           pbs_when_used?: string | null
           prn_description?: string | null
           prn_medication_given?: boolean | null
+          reference_id?: string | null
           regular_medication_status?: string | null
           restrictive_practices_status?: string | null
           risk_description?: string | null
@@ -4991,6 +4993,7 @@ export type Database = {
           pbs_when_used?: string | null
           prn_description?: string | null
           prn_medication_given?: boolean | null
+          reference_id?: string | null
           regular_medication_status?: string | null
           restrictive_practices_status?: string | null
           risk_description?: string | null
