@@ -2,7 +2,7 @@ import { Fragment, useState, useRef, useCallback, useEffect } from 'react';
 import { useParams, useLocation } from 'react-router';
 import { Container } from '@/components/common/container';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Printer } from 'lucide-react';
 import { ParticipantDetailContent } from './participant-detail-content';
 import {
   Toolbar,
@@ -84,6 +84,12 @@ export function ParticipantDetailPage() {
     }
   };
 
+  const handlePrintProfile = useCallback(() => {
+    if (id) {
+      window.open(`${ROUTES.REPORTING_CLINICAL_PARTICIPANTS}/${id}`, '_blank');
+    }
+  }, [id]);
+
   return (
     <Fragment>
       <div className="sticky top-0 z-20 bg-background border-b border-border">
@@ -104,6 +110,10 @@ export function ParticipantDetailPage() {
               </div>
             </ToolbarHeading>
             <ToolbarActions>
+              <Button variant="outline" size="sm" onClick={handlePrintProfile}>
+                <Printer className="size-4 me-1.5" />
+                Print Profile
+              </Button>
               <Button onClick={handleSave} disabled={!isDirty || saving} size="sm">
                 {saving ? 'Saving...' : 'Save Changes'}
               </Button>

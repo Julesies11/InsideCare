@@ -70,4 +70,5 @@ export const QUERY_KEYS = {
   ROLE_PERMISSIONS: 'role-permissions',
   SIGNED_URL: 'signed-url',
   ADMIN_AUTH_STATUS: 'admin-auth-status',
+  REPORT_PREFERENCES: 'report-preferences',
 } as const;

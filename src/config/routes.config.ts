@@ -46,6 +46,7 @@ export const ROUTES = {
   // Reporting
   REPORTING: '/reporting',
   REPORTING_CLINICAL_INCIDENTS: '/reporting/clinical/incidents',
+  REPORTING_CLINICAL_PARTICIPANTS: '/reporting/clinical/participants',
   INCIDENT_REPORT: '/reporting/incident-management',
 
   // Account & Settings

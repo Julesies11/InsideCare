@@ -86,6 +86,7 @@ export const TABLES = {
   NOTIFICATIONS: 'ic_notifications',
   ERROR_LOGS: 'ic_error_logs',
   ROLE_PERMISSIONS: 'ic_role_permissions',
+  REPORT_PREFERENCES: 'ic_report_preferences',
 } as const;
 
 export type TableName = typeof TABLES[keyof typeof TABLES];

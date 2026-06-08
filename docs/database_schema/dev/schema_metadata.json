@@ -574,14 +574,9 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "group_id",
+            "col": "master_id",
             "ref_col": "id",
-            "ref_table": "ic_house_shift_templates"
-          },
-          {
-            "col": "updated_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
+            "ref_table": "ic_checklist_master"
           },
           {
             "col": "created_by",
@@ -589,9 +584,14 @@
             "ref_table": "ic_staff"
           },
           {
-            "col": "master_id",
+            "col": "updated_by",
             "ref_col": "id",
-            "ref_table": "ic_checklist_master"
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "group_id",
+            "ref_col": "id",
+            "ref_table": "ic_house_shift_templates"
           }
         ],
         "policy_count": 4
@@ -659,12 +659,12 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -762,7 +762,12 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "created_by",
+            "col": "house_id",
+            "ref_col": "id",
+            "ref_table": "ic_houses"
+          },
+          {
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
@@ -772,12 +777,7 @@
             "ref_table": "ic_house_checklists"
           },
           {
-            "col": "house_id",
-            "ref_col": "id",
-            "ref_table": "ic_houses"
-          },
-          {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -922,12 +922,12 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -1004,12 +1004,12 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -1079,12 +1079,12 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -1293,12 +1293,12 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -1394,14 +1394,14 @@
             "ref_table": "ic_staff"
           },
           {
-            "col": "created_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
             "col": "event_id",
             "ref_col": "id",
             "ref_table": "ic_house_calendar_events"
+          },
+          {
+            "col": "created_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 2
@@ -1462,16 +1462,6 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "participant_id",
-            "ref_col": "id",
-            "ref_table": "ic_participants"
-          },
-          {
-            "col": "event_id",
-            "ref_col": "id",
-            "ref_table": "ic_house_calendar_events"
-          },
-          {
             "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
@@ -1480,6 +1470,16 @@
             "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
+          },
+          {
+            "col": "participant_id",
+            "ref_col": "id",
+            "ref_table": "ic_participants"
+          },
+          {
+            "col": "event_id",
+            "ref_col": "id",
+            "ref_table": "ic_house_calendar_events"
           }
         ],
         "policy_count": 2
@@ -1540,17 +1540,12 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "staff_id",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
-            "col": "created_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
             "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "staff_id",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
@@ -1558,6 +1553,11 @@
             "col": "event_id",
             "ref_col": "id",
             "ref_table": "ic_house_calendar_events"
+          },
+          {
+            "col": "created_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 2
@@ -1632,12 +1632,12 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -1770,9 +1770,14 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "created_by",
+            "col": "house_id",
             "ref_col": "id",
-            "ref_table": "ic_staff"
+            "ref_table": "ic_houses"
+          },
+          {
+            "col": "house_checklist_id",
+            "ref_col": "id",
+            "ref_table": "ic_house_checklists"
           },
           {
             "col": "event_type_id",
@@ -1785,19 +1790,14 @@
             "ref_table": "ic_checklist_schedules"
           },
           {
-            "col": "house_id",
-            "ref_col": "id",
-            "ref_table": "ic_houses"
-          },
-          {
             "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "house_checklist_id",
+            "col": "created_by",
             "ref_col": "id",
-            "ref_table": "ic_house_checklists"
+            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 2
@@ -1893,16 +1893,6 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "submission_id",
-            "ref_col": "id",
-            "ref_table": "ic_house_checklist_submissions"
-          },
-          {
-            "col": "uploaded_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
             "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
@@ -1916,6 +1906,16 @@
             "col": "item_id",
             "ref_col": "id",
             "ref_table": "ic_house_checklist_items"
+          },
+          {
+            "col": "submission_id",
+            "ref_col": "id",
+            "ref_table": "ic_house_checklist_submissions"
+          },
+          {
+            "col": "uploaded_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 2
@@ -2025,9 +2025,9 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "group_id",
+            "col": "updated_by",
             "ref_col": "id",
-            "ref_table": "ic_house_shift_templates"
+            "ref_table": "ic_staff"
           },
           {
             "col": "created_by",
@@ -2035,19 +2035,19 @@
             "ref_table": "ic_staff"
           },
           {
-            "col": "updated_by",
+            "col": "group_id",
             "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
-            "col": "checklist_id",
-            "ref_col": "id",
-            "ref_table": "ic_house_checklists"
+            "ref_table": "ic_house_shift_templates"
           },
           {
             "col": "master_item_id",
             "ref_col": "id",
             "ref_table": "ic_checklist_item_master"
+          },
+          {
+            "col": "checklist_id",
+            "ref_col": "id",
+            "ref_table": "ic_house_checklists"
           }
         ],
         "policy_count": 2
@@ -2150,6 +2150,11 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
+            "col": "master_item_id",
+            "ref_col": "id",
+            "ref_table": "ic_checklist_item_master"
+          },
+          {
             "col": "submission_id",
             "ref_col": "id",
             "ref_table": "ic_house_checklist_submissions"
@@ -2173,11 +2178,6 @@
             "col": "item_id",
             "ref_col": "id",
             "ref_table": "ic_house_checklist_items"
-          },
-          {
-            "col": "master_item_id",
-            "ref_col": "id",
-            "ref_table": "ic_checklist_item_master"
           }
         ],
         "policy_count": 2
@@ -2308,32 +2308,17 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
+            "col": "created_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
             "col": "master_id",
             "ref_col": "id",
             "ref_table": "ic_checklist_master"
           },
           {
-            "col": "shift_assignment_id",
-            "ref_col": "id",
-            "ref_table": "ic_shift_assigned_checklists"
-          },
-          {
-            "col": "shift_id",
-            "ref_col": "id",
-            "ref_table": "ic_staff_shifts"
-          },
-          {
-            "col": "shift_template_id",
-            "ref_col": "id",
-            "ref_table": "ic_house_shift_templates"
-          },
-          {
-            "col": "submitted_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
@@ -2353,9 +2338,24 @@
             "ref_table": "ic_houses"
           },
           {
-            "col": "updated_by",
+            "col": "shift_template_id",
+            "ref_col": "id",
+            "ref_table": "ic_house_shift_templates"
+          },
+          {
+            "col": "submitted_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
+          },
+          {
+            "col": "shift_id",
+            "ref_col": "id",
+            "ref_table": "ic_staff_shifts"
+          },
+          {
+            "col": "shift_assignment_id",
+            "ref_col": "id",
+            "ref_table": "ic_shift_assigned_checklists"
           }
         ],
         "policy_count": 4
@@ -2451,14 +2451,14 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "master_id",
+            "col": "created_by",
             "ref_col": "id",
-            "ref_table": "ic_checklist_master"
+            "ref_table": "ic_staff"
           },
           {
             "col": "house_id",
@@ -2466,9 +2466,9 @@
             "ref_table": "ic_houses"
           },
           {
-            "col": "updated_by",
+            "col": "master_id",
             "ref_col": "id",
-            "ref_table": "ic_staff"
+            "ref_table": "ic_checklist_master"
           }
         ],
         "policy_count": 4
@@ -2536,17 +2536,17 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
             "col": "house_id",
             "ref_col": "id",
             "ref_table": "ic_houses"
           },
           {
             "col": "created_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
-            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -2609,6 +2609,11 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
             "col": "compliance_type_id",
             "ref_col": "id",
             "ref_table": "ic_compliance_types_master"
@@ -2622,11 +2627,6 @@
             "col": "house_id",
             "ref_col": "id",
             "ref_table": "ic_houses"
-          },
-          {
-            "col": "updated_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 4
@@ -2743,17 +2743,17 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "updated_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
             "col": "house_id",
             "ref_col": "id",
             "ref_table": "ic_houses"
           },
           {
             "col": "created_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -2865,27 +2865,12 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "completed_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
             "col": "staff_id",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "participant_id",
-            "ref_col": "id",
-            "ref_table": "ic_participants"
-          },
-          {
-            "col": "form_id",
-            "ref_col": "id",
-            "ref_table": "ic_house_forms"
-          },
-          {
-            "col": "assigned_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
@@ -2895,9 +2880,24 @@
             "ref_table": "ic_staff"
           },
           {
-            "col": "created_by",
+            "col": "assigned_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
+          },
+          {
+            "col": "completed_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "form_id",
+            "ref_col": "id",
+            "ref_table": "ic_house_forms"
+          },
+          {
+            "col": "participant_id",
+            "ref_col": "id",
+            "ref_table": "ic_participants"
           }
         ],
         "policy_count": 2
@@ -2993,17 +2993,22 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "submitted_by",
+            "col": "assignment_id",
+            "ref_col": "id",
+            "ref_table": "ic_house_form_assignments"
+          },
+          {
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "form_id",
+            "col": "created_by",
             "ref_col": "id",
-            "ref_table": "ic_house_forms"
+            "ref_table": "ic_staff"
           },
           {
-            "col": "updated_by",
+            "col": "submitted_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
@@ -3013,14 +3018,9 @@
             "ref_table": "ic_participants"
           },
           {
-            "col": "assignment_id",
+            "col": "form_id",
             "ref_col": "id",
-            "ref_table": "ic_house_form_assignments"
-          },
-          {
-            "col": "created_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
+            "ref_table": "ic_house_forms"
           }
         ],
         "policy_count": 2
@@ -3116,11 +3116,6 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "updated_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
             "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
@@ -3129,6 +3124,11 @@
             "col": "house_id",
             "ref_col": "id",
             "ref_table": "ic_houses"
+          },
+          {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 2
@@ -3266,7 +3266,7 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
@@ -3276,7 +3276,7 @@
             "ref_table": "ic_houses"
           },
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -3388,17 +3388,17 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "updated_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
             "col": "house_id",
             "ref_col": "id",
             "ref_table": "ic_houses"
           },
           {
             "col": "created_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -3489,9 +3489,9 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "updated_by",
+            "col": "house_id",
             "ref_col": "id",
-            "ref_table": "ic_staff"
+            "ref_table": "ic_houses"
           },
           {
             "col": "created_by",
@@ -3499,9 +3499,9 @@
             "ref_table": "ic_staff"
           },
           {
-            "col": "house_id",
+            "col": "updated_by",
             "ref_col": "id",
-            "ref_table": "ic_houses"
+            "ref_table": "ic_staff"
           },
           {
             "col": "staff_id",
@@ -3747,9 +3747,9 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "created_by",
+            "col": "house_type_id",
             "ref_col": "id",
-            "ref_table": "ic_staff"
+            "ref_table": "ic_house_types_master"
           },
           {
             "col": "branch_id",
@@ -3762,9 +3762,9 @@
             "ref_table": "ic_staff"
           },
           {
-            "col": "house_type_id",
+            "col": "created_by",
             "ref_col": "id",
-            "ref_table": "ic_house_types_master"
+            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 4
@@ -4021,37 +4021,7 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "involved_staff_id",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
             "col": "created_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
-            "col": "updated_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
-            "col": "house_id",
-            "ref_col": "id",
-            "ref_table": "ic_houses"
-          },
-          {
-            "col": "incident_type_id",
-            "ref_col": "id",
-            "ref_table": "ic_incident_types_master"
-          },
-          {
-            "col": "involved_participant_id",
-            "ref_col": "id",
-            "ref_table": "ic_participants"
-          },
-          {
-            "col": "reported_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
@@ -4059,6 +4029,36 @@
             "col": "restrictive_practice_type_id",
             "ref_col": "id",
             "ref_table": "ic_restrictive_practice_types_master"
+          },
+          {
+            "col": "reported_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "involved_staff_id",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "involved_participant_id",
+            "ref_col": "id",
+            "ref_table": "ic_participants"
+          },
+          {
+            "col": "incident_type_id",
+            "ref_col": "id",
+            "ref_table": "ic_incident_types_master"
+          },
+          {
+            "col": "house_id",
+            "ref_col": "id",
+            "ref_table": "ic_houses"
+          },
+          {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 4
@@ -4225,7 +4225,7 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
@@ -4240,7 +4240,7 @@
             "ref_table": "ic_leave_types"
           },
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -4303,12 +4303,12 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -4493,14 +4493,14 @@
             "ref_table": "ic_staff"
           },
           {
-            "col": "updated_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
             "col": "type_id",
             "ref_col": "id",
             "ref_table": "ic_medication_types_master"
+          },
+          {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 7
@@ -4596,12 +4596,12 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -4706,14 +4706,9 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "contact_type_id",
+            "col": "participant_id",
             "ref_col": "id",
-            "ref_table": "ic_contact_types_master"
-          },
-          {
-            "col": "updated_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
+            "ref_table": "ic_participants"
           },
           {
             "col": "created_by",
@@ -4721,9 +4716,14 @@
             "ref_table": "ic_staff"
           },
           {
-            "col": "participant_id",
+            "col": "updated_by",
             "ref_col": "id",
-            "ref_table": "ic_participants"
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "contact_type_id",
+            "ref_col": "id",
+            "ref_table": "ic_contact_types_master"
           }
         ],
         "policy_count": 2
@@ -4791,14 +4791,14 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "created_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
             "col": "role_id",
             "ref_col": "id",
             "ref_table": "ic_roles"
+          },
+          {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
           },
           {
             "col": "document_id",
@@ -4806,7 +4806,7 @@
             "ref_table": "ic_participant_documents"
           },
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -4895,14 +4895,14 @@
             "ref_table": "ic_staff"
           },
           {
-            "col": "updated_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
             "col": "participant_id",
             "ref_col": "id",
             "ref_table": "ic_participants"
+          },
+          {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 2
@@ -5139,24 +5139,9 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "created_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
             "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
-          },
-          {
-            "col": "funding_source_id",
-            "ref_col": "id",
-            "ref_table": "ic_funding_sources_master"
-          },
-          {
-            "col": "funding_type_id",
-            "ref_col": "id",
-            "ref_table": "ic_funding_types_master"
           },
           {
             "col": "participant_id",
@@ -5167,6 +5152,21 @@
             "col": "house_id",
             "ref_col": "id",
             "ref_table": "ic_houses"
+          },
+          {
+            "col": "funding_type_id",
+            "ref_col": "id",
+            "ref_table": "ic_funding_types_master"
+          },
+          {
+            "col": "funding_source_id",
+            "ref_col": "id",
+            "ref_table": "ic_funding_sources_master"
+          },
+          {
+            "col": "created_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 2
@@ -5232,14 +5232,14 @@
             "ref_table": "ic_staff"
           },
           {
-            "col": "updated_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
             "col": "goal_id",
             "ref_col": "id",
             "ref_table": "ic_participant_goals"
+          },
+          {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 1
@@ -5314,17 +5314,17 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
             "col": "participant_id",
             "ref_col": "id",
             "ref_table": "ic_participants"
           },
           {
             "col": "created_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
-            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -5523,6 +5523,16 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
+            "col": "participant_id",
+            "ref_col": "id",
+            "ref_table": "ic_participants"
+          },
+          {
+            "col": "medication_id",
+            "ref_col": "id",
+            "ref_table": "ic_medications_master"
+          },
+          {
             "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
@@ -5531,16 +5541,6 @@
             "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
-          },
-          {
-            "col": "medication_id",
-            "ref_col": "id",
-            "ref_table": "ic_medications_master"
-          },
-          {
-            "col": "participant_id",
-            "ref_col": "id",
-            "ref_table": "ic_participants"
           }
         ],
         "policy_count": 2
@@ -5622,11 +5622,6 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "updated_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
             "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
@@ -5635,6 +5630,11 @@
             "col": "participant_id",
             "ref_col": "id",
             "ref_table": "ic_participants"
+          },
+          {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 4
@@ -5777,14 +5777,14 @@
             "ref_table": "ic_staff"
           },
           {
-            "col": "participant_id",
-            "ref_col": "id",
-            "ref_table": "ic_participants"
-          },
-          {
             "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
+          },
+          {
+            "col": "participant_id",
+            "ref_col": "id",
+            "ref_table": "ic_participants"
           }
         ],
         "policy_count": 2
@@ -6298,12 +6298,12 @@
             "ref_table": "ic_houses"
           },
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -6394,12 +6394,12 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -6490,9 +6490,9 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "department_id",
+            "col": "created_by",
             "ref_col": "id",
-            "ref_table": "ic_departments"
+            "ref_table": "ic_staff"
           },
           {
             "col": "updated_by",
@@ -6500,9 +6500,9 @@
             "ref_table": "ic_staff"
           },
           {
-            "col": "created_by",
+            "col": "department_id",
             "ref_col": "id",
-            "ref_table": "ic_staff"
+            "ref_table": "ic_departments"
           }
         ],
         "policy_count": 5
@@ -6568,12 +6568,12 @@
             "ref_table": "ic_participants"
           },
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -6689,6 +6689,62 @@
           }
         ],
         "policy_count": 3
+      },
+      {
+        "name": "ic_report_preferences",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "staff_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "report_type",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "criteria",
+            "type": "jsonb",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "staff_id",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          }
+        ],
+        "policy_count": 4
       },
       {
         "name": "ic_restrictive_practice_types_master",
@@ -7301,12 +7357,12 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -7369,22 +7425,22 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "participant_id",
-            "ref_col": "id",
-            "ref_table": "ic_participants"
-          },
-          {
-            "col": "created_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
             "col": "service_id",
             "ref_col": "id",
             "ref_table": "ic_services"
           },
           {
+            "col": "participant_id",
+            "ref_col": "id",
+            "ref_table": "ic_participants"
+          },
+          {
             "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -7447,22 +7503,22 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "updated_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
-            "col": "created_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
             "col": "service_id",
             "ref_col": "id",
             "ref_table": "ic_services"
           },
           {
             "col": "staff_id",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -7635,9 +7691,9 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "house_id",
+            "col": "created_by",
             "ref_col": "id",
-            "ref_table": "ic_houses"
+            "ref_table": "ic_staff"
           },
           {
             "col": "updated_by",
@@ -7645,9 +7701,9 @@
             "ref_table": "ic_staff"
           },
           {
-            "col": "created_by",
+            "col": "house_id",
             "ref_col": "id",
-            "ref_table": "ic_staff"
+            "ref_table": "ic_houses"
           },
           {
             "col": "shift_id",
@@ -7655,14 +7711,14 @@
             "ref_table": "ic_staff_shifts"
           },
           {
-            "col": "shift_template_id",
-            "ref_col": "id",
-            "ref_table": "ic_house_shift_templates"
-          },
-          {
             "col": "checklist_id",
             "ref_col": "id",
             "ref_table": "ic_house_checklists"
+          },
+          {
+            "col": "shift_template_id",
+            "ref_col": "id",
+            "ref_table": "ic_house_shift_templates"
           }
         ],
         "policy_count": 4
@@ -8325,9 +8381,9 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "house_id",
+            "col": "shift_id",
             "ref_col": "id",
-            "ref_table": "ic_houses"
+            "ref_table": "ic_staff_shifts"
           },
           {
             "col": "staff_id",
@@ -8335,14 +8391,14 @@
             "ref_table": "ic_staff"
           },
           {
-            "col": "shift_id",
-            "ref_col": "id",
-            "ref_table": "ic_staff_shifts"
-          },
-          {
             "col": "participant_id",
             "ref_col": "id",
             "ref_table": "ic_participants"
+          },
+          {
+            "col": "house_id",
+            "ref_col": "id",
+            "ref_table": "ic_houses"
           },
           {
             "col": "seizure_type_id",
@@ -8423,11 +8479,6 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "updated_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
             "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
@@ -8441,6 +8492,11 @@
             "col": "participant_id",
             "ref_col": "id",
             "ref_table": "ic_participants"
+          },
+          {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 4
@@ -8501,11 +8557,6 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "updated_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
             "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
@@ -8514,6 +8565,11 @@
             "col": "checklist_id",
             "ref_col": "id",
             "ref_table": "ic_house_checklists"
+          },
+          {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 3
@@ -8574,6 +8630,11 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
             "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
@@ -8582,11 +8643,6 @@
             "col": "checklist_id",
             "ref_col": "id",
             "ref_table": "ic_house_checklists"
-          },
-          {
-            "col": "updated_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
           },
           {
             "col": "shift_template_id",
@@ -8869,14 +8925,19 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
+            "col": "department_id",
+            "ref_col": "id",
+            "ref_table": "ic_departments"
+          },
+          {
             "col": "manager_id",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "employment_type_id",
+            "col": "role_id",
             "ref_col": "id",
-            "ref_table": "ic_employment_types_master"
+            "ref_table": "ic_roles"
           },
           {
             "col": "created_by",
@@ -8889,14 +8950,9 @@
             "ref_table": "ic_staff"
           },
           {
-            "col": "department_id",
+            "col": "employment_type_id",
             "ref_col": "id",
-            "ref_table": "ic_departments"
-          },
-          {
-            "col": "role_id",
-            "ref_col": "id",
-            "ref_table": "ic_roles"
+            "ref_table": "ic_employment_types_master"
           }
         ],
         "policy_count": 7
@@ -9070,16 +9126,6 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "document_id",
-            "ref_col": "id",
-            "ref_table": "ic_staff_documents"
-          },
-          {
-            "col": "role_id",
-            "ref_col": "id",
-            "ref_table": "ic_roles"
-          },
-          {
             "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
@@ -9088,6 +9134,16 @@
             "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
+          },
+          {
+            "col": "document_id",
+            "ref_col": "id",
+            "ref_table": "ic_staff_documents"
+          },
+          {
+            "col": "role_id",
+            "ref_col": "id",
+            "ref_table": "ic_roles"
           }
         ],
         "policy_count": 2
@@ -9305,12 +9361,12 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "updated_by",
+            "col": "house_id",
             "ref_col": "id",
-            "ref_table": "ic_staff"
+            "ref_table": "ic_houses"
           },
           {
-            "col": "staff_id",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
@@ -9320,9 +9376,9 @@
             "ref_table": "ic_house_shift_templates"
           },
           {
-            "col": "house_id",
+            "col": "staff_id",
             "ref_col": "id",
-            "ref_table": "ic_houses"
+            "ref_table": "ic_staff"
           },
           {
             "col": "created_by",
@@ -9444,12 +9500,12 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "updated_by",
+            "col": "staff_id",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "staff_id",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
@@ -9650,17 +9706,17 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "created_by",
+            "col": "approved_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "shift_id",
+            "col": "staff_id",
             "ref_col": "id",
-            "ref_table": "ic_staff_shifts"
+            "ref_table": "ic_staff"
           },
           {
-            "col": "approved_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
@@ -9670,9 +9726,9 @@
             "ref_table": "ic_staff"
           },
           {
-            "col": "staff_id",
+            "col": "shift_id",
             "ref_col": "id",
-            "ref_table": "ic_staff"
+            "ref_table": "ic_staff_shifts"
           }
         ],
         "policy_count": 4
@@ -9747,17 +9803,17 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
+            "col": "staff_id",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
             "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
             "col": "created_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
-            "col": "staff_id",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }

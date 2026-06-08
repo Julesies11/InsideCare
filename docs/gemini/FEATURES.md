@@ -130,4 +130,8 @@ Comprehensive module for lodging, managing, and resolving clinical and operation
 ## 10. Reporting Hub
 Central registry for system-wide analytics and compliance exports.
 - **Incident Management Report**: Provides a comprehensive, chronological view of all clinical incidents with advanced date filtering (preset periods and custom ranges) and print-optimized PDF layouts. Cleanly links incidents to specific participants and staff.
+- **Single Participant Profile Report**: Creates custom print-ready clinical reports for a chosen participant.
+    - **Exact Field Alignment**: Form field names, labels, and table layouts match the Participant Detail page tabs precisely (including required fields with asterisks, such as "Full Name *", and clinical plans like the "Mental Health Plan" or "Medical Plan").
+    - **Criteria Persistence**: Toggled sections checklist and selected participant selection automatically save to the database (`ic_report_preferences`) for the logged-in staff member, instantly restoring their workspace parameters when they reload the page.
+    - **Status Highlighting**: Displays the participant's secure avatar in the selection list, highlighting inactive or draft participants using styled status badges.
 - **Extensible Architecture**: Designed to seamlessly integrate future clinical, operational, and financial reports, utilizing visual locks for reports currently under development.

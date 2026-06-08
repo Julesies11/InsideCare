@@ -4183,6 +4183,41 @@ export type Database = {
           },
         ]
       }
+      ic_report_preferences: {
+        Row: {
+          created_at: string | null
+          criteria: Json
+          id: string
+          report_type: string
+          staff_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          criteria: Json
+          id?: string
+          report_type: string
+          staff_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          criteria?: Json
+          id?: string
+          report_type?: string
+          staff_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ic_report_preferences_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ic_restrictive_practice_types_master: {
         Row: {
           created_at: string | null

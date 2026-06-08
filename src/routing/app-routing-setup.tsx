@@ -50,6 +50,7 @@ const ActivityLogPage = lazy(() => import('@/pages/admin/activity-log/activity-l
 const ReportingHubPage = lazy(() => import('@/pages/admin/reporting/reporting-hub-page').then(m => ({ default: m.ReportingHubPage })));
 const IncidentManagementPage = lazy(() => import('@/pages/admin/reporting/incident-management-page').then(m => ({ default: m.IncidentManagementPage })));
 const IncidentManagementReportPage = lazy(() => import('@/pages/admin/reporting/incident-management-report-page').then(m => ({ default: m.IncidentManagementReportPage })));
+const ParticipantsReportPage = lazy(() => import('@/pages/admin/reporting/participants-report-page').then(m => ({ default: m.ParticipantsReportPage })));
 const NotificationCenter = lazy(() => import('@/pages/account/notifications/notification-center').then(m => ({ default: m.NotificationCenter })));
 
 const PageLoader = () => (
@@ -172,6 +173,7 @@ export function AppRoutingSetup() {
             <Route path={ROUTES.INCIDENT_REPORT} element={<IncidentManagementPage />} />
             <Route element={<RequirePermission module={RBAC_MODULES.REPORTING_CLINICAL} />}>
               <Route path={ROUTES.REPORTING_CLINICAL_INCIDENTS} element={<IncidentManagementReportPage />} />
+              <Route path={`${ROUTES.REPORTING_CLINICAL_PARTICIPANTS}/:id?`} element={<ParticipantsReportPage />} />
             </Route>
 
             <Route element={<RequireAdmin />}>
