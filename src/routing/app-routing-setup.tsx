@@ -49,7 +49,7 @@ const RolesPage = lazy(() => import('@/pages/admin/roles/roles-page').then(m => 
 const ActivityLogPage = lazy(() => import('@/pages/admin/activity-log/activity-log-page').then(m => ({ default: m.ActivityLogPage })));
 const ReportingHubPage = lazy(() => import('@/pages/admin/reporting/reporting-hub-page').then(m => ({ default: m.ReportingHubPage })));
 const IncidentManagementPage = lazy(() => import('@/pages/admin/reporting/incident-management-page').then(m => ({ default: m.IncidentManagementPage })));
-const IncidentManagementReportPage = lazy(() => import('@/pages/admin/reporting/incident-management-report-page').then(m => ({ default: m.IncidentManagementReportPage })));
+const IncidentSummaryReportPage = lazy(() => import('@/pages/admin/reporting/incident-summary-report-page').then(m => ({ default: m.IncidentSummaryReportPage })));
 const ParticipantsReportPage = lazy(() => import('@/pages/admin/reporting/participants-report-page').then(m => ({ default: m.ParticipantsReportPage })));
 const NotificationCenter = lazy(() => import('@/pages/account/notifications/notification-center').then(m => ({ default: m.NotificationCenter })));
 
@@ -171,8 +171,11 @@ export function AppRoutingSetup() {
 
             <Route path={ROUTES.REPORTING} element={<ReportingHubPage />} />
             <Route path={ROUTES.INCIDENT_REPORT} element={<IncidentManagementPage />} />
+            <Route path={`${ROUTES.INCIDENT_REPORT}/new`} element={<IncidentManagementPage />} />
+            <Route path={`${ROUTES.INCIDENT_REPORT}/:idOrRef`} element={<IncidentManagementPage />} />
+            <Route path={`${ROUTES.INCIDENT_REPORT}/:idOrRef/print`} element={<IncidentManagementPage />} />
             <Route element={<RequirePermission module={RBAC_MODULES.REPORTING_CLINICAL} />}>
-              <Route path={ROUTES.REPORTING_CLINICAL_INCIDENTS} element={<IncidentManagementReportPage />} />
+              <Route path={ROUTES.REPORTING_CLINICAL_INCIDENTS} element={<IncidentSummaryReportPage />} />
               <Route path={`${ROUTES.REPORTING_CLINICAL_PARTICIPANTS}/:id?`} element={<ParticipantsReportPage />} />
             </Route>
 

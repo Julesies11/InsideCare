@@ -8,7 +8,7 @@ import {
   SortingState,
   useReactTable,
 } from '@tanstack/react-table';
-import { Search, X } from 'lucide-react';
+import { Search, X, ClipboardList, ShieldAlert, Clock, ArrowRightLeft, CheckCircle2 } from 'lucide-react';
 import { useSearchParams, Link } from 'react-router';
 import { useDebounce } from '@/hooks/use-debounce';
 import { Badge } from '@/components/ui/badge';
@@ -19,21 +19,27 @@ import { DataGridPagination } from '@/components/ui/data-grid-pagination';
 import { DataGridTable } from '@/components/ui/data-grid-table';
 import { DataGrid } from '@/components/ui/data-grid';
 import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { format } from 'date-fns';
 import { ROUTES } from '@/config/routes.config';
 import { useIncidentReports } from '@/hooks/use-incident-reports';
 import { IncidentReport } from '@/models/incident-report';
 import { cn } from '@/lib/utils';
-import { StatusFilter, StatusOption } from '@/components/ui/status-filter';
 import { SecureAvatar } from '@/components/ui/secure-avatar';
 import { STORAGE_BUCKETS } from '@/config/storage-buckets';
+import { supabase } from '@/lib/supabase';
+import { TABLES } from '@/config/db-tables';
+import { useQuery } from '@tanstack/react-query';
+import { QUERY_KEYS } from '@/config/query-keys';
 
-const INCIDENT_STATUS_OPTIONS: StatusOption[] = [
-  { value: 'New', label: 'New', badge: 'warning' },
-  { value: 'Actioned', label: 'Actioned', badge: 'info' },
-  { value: 'Referred', label: 'Referred', badge: 'primary' },
-  { value: 'Closed', label: 'Closed', badge: 'success' },
+type TabKey = 'all' | 'New' | 'Actioned' | 'Referred' | 'Closed';
+
+const TABS: { key: TabKey; label: string; icon: React.ElementType }[] = [
+  { key: 'all',      label: 'All Incidents', icon: ClipboardList },
+  { key: 'New',      label: 'New',           icon: ShieldAlert   },
+  { key: 'Actioned', label: 'Actioned',      icon: Clock         },
+  { key: 'Referred', label: 'Referred',      icon: ArrowRightLeft },
+  { key: 'Closed',   label: 'Closed',        icon: CheckCircle2  },
 ];
 
 interface IncidentListProps {
@@ -60,17 +66,61 @@ export function IncidentList({ onEdit }: IncidentListProps) {
   const [pagination, setPagination] = useState<PaginationState>(getInitialPagination());
   const [sorting, setSorting] = useState<SortingState>(getInitialSorting());
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
-  const [selectedStatuses, setSelectedStatuses] = useState<string[]>(
-    searchParams.get('statuses')?.split(',').filter(Boolean) || []
+  const [activeTab, setActiveTab] = useState<TabKey>(
+    (searchParams.get('tab') as TabKey) || 'all'
   );
 
   const debouncedSearch = useDebounce(searchQuery, 300);
+
+  // Fetch status counts matching the current search criteria
+  const { data: counts } = useQuery({
+    queryKey: [QUERY_KEYS.INCIDENT_REPORTS, 'status-counts', debouncedSearch],
+    queryFn: async () => {
+      const getCountQuery = (status?: string) => {
+        let q = supabase
+          .from(TABLES.INCIDENT_REPORTS)
+          .select('id', { count: 'exact', head: true });
+        
+        if (status) {
+          q = q.eq('admin_status', status);
+        }
+        if (debouncedSearch) {
+          q = q.or(`summary.ilike.%${debouncedSearch}%,details.ilike.%${debouncedSearch}%`);
+        }
+        return q;
+      };
+
+      const [allRes, newRes, actionedRes, referredRes, closedRes] = await Promise.all([
+        getCountQuery(),
+        getCountQuery('New'),
+        getCountQuery('Actioned'),
+        getCountQuery('Referred'),
+        getCountQuery('Closed'),
+      ]);
+
+      return {
+        all: allRes.count || 0,
+        New: newRes.count || 0,
+        Actioned: actionedRes.count || 0,
+        Referred: referredRes.count || 0,
+        Closed: closedRes.count || 0,
+      };
+    },
+  });
+
+  const tabCounts = counts || {
+    all: 0,
+    New: 0,
+    Actioned: 0,
+    Referred: 0,
+    Closed: 0,
+  };
 
   const { data, isLoading } = useIncidentReports({
     pageIndex: pagination.pageIndex,
     pageSize: pagination.pageSize,
     search: debouncedSearch,
-    status: selectedStatuses.length > 0 ? selectedStatuses : undefined,
+    status: activeTab === 'all' ? undefined : activeTab,
     sort: sorting.map(s => ({ id: s.id, desc: s.desc }))
   });
 
@@ -106,18 +156,18 @@ export function IncidentList({ onEdit }: IncidentListProps) {
       params.delete('search');
     }
     
-    // Status Filter
-    if (selectedStatuses.length > 0) {
-      params.set('statuses', selectedStatuses.join(','));
+    // Tab Filter
+    if (activeTab !== 'all') {
+      params.set('tab', activeTab);
     } else {
-      params.delete('statuses');
+      params.delete('tab');
     }
 
     // Update URL immediately without adding to history if changed
     if (params.toString() !== searchParams.toString()) {
       setSearchParams(params, { replace: true });
     }
-  }, [pagination, sorting, searchQuery, selectedStatuses, setSearchParams, searchParams]);
+  }, [pagination, sorting, searchQuery, activeTab, setSearchParams, searchParams]);
 
   const columns = useMemo<ColumnDef<any>[]>(() => [
     {
@@ -138,17 +188,13 @@ export function IncidentList({ onEdit }: IncidentListProps) {
     {
       id: 'incident_date',
       accessorKey: 'incident_date',
-      header: ({ column }) => <DataGridColumnHeader title="Date & Time" column={column} />,
+      header: ({ column }) => <DataGridColumnHeader title="Incident Date" column={column} />,
       size: 160,
-      enablePinning: true,
       cell: ({ row }) => (
-        <button 
-          onClick={() => onEdit(row.original)}
-          className="group flex flex-col text-left hover:underline transition-colors cursor-pointer"
-        >
-          <span className="font-medium text-blue-700 dark:text-blue-400">{format(new Date(row.original.incident_date), 'dd MMM yyyy')}</span>
-          <span className="text-xs text-gray-400 group-hover:text-blue-600 transition-colors">{format(new Date(row.original.incident_date), 'HH:mm')}</span>
-        </button>
+        <div className="flex flex-col text-left text-sm text-mono">
+          <span className="font-normal text-gray-800 dark:text-gray-200">{format(new Date(row.original.incident_date), 'dd MMM yyyy')}</span>
+          <span className="text-xs text-gray-400">{format(new Date(row.original.incident_date), 'HH:mm')}</span>
+        </div>
       ),
     },
     {
@@ -219,17 +265,7 @@ export function IncidentList({ onEdit }: IncidentListProps) {
         </div>
       ),
     },
-    {
-      id: 'summary',
-      accessorKey: 'summary',
-      header: ({ column }) => <DataGridColumnHeader title="Summary" column={column} />,
-      size: 350,
-      cell: ({ row }) => (
-        <div className="max-w-[350px]">
-          <p className="text-sm line-clamp-2 italic text-gray-600 break-words whitespace-normal">"{row.original.summary}"</p>
-        </div>
-      ),
-    },
+
     {
       id: 'severity',
       accessorKey: 'severity',
@@ -249,6 +285,29 @@ export function IncidentList({ onEdit }: IncidentListProps) {
         </Badge>
       ),
     },
+    {
+      id: 'admin_status',
+      accessorKey: 'admin_status',
+      header: ({ column }) => <DataGridColumnHeader title="Status" column={column} />,
+      size: 120,
+      cell: ({ row }) => {
+        const status = row.original.admin_status || 'New';
+        return (
+          <Badge 
+            variant="outline" 
+            className={cn(
+              "text-[10px] uppercase font-bold",
+              status === 'New' ? "border-amber-500 text-amber-500 bg-amber-50" :
+              status === 'Actioned' ? "border-blue-500 text-blue-500 bg-blue-50" :
+              status === 'Referred' ? "border-purple-500 text-purple-500 bg-purple-50" :
+              "border-emerald-500 text-emerald-500 bg-emerald-50"
+            )}
+          >
+            {status}
+          </Badge>
+        );
+      },
+    },
   ], [onEdit]);
 
   const table = useReactTable({
@@ -258,7 +317,7 @@ export function IncidentList({ onEdit }: IncidentListProps) {
     state: { 
       pagination, 
       sorting,
-      columnPinning: { left: ['reference_id', 'incident_date'] }
+      columnPinning: { left: ['reference_id'] }
     },
     onPaginationChange: setPagination,
     onSortingChange: setSorting,
@@ -268,50 +327,79 @@ export function IncidentList({ onEdit }: IncidentListProps) {
   });
 
   return (
-    <Card>
-      <CardHeader className="flex flex-wrap gap-4 py-4">
-        <div className="flex items-center gap-2">
-          <div className="relative">
-            <Search className="size-4 text-muted-foreground absolute start-3 top-1/2 -translate-y-1/2" />
-            <Input
-              placeholder="Search summary/details..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="ps-9 w-64"
-            />
-            {searchQuery && (
-              <Button variant="ghost" mode="icon" className="absolute end-1 top-1/2 -translate-y-1/2 size-6" onClick={() => setSearchQuery('')}>
-                <X className="size-3" />
-              </Button>
-            )}
+    <div className="space-y-6">
+      {/* Tab bar */}
+      <div className="flex items-center gap-1 rounded-xl border p-1 overflow-x-auto bg-muted/40">
+        {TABS.map(({ key, label, icon: Icon }) => (
+          <button
+            key={key}
+            onClick={() => {
+              setActiveTab(key);
+              table.setPageIndex(0);
+            }}
+            className={`group flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex-1 justify-center cursor-pointer ${
+              activeTab === key
+                ? 'bg-background shadow-sm text-foreground'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Icon className="size-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+            <span>{label}</span>
+            <span className={cn(
+              "inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full text-[10px] font-bold transition-all",
+              activeTab === key
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-muted text-muted-foreground group-hover:bg-muted-foreground/15 border border-muted-foreground/10'
+            )}>
+              {tabCounts[key]}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      <Card>
+        <CardHeader className="flex flex-wrap gap-4 py-4">
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <Search className="size-4 text-muted-foreground absolute start-3 top-1/2 -translate-y-1/2" />
+              <Input
+                placeholder="Search summary/details..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="ps-9 w-64"
+              />
+              {searchQuery && (
+                <Button variant="ghost" mode="icon" className="absolute end-1 top-1/2 -translate-y-1/2 size-6" onClick={() => setSearchQuery('')}>
+                  <X className="size-3" />
+                </Button>
+              )}
+            </div>
           </div>
-          <StatusFilter 
-            options={INCIDENT_STATUS_OPTIONS}
-            value={selectedStatuses}
-            onChange={setSelectedStatuses}
-            label="Status"
-          />
-        </div>
-      </CardHeader>
-      <DataGrid 
-        table={table} 
-        recordCount={data?.count || 0} 
-        isLoading={isLoading}
-        tableLayout={{ 
-          width: 'auto',
-          columnsPinnable: true 
-        }}
-      >
-        <CardTable>
-          <ScrollArea className="w-full">
-            <DataGridTable />
-          </ScrollArea>
-        </CardTable>
-        <CardFooter>
-          <DataGridPagination />
-        </CardFooter>
-      </DataGrid>
-    </Card>
+        </CardHeader>
+        <DataGrid 
+          table={table} 
+          recordCount={data?.count || 0} 
+          isLoading={isLoading}
+          tableLayout={{ 
+            width: 'auto',
+            columnsPinnable: true 
+          }}
+          tableClassNames={{
+            base: 'min-w-[1000px]'
+          }}
+        >
+          <CardTable>
+            <ScrollArea className="w-full">
+              <DataGridTable />
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
+          </CardTable>
+          <CardFooter>
+            <DataGridPagination />
+          </CardFooter>
+        </DataGrid>
+      </Card>
+    </div>
   );
 }
 

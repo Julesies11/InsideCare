@@ -83,7 +83,7 @@ export const MENU_SIDEBAR: MenuItemConfig[] = [
     ],
   },
   {
-    title: 'Lodge an Incident',
+    title: 'Incidents',
     icon: ShieldAlert,
     path: ROUTES.INCIDENT_REPORT,
     permission: RBAC_MODULES.REPORTING_CLINICAL,

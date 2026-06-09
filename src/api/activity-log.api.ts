@@ -72,6 +72,8 @@ export const activityLogApi = {
         query = query.or('entity_type.eq.participants,entity_type.eq.participant,entity_type.ilike.participant_%');
       } else if (module === 'houses') {
         query = query.or('entity_type.eq.houses,entity_type.eq.house,entity_type.ilike.house_%');
+      } else if (module === 'incidents') {
+        query = query.or('entity_type.eq.incident_reports,entity_type.eq.incident_report,entity_type.eq.incident');
       } else {
         query = query.eq('entity_type', module);
       }

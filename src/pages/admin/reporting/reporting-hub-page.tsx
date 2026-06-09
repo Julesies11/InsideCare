@@ -183,8 +183,8 @@ export function ReportingHubPage() {
 
   const reports = useMemo(() => [
     {
-      title: 'Incident Management',
-      description: 'Summary of accidents, medical incidents, and restrictive practices.',
+      title: 'Incident Summary Report',
+      description: 'Compare incident counts and trends by type against the previous period.',
       icon: AlertTriangle,
       path: ROUTES.REPORTING_CLINICAL_INCIDENTS,
       category: 'Clinical',

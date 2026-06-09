@@ -129,6 +129,34 @@ export const incidentsApi = {
    * Create a new incident report.
    */
   async create(report: IncidentReportInsert) {
+    let finalReferenceId = report.reference_id;
+
+    if (finalReferenceId) {
+      let isUnique = false;
+      let counter = 1;
+      let candidateId = finalReferenceId;
+
+      while (!isUnique) {
+        // Query to check if the candidate ID exists
+        const { count, error: checkError } = await supabase
+          .from(TABLES.INCIDENT_REPORTS)
+          .select('id', { count: 'exact', head: true })
+          .eq('reference_id', candidateId);
+
+        if (checkError) throw checkError;
+
+        if (count && count > 0) {
+          counter++;
+          candidateId = `${finalReferenceId}-${counter}`;
+        } else {
+          isUnique = true;
+          finalReferenceId = candidateId;
+        }
+      }
+      
+      report.reference_id = finalReferenceId;
+    }
+
     const { data, error } = await supabase
       .from(TABLES.INCIDENT_REPORTS)
       .insert(report)
@@ -169,14 +197,21 @@ export const incidentsApi = {
   },
 
   /**
-   * Get a single incident report by ID.
+   * Get a single incident report by ID or Reference ID.
    */
-  async getById(id: string) {
-    const { data, error } = await supabase
+  async getById(idOrRef: string) {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idOrRef);
+    let query = supabase
       .from(TABLES.INCIDENT_REPORTS)
-      .select(INCIDENT_VIEWS.DETAIL)
-      .eq('id', id)
-      .single();
+      .select(INCIDENT_VIEWS.DETAIL);
+
+    if (isUuid) {
+      query = query.eq('id', idOrRef);
+    } else {
+      query = query.eq('reference_id', idOrRef);
+    }
+
+    const { data, error } = await query.single();
 
     if (error) throw error;
     return data as (IncidentReport & { 
