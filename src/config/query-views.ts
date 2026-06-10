@@ -224,7 +224,12 @@ export const STAFF_VIEWS = {
   /**
    * View for staff compliance records.
    */
-  COMPLIANCE: 'id, staff_id, compliance_type_id, compliance_name, completion_date, expiry_date, status, created_at, updated_at',
+  COMPLIANCE: `
+    id, staff_id, compliance_type_id, compliance_name, completion_date, expiry_date, status, created_at, updated_at,
+    verified_documents:${TABLES.STAFF_COMPLIANCE_DOCUMENTS}!staff_compliance_id(
+      id, document_type, document_number, expiry_date, file_name, file_path, points, comments
+    )
+  `,
 
   /**
    * View for staff training records.
@@ -335,7 +340,16 @@ export const HOUSE_VIEWS = {
    */
   COMPLIANCE: `
     id, house_id, compliance_type_id,
-    compliance_type:${TABLES.COMPLIANCE_TYPES_MASTER}!compliance_type_id(id, name, description, is_active, is_default_global)
+    compliance_type:${TABLES.COMPLIANCE_TYPES_MASTER}!compliance_type_id(
+      id, 
+      compliance_name, 
+      description, 
+      is_active, 
+      attachment_applicable,
+      expiry_date_applicable,
+      document_number_applicable,
+      comments_applicable
+    )
   `,
 } as const;
 
@@ -642,7 +656,7 @@ export const MASTER_LIST_VIEWS = {
   /**
    * View for compliance types.
    */
-  COMPLIANCE_TYPES: 'id, name, description, is_active, is_default_global, created_at, updated_at',
+  COMPLIANCE_TYPES: 'id, compliance_name, description, is_active, attachment_applicable, expiry_date_applicable, document_number_applicable, comments_applicable, created_at, updated_at',
 } as const;
 
 export const CALENDAR_VIEWS = {

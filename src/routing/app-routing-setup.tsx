@@ -45,12 +45,14 @@ const StaffChecklists = lazy(() => import('@/pages/staff').then(m => ({ default:
 const ChecklistMasterPage = lazy(() => import('@/pages/admin/checklists/checklist-master-page').then(m => ({ default: m.ChecklistMasterPage })));
 const LeaveTypeMasterPage = lazy(() => import('@/pages/admin/leave-types/leave-type-master-page').then(m => ({ default: m.LeaveTypeMasterPage })));
 const ComplianceSettingsPage = lazy(() => import('@/pages/admin/compliance-settings/compliance-settings-page').then(m => ({ default: m.ComplianceSettingsPage })));
+const ComplianceMonitoringPage = lazy(() => import('@/pages/admin/compliance-monitoring/compliance-monitoring-page').then(m => ({ default: m.ComplianceMonitoringPage })));
 const RolesPage = lazy(() => import('@/pages/admin/roles/roles-page').then(m => ({ default: m.RolesPage })));
 const ActivityLogPage = lazy(() => import('@/pages/admin/activity-log/activity-log-page').then(m => ({ default: m.ActivityLogPage })));
 const ReportingHubPage = lazy(() => import('@/pages/admin/reporting/reporting-hub-page').then(m => ({ default: m.ReportingHubPage })));
 const IncidentManagementPage = lazy(() => import('@/pages/admin/reporting/incident-management-page').then(m => ({ default: m.IncidentManagementPage })));
 const IncidentSummaryReportPage = lazy(() => import('@/pages/admin/reporting/incident-summary-report-page').then(m => ({ default: m.IncidentSummaryReportPage })));
 const ParticipantsReportPage = lazy(() => import('@/pages/admin/reporting/participants-report-page').then(m => ({ default: m.ParticipantsReportPage })));
+const ComplianceReportPage = lazy(() => import('@/pages/admin/reporting/compliance-report-page').then(m => ({ default: m.ComplianceReportPage })));
 const NotificationCenter = lazy(() => import('@/pages/account/notifications/notification-center').then(m => ({ default: m.NotificationCenter })));
 
 const PageLoader = () => (
@@ -177,6 +179,7 @@ export function AppRoutingSetup() {
             <Route element={<RequirePermission module={RBAC_MODULES.REPORTING_CLINICAL} />}>
               <Route path={ROUTES.REPORTING_CLINICAL_INCIDENTS} element={<IncidentSummaryReportPage />} />
               <Route path={`${ROUTES.REPORTING_CLINICAL_PARTICIPANTS}/:id?`} element={<ParticipantsReportPage />} />
+              <Route path={ROUTES.REPORT_COMPLIANCE} element={<ComplianceReportPage />} />
             </Route>
 
             <Route element={<RequireAdmin />}>
@@ -192,6 +195,10 @@ export function AppRoutingSetup() {
                 <Route
                   path={ROUTES.COMPLIANCE_SETTINGS}
                   element={<ComplianceSettingsPage />}
+                />
+                <Route
+                  path={ROUTES.COMPLIANCE_MONITORING}
+                  element={<ComplianceMonitoringPage />}
                 />
               </Route>
               <Route

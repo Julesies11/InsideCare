@@ -134,6 +134,7 @@ export function StaffDetailForm({
           canEdit={canEditCompliance}
           pendingChanges={pendingChanges}
           onPendingChangesChange={onPendingChangesChange}
+          staffName={staffName}
         />
       )}
 

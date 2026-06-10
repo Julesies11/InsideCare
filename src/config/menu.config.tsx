@@ -10,7 +10,8 @@ import {
   Activity,
   UserCheck,
   BarChart3,
-  ShieldAlert
+  ShieldAlert,
+  ShieldCheck
 } from 'lucide-react';
 import { MenuItemConfig } from '@/layouts/demo1/sidebar/SidebarMenu';
 import { RBAC_MODULES } from './rbac-modules';
@@ -143,6 +144,15 @@ export const MENU_SIDEBAR: MenuItemConfig[] = [
     icon: BarChart3,
     path: ROUTES.REPORTING,
     permission: [RBAC_MODULES.REPORTING_CLINICAL, RBAC_MODULES.REPORTING_OPERATIONAL, RBAC_MODULES.REPORTING_COMPLIANCE],
+  },
+  {
+    title: 'Compliance',
+    icon: ShieldCheck,
+    permission: RBAC_MODULES.MASTER_LISTS,
+    children: [
+      { title: 'Compliance Monitoring', path: ROUTES.COMPLIANCE_MONITORING, permission: RBAC_MODULES.MASTER_LISTS },
+      { title: 'Compliance Settings', path: ROUTES.COMPLIANCE_SETTINGS, permission: RBAC_MODULES.MASTER_LISTS },
+    ],
   },
   {
     title: 'Activity Log',

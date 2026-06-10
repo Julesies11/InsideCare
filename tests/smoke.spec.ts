@@ -81,7 +81,10 @@ const ADMIN_PAGES = [
   '/shift-setup',
   '/activity-log',
   '/admin/leave-types',
+  '/admin/compliance-monitoring',
+  '/admin/compliance-settings',
   '/reporting',
+  '/admin/reporting/compliance',
   '/reporting/clinical/incidents',
 ];
 

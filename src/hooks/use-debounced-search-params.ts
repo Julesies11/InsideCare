@@ -1,4 +1,4 @@
-import { useSearchParams } from 'react-router';
+import { useSearchParams } from 'react-router-dom';
 import { useCallback, useRef, useEffect } from 'react';
 
 /**

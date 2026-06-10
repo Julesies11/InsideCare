@@ -9,8 +9,8 @@ import { SettingsProvider } from '@/providers/settings-provider';
 vi.mock('@/hooks/use-staff', () => ({
   useComplianceTypes: vi.fn().mockReturnValue({
     types: [
-      { id: '1', compliance_name: 'NDIS Screen Check', description: 'NDIS Screen', is_active: true, is_default_global: true },
-      { id: '2', compliance_name: 'Drivers License', description: 'Valid Drivers License', is_active: true, is_default_global: false },
+      { id: '1', compliance_name: 'NDIS Screen Check', description: 'NDIS Screen', is_active: true },
+      { id: '2', compliance_name: 'Drivers License', description: 'Valid Drivers License', is_active: true },
     ],
     isLoading: false,
     refetch: vi.fn(),
@@ -19,6 +19,20 @@ vi.mock('@/hooks/use-staff', () => ({
     mutateAsync: vi.fn(),
   }),
   useUpdateComplianceType: vi.fn().mockReturnValue({
+    mutateAsync: vi.fn(),
+  }),
+  useIDDocumentTypes: vi.fn().mockReturnValue({
+    idDocumentTypes: [],
+    isLoading: false,
+    refetch: vi.fn(),
+  }),
+  useAddIDDocumentType: vi.fn().mockReturnValue({
+    mutateAsync: vi.fn(),
+  }),
+  useUpdateIDDocumentType: vi.fn().mockReturnValue({
+    mutateAsync: vi.fn(),
+  }),
+  useDeleteIDDocumentType: vi.fn().mockReturnValue({
     mutateAsync: vi.fn(),
   }),
 }));
@@ -44,8 +58,8 @@ describe('ComplianceSettingsPage Smoke Test', () => {
     );
 
     // Check for page title/header
-    expect(screen.getByText('Compliance Configuration')).toBeInTheDocument();
-    expect(screen.getByText('Manage the master list of staff compliance checks and set global defaults.')).toBeInTheDocument();
+    expect(screen.getByText('Compliance Settings')).toBeInTheDocument();
+    expect(screen.getByText('Manage the master list of mandatory and optional compliance checks.')).toBeInTheDocument();
     expect(screen.getByText('NDIS Screen Check')).toBeInTheDocument();
     expect(screen.getByText('Drivers License')).toBeInTheDocument();
   });

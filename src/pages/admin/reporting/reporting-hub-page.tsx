@@ -249,10 +249,10 @@ export function ReportingHubPage() {
       title: 'Compliance Audit',
       description: 'Tracking of staff certifications, checks, and document expiries.',
       icon: ShieldCheck,
-      path: '/reporting/compliance/audit',
+      path: ROUTES.REPORT_COMPLIANCE,
       category: 'Compliance',
-      permission: RBAC_MODULES.REPORTING_COMPLIANCE,
-      implemented: false,
+      permission: RBAC_MODULES.REPORTING_CLINICAL,
+      implemented: true,
     },
     {
       title: 'Activity Insights',

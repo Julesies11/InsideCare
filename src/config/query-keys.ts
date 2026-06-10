@@ -46,6 +46,7 @@ export const QUERY_KEYS = {
   RESTRICTIVE_PRACTICE_TYPES_MASTER: 'restrictive-practice-types-master',
   COMPLIANCE_TYPES_MASTER: 'compliance-types-master',
   HOUSE_COMPLIANCE_REQUIREMENTS: 'house-compliance-requirements',
+  ID_DOCUMENT_TYPES: 'id-document-types',
 
   // Sub-entities
   STAFF_COMPLIANCE: 'staff-compliance',
