@@ -15,7 +15,9 @@ const mockSupabaseQuery = {
       staff_name: 'John Staff', 
       email: 'john@example.com',
       role: { id: 'role-1', role_name: 'Staff' },
-      department_info: { id: 'dept-1', department_name: 'Care' }
+      department_info: { id: 'dept-1', department_name: 'Care' },
+      photo_url: null,
+      house_assignments: []
     }, 
     error: null 
   })),

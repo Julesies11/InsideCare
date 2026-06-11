@@ -209,12 +209,7 @@ export const STAFF_VIEWS = {
     emergency_contact_name, emergency_contact_phone, department_id, 
     employment_type_id, manager_id, hire_date, separation_date, 
     availability, notes, branch_id, role_id, status, auth_user_id, created_by, updated_by, created_at, updated_at, 
-    ndis_worker_screening_check, ndis_worker_screening_check_expiry, 
-    ndis_orientation_module, ndis_orientation_module_expiry, 
-    ndis_code_of_conduct, ndis_code_of_conduct_expiry, 
-    ndis_infection_control_training, ndis_infection_control_training_expiry, 
-    drivers_license, drivers_license_expiry, comprehensive_car_insurance, 
-    comprehensive_car_insurance_expiry, photo_url,
+    photo_url,
     department_info:${TABLES.DEPARTMENTS}!department_id(id, department_name),
     employment_type_info:${TABLES.EMPLOYMENT_TYPES_MASTER}!employment_type_id(id, employment_type_name),
     role:${TABLES.ROLES}!role_id(id, role_name, description),
@@ -225,7 +220,8 @@ export const STAFF_VIEWS = {
    * View for staff compliance records.
    */
   COMPLIANCE: `
-    id, staff_id, compliance_type_id, compliance_name, completion_date, expiry_date, status, created_at, updated_at,
+    id, staff_id, compliance_type_id, completion_date, expiry_date, status, created_at, updated_at,
+    compliance_type:${TABLES.COMPLIANCE_TYPES_MASTER}!compliance_type_id(compliance_name),
     verified_documents:${TABLES.STAFF_COMPLIANCE_DOCUMENTS}!staff_compliance_id(
       id, document_type, document_number, expiry_date, file_name, file_path, points, comments
     )
