@@ -165,6 +165,15 @@ export function StaffDetailContent({
     requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE,
   });
 
+  const canViewQualifications = hasAccess({
+    resource: RBAC_MODULES.STAFF_QUALIFICATIONS,
+    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY,
+  });
+  const canEditQualifications = hasAccess({
+    resource: RBAC_MODULES.STAFF_QUALIFICATIONS,
+    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE,
+  });
+
   const canViewDocuments = hasAccess({
     resource: RBAC_MODULES.STAFF_DOCUMENTS,
     requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY,
@@ -297,6 +306,7 @@ export function StaffDetailContent({
     onboarding: 0,
     resources: 0,
     training: 0,
+    qualifications: 0,
     activityLog: 0,
   });
 
@@ -492,10 +502,10 @@ export function StaffDetailContent({
         queryKey: [QUERY_KEYS.STAFF_TRAINING, staffId],
       });
       queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.STAFF_DOCUMENTS, staffId],
+        queryKey: [QUERY_KEYS.STAFF_QUALIFICATIONS, staffId],
       });
       queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.STAFF_ONBOARDING, staffId],
+        queryKey: [QUERY_KEYS.STAFF_DOCUMENTS, staffId],
       });
 
       setRefreshKeys((prev) => ({
@@ -503,6 +513,7 @@ export function StaffDetailContent({
         onboarding: prev.onboarding + 1,
         resources: prev.resources + 1,
         training: prev.training + 1,
+        qualifications: prev.qualifications + 1,
         activityLog: prev.activityLog + 1,
       }));
 
@@ -601,6 +612,7 @@ export function StaffDetailContent({
           canEditEmergency={canEditEmergency}
           canEditCompliance={canEditCompliance}
           canEditTraining={canEditTraining}
+          canEditQualifications={canEditQualifications}
           canEditDocuments={canEditDocuments}
           canDeleteDocuments={canDeleteDocuments}
           canEditRoster={canEditRoster}
@@ -612,6 +624,7 @@ export function StaffDetailContent({
           canViewEmergency={canViewEmergency}
           canViewCompliance={canViewCompliance}
           canViewTraining={canViewTraining}
+          canViewQualifications={canViewQualifications}
           canViewDocuments={canViewDocuments}
           canViewRoster={canViewRoster}
           canViewLeave={canViewLeave}
@@ -624,6 +637,7 @@ export function StaffDetailContent({
           staffName={staffMember!.staff_name}
           documentsRefreshKey={refreshKeys.resources}
           trainingRefreshKey={refreshKeys.training}
+          qualificationsRefreshKey={refreshKeys.qualifications}
         />
       </div>
     </div>

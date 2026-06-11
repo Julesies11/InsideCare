@@ -40,6 +40,8 @@ describe('useDirtyTracker', () => {
       },
       documents: { toAdd: [], toDelete: [] },
       staffCompliance: { toAdd: [], toUpdate: [], toDelete: [] },
+      qualifications: { toAdd: [], toUpdate: [], toDelete: [] },
+      onboarding: { toUpsert: [], toDelete: [] },
     };
 
     const { result } = renderHook(() =>

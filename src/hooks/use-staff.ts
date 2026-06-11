@@ -11,6 +11,7 @@ import {
   StaffSort,
   StaffStatus,
   StaffTraining,
+  StaffQualification,
   StaffUpdateData,
 } from '@/api/staff.api';
 import { Database } from '@/models/database.types';
@@ -23,6 +24,7 @@ export type {
   StaffStatus,
   StaffCompliance,
   StaffTraining,
+  StaffQualification,
   StaffUpdateData,
   StaffFilter,
   StaffSort,
@@ -341,6 +343,21 @@ export function useStaffTraining(staffId?: string) {
   };
 }
 
+export function useStaffQualifications(staffId?: string) {
+  const query = useQuery({
+    queryKey: [QUERY_KEYS.STAFF_QUALIFICATIONS, staffId],
+    queryFn: () => staffApi.getQualifications(staffId),
+  });
+
+  return {
+    ...query,
+    qualifications: query.data || [],
+    loading: query.isLoading,
+    error: query.error ? (query.error as any).message : null,
+    refresh: query.refetch,
+  };
+}
+
 export function useStaffCount(filters: StaffFilter = {}) {
   const query = useQuery({
     queryKey: ['staff-count', { filters }],
@@ -565,7 +582,7 @@ export function useUpdateOnboardingItemMaster() {
       updates: Partial<
         Database['public']['Tables']['ic_onboarding_items_master']['Update']
       >;
-    }) => onboardingApi.master.upsert({ id, ...updates }),
+    }) => onboardingApi.master.update(id, updates),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.ONBOARDING_ITEMS_MASTER],

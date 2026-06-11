@@ -228,6 +228,60 @@ export const staffDetailsApi = {
   },
 
   /**
+   * Qualifications
+   */
+  qualifications: {
+    async list(staffId: string) {
+      const { data, error } = await supabase
+        .from(TABLES.STAFF_QUALIFICATIONS)
+        .select(STAFF_VIEWS.QUALIFICATIONS)
+        .eq('staff_id', staffId)
+        .order('date_completed', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    },
+
+    async upsert(
+      records:
+        | Database['public']['Tables']['ic_staff_qualifications']['Insert']
+        | Database['public']['Tables']['ic_staff_qualifications']['Insert'][],
+    ) {
+      const payload = Array.isArray(records) ? records : [records];
+      const { data, error } = await supabase
+        .from(TABLES.STAFF_QUALIFICATIONS)
+        .upsert(payload)
+        .select(STAFF_VIEWS.QUALIFICATIONS);
+
+      if (error) throw error;
+      return data;
+    },
+
+    async delete(id: string) {
+      const { error } = await supabase
+        .from(TABLES.STAFF_QUALIFICATIONS)
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      return true;
+    },
+
+    async uploadDocument(staffId: string, file: File) {
+      const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+      const filePath = `${staffId}/qualifications/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from(STORAGE_BUCKETS.STAFF_DOCUMENTS)
+        .upload(filePath, file, { cacheControl: '3600', upsert: false });
+
+      if (uploadError)
+        throw new Error(`Storage upload failed: ${uploadError.message}`);
+      return { fileName: file.name, filePath };
+    },
+  },
+
+  /**
    * Onboarding
    */
   onboarding: {
@@ -671,6 +725,104 @@ export const staffDetailsApi = {
           .delete()
           .eq('id', d.id);
         if (error) errors.push(`Training Delete ${d.id}: ${error.message}`);
+      }
+    }
+
+    // 4. Process Qualifications
+    if (pending?.qualifications?.toAdd?.length > 0) {
+      for (const q of pending.qualifications.toAdd) {
+        let fileName = q.fileName || null;
+        let filePath = q.filePath || null;
+
+        if (q.file) {
+          try {
+            const upload = await this.qualifications.uploadDocument(
+              staffId,
+              q.file,
+            );
+            fileName = upload.fileName;
+            filePath = upload.filePath;
+          } catch (e: any) {
+            errors.push(`Qualification File Upload (${q.title}): ${e.message}`);
+            continue;
+          }
+        }
+
+        const { error } = await supabase
+          .from(TABLES.STAFF_QUALIFICATIONS)
+          .insert({
+            staff_id: staffId,
+            title: q.title,
+            institution: q.institution,
+            date_completed: normalizeDate(q.date_completed),
+            expiry_date: normalizeDate(q.expiry_date),
+            file_name: fileName,
+            file_path: filePath,
+          });
+        if (error) errors.push(`Qualification Add: ${error.message}`);
+      }
+    }
+
+    if (pending?.qualifications?.toUpdate?.length > 0) {
+      for (const q of pending.qualifications.toUpdate) {
+        let fileName = q.fileName || (q as any).file_name || null;
+        let filePath = q.filePath || (q as any).file_path || null;
+
+        if (q.file) {
+          try {
+            if (q.filePath || (q as any).file_path) {
+              await supabase.storage
+                .from(STORAGE_BUCKETS.STAFF_DOCUMENTS)
+                .remove([q.filePath || (q as any).file_path]);
+            }
+            const upload = await this.qualifications.uploadDocument(
+              staffId,
+              q.file,
+            );
+            fileName = upload.fileName;
+            filePath = upload.filePath;
+          } catch (e: any) {
+            errors.push(`Qualification File Update (${q.title}): ${e.message}`);
+          }
+        } else if (q.file === null) {
+          if (q.filePath || (q as any).file_path) {
+            await supabase.storage
+              .from(STORAGE_BUCKETS.STAFF_DOCUMENTS)
+              .remove([q.filePath || (q as any).file_path]);
+          }
+          fileName = null;
+          filePath = null;
+        }
+
+        const { error } = await supabase
+          .from(TABLES.STAFF_QUALIFICATIONS)
+          .update({
+            title: q.title,
+            institution: q.institution,
+            date_completed: normalizeDate(q.date_completed),
+            expiry_date: normalizeDate(q.expiry_date),
+            file_name: fileName,
+            file_path: filePath,
+          })
+          .eq('id', q.id);
+        if (error)
+          errors.push(`Qualification Update ${q.id}: ${error.message}`);
+      }
+    }
+
+    if (pending?.qualifications?.toDelete?.length > 0) {
+      for (const d of pending.qualifications.toDelete) {
+        if (d.filePath) {
+          await supabase.storage
+            .from(STORAGE_BUCKETS.STAFF_DOCUMENTS)
+            .remove([d.filePath]);
+        }
+        const { error } = await supabase
+          .from(TABLES.STAFF_QUALIFICATIONS)
+          .delete()
+          .eq('id', d.id);
+        if (error)
+          errors.push(`Qualification Delete ${d.id}: ${error.message}`);
       }
     }
 

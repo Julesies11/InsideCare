@@ -10,6 +10,8 @@ export type StaffCompliance =
   Database['public']['Tables']['ic_staff_compliance']['Row'];
 export type StaffTraining =
   Database['public']['Tables']['ic_staff_training']['Row'];
+export type StaffQualification =
+  Database['public']['Tables']['ic_staff_qualifications']['Row'];
 
 export interface StaffUpdateData extends Partial<
   Omit<
@@ -420,6 +422,24 @@ export const staffApi = {
     let query = supabase
       .from(TABLES.STAFF_TRAINING)
       .select(STAFF_VIEWS.TRAINING)
+      .order('created_at', { ascending: false });
+
+    if (staffId) {
+      query = query.eq('staff_id', staffId);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return data || [];
+  },
+
+  /**
+   * Fetches qualification records for a staff member.
+   */
+  async getQualifications(staffId?: string) {
+    let query = supabase
+      .from(TABLES.STAFF_QUALIFICATIONS)
+      .select(STAFF_VIEWS.QUALIFICATIONS)
       .order('created_at', { ascending: false });
 
     if (staffId) {

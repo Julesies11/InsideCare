@@ -45,6 +45,7 @@ export const TABLES = {
   STAFF_COMPLIANCE: 'ic_staff_compliance',
   STAFF_COMPLIANCE_DOCUMENTS: 'ic_staff_compliance_documents',
   STAFF_TRAINING: 'ic_staff_training',
+  STAFF_QUALIFICATIONS: 'ic_staff_qualifications',
   STAFF_DOCUMENTS: 'ic_staff_documents',
   STAFF_DOCUMENT_ROLES: 'ic_staff_document_roles',
   STAFF_ONBOARDING: 'ic_staff_onboarding',

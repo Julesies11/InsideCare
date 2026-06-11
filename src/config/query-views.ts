@@ -234,6 +234,12 @@ export const STAFF_VIEWS = {
     'id, staff_id, title, category, description, provider, date_completed, expiry_date, file_path, created_at, updated_at',
 
   /**
+   * View for staff qualifications records.
+   */
+  QUALIFICATIONS:
+    'id, staff_id, title, institution, date_completed, expiry_date, file_name, file_path, created_at, updated_at',
+
+  /**
    * View for staff documents.
    */
   DOCUMENTS: `

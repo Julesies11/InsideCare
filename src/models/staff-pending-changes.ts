@@ -34,6 +34,18 @@ export interface PendingStaffTraining {
   filePath?: string;
 }
 
+export interface PendingStaffQualification {
+  tempId?: string;
+  id?: string;
+  title: string;
+  institution?: string | null;
+  date_completed?: string | null;
+  expiry_date?: string | null;
+  file?: File;
+  fileName?: string;
+  filePath?: string;
+}
+
 export interface PendingStaffOnboarding {
   id?: string;
   onboarding_item_id: string;
@@ -72,6 +84,11 @@ export interface StaffPendingChanges {
     toUpdate: PendingStaffTraining[];
     toDelete: Array<{ id: string; filePath?: string; fileName?: string }>;
   };
+  qualifications: {
+    toAdd: PendingStaffQualification[];
+    toUpdate: PendingStaffQualification[];
+    toDelete: Array<{ id: string; filePath?: string; fileName?: string }>;
+  };
 }
 
 export const emptyStaffPendingChanges: StaffPendingChanges = {
@@ -93,6 +110,11 @@ export const emptyStaffPendingChanges: StaffPendingChanges = {
     toUpdate: [],
     toDelete: [],
   },
+  qualifications: {
+    toAdd: [],
+    toUpdate: [],
+    toDelete: [],
+  },
 };
 
 // Helper to check if there are any pending changes for staff
@@ -107,7 +129,10 @@ export function hasStaffPendingChanges(pending: StaffPendingChanges): boolean {
     pending.onboarding.toDelete.length > 0 ||
     pending.training.toAdd.length > 0 ||
     pending.training.toUpdate.length > 0 ||
-    pending.training.toDelete.length > 0
+    pending.training.toDelete.length > 0 ||
+    pending.qualifications.toAdd.length > 0 ||
+    pending.qualifications.toUpdate.length > 0 ||
+    pending.qualifications.toDelete.length > 0
   );
 }
 
@@ -123,6 +148,9 @@ export function countStaffPendingChanges(pending: StaffPendingChanges): number {
     pending.onboarding.toDelete.length +
     pending.training.toAdd.length +
     pending.training.toUpdate.length +
-    pending.training.toDelete.length
+    pending.training.toDelete.length +
+    pending.qualifications.toAdd.length +
+    pending.qualifications.toUpdate.length +
+    pending.qualifications.toDelete.length
   );
 }

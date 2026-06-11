@@ -50,6 +50,22 @@ export const onboardingApi = {
       return data;
     },
 
+    async update(
+      id: string,
+      updates: Partial<
+        Database['public']['Tables']['ic_onboarding_items_master']['Update']
+      >,
+    ) {
+      const { data, error } = await supabase
+        .from(TABLES.ONBOARDING_ITEMS_MASTER)
+        .update(updates)
+        .eq('id', id)
+        .select();
+
+      if (error) throw error;
+      return data;
+    },
+
     async delete(id: string) {
       const { error } = await supabase
         .from(TABLES.ONBOARDING_ITEMS_MASTER)

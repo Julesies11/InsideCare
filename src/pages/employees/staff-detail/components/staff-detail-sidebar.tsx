@@ -67,6 +67,14 @@ export function StaffDetailSidebar() {
       }),
     },
     {
+      title: 'Qualifications',
+      target: 'staff_qualifications',
+      hidden: !hasAccess({
+        resource: RBAC_MODULES.STAFF_QUALIFICATIONS,
+        requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY,
+      }),
+    },
+    {
       title: 'Documents',
       target: 'staff_documents',
       hidden: !hasAccess({

@@ -32,6 +32,7 @@ export const RBAC_MODULES = {
   STAFF_EMERGENCY: 'staff_emergency',
   STAFF_COMPLIANCE: 'staff_compliance',
   STAFF_TRAINING: 'staff_training',
+  STAFF_QUALIFICATIONS: 'staff_qualifications',
   STAFF_DOCUMENTS: 'staff_documents',
   STAFF_ONBOARDING: 'staff_onboarding',
   STAFF_ROSTER: 'staff_roster',
