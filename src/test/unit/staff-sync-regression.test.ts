@@ -13,7 +13,9 @@ vi.mock('@/lib/supabase', () => ({
 // Helper to create a mock query chain
 const createMockQuery = (error: any = null) => {
   const query: any = {
-    insert: vi.fn().mockResolvedValue({ error }),
+    insert: vi.fn().mockReturnThis(),
+    upsert: vi.fn().mockReturnThis(),
+    select: vi.fn().mockResolvedValue({ data: [{ id: 'rec-1' }], error }),
     update: vi.fn().mockReturnThis(),
     eq: vi.fn().mockResolvedValue({ error }),
     delete: vi.fn().mockReturnThis(),
@@ -52,7 +54,6 @@ describe('staffDetailsApi.syncDetails Regression Test', () => {
     // Verify Training Add normalization
     expect(supabase.from).toHaveBeenCalledWith(TABLES.STAFF_TRAINING);
     const insertCall = mockQuery.insert.mock.calls[0][0];
-    // It's now a single object in a loop, not an array
     expect(insertCall.date_completed).toBeNull();
     expect(insertCall.expiry_date).toBeNull();
   });
@@ -66,6 +67,7 @@ describe('staffDetailsApi.syncDetails Regression Test', () => {
       staffCompliance: {
         toAdd: [
           {
+            compliance_type_id: 'type-1',
             compliance_name: 'Empty Date Compliance',
             status: 'Current',
             expiry_date: '', // Empty string that caused the error
@@ -80,9 +82,8 @@ describe('staffDetailsApi.syncDetails Regression Test', () => {
 
     // Verify Compliance Add normalization
     expect(supabase.from).toHaveBeenCalledWith(TABLES.STAFF_COMPLIANCE);
-    const insertCall = mockQuery.insert.mock.calls[0][0];
-    // Compliance is still bulk-inserted as an array
-    expect(insertCall[0].expiry_date).toBeNull();
+    const upsertCall = mockQuery.upsert.mock.calls[0][0];
+    expect(upsertCall.expiry_date).toBeNull();
   });
 
   it('should preserve valid date strings', async () => {

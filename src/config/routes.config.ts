@@ -49,6 +49,7 @@ export const ROUTES = {
   REPORTING_CLINICAL_INCIDENTS: '/reporting/clinical/incidents',
   REPORTING_CLINICAL_PARTICIPANTS: '/reporting/clinical/participants',
   REPORT_COMPLIANCE: '/reporting/compliance',
+  REPORT_ONBOARDING: '/reporting/onboarding',
 
   // Account & Settings
   ACCOUNT: '/account',
@@ -62,7 +63,9 @@ export const ROUTES = {
   CHECKLIST_TEMPLATES: '/checklist-templates',
   LEAVE_TYPES: '/admin/leave-types',
   COMPLIANCE_SETTINGS: '/admin/compliance-settings',
+  ONBOARDING_SETTINGS: '/admin/onboarding-settings',
   COMPLIANCE_MONITORING: '/admin/compliance-monitoring',
+  ONBOARDING_MONITORING: '/admin/onboarding-monitoring',
   ACTIVITY_LOG: '/activity-log',
 
   // Staff Portal Extras

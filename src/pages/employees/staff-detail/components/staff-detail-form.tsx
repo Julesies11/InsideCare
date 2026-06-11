@@ -1,11 +1,14 @@
 import { StaffPendingChanges } from '@/models/staff-pending-changes';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { RBAC_MODULES } from '@/config/rbac-modules';
+import { ACCESS_LEVEL, useRBAC } from '@/hooks/useRBAC';
 import { Documents } from './documents';
 import { EmergencyContact } from './emergency-contact';
 import { EmploymentDetails } from './employment-details';
 import { PersonalDetails } from './personal-details';
 import { StaffActivityLog } from './staff-activity-log';
 import { StaffAvailability } from './staff-availability';
+import { StaffOnboardingSection } from './staff-onboarding';
 import { StaffComplianceSection } from './staff-compliance';
 import { StaffRoster } from './staff-roster';
 import { StaffTrainingSection } from './staff-training';
@@ -78,6 +81,17 @@ export function StaffDetailForm({
   documentsRefreshKey = 0,
   trainingRefreshKey = 0,
 }: StaffDetailFormProps) {
+  const { hasAccess } = useRBAC();
+
+  const canViewOnboarding = hasAccess({
+    resource: RBAC_MODULES.STAFF_ONBOARDING,
+    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY,
+  });
+  const canEditOnboarding = hasAccess({
+    resource: RBAC_MODULES.STAFF_ONBOARDING,
+    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE,
+  });
+
   const handleFormChange = (field: string, value: any) => {
     onFormDataChange({
       ...formData,
@@ -106,6 +120,16 @@ export function StaffDetailForm({
           canEdit={canEditEmployment}
           validationErrors={validationErrors}
           currentStaffId={staffId}
+        />
+      )}
+
+      {/* 3. Onboarding */}
+      {canViewOnboarding && (
+        <StaffOnboardingSection
+          staffId={staffId}
+          canEdit={canEditOnboarding}
+          pendingChanges={pendingChanges}
+          onPendingChangesChange={onPendingChangesChange}
         />
       )}
 

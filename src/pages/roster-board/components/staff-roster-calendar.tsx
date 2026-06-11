@@ -2,7 +2,7 @@ import { forwardRef, useImperativeHandle, useMemo, useState } from 'react';
 import { rosterApi } from '@/api/roster.api';
 import { useQueryClient } from '@tanstack/react-query';
 import { addDays, format, parseISO } from 'date-fns';
-import { useLocation, useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ROUTES } from '@/config/routes.config';
 import { useHouseShiftTemplates } from '@/hooks/use-house-shift-templates';

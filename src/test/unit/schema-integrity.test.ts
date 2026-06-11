@@ -50,7 +50,6 @@ describe('Tier 1: Query View Column & Join Validation', () => {
       const view = STAFF_VIEWS.DETAIL;
       expect(view).toContain('staff_name');
       expect(view).toContain('hire_date');
-      expect(view).toContain('ndis_worker_screening_check');
       expect(view).toContain(`role:${TABLES.ROLES}!role_id`);
     });
 

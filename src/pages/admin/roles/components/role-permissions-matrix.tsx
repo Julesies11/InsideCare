@@ -140,6 +140,7 @@ const GROUPS: GroupConfig[] = [
         isChild: true,
       },
       { id: RBAC_MODULES.STAFF_COMPLIANCE, label: 'Compliance', isChild: true },
+      { id: RBAC_MODULES.STAFF_ONBOARDING, label: 'Onboarding', isChild: true },
       { id: RBAC_MODULES.STAFF_TRAINING, label: 'Training', isChild: true },
       { id: RBAC_MODULES.STAFF_DOCUMENTS, label: 'Documents', isChild: true },
       {
@@ -207,6 +208,14 @@ const GROUPS: GroupConfig[] = [
     modules: [
       { id: RBAC_MODULES.ACCESS_CONTROL, label: 'Access Control' },
       { id: RBAC_MODULES.MASTER_LISTS, label: 'Master Lists' },
+      {
+        id: RBAC_MODULES.ADMIN_COMPLIANCE,
+        label: 'Compliance Administration',
+      },
+      {
+        id: RBAC_MODULES.ADMIN_ONBOARDING,
+        label: 'Onboarding Administration',
+      },
       { id: RBAC_MODULES.INCIDENT_MANAGEMENT, label: 'Incident Management' },
       { id: RBAC_MODULES.ACTIVITY_LOG, label: 'System Activity Log' },
       { label: 'Reporting', isLabelOnly: true },
@@ -248,6 +257,8 @@ export const getContextDescription = (
 
   const isManagement = [
     RBAC_MODULES.EMPLOYEES,
+    RBAC_MODULES.STAFF_ONBOARDING,
+    RBAC_MODULES.STAFF_COMPLIANCE,
     RBAC_MODULES.TIMESHEETS,
     RBAC_MODULES.LEAVE_REQUESTS,
     RBAC_MODULES.ROSTER_BOARD,
@@ -284,6 +295,8 @@ export const getContextDescription = (
   const isSystem = [
     RBAC_MODULES.ACCESS_CONTROL,
     RBAC_MODULES.MASTER_LISTS,
+    RBAC_MODULES.ADMIN_COMPLIANCE,
+    RBAC_MODULES.ADMIN_ONBOARDING,
     RBAC_MODULES.ACTIVITY_LOG,
     RBAC_MODULES.HOUSE_ACTIVITY_LOG,
   ].includes(moduleId);

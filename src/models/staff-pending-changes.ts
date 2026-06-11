@@ -34,6 +34,13 @@ export interface PendingStaffTraining {
   filePath?: string;
 }
 
+export interface PendingStaffOnboarding {
+  id?: string;
+  onboarding_item_id: string;
+  is_complete: boolean;
+  comments?: string | null;
+}
+
 export interface PendingDocument {
   file: File;
   fileName: string;
@@ -56,6 +63,10 @@ export interface StaffPendingChanges {
     toUpdate: PendingStaffCompliance[];
     toDelete: string[];
   };
+  onboarding: {
+    toUpsert: PendingStaffOnboarding[];
+    toDelete: string[];
+  };
   training: {
     toAdd: PendingStaffTraining[];
     toUpdate: PendingStaffTraining[];
@@ -73,6 +84,10 @@ export const emptyStaffPendingChanges: StaffPendingChanges = {
     toUpdate: [],
     toDelete: [],
   },
+  onboarding: {
+    toUpsert: [],
+    toDelete: [],
+  },
   training: {
     toAdd: [],
     toUpdate: [],
@@ -88,6 +103,8 @@ export function hasStaffPendingChanges(pending: StaffPendingChanges): boolean {
     pending.staffCompliance.toAdd.length > 0 ||
     pending.staffCompliance.toUpdate.length > 0 ||
     pending.staffCompliance.toDelete.length > 0 ||
+    pending.onboarding.toUpsert.length > 0 ||
+    pending.onboarding.toDelete.length > 0 ||
     pending.training.toAdd.length > 0 ||
     pending.training.toUpdate.length > 0 ||
     pending.training.toDelete.length > 0
@@ -102,6 +119,8 @@ export function countStaffPendingChanges(pending: StaffPendingChanges): number {
     pending.staffCompliance.toAdd.length +
     pending.staffCompliance.toUpdate.length +
     pending.staffCompliance.toDelete.length +
+    pending.onboarding.toUpsert.length +
+    pending.onboarding.toDelete.length +
     pending.training.toAdd.length +
     pending.training.toUpdate.length +
     pending.training.toDelete.length

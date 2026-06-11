@@ -45,6 +45,7 @@ export const QUERY_KEYS = {
   INCIDENT_TYPES_MASTER: 'incident-types-master',
   RESTRICTIVE_PRACTICE_TYPES_MASTER: 'restrictive-practice-types-master',
   COMPLIANCE_TYPES_MASTER: 'compliance-types-master',
+  ONBOARDING_ITEMS_MASTER: 'onboarding-items-master',
   HOUSE_COMPLIANCE_REQUIREMENTS: 'house-compliance-requirements',
   ID_DOCUMENT_TYPES: 'id-document-types',
 
