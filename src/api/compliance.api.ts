@@ -62,6 +62,22 @@ export const complianceApi = {
       return data;
     },
 
+    async update(
+      id: string,
+      updates: Partial<
+        Database['public']['Tables']['ic_compliance_types_master']['Update']
+      >,
+    ) {
+      const { data, error } = await supabase
+        .from(TABLES.COMPLIANCE_TYPES_MASTER)
+        .update(updates)
+        .eq('id', id)
+        .select();
+
+      if (error) throw error;
+      return data;
+    },
+
     async delete(id: string) {
       const { error } = await supabase
         .from(TABLES.COMPLIANCE_TYPES_MASTER)
@@ -286,6 +302,22 @@ export const complianceApi = {
       const { data, error } = await supabase
         .from(TABLES.ID_DOCUMENT_TYPES)
         .upsert(payload as any)
+        .select();
+
+      if (error) throw error;
+      return data;
+    },
+
+    async update(
+      id: string,
+      updates: Partial<
+        Database['public']['Tables']['ic_id_document_types']['Update']
+      >,
+    ) {
+      const { data, error } = await supabase
+        .from(TABLES.ID_DOCUMENT_TYPES)
+        .update(updates)
+        .eq('id', id)
         .select();
 
       if (error) throw error;

@@ -126,7 +126,7 @@ export function useStaffLightweight() {
   return useQuery({
     queryKey: [QUERY_KEYS.STAFF, 'lightweight'],
     queryFn: () => staffApi.listLightweight(),
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 0,
   });
 }
 
@@ -296,7 +296,7 @@ export function useStaffComplianceSummary(staffId?: string) {
       return staffDetailsApi.compliance.getSummary(staffId);
     },
     enabled: !!staffId,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 0,
   });
 
   return {
@@ -378,7 +378,7 @@ export function useComplianceTypes(includeInactive = false) {
   const query = useQuery({
     queryKey: [QUERY_KEYS.COMPLIANCE_TYPES_MASTER, { includeInactive }],
     queryFn: () => complianceApi.types.list(includeInactive),
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 0,
   });
 
   return {
@@ -443,7 +443,7 @@ export function useUpdateComplianceType() {
       updates: Partial<
         Database['public']['Tables']['ic_compliance_types_master']['Update']
       >;
-    }) => complianceApi.types.upsert({ id, ...updates }),
+    }) => complianceApi.types.update(id, updates),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.COMPLIANCE_TYPES_MASTER],
@@ -462,7 +462,7 @@ export function useIDDocumentTypes(includeInactive = false) {
   const query = useQuery({
     queryKey: [QUERY_KEYS.ID_DOCUMENT_TYPES, { includeInactive }],
     queryFn: () => complianceApi.idDocumentTypes.list(includeInactive),
-    staleTime: 1000 * 60 * 10, // 10 minutes
+    staleTime: 0,
   });
 
   return {
@@ -482,7 +482,7 @@ export function useStaffOnboardingSummary(staffId?: string) {
       return staffDetailsApi.onboarding.getSummary(staffId);
     },
     enabled: !!staffId,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 0,
   });
 
   return {
@@ -523,7 +523,7 @@ export function useOnboardingItemsMaster(includeInactive = false) {
   const query = useQuery({
     queryKey: [QUERY_KEYS.ONBOARDING_ITEMS_MASTER, { includeInactive }],
     queryFn: () => onboardingApi.master.list(includeInactive),
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 0,
   });
 
   return {
@@ -604,7 +604,7 @@ export function useUpdateIDDocumentType() {
       updates: Partial<
         Database['public']['Tables']['ic_id_document_types']['Update']
       >;
-    }) => complianceApi.idDocumentTypes.upsert({ id, ...updates }),
+    }) => complianceApi.idDocumentTypes.update(id, updates),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.ID_DOCUMENT_TYPES],
