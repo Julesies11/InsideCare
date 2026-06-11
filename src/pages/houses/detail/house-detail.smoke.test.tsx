@@ -1,5 +1,5 @@
 import { renderWithProviders, screen, waitFor } from '@/test/test-utils';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { HouseDetailContent } from './house-detail-content';
 
 // Mock hooks
@@ -7,7 +7,7 @@ vi.mock('react-router', async (importOriginal) => {
   const actual = await importOriginal<any>();
   return {
     ...actual,
-    useParams: vi.fn(() => ({ id: 'house-1' }))
+    useParams: vi.fn(() => ({ id: 'house-1' })),
   };
 });
 
@@ -16,35 +16,35 @@ vi.mock('@/hooks/use-houses', async (importOriginal) => {
   return {
     ...actual,
     useHouse: vi.fn(() => ({
-      house: { 
-        id: 'house-1', 
-        house_name: 'Test House', 
+      house: {
+        id: 'house-1',
+        house_name: 'Test House',
         setup_step: 'complete',
-        status: 'active'
+        status: 'active',
       },
       loading: false,
-      refresh: vi.fn()
+      refresh: vi.fn(),
     })),
     useHouses: vi.fn(() => ({
       houses: [{ id: 'house-1', house_name: 'Test House' }],
-      loading: false
-    }))
+      loading: false,
+    })),
   };
 });
 
 vi.mock('@/hooks/use-participants', () => ({
   useParticipants: vi.fn(() => ({
     participants: [],
-    loading: false
+    loading: false,
   })),
   useHouseParticipants: vi.fn(() => ({
     participants: [],
-    loading: false
+    loading: false,
   })),
   useActiveParticipants: vi.fn(() => ({
     participants: [],
-    loading: false
-  }))
+    loading: false,
+  })),
 }));
 
 // Mock Supabase to avoid network calls with support for chaining
@@ -60,25 +60,41 @@ const mockSupabaseQuery = {
   in: vi.fn().mockReturnThis(),
   order: vi.fn().mockReturnThis(),
   limit: vi.fn().mockReturnThis(),
-  single: vi.fn(() => Promise.resolve({ data: { id: 'house-1', house_name: 'Test House' }, error: null })),
-  maybeSingle: vi.fn(() => Promise.resolve({ data: { id: 'house-1', house_name: 'Test House' }, error: null })),
-  then: vi.fn((onFulfilled) => Promise.resolve({ data: [], error: null }).then(onFulfilled))
+  single: vi.fn(() =>
+    Promise.resolve({
+      data: { id: 'house-1', house_name: 'Test House' },
+      error: null,
+    }),
+  ),
+  maybeSingle: vi.fn(() =>
+    Promise.resolve({
+      data: { id: 'house-1', house_name: 'Test House' },
+      error: null,
+    }),
+  ),
+  then: vi.fn((onFulfilled) =>
+    Promise.resolve({ data: [], error: null }).then(onFulfilled),
+  ),
 };
 
 vi.mock('@/lib/supabase', () => ({
   supabase: {
     from: vi.fn(() => mockSupabaseQuery),
     auth: {
-      getUser: vi.fn(() => Promise.resolve({ data: { user: { id: '1' } }, error: null })),
-      getSession: vi.fn(() => Promise.resolve({ data: { session: null }, error: null }))
+      getUser: vi.fn(() =>
+        Promise.resolve({ data: { user: { id: '1' } }, error: null }),
+      ),
+      getSession: vi.fn(() =>
+        Promise.resolve({ data: { session: null }, error: null }),
+      ),
     },
     storage: {
       from: vi.fn(() => ({
         upload: vi.fn(() => Promise.resolve({ data: {}, error: null })),
-        remove: vi.fn(() => Promise.resolve({ data: {}, error: null }))
-      }))
-    }
-  }
+        remove: vi.fn(() => Promise.resolve({ data: {}, error: null })),
+      })),
+    },
+  },
 }));
 
 describe('House Detail Smoke Tests', () => {
@@ -87,7 +103,12 @@ describe('House Detail Smoke Tests', () => {
     staff: { toAdd: [], toUpdate: [], toDelete: [] },
     calendarEvents: { toAdd: [], toUpdate: [], toDelete: [] },
     documents: { toAdd: [], toUpdate: [], toDelete: [] },
-    checklists: { toAdd: [], toUpdate: [], toDelete: [], checklistItems: { toAdd: [], toUpdate: [], toDelete: [] } },
+    checklists: {
+      toAdd: [],
+      toUpdate: [],
+      toDelete: [],
+      checklistItems: { toAdd: [], toUpdate: [], toDelete: [] },
+    },
     forms: { toAdd: [], toUpdate: [], toDelete: [] },
     resources: { toAdd: [], toUpdate: [], toDelete: [] },
     comms: { toAdd: [], toUpdate: [], toDelete: [] },
@@ -96,18 +117,20 @@ describe('House Detail Smoke Tests', () => {
 
   it('House Detail Content loads without crashing', async () => {
     renderWithProviders(
-      <HouseDetailContent 
+      <HouseDetailContent
         pendingChanges={mockPendingChanges as any}
         onPendingChangesChange={() => {}}
         canEdit={true}
-      />
+      />,
     );
-    
+
     // Use waitFor to allow any internal effects to run
     await waitFor(() => {
       // Check for sidebar navigation items which should be present
       expect(screen.getAllByText(/House Details/i).length).toBeGreaterThan(0);
-      expect(screen.getAllByText(/Daily Operations/i).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/Daily Operations/i).length).toBeGreaterThan(
+        0,
+      );
       expect(screen.getAllByText(/Checklist Setup/i).length).toBeGreaterThan(0);
     });
   });

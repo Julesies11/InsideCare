@@ -1,9 +1,9 @@
-{ 
-    "general": { 
-        "previewFeatures": true,
-        "defaultApprovalMode": "auto_edit"
-    },
-    "security": {
+{
+  "general": {
+    "previewFeatures": true,
+    "defaultApprovalMode": "auto_edit"
+  },
+  "security": {
     "enablePermanentToolApproval": true
-    }
+  }
 }

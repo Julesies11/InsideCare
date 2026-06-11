@@ -1,6 +1,6 @@
 import { UserModel } from '@/auth/lib/models';
-import { supabase } from '@/lib/supabase';
 import { TABLES } from '@/config/db-tables';
+import { supabase } from '@/lib/supabase';
 
 /**
  * Supabase adapter that provides profile management and OAuth integration.
@@ -83,7 +83,10 @@ export const SupabaseAdapter = {
    * Get current user from the session
    */
   async getCurrentUser(): Promise<UserModel | null> {
-    const { data: { user }, error } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
     if (error || !user) return null;
 
     return this.getUserProfile(user);
@@ -94,9 +97,12 @@ export const SupabaseAdapter = {
    */
   async getUserProfile(passedUser?: User): Promise<UserModel> {
     let user = passedUser;
-    
+
     if (!user) {
-      const { data: { user: authUser }, error } = await supabase.auth.getUser();
+      const {
+        data: { user: authUser },
+        error,
+      } = await supabase.auth.getUser();
       if (error || !authUser) {
         throw new Error(error?.message || 'User not found');
       }
@@ -108,25 +114,31 @@ export const SupabaseAdapter = {
     const appMetadata = user.app_metadata || {};
     const userMetadata = user.user_metadata || {};
 
-    // Look up linked staff record - wrap in try/catch to ensure RBAC from app_metadata 
+    // Look up linked staff record - wrap in try/catch to ensure RBAC from app_metadata
     // still works even if DB lookup fails (e.g. RLS issues or no staff record yet)
     let staffRow = null;
     try {
       const { data } = await supabase
         .from(TABLES.STAFF)
-        .select('id, staff_name, photo_url, role:ic_roles!staff_role_id_fkey(role_name)')
+        .select(
+          'id, staff_name, photo_url, role:ic_roles!staff_role_id_fkey(role_name)',
+        )
         .eq('auth_user_id', user.id)
         .maybeSingle();
       staffRow = data;
     } catch (err) {
-      console.warn('Failed to fetch staff record, falling back to metadata:', err);
+      console.warn(
+        'Failed to fetch staff record, falling back to metadata:',
+        err,
+      );
     }
-      
+
     const staff_id = staffRow?.id ?? appMetadata.staff_id ?? undefined;
     const staff_name = staffRow?.staff_name ?? undefined;
     const photo_url = staffRow?.photo_url ?? null;
-    const role_name = (staffRow as any)?.role?.role_name ?? appMetadata.role_name ?? undefined;
-    
+    const role_name =
+      (staffRow as any)?.role?.role_name ?? appMetadata.role_name ?? undefined;
+
     // Format data to maintain compatibility with existing UI
     return {
       id: user.id,
@@ -144,11 +156,11 @@ export const SupabaseAdapter = {
       roles: userMetadata.roles || [],
       pic: userMetadata.pic || '',
       language: userMetadata.language || 'en',
-      
+
       // RBAC Fields (Always use appMetadata as source of truth)
       is_admin: appMetadata.is_admin === true,
       permissions: (appMetadata.permissions as Record<string, string>) || {},
-      
+
       staff_id,
       staff_name,
       photo_url,
@@ -158,7 +170,7 @@ export const SupabaseAdapter = {
 
   /**
    * Update user profile (stored in metadata)
-   * Note: Sensitive fields like is_admin and roles are excluded here to prevent 
+   * Note: Sensitive fields like is_admin and roles are excluded here to prevent
    * self-privilege elevation. Use updateUserRoles for administrative updates.
    */
   async updateUserProfile(userData: Partial<UserModel>): Promise<UserModel> {

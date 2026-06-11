@@ -1,8 +1,8 @@
-import { render, screen } from '@testing-library/react';
-import { ChecklistMasterPage } from './checklist-master-page';
-import { vi, describe, it, expect } from 'vitest';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 import { SettingsProvider } from '@/providers/settings-provider';
+import { ChecklistMasterPage } from './checklist-master-page';
 
 const queryClient = new QueryClient();
 
@@ -32,7 +32,7 @@ describe('ChecklistMasterPage Smoke Test', () => {
         <SettingsProvider>
           <ChecklistMasterPage />
         </SettingsProvider>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
     expect(screen.getByText(/Checklist Master/i)).toBeInTheDocument();
   });

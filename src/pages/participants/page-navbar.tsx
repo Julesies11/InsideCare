@@ -7,7 +7,9 @@ import { Container } from '@/components/common/container';
 const PageNavbar = () => {
   const { settings } = useSettings();
   // Find the Participants menu item dynamically
-  const participantsMenu = MENU_SIDEBAR?.find(item => item.title === 'Participants');
+  const participantsMenu = MENU_SIDEBAR?.find(
+    (item) => item.title === 'Participants',
+  );
   const participantsMenuConfig = participantsMenu?.children;
 
   if (participantsMenuConfig && settings?.layout === 'demo1') {

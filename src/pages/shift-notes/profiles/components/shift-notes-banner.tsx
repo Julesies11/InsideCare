@@ -13,8 +13,9 @@ export function ShiftNotesBanner() {
             Every Note Matters
           </h3>
           <AlertDescription className="text-sm text-green-700 dark:text-green-300">
-            Your detailed observations and notes help create a complete picture of each participant's journey, 
-            ensuring continuity of care and celebrating progress every step of the way.
+            Your detailed observations and notes help create a complete picture
+            of each participant's journey, ensuring continuity of care and
+            celebrating progress every step of the way.
           </AlertDescription>
         </div>
       </div>

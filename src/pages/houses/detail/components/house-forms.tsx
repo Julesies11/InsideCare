@@ -1,25 +1,63 @@
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit, Trash2, FileText, Clock, Calendar, User, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
-import { useHouseForms } from '@/hooks/useHouseForms';
-import { useActiveParticipants } from '@/hooks/use-participants';
-import { useActiveStaff } from '@/hooks/use-staff';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/auth/context/auth-context';
 import { HousePendingChanges } from '@/models/house-pending-changes';
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  AlertCircle,
+  Calendar,
+  CheckCircle,
+  Clock,
+  Edit,
+  FileText,
+  Plus,
+  Trash2,
+  User,
+  XCircle,
+} from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router';
-import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { cn } from '@/lib/utils';
+import { useActiveParticipants } from '@/hooks/use-participants';
+import { useActiveStaff } from '@/hooks/use-staff';
+import { useHouseForms } from '@/hooks/useHouseForms';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Textarea } from '@/components/ui/textarea';
 
 interface HouseFormsProps {
   houseId?: string;
@@ -49,18 +87,38 @@ const assignmentSchema = z.object({
 
 type AssignmentFormValues = z.infer<typeof assignmentSchema>;
 
-export function HouseForms({ 
-  houseId, 
-  canAdd, 
+export function HouseForms({
+  houseId,
+  canAdd,
   canDelete,
   pendingChanges,
-  onPendingChangesChange 
+  onPendingChangesChange,
 }: HouseFormsProps) {
   const [showFormDialog, setShowFormDialog] = useState(false);
   const [showAssignmentDialog, setShowAssignmentDialog] = useState(false);
-  const [editingForm, setEditingForm] = useState<{ id?: string; tempId?: string; name: string; type: string; description?: string; is_global?: boolean; status?: string; assignments?: any[] } | null>(null);
-  const [selectedForm, setSelectedForm] = useState<{ id: string; name: string } | null>(null);
-  const [editingAssignment, setEditingAssignment] = useState<{ id?: string; tempId?: string; participant_id?: string; staff_id?: string; due_date?: string; status: string; notes?: string } | null>(null);
+  const [editingForm, setEditingForm] = useState<{
+    id?: string;
+    tempId?: string;
+    name: string;
+    type: string;
+    description?: string;
+    is_global?: boolean;
+    status?: string;
+    assignments?: any[];
+  } | null>(null);
+  const [selectedForm, setSelectedForm] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [editingAssignment, setEditingAssignment] = useState<{
+    id?: string;
+    tempId?: string;
+    participant_id?: string;
+    staff_id?: string;
+    due_date?: string;
+    status: string;
+    notes?: string;
+  } | null>(null);
 
   const { houseForms, loading } = useHouseForms(houseId);
   const { participants } = useActiveParticipants();
@@ -134,7 +192,16 @@ export function HouseForms({
     setShowFormDialog(true);
   };
 
-  const handleEditForm = (form: { id?: string; tempId?: string; name: string; type: string; description?: string; is_global?: boolean; status?: string; assignments?: any[] }) => {
+  const handleEditForm = (form: {
+    id?: string;
+    tempId?: string;
+    name: string;
+    type: string;
+    description?: string;
+    is_global?: boolean;
+    status?: string;
+    assignments?: any[];
+  }) => {
     setEditingForm(form);
     setShowFormDialog(true);
   };
@@ -155,8 +222,10 @@ export function HouseForms({
           ...pendingChanges,
           forms: {
             ...pendingChanges.forms,
-            toAdd: pendingChanges.forms.toAdd.map(form =>
-              form.tempId === editingForm.tempId ? { ...form, ...formData } : form
+            toAdd: pendingChanges.forms.toAdd.map((form) =>
+              form.tempId === editingForm.tempId
+                ? { ...form, ...formData }
+                : form,
             ),
           },
         };
@@ -168,7 +237,9 @@ export function HouseForms({
           forms: {
             ...pendingChanges.forms,
             toUpdate: [
-              ...pendingChanges.forms.toUpdate.filter(f => f.id !== editingForm.id),
+              ...pendingChanges.forms.toUpdate.filter(
+                (f) => f.id !== editingForm.id,
+              ),
               { id: editingForm.id, ...formData },
             ],
           },
@@ -182,10 +253,7 @@ export function HouseForms({
         ...pendingChanges,
         forms: {
           ...pendingChanges.forms,
-          toAdd: [
-            ...pendingChanges.forms.toAdd,
-            { tempId, ...formData },
-          ],
+          toAdd: [...pendingChanges.forms.toAdd, { tempId, ...formData }],
         },
       };
       onPendingChangesChange(newPending);
@@ -203,7 +271,11 @@ export function HouseForms({
     }
 
     // Otherwise, mark existing form for deletion
-    if (confirm('Mark this form for deletion? It will be removed when you click Save Changes.')) {
+    if (
+      confirm(
+        'Mark this form for deletion? It will be removed when you click Save Changes.',
+      )
+    ) {
       const newPending = {
         ...pendingChanges,
         forms: {
@@ -221,7 +293,18 @@ export function HouseForms({
     setShowAssignmentDialog(true);
   };
 
-  const handleEditAssignment = (form: { id: string; name: string }, assignment: { id?: string; tempId?: string; participant_id?: string; staff_id?: string; due_date?: string; status: string; notes?: string }) => {
+  const handleEditAssignment = (
+    form: { id: string; name: string },
+    assignment: {
+      id?: string;
+      tempId?: string;
+      participant_id?: string;
+      staff_id?: string;
+      due_date?: string;
+      status: string;
+      notes?: string;
+    },
+  ) => {
     setSelectedForm(form);
     setEditingAssignment(assignment);
     setShowAssignmentDialog(true);
@@ -244,8 +327,10 @@ export function HouseForms({
           ...pendingChanges,
           formAssignments: {
             ...pendingChanges.formAssignments,
-            toAdd: pendingChanges.formAssignments.toAdd.map(assignment =>
-              assignment.tempId === editingAssignment.tempId ? { ...assignment, ...assignmentData } : assignment
+            toAdd: pendingChanges.formAssignments.toAdd.map((assignment) =>
+              assignment.tempId === editingAssignment.tempId
+                ? { ...assignment, ...assignmentData }
+                : assignment,
             ),
           },
         };
@@ -257,7 +342,9 @@ export function HouseForms({
           formAssignments: {
             ...pendingChanges.formAssignments,
             toUpdate: [
-              ...pendingChanges.formAssignments.toUpdate.filter(a => a.id !== editingAssignment.id),
+              ...pendingChanges.formAssignments.toUpdate.filter(
+                (a) => a.id !== editingAssignment.id,
+              ),
               { id: editingAssignment.id, ...assignmentData },
             ],
           },
@@ -282,7 +369,10 @@ export function HouseForms({
     setShowAssignmentDialog(false);
   };
 
-  const handleDeleteAssignment = (assignment: { id?: string; tempId?: string }) => {
+  const handleDeleteAssignment = (assignment: {
+    id?: string;
+    tempId?: string;
+  }) => {
     if (!pendingChanges || !onPendingChangesChange) return;
 
     // If it's a pending add, just remove it from the pending adds list
@@ -292,7 +382,11 @@ export function HouseForms({
     }
 
     // Otherwise, mark existing assignment for deletion
-    if (confirm('Mark this assignment for deletion? It will be removed when you click Save Changes.')) {
+    if (
+      confirm(
+        'Mark this assignment for deletion? It will be removed when you click Save Changes.',
+      )
+    ) {
       const newPending = {
         ...pendingChanges,
         formAssignments: {
@@ -311,7 +405,9 @@ export function HouseForms({
       ...pendingChanges,
       forms: {
         ...pendingChanges.forms,
-        toAdd: pendingChanges.forms.toAdd.filter(form => form.tempId !== tempId),
+        toAdd: pendingChanges.forms.toAdd.filter(
+          (form) => form.tempId !== tempId,
+        ),
       },
     };
     onPendingChangesChange(newPending);
@@ -324,7 +420,9 @@ export function HouseForms({
       ...pendingChanges,
       formAssignments: {
         ...pendingChanges.formAssignments,
-        toAdd: pendingChanges.formAssignments.toAdd.filter(assignment => assignment.tempId !== tempId),
+        toAdd: pendingChanges.formAssignments.toAdd.filter(
+          (assignment) => assignment.tempId !== tempId,
+        ),
       },
     };
     onPendingChangesChange(newPending);
@@ -332,39 +430,55 @@ export function HouseForms({
 
   // Combine existing forms with pending adds, filter out pending deletes
   const visibleForms = [
-    ...houseForms.filter(form => !pendingChanges?.forms.toDelete.includes(form.id)),
+    ...houseForms.filter(
+      (form) => !pendingChanges?.forms.toDelete.includes(form.id),
+    ),
     ...(pendingChanges?.forms.toAdd || []),
   ];
 
   // Get status color
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'success';
-      case 'inactive': return 'secondary';
-      case 'archived': return 'destructive';
-      default: return 'secondary';
+      case 'active':
+        return 'success';
+      case 'inactive':
+        return 'secondary';
+      case 'archived':
+        return 'destructive';
+      default:
+        return 'secondary';
     }
   };
 
   // Get assignment status color
   const getAssignmentStatusColor = (status: string) => {
     switch (status) {
-      case 'completed': return 'success';
-      case 'pending': return 'warning';
-      case 'overdue': return 'destructive';
-      case 'cancelled': return 'secondary';
-      default: return 'secondary';
+      case 'completed':
+        return 'success';
+      case 'pending':
+        return 'warning';
+      case 'overdue':
+        return 'destructive';
+      case 'cancelled':
+        return 'secondary';
+      default:
+        return 'secondary';
     }
   };
 
   // Get assignment status icon
   const getAssignmentStatusIcon = (status: string) => {
     switch (status) {
-      case 'completed': return <CheckCircle className="size-4" />;
-      case 'pending': return <Clock className="size-4" />;
-      case 'overdue': return <AlertCircle className="size-4" />;
-      case 'cancelled': return <XCircle className="size-4" />;
-      default: return <Clock className="size-4" />;
+      case 'completed':
+        return <CheckCircle className="size-4" />;
+      case 'pending':
+        return <Clock className="size-4" />;
+      case 'overdue':
+        return <AlertCircle className="size-4" />;
+      case 'cancelled':
+        return <XCircle className="size-4" />;
+      default:
+        return <Clock className="size-4" />;
     }
   };
 
@@ -376,52 +490,81 @@ export function HouseForms({
             <FileText className="size-5" />
             Forms
           </CardTitle>
-          <Button variant="secondary" size="sm" className="border border-gray-300" onClick={handleAddForm} disabled={!houseId || !canAdd}>
+          <Button
+            variant="secondary"
+            size="sm"
+            className="border border-gray-300"
+            onClick={handleAddForm}
+            disabled={!houseId || !canAdd}
+          >
             <Plus className="size-4 me-1.5" />
             Add Form
           </Button>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="text-center py-8 text-muted-foreground">Loading forms...</div>
+            <div className="text-center py-8 text-muted-foreground">
+              Loading forms...
+            </div>
           ) : visibleForms.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <div className="flex flex-col items-center gap-2">
                 <FileText className="size-12 text-muted-foreground opacity-50" />
                 <p>No forms created yet</p>
-                <p className="text-sm">Create forms to track required documentation and compliance</p>
+                <p className="text-sm">
+                  Create forms to track required documentation and compliance
+                </p>
               </div>
             </div>
           ) : (
             <div className="space-y-4">
               {visibleForms.map((form) => {
                 const isPendingAdd = 'tempId' in form;
-                const isPendingUpdate = pendingChanges?.forms.toUpdate.some(f => f.id === form.id);
-                const isPendingDelete = pendingChanges?.forms.toDelete.includes(form.id);
+                const isPendingUpdate = pendingChanges?.forms.toUpdate.some(
+                  (f) => f.id === form.id,
+                );
+                const isPendingDelete = pendingChanges?.forms.toDelete.includes(
+                  form.id,
+                );
                 const assignments = form.assignments || [];
 
                 return (
-                  <Card key={form.id || form.tempId} className={`border ${
-                      isPendingAdd ? 'bg-primary/5 border-primary/20' :
-                      isPendingDelete ? 'opacity-50 bg-destructive/5 border-destructive/20' :
-                      isPendingUpdate ? 'bg-warning/5 border-warning/20' : ''
-                    }`}>
+                  <Card
+                    key={form.id || form.tempId}
+                    className={`border ${
+                      isPendingAdd
+                        ? 'bg-primary/5 border-primary/20'
+                        : isPendingDelete
+                          ? 'opacity-50 bg-destructive/5 border-destructive/20'
+                          : isPendingUpdate
+                            ? 'bg-warning/5 border-warning/20'
+                            : ''
+                    }`}
+                  >
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
-                            <h3 className={`text-base font-semibold ${isPendingDelete ? 'line-through' : ''}`}>
+                            <h3
+                              className={`text-base font-semibold ${isPendingDelete ? 'line-through' : ''}`}
+                            >
                               {form.name}
                             </h3>
                             {form.is_global && (
-                              <Badge variant="outline" className="text-xs border-blue-500 text-blue-700">
+                              <Badge
+                                variant="outline"
+                                className="text-xs border-blue-500 text-blue-700"
+                              >
                                 Global
                               </Badge>
                             )}
                             <Badge variant="outline" className="text-xs">
                               {form.type}
                             </Badge>
-                            <Badge variant={getStatusColor(form.status)} className="text-xs">
+                            <Badge
+                              variant={getStatusColor(form.status)}
+                              className="text-xs"
+                            >
                               {form.status}
                             </Badge>
                             {isPendingAdd && (
@@ -444,16 +587,26 @@ export function HouseForms({
                             )}
                           </div>
                           {form.description && (
-                            <p className="text-sm text-muted-foreground">{form.description}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {form.description}
+                            </p>
                           )}
                         </div>
                         <div className="flex gap-1">
                           {!isPendingDelete && (
                             <>
-                              <Button variant="ghost" size="sm" onClick={() => handleEditForm(form)}>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEditForm(form)}
+                              >
                                 <Edit className="size-4" />
                               </Button>
-                              <Button variant="ghost" size="sm" onClick={() => handleAddAssignment(form)}>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleAddAssignment(form)}
+                              >
                                 <Plus className="size-4" />
                               </Button>
                               {canDelete && (
@@ -472,7 +625,9 @@ export function HouseForms({
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleCancelPendingFormAdd(form.tempId!)}
+                              onClick={() =>
+                                handleCancelPendingFormAdd(form.tempId!)
+                              }
                             >
                               Remove
                             </Button>
@@ -481,7 +636,9 @@ export function HouseForms({
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleCancelPendingFormAdd(form.id)}
+                              onClick={() =>
+                                handleCancelPendingFormAdd(form.id)
+                              }
                             >
                               Undo
                             </Button>
@@ -490,7 +647,9 @@ export function HouseForms({
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleCancelPendingFormAdd(form.id)}
+                              onClick={() =>
+                                handleCancelPendingFormAdd(form.id)
+                              }
                             >
                               Undo
                             </Button>
@@ -505,147 +664,210 @@ export function HouseForms({
                             No assignments for this form
                           </div>
                         ) : (
-                          <div className="overflow-x-auto"><Table>
-                            <TableHeader>
-                              <TableRow>
-                                <TableHead>Assigned To</TableHead>
-                                <TableHead>Due Date</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead>Notes</TableHead>
-                                <TableHead className="text-right">Actions</TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {assignments.map((assignment) => {
-                                const isAssignmentPendingAdd = 'tempId' in assignment;
-                                const isAssignmentPendingUpdate = pendingChanges?.formAssignments.toUpdate.some(a => a.id === assignment.id);
-                                const isAssignmentPendingDelete = pendingChanges?.formAssignments.toDelete.includes(assignment.id);
-                                const assignedTo = assignment.participant?.participant_name || assignment.staff?.staff_name || 'Unknown';
-                                const assignedType = assignment.participant ? 'Participant' : 'Staff';
+                          <div className="overflow-x-auto">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>Assigned To</TableHead>
+                                  <TableHead>Due Date</TableHead>
+                                  <TableHead>Status</TableHead>
+                                  <TableHead>Notes</TableHead>
+                                  <TableHead className="text-right">
+                                    Actions
+                                  </TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {assignments.map((assignment) => {
+                                  const isAssignmentPendingAdd =
+                                    'tempId' in assignment;
+                                  const isAssignmentPendingUpdate =
+                                    pendingChanges?.formAssignments.toUpdate.some(
+                                      (a) => a.id === assignment.id,
+                                    );
+                                  const isAssignmentPendingDelete =
+                                    pendingChanges?.formAssignments.toDelete.includes(
+                                      assignment.id,
+                                    );
+                                  const assignedTo =
+                                    assignment.participant?.participant_name ||
+                                    assignment.staff?.staff_name ||
+                                    'Unknown';
+                                  const assignedType = assignment.participant
+                                    ? 'Participant'
+                                    : 'Staff';
 
-                                return (
-                                  <TableRow key={assignment.id || assignment.tempId} className={
-                                    isAssignmentPendingAdd ? 'bg-primary/5' :
-                                    isAssignmentPendingDelete ? 'opacity-50 bg-destructive/5' :
-                                    isAssignmentPendingUpdate ? 'bg-warning/5' : ''
-                                  }>
-                                    <TableCell>
-                                      <div className="flex items-center gap-2">
-                                        <User className="size-4 text-muted-foreground" />
-                                        <div>
-                                          {assignment.participant_id ? (
-                                            <Link 
-                                              to={`/participants/detail/${assignment.participant_id}`}
-                                              className={`text-sm font-bold text-gray-900 hover:underline hover:text-primary transition-colors ${isAssignmentPendingDelete ? 'line-through opacity-50 pointer-events-none' : ''}`}
-                                            >
-                                              {assignedTo}
-                                            </Link>
-                                          ) : assignment.staff_id ? (
-                                            <Link 
-                                              to={`/employees/staff-detail/${assignment.staff_id}`}
-                                              className={`text-sm font-bold text-gray-900 hover:underline hover:text-primary transition-colors ${isAssignmentPendingDelete ? 'line-through opacity-50 pointer-events-none' : ''}`}
-                                            >
-                                              {assignedTo}
-                                            </Link>
-                                          ) : (
-                                            <div className={`text-sm font-medium ${isAssignmentPendingDelete ? 'line-through' : ''}`}>
-                                              {assignedTo}
+                                  return (
+                                    <TableRow
+                                      key={assignment.id || assignment.tempId}
+                                      className={
+                                        isAssignmentPendingAdd
+                                          ? 'bg-primary/5'
+                                          : isAssignmentPendingDelete
+                                            ? 'opacity-50 bg-destructive/5'
+                                            : isAssignmentPendingUpdate
+                                              ? 'bg-warning/5'
+                                              : ''
+                                      }
+                                    >
+                                      <TableCell>
+                                        <div className="flex items-center gap-2">
+                                          <User className="size-4 text-muted-foreground" />
+                                          <div>
+                                            {assignment.participant_id ? (
+                                              <Link
+                                                to={`/participants/detail/${assignment.participant_id}`}
+                                                className={`text-sm font-bold text-gray-900 hover:underline hover:text-primary transition-colors ${isAssignmentPendingDelete ? 'line-through opacity-50 pointer-events-none' : ''}`}
+                                              >
+                                                {assignedTo}
+                                              </Link>
+                                            ) : assignment.staff_id ? (
+                                              <Link
+                                                to={`/employees/staff-detail/${assignment.staff_id}`}
+                                                className={`text-sm font-bold text-gray-900 hover:underline hover:text-primary transition-colors ${isAssignmentPendingDelete ? 'line-through opacity-50 pointer-events-none' : ''}`}
+                                              >
+                                                {assignedTo}
+                                              </Link>
+                                            ) : (
+                                              <div
+                                                className={`text-sm font-medium ${isAssignmentPendingDelete ? 'line-through' : ''}`}
+                                              >
+                                                {assignedTo}
+                                              </div>
+                                            )}
+                                            <div className="text-xs text-muted-foreground">
+                                              {assignedType}
                                             </div>
+                                          </div>
+                                          {isAssignmentPendingAdd && (
+                                            <span className="text-xs text-primary flex items-center gap-1">
+                                              <Clock className="size-3" />
+                                              Pending add
+                                            </span>
                                           )}
-                                          <div className="text-xs text-muted-foreground">{assignedType}</div>
+                                          {isAssignmentPendingUpdate && (
+                                            <span className="text-xs text-warning flex items-center gap-1">
+                                              <Clock className="size-3" />
+                                              Pending update
+                                            </span>
+                                          )}
+                                          {isAssignmentPendingDelete && (
+                                            <span className="text-xs text-destructive flex items-center gap-1">
+                                              <Clock className="size-3" />
+                                              Pending deletion
+                                            </span>
+                                          )}
                                         </div>
-                                        {isAssignmentPendingAdd && (
-                                          <span className="text-xs text-primary flex items-center gap-1">
-                                            <Clock className="size-3" />
-                                            Pending add
-                                          </span>
-                                        )}
-                                        {isAssignmentPendingUpdate && (
-                                          <span className="text-xs text-warning flex items-center gap-1">
-                                            <Clock className="size-3" />
-                                            Pending update
-                                          </span>
-                                        )}
-                                        {isAssignmentPendingDelete && (
-                                          <span className="text-xs text-destructive flex items-center gap-1">
-                                            <Clock className="size-3" />
-                                            Pending deletion
-                                          </span>
-                                        )}
-                                      </div>
-                                    </TableCell>
-                                    <TableCell>
-                                      <div className="flex items-center gap-2 text-sm">
-                                        <Calendar className="size-4 text-muted-foreground" />
-                                        {assignment.due_date ? new Date(assignment.due_date).toLocaleDateString() : 'No due date'}
-                                      </div>
-                                    </TableCell>
-                                    <TableCell>
-                                      <div className="flex items-center gap-2">
-                                        {getAssignmentStatusIcon(assignment.status)}
-                                        <Badge variant={getAssignmentStatusColor(assignment.status)} className="text-xs">
-                                          {assignment.status}
-                                        </Badge>
-                                      </div>
-                                    </TableCell>
-                                    <TableCell>
-                                      <div className="text-sm text-muted-foreground max-w-xs truncate">
-                                        {assignment.notes || 'No notes'}
-                                      </div>
-                                    </TableCell>
-                                    <TableCell>
-                                      <div className="flex justify-end gap-1">
-                                        {!isAssignmentPendingDelete && (
-                                          <>
-                                            <Button variant="ghost" size="sm" onClick={() => handleEditAssignment(form, assignment)}>
-                                              <Edit className="size-4" />
-                                            </Button>
-                                            {canDelete && (
+                                      </TableCell>
+                                      <TableCell>
+                                        <div className="flex items-center gap-2 text-sm">
+                                          <Calendar className="size-4 text-muted-foreground" />
+                                          {assignment.due_date
+                                            ? new Date(
+                                                assignment.due_date,
+                                              ).toLocaleDateString()
+                                            : 'No due date'}
+                                        </div>
+                                      </TableCell>
+                                      <TableCell>
+                                        <div className="flex items-center gap-2">
+                                          {getAssignmentStatusIcon(
+                                            assignment.status,
+                                          )}
+                                          <Badge
+                                            variant={getAssignmentStatusColor(
+                                              assignment.status,
+                                            )}
+                                            className="text-xs"
+                                          >
+                                            {assignment.status}
+                                          </Badge>
+                                        </div>
+                                      </TableCell>
+                                      <TableCell>
+                                        <div className="text-sm text-muted-foreground max-w-xs truncate">
+                                          {assignment.notes || 'No notes'}
+                                        </div>
+                                      </TableCell>
+                                      <TableCell>
+                                        <div className="flex justify-end gap-1">
+                                          {!isAssignmentPendingDelete && (
+                                            <>
                                               <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                className="text-destructive"
-                                                onClick={() => handleDeleteAssignment(assignment)}
+                                                onClick={() =>
+                                                  handleEditAssignment(
+                                                    form,
+                                                    assignment,
+                                                  )
+                                                }
                                               >
-                                                <Trash2 className="size-4" />
+                                                <Edit className="size-4" />
                                               </Button>
-                                            )}
-                                          </>
-                                        )}
-                                        {isAssignmentPendingAdd && (
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => handleDeleteAssignment(assignment)}
-                                          >
-                                            Remove
-                                          </Button>
-                                        )}
-                                        {isAssignmentPendingUpdate && (
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => handleDeleteAssignment(assignment)}
-                                          >
-                                            Undo
-                                          </Button>
-                                        )}
-                                        {isAssignmentPendingDelete && (
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => handleDeleteAssignment(assignment)}
-                                          >
-                                            Undo
-                                          </Button>
-                                        )}
-                                      </div>
-                                    </TableCell>
-                                  </TableRow>
-                                );
-                              })}
-                            </TableBody>
-                          </Table></div>
+                                              {canDelete && (
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  className="text-destructive"
+                                                  onClick={() =>
+                                                    handleDeleteAssignment(
+                                                      assignment,
+                                                    )
+                                                  }
+                                                >
+                                                  <Trash2 className="size-4" />
+                                                </Button>
+                                              )}
+                                            </>
+                                          )}
+                                          {isAssignmentPendingAdd && (
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              onClick={() =>
+                                                handleDeleteAssignment(
+                                                  assignment,
+                                                )
+                                              }
+                                            >
+                                              Remove
+                                            </Button>
+                                          )}
+                                          {isAssignmentPendingUpdate && (
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              onClick={() =>
+                                                handleDeleteAssignment(
+                                                  assignment,
+                                                )
+                                              }
+                                            >
+                                              Undo
+                                            </Button>
+                                          )}
+                                          {isAssignmentPendingDelete && (
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              onClick={() =>
+                                                handleDeleteAssignment(
+                                                  assignment,
+                                                )
+                                              }
+                                            >
+                                              Undo
+                                            </Button>
+                                          )}
+                                        </div>
+                                      </TableCell>
+                                    </TableRow>
+                                  );
+                                })}
+                              </TableBody>
+                            </Table>
+                          </div>
                         )}
                       </div>
                     </CardContent>
@@ -669,7 +891,10 @@ export function HouseForms({
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSaveForm)} className="space-y-4 py-4">
+            <form
+              onSubmit={form.handleSubmit(handleSaveForm)}
+              className="space-y-4 py-4"
+            >
               <FormField
                 control={form.control}
                 name="name"
@@ -690,7 +915,10 @@ export function HouseForms({
                   <FormItem>
                     <FormLabel>Form Type *</FormLabel>
                     <FormControl>
-                      <Select value={field.value} onValueChange={field.onChange}>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Select form type" />
                         </SelectTrigger>
@@ -698,8 +926,12 @@ export function HouseForms({
                           <SelectItem value="medical">Medical</SelectItem>
                           <SelectItem value="consent">Consent</SelectItem>
                           <SelectItem value="assessment">Assessment</SelectItem>
-                          <SelectItem value="incident">Incident Report</SelectItem>
-                          <SelectItem value="progress">Progress Note</SelectItem>
+                          <SelectItem value="incident">
+                            Incident Report
+                          </SelectItem>
+                          <SelectItem value="progress">
+                            Progress Note
+                          </SelectItem>
                           <SelectItem value="compliance">Compliance</SelectItem>
                           <SelectItem value="other">Other</SelectItem>
                         </SelectContent>
@@ -716,7 +948,11 @@ export function HouseForms({
                   <FormItem>
                     <FormLabel>Description</FormLabel>
                     <FormControl>
-                      <Textarea {...field} placeholder="Describe the purpose of this form" rows={3} />
+                      <Textarea
+                        {...field}
+                        placeholder="Describe the purpose of this form"
+                        rows={3}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -729,7 +965,10 @@ export function HouseForms({
                   <FormItem>
                     <FormLabel>Status</FormLabel>
                     <FormControl>
-                      <Select value={field.value} onValueChange={field.onChange}>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Select status" />
                         </SelectTrigger>
@@ -751,7 +990,10 @@ export function HouseForms({
                   <FormItem>
                     <div className="flex items-center gap-2">
                       <FormControl>
-                        <Switch checked={field.value} onCheckedChange={field.onChange} />
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
                       </FormControl>
                       <FormLabel>Global Form</FormLabel>
                     </div>
@@ -760,10 +1002,16 @@ export function HouseForms({
                 )}
               />
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setShowFormDialog(false)}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowFormDialog(false)}
+                >
                   Cancel
                 </Button>
-                <Button type="submit" variant="primary">Save</Button>
+                <Button type="submit" variant="primary">
+                  Save
+                </Button>
               </DialogFooter>
             </form>
           </Form>
@@ -771,10 +1019,15 @@ export function HouseForms({
       </Dialog>
 
       {/* Assignment Dialog */}
-      <Dialog open={showAssignmentDialog} onOpenChange={setShowAssignmentDialog}>
+      <Dialog
+        open={showAssignmentDialog}
+        onOpenChange={setShowAssignmentDialog}
+      >
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>{editingAssignment ? 'Edit Assignment' : 'Add Assignment'}</DialogTitle>
+            <DialogTitle>
+              {editingAssignment ? 'Edit Assignment' : 'Add Assignment'}
+            </DialogTitle>
             <DialogDescription>
               {editingAssignment
                 ? 'Update assignment details'
@@ -782,7 +1035,10 @@ export function HouseForms({
             </DialogDescription>
           </DialogHeader>
           <Form {...assignmentForm}>
-            <form onSubmit={assignmentForm.handleSubmit(handleSaveAssignment)} className="space-y-4 py-4">
+            <form
+              onSubmit={assignmentForm.handleSubmit(handleSaveAssignment)}
+              className="space-y-4 py-4"
+            >
               <FormField
                 control={assignmentForm.control}
                 name="participant_id"
@@ -790,14 +1046,20 @@ export function HouseForms({
                   <FormItem>
                     <FormLabel>Participant</FormLabel>
                     <FormControl>
-                      <Select value={field.value} onValueChange={field.onChange}>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Select participant" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="">None</SelectItem>
                           {participants.map((participant) => (
-                            <SelectItem key={participant.id} value={participant.id}>
+                            <SelectItem
+                              key={participant.id}
+                              value={participant.id}
+                            >
                               {participant.participant_name}
                             </SelectItem>
                           ))}
@@ -815,36 +1077,59 @@ export function HouseForms({
                   <FormItem>
                     <FormLabel>Staff Member</FormLabel>
                     <FormControl>
-                      <Select value={field.value} onValueChange={field.onChange}>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Select staff member" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="">None</SelectItem>
                           {staff
-                            .filter(s => {
+                            .filter((s) => {
                               // 1. Must be active status (or currently assigned)
-                              const isStatusActive = (s as any).status?.toLowerCase() === 'active' || s.id === field.value;
+                              const isStatusActive =
+                                (s as any).status?.toLowerCase() === 'active' ||
+                                s.id === field.value;
                               if (!isStatusActive) return false;
 
                               // 2. Must be assigned to this specific house
-                              const today = new Date().toISOString().split('T')[0];
-                              const assignments = (s as any).house_assignments || [];
-                              const hasActiveAssignment = assignments.some((a: any) => {
-                                const assignmentHouseId = (a.house_id || a.house?.id || '').toLowerCase();
-                                const targetHouseId = (houseId || '').toLowerCase();
-                                const isTargetHouse = assignmentHouseId === targetHouseId;
-                                const isCurrent = !a.end_date || a.end_date >= today;
-                                return isTargetHouse && isCurrent;
-                              });
+                              const today = new Date()
+                                .toISOString()
+                                .split('T')[0];
+                              const assignments =
+                                (s as any).house_assignments || [];
+                              const hasActiveAssignment = assignments.some(
+                                (a: any) => {
+                                  const assignmentHouseId = (
+                                    a.house_id ||
+                                    a.house?.id ||
+                                    ''
+                                  ).toLowerCase();
+                                  const targetHouseId = (
+                                    houseId || ''
+                                  ).toLowerCase();
+                                  const isTargetHouse =
+                                    assignmentHouseId === targetHouseId;
+                                  const isCurrent =
+                                    !a.end_date || a.end_date >= today;
+                                  return isTargetHouse && isCurrent;
+                                },
+                              );
 
-                              return hasActiveAssignment || s.id === field.value;
+                              return (
+                                hasActiveAssignment || s.id === field.value
+                              );
                             })
                             .map((staffMember) => (
-                            <SelectItem key={staffMember.id} value={staffMember.id}>
-                              {staffMember.name}
-                            </SelectItem>
-                          ))}
+                              <SelectItem
+                                key={staffMember.id}
+                                value={staffMember.id}
+                              >
+                                {staffMember.name}
+                              </SelectItem>
+                            ))}
                         </SelectContent>
                       </Select>
                     </FormControl>
@@ -872,7 +1157,10 @@ export function HouseForms({
                   <FormItem>
                     <FormLabel>Status</FormLabel>
                     <FormControl>
-                      <Select value={field.value} onValueChange={field.onChange}>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Select status" />
                         </SelectTrigger>
@@ -895,17 +1183,27 @@ export function HouseForms({
                   <FormItem>
                     <FormLabel>Notes</FormLabel>
                     <FormControl>
-                      <Textarea {...field} placeholder="Add any notes about this assignment" rows={2} />
+                      <Textarea
+                        {...field}
+                        placeholder="Add any notes about this assignment"
+                        rows={2}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setShowAssignmentDialog(false)}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowAssignmentDialog(false)}
+                >
                   Cancel
                 </Button>
-                <Button type="submit" variant="primary">Save</Button>
+                <Button type="submit" variant="primary">
+                  Save
+                </Button>
               </DialogFooter>
             </form>
           </Form>

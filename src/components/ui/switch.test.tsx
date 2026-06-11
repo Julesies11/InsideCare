@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 import { Switch } from './switch';
 
 describe('Switch', () => {
@@ -11,10 +11,10 @@ describe('Switch', () => {
   it('handles state changes', () => {
     const handleCheckedChange = vi.fn();
     render(<Switch id="test-switch" onCheckedChange={handleCheckedChange} />);
-    
+
     const toggle = screen.getByRole('switch');
     fireEvent.click(toggle);
-    
+
     expect(handleCheckedChange).toHaveBeenCalledWith(true);
   });
 

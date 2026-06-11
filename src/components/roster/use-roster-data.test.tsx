@@ -1,21 +1,24 @@
-import { describe, it, expect, vi } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
-import { useShiftsQuery, useRosterData } from './use-roster-data';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactNode, ReactElement } from 'react';
-import { http, HttpResponse } from 'msw';
+import { ReactElement, ReactNode } from 'react';
 import { server } from '@/test/mocks/server';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { renderHook, waitFor } from '@testing-library/react';
+import { http, HttpResponse } from 'msw';
+import { describe, expect, it, vi } from 'vitest';
 import { TABLES } from '@/config/db-tables';
+import { useRosterData, useShiftsQuery } from './use-roster-data';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://jxxpufmygwbfzzpioryu.supabase.co';
+const SUPABASE_URL =
+  import.meta.env.VITE_SUPABASE_URL ||
+  'https://jxxpufmygwbfzzpioryu.supabase.co';
 
-const createTestQueryClient = () => new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
+const createTestQueryClient = () =>
+  new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
     },
-  },
-});
+  });
 
 const wrapper = ({ children }: { children: ReactNode }): ReactElement => (
   <QueryClientProvider client={createTestQueryClient()}>
@@ -25,7 +28,7 @@ const wrapper = ({ children }: { children: ReactNode }): ReactElement => (
 
 // Mock calculateDuration since it's an implementation detail
 vi.mock('./roster-utils', async () => {
-  const actual = await vi.importActual('./roster-utils') as any;
+  const actual = (await vi.importActual('./roster-utils')) as any;
   return {
     ...actual,
     calculateDuration: vi.fn(() => 8),
@@ -39,12 +42,12 @@ describe('Roster Query Hooks', () => {
       server.use(
         http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSES}`, () => {
           return HttpResponse.json([
-            { id: 'house-1', house_name: 'Alpha House', status: 'active' }
+            { id: 'house-1', house_name: 'Alpha House', status: 'active' },
           ]);
         }),
         http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF}`, () => {
           return HttpResponse.json([
-            { id: 'staff-1', staff_name: 'John Caregiver', status: 'active' }
+            { id: 'staff-1', staff_name: 'John Caregiver', status: 'active' },
           ]);
         }),
         http.get(`${SUPABASE_URL}/rest/v1/${TABLES.PARTICIPANTS}`, () => {
@@ -65,23 +68,26 @@ describe('Roster Query Hooks', () => {
               type_details: { color_theme: 'blue', icon_name: 'home' },
               participants: [],
               assigned_checklists: [],
-              notes_count: [{ count: 2 }]
-            }
+              notes_count: [{ count: 2 }],
+            },
           ]);
-        })
+        }),
       );
 
-      const { result } = renderHook(() => useShiftsQuery('all', '2026-04-01', '2026-04-07'), { wrapper });
+      const { result } = renderHook(
+        () => useShiftsQuery('all', '2026-04-01', '2026-04-07'),
+        { wrapper },
+      );
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
       expect(result.current.shifts).toHaveLength(1);
       const shift = result.current.shifts[0];
-      
+
       // Verify Frontend Joining worked
       expect(shift.house?.house_name).toBe('Alpha House');
       expect(shift.staff_name).toBe('John Caregiver');
-      
+
       // Verify Mapping
       expect(shift.color_theme).toBe('blue');
       expect(shift.notesCount).toBe(2);
@@ -92,14 +98,20 @@ describe('Roster Query Hooks', () => {
     it('should provide metadata from TanStack Query', async () => {
       server.use(
         http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSES}`, () => {
-          return HttpResponse.json([{ id: 'h1', house_name: 'House 1', status: 'active' }]);
+          return HttpResponse.json([
+            { id: 'h1', house_name: 'House 1', status: 'active' },
+          ]);
         }),
         http.get(`${SUPABASE_URL}/rest/v1/${TABLES.PARTICIPANTS}`, () => {
-          return HttpResponse.json([{ id: 'p1', participant_name: 'Part 1', status: 'active' }]);
+          return HttpResponse.json([
+            { id: 'p1', participant_name: 'Part 1', status: 'active' },
+          ]);
         }),
         http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF}`, () => {
-          return HttpResponse.json([{ id: 's1', staff_name: 'Staff 1', status: 'active' }]);
-        })
+          return HttpResponse.json([
+            { id: 's1', staff_name: 'Staff 1', status: 'active' },
+          ]);
+        }),
       );
 
       const { result } = renderHook(() => useRosterData(), { wrapper });

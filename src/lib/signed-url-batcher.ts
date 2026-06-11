@@ -22,7 +22,11 @@ class SignedUrlBatcherClass {
    * If multiple requests for the same bucket are made within the batch window,
    * they will be grouped into a single API call to Supabase.
    */
-  public get(bucket: string, path: string, expiresIn: number = 3600): Promise<string | null> {
+  public get(
+    bucket: string,
+    path: string,
+    expiresIn: number = 3600,
+  ): Promise<string | null> {
     return new Promise((resolve, reject) => {
       // 1. Initialize queue for this bucket if it doesn't exist
       if (!this.queue.has(bucket)) {
@@ -39,7 +43,7 @@ class SignedUrlBatcherClass {
         const timeoutId = setTimeout(() => {
           this.processQueue(bucket, expiresIn);
         }, this.batchWindowMs);
-        
+
         this.timeouts.set(bucket, timeoutId);
       }
     });
@@ -56,7 +60,9 @@ class SignedUrlBatcherClass {
     if (currentQueue.length === 0) return;
 
     // 3. Extract unique paths to ask Supabase for (Supabase will throw if we ask for duplicates in the array)
-    const uniquePaths = Array.from(new Set(currentQueue.map(item => item.path)));
+    const uniquePaths = Array.from(
+      new Set(currentQueue.map((item) => item.path)),
+    );
 
     try {
       // 4. Chunk the paths to avoid "Request body is too large" (413) errors
@@ -67,22 +73,31 @@ class SignedUrlBatcherClass {
       }
 
       // Process all chunks in parallel
-      const resultsMap = new Map<string, { signedUrl: string, error?: string }>();
-      
+      const resultsMap = new Map<
+        string,
+        { signedUrl: string; error?: string }
+      >();
+
       const chunkPromises = chunks.map(async (chunk) => {
         const { data, error } = await supabase.storage
           .from(bucket)
           .createSignedUrls(chunk, expiresIn);
 
         if (error) {
-          console.error(`Failed to sign a chunk of ${chunk.length} URLs for bucket ${bucket}:`, error);
+          console.error(
+            `Failed to sign a chunk of ${chunk.length} URLs for bucket ${bucket}:`,
+            error,
+          );
           return; // Skip this chunk but allow others to proceed
         }
 
         if (data) {
-          data.forEach(result => {
+          data.forEach((result) => {
             if (result.path && result.signedUrl) {
-              resultsMap.set(result.path, { signedUrl: result.signedUrl, error: result.error });
+              resultsMap.set(result.path, {
+                signedUrl: result.signedUrl,
+                error: result.error,
+              });
             }
           });
         }
@@ -91,7 +106,7 @@ class SignedUrlBatcherClass {
       await Promise.all(chunkPromises);
 
       // 5. Resolve or reject each promise in the queue
-      currentQueue.forEach(item => {
+      currentQueue.forEach((item) => {
         const result = resultsMap.get(item.path);
         if (result && !result.error) {
           item.resolve(result.signedUrl);
@@ -101,11 +116,13 @@ class SignedUrlBatcherClass {
           item.resolve(null);
         }
       });
-
     } catch (error) {
-      console.error(`Failed to batch fetch signed URLs for bucket ${bucket}:`, error);
+      console.error(
+        `Failed to batch fetch signed URLs for bucket ${bucket}:`,
+        error,
+      );
       // If the entire network request failed, reject all queued items
-      currentQueue.forEach(item => item.reject(error as Error));
+      currentQueue.forEach((item) => item.reject(error as Error));
     }
   }
 }

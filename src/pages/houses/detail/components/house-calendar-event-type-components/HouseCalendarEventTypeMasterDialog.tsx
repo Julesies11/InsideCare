@@ -1,14 +1,31 @@
-import { useState, useMemo } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
-import { HouseCalendarEventType } from '@/hooks/useHouseCalendarEvents';
-import { useHouseCalendarEventTypesMaster, useAddHouseCalendarEventTypeMaster, useUpdateHouseCalendarEventTypeMaster } from '@/hooks/use-house-calendar-event-types-master';
-import { HouseCalendarEventTypeMasterQuickAdd } from './HouseCalendarEventTypeMasterQuickAdd';
+import { useMemo, useState } from 'react';
+import { ArrowDown, ArrowUp, ArrowUpDown, Edit, Plus } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  useAddHouseCalendarEventTypeMaster,
+  useHouseCalendarEventTypesMaster,
+  useUpdateHouseCalendarEventTypeMaster,
+} from '@/hooks/use-house-calendar-event-types-master';
+import { HouseCalendarEventType } from '@/hooks/useHouseCalendarEvents';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { HouseCalendarEventTypeMasterQuickAdd } from './HouseCalendarEventTypeMasterQuickAdd';
 
 interface HouseCalendarEventTypeMasterDialogProps {
   open: boolean;
@@ -26,9 +43,11 @@ export function HouseCalendarEventTypeMasterDialog({
 }: HouseCalendarEventTypeMasterDialogProps) {
   const { data: eventTypes = [] } = useHouseCalendarEventTypesMaster();
   const { mutateAsync: addEventType } = useAddHouseCalendarEventTypeMaster();
-  const { mutateAsync: updateEventType } = useUpdateHouseCalendarEventTypeMaster();
+  const { mutateAsync: updateEventType } =
+    useUpdateHouseCalendarEventTypeMaster();
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const [editingEventType, setEditingEventType] = useState<HouseCalendarEventType | null>(null);
+  const [editingEventType, setEditingEventType] =
+    useState<HouseCalendarEventType | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
@@ -43,9 +62,13 @@ export function HouseCalendarEventTypeMasterDialog({
   };
 
   const sortedAndFilteredEventTypes = useMemo(() => {
-    const filtered = eventTypes.filter((type) =>
-      type.event_type_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (type.description && type.description.toLowerCase().includes(searchQuery.toLowerCase()))
+    const filtered = eventTypes.filter(
+      (type) =>
+        type.event_type_name
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        (type.description &&
+          type.description.toLowerCase().includes(searchQuery.toLowerCase())),
     );
 
     filtered.sort((a, b) => {
@@ -81,19 +104,30 @@ export function HouseCalendarEventTypeMasterDialog({
   const handleToggleStatus = async (eventType: HouseCalendarEventType) => {
     const newStatus = eventType.status === 'Active' ? 'Inactive' : 'Active';
     try {
-      await updateEventType({ id: eventType.id, updates: { status: newStatus } });
-      toast.success(`Event type ${newStatus === 'Active' ? 'activated' : 'deactivated'} successfully`);
+      await updateEventType({
+        id: eventType.id,
+        updates: { status: newStatus },
+      });
+      toast.success(
+        `Event type ${newStatus === 'Active' ? 'activated' : 'deactivated'} successfully`,
+      );
       onUpdate();
     } catch (error) {
       const err = error as Error;
-      toast.error(`Failed to ${newStatus === 'Active' ? 'activate' : 'deactivate'} event type: ` + err.message);
+      toast.error(
+        `Failed to ${newStatus === 'Active' ? 'activate' : 'deactivate'} event type: ` +
+          err.message,
+      );
     }
   };
 
   const handleSave = async (eventTypeData: Partial<HouseCalendarEventType>) => {
     try {
       if (editingEventType) {
-        await updateEventType({ id: editingEventType.id, updates: eventTypeData });
+        await updateEventType({
+          id: editingEventType.id,
+          updates: eventTypeData,
+        });
         toast.success('Event type updated successfully');
       } else {
         await addEventType({
@@ -108,13 +142,20 @@ export function HouseCalendarEventTypeMasterDialog({
       onUpdate();
     } catch (error) {
       const err = error as Error;
-      toast.error(`Failed to ${editingEventType ? 'update' : 'add'} event type: ` + err.message);
+      toast.error(
+        `Failed to ${editingEventType ? 'update' : 'add'} event type: ` +
+          err.message,
+      );
     }
   };
 
   const getSortIcon = (field: SortField) => {
     if (sortField !== field) return <ArrowUpDown className="size-4" />;
-    return sortDirection === 'asc' ? <ArrowUp className="size-4" /> : <ArrowDown className="size-4" />;
+    return sortDirection === 'asc' ? (
+      <ArrowUp className="size-4" />
+    ) : (
+      <ArrowDown className="size-4" />
+    );
   };
 
   return (
@@ -185,17 +226,29 @@ export function HouseCalendarEventTypeMasterDialog({
               <TableBody>
                 {sortedAndFilteredEventTypes.map((eventType) => (
                   <TableRow key={eventType.id}>
-                    <TableCell className="font-medium">{eventType.event_type_name}</TableCell>
+                    <TableCell className="font-medium">
+                      {eventType.event_type_name}
+                    </TableCell>
                     <TableCell>{eventType.description || '-'}</TableCell>
                     <TableCell>
-                      <Badge variant={eventType.status === 'Active' ? 'success' : 'secondary'}>
+                      <Badge
+                        variant={
+                          eventType.status === 'Active'
+                            ? 'success'
+                            : 'secondary'
+                        }
+                      >
                         {eventType.status}
                       </Badge>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <div className={`size-4 rounded-full bg-${eventType.color}-500 border border-gray-200`} />
-                        <span className="text-xs capitalize">{eventType.color}</span>
+                        <div
+                          className={`size-4 rounded-full bg-${eventType.color}-500 border border-gray-200`}
+                        />
+                        <span className="text-xs capitalize">
+                          {eventType.color}
+                        </span>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -212,7 +265,9 @@ export function HouseCalendarEventTypeMasterDialog({
                           size="sm"
                           onClick={() => handleToggleStatus(eventType)}
                         >
-                          {eventType.status === 'Active' ? 'Deactivate' : 'Activate'}
+                          {eventType.status === 'Active'
+                            ? 'Deactivate'
+                            : 'Activate'}
                         </Button>
                       </div>
                     </TableCell>

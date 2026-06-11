@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 /**
  * Comprehensive tests for Participant Management.
@@ -11,7 +11,9 @@ test.describe('Participant Management Comprehensive', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/participants/profiles');
     // Ensure loading is finished
-    await expect(page.getByText(/Loading participants/i)).not.toBeVisible({ timeout: 30000 });
+    await expect(page.getByText(/Loading participants/i)).not.toBeVisible({
+      timeout: 30000,
+    });
   });
 
   test('Search and filter participants', async ({ page }) => {
@@ -27,30 +29,34 @@ test.describe('Participant Management Comprehensive', () => {
     await expect(table).toBeVisible();
   });
 
-  test('Navigate to participant detail and verify sections', async ({ page }) => {
+  test('Navigate to participant detail and verify sections', async ({
+    page,
+  }) => {
     // Click on the participant link (name)
     const firstRow = page.locator('table tbody tr').first();
     await expect(firstRow).toBeVisible({ timeout: 15000 });
-    
+
     await firstRow.getByRole('link').first().click();
 
     // Verify redirection to detail page
     await expect(page).toHaveURL(/\/participants\/detail\//);
 
     // Verify primary sections are present via Sidebar links
-    await expect(page.getByText("Personal Details").first()).toBeVisible();
-    await expect(page.getByText("Medications").first()).toBeVisible();
-    await expect(page.getByText("Documents").first()).toBeVisible();
+    await expect(page.getByText('Personal Details').first()).toBeVisible();
+    await expect(page.getByText('Medications').first()).toBeVisible();
+    await expect(page.getByText('Documents').first()).toBeVisible();
   });
 
-  test('Edit participant basic info and verify dirty tracking', async ({ page }) => {
+  test('Edit participant basic info and verify dirty tracking', async ({
+    page,
+  }) => {
     const firstRow = page.locator('table tbody tr').first();
     await firstRow.getByRole('link').first().click();
 
     // Modify a field (e.g., Full Name)
     const nameInput = page.locator('input#participant_name');
     await expect(nameInput).toBeVisible({ timeout: 15000 });
-    
+
     const originalValue = await nameInput.inputValue();
     await nameInput.fill(`${originalValue} Updated`);
 
@@ -64,12 +70,12 @@ test.describe('Participant Management Comprehensive', () => {
     // Scroll the sticky toolbar into view by scrolling to top first, then click
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.waitForTimeout(300);
-    
+
     const [dialog] = await Promise.all([
       page.waitForEvent('dialog', { timeout: 15000 }),
       backBtn.click({ force: true }),
     ]);
-    
+
     expect(dialog.message().toLowerCase()).toContain('unsaved');
     await dialog.dismiss();
   });
@@ -94,7 +100,9 @@ test.describe('Participant Management Comprehensive', () => {
     const dialog = page.locator('[role="dialog"]');
     await expect(dialog).toBeVisible({ timeout: 15000 });
     // The dialog title is "Add Medication"
-    await expect(dialog.getByRole('heading', { name: /Add Medication/i })).toBeVisible({ timeout: 10000 });
+    await expect(
+      dialog.getByRole('heading', { name: /Add Medication/i }),
+    ).toBeVisible({ timeout: 10000 });
 
     // Close dialog via Cancel button
     await dialog.getByRole('button', { name: /Cancel/i }).click();

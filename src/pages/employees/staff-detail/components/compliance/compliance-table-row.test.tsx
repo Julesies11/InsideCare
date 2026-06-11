@@ -1,7 +1,7 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { ComplianceTableRow } from './compliance-table-row';
 import { ResolvedComplianceItem } from '@/models/compliance.types';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+import { ComplianceTableRow } from './compliance-table-row';
 
 describe('ComplianceTableRow', () => {
   const mockItem: ResolvedComplianceItem = {
@@ -22,7 +22,7 @@ describe('ComplianceTableRow', () => {
     isTemp: false,
     isPendingDelete: false,
     isPendingUpdate: false,
-    verifiedDocuments: []
+    verifiedDocuments: [],
   };
 
   const mockProps = {
@@ -35,7 +35,7 @@ describe('ComplianceTableRow', () => {
     onAddAttachment: vi.fn(),
     onRemoveAttachment: vi.fn(),
     onOpenIDModal: vi.fn(),
-    idDocumentTypes: []
+    idDocumentTypes: [],
   };
 
   it('renders standard requirement correctly', () => {
@@ -44,7 +44,7 @@ describe('ComplianceTableRow', () => {
         <tbody>
           <ComplianceTableRow {...mockProps} />
         </tbody>
-      </table>
+      </table>,
     );
 
     expect(screen.getByText('Standard Requirement')).toBeInTheDocument();
@@ -53,13 +53,18 @@ describe('ComplianceTableRow', () => {
   });
 
   it('identifies ID verification based on systemCategory', () => {
-    const idItem = { ...mockItem, systemCategory: 'id_verification', complianceName: 'Any Name', isCompleted: false };
+    const idItem = {
+      ...mockItem,
+      systemCategory: 'id_verification',
+      complianceName: 'Any Name',
+      isCompleted: false,
+    };
     render(
       <table>
         <tbody>
           <ComplianceTableRow {...mockProps} item={idItem} />
         </tbody>
-      </table>
+      </table>,
     );
 
     // Should show "Verify ID Documents" or similar ID logic button
@@ -72,12 +77,17 @@ describe('ComplianceTableRow', () => {
         <tbody>
           <ComplianceTableRow {...mockProps} />
         </tbody>
-      </table>
+      </table>,
     );
 
     const checkbox = screen.getByRole('checkbox');
     fireEvent.click(checkbox);
 
-    expect(mockProps.onToggle).toHaveBeenCalledWith('req-1', 'rec-1', 'Standard Requirement', false);
+    expect(mockProps.onToggle).toHaveBeenCalledWith(
+      'req-1',
+      'rec-1',
+      'Standard Requirement',
+      false,
+    );
   });
 });

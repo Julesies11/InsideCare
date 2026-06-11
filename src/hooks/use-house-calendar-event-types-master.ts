@@ -1,5 +1,5 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { masterListsApi } from '@/api/master-lists.api';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { QUERY_KEYS } from '@/config/query-keys';
 import { HouseCalendarEventType } from './useHouseCalendarEvents';
 
@@ -23,7 +23,9 @@ export function useAddHouseCalendarEventTypeMaster() {
       return await masterListsApi.eventTypes.upsert(eventTypeData as any);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.EVENT_TYPES_MASTER] });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.EVENT_TYPES_MASTER],
+      });
     },
   });
 }
@@ -32,11 +34,19 @@ export function useUpdateHouseCalendarEventTypeMaster() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: Partial<HouseCalendarEventType> }) => {
+    mutationFn: async ({
+      id,
+      updates,
+    }: {
+      id: string;
+      updates: Partial<HouseCalendarEventType>;
+    }) => {
       return await masterListsApi.eventTypes.upsert({ ...updates, id } as any);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.EVENT_TYPES_MASTER] });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.EVENT_TYPES_MASTER],
+      });
     },
   });
 }

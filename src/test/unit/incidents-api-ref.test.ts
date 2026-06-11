@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { incidentsApi } from '@/api/incidents.api';
-import { supabase } from '@/lib/supabase';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TABLES } from '@/config/db-tables';
+import { supabase } from '@/lib/supabase';
 
 // Mock Supabase client
 vi.mock('@/lib/supabase', () => ({
@@ -11,7 +11,11 @@ vi.mock('@/lib/supabase', () => ({
 }));
 
 // Helper to create a mock query chain
-const createMockQuery = (data: any = [], error: any = null, count: number = 0) => {
+const createMockQuery = (
+  data: any = [],
+  error: any = null,
+  count: number = 0,
+) => {
   const query: any = {
     select: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
@@ -20,8 +24,11 @@ const createMockQuery = (data: any = [], error: any = null, count: number = 0) =
     single: vi.fn(),
   };
 
-  query.single.mockResolvedValue({ data: Array.isArray(data) ? data[0] : data, error });
-  
+  query.single.mockResolvedValue({
+    data: Array.isArray(data) ? data[0] : data,
+    error,
+  });
+
   // Support promise chain directly (for supabase then/await)
   query.then = vi.fn().mockImplementation((callback) => {
     return Promise.resolve({ data, error, count }).then(callback);
@@ -40,14 +47,17 @@ describe('incidentsApi - RESTful Routing and Collision Resolution Unit Tests', (
       const uuid = 'f511c36d-caa7-43ad-9551-8d879be26b8e';
       const mockResult = { id: uuid, reference_id: 'INC-1' };
       const mockQuery = createMockQuery([mockResult]);
-      
+
       vi.mocked(supabase.from).mockReturnValue(mockQuery);
 
       const result = await incidentsApi.getById(uuid);
 
       expect(supabase.from).toHaveBeenCalledWith(TABLES.INCIDENT_REPORTS);
       expect(mockQuery.eq).toHaveBeenCalledWith('id', uuid);
-      expect(mockQuery.eq).not.toHaveBeenCalledWith('reference_id', expect.any(String));
+      expect(mockQuery.eq).not.toHaveBeenCalledWith(
+        'reference_id',
+        expect.any(String),
+      );
       expect(result).toEqual(mockResult);
     });
 
@@ -55,7 +65,7 @@ describe('incidentsApi - RESTful Routing and Collision Resolution Unit Tests', (
       const refId = 'INC-20260608-2044-JG';
       const mockResult = { id: 'uuid-1', reference_id: refId };
       const mockQuery = createMockQuery([mockResult]);
-      
+
       vi.mocked(supabase.from).mockReturnValue(mockQuery);
 
       const result = await incidentsApi.getById(refId);
@@ -77,7 +87,7 @@ describe('incidentsApi - RESTful Routing and Collision Resolution Unit Tests', (
 
       // First call: select query for uniqueness check (count = 0)
       const mockCheckQuery = createMockQuery([], null, 0);
-      
+
       // Second call: insert query
       const mockInsertQuery = createMockQuery([mockResult]);
 
@@ -101,7 +111,10 @@ describe('incidentsApi - RESTful Routing and Collision Resolution Unit Tests', (
       const result = await incidentsApi.create(report as any);
 
       expect(supabase.from).toHaveBeenCalledWith(TABLES.INCIDENT_REPORTS);
-      expect(mockCheckQuery.eq).toHaveBeenCalledWith('reference_id', 'INC-UNIQUE');
+      expect(mockCheckQuery.eq).toHaveBeenCalledWith(
+        'reference_id',
+        'INC-UNIQUE',
+      );
       expect(result).toEqual(mockResult);
       expect(report.reference_id).toBe('INC-UNIQUE');
     });
@@ -111,7 +124,11 @@ describe('incidentsApi - RESTful Routing and Collision Resolution Unit Tests', (
         reference_id: 'INC-COLLIDE',
         summary: 'Colliding incident',
       };
-      const mockResult = { id: 'uuid-new', ...report, reference_id: 'INC-COLLIDE-3' };
+      const mockResult = {
+        id: 'uuid-new',
+        ...report,
+        reference_id: 'INC-COLLIDE-3',
+      };
 
       // We simulate:
       // 1. INC-COLLIDE exists (count = 1)
@@ -127,10 +144,18 @@ describe('incidentsApi - RESTful Routing and Collision Resolution Unit Tests', (
               checkCount++;
               if (val === 'INC-COLLIDE' || val === 'INC-COLLIDE-2') {
                 // Return a mock result where count is 1 (exist)
-                checkQuery.then = vi.fn().mockImplementation((cb) => cb({ data: [{ id: '1' }], error: null, count: 1 }));
+                checkQuery.then = vi
+                  .fn()
+                  .mockImplementation((cb) =>
+                    cb({ data: [{ id: '1' }], error: null, count: 1 }),
+                  );
               } else if (val === 'INC-COLLIDE-3') {
                 // Return count 0 (does not exist)
-                checkQuery.then = vi.fn().mockImplementation((cb) => cb({ data: [], error: null, count: 0 }));
+                checkQuery.then = vi
+                  .fn()
+                  .mockImplementation((cb) =>
+                    cb({ data: [], error: null, count: 0 }),
+                  );
               }
               return checkQuery;
             });

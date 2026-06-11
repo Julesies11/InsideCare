@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { Info, Mail, UserCheck } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -7,9 +10,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Mail, UserCheck, Info } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface StaffActivationDialogProps {
   open: boolean;
@@ -45,7 +45,9 @@ export function StaffActivationDialog({
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 mb-4">
             <UserCheck className="h-6 w-6 text-green-600" />
           </div>
-          <DialogTitle className="text-center text-xl">Activate Staff Member</DialogTitle>
+          <DialogTitle className="text-center text-xl">
+            Activate Staff Member
+          </DialogTitle>
           <DialogDescription className="text-center pt-2 text-base">
             Are you sure you want to set <strong>{staffName}</strong> to Active?
           </DialogDescription>
@@ -57,8 +59,9 @@ export function StaffActivationDialog({
             <div className="space-y-1">
               <p className="font-semibold">What does activation mean?</p>
               <p className="leading-relaxed opacity-90">
-                Activating this staff member will make them available for scheduling on rosters, 
-                visible in active staff lists, and available for selection as a manager.
+                Activating this staff member will make them available for
+                scheduling on rosters, visible in active staff lists, and
+                available for selection as a manager.
               </p>
             </div>
           </div>
@@ -66,9 +69,13 @@ export function StaffActivationDialog({
           {email && (
             <Alert className="bg-slate-50 border-slate-200">
               <Mail className="h-4 w-4 text-slate-600" />
-              <AlertTitle className="text-slate-800 font-semibold text-sm">Portal Access Required</AlertTitle>
+              <AlertTitle className="text-slate-800 font-semibold text-sm">
+                Portal Access Required
+              </AlertTitle>
               <AlertDescription className="text-slate-600 text-xs mt-1">
-                This staff member does not currently have portal access. You can send an invitation to <strong>{email}</strong> now, or activate them without login access.
+                This staff member does not currently have portal access. You can
+                send an invitation to <strong>{email}</strong> now, or activate
+                them without login access.
               </AlertDescription>
             </Alert>
           )}
@@ -97,11 +104,13 @@ export function StaffActivationDialog({
                 Activate & Invite
               </Button>
             )}
-            
+
             <Button
               type="button"
-              variant={email ? "outline" : "default"}
-              className={!email ? "bg-green-600 hover:bg-green-700 text-white" : ""}
+              variant={email ? 'outline' : 'default'}
+              className={
+                !email ? 'bg-green-600 hover:bg-green-700 text-white' : ''
+              }
               onClick={() => handleActivate(false)}
               disabled={isProcessing}
             >

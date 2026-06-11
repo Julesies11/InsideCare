@@ -1,14 +1,12 @@
 import { useState } from 'react';
+import { Clock, Download, FileText, Plus, Trash2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import {
+  getHouseFileUrl as getFileUrl,
+  useHouseDocuments,
+} from '@/hooks/use-house-documents';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Sheet, SheetBody, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Plus, Download, Trash2, FileText, Clock } from 'lucide-react';
-import { useHouseDocuments, getHouseFileUrl as getFileUrl } from '@/hooks/use-house-documents';
-import { KeenIcon } from '@/components/keenicons';
-import { cn } from '@/lib/utils';
 import {
   ContextMenu,
   ContextMenuContent,
@@ -16,6 +14,26 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from '@/components/ui/context-menu';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Sheet,
+  SheetBody,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { KeenIcon } from '@/components/keenicons';
 
 interface HouseDocumentsProps {
   houseId?: string;
@@ -26,18 +44,19 @@ interface HouseDocumentsProps {
   onPendingChangesChange?: (changes: HousePendingChanges) => void;
 }
 
-export function HouseDocuments({ 
-  houseId, 
-  houseName, 
-  canAdd, 
+export function HouseDocuments({
+  houseId,
+  houseName,
+  canAdd,
   canDelete,
   pendingChanges,
-  onPendingChangesChange 
+  onPendingChangesChange,
 }: HouseDocumentsProps) {
   const [showUploadSheet, setShowUploadSheet] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const { data: houseDocuments = [], isLoading: loading } = useHouseDocuments(houseId);
+  const { data: houseDocuments = [], isLoading: loading } =
+    useHouseDocuments(houseId);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -47,7 +66,7 @@ export function HouseDocuments({
 
   const handleUpload = () => {
     if (!selectedFile || !pendingChanges || !onPendingChangesChange) return;
-    
+
     // Add to pending uploads instead of immediate save
     const tempId = `temp-${Date.now()}-${Math.random()}`;
     const newPending = {
@@ -64,7 +83,7 @@ export function HouseDocuments({
         ],
       },
     };
-    
+
     onPendingChangesChange(newPending);
     setShowUploadSheet(false);
     setSelectedFile(null);
@@ -82,8 +101,12 @@ export function HouseDocuments({
 
   const handleDelete = (id: string, filePath: string, fileName: string) => {
     if (!pendingChanges || !onPendingChangesChange) return;
-    
-    if (confirm('Mark this document for deletion? It will be removed when you click Save Changes.')) {
+
+    if (
+      confirm(
+        'Mark this document for deletion? It will be removed when you click Save Changes.',
+      )
+    ) {
       // Add to pending deletes instead of immediate delete
       const newPending = {
         ...pendingChanges,
@@ -95,42 +118,49 @@ export function HouseDocuments({
           ],
         },
       };
-      
+
       onPendingChangesChange(newPending);
     }
   };
 
   const handleCancelPendingUpload = (tempId: string) => {
     if (!pendingChanges || !onPendingChangesChange) return;
-    
+
     const newPending = {
       ...pendingChanges,
       documents: {
         ...pendingChanges.documents,
-        toAdd: pendingChanges.documents.toAdd.filter(doc => doc.tempId !== tempId),
+        toAdd: pendingChanges.documents.toAdd.filter(
+          (doc) => doc.tempId !== tempId,
+        ),
       },
     };
-    
+
     onPendingChangesChange(newPending);
   };
 
   const handleCancelPendingDelete = (id: string) => {
     if (!pendingChanges || !onPendingChangesChange) return;
-    
+
     const newPending = {
       ...pendingChanges,
       documents: {
         ...pendingChanges.documents,
-        toDelete: pendingChanges.documents.toDelete.filter(doc => doc.id !== id),
+        toDelete: pendingChanges.documents.toDelete.filter(
+          (doc) => doc.id !== id,
+        ),
       },
     };
-    
+
     onPendingChangesChange(newPending);
   };
 
   // Filter out documents marked for deletion
   const visibleDocuments = houseDocuments.filter(
-    doc => !pendingChanges?.documents.toDelete.some(pending => pending.id === doc.id)
+    (doc) =>
+      !pendingChanges?.documents.toDelete.some(
+        (pending) => pending.id === doc.id,
+      ),
   );
 
   // Format file size
@@ -138,7 +168,7 @@ export function HouseDocuments({
     if (!bytes) return 'N/A';
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(1024));
-    return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
+    return Math.round((bytes / Math.pow(1024, i)) * 100) / 100 + ' ' + sizes[i];
   };
 
   return (
@@ -146,173 +176,228 @@ export function HouseDocuments({
       <Card className="pb-2.5" id="documents">
         <CardHeader>
           <CardTitle>Documents</CardTitle>
-          <Button variant="secondary" size="sm" className="border border-gray-300" onClick={() => setShowUploadSheet(true)} disabled={!houseId || !canAdd}>
+          <Button
+            variant="secondary"
+            size="sm"
+            className="border border-gray-300"
+            onClick={() => setShowUploadSheet(true)}
+            disabled={!houseId || !canAdd}
+          >
             <Plus className="size-4 me-1.5" />
             Upload Document
           </Button>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="text-center py-8 text-muted-foreground">Loading documents...</div>
-          ) : visibleDocuments.length === 0 && (!pendingChanges?.documents.toAdd.length) ? (
-            <div className="text-center py-8 text-muted-foreground">No documents uploaded yet</div>
+            <div className="text-center py-8 text-muted-foreground">
+              Loading documents...
+            </div>
+          ) : visibleDocuments.length === 0 &&
+            !pendingChanges?.documents.toAdd.length ? (
+            <div className="text-center py-8 text-muted-foreground">
+              No documents uploaded yet
+            </div>
           ) : (
-            <div className="overflow-x-auto"><Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Document Name</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>File Size</TableHead>
-                  <TableHead>Uploaded</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {/* Existing documents */}
-                {visibleDocuments.map((doc) => {
-                  const isPendingDelete = pendingChanges?.documents.toDelete.some(pending => pending.id === doc.id);
-                  return (
-                    <ContextMenu key={doc.id}>
-                      <ContextMenuTrigger asChild>
-                        <TableRow 
-                          className={cn(
-                            "cursor-pointer hover:bg-gray-50/50 transition-colors",
-                            isPendingDelete && 'opacity-50 bg-destructive/5'
-                          )}
-                          onClick={() => !isPendingDelete && handleView(doc.file_path)}
-                          title="Click to view"
-                        >
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <FileText className="size-4 text-muted-foreground" />
-                              <span className={isPendingDelete ? 'line-through' : ''}>{doc.file_name}</span>
-                              {isPendingDelete && (
-                                <span className="text-xs text-destructive flex items-center gap-1">
-                                  <Clock className="size-3" />
-                                  Pending deletion
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Document Name</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>File Size</TableHead>
+                    <TableHead>Uploaded</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {/* Existing documents */}
+                  {visibleDocuments.map((doc) => {
+                    const isPendingDelete =
+                      pendingChanges?.documents.toDelete.some(
+                        (pending) => pending.id === doc.id,
+                      );
+                    return (
+                      <ContextMenu key={doc.id}>
+                        <ContextMenuTrigger asChild>
+                          <TableRow
+                            className={cn(
+                              'cursor-pointer hover:bg-gray-50/50 transition-colors',
+                              isPendingDelete && 'opacity-50 bg-destructive/5',
+                            )}
+                            onClick={() =>
+                              !isPendingDelete && handleView(doc.file_path)
+                            }
+                            title="Click to view"
+                          >
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <FileText className="size-4 text-muted-foreground" />
+                                <span
+                                  className={
+                                    isPendingDelete ? 'line-through' : ''
+                                  }
+                                >
+                                  {doc.file_name}
                                 </span>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <span className="text-sm">{doc.category || 'General'}</span>
-                          </TableCell>
-                          <TableCell>
-                            <span className="text-sm">{formatFileSize(doc.file_size)}</span>
-                          </TableCell>
-                          <TableCell>
-                            <span className="text-sm">
-                              {doc.created_at ? new Date(doc.created_at).toLocaleDateString('en-AU') : 'N/A'}
-                            </span>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex justify-end gap-1">
-                              {!isPendingDelete && (
-                                <>
+                                {isPendingDelete && (
+                                  <span className="text-xs text-destructive flex items-center gap-1">
+                                    <Clock className="size-3" />
+                                    Pending deletion
+                                  </span>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <span className="text-sm">
+                                {doc.category || 'General'}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <span className="text-sm">
+                                {formatFileSize(doc.file_size)}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <span className="text-sm">
+                                {doc.created_at
+                                  ? new Date(doc.created_at).toLocaleDateString(
+                                      'en-AU',
+                                    )
+                                  : 'N/A'}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex justify-end gap-1">
+                                {!isPendingDelete && (
+                                  <>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDownload(
+                                          doc.file_path,
+                                          doc.file_name,
+                                        );
+                                      }}
+                                    >
+                                      <Download className="size-4" />
+                                    </Button>
+                                    {canDelete && (
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="text-destructive"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleDelete(
+                                            doc.id,
+                                            doc.file_path,
+                                            doc.file_name,
+                                          );
+                                        }}
+                                      >
+                                        <Trash2 className="size-4" />
+                                      </Button>
+                                    )}
+                                  </>
+                                )}
+                                {isPendingDelete && (
                                   <Button
                                     variant="ghost"
                                     size="sm"
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      handleDownload(doc.file_path, doc.file_name);
+                                      handleCancelPendingDelete(doc.id);
                                     }}
                                   >
-                                    <Download className="size-4" />
+                                    Undo
                                   </Button>
-                                  {canDelete && (
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="text-destructive"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleDelete(doc.id, doc.file_path, doc.file_name);
-                                      }}
-                                    >
-                                      <Trash2 className="size-4" />
-                                    </Button>
-                                  )}
-                                </>
-                              )}
-                              {isPendingDelete && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleCancelPendingDelete(doc.id);
-                                  }}
-                                >
-                                  Undo
-                                </Button>
-                              )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      </ContextMenuTrigger>
-                      
-                      <ContextMenuContent className="w-48">
-                        <ContextMenuItem onClick={() => handleDownload(doc.file_path, doc.file_name)}>
-                          <KeenIcon icon="cloud-download" className="me-2" />
-                          Download
-                        </ContextMenuItem>
-                        
-                        {canDelete && !isPendingDelete && (
-                          <>
-                            <ContextMenuSeparator />
-                            <ContextMenuItem 
-                              variant="destructive"
-                              onClick={() => handleDelete(doc.id, doc.file_path, doc.file_name)}
-                            >
-                              <KeenIcon icon="trash" className="me-2" />
-                              Delete
-                            </ContextMenuItem>
-                          </>
-                        )}
-                      </ContextMenuContent>
-                    </ContextMenu>
-                  );
-                })}
-                
-                {/* Pending uploads */}
-                {pendingChanges?.documents.toAdd.map((pending) => (
-                  <TableRow key={pending.tempId} className="bg-primary/5">
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <FileText className="size-4 text-muted-foreground" />
-                        <span>{pending.fileName}</span>
-                        <span className="text-xs text-primary flex items-center gap-1">
-                          <Clock className="size-3" />
-                          Pending upload
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        </ContextMenuTrigger>
+
+                        <ContextMenuContent className="w-48">
+                          <ContextMenuItem
+                            onClick={() =>
+                              handleDownload(doc.file_path, doc.file_name)
+                            }
+                          >
+                            <KeenIcon icon="cloud-download" className="me-2" />
+                            Download
+                          </ContextMenuItem>
+
+                          {canDelete && !isPendingDelete && (
+                            <>
+                              <ContextMenuSeparator />
+                              <ContextMenuItem
+                                variant="destructive"
+                                onClick={() =>
+                                  handleDelete(
+                                    doc.id,
+                                    doc.file_path,
+                                    doc.file_name,
+                                  )
+                                }
+                              >
+                                <KeenIcon icon="trash" className="me-2" />
+                                Delete
+                              </ContextMenuItem>
+                            </>
+                          )}
+                        </ContextMenuContent>
+                      </ContextMenu>
+                    );
+                  })}
+
+                  {/* Pending uploads */}
+                  {pendingChanges?.documents.toAdd.map((pending) => (
+                    <TableRow key={pending.tempId} className="bg-primary/5">
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <FileText className="size-4 text-muted-foreground" />
+                          <span>{pending.fileName}</span>
+                          <span className="text-xs text-primary flex items-center gap-1">
+                            <Clock className="size-3" />
+                            Pending upload
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm text-muted-foreground">
+                          General
                         </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-sm text-muted-foreground">General</span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-sm text-muted-foreground">
-                        {formatFileSize(pending.file.size)}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-sm text-muted-foreground">Not uploaded yet</span>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleCancelPendingUpload(pending.tempId)}
-                        >
-                          Remove
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table></div>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm text-muted-foreground">
+                          {formatFileSize(pending.file.size)}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm text-muted-foreground">
+                          Not uploaded yet
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                              handleCancelPendingUpload(pending.tempId)
+                            }
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>
@@ -361,7 +446,11 @@ export function HouseDocuments({
             <Button variant="outline" onClick={() => setShowUploadSheet(false)}>
               Cancel
             </Button>
-            <Button variant="primary" onClick={handleUpload} disabled={!selectedFile}>
+            <Button
+              variant="primary"
+              onClick={handleUpload}
+              disabled={!selectedFile}
+            >
               Save
             </Button>
           </SheetFooter>

@@ -1,7 +1,7 @@
-import { ChecklistCard } from '@/components/checklists/checklist-card';
-import { cn } from '@/lib/utils';
-import { CheckSquare } from 'lucide-react';
 import { useMemo } from 'react';
+import { CheckSquare } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { ChecklistCard } from '@/components/checklists/checklist-card';
 
 interface ShiftChecklistPickerProps {
   checklists: any[];
@@ -14,11 +14,11 @@ interface ShiftChecklistPickerProps {
  * Reusable component for selecting checklists within a shift.
  * Uses the standard ChecklistCard but with compact settings.
  */
-export function ShiftChecklistPicker({ 
-  checklists, 
-  selectedIds, 
-  onToggle, 
-  readOnly = false 
+export function ShiftChecklistPicker({
+  checklists,
+  selectedIds,
+  onToggle,
+  readOnly = false,
 }: ShiftChecklistPickerProps) {
   // Sort checklists so selected ones appear at the top
   // We exclude selectedIds from the dependencies to prevent re-sorting while the user is picking
@@ -26,10 +26,10 @@ export function ShiftChecklistPicker({
     return [...checklists].sort((a, b) => {
       const aSelected = selectedIds.includes(a.id);
       const bSelected = selectedIds.includes(b.id);
-      
+
       if (aSelected && !bSelected) return -1;
       if (!aSelected && bSelected) return 1;
-      
+
       // Secondary sort by sort_order
       return (a.sort_order || 0) - (b.sort_order || 0);
     });
@@ -39,7 +39,9 @@ export function ShiftChecklistPicker({
   if (checklists.length === 0) {
     return (
       <div className="text-center py-8 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-        <p className="text-xs text-muted-foreground italic">No checklists available for this house.</p>
+        <p className="text-xs text-muted-foreground italic">
+          No checklists available for this house.
+        </p>
       </div>
     );
   }
@@ -48,32 +50,49 @@ export function ShiftChecklistPicker({
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       {sortedChecklists.map((cl) => {
         const isSelected = selectedIds.includes(cl.id);
-        
+
         return (
-          <div 
+          <div
             key={cl.id}
             className={cn(
-              "relative transition-all",
-              !readOnly && "cursor-pointer active:scale-[0.98]"
+              'relative transition-all',
+              !readOnly && 'cursor-pointer active:scale-[0.98]',
             )}
-            onClick={() => !readOnly && onToggle(cl.id, cl.house_checklist_name || cl.name || 'Routine Checklist')}
+            onClick={() =>
+              !readOnly &&
+              onToggle(
+                cl.id,
+                cl.house_checklist_name || cl.name || 'Routine Checklist',
+              )
+            }
           >
             {/* Overlay Selection Indicator */}
-            <div className={cn(
-              "absolute top-3 right-3 z-20 size-5 rounded-full border-2 flex items-center justify-center transition-colors",
-              isSelected ? "bg-green-500 border-green-500 text-white shadow-sm" : "bg-white border-gray-200 text-transparent"
-            )}>
+            <div
+              className={cn(
+                'absolute top-3 right-3 z-20 size-5 rounded-full border-2 flex items-center justify-center transition-colors',
+                isSelected
+                  ? 'bg-green-500 border-green-500 text-white shadow-sm'
+                  : 'bg-white border-gray-200 text-transparent',
+              )}
+            >
               <CheckSquare className="size-3" />
             </div>
 
-            <div className={cn(
-              "h-full rounded-xl transition-all border-2",
-              isSelected ? "border-green-500 ring-2 ring-green-500/10" : "border-transparent"
-            )}>
-              <ChecklistCard 
+            <div
+              className={cn(
+                'h-full rounded-xl transition-all border-2',
+                isSelected
+                  ? 'border-green-500 ring-2 ring-green-500/10'
+                  : 'border-transparent',
+              )}
+            >
+              <ChecklistCard
                 checklist={{
                   ...cl,
-                  items: cl.items?.map((item: any) => ({ ...item, is_required: false })) // Hide required tag by setting to false for preview
+                  items: cl.items?.map((item: any) => ({
+                    ...item,
+                    is_required: false,
+                  })), // Hide required tag by setting to false for preview
                 }}
                 showTasksPreview={true}
                 maxTasksPreview={2}

@@ -1,27 +1,45 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  Toolbar,
+  ToolbarActions,
+  ToolbarDescription,
+  ToolbarHeading,
+  ToolbarPageTitle,
+} from '@/partials/common/toolbar';
+import { ArrowLeft, Loader2, Save, Settings2 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router';
-import { Container } from '@/components/common/container';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { toast } from 'sonner';
+import { RBAC_MODULES } from '@/config/rbac-modules';
+import { ROUTES } from '@/config/routes.config';
+import { getDisplayMedicationTypes } from '@/lib/medication-utils';
+import {
+  useAddMedicationMaster,
+  useMedicationMaster,
+  useMedicationTypes,
+  useUpdateMedicationMaster,
+} from '@/hooks/use-medications-master';
+import { ACCESS_LEVEL, useRBAC } from '@/hooks/useRBAC';
 import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Save, Loader2, Settings2 } from 'lucide-react';
-import { 
-  useMedicationMaster, 
-  useAddMedicationMaster, 
-  useUpdateMedicationMaster,
-  useMedicationTypes
-} from '@/hooks/use-medications-master';
-import { toast } from 'sonner';
-import { Toolbar, ToolbarActions, ToolbarHeading, ToolbarPageTitle, ToolbarDescription } from '@/partials/common/toolbar';
-import { RBAC_MODULES } from '@/config/rbac-modules';
-import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
-import { ROUTES } from '@/config/routes.config';
+import { Textarea } from '@/components/ui/textarea';
+import { Container } from '@/components/common/container';
 import { MedicationTypeMasterDialog } from './components/medication-type-master-dialog';
-import { getDisplayMedicationTypes } from '@/lib/medication-utils';
 
 export function MedicationDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -34,9 +52,9 @@ export function MedicationDetailPage() {
   const { mutateAsync: addMedication } = useAddMedicationMaster();
   const { mutateAsync: updateMedication } = useUpdateMedicationMaster();
 
-  const displayTypes = useMemo(() => 
-    getDisplayMedicationTypes(medicationTypes, medication?.type_id),
-    [medicationTypes, medication]
+  const displayTypes = useMemo(
+    () => getDisplayMedicationTypes(medicationTypes, medication?.type_id),
+    [medicationTypes, medication],
   );
 
   const [formData, setFormData] = useState({
@@ -102,10 +120,10 @@ export function MedicationDetailPage() {
         await addMedication(formData);
         toast.success('Medication added to register');
       } else if (id) {
-        await updateMedication({ 
-          id, 
-          updates: formData, 
-          oldMedication: medication! 
+        await updateMedication({
+          id,
+          updates: formData,
+          oldMedication: medication!,
         });
         toast.success('Medication updated successfully');
       }
@@ -137,25 +155,37 @@ export function MedicationDetailPage() {
           <div className="flex items-center justify-between gap-5">
             <ToolbarHeading>
               <div className="flex items-center gap-3">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => navigate(ROUTES.MEDICATION_REGISTER)}
                 >
                   <ArrowLeft className="size-4 me-1.5" />
                   Back
                 </Button>
                 <div>
-                  <ToolbarPageTitle text={isNew ? 'Add Medication' : formData.medication_name} />
+                  <ToolbarPageTitle
+                    text={isNew ? 'Add Medication' : formData.medication_name}
+                  />
                   <ToolbarDescription>
-                    {isNew ? 'Create a new entry in the medication register' : 'Manage medication details and instructions'}
+                    {isNew
+                      ? 'Create a new entry in the medication register'
+                      : 'Manage medication details and instructions'}
                   </ToolbarDescription>
                 </div>
               </div>
             </ToolbarHeading>
             <ToolbarActions>
-              <Button size="sm" onClick={handleSave} disabled={saving || !canEdit || (!isNew && !isDirty)}>
-                {saving ? <Loader2 className="size-4 animate-spin me-1.5" /> : <Save className="size-4 me-1.5" />}
+              <Button
+                size="sm"
+                onClick={handleSave}
+                disabled={saving || !canEdit || (!isNew && !isDirty)}
+              >
+                {saving ? (
+                  <Loader2 className="size-4 animate-spin me-1.5" />
+                ) : (
+                  <Save className="size-4 me-1.5" />
+                )}
                 {isNew ? 'Create Medication' : 'Save Changes'}
               </Button>
             </ToolbarActions>
@@ -168,16 +198,25 @@ export function MedicationDetailPage() {
           <Card>
             <CardHeader>
               <CardTitle>Medication Information</CardTitle>
-              <CardDescription>Primary details and categorization of the medication.</CardDescription>
+              <CardDescription>
+                Primary details and categorization of the medication.
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="medication_name">Generic Name <span className="text-destructive">*</span></Label>
+                  <Label htmlFor="medication_name">
+                    Generic Name <span className="text-destructive">*</span>
+                  </Label>
                   <Input
                     id="medication_name"
                     value={formData.medication_name}
-                    onChange={(e) => setFormData({ ...formData, medication_name: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        medication_name: e.target.value,
+                      })
+                    }
                     placeholder="e.g., Risperidone"
                     disabled={!canEdit}
                   />
@@ -187,7 +226,9 @@ export function MedicationDetailPage() {
                   <Input
                     id="brand_name"
                     value={formData.brand_name}
-                    onChange={(e) => setFormData({ ...formData, brand_name: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, brand_name: e.target.value })
+                    }
                     placeholder="e.g., Risperdal"
                     disabled={!canEdit}
                   />
@@ -197,11 +238,14 @@ export function MedicationDetailPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="type_id">Medication Type <span className="text-destructive">*</span></Label>
+                    <Label htmlFor="type_id">
+                      Medication Type{' '}
+                      <span className="text-destructive">*</span>
+                    </Label>
                     {canManageTypes && (
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => setTypeMasterOpen(true)}
                         className="h-auto p-0 text-xs font-medium text-primary hover:bg-transparent hover:text-primary/80"
                       >
@@ -210,18 +254,21 @@ export function MedicationDetailPage() {
                       </Button>
                     )}
                   </div>
-                  <Select 
-                    value={formData.type_id} 
-                    onValueChange={(value) => setFormData({ ...formData, type_id: value })}
+                  <Select
+                    value={formData.type_id}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, type_id: value })
+                    }
                     disabled={!canEdit}
                   >
                     <SelectTrigger id="type_id">
                       <SelectValue placeholder="Select type..." />
                     </SelectTrigger>
                     <SelectContent>
-                      {displayTypes.map(type => (
+                      {displayTypes.map((type) => (
                         <SelectItem key={type.id} value={type.id}>
-                          {type.medication_type_name} {!type.is_active && '(Inactive)'}
+                          {type.medication_type_name}{' '}
+                          {!type.is_active && '(Inactive)'}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -232,7 +279,9 @@ export function MedicationDetailPage() {
                   <Input
                     id="sub_class"
                     value={formData.sub_class}
-                    onChange={(e) => setFormData({ ...formData, sub_class: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, sub_class: e.target.value })
+                    }
                     placeholder="e.g., Atypical"
                     disabled={!canEdit}
                   />
@@ -243,12 +292,15 @@ export function MedicationDetailPage() {
                 <div className="space-y-0.5">
                   <Label className="text-base">Active Status</Label>
                   <p className="text-sm text-muted-foreground">
-                    Inactive medications are hidden from selection in participant profiles.
+                    Inactive medications are hidden from selection in
+                    participant profiles.
                   </p>
                 </div>
                 <Switch
                   checked={formData.is_active}
-                  onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, is_active: checked })
+                  }
                   disabled={!canEdit}
                 />
               </div>
@@ -258,7 +310,9 @@ export function MedicationDetailPage() {
           <Card>
             <CardHeader>
               <CardTitle>Clinical Guidance</CardTitle>
-              <CardDescription>Safety information and usage instructions.</CardDescription>
+              <CardDescription>
+                Safety information and usage instructions.
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
@@ -266,7 +320,9 @@ export function MedicationDetailPage() {
                 <Textarea
                   id="purpose"
                   value={formData.purpose}
-                  onChange={(e) => setFormData({ ...formData, purpose: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, purpose: e.target.value })
+                  }
                   placeholder="What this medication is for..."
                   rows={3}
                   disabled={!canEdit}
@@ -274,11 +330,15 @@ export function MedicationDetailPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="side_effects">Key Side Effects to Monitor</Label>
+                <Label htmlFor="side_effects">
+                  Key Side Effects to Monitor
+                </Label>
                 <Textarea
                   id="side_effects"
                   value={formData.side_effects}
-                  onChange={(e) => setFormData({ ...formData, side_effects: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, side_effects: e.target.value })
+                  }
                   placeholder="List common side effects staff should monitor for..."
                   rows={3}
                   disabled={!canEdit}
@@ -290,7 +350,12 @@ export function MedicationDetailPage() {
                 <Textarea
                   id="contraindications"
                   value={formData.contraindications}
-                  onChange={(e) => setFormData({ ...formData, contraindications: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      contraindications: e.target.value,
+                    })
+                  }
                   placeholder="List any reasons why this medication should not be used..."
                   rows={3}
                   disabled={!canEdit}
@@ -298,11 +363,15 @@ export function MedicationDetailPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="interactions">Never Combine With (Interactions)</Label>
+                <Label htmlFor="interactions">
+                  Never Combine With (Interactions)
+                </Label>
                 <Textarea
                   id="interactions"
                   value={formData.interactions}
-                  onChange={(e) => setFormData({ ...formData, interactions: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, interactions: e.target.value })
+                  }
                   placeholder="List any known drug interactions..."
                   rows={3}
                   disabled={!canEdit}
@@ -312,9 +381,9 @@ export function MedicationDetailPage() {
           </Card>
         </div>
       </Container>
-      <MedicationTypeMasterDialog 
-        open={typeMasterOpen} 
-        onClose={() => setTypeMasterOpen(false)} 
+      <MedicationTypeMasterDialog
+        open={typeMasterOpen}
+        onClose={() => setTypeMasterOpen(false)}
         canEdit={canManageTypes}
       />
     </>

@@ -1,6 +1,6 @@
 import { Link } from 'react-router';
-import { toAbsoluteUrl } from '@/lib/helpers';
 import { ROUTES } from '@/config/routes.config';
+import { toAbsoluteUrl } from '@/lib/helpers';
 
 const CheckEmail = () => {
   return (

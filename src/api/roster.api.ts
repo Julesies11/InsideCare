@@ -1,9 +1,9 @@
-import { supabase } from '@/lib/supabase';
+import { addDays, format, parseISO, startOfWeek } from 'date-fns';
 import { TABLES } from '@/config/db-tables';
-import { ROSTER_VIEWS, CALENDAR_VIEWS } from '@/config/query-views';
-import { STORAGE_BUCKETS } from '@/config/storage-buckets';
-import { format, addDays, parseISO, startOfWeek } from 'date-fns';
 import { LEAVE_STATUS } from '@/config/enums';
+import { CALENDAR_VIEWS, ROSTER_VIEWS } from '@/config/query-views';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
+import { supabase } from '@/lib/supabase';
 
 export interface ShiftParticipantSync {
   shift_id: string;
@@ -48,14 +48,28 @@ export const rosterApi = {
 
     if (startDate) shiftQuery = shiftQuery.gte('end_date', startDate);
     if (endDate) shiftQuery = shiftQuery.lte('start_date', endDate);
-    if (staffId && staffId !== 'all' && staffId !== 'undefined' && staffId !== 'null') shiftQuery = shiftQuery.eq('staff_id', staffId);
-    if (houseId && houseId !== 'all') shiftQuery = shiftQuery.eq('house_id', houseId);
+    if (
+      staffId &&
+      staffId !== 'all' &&
+      staffId !== 'undefined' &&
+      staffId !== 'null'
+    )
+      shiftQuery = shiftQuery.eq('staff_id', staffId);
+    if (houseId && houseId !== 'all')
+      shiftQuery = shiftQuery.eq('house_id', houseId);
 
     let eventQuery;
-    if (includeEvents && staffId && staffId !== 'all' && staffId !== 'undefined' && staffId !== 'null') {
+    if (
+      includeEvents &&
+      staffId &&
+      staffId !== 'all' &&
+      staffId !== 'undefined' &&
+      staffId !== 'null'
+    ) {
       eventQuery = supabase
         .from(TABLES.HOUSE_CALENDAR_EVENTS)
-        .select(`
+        .select(
+          `
           id,
           title,
           event_date,
@@ -66,7 +80,8 @@ export const rosterApi = {
           house_id,
           house:ic_houses(house_name),
           staff_assignments:ic_house_calendar_event_staff!inner(staff_id)
-        `)
+        `,
+        )
         .eq('staff_assignments.staff_id', staffId)
         .gte('event_date', startDate || '')
         .lte('event_date', endDate || '');
@@ -74,14 +89,17 @@ export const rosterApi = {
 
     const [shiftsRes, eventsRes] = await Promise.all([
       shiftQuery,
-      eventQuery || Promise.resolve({ data: [], error: null })
+      eventQuery || Promise.resolve({ data: [], error: null }),
     ]);
 
     if (shiftsRes.error) throw shiftsRes.error;
     if (eventsRes.error) throw eventsRes.error;
 
-    const shifts = (shiftsRes.data || []).map(s => ({ ...s, entry_type: 'shift' as const }));
-    const events = (eventsRes.data || []).map(e => ({
+    const shifts = (shiftsRes.data || []).map((s) => ({
+      ...s,
+      entry_type: 'shift' as const,
+    }));
+    const events = (eventsRes.data || []).map((e) => ({
       id: e.id,
       staff_id: staffId,
       start_date: e.event_date,
@@ -127,13 +145,15 @@ export const rosterApi = {
     // 1. Try to find an ACTIVE shift
     const { data: activeShifts, error: activeError } = await supabase
       .from(TABLES.STAFF_SHIFTS)
-      .select('id, staff_id, house_id, start_date, start_time, end_date, end_time, house:ic_houses(id, house_name)')
+      .select(
+        'id, staff_id, house_id, start_date, start_time, end_date, end_time, house:ic_houses(id, house_name)',
+      )
       .eq('staff_id', staffId)
       .gte('end_date', today)
       .lte('start_date', today);
 
     if (!activeError && activeShifts && activeShifts.length > 0) {
-      const active = activeShifts.find(s => {
+      const active = activeShifts.find((s) => {
         const shiftStart = new Date(`${s.start_date}T${s.start_time}`);
         const shiftEnd = new Date(`${s.end_date}T${s.end_time}`);
         if (shiftEnd < shiftStart) shiftEnd.setDate(shiftEnd.getDate() + 1);
@@ -145,7 +165,9 @@ export const rosterApi = {
     // 2. Try to find the NEXT shift
     const { data: nextShift, error: nextError } = await supabase
       .from(TABLES.STAFF_SHIFTS)
-      .select('id, staff_id, house_id, start_date, start_time, end_date, end_time, house:ic_houses(id, house_name)')
+      .select(
+        'id, staff_id, house_id, start_date, start_time, end_date, end_time, house:ic_houses(id, house_name)',
+      )
       .eq('staff_id', staffId)
       .eq('start_date', today)
       .gt('start_time', nowTime)
@@ -158,7 +180,9 @@ export const rosterApi = {
     // 3. Try to find the most RECENT shift
     const { data: pastShift } = await supabase
       .from(TABLES.STAFF_SHIFTS)
-      .select('id, staff_id, house_id, start_date, start_time, end_date, end_time, house:ic_houses(id, house_name)')
+      .select(
+        'id, staff_id, house_id, start_date, start_time, end_date, end_time, house:ic_houses(id, house_name)',
+      )
       .eq('staff_id', staffId)
       .eq('start_date', today)
       .lt('end_time', nowTime)
@@ -180,13 +204,15 @@ export const rosterApi = {
     sorting?: Array<{ id: string; desc: boolean }>;
   }) {
     const { staffId, pageIndex = 0, pageSize = 50, search, sorting } = params;
-    if (!staffId || staffId === 'undefined' || staffId === 'null') return { data: [], count: 0 };
+    if (!staffId || staffId === 'undefined' || staffId === 'null')
+      return { data: [], count: 0 };
     const from = pageIndex * pageSize;
     const to = from + pageSize - 1;
 
     let query = supabase
       .from(TABLES.STAFF_SHIFTS)
-      .select(`
+      .select(
+        `
         id, 
         start_date, 
         end_date,
@@ -198,11 +224,15 @@ export const rosterApi = {
         participants:ic_shift_participants(
           participant:ic_participants(id, participant_name)
         )
-      `, { count: 'exact' })
+      `,
+        { count: 'exact' },
+      )
       .eq('staff_id', staffId);
 
     if (search) {
-      query = query.or(`shift_template.ilike.%${search}%,notes.ilike.%${search}%`);
+      query = query.or(
+        `shift_template.ilike.%${search}%,notes.ilike.%${search}%`,
+      );
     }
 
     if (sorting && sorting.length > 0) {
@@ -211,43 +241,64 @@ export const rosterApi = {
         query = query.order(column as any, { ascending: !s.desc });
       });
     } else {
-      query = query.order('start_date', { ascending: false })
+      query = query
+        .order('start_date', { ascending: false })
         .order('start_time', { ascending: false });
     }
 
     const { data, error, count } = await query.range(from, to);
 
     const shiftIds = (data || []).map((s) => s.id);
-    
+
     // Fetch timesheets and shift notes for these shifts
     const [timesheetRes, shiftNoteRes] = await Promise.all([
       supabase
         .from(TABLES.TIMESHEETS)
         .select('shift_id')
-        .in('shift_id', shiftIds.length > 0 ? shiftIds : ['00000000-0000-0000-0000-000000000000']),
+        .in(
+          'shift_id',
+          shiftIds.length > 0
+            ? shiftIds
+            : ['00000000-0000-0000-0000-000000000000'],
+        ),
       supabase
         .from(TABLES.SHIFT_NOTES)
         .select('shift_id')
-        .in('shift_id', shiftIds.length > 0 ? shiftIds : ['00000000-0000-0000-0000-000000000000'])
+        .in(
+          'shift_id',
+          shiftIds.length > 0
+            ? shiftIds
+            : ['00000000-0000-0000-0000-000000000000'],
+        ),
     ]);
 
-    const timesheetedIds = new Set((timesheetRes.data || []).map((t) => t.shift_id));
-    const shiftNotedIds = new Set((shiftNoteRes.data || []).map((n) => n.shift_id));
+    const timesheetedIds = new Set(
+      (timesheetRes.data || []).map((t) => t.shift_id),
+    );
+    const shiftNotedIds = new Set(
+      (shiftNoteRes.data || []).map((n) => n.shift_id),
+    );
 
     const formattedData = (data || []).map((s) => ({
       ...s,
       entry_type: 'shift' as const,
-      house: (Array.isArray(s.house) ? s.house[0] : s.house) as { house_name: string } | null,
+      house: (Array.isArray(s.house) ? s.house[0] : s.house) as {
+        house_name: string;
+      } | null,
       has_timesheet: timesheetedIds.has(s.id),
       has_shift_note: shiftNotedIds.has(s.id),
-      participants: (s.participants || [])?.map((p: any) => {
-        const part = p.participant;
-        const actualPart = Array.isArray(part) ? part[0] : part;
-        return {
-          id: actualPart?.id || p.id || p.participant_id,
-          participant_name: actualPart?.participant_name || p.participant_name
-        };
-      }).filter((p: any) => p.id && p.participant_name) || []
+      participants:
+        (s.participants || [])
+          ?.map((p: any) => {
+            const part = p.participant;
+            const actualPart = Array.isArray(part) ? part[0] : part;
+            return {
+              id: actualPart?.id || p.id || p.participant_id,
+              participant_name:
+                actualPart?.participant_name || p.participant_name,
+            };
+          })
+          .filter((p: any) => p.id && p.participant_name) || [],
     }));
 
     return { data: formattedData, count: count || 0 };
@@ -257,12 +308,8 @@ export const rosterApi = {
    * Create a new shift.
    */
   async createShift(shift: any) {
-    const { 
-      participant_ids, 
-      assigned_checklists, 
-      ...dbPayload 
-    } = shift;
-    
+    const { participant_ids, assigned_checklists, ...dbPayload } = shift;
+
     // Remove UI-only fields before inserting
     delete dbPayload.entry_type;
     delete dbPayload.title;
@@ -274,9 +321,10 @@ export const rosterApi = {
       .insert([dbPayload])
       .select()
       .maybeSingle();
-    
+
     if (error) throw error;
-    if (!data) throw new Error("You do not have permission to perform this action");
+    if (!data)
+      throw new Error('You do not have permission to perform this action');
 
     if (participant_ids) {
       await this.syncShiftParticipants(data.id, participant_ids);
@@ -293,12 +341,9 @@ export const rosterApi = {
    * Update an existing shift.
    */
   async updateShift(id: string, updates: any = {}) {
-    const { 
-      participant_ids, 
-      assigned_checklists, 
-      ...dbPayload 
-    } = updates || {};
-    
+    const { participant_ids, assigned_checklists, ...dbPayload } =
+      updates || {};
+
     // Remove UI-only fields before updating
     if (dbPayload) {
       delete dbPayload.entry_type;
@@ -313,9 +358,10 @@ export const rosterApi = {
       .eq('id', id)
       .select()
       .maybeSingle();
-    
+
     if (error) throw error;
-    if (!data) throw new Error("You do not have permission to perform this action");
+    if (!data)
+      throw new Error('You do not have permission to perform this action');
 
     if (participant_ids) {
       await this.syncShiftParticipants(id, participant_ids);
@@ -336,7 +382,10 @@ export const rosterApi = {
     const [notesRes, timesheetsRes, submissionsRes] = await Promise.all([
       supabase.from(TABLES.SHIFT_NOTES).select('id').eq('shift_id', id),
       supabase.from(TABLES.TIMESHEETS).select('id').eq('shift_id', id),
-      supabase.from(TABLES.HOUSE_CHECKLIST_SUBMISSIONS).select('id').eq('shift_id', id)
+      supabase
+        .from(TABLES.HOUSE_CHECKLIST_SUBMISSIONS)
+        .select('id')
+        .eq('shift_id', id),
     ]);
 
     if (notesRes.error) throw notesRes.error;
@@ -352,14 +401,19 @@ export const rosterApi = {
       if (hasNotes) reasons.push('shift notes');
       if (hasTimesheets) reasons.push('timesheets');
       if (hasSubmissions) reasons.push('checklist submissions');
-      
-      throw new Error(`This shift cannot be deleted because it is referenced by: ${reasons.join(', ')}.`);
+
+      throw new Error(
+        `This shift cannot be deleted because it is referenced by: ${reasons.join(', ')}.`,
+      );
     }
 
     // Delete child associations first
     await Promise.all([
       supabase.from(TABLES.SHIFT_PARTICIPANTS).delete().eq('shift_id', id),
-      supabase.from(TABLES.SHIFT_ASSIGNED_CHECKLISTS).delete().eq('shift_id', id)
+      supabase
+        .from(TABLES.SHIFT_ASSIGNED_CHECKLISTS)
+        .delete()
+        .eq('shift_id', id),
     ]);
 
     const { error } = await supabase
@@ -390,7 +444,7 @@ export const rosterApi = {
         .select(ROSTER_VIEWS.LEAVE_LIST)
         .eq('staff_id', staffId)
         .neq('status', 'rejected')
-        .order('start_date', { ascending: false })
+        .order('start_date', { ascending: false }),
     ]);
 
     if (shiftsRes.error) throw shiftsRes.error;
@@ -402,36 +456,54 @@ export const rosterApi = {
     const leaveData = leaveRes.data || [];
 
     const shiftIds = shiftsData.map((s) => s.id);
-    
+
     // Fetch timesheets and shift notes for these shifts
     const [timesheetRes, shiftNoteRes] = await Promise.all([
       supabase
         .from(TABLES.TIMESHEETS)
         .select('shift_id')
-        .in('shift_id', shiftIds.length > 0 ? shiftIds : ['00000000-0000-0000-0000-000000000000']),
+        .in(
+          'shift_id',
+          shiftIds.length > 0
+            ? shiftIds
+            : ['00000000-0000-0000-0000-000000000000'],
+        ),
       supabase
         .from(TABLES.SHIFT_NOTES)
         .select('shift_id')
-        .in('shift_id', shiftIds.length > 0 ? shiftIds : ['00000000-0000-0000-0000-000000000000'])
+        .in(
+          'shift_id',
+          shiftIds.length > 0
+            ? shiftIds
+            : ['00000000-0000-0000-0000-000000000000'],
+        ),
     ]);
 
-    const timesheetedIds = new Set((timesheetRes.data || []).map((t) => t.shift_id));
-    const shiftNotedIds = new Set((shiftNoteRes.data || []).map((n) => n.shift_id));
-    
+    const timesheetedIds = new Set(
+      (timesheetRes.data || []).map((t) => t.shift_id),
+    );
+    const shiftNotedIds = new Set(
+      (shiftNoteRes.data || []).map((n) => n.shift_id),
+    );
+
     const shifts = shiftsData.map((s: any) => ({
       ...s,
       entry_type: 'shift' as const,
       house: (s.house_info || s.house) as { house_name: string } | null,
       has_timesheet: timesheetedIds.has(s.id),
       has_shift_note: shiftNotedIds.has(s.id),
-      participants: (s.participants || [])?.map((p: any) => {
-        const part = p.participant || p;
-        const actualPart = Array.isArray(part) ? part[0] : part;
-        return {
-          id: actualPart?.id || p.id || p.participant_id,
-          participant_name: actualPart?.participant_name || p.participant_name
-        };
-      }).filter((p: any) => p.id && p.participant_name) || []
+      participants:
+        (s.participants || [])
+          ?.map((p: any) => {
+            const part = p.participant || p;
+            const actualPart = Array.isArray(part) ? part[0] : part;
+            return {
+              id: actualPart?.id || p.id || p.participant_id,
+              participant_name:
+                actualPart?.participant_name || p.participant_name,
+            };
+          })
+          .filter((p: any) => p.id && p.participant_name) || [],
     }));
 
     const events = eventsData.map((e: any) => ({
@@ -442,9 +514,13 @@ export const rosterApi = {
       entry_type: 'event' as const,
       title: e.title,
       location: e.location,
-      type_name: (Array.isArray(e.type) ? e.type[0] : e.type)?.event_type_name || 'Meeting',
+      type_name:
+        (Array.isArray(e.type) ? e.type[0] : e.type)?.event_type_name ||
+        'Meeting',
       type_color: (Array.isArray(e.type) ? e.type[0] : e.type)?.color || 'blue',
-      house: (Array.isArray(e.house) ? e.house[0] : e.house) as { house_name: string } | null,
+      house: (Array.isArray(e.house) ? e.house[0] : e.house) as {
+        house_name: string;
+      } | null,
       has_timesheet: false,
     }));
 
@@ -455,7 +531,9 @@ export const rosterApi = {
       start_time: '00:00:00',
       end_time: '23:59:59',
       entry_type: 'leave' as const,
-      title: (Array.isArray(l.leave_type) ? l.leave_type[0] : l.leave_type)?.leave_type_name || 'Leave',
+      title:
+        (Array.isArray(l.leave_type) ? l.leave_type[0] : l.leave_type)
+          ?.leave_type_name || 'Leave',
       reason: l.reason,
       status: l.status,
       house: null,
@@ -463,7 +541,9 @@ export const rosterApi = {
     }));
 
     return [...shifts, ...events, ...leaves].sort((a, b) => {
-      const dateCompare = (b.start_date || '').localeCompare(a.start_date || '');
+      const dateCompare = (b.start_date || '').localeCompare(
+        a.start_date || '',
+      );
       if (dateCompare !== 0) return dateCompare;
       return (b.start_time || '').localeCompare(a.start_time || '');
     });
@@ -474,12 +554,14 @@ export const rosterApi = {
    */
   async bulkUpdateShifts(params: string[] | any, updates: any) {
     let query = supabase.from(TABLES.STAFF_SHIFTS).update(updates);
-    
+
     if (Array.isArray(params)) {
       query = query.in('id', params);
     } else {
-      if (params.houseId && params.houseId !== 'all') query = query.eq('house_id', params.houseId);
-      if (params.staffId && params.staffId !== 'all') query = query.eq('staff_id', params.staffId);
+      if (params.houseId && params.houseId !== 'all')
+        query = query.eq('house_id', params.houseId);
+      if (params.staffId && params.staffId !== 'all')
+        query = query.eq('staff_id', params.staffId);
       if (params.shiftTemplateId && params.shiftTemplateId !== 'all') {
         const isUuid = params.shiftTemplateId.length === 36;
         if (isUuid) {
@@ -491,7 +573,7 @@ export const rosterApi = {
       if (params.startDate) query = query.gte('start_date', params.startDate);
       if (params.endDate) query = query.lte('start_date', params.endDate);
     }
-    
+
     const { data, error } = await query.select();
     if (error) throw error;
     return data;
@@ -503,26 +585,34 @@ export const rosterApi = {
     if (Array.isArray(params)) {
       shiftIds = params;
     } else {
-      let selectQuery = supabase
-        .from(TABLES.STAFF_SHIFTS)
-        .select('id');
-        
-      if (params.houseId && params.houseId !== 'all') selectQuery = selectQuery.eq('house_id', params.houseId);
-      if (params.staffId && params.staffId !== 'all') selectQuery = selectQuery.eq('staff_id', params.staffId);
+      let selectQuery = supabase.from(TABLES.STAFF_SHIFTS).select('id');
+
+      if (params.houseId && params.houseId !== 'all')
+        selectQuery = selectQuery.eq('house_id', params.houseId);
+      if (params.staffId && params.staffId !== 'all')
+        selectQuery = selectQuery.eq('staff_id', params.staffId);
       if (params.shiftTemplateId && params.shiftTemplateId !== 'all') {
         const isUuid = params.shiftTemplateId.length === 36;
         if (isUuid) {
-          selectQuery = selectQuery.eq('shift_template_id', params.shiftTemplateId);
+          selectQuery = selectQuery.eq(
+            'shift_template_id',
+            params.shiftTemplateId,
+          );
         } else {
-          selectQuery = selectQuery.eq('shift_template', params.shiftTemplateId);
+          selectQuery = selectQuery.eq(
+            'shift_template',
+            params.shiftTemplateId,
+          );
         }
       }
-      if (params.startDate) selectQuery = selectQuery.gte('start_date', params.startDate);
-      if (params.endDate) selectQuery = selectQuery.lte('start_date', params.endDate);
+      if (params.startDate)
+        selectQuery = selectQuery.gte('start_date', params.startDate);
+      if (params.endDate)
+        selectQuery = selectQuery.lte('start_date', params.endDate);
 
       const { data, error: selectError } = await selectQuery;
       if (selectError) throw selectError;
-      shiftIds = (data || []).map(s => s.id);
+      shiftIds = (data || []).map((s) => s.id);
     }
 
     if (shiftIds.length === 0) {
@@ -531,28 +621,45 @@ export const rosterApi = {
 
     // Check for references in shift notes, timesheets, and checklist submissions
     const [notesRes, timesheetsRes, submissionsRes] = await Promise.all([
-      supabase.from(TABLES.SHIFT_NOTES).select('shift_id').in('shift_id', shiftIds),
-      supabase.from(TABLES.TIMESHEETS).select('shift_id').in('shift_id', shiftIds),
-      supabase.from(TABLES.HOUSE_CHECKLIST_SUBMISSIONS).select('shift_id').in('shift_id', shiftIds)
+      supabase
+        .from(TABLES.SHIFT_NOTES)
+        .select('shift_id')
+        .in('shift_id', shiftIds),
+      supabase
+        .from(TABLES.TIMESHEETS)
+        .select('shift_id')
+        .in('shift_id', shiftIds),
+      supabase
+        .from(TABLES.HOUSE_CHECKLIST_SUBMISSIONS)
+        .select('shift_id')
+        .in('shift_id', shiftIds),
     ]);
 
     if (notesRes.error) throw notesRes.error;
     if (timesheetsRes.error) throw timesheetsRes.error;
     if (submissionsRes.error) throw submissionsRes.error;
 
-    const referencedShiftIds = new Set([
-      ...(notesRes.data || []).map(n => n.shift_id),
-      ...(timesheetsRes.data || []).map(t => t.shift_id),
-      ...(submissionsRes.data || []).map(s => s.shift_id)
-    ].filter(Boolean) as string[]);
+    const referencedShiftIds = new Set(
+      [
+        ...(notesRes.data || []).map((n) => n.shift_id),
+        ...(timesheetsRes.data || []).map((t) => t.shift_id),
+        ...(submissionsRes.data || []).map((s) => s.shift_id),
+      ].filter(Boolean) as string[],
+    );
 
-    const deleteShiftIds = shiftIds.filter(id => !referencedShiftIds.has(id));
+    const deleteShiftIds = shiftIds.filter((id) => !referencedShiftIds.has(id));
 
     if (deleteShiftIds.length > 0) {
       // Delete child associations first
       await Promise.all([
-        supabase.from(TABLES.SHIFT_PARTICIPANTS).delete().in('shift_id', deleteShiftIds),
-        supabase.from(TABLES.SHIFT_ASSIGNED_CHECKLISTS).delete().in('shift_id', deleteShiftIds)
+        supabase
+          .from(TABLES.SHIFT_PARTICIPANTS)
+          .delete()
+          .in('shift_id', deleteShiftIds),
+        supabase
+          .from(TABLES.SHIFT_ASSIGNED_CHECKLISTS)
+          .delete()
+          .in('shift_id', deleteShiftIds),
       ]);
 
       const { error: deleteError } = await supabase
@@ -565,7 +672,7 @@ export const rosterApi = {
 
     return {
       deletedCount: deleteShiftIds.length,
-      skippedCount: referencedShiftIds.size
+      skippedCount: referencedShiftIds.size,
     };
   },
 
@@ -575,11 +682,13 @@ export const rosterApi = {
   async listAdminLeaveRequests() {
     const { data, error } = await supabase
       .from(TABLES.LEAVE_REQUESTS)
-      .select(`
+      .select(
+        `
         *, 
         staff:${TABLES.STAFF}!leave_requests_staff_id_fkey(id, staff_name, photo_url, auth_user_id), 
         leave_type:${TABLES.LEAVE_TYPES}!leave_type_id(leave_type_name)
-      `)
+      `,
+      )
       .order('created_at', { ascending: false });
     if (error) throw error;
     return data || [];
@@ -588,14 +697,18 @@ export const rosterApi = {
   /**
    * Updates a leave request status and admin notes.
    */
-  async updateLeaveRequestStatus(id: string, status: 'approved' | 'rejected', adminNotes?: string | null) {
+  async updateLeaveRequestStatus(
+    id: string,
+    status: 'approved' | 'rejected',
+    adminNotes?: string | null,
+  ) {
     const { data, error } = await supabase
       .from(TABLES.LEAVE_REQUESTS)
       .update({ status, admin_notes: adminNotes })
       .eq('id', id)
       .select()
       .maybeSingle();
-    
+
     if (error) throw error;
     return data;
   },
@@ -603,7 +716,11 @@ export const rosterApi = {
   /**
    * List leave requests for staff.
    */
-  async listLeaveRequests(staffId: string, startDate?: string, endDate?: string) {
+  async listLeaveRequests(
+    staffId: string,
+    startDate?: string,
+    endDate?: string,
+  ) {
     if (!staffId || staffId === 'undefined' || staffId === 'null') return [];
     let query = supabase
       .from(TABLES.LEAVE_REQUESTS)
@@ -612,11 +729,11 @@ export const rosterApi = {
 
     if (endDate) query = query.lte('start_date', endDate);
     if (startDate) query = query.gte('end_date', startDate);
-      
+
     if (staffId !== 'all') query = query.eq('staff_id', staffId);
-    
+
     query = query.order('created_at', { ascending: false });
-    
+
     const { data, error } = await query;
     if (error) throw error;
     return data || [];
@@ -630,10 +747,12 @@ export const rosterApi = {
       .from(TABLES.HOUSE_SHIFT_TEMPLATES)
       .select('shift_template_name')
       .order('shift_template_name');
-    
+
     if (error) throw error;
-    const uniqueNames = Array.from(new Set(data.map(t => t.shift_template_name)));
-    return uniqueNames.map(name => ({ id: name, name }));
+    const uniqueNames = Array.from(
+      new Set(data.map((t) => t.shift_template_name)),
+    );
+    return uniqueNames.map((name) => ({ id: name, name }));
   },
 
   /**
@@ -644,11 +763,16 @@ export const rosterApi = {
       .from(TABLES.SHIFT_PARTICIPANTS)
       .delete()
       .eq('shift_id', shiftId);
-    
+
     if (participantIds.length > 0) {
       const { error } = await supabase
         .from(TABLES.SHIFT_PARTICIPANTS)
-        .insert(participantIds.map(pid => ({ shift_id: shiftId, participant_id: pid })));
+        .insert(
+          participantIds.map((pid) => ({
+            shift_id: shiftId,
+            participant_id: pid,
+          })),
+        );
       if (error) throw error;
     }
   },
@@ -662,7 +786,7 @@ export const rosterApi = {
       .insert([{ shift_id: shiftId, participant_id: participantId }])
       .select()
       .maybeSingle();
-    
+
     if (error) throw error;
     return data;
   },
@@ -676,7 +800,7 @@ export const rosterApi = {
       .delete()
       .eq('shift_id', shiftId)
       .eq('participant_id', participantId);
-    
+
     if (error) throw error;
   },
 
@@ -689,24 +813,26 @@ export const rosterApi = {
       .select('house_id, shift_template_id')
       .eq('id', shiftId)
       .maybeSingle();
-    
-    if (!shift) throw new Error("Shift not found");
+
+    if (!shift) throw new Error('Shift not found');
 
     await supabase
       .from(TABLES.SHIFT_ASSIGNED_CHECKLISTS)
       .delete()
       .eq('shift_id', shiftId);
-    
+
     if (checklists.length > 0) {
       const { error } = await supabase
         .from(TABLES.SHIFT_ASSIGNED_CHECKLISTS)
-        .insert(checklists.map(cl => ({ 
-          shift_id: shiftId, 
-          checklist_id: cl.checklist_id,
-          assignment_title: cl.assignment_title,
-          house_id: shift.house_id,
-          shift_template_id: shift.shift_template_id
-        })));
+        .insert(
+          checklists.map((cl) => ({
+            shift_id: shiftId,
+            checklist_id: cl.checklist_id,
+            assignment_title: cl.assignment_title,
+            house_id: shift.house_id,
+            shift_template_id: shift.shift_template_id,
+          })),
+        );
       if (error) throw error;
     }
   },
@@ -715,7 +841,14 @@ export const rosterApi = {
    * Materialize a roster pattern into actual shifts.
    */
   async materializePattern(params: MaterializePatternParams) {
-    const { houseId, startDate, pattern, shiftTemplates, defaults, participants } = params;
+    const {
+      houseId,
+      startDate,
+      pattern,
+      shiftTemplates,
+      defaults,
+      participants,
+    } = params;
     const shiftsToCreate: any[] = [];
     const anchorMonday = startOfWeek(parseISO(startDate), { weekStartsOn: 1 });
 
@@ -729,8 +862,8 @@ export const rosterApi = {
 
         if (targetDateStr < startDate) return;
 
-        shiftTemplateIds.forEach(typeId => {
-          const type = shiftTemplates.find(t => t.id === typeId);
+        shiftTemplateIds.forEach((typeId) => {
+          const type = shiftTemplates.find((t) => t.id === typeId);
           if (!type) return;
 
           shiftsToCreate.push({
@@ -742,13 +875,14 @@ export const rosterApi = {
             end_time: type.default_end_time,
             shift_template: type.shift_template_name,
             shift_template_id: type.id,
-            notes: null
+            notes: null,
           });
         });
       });
     });
 
-    if (shiftsToCreate.length === 0) return { created: 0, checklists: 0, skipped: 0 };
+    if (shiftsToCreate.length === 0)
+      return { created: 0, checklists: 0, skipped: 0 };
 
     const { data: createdShifts, error: shiftError } = await supabase
       .from(TABLES.STAFF_SHIFTS)
@@ -761,19 +895,22 @@ export const rosterApi = {
     const participantInserts: any[] = [];
     const checklistInserts: any[] = [];
 
-    createdShifts.forEach(shift => {
-      participants.forEach(p => {
+    createdShifts.forEach((shift) => {
+      participants.forEach((p) => {
         participantInserts.push({ shift_id: shift.id, participant_id: p.id });
       });
 
-      const typeDefaults = defaults.filter(d => d.shift_template_id === shift.shift_template_id);
-      typeDefaults.forEach(d => {
+      const typeDefaults = defaults.filter(
+        (d) => d.shift_template_id === shift.shift_template_id,
+      );
+      typeDefaults.forEach((d) => {
         checklistInserts.push({
           shift_id: shift.id,
           checklist_id: d.checklist_id,
-          assignment_title: d.checklist?.house_checklist_name || 'Routine Checklist',
+          assignment_title:
+            d.checklist?.house_checklist_name || 'Routine Checklist',
           house_id: houseId,
-          shift_template_id: shift.shift_template_id
+          shift_template_id: shift.shift_template_id,
         });
         checklistsCount++;
       });
@@ -784,13 +921,15 @@ export const rosterApi = {
     }
 
     if (checklistInserts.length > 0) {
-      await supabase.from(TABLES.SHIFT_ASSIGNED_CHECKLISTS).insert(checklistInserts);
+      await supabase
+        .from(TABLES.SHIFT_ASSIGNED_CHECKLISTS)
+        .insert(checklistInserts);
     }
 
     return {
       created: createdShifts.length,
       checklists: checklistsCount,
-      skipped: shiftsToCreate.length - createdShifts.length
+      skipped: shiftsToCreate.length - createdShifts.length,
     };
   },
 
@@ -802,9 +941,11 @@ export const rosterApi = {
       .from(TABLES.LEAVE_TYPES)
       .select('id, leave_type_name')
       .order('leave_type_name');
-    
+
     if (error) throw error;
-    return (data as any[])?.map(d => ({ id: d.id, name: d.leave_type_name })) || [];
+    return (
+      (data as any[])?.map((d) => ({ id: d.id, name: d.leave_type_name })) || []
+    );
   },
 
   /**
@@ -816,7 +957,7 @@ export const rosterApi = {
       .select('leave_type_id, start_date, end_date, reason, attachment_url')
       .eq('id', id)
       .maybeSingle();
-    
+
     if (error) throw error;
     return data;
   },
@@ -848,14 +989,18 @@ export const rosterApi = {
   /**
    * List shifts for multiple staff IDs within a date range.
    */
-  async listShiftsForStaffIds(staffIds: string[], startDate: string, endDate: string) {
+  async listShiftsForStaffIds(
+    staffIds: string[],
+    startDate: string,
+    endDate: string,
+  ) {
     const { data, error } = await supabase
       .from(TABLES.STAFF_SHIFTS)
       .select('id, staff_id, start_date')
       .in('staff_id', staffIds)
       .gte('start_date', startDate)
       .lte('start_date', endDate);
-    
+
     if (error) throw error;
     return (data as any[]) || [];
   },
@@ -863,9 +1008,13 @@ export const rosterApi = {
   /**
    * List conflicting shifts for a staff member.
    */
-  async listConflictingShifts(staffId: string, startDate?: string, endDate?: string) {
+  async listConflictingShifts(
+    staffId: string,
+    startDate?: string,
+    endDate?: string,
+  ) {
     if (!startDate || !endDate) return [];
-    
+
     const { data, error } = await supabase
       .from(TABLES.STAFF_SHIFTS)
       .select(ROSTER_VIEWS.SHIFT_LIST)
@@ -873,7 +1022,7 @@ export const rosterApi = {
       .gte('start_date', startDate)
       .lte('start_date', endDate)
       .order('start_date');
-    
+
     if (error) throw error;
     return (data as any[]) || [];
   },
@@ -885,11 +1034,11 @@ export const rosterApi = {
     const fileExt = file.name.split('.').pop();
     const fileName = `${Math.random()}.${fileExt}`;
     const filePath = `leave-attachments/${staffId}/${fileName}`;
-    
+
     const { error: uploadError } = await supabase.storage
       .from(STORAGE_BUCKETS.STAFF_DOCUMENTS)
       .upload(filePath, file);
-    
+
     if (uploadError) throw uploadError;
     return filePath;
   },
@@ -901,7 +1050,7 @@ export const rosterApi = {
     const { data, error } = await supabase.storage
       .from(STORAGE_BUCKETS.STAFF_DOCUMENTS)
       .createSignedUrl(filePath, 3600);
-    
+
     if (error) throw error;
     return data.signedUrl;
   },
@@ -963,5 +1112,5 @@ export const rosterApi = {
       .lte('start_date', rolloutEndDate);
     if (error) throw error;
     return data || [];
-  }
+  },
 };

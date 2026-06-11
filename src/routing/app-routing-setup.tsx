@@ -1,59 +1,179 @@
 import { lazy, Suspense } from 'react';
 import { AuthRouting } from '@/auth/auth-routing';
-import { RequireAuth, RequireAdmin, RequirePermission } from '@/auth/require-auth';
-import { RBAC_MODULES } from '@/config/rbac-modules';
-import { ROUTES } from '@/config/routes.config';
+import {
+  RequireAdmin,
+  RequireAuth,
+  RequirePermission,
+} from '@/auth/require-auth';
 import { ErrorRouting } from '@/errors/error-routing';
 import { Demo1Layout } from '@/layouts/demo1/layout';
-import { Navigate, Route, Routes } from 'react-router';
 import { Loader2 } from 'lucide-react';
+import { Navigate, Route, Routes } from 'react-router';
+import { RBAC_MODULES } from '@/config/rbac-modules';
+import { ROUTES } from '@/config/routes.config';
 
 // Lazy load pages
-const ParticipantsProfilesPage = lazy(() => import('@/pages/participants').then(m => ({ default: m.ParticipantsProfilesPage })));
-const ParticipantDetailPage = lazy(() => import('@/pages/participants').then(m => ({ default: m.ParticipantDetailPage })));
-const MedicationRegisterPage = lazy(() => import('@/pages/participants/medication-register/medication-register-page').then(m => ({ default: m.MedicationRegisterPage })));
-const MedicationDetailPage = lazy(() => import('@/pages/participants/medication-register/medication-detail-page').then(m => ({ default: m.MedicationDetailPage })));
-const ShiftNotesPage = lazy(() => import('@/pages/participants').then(m => ({ default: m.ShiftNotesPage })));
-const ShiftNoteDetailPage = lazy(() => import('@/pages/shift-notes').then(m => ({ default: m.ShiftNoteDetailPage })));
+const ParticipantsProfilesPage = lazy(() =>
+  import('@/pages/participants').then((m) => ({
+    default: m.ParticipantsProfilesPage,
+  })),
+);
+const ParticipantDetailPage = lazy(() =>
+  import('@/pages/participants').then((m) => ({
+    default: m.ParticipantDetailPage,
+  })),
+);
+const MedicationRegisterPage = lazy(() =>
+  import('@/pages/participants/medication-register/medication-register-page').then(
+    (m) => ({ default: m.MedicationRegisterPage }),
+  ),
+);
+const MedicationDetailPage = lazy(() =>
+  import('@/pages/participants/medication-register/medication-detail-page').then(
+    (m) => ({ default: m.MedicationDetailPage }),
+  ),
+);
+const ShiftNotesPage = lazy(() =>
+  import('@/pages/participants').then((m) => ({ default: m.ShiftNotesPage })),
+);
+const ShiftNoteDetailPage = lazy(() =>
+  import('@/pages/shift-notes').then((m) => ({
+    default: m.ShiftNoteDetailPage,
+  })),
+);
 
-const HousesProfilesPage = lazy(() => import('@/pages/houses').then(m => ({ default: m.HousesProfilesPage })));
-const HouseDetailPage = lazy(() => import('@/pages/houses').then(m => ({ default: m.HouseDetailPage })));
+const HousesProfilesPage = lazy(() =>
+  import('@/pages/houses').then((m) => ({ default: m.HousesProfilesPage })),
+);
+const HouseDetailPage = lazy(() =>
+  import('@/pages/houses').then((m) => ({ default: m.HouseDetailPage })),
+);
 
-const StaffProfilesPage = lazy(() => import('@/pages/employees').then(m => ({ default: m.StaffProfilesPage })));
-const StaffDetailPage = lazy(() => import('@/pages/employees').then(m => ({ default: m.StaffDetailPage })));
-const ShiftTemplatesPage = lazy(() => import('@/pages/roster-board/shift-templates').then(m => ({ default: m.ShiftTemplatesPage })));
-const ShiftTemplatesEditPage = lazy(() => import('@/pages/roster-board/shift-templates-edit').then(m => ({ default: m.ShiftTemplatesEditPage })));
-const AdminTimesheetsPage = lazy(() => import('@/pages/employees').then(m => ({ default: m.AdminTimesheetsPage })));
-const AdminLeaveRequestsPage = lazy(() => import('@/pages/employees').then(m => ({ default: m.AdminLeaveRequestsPage })));
+const StaffProfilesPage = lazy(() =>
+  import('@/pages/employees').then((m) => ({ default: m.StaffProfilesPage })),
+);
+const StaffDetailPage = lazy(() =>
+  import('@/pages/employees').then((m) => ({ default: m.StaffDetailPage })),
+);
+const ShiftTemplatesPage = lazy(() =>
+  import('@/pages/roster-board/shift-templates').then((m) => ({
+    default: m.ShiftTemplatesPage,
+  })),
+);
+const ShiftTemplatesEditPage = lazy(() =>
+  import('@/pages/roster-board/shift-templates-edit').then((m) => ({
+    default: m.ShiftTemplatesEditPage,
+  })),
+);
+const AdminTimesheetsPage = lazy(() =>
+  import('@/pages/employees').then((m) => ({ default: m.AdminTimesheetsPage })),
+);
+const AdminLeaveRequestsPage = lazy(() =>
+  import('@/pages/employees').then((m) => ({
+    default: m.AdminLeaveRequestsPage,
+  })),
+);
 
 const RosterBoard = lazy(() => import('@/pages/roster-board'));
 
-const AuthAccountDeactivatedPage = lazy(() => import('@/pages/auth').then(m => ({ default: m.AuthAccountDeactivatedPage })));
-const AuthWelcomeMessagePage = lazy(() => import('@/pages/auth').then(m => ({ default: m.AuthWelcomeMessagePage })));
+const AuthAccountDeactivatedPage = lazy(() =>
+  import('@/pages/auth').then((m) => ({
+    default: m.AuthAccountDeactivatedPage,
+  })),
+);
+const AuthWelcomeMessagePage = lazy(() =>
+  import('@/pages/auth').then((m) => ({ default: m.AuthWelcomeMessagePage })),
+);
 
-const HomePage = lazy(() => import('@/pages/dashboards').then(m => ({ default: m.HomePage })));
+const HomePage = lazy(() =>
+  import('@/pages/dashboards').then((m) => ({ default: m.HomePage })),
+);
 
-const StaffDashboard = lazy(() => import('@/pages/staff').then(m => ({ default: m.StaffDashboard })));
-const StaffRoster = lazy(() => import('@/pages/staff').then(m => ({ default: m.StaffRoster })));
-const StaffTimesheetForm = lazy(() => import('@/pages/staff').then(m => ({ default: m.StaffTimesheetForm })));
-const StaffTimesheetList = lazy(() => import('@/pages/staff').then(m => ({ default: m.StaffTimesheetList })));
-const StaffLeaveList = lazy(() => import('@/pages/staff').then(m => ({ default: m.StaffLeaveList })));
-const StaffLeaveForm = lazy(() => import('@/pages/staff').then(m => ({ default: m.StaffLeaveForm })));
-const StaffProfile = lazy(() => import('@/pages/staff').then(m => ({ default: m.StaffProfile })));
-const StaffChecklists = lazy(() => import('@/pages/staff').then(m => ({ default: m.StaffChecklists })));
+const StaffDashboard = lazy(() =>
+  import('@/pages/staff').then((m) => ({ default: m.StaffDashboard })),
+);
+const StaffRoster = lazy(() =>
+  import('@/pages/staff').then((m) => ({ default: m.StaffRoster })),
+);
+const StaffTimesheetForm = lazy(() =>
+  import('@/pages/staff').then((m) => ({ default: m.StaffTimesheetForm })),
+);
+const StaffTimesheetList = lazy(() =>
+  import('@/pages/staff').then((m) => ({ default: m.StaffTimesheetList })),
+);
+const StaffLeaveList = lazy(() =>
+  import('@/pages/staff').then((m) => ({ default: m.StaffLeaveList })),
+);
+const StaffLeaveForm = lazy(() =>
+  import('@/pages/staff').then((m) => ({ default: m.StaffLeaveForm })),
+);
+const StaffProfile = lazy(() =>
+  import('@/pages/staff').then((m) => ({ default: m.StaffProfile })),
+);
+const StaffChecklists = lazy(() =>
+  import('@/pages/staff').then((m) => ({ default: m.StaffChecklists })),
+);
 
-const ChecklistMasterPage = lazy(() => import('@/pages/admin/checklists/checklist-master-page').then(m => ({ default: m.ChecklistMasterPage })));
-const LeaveTypeMasterPage = lazy(() => import('@/pages/admin/leave-types/leave-type-master-page').then(m => ({ default: m.LeaveTypeMasterPage })));
-const ComplianceSettingsPage = lazy(() => import('@/pages/admin/compliance-settings/compliance-settings-page').then(m => ({ default: m.ComplianceSettingsPage })));
-const ComplianceMonitoringPage = lazy(() => import('@/pages/admin/compliance-monitoring/compliance-monitoring-page').then(m => ({ default: m.ComplianceMonitoringPage })));
-const RolesPage = lazy(() => import('@/pages/admin/roles/roles-page').then(m => ({ default: m.RolesPage })));
-const ActivityLogPage = lazy(() => import('@/pages/admin/activity-log/activity-log-page').then(m => ({ default: m.ActivityLogPage })));
-const ReportingHubPage = lazy(() => import('@/pages/admin/reporting/reporting-hub-page').then(m => ({ default: m.ReportingHubPage })));
-const IncidentManagementPage = lazy(() => import('@/pages/admin/reporting/incident-management-page').then(m => ({ default: m.IncidentManagementPage })));
-const IncidentSummaryReportPage = lazy(() => import('@/pages/admin/reporting/incident-summary-report-page').then(m => ({ default: m.IncidentSummaryReportPage })));
-const ParticipantsReportPage = lazy(() => import('@/pages/admin/reporting/participants-report-page').then(m => ({ default: m.ParticipantsReportPage })));
-const ComplianceReportPage = lazy(() => import('@/pages/admin/reporting/compliance-report-page').then(m => ({ default: m.ComplianceReportPage })));
-const NotificationCenter = lazy(() => import('@/pages/account/notifications/notification-center').then(m => ({ default: m.NotificationCenter })));
+const ChecklistMasterPage = lazy(() =>
+  import('@/pages/admin/checklists/checklist-master-page').then((m) => ({
+    default: m.ChecklistMasterPage,
+  })),
+);
+const LeaveTypeMasterPage = lazy(() =>
+  import('@/pages/admin/leave-types/leave-type-master-page').then((m) => ({
+    default: m.LeaveTypeMasterPage,
+  })),
+);
+const ComplianceSettingsPage = lazy(() =>
+  import('@/pages/admin/compliance-settings/compliance-settings-page').then(
+    (m) => ({ default: m.ComplianceSettingsPage }),
+  ),
+);
+const ComplianceMonitoringPage = lazy(() =>
+  import('@/pages/admin/compliance-monitoring/compliance-monitoring-page').then(
+    (m) => ({ default: m.ComplianceMonitoringPage }),
+  ),
+);
+const RolesPage = lazy(() =>
+  import('@/pages/admin/roles/roles-page').then((m) => ({
+    default: m.RolesPage,
+  })),
+);
+const ActivityLogPage = lazy(() =>
+  import('@/pages/admin/activity-log/activity-log-page').then((m) => ({
+    default: m.ActivityLogPage,
+  })),
+);
+const ReportingHubPage = lazy(() =>
+  import('@/pages/admin/reporting/reporting-hub-page').then((m) => ({
+    default: m.ReportingHubPage,
+  })),
+);
+const IncidentManagementPage = lazy(() =>
+  import('@/pages/admin/reporting/incident-management-page').then((m) => ({
+    default: m.IncidentManagementPage,
+  })),
+);
+const IncidentSummaryReportPage = lazy(() =>
+  import('@/pages/admin/reporting/incident-summary-report-page').then((m) => ({
+    default: m.IncidentSummaryReportPage,
+  })),
+);
+const ParticipantsReportPage = lazy(() =>
+  import('@/pages/admin/reporting/participants-report-page').then((m) => ({
+    default: m.ParticipantsReportPage,
+  })),
+);
+const ComplianceReportPage = lazy(() =>
+  import('@/pages/admin/reporting/compliance-report-page').then((m) => ({
+    default: m.ComplianceReportPage,
+  })),
+);
+const NotificationCenter = lazy(() =>
+  import('@/pages/account/notifications/notification-center').then((m) => ({
+    default: m.NotificationCenter,
+  })),
+);
 
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-[400px]">
@@ -67,36 +187,72 @@ export function AppRoutingSetup() {
       <Routes>
         <Route element={<RequireAuth />}>
           <Route element={<Demo1Layout />}>
-            <Route path={ROUTES.NOTIFICATIONS} element={<NotificationCenter />} />
+            <Route
+              path={ROUTES.NOTIFICATIONS}
+              element={<NotificationCenter />}
+            />
 
-            <Route element={<RequirePermission module={RBAC_MODULES.SHIFT_ROUTINES} />}>
+            <Route
+              element={
+                <RequirePermission module={RBAC_MODULES.SHIFT_ROUTINES} />
+              }
+            >
               <Route path={ROUTES.MY_DASHBOARD} element={<StaffDashboard />} />
             </Route>
 
-            <Route element={<RequirePermission module={RBAC_MODULES.SHIFT_ROUTINES} />}>
-              <Route path={ROUTES.MY_CHECKLISTS} element={<StaffChecklists />} />
+            <Route
+              element={
+                <RequirePermission module={RBAC_MODULES.SHIFT_ROUTINES} />
+              }
+            >
+              <Route
+                path={ROUTES.MY_CHECKLISTS}
+                element={<StaffChecklists />}
+              />
             </Route>
 
-            <Route element={<RequirePermission module={RBAC_MODULES.MY_ROSTER} />}>
+            <Route
+              element={<RequirePermission module={RBAC_MODULES.MY_ROSTER} />}
+            >
               <Route path={ROUTES.MY_ROSTER} element={<StaffRoster />} />
             </Route>
 
-            <Route element={<RequirePermission module={RBAC_MODULES.MY_TIMESHEETS} />}>
-              <Route path={`${ROUTES.MY_TIMESHEETS}/:shiftId`} element={<StaffTimesheetForm />} />
-              <Route path={ROUTES.MY_TIMESHEETS} element={<StaffTimesheetList />} />
+            <Route
+              element={
+                <RequirePermission module={RBAC_MODULES.MY_TIMESHEETS} />
+              }
+            >
+              <Route
+                path={`${ROUTES.MY_TIMESHEETS}/:shiftId`}
+                element={<StaffTimesheetForm />}
+              />
+              <Route
+                path={ROUTES.MY_TIMESHEETS}
+                element={<StaffTimesheetList />}
+              />
             </Route>
 
-            <Route element={<RequirePermission module={RBAC_MODULES.MY_LEAVE} />}>
+            <Route
+              element={<RequirePermission module={RBAC_MODULES.MY_LEAVE} />}
+            >
               <Route path={ROUTES.MY_LEAVE} element={<StaffLeaveList />} />
-              <Route path={`${ROUTES.MY_LEAVE}/new`} element={<StaffLeaveForm />} />
-              <Route path={`${ROUTES.MY_LEAVE}/:id/edit`} element={<StaffLeaveForm />} />
+              <Route
+                path={`${ROUTES.MY_LEAVE}/new`}
+                element={<StaffLeaveForm />}
+              />
+              <Route
+                path={`${ROUTES.MY_LEAVE}/:id/edit`}
+                element={<StaffLeaveForm />}
+              />
             </Route>
 
             <Route path={ROUTES.STAFF_PROFILE} element={<StaffProfile />} />
 
             <Route path={ROUTES.HOME} element={<HomePage />} />
 
-            <Route element={<RequirePermission module={RBAC_MODULES.PARTICIPANTS} />}>
+            <Route
+              element={<RequirePermission module={RBAC_MODULES.PARTICIPANTS} />}
+            >
               <Route
                 path={ROUTES.PARTICIPANT_PROFILES}
                 element={<ParticipantsProfilesPage />}
@@ -111,7 +267,9 @@ export function AppRoutingSetup() {
               />
             </Route>
 
-            <Route element={<RequirePermission module={RBAC_MODULES.MASTER_LISTS} />}>
+            <Route
+              element={<RequirePermission module={RBAC_MODULES.MASTER_LISTS} />}
+            >
               <Route
                 path={ROUTES.MEDICATION_REGISTER}
                 element={<MedicationRegisterPage />}
@@ -122,11 +280,10 @@ export function AppRoutingSetup() {
               />
             </Route>
 
-            <Route element={<RequirePermission module={RBAC_MODULES.SHIFT_NOTES} />}>
-              <Route
-                path={ROUTES.SHIFT_NOTES}
-                element={<ShiftNotesPage />}
-              />
+            <Route
+              element={<RequirePermission module={RBAC_MODULES.SHIFT_NOTES} />}
+            >
+              <Route path={ROUTES.SHIFT_NOTES} element={<ShiftNotesPage />} />
               <Route
                 path={`${ROUTES.SHIFT_NOTES_DETAIL}/:id`}
                 element={<ShiftNoteDetailPage />}
@@ -135,27 +292,46 @@ export function AppRoutingSetup() {
 
             <Route element={<RequirePermission module={RBAC_MODULES.HOUSES} />}>
               <Route path={ROUTES.HOUSES} element={<HousesProfilesPage />} />
-              <Route path={`${ROUTES.HOUSE_DETAIL}/:id`} element={<HouseDetailPage />} />
-            </Route>
-
-            <Route element={<RequirePermission module={RBAC_MODULES.EMPLOYEES} />}>
-              <Route path={ROUTES.STAFF} element={<StaffProfilesPage />} />
-              <Route path={`${ROUTES.STAFF_DETAIL}/:id`} element={<StaffDetailPage />} />
-            </Route>
-
-            <Route element={<RequirePermission module={RBAC_MODULES.TIMESHEETS} />}>
-              <Route path={ROUTES.TIMESHEET_APPROVALS} element={<AdminTimesheetsPage />} />
-            </Route>
-
-            <Route element={<RequirePermission module={RBAC_MODULES.LEAVE_REQUESTS} />}>
-              <Route path={ROUTES.LEAVE_APPROVALS} element={<AdminLeaveRequestsPage />} />
-            </Route>
-
-            <Route element={<RequirePermission module={RBAC_MODULES.ROSTER_BOARD} />}>
               <Route
-                path={ROUTES.ROSTER_BOARD}
-                element={<RosterBoard />}
+                path={`${ROUTES.HOUSE_DETAIL}/:id`}
+                element={<HouseDetailPage />}
               />
+            </Route>
+
+            <Route
+              element={<RequirePermission module={RBAC_MODULES.EMPLOYEES} />}
+            >
+              <Route path={ROUTES.STAFF} element={<StaffProfilesPage />} />
+              <Route
+                path={`${ROUTES.STAFF_DETAIL}/:id`}
+                element={<StaffDetailPage />}
+              />
+            </Route>
+
+            <Route
+              element={<RequirePermission module={RBAC_MODULES.TIMESHEETS} />}
+            >
+              <Route
+                path={ROUTES.TIMESHEET_APPROVALS}
+                element={<AdminTimesheetsPage />}
+              />
+            </Route>
+
+            <Route
+              element={
+                <RequirePermission module={RBAC_MODULES.LEAVE_REQUESTS} />
+              }
+            >
+              <Route
+                path={ROUTES.LEAVE_APPROVALS}
+                element={<AdminLeaveRequestsPage />}
+              />
+            </Route>
+
+            <Route
+              element={<RequirePermission module={RBAC_MODULES.ROSTER_BOARD} />}
+            >
+              <Route path={ROUTES.ROSTER_BOARD} element={<RosterBoard />} />
               <Route
                 path={ROUTES.SHIFT_SETUP}
                 element={<ShiftTemplatesPage />}
@@ -163,23 +339,48 @@ export function AppRoutingSetup() {
               <Route
                 path={`${ROUTES.SHIFT_SETUP}/:id`}
                 element={<ShiftTemplatesEditPage />}
-              />            </Route>
-            <Route element={<RequirePermission module={RBAC_MODULES.ACTIVITY_LOG} />}>
-              <Route
-                path={ROUTES.ACTIVITY_LOG}
-                element={<ActivityLogPage />}
-              />
+              />{' '}
+            </Route>
+            <Route
+              element={<RequirePermission module={RBAC_MODULES.ACTIVITY_LOG} />}
+            >
+              <Route path={ROUTES.ACTIVITY_LOG} element={<ActivityLogPage />} />
             </Route>
 
             <Route path={ROUTES.REPORTING} element={<ReportingHubPage />} />
-            <Route path={ROUTES.INCIDENT_REPORT} element={<IncidentManagementPage />} />
-            <Route path={`${ROUTES.INCIDENT_REPORT}/new`} element={<IncidentManagementPage />} />
-            <Route path={`${ROUTES.INCIDENT_REPORT}/:idOrRef`} element={<IncidentManagementPage />} />
-            <Route path={`${ROUTES.INCIDENT_REPORT}/:idOrRef/print`} element={<IncidentManagementPage />} />
-            <Route element={<RequirePermission module={RBAC_MODULES.REPORTING_CLINICAL} />}>
-              <Route path={ROUTES.REPORTING_CLINICAL_INCIDENTS} element={<IncidentSummaryReportPage />} />
-              <Route path={`${ROUTES.REPORTING_CLINICAL_PARTICIPANTS}/:id?`} element={<ParticipantsReportPage />} />
-              <Route path={ROUTES.REPORT_COMPLIANCE} element={<ComplianceReportPage />} />
+            <Route
+              path={ROUTES.INCIDENT_REPORT}
+              element={<IncidentManagementPage />}
+            />
+            <Route
+              path={`${ROUTES.INCIDENT_REPORT}/new`}
+              element={<IncidentManagementPage />}
+            />
+            <Route
+              path={`${ROUTES.INCIDENT_REPORT}/:idOrRef`}
+              element={<IncidentManagementPage />}
+            />
+            <Route
+              path={`${ROUTES.INCIDENT_REPORT}/:idOrRef/print`}
+              element={<IncidentManagementPage />}
+            />
+            <Route
+              element={
+                <RequirePermission module={RBAC_MODULES.REPORTING_CLINICAL} />
+              }
+            >
+              <Route
+                path={ROUTES.REPORTING_CLINICAL_INCIDENTS}
+                element={<IncidentSummaryReportPage />}
+              />
+              <Route
+                path={`${ROUTES.REPORTING_CLINICAL_PARTICIPANTS}/:id?`}
+                element={<ParticipantsReportPage />}
+              />
+              <Route
+                path={ROUTES.REPORT_COMPLIANCE}
+                element={<ComplianceReportPage />}
+              />
             </Route>
 
             <Route element={<RequireAdmin />}>
@@ -187,7 +388,11 @@ export function AppRoutingSetup() {
                 path={ROUTES.CHECKLIST_TEMPLATES}
                 element={<ChecklistMasterPage />}
               />
-              <Route element={<RequirePermission module={RBAC_MODULES.MASTER_LISTS} />}>
+              <Route
+                element={
+                  <RequirePermission module={RBAC_MODULES.MASTER_LISTS} />
+                }
+              >
                 <Route
                   path={ROUTES.LEAVE_TYPES}
                   element={<LeaveTypeMasterPage />}
@@ -201,10 +406,7 @@ export function AppRoutingSetup() {
                   element={<ComplianceMonitoringPage />}
                 />
               </Route>
-              <Route
-                path={ROUTES.ACCESS_CONTROL}
-                element={<RolesPage />}
-              />
+              <Route path={ROUTES.ACCESS_CONTROL} element={<RolesPage />} />
             </Route>
 
             <Route

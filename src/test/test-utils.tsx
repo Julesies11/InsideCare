@@ -1,11 +1,11 @@
-import { render, RenderOptions } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { MemoryRouter } from 'react-router-dom';
-import userEvent from '@testing-library/user-event';
 import { ReactElement, ReactNode } from 'react';
-import { SettingsProvider } from '@/providers/settings-provider';
 import { AuthContext } from '@/auth/context/auth-context';
 import { UserModel } from '@/auth/lib/models';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { render, RenderOptions } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router';
+import { SettingsProvider } from '@/providers/settings-provider';
 
 // Create a custom render function that includes providers
 interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
@@ -14,14 +14,15 @@ interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
   user?: UserModel;
 }
 
-const createTestQueryClient = () => new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
-      staleTime: 0,
+const createTestQueryClient = () =>
+  new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+        staleTime: 0,
+      },
     },
-  },
-});
+  });
 
 const defaultTestUser: UserModel = {
   id: 'test-user-id',
@@ -37,31 +38,33 @@ export function renderWithProviders(
     queryClient = createTestQueryClient(),
     user = defaultTestUser,
     ...renderOptions
-  }: ExtendedRenderOptions = {}
+  }: ExtendedRenderOptions = {},
 ) {
   function Wrapper({ children }: { children: ReactNode }): ReactElement {
     return (
       <MemoryRouter initialEntries={[route]}>
         <QueryClientProvider client={queryClient}>
           <SettingsProvider>
-            <AuthContext.Provider value={{
-              loading: false,
-              setLoading: () => {},
-              saveAuth: () => {},
-              user,
-              setUser: () => {},
-              login: async () => {},
-              register: async () => {},
-              requestPasswordReset: async () => {},
-              resetPassword: async () => {},
-              resendVerificationEmail: async () => {},
-              getUser: async () => user,
-              updateProfile: async () => user,
-              logout: () => {},
-              verify: async () => {},
-              isAdmin: true,
-              isStaff: true,
-            }}>
+            <AuthContext.Provider
+              value={{
+                loading: false,
+                setLoading: () => {},
+                saveAuth: () => {},
+                user,
+                setUser: () => {},
+                login: async () => {},
+                register: async () => {},
+                requestPasswordReset: async () => {},
+                resetPassword: async () => {},
+                resendVerificationEmail: async () => {},
+                getUser: async () => user,
+                updateProfile: async () => user,
+                logout: () => {},
+                verify: async () => {},
+                isAdmin: true,
+                isStaff: true,
+              }}
+            >
               {children}
             </AuthContext.Provider>
           </SettingsProvider>

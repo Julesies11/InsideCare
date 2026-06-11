@@ -1,10 +1,10 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import { IncidentSingleReport } from './incident-single-report';
-import { SettingsProvider } from '@/providers/settings-provider';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { MemoryRouter } from 'react-router';
 import { IncidentReport } from '@/models/incident-report';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router';
+import { describe, expect, it, vi } from 'vitest';
+import { SettingsProvider } from '@/providers/settings-provider';
+import { IncidentSingleReport } from './incident-single-report';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -50,7 +50,7 @@ const mockIncident: IncidentReport & {
   staff: { staff_name: 'Staff Member' },
   reporter: { staff_name: 'Reporter Staff' },
   house: { house_name: 'Comfort House' },
-  incident_type_info: { name: 'Behavioural' }
+  incident_type_info: { name: 'Behavioural' },
 };
 
 describe('IncidentSingleReport Smoke Test', () => {
@@ -62,13 +62,17 @@ describe('IncidentSingleReport Smoke Test', () => {
             <IncidentSingleReport incident={mockIncident as any} />
           </MemoryRouter>
         </QueryClientProvider>
-      </SettingsProvider>
+      </SettingsProvider>,
     );
 
-    expect(screen.getByText('Incident Investigation Report')).toBeInTheDocument();
+    expect(
+      screen.getByText('Incident Investigation Report'),
+    ).toBeInTheDocument();
     expect(screen.getByText('INC-20260608-1422-JD')).toBeInTheDocument();
     expect(screen.getByText('John Doe')).toBeInTheDocument();
     expect(screen.getByText(/Test incident summary/)).toBeInTheDocument();
-    expect(screen.getByText(/Test incident detailed description/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Test incident detailed description/),
+    ).toBeInTheDocument();
   });
 });

@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { generateShiftNoteReferenceId } from './shift-note-utils';
 
 describe('generateShiftNoteReferenceId', () => {
@@ -8,7 +8,7 @@ describe('generateShiftNoteReferenceId', () => {
       shiftTime: '14:00:00',
       staffName: 'Julian Gibbings',
       participantName: 'John Doe',
-      orgPrefix: 'SC'
+      orgPrefix: 'SC',
     });
     expect(result).toBe('SC-20260607-1400-JD');
   });
@@ -19,7 +19,7 @@ describe('generateShiftNoteReferenceId', () => {
       shiftTime: '08:30:00',
       staffName: 'Julian Gibbings',
       participantName: null,
-      orgPrefix: 'SC'
+      orgPrefix: 'SC',
     });
     expect(result).toBe('SC-20260607-0830-GH');
   });
@@ -30,7 +30,7 @@ describe('generateShiftNoteReferenceId', () => {
       shiftTime: null,
       staffName: '',
       participantName: '',
-      orgPrefix: 'SC'
+      orgPrefix: 'SC',
     });
     expect(result).toBe('SC-00000000-0000-GH');
   });
@@ -41,7 +41,7 @@ describe('generateShiftNoteReferenceId', () => {
       shiftTime: '8:30 PM',
       staffName: 'Julian Gibbings',
       participantName: 'John Doe',
-      orgPrefix: 'SC'
+      orgPrefix: 'SC',
     });
     expect(result).toBe('SC-00000000-0830-JD');
   });
@@ -52,7 +52,7 @@ describe('generateShiftNoteReferenceId', () => {
       shiftTime: '22:00:00',
       staffName: 'Julian Gibbings',
       participantName: 'Bob Builder',
-      orgPrefix: 'XYZ'
+      orgPrefix: 'XYZ',
     });
     expect(result).toBe('XYZ-20260607-2200-BB');
   });

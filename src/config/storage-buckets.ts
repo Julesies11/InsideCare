@@ -12,4 +12,5 @@ export const STORAGE_BUCKETS = {
   PARTICIPANT_PHOTOS: 'ic_participant_photos',
 } as const;
 
-export type StorageBucket = typeof STORAGE_BUCKETS[keyof typeof STORAGE_BUCKETS];
+export type StorageBucket =
+  (typeof STORAGE_BUCKETS)[keyof typeof STORAGE_BUCKETS];

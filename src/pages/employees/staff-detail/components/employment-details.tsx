@@ -1,17 +1,23 @@
 import { useState } from 'react';
+import { useRoles } from '@/hooks/use-roles';
+import { useStaff } from '@/hooks/use-staff';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DepartmentCombobox } from './employment-components/department-combobox';
-import { EmploymentTypeCombobox } from './employment-components/employment-type-combobox';
-import { RoleCombobox } from './employment-components/role-combobox';
 import { DepartmentMasterDialog } from './employment-components/department-master-dialog';
+import { EmploymentTypeCombobox } from './employment-components/employment-type-combobox';
 import { EmploymentTypeMasterDialog } from './employment-components/employment-type-master-dialog';
+import { RoleCombobox } from './employment-components/role-combobox';
 import { RoleMasterDialog } from './employment-components/role-master-dialog';
-import { useStaff } from '@/hooks/use-staff';
-import { useRoles } from '@/hooks/use-roles';
 
 interface EmploymentDetailsProps {
   formData: Record<string, any>;
@@ -27,168 +33,174 @@ export function EmploymentDetails({
   currentStaffId,
 }: EmploymentDetailsProps) {
   const [showDepartmentDialog, setShowDepartmentDialog] = useState(false);
-  const [showEmploymentTypeDialog, setShowEmploymentTypeDialog] = useState(false);
+  const [showEmploymentTypeDialog, setShowEmploymentTypeDialog] =
+    useState(false);
   const [showRoleDialog, setShowRoleDialog] = useState(false);
   const { staff } = useStaff();
   const { refresh: refreshRoles } = useRoles();
 
   // Filter active staff for manager dropdown, excluding current staff member
-  const activeStaff = staff.filter(s => 
-    s.status?.toLowerCase() === 'active' && s.id !== currentStaffId
+  const activeStaff = staff.filter(
+    (s) => s.status?.toLowerCase() === 'active' && s.id !== currentStaffId,
   );
-  
+
   // Include currently selected manager even if inactive, so it displays after save
-  const currentManager = formData.manager_id 
-    ? staff.find(s => s.id === formData.manager_id)
+  const currentManager = formData.manager_id
+    ? staff.find((s) => s.id === formData.manager_id)
     : null;
-  
-  const managerOptions = currentManager && !activeStaff.find(s => s.id === currentManager.id)
-    ? [currentManager, ...activeStaff]
-    : activeStaff;
+
+  const managerOptions =
+    currentManager && !activeStaff.find((s) => s.id === currentManager.id)
+      ? [currentManager, ...activeStaff]
+      : activeStaff;
   return (
     <>
-    <Card className="pb-2.5" id="employment_details">
-      <CardHeader>
-        <CardTitle>Employment Details</CardTitle>
-      </CardHeader>
-      <CardContent className="grid gap-2.5">
-        <div className="w-full">
-          <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <Label className="flex w-full max-w-56">Role</Label>
-            <RoleCombobox
-              value={formData.role_id || ''}
-              onChange={(value) => onFormChange('role_id', value)}
-              canEdit={canEdit}
-              onManageList={() => setShowRoleDialog(true)}
-            />
+      <Card className="pb-2.5" id="employment_details">
+        <CardHeader>
+          <CardTitle>Employment Details</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-2.5">
+          <div className="w-full">
+            <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+              <Label className="flex w-full max-w-56">Role</Label>
+              <RoleCombobox
+                value={formData.role_id || ''}
+                onChange={(value) => onFormChange('role_id', value)}
+                canEdit={canEdit}
+                onManageList={() => setShowRoleDialog(true)}
+              />
+            </div>
           </div>
-        </div>
 
-        <div className="w-full">
-          <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <Label className="flex w-full max-w-56">Department</Label>
-            <DepartmentCombobox
-              value={formData.department_id || ''}
-              onChange={(value) => onFormChange('department_id', value)}
-              canEdit={canEdit}
-              onManageList={() => setShowDepartmentDialog(true)}
-            />
+          <div className="w-full">
+            <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+              <Label className="flex w-full max-w-56">Department</Label>
+              <DepartmentCombobox
+                value={formData.department_id || ''}
+                onChange={(value) => onFormChange('department_id', value)}
+                canEdit={canEdit}
+                onManageList={() => setShowDepartmentDialog(true)}
+              />
+            </div>
           </div>
-        </div>
 
-        <div className="w-full">
-          <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <Label className="flex w-full max-w-56">Employment Type</Label>
-            <EmploymentTypeCombobox
-              value={formData.employment_type_id || ''}
-              onChange={(value) => onFormChange('employment_type_id', value)}
-              canEdit={canEdit}
-              onManageList={() => setShowEmploymentTypeDialog(true)}
-            />
+          <div className="w-full">
+            <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+              <Label className="flex w-full max-w-56">Employment Type</Label>
+              <EmploymentTypeCombobox
+                value={formData.employment_type_id || ''}
+                onChange={(value) => onFormChange('employment_type_id', value)}
+                canEdit={canEdit}
+                onManageList={() => setShowEmploymentTypeDialog(true)}
+              />
+            </div>
           </div>
-        </div>
 
-        <div className="flex items-center flex-wrap gap-2.5">
-          <Label className="flex w-full max-w-56">Manager</Label>
-          <div className="grow">
-            <Select 
-              value={formData.manager_id || undefined} 
-              onValueChange={(value) => onFormChange('manager_id', value || null)}
-              disabled={!canEdit}
-            >
-              <SelectTrigger id="manager_id">
-                <SelectValue placeholder="Select manager (optional)" />
-              </SelectTrigger>
-              <SelectContent>
-                {managerOptions.map(s => (
-                  <SelectItem key={s.id} value={s.id}>
-                    {s.staff_name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="flex items-center flex-wrap gap-2.5">
+            <Label className="flex w-full max-w-56">Manager</Label>
+            <div className="grow">
+              <Select
+                value={formData.manager_id || undefined}
+                onValueChange={(value) =>
+                  onFormChange('manager_id', value || null)
+                }
+                disabled={!canEdit}
+              >
+                <SelectTrigger id="manager_id">
+                  <SelectValue placeholder="Select manager (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  {managerOptions.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.staff_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-        </div>
 
-        <div className="flex items-center flex-wrap gap-2.5">
-          <Label className="flex w-full max-w-56">Status</Label>
-          <div className="grow">
-            <Select 
-              value={formData.status || 'draft'} 
-              onValueChange={(value) => onFormChange('status', value)}
-              disabled={!canEdit}
-            >
-              <SelectTrigger id="status">
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="draft">Draft</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex items-center flex-wrap gap-2.5">
+            <Label className="flex w-full max-w-56">Status</Label>
+            <div className="grow">
+              <Select
+                value={formData.status || 'draft'}
+                onValueChange={(value) => onFormChange('status', value)}
+                disabled={!canEdit}
+              >
+                <SelectTrigger id="status">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-        </div>
 
-        <div className="w-full">
-          <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <Label className="flex w-full max-w-56">Hire Date</Label>
-            <Input
-              id="hire_date"
-              type="date"
-              value={formData.hire_date || ''}
-              onChange={(e) => onFormChange('hire_date', e.target.value)}
-              disabled={!canEdit}
-            />
+          <div className="w-full">
+            <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+              <Label className="flex w-full max-w-56">Hire Date</Label>
+              <Input
+                id="hire_date"
+                type="date"
+                value={formData.hire_date || ''}
+                onChange={(e) => onFormChange('hire_date', e.target.value)}
+                disabled={!canEdit}
+              />
+            </div>
           </div>
-        </div>
 
-        <div className="w-full">
-          <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <Label className="flex w-full max-w-56">Separation Date</Label>
-            <Input
-              id="separation_date"
-              type="date"
-              value={formData.separation_date || ''}
-              onChange={(e) => onFormChange('separation_date', e.target.value || null)}
-              disabled={!canEdit}
-            />
+          <div className="w-full">
+            <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+              <Label className="flex w-full max-w-56">Separation Date</Label>
+              <Input
+                id="separation_date"
+                type="date"
+                value={formData.separation_date || ''}
+                onChange={(e) =>
+                  onFormChange('separation_date', e.target.value || null)
+                }
+                disabled={!canEdit}
+              />
+            </div>
           </div>
-        </div>
 
-        <div className="w-full">
-          <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <Label className="flex w-full max-w-56">Any Other Notes</Label>
-            <Textarea
-              id="notes"
-              placeholder="Additional notes about staff member"
-              value={formData.notes || ''}
-              onChange={(e) => onFormChange('notes', e.target.value)}
-              disabled={!canEdit}
-              rows={4}
-            />
+          <div className="w-full">
+            <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+              <Label className="flex w-full max-w-56">Any Other Notes</Label>
+              <Textarea
+                id="notes"
+                placeholder="Additional notes about staff member"
+                value={formData.notes || ''}
+                onChange={(e) => onFormChange('notes', e.target.value)}
+                disabled={!canEdit}
+                rows={4}
+              />
+            </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
 
-    <DepartmentMasterDialog
-      open={showDepartmentDialog}
-      onClose={() => setShowDepartmentDialog(false)}
-      onUpdate={() => {}}
-    />
+      <DepartmentMasterDialog
+        open={showDepartmentDialog}
+        onClose={() => setShowDepartmentDialog(false)}
+        onUpdate={() => {}}
+      />
 
-    <EmploymentTypeMasterDialog
-      open={showEmploymentTypeDialog}
-      onClose={() => setShowEmploymentTypeDialog(false)}
-      onUpdate={() => {}}
-    />
+      <EmploymentTypeMasterDialog
+        open={showEmploymentTypeDialog}
+        onClose={() => setShowEmploymentTypeDialog(false)}
+        onUpdate={() => {}}
+      />
 
-    <RoleMasterDialog
-      open={showRoleDialog}
-      onClose={() => setShowRoleDialog(false)}
-      onUpdate={() => refreshRoles()}
-    />
+      <RoleMasterDialog
+        open={showRoleDialog}
+        onClose={() => setShowRoleDialog(false)}
+        onUpdate={() => refreshRoles()}
+      />
     </>
   );
 }

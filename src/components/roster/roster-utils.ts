@@ -1,4 +1,11 @@
-import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays } from 'date-fns';
+import {
+  addDays,
+  endOfMonth,
+  endOfWeek,
+  format,
+  startOfMonth,
+  startOfWeek,
+} from 'date-fns';
 
 export type ViewMode = 'today' | 'week' | 'month';
 
@@ -32,12 +39,16 @@ export function getShiftTheme(colorTheme?: string, shiftTemplateName?: string) {
  */
 export function getEventTheme(color?: string | null) {
   const c = (color || 'gray').toLowerCase();
-  
-  if (c.includes('red') || c.includes('danger')) return 'bg-red-500/10 text-red-700 border-red-200';
-  if (c.includes('blue') || c.includes('primary')) return 'bg-blue-500/10 text-blue-700 border-blue-200';
-  if (c.includes('green') || c.includes('success')) return 'bg-emerald-500/10 text-emerald-700 border-emerald-200';
-  if (c.includes('yellow') || c.includes('warning')) return 'bg-amber-500/10 text-amber-700 border-amber-200';
-  
+
+  if (c.includes('red') || c.includes('danger'))
+    return 'bg-red-500/10 text-red-700 border-red-200';
+  if (c.includes('blue') || c.includes('primary'))
+    return 'bg-blue-500/10 text-blue-700 border-blue-200';
+  if (c.includes('green') || c.includes('success'))
+    return 'bg-emerald-500/10 text-emerald-700 border-emerald-200';
+  if (c.includes('yellow') || c.includes('warning'))
+    return 'bg-amber-500/10 text-amber-700 border-amber-200';
+
   return 'bg-gray-500/10 text-gray-700 border-gray-200';
 }
 
@@ -55,7 +66,12 @@ export const formatDuration = (hours: number): string => {
   return hours % 1 === 0 ? `${hours}h` : `${hours}h`;
 };
 
-export const calculateDuration = (startTime: string, endTime: string, startDate?: string, endDate?: string): number => {
+export const calculateDuration = (
+  startTime: string,
+  endTime: string,
+  startDate?: string,
+  endDate?: string,
+): number => {
   const [startHour, startMinute] = startTime.split(':').map(Number);
   const [endHour, endMinute] = endTime.split(':').map(Number);
 
@@ -103,7 +119,10 @@ export const generateWeekDays = (currentDate: Date): Date[] => {
   return days;
 };
 
-export const getDateRange = (currentDate: Date, viewMode: ViewMode): { startDate: string; endDate: string } => {
+export const getDateRange = (
+  currentDate: Date,
+  viewMode: ViewMode,
+): { startDate: string; endDate: string } => {
   let startDate: string;
   let endDate: string;
 

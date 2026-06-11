@@ -1,9 +1,9 @@
-import { supabase } from '@/lib/supabase';
-import { TABLES } from '@/config/db-tables';
-import { CHECKLIST_VIEWS, CALENDAR_VIEWS } from '@/config/query-views';
-import { CHECKLIST_STATUS } from '@/config/enums';
-import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 import { Database } from '@/models/database.types';
+import { TABLES } from '@/config/db-tables';
+import { CHECKLIST_STATUS } from '@/config/enums';
+import { CALENDAR_VIEWS, CHECKLIST_VIEWS } from '@/config/query-views';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
+import { supabase } from '@/lib/supabase';
 
 export const checklistsApi = {
   /**
@@ -12,16 +12,20 @@ export const checklistsApi = {
   async getHouseChecklist(id: string) {
     const { data, error } = await supabase
       .from(TABLES.HOUSE_CHECKLISTS)
-      .select(`
+      .select(
+        `
         *,
         items:${TABLES.HOUSE_CHECKLIST_ITEMS}(*)
-      `)
+      `,
+      )
       .eq('id', id)
       .maybeSingle();
 
     if (error) throw error;
     if (data) {
-      data.items = (data.items || []).sort((a: any, b: any) => a.sort_order - b.sort_order);
+      data.items = (data.items || []).sort(
+        (a: any, b: any) => a.sort_order - b.sort_order,
+      );
     }
     return data;
   },
@@ -42,7 +46,7 @@ export const checklistsApi = {
       .from(TABLES.HOUSE_CHECKLIST_SUBMISSIONS)
       .select(CHECKLIST_VIEWS.SUBMISSION_LIST)
       .eq('house_id', houseId);
-      
+
     if (scheduledDate) {
       subQuery = subQuery.eq('scheduled_date', scheduledDate);
     } else {
@@ -52,26 +56,34 @@ export const checklistsApi = {
     const { data: submissions, error: subError } = await subQuery;
     if (subError) throw subError;
 
-    return (checklists || []).map(cl => ({
+    return (checklists || []).map((cl) => ({
       ...cl,
-      items: (cl.house_checklist_items || []).sort((a: any, b: any) => a.sort_order - b.sort_order),
-      latest_submission: submissions?.find((s: any) => s.checklist_id === cl.id)
+      items: (cl.house_checklist_items || []).sort(
+        (a: any, b: any) => a.sort_order - b.sort_order,
+      ),
+      latest_submission: submissions?.find(
+        (s: any) => s.checklist_id === cl.id,
+      ),
     }));
   },
 
   /**
    * List checklist events for a house on a specific date, merging with shift-assigned checklists.
    */
-  async listHouseChecklistEvents(houseId: string, date: string, shiftId?: string) {
+  async listHouseChecklistEvents(
+    houseId: string,
+    date: string,
+    shiftId?: string,
+  ) {
     let shiftSpecificChecklists: any[] = [];
-    
+
     if (shiftId) {
       const { data: assignedData, error: shiftError } = await supabase
         .from(TABLES.SHIFT_ASSIGNED_CHECKLISTS)
         .select('checklist_id, assignment_title, shift_template_id')
         .eq('shift_id', shiftId)
         .order('sort_order', { ascending: true });
-      
+
       if (!shiftError && assignedData) {
         shiftSpecificChecklists = assignedData;
       }
@@ -86,19 +98,24 @@ export const checklistsApi = {
 
     if (eventError) throw eventError;
 
-    const eventsWithFilteredSubs = (events || []).map(e => ({
+    const eventsWithFilteredSubs = (events || []).map((e) => ({
       ...e,
-      submissions: (e.submissions as any[] || [])
-        .filter(s => s.scheduled_date === date)
-        .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+      submissions: ((e.submissions as any[]) || [])
+        .filter((s) => s.scheduled_date === date)
+        .sort(
+          (a, b) =>
+            new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
+        ),
     }));
 
     const combinedEvents = [...eventsWithFilteredSubs];
 
     if (shiftId && shiftSpecificChecklists.length > 0) {
       for (const ac of shiftSpecificChecklists) {
-        const existingEvent = combinedEvents.find(e => e.house_checklist_id === ac.checklist_id);
-        
+        const existingEvent = combinedEvents.find(
+          (e) => e.house_checklist_id === ac.checklist_id,
+        );
+
         if (!existingEvent) {
           const { data: shiftSubs } = await supabase
             .from(TABLES.HOUSE_CHECKLIST_SUBMISSIONS)
@@ -113,7 +130,7 @@ export const checklistsApi = {
           combinedEvents.push({
             id: `shift-cl-${ac.checklist_id}-${shiftId}`,
             house_id: houseId,
-            title: ac.assignment_title, 
+            title: ac.assignment_title,
             event_date: date,
             is_checklist_event: true,
             is_shift_routine: true,
@@ -121,7 +138,7 @@ export const checklistsApi = {
             shift_template_id: ac.shift_template_id,
             house_checklist_id: ac.checklist_id,
             status: 'scheduled',
-            submissions: shiftSub ? [shiftSub] : []
+            submissions: shiftSub ? [shiftSub] : [],
           });
         } else {
           existingEvent.title = ac.assignment_title;
@@ -131,7 +148,9 @@ export const checklistsApi = {
 
     if (combinedEvents.length === 0) return [];
 
-    const checklistIds = [...new Set(combinedEvents.map(e => e.house_checklist_id))];
+    const checklistIds = [
+      ...new Set(combinedEvents.map((e) => e.house_checklist_id)),
+    ];
     const { data: checklists, error: clError } = await supabase
       .from(TABLES.HOUSE_CHECKLISTS)
       .select(CHECKLIST_VIEWS.WITH_ITEMS)
@@ -139,15 +158,21 @@ export const checklistsApi = {
 
     if (clError) throw clError;
 
-    return combinedEvents.map(event => {
-      const checklist = checklists?.find(cl => cl.id === event.house_checklist_id);
+    return combinedEvents.map((event) => {
+      const checklist = checklists?.find(
+        (cl) => cl.id === event.house_checklist_id,
+      );
       return {
         ...event,
-        checklist: checklist ? {
-          ...checklist,
-          items: (checklist.house_checklist_items || []).sort((a: any, b: any) => a.sort_order - b.sort_order)
-        } : undefined,
-        latest_submission: event.submissions?.[0] || null
+        checklist: checklist
+          ? {
+              ...checklist,
+              items: (checklist.house_checklist_items || []).sort(
+                (a: any, b: any) => a.sort_order - b.sort_order,
+              ),
+            }
+          : undefined,
+        latest_submission: event.submissions?.[0] || null,
       };
     });
   },
@@ -192,7 +217,7 @@ export const checklistsApi = {
     };
   }) {
     const { pageIndex = 0, pageSize = 10, sorting = [], filters = {} } = params;
-    
+
     let query = supabase
       .from(TABLES.HOUSE_CHECKLIST_SUBMISSIONS)
       .select(CHECKLIST_VIEWS.HISTORY, { count: 'exact' });
@@ -224,12 +249,24 @@ export const checklistsApi = {
 
     if (error) throw error;
 
-    const submissions = (data || []).map(sub => {
-      const checklists = (sub as any).house_checklists as unknown as { house_checklist_name?: string } | null;
-      const staff = (sub as any).staff as unknown as { id: string; staff_name?: string; photo_url?: string } | null;
-      const house = (sub as any).houses as unknown as { id: string; house_name?: string } | null;
-      const items = ((sub as any).ic_house_checklist_submission_items as unknown as Array<{ is_completed: boolean }>) || [];
-      
+    const submissions = (data || []).map((sub) => {
+      const checklists = (sub as any).house_checklists as unknown as {
+        house_checklist_name?: string;
+      } | null;
+      const staff = (sub as any).staff as unknown as {
+        id: string;
+        staff_name?: string;
+        photo_url?: string;
+      } | null;
+      const house = (sub as any).houses as unknown as {
+        id: string;
+        house_name?: string;
+      } | null;
+      const items =
+        ((sub as any).ic_house_checklist_submission_items as unknown as Array<{
+          is_completed: boolean;
+        }>) || [];
+
       return {
         ...sub,
         checklist_name: checklists?.house_checklist_name || 'Deleted Checklist',
@@ -238,13 +275,13 @@ export const checklistsApi = {
         house_name: house?.house_name || 'Unknown House',
         house_info: house,
         item_count: items.length || 0,
-        completed_item_count: items.filter((i) => i.is_completed).length || 0
+        completed_item_count: items.filter((i) => i.is_completed).length || 0,
       };
     });
 
     return {
       data: submissions,
-      count: count || 0
+      count: count || 0,
     };
   },
 
@@ -270,7 +307,8 @@ export const checklistsApi = {
   async getSubmissionItems(submissionId: string) {
     const { data, error } = await supabase
       .from(TABLES.HOUSE_CHECKLIST_SUBMISSION_ITEMS)
-      .select(`
+      .select(
+        `
         id, 
         submission_id, 
         item_id, 
@@ -279,7 +317,8 @@ export const checklistsApi = {
         note, 
         completed_at,
         completed_by_staff:${TABLES.STAFF}!house_checklist_submission_items_completed_by_fkey(id, staff_name)
-      `)
+      `,
+      )
       .eq('submission_id', submissionId);
 
     if (error) throw error;
@@ -292,7 +331,9 @@ export const checklistsApi = {
   async getSubmissionAttachments(submissionId: string) {
     const { data, error } = await supabase
       .from(TABLES.HOUSE_CHECKLIST_ITEM_ATTACHMENTS)
-      .select('id, submission_id, item_id, file_name, file_path, file_size, mime_type, uploaded_by, created_at')
+      .select(
+        'id, submission_id, item_id, file_name, file_path, file_size, mime_type, uploaded_by, created_at',
+      )
       .eq('submission_id', submissionId);
 
     if (error) throw error;
@@ -302,7 +343,12 @@ export const checklistsApi = {
   /**
    * Upserts a checklist submission.
    */
-  async upsertSubmission(payload: Partial<Database['public']['Tables']['ic_house_checklist_submissions']['Insert']>, id?: string) {
+  async upsertSubmission(
+    payload: Partial<
+      Database['public']['Tables']['ic_house_checklist_submissions']['Insert']
+    >,
+    id?: string,
+  ) {
     if (id) {
       const { data, error } = await supabase
         .from(TABLES.HOUSE_CHECKLIST_SUBMISSIONS)
@@ -345,7 +391,9 @@ export const checklistsApi = {
 
     if (fetchError) throw fetchError;
     if (data?.file_path) {
-      await supabase.storage.from(STORAGE_BUCKETS.CHECKLIST_ATTACHMENTS).remove([data.file_path]);
+      await supabase.storage
+        .from(STORAGE_BUCKETS.CHECKLIST_ATTACHMENTS)
+        .remove([data.file_path]);
     }
 
     const { error: deleteError } = await supabase
@@ -358,7 +406,12 @@ export const checklistsApi = {
   /**
    * Uploads an attachment.
    */
-  async uploadAttachment(submissionId: string, itemId: string, file: File, staffId?: string) {
+  async uploadAttachment(
+    submissionId: string,
+    itemId: string,
+    file: File,
+    staffId?: string,
+  ) {
     const filePath = `${submissionId}/${itemId}/${Date.now()}-${file.name}`;
     const { error: uploadError } = await supabase.storage
       .from(STORAGE_BUCKETS.CHECKLIST_ATTACHMENTS)
@@ -374,7 +427,7 @@ export const checklistsApi = {
         file_path: filePath,
         file_size: file.size,
         mime_type: file.type,
-        uploaded_by: staffId || null
+        uploaded_by: staffId || null,
       })
       .select()
       .maybeSingle();
@@ -390,7 +443,7 @@ export const checklistsApi = {
     const { data, error } = await supabase.storage
       .from(STORAGE_BUCKETS.CHECKLIST_ATTACHMENTS)
       .createSignedUrl(filePath, 3600, {
-        download: fileName || true
+        download: fileName || true,
       });
 
     if (error) throw error;
@@ -410,7 +463,15 @@ export const checklistsApi = {
     submissionId?: string;
     results: any;
   }) {
-    const { checklistId, houseId, calendarEventId, scheduledDate, status, staffId, results } = params;
+    const {
+      checklistId,
+      houseId,
+      calendarEventId,
+      scheduledDate,
+      status,
+      staffId,
+      results,
+    } = params;
     let submissionId = params.submissionId;
 
     if (!submissionId) {
@@ -424,13 +485,16 @@ export const checklistsApi = {
           status: status,
           submitted_by: staffId || null,
           started_at: new Date().toISOString(),
-          completed_at: status === CHECKLIST_STATUS.completed ? new Date().toISOString() : null
+          completed_at:
+            status === CHECKLIST_STATUS.completed
+              ? new Date().toISOString()
+              : null,
         })
         .select()
         .maybeSingle();
 
       if (error) throw error;
-      if (!data) throw new Error("Failed to create submission");
+      if (!data) throw new Error('Failed to create submission');
       submissionId = data.id;
     } else {
       const { error } = await supabase
@@ -438,7 +502,10 @@ export const checklistsApi = {
         .update({
           status: status,
           submitted_by: staffId || null,
-          completed_at: status === CHECKLIST_STATUS.completed ? new Date().toISOString() : null,
+          completed_at:
+            status === CHECKLIST_STATUS.completed
+              ? new Date().toISOString()
+              : null,
         })
         .eq('id', submissionId);
 
@@ -449,10 +516,12 @@ export const checklistsApi = {
       submission_id: submissionId,
       item_id: item.item_id,
       is_completed: !!item.is_completed,
-      status: item.is_completed ? CHECKLIST_STATUS.COMPLETED : CHECKLIST_STATUS.PENDING,
+      status: item.is_completed
+        ? CHECKLIST_STATUS.COMPLETED
+        : CHECKLIST_STATUS.PENDING,
       note: item.note,
       completed_by: item.completed_by,
-      completed_at: item.is_completed ? new Date().toISOString() : null
+      completed_at: item.is_completed ? new Date().toISOString() : null,
     }));
 
     await this.upsertSubmissionItems(submissionItems);
@@ -460,7 +529,12 @@ export const checklistsApi = {
     if (results.queuedAttachments) {
       for (const itemId in results.queuedAttachments) {
         for (const queued of results.queuedAttachments[itemId]) {
-          await this.uploadAttachment(submissionId!, itemId, queued.file, staffId);
+          await this.uploadAttachment(
+            submissionId!,
+            itemId,
+            queued.file,
+            staffId,
+          );
         }
       }
     }
@@ -473,7 +547,7 @@ export const checklistsApi = {
    */
   async upsertChecklist(payload: any, id?: string) {
     const { items, ...dbPayload } = payload;
-    
+
     let result;
     if (id) {
       const { data, error } = await supabase
@@ -565,20 +639,23 @@ export const checklistsApi = {
     endDate: string;
   }) {
     const { shiftIds, houseIds, startDate, endDate } = params;
-    if (shiftIds.length === 0 && houseIds.length === 0) return { assigned: [], submissions: [], events: [] };
+    if (shiftIds.length === 0 && houseIds.length === 0)
+      return { assigned: [], submissions: [], events: [] };
 
     // 1. Fetch shift-assigned checklists
     const fetchAssigned = async () => {
       if (shiftIds.length === 0) return [];
       const { data, error } = await supabase
         .from(TABLES.SHIFT_ASSIGNED_CHECKLISTS)
-        .select(`
+        .select(
+          `
           id,
           shift_id,
           checklist_id,
           assignment_title,
           sort_order
-        `)
+        `,
+        )
         .in('shift_id', shiftIds);
       if (error) throw error;
       return data || [];
@@ -595,12 +672,14 @@ export const checklistsApi = {
         subPromises.push(
           supabase
             .from(TABLES.HOUSE_CHECKLIST_SUBMISSIONS)
-            .select('id, checklist_id, house_id, shift_id, status, scheduled_date')
+            .select(
+              'id, checklist_id, house_id, shift_id, status, scheduled_date',
+            )
             .in('shift_id', shiftIds)
             .then(({ data, error }) => {
               if (error) throw error;
               shiftSubmissions = data || [];
-            })
+            }),
         );
       }
 
@@ -608,7 +687,9 @@ export const checklistsApi = {
         subPromises.push(
           supabase
             .from(TABLES.HOUSE_CHECKLIST_SUBMISSIONS)
-            .select('id, checklist_id, house_id, shift_id, status, scheduled_date')
+            .select(
+              'id, checklist_id, house_id, shift_id, status, scheduled_date',
+            )
             .in('house_id', houseIds)
             .gte('scheduled_date', startDate)
             .lte('scheduled_date', endDate)
@@ -616,7 +697,7 @@ export const checklistsApi = {
             .then(({ data, error }) => {
               if (error) throw error;
               houseSubmissions = data || [];
-            })
+            }),
         );
       }
 
@@ -629,13 +710,15 @@ export const checklistsApi = {
       if (houseIds.length === 0) return [];
       const { data, error } = await supabase
         .from(TABLES.HOUSE_CALENDAR_EVENTS)
-        .select(`
+        .select(
+          `
           id,
           house_id,
           house_checklist_id,
           event_date,
           title
-        `)
+        `,
+        )
         .in('house_id', houseIds)
         .eq('is_checklist_event', true)
         .gte('event_date', startDate)
@@ -647,7 +730,7 @@ export const checklistsApi = {
     const [assigned, submissions, events] = await Promise.all([
       fetchAssigned(),
       fetchSubmissions(),
-      fetchEvents()
+      fetchEvents(),
     ]);
 
     return { assigned, submissions, events };
@@ -665,14 +748,16 @@ export const checklistsApi = {
     if (items.length > 0) {
       const { error } = await supabase
         .from(TABLES.HOUSE_CHECKLIST_ITEMS)
-        .insert(items.map(i => ({
-          ...i,
-          checklist_id: checklistId,
-          id: undefined,
-          created_at: undefined,
-          updated_at: undefined
-        })));
+        .insert(
+          items.map((i) => ({
+            ...i,
+            checklist_id: checklistId,
+            id: undefined,
+            created_at: undefined,
+            updated_at: undefined,
+          })),
+        );
       if (error) throw error;
     }
-  }
+  },
 };

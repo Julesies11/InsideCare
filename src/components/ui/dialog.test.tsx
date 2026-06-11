@@ -1,7 +1,14 @@
-import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './dialog';
 import userEvent from '@testing-library/user-event';
+import { describe, expect, it } from 'vitest';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from './dialog';
 
 describe('Dialog', () => {
   it('renders correctly and opens content', async () => {
@@ -18,7 +25,7 @@ describe('Dialog', () => {
           </DialogHeader>
           Dialog Body
         </DialogContent>
-      </Dialog>
+      </Dialog>,
     );
 
     expect(screen.queryByText('Test Dialog')).not.toBeInTheDocument();

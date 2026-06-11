@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { housesApi } from '@/api/houses.api';
 
 export interface HouseFormAssignment {
@@ -75,7 +75,8 @@ export function useHouseForms(houseId?: string) {
         setHouseForms(data || []);
         setError(null);
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to fetch house forms';
+        const errorMessage =
+          err instanceof Error ? err.message : 'Failed to fetch house forms';
         console.error('Error fetching house forms:', err);
         setError(errorMessage);
       } finally {

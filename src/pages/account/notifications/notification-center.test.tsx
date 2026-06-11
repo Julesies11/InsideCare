@@ -1,7 +1,7 @@
-import { describe, it, expect, vi } from 'vitest';
-import { screen } from '@testing-library/react';
-import { NotificationCenter } from './notification-center';
 import { renderWithProviders } from '@/test/test-utils';
+import { screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+import { NotificationCenter } from './notification-center';
 
 vi.mock('react-router', async () => {
   const actual = await vi.importActual('react-router');
@@ -50,15 +50,19 @@ describe('NotificationCenter', () => {
   it('renders the page and loads notifications', () => {
     renderWithProviders(<NotificationCenter />);
 
-    expect(screen.getByRole('heading', { name: /notification center/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: /notification center/i }),
+    ).toBeInTheDocument();
     expect(screen.getByText('Timesheet Approved')).toBeInTheDocument();
     expect(screen.getByText('System Alert')).toBeInTheDocument();
   });
 
   it('displays the unread count correctly', () => {
     renderWithProviders(<NotificationCenter />);
-    
-    expect(screen.getByText(/you have 1 unread notifications/i)).toBeInTheDocument();
+
+    expect(
+      screen.getByText(/you have 1 unread notifications/i),
+    ).toBeInTheDocument();
   });
 
   it('filters buttons are present', () => {

@@ -1,30 +1,30 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useNavigate, Link } from 'react-router';
+import { useCallback, useEffect, useState } from 'react';
+import { rosterApi } from '@/api/roster.api';
 import { useAuth } from '@/auth/context/auth-context';
-import { format } from 'date-fns';
-import { Plus, Umbrella, Paperclip } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTable } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Container } from '@/components/common/container';
 import {
   Toolbar,
   ToolbarActions,
+  ToolbarDescription,
   ToolbarHeading,
   ToolbarPageTitle,
-  ToolbarDescription,
 } from '@/partials/common/toolbar';
-import { rosterApi } from '@/api/roster.api';
+import { format } from 'date-fns';
+import { Paperclip, Plus, Umbrella } from 'lucide-react';
+import { Link, useNavigate } from 'react-router';
+import { toast } from 'sonner';
 import { ROUTES } from '@/config/routes.config';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTable } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from '@/components/ui/dialog';
-import { toast } from 'sonner';
+import { Container } from '@/components/common/container';
 
 interface LeaveRequest {
   id: string;
@@ -37,7 +37,10 @@ interface LeaveRequest {
   created_at: string;
 }
 
-const statusVariant: Record<string, 'secondary' | 'success' | 'destructive' | 'warning'> = {
+const statusVariant: Record<
+  string,
+  'secondary' | 'success' | 'destructive' | 'warning'
+> = {
   pending: 'warning',
   approved: 'success',
   rejected: 'destructive',
@@ -56,7 +59,10 @@ export function StaffLeaveList() {
   const [loading, setLoading] = useState(true);
 
   const fetchRequests = useCallback(async () => {
-    if (!user?.staff_id) { setLoading(false); return; }
+    if (!user?.staff_id) {
+      setLoading(false);
+      return;
+    }
     try {
       const data = await rosterApi.listLeaveRequests(user.staff_id);
       setRequests(data as any[]);
@@ -68,9 +74,12 @@ export function StaffLeaveList() {
     }
   }, [user?.staff_id]);
 
-  useEffect(() => { fetchRequests(); }, [fetchRequests]);
+  useEffect(() => {
+    fetchRequests();
+  }, [fetchRequests]);
   const dayCount = (req: LeaveRequest) => {
-    const ms = new Date(req.end_date).getTime() - new Date(req.start_date).getTime();
+    const ms =
+      new Date(req.end_date).getTime() - new Date(req.start_date).getTime();
     return Math.round(ms / 86400000) + 1;
   };
 
@@ -80,7 +89,9 @@ export function StaffLeaveList() {
         <Toolbar className="hidden sm:flex">
           <ToolbarHeading>
             <ToolbarPageTitle text="Leave Requests" />
-            <ToolbarDescription>View and manage your leave requests</ToolbarDescription>
+            <ToolbarDescription>
+              View and manage your leave requests
+            </ToolbarDescription>
           </ToolbarHeading>
           <ToolbarActions>
             <Button onClick={() => navigate(`${ROUTES.MY_LEAVE}/new`)}>
@@ -107,7 +118,9 @@ export function StaffLeaveList() {
                 </div>
                 <div className="text-center">
                   <p className="font-medium">No leave requests yet</p>
-                  <p className="text-sm text-muted-foreground mt-1">Submit your first leave request to get started.</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Submit your first leave request to get started.
+                  </p>
                 </div>
                 <Button onClick={() => navigate(`${ROUTES.MY_LEAVE}/new`)}>
                   <Plus className="size-4 me-1.5" />
@@ -118,25 +131,40 @@ export function StaffLeaveList() {
           ) : (
             <Card className="border-0 sm:border">
               <CardHeader className="py-4 px-5">
-                <span className="text-sm text-muted-foreground">{requests.length} request{requests.length !== 1 ? 's' : ''}</span>
+                <span className="text-sm text-muted-foreground">
+                  {requests.length} request{requests.length !== 1 ? 's' : ''}
+                </span>
               </CardHeader>
               <CardTable>
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b bg-muted/40">
-                      <th className="text-left px-5 py-3 font-medium text-muted-foreground">Type</th>
-                      <th className="text-left px-5 py-3 font-medium text-muted-foreground">Dates</th>
-                      <th className="text-left px-5 py-3 font-medium text-muted-foreground hidden sm:table-cell">Duration</th>
-                      <th className="text-left px-5 py-3 font-medium text-muted-foreground">Status</th>
-                      <th className="text-left px-5 py-3 font-medium text-muted-foreground hidden md:table-cell">Notes</th>
+                      <th className="text-left px-5 py-3 font-medium text-muted-foreground">
+                        Type
+                      </th>
+                      <th className="text-left px-5 py-3 font-medium text-muted-foreground">
+                        Dates
+                      </th>
+                      <th className="text-left px-5 py-3 font-medium text-muted-foreground hidden sm:table-cell">
+                        Duration
+                      </th>
+                      <th className="text-left px-5 py-3 font-medium text-muted-foreground">
+                        Status
+                      </th>
+                      <th className="text-left px-5 py-3 font-medium text-muted-foreground hidden md:table-cell">
+                        Notes
+                      </th>
                       <th className="px-5 py-3"></th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">
                     {requests.map((req) => (
-                      <tr key={req.id} className="group hover:bg-muted/30 transition-colors">
+                      <tr
+                        key={req.id}
+                        className="group hover:bg-muted/30 transition-colors"
+                      >
                         <td className="px-5 py-3.5 font-medium">
-                          <Link 
+                          <Link
                             to={`${ROUTES.MY_LEAVE}/${req.id}/edit`}
                             className="text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline transition-colors"
                           >
@@ -146,14 +174,20 @@ export function StaffLeaveList() {
                         <td className="px-5 py-3.5 text-muted-foreground">
                           {format(new Date(req.start_date), 'dd MMM yyyy')}
                           {req.start_date !== req.end_date && (
-                            <> – {format(new Date(req.end_date), 'dd MMM yyyy')}</>
+                            <>
+                              {' '}
+                              – {format(new Date(req.end_date), 'dd MMM yyyy')}
+                            </>
                           )}
                         </td>
                         <td className="px-5 py-3.5 text-muted-foreground hidden sm:table-cell">
                           {dayCount(req)} day{dayCount(req) !== 1 ? 's' : ''}
                         </td>
                         <td className="px-5 py-3.5">
-                          <Badge variant={statusVariant[req.status] ?? 'secondary'} appearance="light">
+                          <Badge
+                            variant={statusVariant[req.status] ?? 'secondary'}
+                            appearance="light"
+                          >
                             {statusLabel[req.status] ?? req.status}
                           </Badge>
                         </td>

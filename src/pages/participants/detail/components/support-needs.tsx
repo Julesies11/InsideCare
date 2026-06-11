@@ -1,7 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface SupportNeedsProps {
   canEdit: boolean;
@@ -20,7 +26,6 @@ export function SupportNeeds({
         <CardTitle>Support Needs</CardTitle>
       </CardHeader>
       <CardContent className="grid gap-8">
-        
         {/* Personal Care and Routine */}
         <div className="space-y-5" id="support-needs-personal-care">
           <h3 className="text-lg font-semibold">Personal Care and Routine</h3>
@@ -40,11 +45,15 @@ export function SupportNeeds({
             </div>
             <div className="w-full">
               <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-                <Label className="flex w-full max-w-56">Hygiene Support Required</Label>
+                <Label className="flex w-full max-w-56">
+                  Hygiene Support Required
+                </Label>
                 <Textarea
                   id="hygiene_support"
                   value={formData.hygiene_support || ''}
-                  onChange={(e) => onFormChange('hygiene_support', e.target.value)}
+                  onChange={(e) =>
+                    onFormChange('hygiene_support', e.target.value)
+                  }
                   rows={5}
                   placeholder="Describe hygiene support needs..."
                   disabled={!canEdit}
@@ -59,11 +68,15 @@ export function SupportNeeds({
           <h3 className="text-lg font-semibold">Mobility</h3>
           <div className="w-full">
             <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-              <Label className="flex w-full max-w-56">Mobility Support Required</Label>
+              <Label className="flex w-full max-w-56">
+                Mobility Support Required
+              </Label>
               <Textarea
                 id="mobility_support"
                 value={formData.mobility_support || ''}
-                onChange={(e) => onFormChange('mobility_support', e.target.value)}
+                onChange={(e) =>
+                  onFormChange('mobility_support', e.target.value)
+                }
                 rows={5}
                 placeholder="Describe mobility support needs..."
                 disabled={!canEdit}
@@ -74,14 +87,20 @@ export function SupportNeeds({
 
         {/* Meal Preparation and Kitchen Safety */}
         <div className="space-y-5" id="support-needs-meal-prep">
-          <h3 className="text-lg font-semibold">Meal Preparation and Kitchen Safety</h3>
+          <h3 className="text-lg font-semibold">
+            Meal Preparation and Kitchen Safety
+          </h3>
           <div className="w-full">
             <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-              <Label className="flex w-full max-w-56">Meal Preparation Support Needs</Label>
+              <Label className="flex w-full max-w-56">
+                Meal Preparation Support Needs
+              </Label>
               <Textarea
                 id="meal_prep_support"
                 value={formData.meal_prep_support || ''}
-                onChange={(e) => onFormChange('meal_prep_support', e.target.value)}
+                onChange={(e) =>
+                  onFormChange('meal_prep_support', e.target.value)
+                }
                 rows={5}
                 placeholder="Describe meal preparation and kitchen safety support needs..."
                 disabled={!canEdit}
@@ -95,11 +114,15 @@ export function SupportNeeds({
           <h3 className="text-lg font-semibold">Household Tasks</h3>
           <div className="w-full">
             <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-              <Label className="flex w-full max-w-56">Household Support Needs</Label>
+              <Label className="flex w-full max-w-56">
+                Household Support Needs
+              </Label>
               <Textarea
                 id="household_support"
                 value={formData.household_support || ''}
-                onChange={(e) => onFormChange('household_support', e.target.value)}
+                onChange={(e) =>
+                  onFormChange('household_support', e.target.value)
+                }
                 rows={5}
                 placeholder="Describe household tasks support needs..."
                 disabled={!canEdit}
@@ -114,10 +137,14 @@ export function SupportNeeds({
           <div className="grid gap-2.5">
             <div className="w-full">
               <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-                <Label className="flex w-full max-w-56">Preferred Communication Type</Label>
+                <Label className="flex w-full max-w-56">
+                  Preferred Communication Type
+                </Label>
                 <Select
                   value={formData.communication_type || ''}
-                  onValueChange={(value) => onFormChange('communication_type', value)}
+                  onValueChange={(value) =>
+                    onFormChange('communication_type', value)
+                  }
                   disabled={!canEdit}
                 >
                   <SelectTrigger className="w-full">
@@ -132,11 +159,18 @@ export function SupportNeeds({
             </div>
             <div className="w-full">
               <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-                <Label htmlFor="communication_notes" className="flex w-full max-w-56">Communication Type Notes</Label>
+                <Label
+                  htmlFor="communication_notes"
+                  className="flex w-full max-w-56"
+                >
+                  Communication Type Notes
+                </Label>
                 <Textarea
                   id="communication_notes"
                   value={formData.communication_notes || ''}
-                  onChange={(e) => onFormChange('communication_notes', e.target.value)}
+                  onChange={(e) =>
+                    onFormChange('communication_notes', e.target.value)
+                  }
                   rows={4}
                   placeholder="Describe communication type preferences..."
                   disabled={!canEdit}
@@ -145,11 +179,18 @@ export function SupportNeeds({
             </div>
             <div className="w-full">
               <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-                <Label htmlFor="communication_language_needs" className="flex w-full max-w-56">Communication & Language Needs</Label>
+                <Label
+                  htmlFor="communication_language_needs"
+                  className="flex w-full max-w-56"
+                >
+                  Communication & Language Needs
+                </Label>
                 <Textarea
                   id="communication_language_needs"
                   value={formData.communication_language_needs || ''}
-                  onChange={(e) => onFormChange('communication_language_needs', e.target.value)}
+                  onChange={(e) =>
+                    onFormChange('communication_language_needs', e.target.value)
+                  }
                   rows={4}
                   placeholder="Describe how to communicate (e.g., firm tone, constant validation, etc.)..."
                   disabled={!canEdit}
@@ -164,11 +205,15 @@ export function SupportNeeds({
           <h3 className="text-lg font-semibold">Finances</h3>
           <div className="w-full">
             <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-              <Label className="flex w-full max-w-56">Finance Support Needs</Label>
+              <Label className="flex w-full max-w-56">
+                Finance Support Needs
+              </Label>
               <Textarea
                 id="finance_support"
                 value={formData.finance_support || ''}
-                onChange={(e) => onFormChange('finance_support', e.target.value)}
+                onChange={(e) =>
+                  onFormChange('finance_support', e.target.value)
+                }
                 rows={5}
                 placeholder="Describe financial management support needs..."
                 disabled={!canEdit}
@@ -182,11 +227,15 @@ export function SupportNeeds({
           <h3 className="text-lg font-semibold">Health and Wellbeing</h3>
           <div className="w-full">
             <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-              <Label className="flex w-full max-w-56">Health & Wellbeing Support Needs</Label>
+              <Label className="flex w-full max-w-56">
+                Health & Wellbeing Support Needs
+              </Label>
               <Textarea
                 id="health_wellbeing_support"
                 value={formData.health_wellbeing_support || ''}
-                onChange={(e) => onFormChange('health_wellbeing_support', e.target.value)}
+                onChange={(e) =>
+                  onFormChange('health_wellbeing_support', e.target.value)
+                }
                 rows={5}
                 placeholder="Describe health and wellbeing support needs..."
                 disabled={!canEdit}
@@ -200,11 +249,15 @@ export function SupportNeeds({
           <h3 className="text-lg font-semibold">Cultural and Religious</h3>
           <div className="w-full">
             <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-              <Label className="flex w-full max-w-56">Cultural and Religious Support Needs</Label>
+              <Label className="flex w-full max-w-56">
+                Cultural and Religious Support Needs
+              </Label>
               <Textarea
                 id="cultural_religious_support"
                 value={formData.cultural_religious_support || ''}
-                onChange={(e) => onFormChange('cultural_religious_support', e.target.value)}
+                onChange={(e) =>
+                  onFormChange('cultural_religious_support', e.target.value)
+                }
                 rows={5}
                 placeholder="Describe cultural and religious support needs..."
                 disabled={!canEdit}
@@ -218,7 +271,9 @@ export function SupportNeeds({
           <h3 className="text-lg font-semibold">Other</h3>
           <div className="w-full">
             <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-              <Label className="flex w-full max-w-56">Any Other Support Needs</Label>
+              <Label className="flex w-full max-w-56">
+                Any Other Support Needs
+              </Label>
               <Textarea
                 id="other_support"
                 value={formData.other_support || ''}
@@ -230,7 +285,6 @@ export function SupportNeeds({
             </div>
           </div>
         </div>
-
       </CardContent>
     </Card>
   );

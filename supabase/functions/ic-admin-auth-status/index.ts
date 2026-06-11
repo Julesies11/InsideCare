@@ -3,15 +3,16 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { 
-      status: 204, 
-      headers: corsHeaders 
+    return new Response(null, {
+      status: 204,
+      headers: corsHeaders,
     });
   }
 
@@ -32,7 +33,10 @@ serve(async (req) => {
       global: { headers: { Authorization: authHeader } },
     });
 
-    const { data: { user: callingUser }, error: userError } = await supabaseUser.auth.getUser();
+    const {
+      data: { user: callingUser },
+      error: userError,
+    } = await supabaseUser.auth.getUser();
     if (userError || !callingUser) {
       throw new Error('Unauthorized');
     }
@@ -61,31 +65,39 @@ serve(async (req) => {
     const isCallerAdmin = callerPerms?.[ACCESS_CONTROL_MODULE] === 'full';
 
     if (!isCallerAdmin) {
-      console.error(`User ${callingUser.id} attempted to access auth status without admin rights.`);
+      console.error(
+        `User ${callingUser.id} attempted to access auth status without admin rights.`,
+      );
       throw new Error('Forbidden: Admin access (full access_control) required');
     }
     // --- END HARDENING ---
 
     // 2. Fetch all users from Supabase Auth
     // Note: We might need to paginate if the staff count grows very large (>1000)
-    const { data: { users }, error: listError } = await supabaseAdmin.auth.admin.listUsers({
-      perPage: 1000
+    const {
+      data: { users },
+      error: listError,
+    } = await supabaseAdmin.auth.admin.listUsers({
+      perPage: 1000,
     });
-    
+
     if (listError) throw listError;
 
     // 3. Map to lightweight objects for the frontend
-    const authStatusMap = users.reduce((acc, user) => {
-      acc[user.id] = {
-        id: user.id,
-        email: user.email,
-        created_at: user.created_at,
-        confirmed_at: user.confirmed_at,
-        last_sign_in_at: user.last_sign_in_at,
-        invited_at: user.invited_at,
-      };
-      return acc;
-    }, {} as Record<string, any>);
+    const authStatusMap = users.reduce(
+      (acc, user) => {
+        acc[user.id] = {
+          id: user.id,
+          email: user.email,
+          created_at: user.created_at,
+          confirmed_at: user.confirmed_at,
+          last_sign_in_at: user.last_sign_in_at,
+          invited_at: user.invited_at,
+        };
+        return acc;
+      },
+      {} as Record<string, any>,
+    );
 
     return new Response(JSON.stringify(authStatusMap), {
       status: 200,

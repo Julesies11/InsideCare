@@ -1,13 +1,13 @@
 'use client';
 
 import { JSX, useCallback } from 'react';
+import { useAuth } from '@/auth/context/auth-context';
 import { Link, useLocation } from 'react-router';
 import { MENU_SIDEBAR } from '@/config/menu.config';
-import { MenuConfig, MenuItem } from '@/config/types';
-import { useAuth } from '@/auth/context/auth-context';
-import { usePermissions, PermissionModule } from '@/hooks/use-permissions';
-import { cn } from '@/lib/utils';
 import { ROUTES } from '@/config/routes.config';
+import { MenuConfig, MenuItem } from '@/config/types';
+import { cn } from '@/lib/utils';
+import { PermissionModule, usePermissions } from '@/hooks/use-permissions';
 import {
   AccordionMenu,
   AccordionMenuClassNames,
@@ -106,10 +106,7 @@ export function SidebarMenu() {
           value={item.path || ''}
           className="text-sm font-medium"
         >
-          <Link
-            to={item.path || '#'}
-            className="flex items-center grow gap-2"
-          >
+          <Link to={item.path || '#'} className="flex items-center grow gap-2">
             {item.icon && <item.icon data-slot="accordion-menu-icon" />}
             <span data-slot="accordion-menu-title">{item.title}</span>
           </Link>

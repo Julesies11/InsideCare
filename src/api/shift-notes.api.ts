@@ -1,8 +1,8 @@
-import { supabase } from '@/lib/supabase';
+import { Database } from '@/models/database.types';
 import { format, subDays } from 'date-fns';
 import { TABLES } from '@/config/db-tables';
 import { SHIFT_NOTE_VIEWS } from '@/config/query-views';
-import { Database } from '@/models/database.types';
+import { supabase } from '@/lib/supabase';
 
 type ShiftNoteInsert = Database['public']['Tables']['ic_shift_notes']['Insert'];
 
@@ -11,27 +11,94 @@ type ShiftNoteInsert = Database['public']['Tables']['ic_shift_notes']['Insert'];
  * Derived from Database types to ensure schema alignment.
  */
 const VALID_SHIFT_NOTE_COLUMNS: (keyof ShiftNoteInsert)[] = [
-  'adl_supports', 'behaviour_intensity', 'behaviour_notes', 'behaviour_observed', 
-  'behaviour_type_id', 'bowel_amount', 'bowel_assistance_required', 'bowel_bristol_scale', 
-  'bowel_movement_occurred', 'bowel_notes', 'bowel_time', 'capacity_building_goals', 
-  'community_access_occurred', 'community_activity_type', 'community_engagement_level', 
-  'community_location', 'community_notes', 'domestic_tasks', 'full_note', 'house_id', 
-  'hygiene_grooming', 'hygiene_notes', 'hygiene_observed_concerns', 'hygiene_oral_care', 
-  'hygiene_shower', 'hygiene_support_required', 'hygiene_toileting', 'id', 'meal_provided', 
-  'mtm_concerns', 'mtm_consistency_correct', 'mtm_consistency_notes', 'mtm_diet_type', 'mtm_fluid_intake', 
-  'mtm_fluid_intake_notes', 'mtm_fluids', 'mtm_meal_intake', 'mtm_meal_intake_notes', 
-  'mtm_meal_provided', 'mtm_notes', 'mtm_positioning_appropriate', 'mtm_positioning_notes', 'mtm_supervision_required', 
-  'mtm_supervision_notes', 'mtm_swallowing_concerns', 'mtm_texture_correct', 'mtm_texture_notes', 'notes', 'nutrition_assistance_needed', 
-  'nutrition_fluids_intake', 'nutrition_intake', 'nutrition_meal_type', 'nutrition_notes', 
-  'nutrition_refusal_alternatives', 'overall_presentation', 'participant_id', 'pbs_outcome', 
-  'pbs_strategies_details', 'pbs_strategies_used', 'pbs_when_used', 'prn_description', 
-  'prn_medication_given', 'regular_medication_status', 'restrictive_practices_status', 
-  'risk_description', 'risks_observed', 'seizure_description', 'seizure_duration_minutes', 
-  'seizure_emergency_services', 'seizure_injury_description', 'seizure_injury_occurred', 
-  'seizure_notes', 'seizure_occurred', 'seizure_time_started', 'seizure_type_id', 
-  'shift_id', 'shift_summary', 'shift_time', 'shift_type', 'sleep_occurred', 
-  'sleep_quality', 'sleep_start_time', 'sleep_support_required', 'sleep_type_period', 
-  'sleep_wake_time', 'staff_id', 'start_date', 'reference_id'
+  'adl_supports',
+  'behaviour_intensity',
+  'behaviour_notes',
+  'behaviour_observed',
+  'behaviour_type_id',
+  'bowel_amount',
+  'bowel_assistance_required',
+  'bowel_bristol_scale',
+  'bowel_movement_occurred',
+  'bowel_notes',
+  'bowel_time',
+  'capacity_building_goals',
+  'community_access_occurred',
+  'community_activity_type',
+  'community_engagement_level',
+  'community_location',
+  'community_notes',
+  'domestic_tasks',
+  'full_note',
+  'house_id',
+  'hygiene_grooming',
+  'hygiene_notes',
+  'hygiene_observed_concerns',
+  'hygiene_oral_care',
+  'hygiene_shower',
+  'hygiene_support_required',
+  'hygiene_toileting',
+  'id',
+  'meal_provided',
+  'mtm_concerns',
+  'mtm_consistency_correct',
+  'mtm_consistency_notes',
+  'mtm_diet_type',
+  'mtm_fluid_intake',
+  'mtm_fluid_intake_notes',
+  'mtm_fluids',
+  'mtm_meal_intake',
+  'mtm_meal_intake_notes',
+  'mtm_meal_provided',
+  'mtm_notes',
+  'mtm_positioning_appropriate',
+  'mtm_positioning_notes',
+  'mtm_supervision_required',
+  'mtm_supervision_notes',
+  'mtm_swallowing_concerns',
+  'mtm_texture_correct',
+  'mtm_texture_notes',
+  'notes',
+  'nutrition_assistance_needed',
+  'nutrition_fluids_intake',
+  'nutrition_intake',
+  'nutrition_meal_type',
+  'nutrition_notes',
+  'nutrition_refusal_alternatives',
+  'overall_presentation',
+  'participant_id',
+  'pbs_outcome',
+  'pbs_strategies_details',
+  'pbs_strategies_used',
+  'pbs_when_used',
+  'prn_description',
+  'prn_medication_given',
+  'regular_medication_status',
+  'restrictive_practices_status',
+  'risk_description',
+  'risks_observed',
+  'seizure_description',
+  'seizure_duration_minutes',
+  'seizure_emergency_services',
+  'seizure_injury_description',
+  'seizure_injury_occurred',
+  'seizure_notes',
+  'seizure_occurred',
+  'seizure_time_started',
+  'seizure_type_id',
+  'shift_id',
+  'shift_summary',
+  'shift_time',
+  'shift_type',
+  'sleep_occurred',
+  'sleep_quality',
+  'sleep_start_time',
+  'sleep_support_required',
+  'sleep_type_period',
+  'sleep_wake_time',
+  'staff_id',
+  'start_date',
+  'reference_id',
 ];
 
 export interface ShiftNoteUpdateData extends Partial<ShiftNoteInsert> {
@@ -45,19 +112,19 @@ export const shiftNotesApi = {
    */
   sanitizePayload(payload: any): ShiftNoteInsert {
     const sanitized: any = {};
-    
+
     // We combine the typed valid columns with 'status' which we added manually
     const allValid = [...VALID_SHIFT_NOTE_COLUMNS, 'status' as const];
-    
-    Object.keys(payload).forEach(key => {
+
+    Object.keys(payload).forEach((key) => {
       if (allValid.includes(key as any)) {
         let value = payload[key];
-        
+
         // Data Integrity: Convert empty strings to null (except for 'notes' which might be intentionally empty)
         if (value === '' && key !== 'notes') {
           value = null;
         }
-        
+
         sanitized[key] = value;
       }
     });
@@ -74,7 +141,14 @@ export const shiftNotesApi = {
   /**
    * List documentation tasks (Shift + Participant pairs) and their completion status.
    */
-  async listNoteTasks(params: { staffId?: string; participantId?: string; houseId?: string; startDate?: string } = {}) {
+  async listNoteTasks(
+    params: {
+      staffId?: string;
+      participantId?: string;
+      houseId?: string;
+      startDate?: string;
+    } = {},
+  ) {
     const { staffId, participantId, houseId, startDate } = params;
 
     // Default to last 60 days if no start date provided to ensure performance
@@ -83,7 +157,8 @@ export const shiftNotesApi = {
 
     let query = supabase
       .from(TABLES.STAFF_SHIFTS)
-      .select(`
+      .select(
+        `
         id,
         start_date,
         end_date,
@@ -103,27 +178,28 @@ export const shiftNotesApi = {
           participant_id,
           reference_id
         )
-      `)
+      `,
+      )
       .gte('start_date', effectiveStartDate)
       .order('start_date', { ascending: false })
       .order('start_time', { ascending: false });
 
     if (staffId && staffId !== 'all') query = query.eq('staff_id', staffId);
     if (houseId && houseId !== 'all') query = query.eq('house_id', houseId);
-    
+
     const { data, error } = await query;
     if (error) throw error;
 
     // Explode shifts into tasks (one task per shift, listing all participants)
     const tasks: any[] = [];
 
-    (data || []).forEach(shift => {
+    (data || []).forEach((shift) => {
       const shiftParticipants = (shift as any).participants || [];
       const participantNames = shiftParticipants
         .map((p: any) => p.participant?.participant_name)
         .filter(Boolean)
         .join(', ');
-      
+
       // If no participants are assigned, create a single task for a potential general house note
       // Only show this if we ARE NOT filtering for a specific participant
       if (shiftParticipants.length === 0) {
@@ -147,11 +223,11 @@ export const shiftNotesApi = {
           shift_template: shift.shift_template,
           note_id: note?.id,
           note_status: note?.status || null,
-          note_reference_id: note?.reference_id || null
+          note_reference_id: note?.reference_id || null,
         });
       } else {
         // Filter out participants if we are looking for a specific one
-        const filteredParticipants = participantId 
+        const filteredParticipants = participantId
           ? shiftParticipants.filter((p: any) => {
               const part = p.participant || p;
               const actualPart = Array.isArray(part) ? part[0] : part;
@@ -164,8 +240,10 @@ export const shiftNotesApi = {
           const actualPart = Array.isArray(part) ? part[0] : part;
           if (!actualPart) return;
 
-          const note = (shift as any).notes?.find((n: any) => n.participant_id === actualPart.id);
-          
+          const note = (shift as any).notes?.find(
+            (n: any) => n.participant_id === actualPart.id,
+          );
+
           tasks.push({
             id: `${shift.id}-${actualPart.id}`,
             shift_id: shift.id,
@@ -184,7 +262,7 @@ export const shiftNotesApi = {
             shift_template: shift.shift_template,
             note_id: note?.id,
             note_status: note?.status || null,
-            note_reference_id: note?.reference_id || null
+            note_reference_id: note?.reference_id || null,
           });
         });
       }
@@ -205,7 +283,9 @@ export const shiftNotesApi = {
       query = query.eq('status', 'active');
     }
 
-    const { data, error } = await query.order('start_date', { ascending: false });
+    const { data, error } = await query.order('start_date', {
+      ascending: false,
+    });
 
     if (error) throw error;
     return data || [];
@@ -231,18 +311,22 @@ export const shiftNotesApi = {
   async listByStaff(staffId: string, includeInactive = false) {
     let query = supabase
       .from(TABLES.SHIFT_NOTES)
-      .select(`
+      .select(
+        `
         *,
         participant:${TABLES.PARTICIPANTS}!participant_id(participant_name),
         staff:${TABLES.STAFF}!staff_id(staff_name)
-      `)
+      `,
+      )
       .eq('staff_id', staffId);
 
     if (!includeInactive) {
       query = query.eq('status', 'active');
     }
 
-    const { data, error } = await query.order('created_at', { ascending: false });
+    const { data, error } = await query.order('created_at', {
+      ascending: false,
+    });
 
     if (error) throw error;
     return data || [];
@@ -261,7 +345,9 @@ export const shiftNotesApi = {
       query = query.eq('status', 'active');
     }
 
-    const { data, error } = await query.order('created_at', { ascending: true });
+    const { data, error } = await query.order('created_at', {
+      ascending: true,
+    });
 
     if (error) throw error;
     return data || [];
@@ -271,7 +357,11 @@ export const shiftNotesApi = {
    * Get specific shift notes by shift ID, staff ID, and participant ID.
    * Note: Returns an array to handle potential data duplicates gracefully.
    */
-  async getByShiftAndStaff(shiftId: string, staffId: string, participantId?: string) {
+  async getByShiftAndStaff(
+    shiftId: string,
+    staffId: string,
+    participantId?: string,
+  ) {
     let query = supabase
       .from(TABLES.SHIFT_NOTES)
       .select(SHIFT_NOTE_VIEWS.DETAIL)
@@ -321,14 +411,18 @@ export const shiftNotesApi = {
 
     const { data, error } = await supabase
       .from(TABLES.SHIFT_NOTES)
-      .upsert({ ...payload, status: payload.status || 'active' }, { 
-        onConflict: 'shift_id,staff_id,participant_id' 
-      })
+      .upsert(
+        { ...payload, status: payload.status || 'active' },
+        {
+          onConflict: 'shift_id,staff_id,participant_id',
+        },
+      )
       .select(SHIFT_NOTE_VIEWS.DETAIL)
       .maybeSingle();
 
     if (error) throw error;
-    if (!data) throw new Error("You do not have permission to perform this action");
+    if (!data)
+      throw new Error('You do not have permission to perform this action');
     return data;
   },
 
@@ -353,7 +447,8 @@ export const shiftNotesApi = {
       .maybeSingle();
 
     if (error) throw error;
-    if (!data) throw new Error("You do not have permission to perform this action");
+    if (!data)
+      throw new Error('You do not have permission to perform this action');
     return data;
   },
 
@@ -379,5 +474,5 @@ export const shiftNotesApi = {
       .eq('id', id);
 
     if (error) throw error;
-  }
+  },
 };

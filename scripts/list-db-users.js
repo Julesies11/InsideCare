@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import * as dotenv from 'dotenv';
+
 dotenv.config();
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
@@ -11,11 +12,13 @@ async function listUsers() {
   const { data: staff, error: staffError } = await supabase
     .from('ic_staff')
     .select('email, status, staff_name');
-  
+
   if (staffError) {
     console.error('Error fetching staff:', staffError.message);
   } else {
-    staff.forEach(s => console.log(`- ${s.email} (${s.status}) [${s.staff_name}]`));
+    staff.forEach((s) =>
+      console.log(`- ${s.email} (${s.status}) [${s.staff_name}]`),
+    );
   }
 
   console.log('\n--- ic_houses table ---');
@@ -26,7 +29,7 @@ async function listUsers() {
   if (houseError) {
     console.error('Error fetching houses:', houseError.message);
   } else {
-    houses.forEach(h => console.log(`- ${h.house_name} (${h.status})`));
+    houses.forEach((h) => console.log(`- ${h.house_name} (${h.status})`));
   }
 }
 

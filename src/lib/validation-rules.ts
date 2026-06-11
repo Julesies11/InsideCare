@@ -13,7 +13,8 @@ export const validators = {
    * Validates that a value is not empty
    */
   required: (value: any, fieldName: string): ValidationResult => {
-    const isValid = value !== null && value !== undefined && String(value).trim() !== '';
+    const isValid =
+      value !== null && value !== undefined && String(value).trim() !== '';
     return {
       isValid,
       error: isValid ? '' : `${fieldName} is required`,
@@ -35,7 +36,11 @@ export const validators = {
   /**
    * Validates that a value is required only when a condition is met
    */
-  requiredWhen: (value: any, condition: boolean, fieldName: string): ValidationResult => {
+  requiredWhen: (
+    value: any,
+    condition: boolean,
+    fieldName: string,
+  ): ValidationResult => {
     if (!condition) {
       return { isValid: true, error: '' };
     }
@@ -45,7 +50,11 @@ export const validators = {
   /**
    * Validates minimum length
    */
-  minLength: (value: string, min: number, fieldName: string): ValidationResult => {
+  minLength: (
+    value: string,
+    min: number,
+    fieldName: string,
+  ): ValidationResult => {
     const isValid = !value || value.length >= min;
     return {
       isValid,
@@ -56,11 +65,17 @@ export const validators = {
   /**
    * Validates maximum length
    */
-  maxLength: (value: string, max: number, fieldName: string): ValidationResult => {
+  maxLength: (
+    value: string,
+    max: number,
+    fieldName: string,
+  ): ValidationResult => {
     const isValid = !value || value.length <= max;
     return {
       isValid,
-      error: isValid ? '' : `${fieldName} must be no more than ${max} characters`,
+      error: isValid
+        ? ''
+        : `${fieldName} must be no more than ${max} characters`,
     };
   },
 
@@ -92,7 +107,11 @@ export const validators = {
   /**
    * Validates that a value matches another value (e.g., password confirmation)
    */
-  matches: (value: string, matchValue: string, fieldName: string): ValidationResult => {
+  matches: (
+    value: string,
+    matchValue: string,
+    fieldName: string,
+  ): ValidationResult => {
     const isValid = value === matchValue;
     return {
       isValid,
@@ -165,7 +184,7 @@ export const validators = {
  */
 export function validateField(
   value: any,
-  validatorFns: Array<() => ValidationResult>
+  validatorFns: Array<() => ValidationResult>,
 ): ValidationResult {
   for (const validator of validatorFns) {
     const result = validator();

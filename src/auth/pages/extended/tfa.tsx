@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { MoveLeft } from 'lucide-react';
 import { Link } from 'react-router';
+import { ROUTES } from '@/config/routes.config';
 import { toAbsoluteUrl } from '@/lib/helpers';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ROUTES } from '@/config/routes.config';
 
 const TwoFactorAuth = () => {
   const [codeInputs, setCodeInputs] = useState(Array(6).fill(''));

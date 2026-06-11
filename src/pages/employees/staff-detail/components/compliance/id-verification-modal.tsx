@@ -1,4 +1,20 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { staffDetailsApi } from '@/api/staff-details.api';
+import { useAuth } from '@/auth/context/auth-context';
+import { Database } from '@/models/database.types';
+import {
+  AlertCircle,
+  CheckCircle2,
+  FileText,
+  Loader2,
+  ShieldAlert,
+  Trash2,
+  UploadCloud,
+} from 'lucide-react';
+import { toast } from 'sonner';
+import { useIDDocumentTypes } from '@/hooks/use-staff';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -7,26 +23,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { toast } from 'sonner';
-import { 
-  CheckCircle2, 
-  AlertCircle, 
-  UploadCloud, 
-  Trash2, 
-  Loader2, 
-  FileText, 
-  ShieldAlert 
-} from 'lucide-react';
-import { staffDetailsApi } from '@/api/staff-details.api';
-import { useAuth } from '@/auth/context/auth-context';
-import { useIDDocumentTypes } from '@/hooks/use-staff';
-import { Database } from '@/models/database.types';
 
-type IDDocumentType = Database['public']['Tables']['ic_id_document_types']['Row'];
+type IDDocumentType =
+  Database['public']['Tables']['ic_id_document_types']['Row'];
 
 interface VerifiedDocument {
   document_type: string;
@@ -43,7 +44,11 @@ interface IDVerificationModalProps {
   staffId: string;
   staffName: string;
   initialVerifiedDocuments: any[] | null;
-  onSave: (verifiedDocuments: any[], calculatedExpiry: string | null, status: 'complete' | 'in_progress') => void;
+  onSave: (
+    verifiedDocuments: any[],
+    calculatedExpiry: string | null,
+    status: 'complete' | 'in_progress',
+  ) => void;
 }
 
 export function IDVerificationModal({
@@ -57,9 +62,12 @@ export function IDVerificationModal({
   const { user } = useAuth();
   const userName = user?.fullname || user?.email || 'System';
 
-  const { idDocumentTypes: ID_DOCUMENT_TYPES = [], isLoading: loadingTypes } = useIDDocumentTypes();
+  const { idDocumentTypes: ID_DOCUMENT_TYPES = [], isLoading: loadingTypes } =
+    useIDDocumentTypes();
 
-  const [selectedDocs, setSelectedDocs] = useState<Record<string, VerifiedDocument>>({});
+  const [selectedDocs, setSelectedDocs] = useState<
+    Record<string, VerifiedDocument>
+  >({});
   const [uploadingDocId, setUploadingDocId] = useState<string | null>(null);
 
   // Initialize from verified_documents when modal opens
@@ -74,7 +82,7 @@ export function IDVerificationModal({
             expiry_date: doc.expiry_date || '',
             file_name: doc.file_name || null,
             file_path: doc.file_path || null,
-            comments: doc.comments || ''
+            comments: doc.comments || '',
           };
         });
         setSelectedDocs(docMap);
@@ -89,13 +97,16 @@ export function IDVerificationModal({
 
     // Identify selected primary IDs and sort them to have a stable 'first' one
     const selectedPrimaryIds = Object.keys(selectedDocs)
-      .filter(key => ID_DOCUMENT_TYPES.find(d => d.id === key)?.category === 'primary')
+      .filter(
+        (key) =>
+          ID_DOCUMENT_TYPES.find((d) => d.id === key)?.category === 'primary',
+      )
       .sort();
 
     const firstPrimaryId = selectedPrimaryIds[0];
 
-    Object.keys(selectedDocs).forEach(key => {
-      const docType = ID_DOCUMENT_TYPES.find(d => d.id === key);
+    Object.keys(selectedDocs).forEach((key) => {
+      const docType = ID_DOCUMENT_TYPES.find((d) => d.id === key);
       if (!docType) return;
 
       if (docType.category === 'primary') {
@@ -103,7 +114,7 @@ export function IDVerificationModal({
           tally += docType.points; // First primary is full points (70)
         } else {
           // Subsequent primaries do not count towards the 100 points
-          tally += 0; 
+          tally += 0;
         }
       } else {
         tally += docType.points;
@@ -115,19 +126,22 @@ export function IDVerificationModal({
 
   const firstPrimaryId = useMemo(() => {
     return Object.keys(selectedDocs)
-      .filter(key => ID_DOCUMENT_TYPES.find(d => d.id === key)?.category === 'primary')
+      .filter(
+        (key) =>
+          ID_DOCUMENT_TYPES.find((d) => d.id === key)?.category === 'primary',
+      )
       .sort()[0];
   }, [selectedDocs, ID_DOCUMENT_TYPES]);
 
   const primaryDocCount = useMemo(() => {
-    return Object.keys(selectedDocs).filter(key => {
-      const docType = ID_DOCUMENT_TYPES.find(d => d.id === key);
+    return Object.keys(selectedDocs).filter((key) => {
+      const docType = ID_DOCUMENT_TYPES.find((d) => d.id === key);
       return docType?.category === 'primary';
     }).length;
   }, [selectedDocs, ID_DOCUMENT_TYPES]);
 
   const handleCheckboxChange = (typeId: string, checked: boolean) => {
-    setSelectedDocs(prev => {
+    setSelectedDocs((prev) => {
       const next = { ...prev };
       if (checked) {
         next[typeId] = {
@@ -136,7 +150,7 @@ export function IDVerificationModal({
           expiry_date: '',
           file_name: null,
           file_path: null,
-          comments: ''
+          comments: '',
         };
       } else {
         delete next[typeId];
@@ -145,15 +159,19 @@ export function IDVerificationModal({
     });
   };
 
-  const handleFieldChange = (typeId: string, field: 'document_number' | 'expiry_date' | 'comments', value: string) => {
-    setSelectedDocs(prev => {
+  const handleFieldChange = (
+    typeId: string,
+    field: 'document_number' | 'expiry_date' | 'comments',
+    value: string,
+  ) => {
+    setSelectedDocs((prev) => {
       if (!prev[typeId]) return prev;
       return {
         ...prev,
         [typeId]: {
           ...prev[typeId],
-          [field]: value
-        }
+          [field]: value,
+        },
       };
     });
   };
@@ -161,17 +179,21 @@ export function IDVerificationModal({
   const handleFileUpload = async (typeId: string, file: File) => {
     try {
       setUploadingDocId(typeId);
-      const data = await staffDetailsApi.documents.upload(staffId, file, userName);
-      
-      setSelectedDocs(prev => {
+      const data = await staffDetailsApi.documents.upload(
+        staffId,
+        file,
+        userName,
+      );
+
+      setSelectedDocs((prev) => {
         if (!prev[typeId]) return prev;
         return {
           ...prev,
           [typeId]: {
             ...prev[typeId],
             file_name: data.file_name,
-            file_path: data.file_path
-          }
+            file_path: data.file_path,
+          },
         };
       });
       toast.success(`Uploaded ${file.name} successfully`);
@@ -184,15 +206,15 @@ export function IDVerificationModal({
   };
 
   const handleRemoveFile = (typeId: string) => {
-    setSelectedDocs(prev => {
+    setSelectedDocs((prev) => {
       if (!prev[typeId]) return prev;
       return {
         ...prev,
         [typeId]: {
           ...prev[typeId],
           file_name: null,
-          file_path: null
-        }
+          file_path: null,
+        },
       };
     });
   };
@@ -208,14 +230,16 @@ export function IDVerificationModal({
     const calculatedStatus = totalPoints >= 100 ? 'complete' : 'in_progress';
 
     if (totalPoints < 100) {
-      toast.info('Identity points tally is currently below 100. This verification will be saved as "In Progress".');
+      toast.info(
+        'Identity points tally is currently below 100. This verification will be saved as "In Progress".',
+      );
     }
 
     // Validation check: ensure required fields are filled for SELECTED documents
     for (const [typeId, doc] of Object.entries(selectedDocs)) {
-      const typeDef = ID_DOCUMENT_TYPES.find(d => d.id === typeId);
+      const typeDef = ID_DOCUMENT_TYPES.find((d) => d.id === typeId);
       if (!typeDef) continue;
-      
+
       if (!doc.document_number.trim()) {
         toast.error(`Please enter the document number for ${typeDef.name}.`);
         return;
@@ -228,7 +252,7 @@ export function IDVerificationModal({
 
     // Dynamic Expiry Calculation: Minimum expiry date among all documents with expiry dates
     let minExpiry: string | null = null;
-    Object.values(selectedDocs).forEach(doc => {
+    Object.values(selectedDocs).forEach((doc) => {
       if (doc.expiry_date) {
         if (!minExpiry || doc.expiry_date < minExpiry) {
           minExpiry = doc.expiry_date;
@@ -236,22 +260,24 @@ export function IDVerificationModal({
       }
     });
 
-    const documentsArray = Object.values(selectedDocs).map(doc => {
-      const typeDef = ID_DOCUMENT_TYPES.find(d => d.id === doc.document_type);
+    const documentsArray = Object.values(selectedDocs).map((doc) => {
+      const typeDef = ID_DOCUMENT_TYPES.find((d) => d.id === doc.document_type);
       let assignedPoints = typeDef?.points || 0;
 
       // Apply the 'One Primary' rule: only the first selected primary gets points
-      if (typeDef?.category === 'primary' && doc.document_type !== firstPrimaryId) {
+      if (
+        typeDef?.category === 'primary' &&
+        doc.document_type !== firstPrimaryId
+      ) {
         assignedPoints = 0;
       }
 
       return {
         ...doc,
         points: assignedPoints,
-        expiry_date: doc.expiry_date || null
+        expiry_date: doc.expiry_date || null,
       };
     });
-
 
     onSave(documentsArray, minExpiry, calculatedStatus);
     onOpenChange(false);
@@ -261,9 +287,13 @@ export function IDVerificationModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[700px] max-h-[85vh] flex flex-col p-0 overflow-hidden">
         <DialogHeader className="p-6 pb-4 border-b border-gray-150">
-          <DialogTitle className="text-xl">100 Points of Identity Verification</DialogTitle>
+          <DialogTitle className="text-xl">
+            100 Points of Identity Verification
+          </DialogTitle>
           <DialogDescription className="text-sm">
-            Verify the identity of <strong>{staffName}</strong>. Select the documents sighted, enter their reference details, and attach supporting files.
+            Verify the identity of <strong>{staffName}</strong>. Select the
+            documents sighted, enter their reference details, and attach
+            supporting files.
           </DialogDescription>
         </DialogHeader>
 
@@ -276,14 +306,19 @@ export function IDVerificationModal({
               ) : (
                 <AlertCircle className="size-4.5 text-warning" />
               )}
-              Tally Status: {totalPoints >= 100 ? 'Verification Criteria Met' : 'Insufficient Points'}
+              Tally Status:{' '}
+              {totalPoints >= 100
+                ? 'Verification Criteria Met'
+                : 'Insufficient Points'}
             </span>
-            <span className={totalPoints >= 100 ? 'text-success' : 'text-warning'}>
+            <span
+              className={totalPoints >= 100 ? 'text-success' : 'text-warning'}
+            >
               {totalPoints} / 100 Points
             </span>
           </div>
           <div className="w-full bg-gray-200 h-2.5 rounded-full overflow-hidden">
-            <div 
+            <div
               className={`h-full transition-all duration-300 ${totalPoints >= 100 ? 'bg-success' : 'bg-warning'}`}
               style={{ width: `${Math.min((totalPoints / 100) * 100, 100)}%` }}
             />
@@ -295,8 +330,12 @@ export function IDVerificationModal({
           <div className="px-6 py-3 bg-red-50 border-b border-red-100 flex items-start gap-3">
             <ShieldAlert className="size-4.5 text-red-600 mt-0.5 shrink-0" />
             <div className="text-[11px] text-red-800 leading-normal">
-              <span className="font-bold block mb-0.5">Note: Australian "One Primary" Rule</span>
-              You have selected {primaryDocCount} primary documents. Only the first primary counts for 70 points; subsequent primary documents do not contribute additional points to the 100-point tally.
+              <span className="font-bold block mb-0.5">
+                Note: Australian "One Primary" Rule
+              </span>
+              You have selected {primaryDocCount} primary documents. Only the
+              first primary counts for 70 points; subsequent primary documents
+              do not contribute additional points to the 100-point tally.
             </div>
           </div>
         )}
@@ -311,27 +350,41 @@ export function IDVerificationModal({
             <>
               {/* Primary Documents (70 points) */}
               <div className="space-y-4">
-                <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">Primary Documents (70 Points each)</h3>
+                <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">
+                  Primary Documents (70 Points each)
+                </h3>
                 <div className="grid gap-4.5">
-                  {ID_DOCUMENT_TYPES.filter(d => d.category === 'primary').map(doc => {
+                  {ID_DOCUMENT_TYPES.filter(
+                    (d) => d.category === 'primary',
+                  ).map((doc) => {
                     const isSelected = !!selectedDocs[doc.id];
                     const info = selectedDocs[doc.id];
 
                     return (
-                      <div key={doc.id} className={`p-4 border rounded-lg transition-all ${isSelected ? 'border-primary/40 bg-primary/5' : 'border-gray-200'}`}>
+                      <div
+                        key={doc.id}
+                        className={`p-4 border rounded-lg transition-all ${isSelected ? 'border-primary/40 bg-primary/5' : 'border-gray-200'}`}
+                      >
                         <div className="flex items-start justify-between">
                           <div className="flex items-center space-x-3">
-                            <Checkbox 
+                            <Checkbox
                               id={`check-${doc.id}`}
                               checked={isSelected}
-                              onCheckedChange={(checked) => handleCheckboxChange(doc.id, checked as boolean)}
+                              onCheckedChange={(checked) =>
+                                handleCheckboxChange(doc.id, checked as boolean)
+                              }
                             />
-                            <Label htmlFor={`check-${doc.id}`} className="font-semibold text-slate-800 cursor-pointer">
+                            <Label
+                              htmlFor={`check-${doc.id}`}
+                              className="font-semibold text-slate-800 cursor-pointer"
+                            >
                               {doc.name}
                             </Label>
                           </div>
                           <span className="text-xs font-semibold px-2 py-0.5 rounded bg-blue-100 text-blue-800">
-                            {isSelected && doc.id !== firstPrimaryId ? '+0 pts' : `+${doc.points} pts`}
+                            {isSelected && doc.id !== firstPrimaryId
+                              ? '+0 pts'
+                              : `+${doc.points} pts`}
                           </span>
                         </div>
 
@@ -339,11 +392,21 @@ export function IDVerificationModal({
                           <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                             {doc.document_number_applicable && (
                               <div className="space-y-1.5">
-                                <Label className="text-xs font-medium text-slate-600">Doc Reference / No.</Label>
-                                <Input 
+                                <Label className="text-xs font-medium text-slate-600">
+                                  Doc Reference / No.
+                                </Label>
+                                <Input
                                   value={info.document_number}
-                                  onChange={(e) => handleFieldChange(doc.id, 'document_number', e.target.value)}
-                                  placeholder={doc.placeholder || 'Document Number'}
+                                  onChange={(e) =>
+                                    handleFieldChange(
+                                      doc.id,
+                                      'document_number',
+                                      e.target.value,
+                                    )
+                                  }
+                                  placeholder={
+                                    doc.placeholder || 'Document Number'
+                                  }
                                   className="h-9 text-xs"
                                 />
                               </div>
@@ -351,12 +414,19 @@ export function IDVerificationModal({
                             {doc.expiry_date_applicable && (
                               <div className="space-y-1.5">
                                 <Label className="text-xs font-medium text-slate-600">
-                                  Expiry Date <span className="text-red-500">*</span>
+                                  Expiry Date{' '}
+                                  <span className="text-red-500">*</span>
                                 </Label>
-                                <Input 
+                                <Input
                                   type="date"
                                   value={info.expiry_date}
-                                  onChange={(e) => handleFieldChange(doc.id, 'expiry_date', e.target.value)}
+                                  onChange={(e) =>
+                                    handleFieldChange(
+                                      doc.id,
+                                      'expiry_date',
+                                      e.target.value,
+                                    )
+                                  }
                                   className="h-9 text-xs"
                                 />
                               </div>
@@ -364,20 +434,30 @@ export function IDVerificationModal({
 
                             {doc.comments_applicable && (
                               <div className="md:col-span-2 space-y-1.5">
-                                <Label className="text-xs font-medium text-slate-600">Sighting Notes / Comments</Label>
-                                <Input 
+                                <Label className="text-xs font-medium text-slate-600">
+                                  Sighting Notes / Comments
+                                </Label>
+                                <Input
                                   value={info.comments}
-                                  onChange={(e) => handleFieldChange(doc.id, 'comments', e.target.value)}
+                                  onChange={(e) =>
+                                    handleFieldChange(
+                                      doc.id,
+                                      'comments',
+                                      e.target.value,
+                                    )
+                                  }
                                   placeholder="e.g. Sighted original document"
                                   className="h-9 text-xs"
                                 />
                               </div>
                             )}
-                            
+
                             {/* File Upload Section */}
                             {doc.attachment_applicable && (
                               <div className="md:col-span-2 space-y-1.5 pt-1">
-                                <Label className="text-xs font-medium text-slate-600">Upload Attachment (Optional)</Label>
+                                <Label className="text-xs font-medium text-slate-600">
+                                  Upload Attachment (Optional)
+                                </Label>
                                 {info.file_name ? (
                                   <div className="flex items-center justify-between p-2 bg-gray-100 border border-gray-200 rounded-md">
                                     <span className="text-xs flex items-center gap-1.5 text-slate-700 truncate max-w-[80%]">
@@ -403,7 +483,8 @@ export function IDVerificationModal({
                                       disabled={uploadingDocId !== null}
                                       onChange={(e) => {
                                         const file = e.target.files?.[0];
-                                        if (file) handleFileUpload(doc.id, file);
+                                        if (file)
+                                          handleFileUpload(doc.id, file);
                                       }}
                                     />
                                     <Button
@@ -411,7 +492,11 @@ export function IDVerificationModal({
                                       variant="outline"
                                       size="sm"
                                       disabled={uploadingDocId !== null}
-                                      onClick={() => document.getElementById(`file-${doc.id}`)?.click()}
+                                      onClick={() =>
+                                        document
+                                          .getElementById(`file-${doc.id}`)
+                                          ?.click()
+                                      }
                                       className="w-full text-xs h-9 border-dashed border-gray-300 hover:border-primary/50"
                                     >
                                       {uploadingDocId === doc.id ? (
@@ -440,22 +525,34 @@ export function IDVerificationModal({
 
               {/* Secondary Documents (40/25 points) */}
               <div className="space-y-4">
-                <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">Secondary Documents (40 / 25 Points)</h3>
+                <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">
+                  Secondary Documents (40 / 25 Points)
+                </h3>
                 <div className="grid gap-4.5">
-                  {ID_DOCUMENT_TYPES.filter(d => d.category === 'secondary').map(doc => {
+                  {ID_DOCUMENT_TYPES.filter(
+                    (d) => d.category === 'secondary',
+                  ).map((doc) => {
                     const isSelected = !!selectedDocs[doc.id];
                     const info = selectedDocs[doc.id];
 
                     return (
-                      <div key={doc.id} className={`p-4 border rounded-lg transition-all ${isSelected ? 'border-primary/40 bg-primary/5' : 'border-gray-200'}`}>
+                      <div
+                        key={doc.id}
+                        className={`p-4 border rounded-lg transition-all ${isSelected ? 'border-primary/40 bg-primary/5' : 'border-gray-200'}`}
+                      >
                         <div className="flex items-start justify-between">
                           <div className="flex items-center space-x-3">
-                            <Checkbox 
+                            <Checkbox
                               id={`check-${doc.id}`}
                               checked={isSelected}
-                              onCheckedChange={(checked) => handleCheckboxChange(doc.id, checked as boolean)}
+                              onCheckedChange={(checked) =>
+                                handleCheckboxChange(doc.id, checked as boolean)
+                              }
                             />
-                            <Label htmlFor={`check-${doc.id}`} className="font-semibold text-slate-800 cursor-pointer">
+                            <Label
+                              htmlFor={`check-${doc.id}`}
+                              className="font-semibold text-slate-800 cursor-pointer"
+                            >
                               {doc.name}
                             </Label>
                           </div>
@@ -468,11 +565,21 @@ export function IDVerificationModal({
                           <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                             {doc.document_number_applicable && (
                               <div className="space-y-1.5">
-                                <Label className="text-xs font-medium text-slate-600">Doc Reference / No.</Label>
-                                <Input 
+                                <Label className="text-xs font-medium text-slate-600">
+                                  Doc Reference / No.
+                                </Label>
+                                <Input
                                   value={info.document_number}
-                                  onChange={(e) => handleFieldChange(doc.id, 'document_number', e.target.value)}
-                                  placeholder={doc.placeholder || 'Document Number'}
+                                  onChange={(e) =>
+                                    handleFieldChange(
+                                      doc.id,
+                                      'document_number',
+                                      e.target.value,
+                                    )
+                                  }
+                                  placeholder={
+                                    doc.placeholder || 'Document Number'
+                                  }
                                   className="h-9 text-xs"
                                 />
                               </div>
@@ -480,12 +587,19 @@ export function IDVerificationModal({
                             {doc.expiry_date_applicable && (
                               <div className="space-y-1.5">
                                 <Label className="text-xs font-medium text-slate-600">
-                                  Expiry Date <span className="text-red-500">*</span>
+                                  Expiry Date{' '}
+                                  <span className="text-red-500">*</span>
                                 </Label>
-                                <Input 
+                                <Input
                                   type="date"
                                   value={info.expiry_date}
-                                  onChange={(e) => handleFieldChange(doc.id, 'expiry_date', e.target.value)}
+                                  onChange={(e) =>
+                                    handleFieldChange(
+                                      doc.id,
+                                      'expiry_date',
+                                      e.target.value,
+                                    )
+                                  }
                                   className="h-9 text-xs"
                                 />
                               </div>
@@ -493,20 +607,30 @@ export function IDVerificationModal({
 
                             {doc.comments_applicable && (
                               <div className="md:col-span-2 space-y-1.5">
-                                <Label className="text-xs font-medium text-slate-600">Sighting Notes / Comments</Label>
-                                <Input 
+                                <Label className="text-xs font-medium text-slate-600">
+                                  Sighting Notes / Comments
+                                </Label>
+                                <Input
                                   value={info.comments}
-                                  onChange={(e) => handleFieldChange(doc.id, 'comments', e.target.value)}
+                                  onChange={(e) =>
+                                    handleFieldChange(
+                                      doc.id,
+                                      'comments',
+                                      e.target.value,
+                                    )
+                                  }
                                   placeholder="e.g. Sighted original document"
                                   className="h-9 text-xs"
                                 />
                               </div>
                             )}
-                            
+
                             {/* File Upload Section */}
                             {doc.attachment_applicable && (
                               <div className="md:col-span-2 space-y-1.5 pt-1">
-                                <Label className="text-xs font-medium text-slate-600">Upload Attachment (Optional)</Label>
+                                <Label className="text-xs font-medium text-slate-600">
+                                  Upload Attachment (Optional)
+                                </Label>
                                 {info.file_name ? (
                                   <div className="flex items-center justify-between p-2 bg-gray-100 border border-gray-200 rounded-md">
                                     <span className="text-xs flex items-center gap-1.5 text-slate-700 truncate max-w-[80%]">
@@ -532,7 +656,8 @@ export function IDVerificationModal({
                                       disabled={uploadingDocId !== null}
                                       onChange={(e) => {
                                         const file = e.target.files?.[0];
-                                        if (file) handleFileUpload(doc.id, file);
+                                        if (file)
+                                          handleFileUpload(doc.id, file);
                                       }}
                                     />
                                     <Button
@@ -540,7 +665,11 @@ export function IDVerificationModal({
                                       variant="outline"
                                       size="sm"
                                       disabled={uploadingDocId !== null}
-                                      onClick={() => document.getElementById(`file-${doc.id}`)?.click()}
+                                      onClick={() =>
+                                        document
+                                          .getElementById(`file-${doc.id}`)
+                                          ?.click()
+                                      }
                                       className="w-full text-xs h-9 border-dashed border-gray-300 hover:border-primary/50"
                                     >
                                       {uploadingDocId === doc.id ? (
@@ -592,7 +721,6 @@ export function IDVerificationModal({
             >
               Save Verification
             </Button>
-
           </div>
         </DialogFooter>
       </DialogContent>

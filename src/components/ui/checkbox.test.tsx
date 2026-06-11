@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 import { Checkbox } from './checkbox';
 
 describe('Checkbox', () => {
@@ -10,11 +10,13 @@ describe('Checkbox', () => {
 
   it('handles state changes', () => {
     const handleCheckedChange = vi.fn();
-    render(<Checkbox id="test-checkbox" onCheckedChange={handleCheckedChange} />);
-    
+    render(
+      <Checkbox id="test-checkbox" onCheckedChange={handleCheckedChange} />,
+    );
+
     const checkbox = screen.getByRole('checkbox');
     fireEvent.click(checkbox);
-    
+
     expect(handleCheckedChange).toHaveBeenCalledWith(true);
   });
 

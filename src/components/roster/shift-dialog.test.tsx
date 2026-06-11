@@ -1,64 +1,84 @@
-import { renderWithProviders, screen, fireEvent, waitFor } from '@/test/test-utils';
+import {
+  fireEvent,
+  renderWithProviders,
+  screen,
+  waitFor,
+} from '@/test/test-utils';
+import { HouseRow, ParticipantRow, StaffRow } from '@/test/type-helpers';
+import { describe, expect, it, vi } from 'vitest';
 import { ShiftDialog } from './shift-dialog';
-import { describe, it, expect, vi } from 'vitest';
-import { StaffRow, HouseRow, ParticipantRow } from '@/test/type-helpers';
 
 // Mock hooks used in ShiftDialog
 vi.mock('@/hooks/use-staff', () => ({
   useStaff: () => ({
     staff: [
       { id: 's1', staff_name: 'Active Staff', status: 'active' },
-      { id: 's2', staff_name: 'Inactive Staff', status: 'inactive' }
+      { id: 's2', staff_name: 'Inactive Staff', status: 'inactive' },
     ] as Partial<StaffRow>[],
-    isLoading: false
+    isLoading: false,
   }),
   useActiveStaff: () => ({
     staff: [
-      { id: 's1', staff_name: 'Active Staff', status: 'active' }
+      { id: 's1', staff_name: 'Active Staff', status: 'active' },
     ] as Partial<StaffRow>[],
-    isLoading: false
-  })
+    isLoading: false,
+  }),
 }));
 
 vi.mock('@/hooks/use-houses', () => ({
   useHouses: () => ({
     houses: [{ id: 'h1', house_name: 'House 1' }] as Partial<HouseRow>[],
-    isLoading: false
+    isLoading: false,
   }),
   useActiveHouses: () => ({
     data: [{ id: 'h1', house_name: 'House 1' }] as Partial<HouseRow>[],
-    isLoading: false
-  })
+    isLoading: false,
+  }),
 }));
 
 vi.mock('@/hooks/use-participants', () => ({
   useParticipants: () => ({
     participants: [
-      { id: 'p1', participant_name: 'UniqueActive Participant', status: 'active', house_id: 'h1' },
-      { id: 'p2', participant_name: 'UniqueInactive Participant', status: 'inactive', house_id: 'h1' }
+      {
+        id: 'p1',
+        participant_name: 'UniqueActive Participant',
+        status: 'active',
+        house_id: 'h1',
+      },
+      {
+        id: 'p2',
+        participant_name: 'UniqueInactive Participant',
+        status: 'inactive',
+        house_id: 'h1',
+      },
     ] as Partial<ParticipantRow>[],
-    isLoading: false
+    isLoading: false,
   }),
   useActiveParticipants: () => ({
     participants: [
-      { id: 'p1', participant_name: 'UniqueActive Participant', status: 'active', house_id: 'h1' }
+      {
+        id: 'p1',
+        participant_name: 'UniqueActive Participant',
+        status: 'active',
+        house_id: 'h1',
+      },
     ] as Partial<ParticipantRow>[],
-    isLoading: false
-  })
+    isLoading: false,
+  }),
 }));
 
 vi.mock('@/hooks/use-house-shift-templates', () => ({
   useHouseShiftTemplates: () => ({
     shiftTemplates: [],
-    isLoading: false
-  })
+    isLoading: false,
+  }),
 }));
 
 vi.mock('@/hooks/use-house-checklists', () => ({
   useHouseChecklists: () => ({
     houseChecklists: [],
-    isLoading: false
-  })
+    isLoading: false,
+  }),
 }));
 
 describe('ShiftDialog Logic', () => {
@@ -67,15 +87,15 @@ describe('ShiftDialog Logic', () => {
     onOpenChange: vi.fn(),
     shift: null,
     onSave: vi.fn(),
-    onDelete: vi.fn()
+    onDelete: vi.fn(),
   };
 
   it('filters out inactive participants from house view', async () => {
     renderWithProviders(<ShiftDialog {...mockProps} preSelectedHouseId="h1" />);
-    
+
     // Check for active participant
     expect(screen.getByText(/UniqueActive Participant/i)).toBeInTheDocument();
-    
+
     // Check that inactive participant is NOT rendered
     const inactivePart = screen.queryByText(/UniqueInactive Participant/i);
     expect(inactivePart).not.toBeInTheDocument();
@@ -83,16 +103,18 @@ describe('ShiftDialog Logic', () => {
 
   it('does NOT show Quick Fill Org Shift Templates section', () => {
     renderWithProviders(<ShiftDialog {...mockProps} preSelectedHouseId="h1" />);
-    expect(screen.queryByText(/Quick Fill Org Shift Templates/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/Quick Fill Org Shift Templates/i),
+    ).not.toBeInTheDocument();
   });
 
   it('allows saving a shift with no staff member selected (Open Shift)', async () => {
     const onSave = vi.fn().mockResolvedValue({ id: 'new-id' });
     renderWithProviders(<ShiftDialog {...mockProps} onSave={onSave} />);
-    
+
     const saveButton = screen.getByRole('button', { name: /Create Shift/i });
     fireEvent.click(saveButton);
-    
+
     await waitFor(() => {
       expect(onSave).toHaveBeenCalled();
     });
@@ -100,8 +122,10 @@ describe('ShiftDialog Logic', () => {
 
   it('allows staff selection for admins even if staffSelectionDisabled is true', async () => {
     // renderWithProviders by default provides an admin user (isAdmin: true)
-    renderWithProviders(<ShiftDialog {...mockProps} staffSelectionDisabled={true} />);
-    
+    renderWithProviders(
+      <ShiftDialog {...mockProps} staffSelectionDisabled={true} />,
+    );
+
     const staffSelect = screen.getByRole('combobox', { name: /Assign Staff/i });
     expect(staffSelect).not.toBeDisabled();
   });
@@ -113,10 +137,12 @@ describe('ShiftDialog Logic', () => {
       start_date: '2026-04-05',
       start_time: '09:00',
       end_time: '17:00',
-      shift_template: 'SIL'
+      shift_template: 'SIL',
     };
     renderWithProviders(<ShiftDialog {...mockProps} shift={existingShift} />);
-    
-    expect(screen.queryByRole('combobox', { name: /Service Location/i })).not.toBeInTheDocument();
+
+    expect(
+      screen.queryByRole('combobox', { name: /Service Location/i }),
+    ).not.toBeInTheDocument();
   });
 });

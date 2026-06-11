@@ -1,10 +1,12 @@
 import { renderWithProviders, screen } from '@/test/test-utils';
+import { describe, expect, it, vi } from 'vitest';
 import { ActivityLogPage } from './activity-log-page';
-import { describe, it, expect, vi } from 'vitest';
 
 // Mock the ActivityLogTable component
 vi.mock('./components/activity-log-table', () => ({
-  ActivityLogTable: () => <div data-testid="activity-log-table-mock">Mocked Activity Log Table</div>,
+  ActivityLogTable: () => (
+    <div data-testid="activity-log-table-mock">Mocked Activity Log Table</div>
+  ),
 }));
 
 describe('ActivityLogPage Smoke Test', () => {
@@ -13,7 +15,9 @@ describe('ActivityLogPage Smoke Test', () => {
 
     // Check title and description
     expect(screen.getByText('System Activity Log')).toBeInTheDocument();
-    expect(screen.getByText(/Audit trail of all system changes/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Audit trail of all system changes/),
+    ).toBeInTheDocument();
 
     // Check if the actual log component is rendered
     expect(screen.getByTestId('activity-log-table-mock')).toBeInTheDocument();

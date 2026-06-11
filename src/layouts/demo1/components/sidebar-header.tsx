@@ -1,10 +1,10 @@
 import { ChevronFirst } from 'lucide-react';
 import { Link } from 'react-router';
+import { ROUTES } from '@/config/routes.config';
 import { toAbsoluteUrl } from '@/lib/helpers';
 import { cn } from '@/lib/utils';
 import { useSettings } from '@/providers/settings-provider';
 import { Button } from '@/components/ui/button';
-import { ROUTES } from '@/config/routes.config';
 
 export function SidebarHeader() {
   const { settings, storeOption } = useSettings();

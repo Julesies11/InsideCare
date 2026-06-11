@@ -1,7 +1,7 @@
 import { useAuth } from '@/auth/context/auth-context';
-import { useRBAC, AccessLevel, ACCESS_LEVEL } from './useRBAC';
+import { ACCESS_LEVEL, AccessLevel, useRBAC } from './useRBAC';
 
-export type PermissionModule = 
+export type PermissionModule =
   // Personal (Staff Portal)
   | 'my_roster'
   | 'my_timesheets'
@@ -34,37 +34,46 @@ export function usePermissions() {
 
   const canView = (module: string | string[]) => {
     if (Array.isArray(module)) {
-      return module.some(m => hasAccess({ 
-        resource: m, 
-        requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY
-      }));
+      return module.some((m) =>
+        hasAccess({
+          resource: m,
+          requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY,
+        }),
+      );
     }
-    return hasAccess({ 
-      resource: module, 
-      requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY
+    return hasAccess({
+      resource: module,
+      requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY,
     });
   };
 
   const canEdit = (module: string | string[]) => {
     if (Array.isArray(module)) {
-      return module.some(m => hasAccess({ 
-        resource: m, 
-        requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE
-      }));
+      return module.some((m) =>
+        hasAccess({
+          resource: m,
+          requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE,
+        }),
+      );
     }
-    return hasAccess({ 
-      resource: module, 
-      requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE
+    return hasAccess({
+      resource: module,
+      requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE,
     });
   };
 
   const isContextAware = (module: string) => {
-    const level = (user?.permissions?.[module] || ACCESS_LEVEL.NONE) as AccessLevel;
-    return level === ACCESS_LEVEL.CONTEXT_READ_WRITE || level === ACCESS_LEVEL.CONTEXT_READ_ONLY;
+    const level = (user?.permissions?.[module] ||
+      ACCESS_LEVEL.NONE) as AccessLevel;
+    return (
+      level === ACCESS_LEVEL.CONTEXT_READ_WRITE ||
+      level === ACCESS_LEVEL.CONTEXT_READ_ONLY
+    );
   };
 
   const hasFullAccess = (module: string) => {
-    const level = (user?.permissions?.[module] || ACCESS_LEVEL.NONE) as AccessLevel;
+    const level = (user?.permissions?.[module] ||
+      ACCESS_LEVEL.NONE) as AccessLevel;
     return isAdmin || level === ACCESS_LEVEL.FULL;
   };
 

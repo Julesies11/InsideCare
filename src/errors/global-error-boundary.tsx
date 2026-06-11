@@ -1,7 +1,7 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { AlertTriangle, Home, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 
 interface Props {
   children?: ReactNode;
@@ -46,10 +46,13 @@ export class GlobalErrorBoundary extends Component<Props, State> {
               <div className="size-20 bg-red-50 rounded-full flex items-center justify-center mb-6">
                 <AlertTriangle className="size-10 text-red-500" />
               </div>
-              
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">Unexpected System Error</h1>
+
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                Unexpected System Error
+              </h1>
               <p className="text-muted-foreground mb-8 text-sm leading-relaxed px-4">
-                We've encountered a critical error that prevented the page from loading correctly. Our technical team has been notified.
+                We've encountered a critical error that prevented the page from
+                loading correctly. Our technical team has been notified.
               </p>
 
               {process.env.NODE_ENV === 'development' && (
@@ -61,11 +64,18 @@ export class GlobalErrorBoundary extends Component<Props, State> {
               )}
 
               <div className="flex flex-col w-full gap-3">
-                <Button onClick={this.handleReset} className="w-full bg-gray-900 hover:bg-gray-800">
+                <Button
+                  onClick={this.handleReset}
+                  className="w-full bg-gray-900 hover:bg-gray-800"
+                >
                   <RefreshCw className="size-4 mr-2" />
                   Try Again
                 </Button>
-                <Button onClick={this.handleGoHome} variant="outline" className="w-full">
+                <Button
+                  onClick={this.handleGoHome}
+                  variant="outline"
+                  className="w-full"
+                >
                   <Home className="size-4 mr-2" />
                   Return to Dashboard
                 </Button>

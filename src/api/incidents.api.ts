@@ -1,7 +1,11 @@
-import { supabase } from '@/lib/supabase';
+import {
+  IncidentReport,
+  IncidentReportInsert,
+  IncidentReportUpdate,
+} from '@/models/incident-report';
 import { TABLES } from '@/config/db-tables';
 import { INCIDENT_VIEWS } from '@/config/query-views';
-import { IncidentReport, IncidentReportInsert, IncidentReportUpdate } from '@/models/incident-report';
+import { supabase } from '@/lib/supabase';
 
 export interface IncidentListOptions {
   participantId?: string;
@@ -112,16 +116,16 @@ export const incidentsApi = {
     const { data, error, count } = await query;
 
     if (error) throw error;
-    return { 
-      data: data as (IncidentReport & { 
-        participant: any, 
-        staff: any, 
-        reporter: any, 
-        house: any,
-        incident_type_info: any,
-        restrictive_practice_type_info: any
-      })[], 
-      count 
+    return {
+      data: data as (IncidentReport & {
+        participant: any;
+        staff: any;
+        reporter: any;
+        house: any;
+        incident_type_info: any;
+        restrictive_practice_type_info: any;
+      })[],
+      count,
     };
   },
 
@@ -153,7 +157,7 @@ export const incidentsApi = {
           finalReferenceId = candidateId;
         }
       }
-      
+
       report.reference_id = finalReferenceId;
     }
 
@@ -164,14 +168,14 @@ export const incidentsApi = {
       .single();
 
     if (error) throw error;
-    return data as (IncidentReport & { 
-      participant: any, 
-      staff: any, 
-      reporter: any, 
-      house: any,
-      incident_type_info: any,
-      restrictive_practice_type_info: any
-    });
+    return data as IncidentReport & {
+      participant: any;
+      staff: any;
+      reporter: any;
+      house: any;
+      incident_type_info: any;
+      restrictive_practice_type_info: any;
+    };
   },
 
   /**
@@ -186,21 +190,24 @@ export const incidentsApi = {
       .single();
 
     if (error) throw error;
-    return data as (IncidentReport & { 
-      participant: any, 
-      staff: any, 
-      reporter: any, 
-      house: any,
-      incident_type_info: any,
-      restrictive_practice_type_info: any
-    });
+    return data as IncidentReport & {
+      participant: any;
+      staff: any;
+      reporter: any;
+      house: any;
+      incident_type_info: any;
+      restrictive_practice_type_info: any;
+    };
   },
 
   /**
    * Get a single incident report by ID or Reference ID.
    */
   async getById(idOrRef: string) {
-    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idOrRef);
+    const isUuid =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        idOrRef,
+      );
     let query = supabase
       .from(TABLES.INCIDENT_REPORTS)
       .select(INCIDENT_VIEWS.DETAIL);
@@ -214,13 +221,13 @@ export const incidentsApi = {
     const { data, error } = await query.single();
 
     if (error) throw error;
-    return data as (IncidentReport & { 
-      participant: any, 
-      staff: any, 
-      reporter: any, 
-      house: any,
-      incident_type_info: any,
-      restrictive_practice_type_info: any
-    });
-  }
+    return data as IncidentReport & {
+      participant: any;
+      staff: any;
+      reporter: any;
+      house: any;
+      incident_type_info: any;
+      restrictive_practice_type_info: any;
+    };
+  },
 };

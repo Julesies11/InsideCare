@@ -1,29 +1,29 @@
 import { Fragment } from 'react';
-import { useParams, useNavigate } from 'react-router';
-import { Container } from '@/components/common/container';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
-import { ShiftTemplatesEditContent } from './shift-templates-edit-content';
+import { housesApi } from '@/api/houses.api';
 import {
   Toolbar,
+  ToolbarDescription,
   ToolbarHeading,
   ToolbarPageTitle,
-  ToolbarDescription,
 } from '@/partials/common/toolbar';
-import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
-import { RBAC_MODULES } from '@/config/rbac-modules';
 import { useQuery } from '@tanstack/react-query';
-import { housesApi } from '@/api/houses.api';
+import { ArrowLeft } from 'lucide-react';
+import { useNavigate, useParams } from 'react-router';
+import { RBAC_MODULES } from '@/config/rbac-modules';
 import { ROUTES } from '@/config/routes.config';
+import { ACCESS_LEVEL, useRBAC } from '@/hooks/useRBAC';
+import { Button } from '@/components/ui/button';
+import { Container } from '@/components/common/container';
+import { ShiftTemplatesEditContent } from './shift-templates-edit-content';
 
 export function ShiftTemplatesEditPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { hasAccess } = useRBAC();
-  
-  const canEdit = hasAccess({ 
-    resource: RBAC_MODULES.ROSTER_BOARD, 
-    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE 
+
+  const canEdit = hasAccess({
+    resource: RBAC_MODULES.ROSTER_BOARD,
+    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE,
   });
 
   const { data: house } = useQuery({
@@ -32,7 +32,7 @@ export function ShiftTemplatesEditPage() {
       if (!id) return null;
       return await housesApi.get(id);
     },
-    enabled: !!id
+    enabled: !!id,
   });
 
   const handleBack = () => navigate(ROUTES.SHIFT_SETUP);
@@ -44,7 +44,8 @@ export function ShiftTemplatesEditPage() {
           <div className="text-center space-y-4">
             <h2 className="text-xl font-bold text-gray-900">Access Denied</h2>
             <p className="text-muted-foreground max-w-sm">
-              You do not have the required permissions to manage shift templates.
+              You do not have the required permissions to manage shift
+              templates.
             </p>
           </div>
         </div>
@@ -64,7 +65,9 @@ export function ShiftTemplatesEditPage() {
                   Back
                 </Button>
                 <div>
-                  <ToolbarPageTitle text={`${house?.house_name || 'House'} Shift Templates`} />
+                  <ToolbarPageTitle
+                    text={`${house?.house_name || 'House'} Shift Templates`}
+                  />
                   <ToolbarDescription>
                     Manage shift routines and templates for this house
                   </ToolbarDescription>

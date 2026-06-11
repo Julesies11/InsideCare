@@ -1,23 +1,44 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Calendar, Clock, Edit, Plus, Trash2, Users } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { Link, useNavigate } from 'react-router';
+import * as z from 'zod';
+import { ROUTES } from '@/config/routes.config';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
+import { useActiveParticipants } from '@/hooks/use-participants';
+import { useHouseParticipants } from '@/hooks/useHouseParticipants';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
-import { Plus, Edit, Trash2, Users, Clock, Calendar } from 'lucide-react';
-import { useHouseParticipants } from '@/hooks/useHouseParticipants';
-import { useActiveParticipants } from '@/hooks/use-participants';
-import { ParticipantCombobox } from './participant-combobox';
-import { useForm } from 'react-hook-form';
-import { useNavigate, Link } from 'react-router';
-import { ROUTES } from '@/config/routes.config';
 import { SecureAvatar } from '@/components/ui/secure-avatar';
-import { STORAGE_BUCKETS } from '@/config/storage-buckets';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
+import { Switch } from '@/components/ui/switch';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { ParticipantCombobox } from './participant-combobox';
 
 const getInitials = (name?: string) => {
   if (!name) return '??';
@@ -39,7 +60,7 @@ interface HouseParticipantsProps {
       toAdd: any[];
       toUpdate: any[];
       toDelete: string[];
-    }
+    };
   };
   onPendingChangesChange?: (changes: any) => void;
 }
@@ -52,13 +73,13 @@ const participantSchema = z.object({
 
 type ParticipantFormValues = z.infer<typeof participantSchema>;
 
-export function HouseParticipants({ 
-  houseId, 
-  canAdd, 
+export function HouseParticipants({
+  houseId,
+  canAdd,
   canDelete,
   readOnly = false,
   pendingChanges,
-  onPendingChangesChange 
+  onPendingChangesChange,
 }: HouseParticipantsProps) {
   const [showDialog, setShowDialog] = useState(false);
   const [editingParticipant, setEditingParticipant] = useState<any>(null);
@@ -79,7 +100,9 @@ export function HouseParticipants({
     }
     // For pending participants, look up the name from participants list
     if (participant.participant_id) {
-      const participantData = participants.find(p => p.id === participant.participant_id);
+      const participantData = participants.find(
+        (p) => p.id === participant.participant_id,
+      );
       return participantData?.participant_name || 'Unknown Participant';
     }
     return 'Unknown Participant';
@@ -101,11 +124,12 @@ export function HouseParticipants({
     // 1. Check direct photo_url (from listByHouse)
     if (participant.photo_url) return participant.photo_url;
     // 2. Check joined object (alternative database mapping)
-    if (participant.participant?.photo_url) return participant.participant.photo_url;
+    if (participant.participant?.photo_url)
+      return participant.participant.photo_url;
     // 3. Fallback: Lookup in full participants list
     const pId = participant.participant_id || participant.id;
     if (pId) {
-      const match = participants.find(p => p.id === pId);
+      const match = participants.find((p) => p.id === pId);
       return match?.photo_url || null;
     }
     return null;
@@ -123,9 +147,12 @@ export function HouseParticipants({
   useEffect(() => {
     if (showDialog && editingParticipant) {
       form.reset({
-        participant_id: editingParticipant.participant_id || editingParticipant.id || '',
+        participant_id:
+          editingParticipant.participant_id || editingParticipant.id || '',
         move_in_date: editingParticipant.move_in_date || '',
-        is_active: editingParticipant.status === 'active' || editingParticipant.is_active === true,
+        is_active:
+          editingParticipant.status === 'active' ||
+          editingParticipant.is_active === true,
       });
     } else if (showDialog) {
       form.reset({
@@ -149,7 +176,9 @@ export function HouseParticipants({
   const handleSave = (data: ParticipantFormValues) => {
     if (!pendingChanges || !onPendingChangesChange) return;
 
-    const participantMember = participants.find(p => p.id === data.participant_id);
+    const participantMember = participants.find(
+      (p) => p.id === data.participant_id,
+    );
     const payload = {
       ...data,
       participant_name: participantMember?.participant_name || undefined,
@@ -164,8 +193,8 @@ export function HouseParticipants({
           ...pendingChanges,
           participants: {
             ...pendingChanges.participants,
-            toAdd: pendingChanges.participants.toAdd.map(p =>
-              p.tempId === editingParticipant.tempId ? { ...p, ...payload } : p
+            toAdd: pendingChanges.participants.toAdd.map((p) =>
+              p.tempId === editingParticipant.tempId ? { ...p, ...payload } : p,
             ),
           },
         };
@@ -177,7 +206,9 @@ export function HouseParticipants({
           participants: {
             ...pendingChanges.participants,
             toUpdate: [
-              ...pendingChanges.participants.toUpdate.filter(p => p.id !== editingParticipant.id),
+              ...pendingChanges.participants.toUpdate.filter(
+                (p) => p.id !== editingParticipant.id,
+              ),
               { id: editingParticipant.id, ...payload },
             ],
           },
@@ -191,10 +222,7 @@ export function HouseParticipants({
         ...pendingChanges,
         participants: {
           ...pendingChanges.participants,
-          toAdd: [
-            ...pendingChanges.participants.toAdd,
-            { tempId, ...payload },
-          ],
+          toAdd: [...pendingChanges.participants.toAdd, { tempId, ...payload }],
         },
       };
       onPendingChangesChange(newPending);
@@ -212,7 +240,11 @@ export function HouseParticipants({
     }
 
     // Otherwise, mark existing participant for deletion
-    if (confirm('Mark this participant for removal? It will be removed when you click Save Changes.')) {
+    if (
+      confirm(
+        'Mark this participant for removal? It will be removed when you click Save Changes.',
+      )
+    ) {
       const newPending = {
         ...pendingChanges,
         participants: {
@@ -231,7 +263,9 @@ export function HouseParticipants({
       ...pendingChanges,
       participants: {
         ...pendingChanges.participants,
-        toAdd: pendingChanges.participants.toAdd.filter(p => p.tempId !== tempId),
+        toAdd: pendingChanges.participants.toAdd.filter(
+          (p) => p.tempId !== tempId,
+        ),
       },
     };
     onPendingChangesChange(newPending);
@@ -244,7 +278,9 @@ export function HouseParticipants({
       ...pendingChanges,
       participants: {
         ...pendingChanges.participants,
-        toUpdate: pendingChanges.participants.toUpdate.filter(p => p.id !== id),
+        toUpdate: pendingChanges.participants.toUpdate.filter(
+          (p) => p.id !== id,
+        ),
       },
     };
     onPendingChangesChange(newPending);
@@ -257,7 +293,9 @@ export function HouseParticipants({
       ...pendingChanges,
       participants: {
         ...pendingChanges.participants,
-        toDelete: pendingChanges.participants.toDelete.filter(pId => pId !== id),
+        toDelete: pendingChanges.participants.toDelete.filter(
+          (pId) => pId !== id,
+        ),
       },
     };
     onPendingChangesChange(newPending);
@@ -265,7 +303,9 @@ export function HouseParticipants({
 
   // Combine existing participants with pending adds, filter out pending deletes
   const visibleParticipants = [
-    ...houseParticipants.filter(p => !pendingChanges?.participants?.toDelete?.includes(p.id)),
+    ...houseParticipants.filter(
+      (p) => !pendingChanges?.participants?.toDelete?.includes(p.id),
+    ),
     ...(pendingChanges?.participants?.toAdd || []),
   ];
 
@@ -273,162 +313,214 @@ export function HouseParticipants({
     <>
       <CardContent className="px-0">
         {loading ? (
-          <div className="text-center py-8 text-muted-foreground">Loading participants...</div>
+          <div className="text-center py-8 text-muted-foreground">
+            Loading participants...
+          </div>
         ) : visibleParticipants.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-8">
-            <div className="text-center text-muted-foreground mb-4">No participants linked to this house</div>
+            <div className="text-center text-muted-foreground mb-4">
+              No participants linked to this house
+            </div>
             {!readOnly && (
-              <Button variant="secondary" size="sm" className="border border-gray-300" onClick={handleAdd} disabled={!houseId || !canAdd}>
+              <Button
+                variant="secondary"
+                size="sm"
+                className="border border-gray-300"
+                onClick={handleAdd}
+                disabled={!houseId || !canAdd}
+              >
                 <Plus className="size-4 me-1.5" />
                 Add Participant
               </Button>
             )}
           </div>
         ) : (
-          <div className="overflow-x-auto"><Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Participant</TableHead>
-                <TableHead>Move-in Date</TableHead>
-                <TableHead>Status</TableHead>
-                {!readOnly && (
-                  <TableHead className="text-right">
-                    <Button variant="secondary" size="sm" className="border border-gray-300" onClick={handleAdd} disabled={!houseId || !canAdd}>
-                      <Plus className="size-4 me-1.5" />
-                      Add Participant
-                    </Button>
-                  </TableHead>
-                )}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {visibleParticipants.map((participant) => {
-                const isPendingAdd = 'tempId' in participant;
-                const pendingUpdate = pendingChanges?.participants?.toUpdate?.find(p => p.id === participant.id);
-                const isPendingUpdate = !!pendingUpdate;
-                const isPendingDelete = pendingChanges?.participants?.toDelete?.includes(participant.id);
-                
-                // Use data from pending update if it exists
-                const displayData = pendingUpdate ? { ...participant, ...pendingUpdate } : participant;
-                
-                return (
-                  <TableRow 
-                    key={participant.id || participant.tempId} 
-                    className={
-                      isPendingAdd ? 'bg-primary/5' : 
-                      isPendingDelete ? 'opacity-50 bg-destructive/5' : 
-                      isPendingUpdate ? 'bg-warning/5' : ''
-                    }
-                  >
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <SecureAvatar 
-                          src={getParticipantPhoto(participant)} 
-                          initials={getParticipantInitials(participant)} 
-                          className="size-9 transition-all group-hover:ring-2 group-hover:ring-primary/20"
-                          bucket={STORAGE_BUCKETS.PARTICIPANT_PHOTOS} 
-                        />
-                        <div className="flex flex-col">
-                          <Link 
-                            to={`${ROUTES.PARTICIPANT_DETAIL}/${participant.participant_id || participant.id}`}
-                            className={`font-medium text-blue-700 dark:text-blue-400 hover:underline transition-colors ${isPendingDelete ? 'line-through opacity-50 pointer-events-none' : ''}`}
-                          >
-                            {getParticipantName(participant)}
-                          </Link>
-                          <div className="flex items-center gap-1">
-                            {isPendingAdd && (
-                              <span className="text-[10px] text-primary font-bold uppercase tracking-widest flex items-center gap-1">
-                                <Clock className="size-3" />
-                                New
-                              </span>
-                            )}
-                            {isPendingUpdate && (
-                              <span className="text-[10px] text-warning font-bold uppercase tracking-widest flex items-center gap-1">
-                                <Clock className="size-3" />
-                                Updated
-                              </span>
-                            )}
-                            {isPendingDelete && (
-                              <span className="text-[10px] text-destructive font-bold uppercase tracking-widest flex items-center gap-1">
-                                <Clock className="size-3" />
-                                Removing
-                              </span>
-                            )}
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Participant</TableHead>
+                  <TableHead>Move-in Date</TableHead>
+                  <TableHead>Status</TableHead>
+                  {!readOnly && (
+                    <TableHead className="text-right">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="border border-gray-300"
+                        onClick={handleAdd}
+                        disabled={!houseId || !canAdd}
+                      >
+                        <Plus className="size-4 me-1.5" />
+                        Add Participant
+                      </Button>
+                    </TableHead>
+                  )}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {visibleParticipants.map((participant) => {
+                  const isPendingAdd = 'tempId' in participant;
+                  const pendingUpdate =
+                    pendingChanges?.participants?.toUpdate?.find(
+                      (p) => p.id === participant.id,
+                    );
+                  const isPendingUpdate = !!pendingUpdate;
+                  const isPendingDelete =
+                    pendingChanges?.participants?.toDelete?.includes(
+                      participant.id,
+                    );
+
+                  // Use data from pending update if it exists
+                  const displayData = pendingUpdate
+                    ? { ...participant, ...pendingUpdate }
+                    : participant;
+
+                  return (
+                    <TableRow
+                      key={participant.id || participant.tempId}
+                      className={
+                        isPendingAdd
+                          ? 'bg-primary/5'
+                          : isPendingDelete
+                            ? 'opacity-50 bg-destructive/5'
+                            : isPendingUpdate
+                              ? 'bg-warning/5'
+                              : ''
+                      }
+                    >
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <SecureAvatar
+                            src={getParticipantPhoto(participant)}
+                            initials={getParticipantInitials(participant)}
+                            className="size-9 transition-all group-hover:ring-2 group-hover:ring-primary/20"
+                            bucket={STORAGE_BUCKETS.PARTICIPANT_PHOTOS}
+                          />
+                          <div className="flex flex-col">
+                            <Link
+                              to={`${ROUTES.PARTICIPANT_DETAIL}/${participant.participant_id || participant.id}`}
+                              className={`font-medium text-blue-700 dark:text-blue-400 hover:underline transition-colors ${isPendingDelete ? 'line-through opacity-50 pointer-events-none' : ''}`}
+                            >
+                              {getParticipantName(participant)}
+                            </Link>
+                            <div className="flex items-center gap-1">
+                              {isPendingAdd && (
+                                <span className="text-[10px] text-primary font-bold uppercase tracking-widest flex items-center gap-1">
+                                  <Clock className="size-3" />
+                                  New
+                                </span>
+                              )}
+                              {isPendingUpdate && (
+                                <span className="text-[10px] text-warning font-bold uppercase tracking-widest flex items-center gap-1">
+                                  <Clock className="size-3" />
+                                  Updated
+                                </span>
+                              )}
+                              {isPendingDelete && (
+                                <span className="text-[10px] text-destructive font-bold uppercase tracking-widest flex items-center gap-1">
+                                  <Clock className="size-3" />
+                                  Removing
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {displayData.move_in_date && (
-                          <>
-                            <Calendar className="size-4 text-muted-foreground" />
-                            {new Date(displayData.move_in_date).toLocaleDateString()}
-                          </>
-                        )}
-                        {!displayData.move_in_date && 'N/A'}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={(displayData.status === 'active' || displayData.is_active) ? 'success' : 'secondary'}>
-                        {(displayData.status === 'active' || displayData.is_active) ? 'Active' : 'Inactive'}
-                      </Badge>
-                    </TableCell>
-                    {!readOnly && (
+                      </TableCell>
                       <TableCell>
-                        <div className="flex justify-end gap-1">
-                          {!isPendingDelete && (
+                        <div className="flex items-center gap-2">
+                          {displayData.move_in_date && (
                             <>
-                              <Button variant="ghost" size="sm" onClick={() => handleEdit(displayData)}>
-                                <Edit className="size-4" />
-                              </Button>
-                              {canDelete && (
+                              <Calendar className="size-4 text-muted-foreground" />
+                              {new Date(
+                                displayData.move_in_date,
+                              ).toLocaleDateString()}
+                            </>
+                          )}
+                          {!displayData.move_in_date && 'N/A'}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            displayData.status === 'active' ||
+                            displayData.is_active
+                              ? 'success'
+                              : 'secondary'
+                          }
+                        >
+                          {displayData.status === 'active' ||
+                          displayData.is_active
+                            ? 'Active'
+                            : 'Inactive'}
+                        </Badge>
+                      </TableCell>
+                      {!readOnly && (
+                        <TableCell>
+                          <div className="flex justify-end gap-1">
+                            {!isPendingDelete && (
+                              <>
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className="text-destructive"
-                                  onClick={() => handleDelete(participant)}
+                                  onClick={() => handleEdit(displayData)}
                                 >
-                                  <Trash2 className="size-4" />
+                                  <Edit className="size-4" />
                                 </Button>
-                              )}
-                            </>
-                          )}
-                          {isPendingAdd && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleCancelPendingAdd(participant.tempId!)}
-                            >
-                              Remove
-                            </Button>
-                          )}
-                          {isPendingUpdate && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleCancelPendingUpdate(participant.id)}
-                            >
-                              Undo
-                            </Button>
-                          )}
-                          {isPendingDelete && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleCancelPendingDelete(participant.id)}
-                            >
-                              Undo
-                            </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                    )}
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table></div>
+                                {canDelete && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-destructive"
+                                    onClick={() => handleDelete(participant)}
+                                  >
+                                    <Trash2 className="size-4" />
+                                  </Button>
+                                )}
+                              </>
+                            )}
+                            {isPendingAdd && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() =>
+                                  handleCancelPendingAdd(participant.tempId!)
+                                }
+                              >
+                                Remove
+                              </Button>
+                            )}
+                            {isPendingUpdate && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() =>
+                                  handleCancelPendingUpdate(participant.id)
+                                }
+                              >
+                                Undo
+                              </Button>
+                            )}
+                            {isPendingDelete && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() =>
+                                  handleCancelPendingDelete(participant.id)
+                                }
+                              >
+                                Undo
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
         )}
       </CardContent>
     </>
@@ -450,17 +542,21 @@ export function HouseParticipants({
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>
-              {editingParticipant ? 'Edit Participant' : 'Add Participant to House'}
+              {editingParticipant
+                ? 'Edit Participant'
+                : 'Add Participant to House'}
             </DialogTitle>
             <DialogDescription>
-              {editingParticipant 
+              {editingParticipant
                 ? 'Update the participant details for this house.'
-                : 'Select a participant to link to this house.'
-              }
+                : 'Select a participant to link to this house.'}
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSave)} className="space-y-4">
+            <form
+              onSubmit={form.handleSubmit(handleSave)}
+              className="space-y-4"
+            >
               <FormField
                 control={form.control}
                 name="participant_id"
@@ -516,7 +612,11 @@ export function HouseParticipants({
                 )}
               />
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setShowDialog(false)}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowDialog(false)}
+                >
                   Cancel
                 </Button>
                 <Button type="submit">

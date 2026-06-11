@@ -1,9 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/auth/context/auth-context';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { AlertCircle, Check, Eye, EyeOff } from 'lucide-react';
+import {
+  AlertCircle,
+  Check,
+  Eye,
+  EyeOff,
+  LoaderCircleIcon,
+} from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate, useSearchParams } from 'react-router';
+import { ROUTES } from '@/config/routes.config';
+import { toAbsoluteUrl } from '@/lib/helpers';
 import { Alert, AlertIcon, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -17,16 +25,31 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { getSigninSchema, SigninSchemaType } from '../forms/signin-schema';
-import { LoaderCircleIcon } from 'lucide-react';
-import { toAbsoluteUrl } from '@/lib/helpers';
-import { ROUTES } from '@/config/routes.config';
 
-const TEST_ADMIN = { email: 'julian.gibbings+admin@gmail.com', password: 'Password123!' };
-const TEST_SUPPORT_WORKER = { email: 'julian.gibbings+supportworker@gmail.com', password: 'Password123!' };
-const TEST_SUPERVISOR = { email: 'julian.gibbings+supervisor@gmail.com', password: 'Password123!' };
-const TEST_HOUSE_MANAGER = { email: 'julian.gibbings+housemanager@gmail.com', password: 'Password123!' };
-const TEST_DIRECTOR = { email: 'julian.gibbings+director@gmail.com', password: 'Password123!' };
-const TEST_FINANCE = { email: 'julian.gibbings+finance@gmail.com', password: 'Password123!' };
+const TEST_ADMIN = {
+  email: 'julian.gibbings+admin@gmail.com',
+  password: 'Password123!',
+};
+const TEST_SUPPORT_WORKER = {
+  email: 'julian.gibbings+supportworker@gmail.com',
+  password: 'Password123!',
+};
+const TEST_SUPERVISOR = {
+  email: 'julian.gibbings+supervisor@gmail.com',
+  password: 'Password123!',
+};
+const TEST_HOUSE_MANAGER = {
+  email: 'julian.gibbings+housemanager@gmail.com',
+  password: 'Password123!',
+};
+const TEST_DIRECTOR = {
+  email: 'julian.gibbings+director@gmail.com',
+  password: 'Password123!',
+};
+const TEST_FINANCE = {
+  email: 'julian.gibbings+finance@gmail.com',
+  password: 'Password123!',
+};
 
 const PROD_ADMIN = { email: 'demo@kt.com', password: 'demo123' };
 const PROD_SUPPORT_WORKER = { email: 'staff@kt.com', password: 'demo123' };
@@ -95,14 +118,14 @@ export function SignInPage() {
     try {
       setIsProcessing(true);
       setError(null);
-      
+
       // ENSURE CLEAN SLATE: Logout existing user and clear query cache
       await logout();
-      
+
       await login(credentials.email, credentials.password);
       const user = await getUser();
-      
-      // NOTE: We ignore the 'next' parameter for Development buttons 
+
+      // NOTE: We ignore the 'next' parameter for Development buttons
       // to ensure the user lands on a page they actually have access to.
       if (user?.is_admin) {
         navigate(ROUTES.HOME);
@@ -152,7 +175,6 @@ export function SignInPage() {
     }
   }
 
-
   return (
     <Form {...form}>
       <form
@@ -160,15 +182,15 @@ export function SignInPage() {
         className="block w-full space-y-5"
       >
         <div className="text-center space-y-1 pb-3">
-          <img 
-            src={toAbsoluteUrl('/media/app/default-logo.png')} 
-            className="dark:hidden h-12 mx-auto mb-4" 
-            alt="InsideCare" 
+          <img
+            src={toAbsoluteUrl('/media/app/default-logo.png')}
+            className="dark:hidden h-12 mx-auto mb-4"
+            alt="InsideCare"
           />
-          <img 
-            src={toAbsoluteUrl('/media/app/default-logo-dark.png')} 
-            className="light:hidden h-12 mx-auto mb-4" 
-            alt="InsideCare" 
+          <img
+            src={toAbsoluteUrl('/media/app/default-logo-dark.png')}
+            className="light:hidden h-12 mx-auto mb-4"
+            alt="InsideCare"
           />
           <h1 className="text-2xl font-semibold tracking-tight">Sign In</h1>
           <p className="text-sm text-muted-foreground">
@@ -177,10 +199,7 @@ export function SignInPage() {
         </div>
 
         {isDev && (
-          <Alert
-            variant="warning"
-            appearance="light"
-          >
+          <Alert variant="warning" appearance="light">
             <AlertIcon>
               <AlertCircle />
             </AlertIcon>
@@ -301,7 +320,9 @@ export function SignInPage() {
 
         {isProd && (
           <div className="border-t pt-4 mt-2">
-            <p className="text-xs text-center text-muted-foreground mb-3 font-medium uppercase tracking-wide">Live Production</p>
+            <p className="text-xs text-center text-muted-foreground mb-3 font-medium uppercase tracking-wide">
+              Live Production
+            </p>
             <div className="grid grid-cols-2 gap-2">
               <Button
                 type="button"
@@ -327,7 +348,9 @@ export function SignInPage() {
 
         {isDev && (
           <div className="border-t pt-4 mt-2">
-            <p className="text-xs text-center text-muted-foreground mb-3 font-medium uppercase tracking-wide">Testing & Development</p>
+            <p className="text-xs text-center text-muted-foreground mb-3 font-medium uppercase tracking-wide">
+              Testing & Development
+            </p>
             <div className="grid grid-cols-2 gap-2">
               <Button
                 type="button"

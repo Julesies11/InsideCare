@@ -1,6 +1,6 @@
+import { houseOperationsApi } from '@/api/house-operations.api';
 import { useQuery } from '@tanstack/react-query';
 import { QUERY_KEYS } from '@/config/query-keys';
-import { houseOperationsApi } from '@/api/house-operations.api';
 
 export interface HouseDocument {
   id: string;
@@ -40,9 +40,15 @@ export function useHouseDocuments(houseId?: string) {
   };
 }
 
-export const getHouseFileUrl = async (filePath: string, downloadName?: string | boolean) => {
+export const getHouseFileUrl = async (
+  filePath: string,
+  downloadName?: string | boolean,
+) => {
   try {
-    return await houseOperationsApi.files.getAttachmentSignedUrl(filePath, downloadName);
+    return await houseOperationsApi.files.getAttachmentSignedUrl(
+      filePath,
+      downloadName,
+    );
   } catch (error) {
     console.error('Error creating signed URL:', error);
     return null;

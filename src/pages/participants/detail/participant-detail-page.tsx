@@ -1,9 +1,8 @@
-import { Fragment, useState, useRef, useCallback, useEffect } from 'react';
-import { useParams, useLocation } from 'react-router';
-import { Container } from '@/components/common/container';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, Printer } from 'lucide-react';
-import { ParticipantDetailContent } from './participant-detail-content';
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
+import {
+  emptyParticipantPendingChanges,
+  ParticipantPendingChanges,
+} from '@/models/participant-pending-changes';
 import {
   Toolbar,
   ToolbarActions,
@@ -11,21 +10,28 @@ import {
   ToolbarHeading,
   ToolbarPageTitle,
 } from '@/partials/common/toolbar';
-import { ParticipantPendingChanges, emptyParticipantPendingChanges } from '@/models/participant-pending-changes';
+import { ArrowLeft, Printer } from 'lucide-react';
+import { useLocation, useParams } from 'react-router';
+import { useParticipant, useUpdateParticipant } from '@/hooks/use-participants';
 import { useDirtyTracker } from '@/hooks/useDirtyTracker';
-import { useUpdateParticipant, useParticipant } from '@/hooks/use-participants';
+import { Button } from '@/components/ui/button';
+import { Container } from '@/components/common/container';
+import { ParticipantDetailContent } from './participant-detail-content';
 
 export function ParticipantDetailPage() {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const tab = searchParams.get('tab');
-  
+
   const { data: participant } = useParticipant(id);
   const { mutateAsync: updateParticipant } = useUpdateParticipant();
   const [formData, setFormData] = useState<Record<string, any> | null>(null);
-  const [originalData, setOriginalData] = useState<Record<string, any> | null>(null);
-  const [pendingChanges, setPendingChanges] = useState<ParticipantPendingChanges>(emptyParticipantPendingChanges);
+  const [originalData, setOriginalData] = useState<Record<string, any> | null>(
+    null,
+  );
+  const [pendingChanges, setPendingChanges] =
+    useState<ParticipantPendingChanges>(emptyParticipantPendingChanges);
   const [saving, setSaving] = useState(false);
   const [photoDirty, setPhotoDirty] = useState(false);
   const saveHandlerRef = useRef<(() => Promise<void>) | null>(null);
@@ -39,9 +45,19 @@ export function ParticipantDetailPage() {
         if (element) {
           element.scrollIntoView({ behavior: 'smooth', block: 'start' });
           // Optional: Add a brief highlight effect
-          element.classList.add('animate-pulse', 'ring-2', 'ring-primary', 'ring-offset-2');
+          element.classList.add(
+            'animate-pulse',
+            'ring-2',
+            'ring-primary',
+            'ring-offset-2',
+          );
           setTimeout(() => {
-            element.classList.remove('animate-pulse', 'ring-2', 'ring-primary', 'ring-offset-2');
+            element.classList.remove(
+              'animate-pulse',
+              'ring-2',
+              'ring-primary',
+              'ring-offset-2',
+            );
           }, 3000);
         }
       }, 500);
@@ -72,7 +88,9 @@ export function ParticipantDetailPage() {
 
   const handleBack = useCallback(() => {
     if (isDirty) {
-      const confirmLeave = window.confirm('You have unsaved changes. Are you sure you want to leave?');
+      const confirmLeave = window.confirm(
+        'You have unsaved changes. Are you sure you want to leave?',
+      );
       if (!confirmLeave) return;
     }
     window.history.back();
@@ -114,7 +132,11 @@ export function ParticipantDetailPage() {
                 <Printer className="size-4 me-1.5" />
                 Print Profile
               </Button>
-              <Button onClick={handleSave} disabled={!isDirty || saving} size="sm">
+              <Button
+                onClick={handleSave}
+                disabled={!isDirty || saving}
+                size="sm"
+              >
                 {saving ? 'Saving...' : 'Save Changes'}
               </Button>
             </ToolbarActions>

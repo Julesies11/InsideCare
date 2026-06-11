@@ -1,7 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { masterListsApi } from '@/api/master-lists.api';
-import { QUERY_KEYS } from '@/config/query-keys';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { QUERY_KEYS } from '@/config/query-keys';
 
 export interface SeizureTypeMaster {
   id: string;
@@ -28,7 +28,9 @@ export function useAddSeizureTypeMaster() {
       return await masterListsApi.seizureTypes.upsert(newItem as any);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SEIZURE_TYPES_MASTER] });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.SEIZURE_TYPES_MASTER],
+      });
       toast.success('Seizure type added successfully');
     },
     onError: (error: Error) => {
@@ -42,11 +44,15 @@ export function useUpdateSeizureTypeMaster() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (updatedItem: Partial<SeizureTypeMaster> & { id: string }) => {
+    mutationFn: async (
+      updatedItem: Partial<SeizureTypeMaster> & { id: string },
+    ) => {
       return await masterListsApi.seizureTypes.upsert(updatedItem as any);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SEIZURE_TYPES_MASTER] });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.SEIZURE_TYPES_MASTER],
+      });
       toast.success('Seizure type updated successfully');
     },
     onError: (error: Error) => {

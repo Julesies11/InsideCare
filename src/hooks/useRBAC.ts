@@ -15,7 +15,7 @@ export const ACCESS_LEVEL = {
 /**
  * Access level type derived from the constants.
  */
-export type AccessLevel = typeof ACCESS_LEVEL[keyof typeof ACCESS_LEVEL];
+export type AccessLevel = (typeof ACCESS_LEVEL)[keyof typeof ACCESS_LEVEL];
 
 const HIERARCHY: Record<AccessLevel, number> = {
   [ACCESS_LEVEL.NONE]: 0,
@@ -32,7 +32,7 @@ interface UseRBACProps {
 
 /**
  * Hook for evaluating granular user permissions.
- * Follows a 'Dumb Frontend' philosophy: checks if a user has any permission level 
+ * Follows a 'Dumb Frontend' philosophy: checks if a user has any permission level
  * for a resource, and lets Supabase RLS handle the contextual data filtering.
  */
 export function useRBAC() {
@@ -46,8 +46,11 @@ export function useRBAC() {
     if (!user || !user.permissions) return false;
 
     // 3. Get the user's actual permission level for this resource
-    const userLevelStr = (user.permissions[resource] || ACCESS_LEVEL.NONE).toLowerCase() as AccessLevel;
-    const userLevel = HIERARCHY[userLevelStr] !== undefined ? userLevelStr : ACCESS_LEVEL.NONE;
+    const userLevelStr = (
+      user.permissions[resource] || ACCESS_LEVEL.NONE
+    ).toLowerCase() as AccessLevel;
+    const userLevel =
+      HIERARCHY[userLevelStr] !== undefined ? userLevelStr : ACCESS_LEVEL.NONE;
 
     // 4. Quick exit if they have no access at all
     if (userLevel === ACCESS_LEVEL.NONE) return false;

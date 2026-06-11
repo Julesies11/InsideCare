@@ -1,59 +1,59 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { EditShiftNoteDialog } from './edit-shift-note-dialog';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { EditShiftNoteDialog } from './edit-shift-note-dialog';
 
 // Mock dependencies
 vi.mock('@/hooks/use-participants', () => ({
-  useParticipants: () => ({ 
+  useParticipants: () => ({
     participants: [{ id: 'p-1', participant_name: 'John Participant' }],
-    loading: false
-  })
+    loading: false,
+  }),
 }));
 
 vi.mock('@/hooks/use-staff', () => ({
-  useStaff: () => ({ 
+  useStaff: () => ({
     data: { data: [{ id: 's-1', staff_name: 'Jane Staff' }] },
-    loading: false
-  })
+    loading: false,
+  }),
 }));
 
 vi.mock('@/hooks/use-houses', () => ({
-  useHouses: () => ({ 
+  useHouses: () => ({
     houses: [{ id: 'h-1', house_name: 'House A', status: 'active' }],
-    loading: false
-  })
+    loading: false,
+  }),
 }));
 
 vi.mock('@/hooks/use-staff-shifts', () => ({
   useStaffShifts: () => ({
     shifts: [
-      { 
-        id: 'shift-1', 
-        start_date: '2026-05-30', 
-        start_time: '09:00:00', 
-        house_id: 'h-1', 
+      {
+        id: 'shift-1',
+        start_date: '2026-05-30',
+        start_time: '09:00:00',
+        house_id: 'h-1',
         staff_id: 's-1',
-        staff_info: { staff_name: 'Jane Staff' }
-      }
+        staff_info: { staff_name: 'Jane Staff' },
+      },
     ],
-    loading: false
-  })
+    loading: false,
+  }),
 }));
 
 vi.mock('@/hooks/useRBAC', () => ({
   useRBAC: () => ({
-    hasAccess: () => true
+    hasAccess: () => true,
   }),
-  ACCESS_LEVEL: { CONTEXT_READ_WRITE: 'CONTEXT_READ_WRITE' }
+  ACCESS_LEVEL: { CONTEXT_READ_WRITE: 'CONTEXT_READ_WRITE' },
 }));
 
 vi.mock('@/components/ui/select', () => ({
   Select: ({ value, onValueChange, children, disabled }: any) => (
-    <select 
+    <select
       data-testid="mock-select"
-      value={value} 
+      value={value}
       onChange={(e) => onValueChange(e.target.value)}
       disabled={disabled}
     >
@@ -61,17 +61,19 @@ vi.mock('@/components/ui/select', () => ({
     </select>
   ),
   SelectTrigger: ({ children }: any) => <>{children}</>,
-  SelectValue: ({ placeholder }: any) => <option value="">{placeholder}</option>,
+  SelectValue: ({ placeholder }: any) => (
+    <option value="">{placeholder}</option>
+  ),
   SelectContent: ({ children }: any) => <>{children}</>,
-  SelectItem: ({ value, children }: any) => <option value={value}>{children}</option>,
+  SelectItem: ({ value, children }: any) => (
+    <option value={value}>{children}</option>
+  ),
 }));
 
 const queryClient = new QueryClient();
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
-  <QueryClientProvider client={queryClient}>
-    {children}
-  </QueryClientProvider>
+  <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
 );
 
 describe('EditShiftNoteDialog - Shift Selector Feature', () => {
@@ -88,7 +90,7 @@ describe('EditShiftNoteDialog - Shift Selector Feature', () => {
         onCreate={onCreate}
         mode="create"
       />,
-      { wrapper }
+      { wrapper },
     );
 
     // Dialog should have "Select Shift *" label
@@ -101,14 +103,14 @@ describe('EditShiftNoteDialog - Shift Selector Feature', () => {
     const selects = screen.getAllByTestId('mock-select');
     // The first select is shift_id
     const shiftSelect = selects[0];
-    
+
     fireEvent.change(shiftSelect, { target: { value: 'shift-1' } });
 
     // Info block should now appear with populated data
     await waitFor(() => {
       expect(screen.getByText('Date')).toBeDefined();
     });
-    
+
     // Check if House and Time are visible
     expect(screen.getByText('House A')).toBeDefined();
     expect(screen.getByText('09:00')).toBeDefined();

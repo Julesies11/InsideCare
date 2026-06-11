@@ -36,14 +36,16 @@ export function parseSupabaseError(error: any): ParsedError {
         if (errorMessage.includes('staff_email_key')) {
           return {
             title: 'Email already in use',
-            description: 'This email address is already assigned to another staff member. Please use a different email.',
+            description:
+              'This email address is already assigned to another staff member. Please use a different email.',
             severity: 'error',
             retryable: false,
           };
         }
         return {
           title: 'Duplicate entry',
-          description: 'This record already exists. Please check your data and try again.',
+          description:
+            'This record already exists. Please check your data and try again.',
           severity: 'error',
           retryable: false,
         };
@@ -52,14 +54,16 @@ export function parseSupabaseError(error: any): ParsedError {
         if (errorMessage.includes('staff_email_required_when_not_draft')) {
           return {
             title: 'Email is required',
-            description: 'Email is required when status is Active or Inactive. Please add an email address.',
+            description:
+              'Email is required when status is Active or Inactive. Please add an email address.',
             severity: 'error',
             retryable: false,
           };
         }
         return {
           title: 'Invalid data',
-          description: 'The data provided does not meet the required constraints. Please check your input.',
+          description:
+            'The data provided does not meet the required constraints. Please check your input.',
           severity: 'error',
           retryable: false,
         };
@@ -67,7 +71,8 @@ export function parseSupabaseError(error: any): ParsedError {
       case '23503': // Foreign key violation
         return {
           title: 'Related record not found',
-          description: 'The referenced record does not exist. Please check your selection and try again.',
+          description:
+            'The referenced record does not exist. Please check your selection and try again.',
           severity: 'error',
           retryable: false,
         };
@@ -75,7 +80,8 @@ export function parseSupabaseError(error: any): ParsedError {
       case '23502': // Not null violation
         return {
           title: 'Required field missing',
-          description: 'A required field is missing. Please fill in all required fields.',
+          description:
+            'A required field is missing. Please fill in all required fields.',
           severity: 'error',
           retryable: false,
         };
@@ -83,7 +89,8 @@ export function parseSupabaseError(error: any): ParsedError {
       case '23000': // Integrity constraint violation (generic)
         return {
           title: 'Data integrity error',
-          description: 'The data violates database constraints. Please check your input and try again.',
+          description:
+            'The data violates database constraints. Please check your input and try again.',
           severity: 'error',
           retryable: false,
         };
@@ -116,7 +123,8 @@ export function parseSupabaseError(error: any): ParsedError {
   ) {
     return {
       title: 'Connection failed',
-      description: 'Unable to reach the server. Please check your internet connection and try again.',
+      description:
+        'Unable to reach the server. Please check your internet connection and try again.',
       severity: 'error',
       retryable: true,
     };
@@ -129,16 +137,14 @@ export function parseSupabaseError(error: any): ParsedError {
   ) {
     return {
       title: 'Database unavailable',
-      description: 'Unable to connect to the database. Please try again in a moment.',
+      description:
+        'Unable to connect to the database. Please try again in a moment.',
       severity: 'error',
       retryable: true,
     };
   }
 
-  if (
-    lowerMessage.includes('timed out') ||
-    lowerMessage.includes('timeout')
-  ) {
+  if (lowerMessage.includes('timed out') || lowerMessage.includes('timeout')) {
     return {
       title: 'Request timed out',
       description: 'The operation took too long to complete. Please try again.',
@@ -165,7 +171,8 @@ export function parseSupabaseError(error: any): ParsedError {
   ) {
     return {
       title: 'Server busy',
-      description: 'The server is currently busy. Please wait a moment and try again.',
+      description:
+        'The server is currently busy. Please wait a moment and try again.',
       severity: 'error',
       retryable: true,
     };
@@ -174,7 +181,8 @@ export function parseSupabaseError(error: any): ParsedError {
   if (lowerMessage.includes('jwt') || lowerMessage.includes('token')) {
     return {
       title: 'Session expired',
-      description: 'Your session has expired. Please refresh the page and try again.',
+      description:
+        'Your session has expired. Please refresh the page and try again.',
       severity: 'warning',
       retryable: true,
     };
@@ -183,7 +191,9 @@ export function parseSupabaseError(error: any): ParsedError {
   // 3. Generic Fallback
   return {
     title: 'An error occurred',
-    description: errorMessage || 'Something went wrong. Please try again or contact support if the issue persists.',
+    description:
+      errorMessage ||
+      'Something went wrong. Please try again or contact support if the issue persists.',
     severity: 'error',
     retryable: true,
   };

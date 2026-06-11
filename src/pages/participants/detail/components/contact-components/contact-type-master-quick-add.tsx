@@ -1,13 +1,26 @@
 import { useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { ContactTypeMaster } from '@/models/contact-type-master';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { ContactTypeMaster } from '@/models/contact-type-master';
 
 const contactTypeSchema = z.object({
   contact_type_name: z.string().min(1, 'Contact type name is required'),
@@ -63,11 +76,16 @@ export function ContactTypeMasterQuickAdd({
       <DialogContent style={{ zIndex: 70 }}>
         <DialogHeader>
           <DialogTitle>
-            {editingContactType ? 'Edit Contact Type' : 'Add Contact Type to List'}
+            {editingContactType
+              ? 'Edit Contact Type'
+              : 'Add Contact Type to List'}
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 py-4">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-4 py-4"
+          >
             <FormField
               control={form.control}
               name="contact_type_name"
@@ -75,7 +93,10 @@ export function ContactTypeMasterQuickAdd({
                 <FormItem>
                   <FormLabel>Contact Type Name *</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="e.g., Service Providers, Guardian" />
+                    <Input
+                      {...field}
+                      placeholder="e.g., Service Providers, Guardian"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -88,7 +109,10 @@ export function ContactTypeMasterQuickAdd({
                 <FormItem>
                   <div className="flex items-center gap-2">
                     <FormControl>
-                      <Switch checked={field.value} onCheckedChange={field.onChange} />
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
                     </FormControl>
                     <FormLabel>Active</FormLabel>
                   </div>

@@ -1,7 +1,11 @@
-import { supabase } from '@/lib/supabase';
-import { validateImage, compressImage, COMPRESSION_PRESETS } from '@/lib/utils/image';
-import { logError } from '@/lib/logger';
 import { STORAGE_BUCKETS, StorageBucket } from '@/config/storage-buckets';
+import { logError } from '@/lib/logger';
+import { supabase } from '@/lib/supabase';
+import {
+  compressImage,
+  COMPRESSION_PRESETS,
+  validateImage,
+} from '@/lib/utils/image';
 
 export interface UploadOptions {
   bucket: StorageBucket | string;
@@ -17,7 +21,7 @@ export interface UploadOptions {
  */
 export async function uploadFile(
   file: File,
-  options: UploadOptions
+  options: UploadOptions,
 ): Promise<string> {
   // 1. Validation
   const validation = validateImage(file);
@@ -29,7 +33,7 @@ export async function uploadFile(
     // 2. Compress using specified preset or default to AVATAR for safety
     const preset = options.compressionPreset || 'AVATAR';
     const processedFile = await compressImage(file, preset);
-    
+
     const timestamp = Date.now();
     const name = options.fileName || `file-${timestamp}.jpg`;
     const folderPath = options.folder ? `${options.folder}/` : '';
@@ -38,9 +42,9 @@ export async function uploadFile(
     // 3. Upload to storage
     const { error: uploadError } = await supabase.storage
       .from(options.bucket)
-      .upload(filePath, processedFile, { 
+      .upload(filePath, processedFile, {
         upsert: true,
-        contentType: processedFile.type || 'image/jpeg'
+        contentType: processedFile.type || 'image/jpeg',
       });
 
     if (uploadError) {
@@ -53,12 +57,12 @@ export async function uploadFile(
       message: `File upload failed to bucket ${options.bucket}: ${err.message}`,
       stack: err.stack,
       componentName: 'storage-api',
-      metadata: { 
+      metadata: {
         bucket: options.bucket,
-        originalSize: file.size, 
+        originalSize: file.size,
         originalType: file.type,
-        fileName: file.name
-      }
+        fileName: file.name,
+      },
     });
     throw err;
   }
@@ -69,14 +73,14 @@ export async function uploadFile(
  */
 export async function deleteFile(
   bucket: string,
-  filePath: string
+  filePath: string,
 ): Promise<void> {
   const { error } = await supabase.storage.from(bucket).remove([filePath]);
   if (error) {
     await logError({
       message: `File deletion failed from bucket ${bucket}: ${error.message}`,
       componentName: 'storage-api',
-      metadata: { bucket, filePath }
+      metadata: { bucket, filePath },
     });
     throw error;
   }
@@ -85,10 +89,14 @@ export async function deleteFile(
 /**
  * Constructs a full public URL for a file in a Supabase bucket.
  */
-export function getPublicUrl(bucket: string, path?: string | null, userId?: string): string {
+export function getPublicUrl(
+  bucket: string,
+  path?: string | null,
+  userId?: string,
+): string {
   if (!path) return '';
   if (path.startsWith('http')) return path;
-  
+
   const fullPath = userId ? `${userId}/${path}` : path;
   const { data } = supabase.storage.from(bucket).getPublicUrl(fullPath);
   return data.publicUrl;

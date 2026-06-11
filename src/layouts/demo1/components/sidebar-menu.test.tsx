@@ -1,10 +1,10 @@
-import { render, screen } from '@testing-library/react';
-import { SidebarMenu } from './sidebar-menu';
 import { useAuth } from '@/auth/context/auth-context';
-import { usePermissions } from '@/hooks/use-permissions';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { RBAC_MODULES } from '@/config/rbac-modules';
+import { usePermissions } from '@/hooks/use-permissions';
+import { SidebarMenu } from './sidebar-menu';
 
 vi.mock('@/auth/context/auth-context', () => ({
   useAuth: vi.fn(),
@@ -32,7 +32,7 @@ const renderSidebar = () => {
   return render(
     <MemoryRouter>
       <SidebarMenu />
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 };
 
@@ -50,7 +50,11 @@ describe('SidebarMenu', () => {
 
     vi.mocked(usePermissions).mockReturnValue({
       canView: vi.fn((perm) => {
-        return [RBAC_MODULES.MY_ROSTER, RBAC_MODULES.MY_TIMESHEETS, RBAC_MODULES.MY_LEAVE].includes(perm);
+        return [
+          RBAC_MODULES.MY_ROSTER,
+          RBAC_MODULES.MY_TIMESHEETS,
+          RBAC_MODULES.MY_LEAVE,
+        ].includes(perm);
       }),
     } as any);
 
@@ -58,10 +62,10 @@ describe('SidebarMenu', () => {
 
     expect(screen.getByText('My Roster')).toBeInTheDocument();
     expect(screen.getByText('My Timesheets')).toBeInTheDocument();
-    
+
     // Note: 'My Leave' is rendered as 'Leave Requests' in the config
     expect(screen.getByText('My Leave')).toBeInTheDocument();
-    
+
     // Administrative items should be hidden
     expect(screen.queryByText('Employees')).not.toBeInTheDocument();
     expect(screen.queryByText('Roster Board')).not.toBeInTheDocument();
@@ -76,7 +80,9 @@ describe('SidebarMenu', () => {
 
     vi.mocked(usePermissions).mockReturnValue({
       canView: vi.fn((perm) => {
-        return [RBAC_MODULES.EMPLOYEES, RBAC_MODULES.ROSTER_BOARD].includes(perm);
+        return [RBAC_MODULES.EMPLOYEES, RBAC_MODULES.ROSTER_BOARD].includes(
+          perm,
+        );
       }),
     } as any);
 
@@ -84,7 +90,7 @@ describe('SidebarMenu', () => {
 
     expect(screen.getByText('Staff')).toBeInTheDocument();
     expect(screen.getByText('Roster Board')).toBeInTheDocument();
-    
+
     // Personal items should be hidden (if not granted)
     expect(screen.queryByText('My Roster')).not.toBeInTheDocument();
   });

@@ -1,6 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router';
-import { authRoutes } from './auth-routes';
 import { ROUTES } from '@/config/routes.config';
+import { authRoutes } from './auth-routes';
 
 /**
  * Handles all authentication related routes.
@@ -10,7 +10,12 @@ export function AuthRouting() {
   return (
     <Routes>
       {/* Index route to redirect to sign-in */}
-      <Route index element={<Navigate to={ROUTES.AUTH_SIGNIN.replace('/auth/', '')} replace />} />
+      <Route
+        index
+        element={
+          <Navigate to={ROUTES.AUTH_SIGNIN.replace('/auth/', '')} replace />
+        }
+      />
 
       {authRoutes.map((route) => {
         // Extract auth/ from the path to avoid double prefixing

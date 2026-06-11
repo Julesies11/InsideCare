@@ -1,20 +1,40 @@
-import { describe, it, expect, vi } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
-import { useChecklistSchedules } from './useChecklistSchedules';
-import { supabase } from '@/lib/supabase';
+import { act, renderHook } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 import { TABLES } from '@/config/db-tables';
+import { supabase } from '@/lib/supabase';
+import { useChecklistSchedules } from './useChecklistSchedules';
 
 // Mock Supabase
 const mockInsert = vi.fn().mockImplementation(() => ({
   select: vi.fn().mockReturnThis(),
-  single: vi.fn().mockResolvedValue({ data: { id: 'schedule-1', name: 'Test Checklist' }, error: null }),
-  maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'schedule-1', name: 'Test Checklist' }, error: null }),
+  single: vi
+    .fn()
+    .mockResolvedValue({
+      data: { id: 'schedule-1', name: 'Test Checklist' },
+      error: null,
+    }),
+  maybeSingle: vi
+    .fn()
+    .mockResolvedValue({
+      data: { id: 'schedule-1', name: 'Test Checklist' },
+      error: null,
+    }),
 }));
 
 const mockSelect = vi.fn().mockImplementation(() => ({
   eq: vi.fn().mockReturnThis(),
-  single: vi.fn().mockResolvedValue({ data: { id: 'cl-1', name: 'Test Checklist' }, error: null }),
-  maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'cl-1', name: 'Test Checklist' }, error: null }),
+  single: vi
+    .fn()
+    .mockResolvedValue({
+      data: { id: 'cl-1', name: 'Test Checklist' },
+      error: null,
+    }),
+  maybeSingle: vi
+    .fn()
+    .mockResolvedValue({
+      data: { id: 'cl-1', name: 'Test Checklist' },
+      error: null,
+    }),
 }));
 
 const mockDelete = vi.fn().mockImplementation(() => ({
@@ -29,11 +49,11 @@ const mockFrom = vi.fn((table) => {
     return { select: mockSelect };
   }
   if (table === TABLES.HOUSE_CALENDAR_EVENTS) {
-    return { 
-      insert: vi.fn().mockResolvedValue({ error: null }), 
+    return {
+      insert: vi.fn().mockResolvedValue({ error: null }),
       upsert: vi.fn().mockReturnThis(),
       select: vi.fn().mockResolvedValue({ data: [], error: null }),
-      delete: mockDelete 
+      delete: mockDelete,
     };
   }
   return { select: mockSelect, insert: mockInsert, delete: mockDelete };
@@ -48,14 +68,14 @@ vi.mock('@/lib/supabase', () => ({
 describe('useChecklistSchedules', () => {
   it('should create a schedule and materialize events', async () => {
     const { result } = renderHook(() => useChecklistSchedules('house-1'));
-    
+
     const scheduleData = {
       house_id: 'house-1',
       house_checklist_id: 'cl-1',
       rrule: 'FREQ=DAILY',
       start_date: '2026-06-01',
       end_date: '2026-06-10',
-      is_active: true
+      is_active: true,
     };
 
     let newSchedule;
@@ -65,21 +85,21 @@ describe('useChecklistSchedules', () => {
 
     expect(newSchedule).toBeDefined();
     expect(newSchedule.id).toBe('schedule-1');
-    
+
     // Check if mockFrom was called for 'ic_checklist_schedules'
     expect(mockFrom).toHaveBeenCalledWith('ic_checklist_schedules');
-    
+
     // Check if mockFrom was called for TABLES.HOUSE_CALENDAR_EVENTS (materialization)
     expect(mockFrom).toHaveBeenCalledWith(TABLES.HOUSE_CALENDAR_EVENTS);
   });
 
   it('should delete a schedule', async () => {
     const { result } = renderHook(() => useChecklistSchedules('house-1'));
-    
+
     await act(async () => {
       await result.current.deleteSchedule('schedule-1');
     });
-    
+
     expect(mockFrom).toHaveBeenCalledWith('ic_checklist_schedules');
   });
 });

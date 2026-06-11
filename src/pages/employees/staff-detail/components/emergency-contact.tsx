@@ -26,7 +26,9 @@ export function EmergencyContact({
               id="emergency_contact_name"
               placeholder="Emergency contact name"
               value={formData.emergency_contact_name || ''}
-              onChange={(e) => onFormChange('emergency_contact_name', e.target.value)}
+              onChange={(e) =>
+                onFormChange('emergency_contact_name', e.target.value)
+              }
               disabled={!canEdit}
             />
           </div>
@@ -40,7 +42,9 @@ export function EmergencyContact({
               type="tel"
               placeholder="+1 (555) 000-0000"
               value={formData.emergency_contact_phone || ''}
-              onChange={(e) => onFormChange('emergency_contact_phone', e.target.value)}
+              onChange={(e) =>
+                onFormChange('emergency_contact_phone', e.target.value)
+              }
               disabled={!canEdit}
             />
           </div>

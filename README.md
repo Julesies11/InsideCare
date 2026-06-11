@@ -16,6 +16,7 @@ Star the [ReUI on GitHub](https://github.com/keenthemes/reui) to help us grow th
 InsideCare is a comprehensive care‑management platform built on the Metronic 9 template. It provides full‑stack management of participants, staff, houses, rostering, checklists, and real‑time notifications.
 
 ### Tech Stack
+
 - **Frontend:** React 19 (Vite), TypeScript, Tailwind CSS 4, Shadcn/ui
 - **State Management:** TanStack Query (React Query) for server‑state caching
 - **Backend:** Supabase (PostgreSQL + Auth + Realtime)
@@ -23,6 +24,7 @@ InsideCare is a comprehensive care‑management platform built on the Metronic 9
 - **Tooling:** Prettier, ESLint, Vite, Tailwind CSS via `@tailwindcss/vite`
 
 ### Key Modules
+
 - **Participant Management** – profiles, medications, funding, documents, goals, contacts
 - **Staff Management** – profiles, compliance, training, contracts, timesheets, leave
 - **House Management** – house types, staff assignments, resources, calendars
@@ -32,6 +34,7 @@ InsideCare is a comprehensive care‑management platform built on the Metronic 9
 - **Activity Logging** – detailed audit trail using `json‑diff‑ts` for optimized saves
 
 ### Architecture Highlights
+
 - **Business Logic in TypeScript** – All data transformations, joins, and business rules are implemented in custom hooks and utility functions; no database‑side SQL functions or triggers are used.
 - **Optimized Save System** – The participant detail page uses `json‑diff‑ts` to send only changed fields, reducing network payloads by up to 90%.
 - **Row‑Level Security (RLS)** – Granular Supabase RLS policies enforce secure access per user role.
@@ -39,6 +42,7 @@ InsideCare is a comprehensive care‑management platform built on the Metronic 9
 - **Mobile‑First Design** – Responsive layouts with mobile‑specific optimizations (priority hiding, compact tables, touch‑friendly interactions).
 
 ### Suggested Improvements
+
 - **Consolidate Legacy Migrations** – The `migrations/old_consolidated/` folder could be archived or removed after verifying baseline schema.
 - **Strengthen TypeScript Generics** – Some hooks could benefit from stricter generic typing to improve type safety.
 - **Optimistic UI Updates** – Consider adding optimistic updates for mutations (e.g., shift assignments, checklist completions) for smoother user experience.
@@ -57,6 +61,7 @@ This project uses Supabase for authentication. Follow these steps to set up and 
 - A Supabase account and project
 
 ### Database & Migrations
+
 The database schema is managed via timestamped SQL migrations in the `migrations/` folder.
 
 - **Current Baseline:** `2026051611_baseline_schema.sql`
@@ -65,6 +70,7 @@ The database schema is managed via timestamped SQL migrations in the `migrations
 New changes to the database must be added as a new migration file following the `YYYYMMDDXX_description.sql` format, where `XX` is a sequential number for that day (starting at `00`, then `01`, `02`, etc.).
 
 ### Installation
+
 To set up the project dependencies, including those required for React 19, use the `--force` flag to resolve any dependency conflicts:
 
 ```bash

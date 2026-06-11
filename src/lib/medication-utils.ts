@@ -6,20 +6,20 @@ import { MedicationType } from '@/api/master-lists.api';
  */
 export function getDisplayMedicationTypes(
   allTypes: MedicationType[],
-  currentTypeId?: string | null
+  currentTypeId?: string | null,
 ): MedicationType[] {
-  const activeTypes = allTypes.filter(t => t.is_active);
-  
+  const activeTypes = allTypes.filter((t) => t.is_active);
+
   if (currentTypeId) {
-    const currentType = allTypes.find(t => t.id === currentTypeId);
+    const currentType = allTypes.find((t) => t.id === currentTypeId);
     if (currentType && !currentType.is_active) {
-      return [...activeTypes, currentType].sort((a, b) => 
-        a.medication_type_name.localeCompare(b.medication_type_name)
+      return [...activeTypes, currentType].sort((a, b) =>
+        a.medication_type_name.localeCompare(b.medication_type_name),
       );
     }
   }
-  
-  return activeTypes.sort((a, b) => 
-    a.medication_type_name.localeCompare(b.medication_type_name)
+
+  return activeTypes.sort((a, b) =>
+    a.medication_type_name.localeCompare(b.medication_type_name),
   );
 }

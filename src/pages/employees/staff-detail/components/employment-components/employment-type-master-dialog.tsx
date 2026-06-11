@@ -1,13 +1,30 @@
-import { useState, useMemo } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
-import { useEmploymentTypesMaster, useAddEmploymentTypeMaster, useUpdateEmploymentTypeMaster, EmploymentType } from '@/hooks/use-employment-types-master';
-import { EmploymentTypeMasterQuickAdd } from './employment-type-master-quick-add';
+import { useMemo, useState } from 'react';
+import { ArrowDown, ArrowUp, ArrowUpDown, Edit, Plus } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  EmploymentType,
+  useAddEmploymentTypeMaster,
+  useEmploymentTypesMaster,
+  useUpdateEmploymentTypeMaster,
+} from '@/hooks/use-employment-types-master';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { EmploymentTypeMasterQuickAdd } from './employment-type-master-quick-add';
 
 interface EmploymentTypeMasterDialogProps {
   open: boolean;
@@ -27,7 +44,8 @@ export function EmploymentTypeMasterDialog({
   const { mutateAsync: addEmploymentType } = useAddEmploymentTypeMaster();
   const { mutateAsync: updateEmploymentType } = useUpdateEmploymentTypeMaster();
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const [editingEmploymentType, setEditingEmploymentType] = useState<EmploymentType | null>(null);
+  const [editingEmploymentType, setEditingEmploymentType] =
+    useState<EmploymentType | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
@@ -42,9 +60,13 @@ export function EmploymentTypeMasterDialog({
   };
 
   const sortedAndFilteredEmploymentTypes = useMemo(() => {
-    const filtered = employmentTypes.filter((type) =>
-      type.employment_type_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (type.description && type.description.toLowerCase().includes(searchQuery.toLowerCase()))
+    const filtered = employmentTypes.filter(
+      (type) =>
+        type.employment_type_name
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        (type.description &&
+          type.description.toLowerCase().includes(searchQuery.toLowerCase())),
     );
 
     filtered.sort((a, b) => {
@@ -78,21 +100,33 @@ export function EmploymentTypeMasterDialog({
   };
 
   const handleToggleStatus = async (employmentType: EmploymentType) => {
-    const newStatus = employmentType.status === 'Active' ? 'Inactive' : 'Active';
+    const newStatus =
+      employmentType.status === 'Active' ? 'Inactive' : 'Active';
     try {
-      await updateEmploymentType({ id: employmentType.id, updates: { status: newStatus } });
-      toast.success(`Employment type ${newStatus === 'Active' ? 'activated' : 'deactivated'} successfully`);
+      await updateEmploymentType({
+        id: employmentType.id,
+        updates: { status: newStatus },
+      });
+      toast.success(
+        `Employment type ${newStatus === 'Active' ? 'activated' : 'deactivated'} successfully`,
+      );
       onUpdate();
     } catch (error) {
       const err = error as Error;
-      toast.error(`Failed to ${newStatus === 'Active' ? 'activate' : 'deactivate'} employment type: ` + err.message);
+      toast.error(
+        `Failed to ${newStatus === 'Active' ? 'activate' : 'deactivate'} employment type: ` +
+          err.message,
+      );
     }
   };
 
   const handleSave = async (employmentTypeData: Partial<EmploymentType>) => {
     try {
       if (editingEmploymentType) {
-        await updateEmploymentType({ id: editingEmploymentType.id, updates: employmentTypeData });
+        await updateEmploymentType({
+          id: editingEmploymentType.id,
+          updates: employmentTypeData,
+        });
         toast.success('Employment type updated successfully');
       } else {
         await addEmploymentType({
@@ -106,13 +140,20 @@ export function EmploymentTypeMasterDialog({
       onUpdate();
     } catch (error) {
       const err = error as Error;
-      toast.error(`Failed to ${editingEmploymentType ? 'update' : 'add'} employment type: ` + err.message);
+      toast.error(
+        `Failed to ${editingEmploymentType ? 'update' : 'add'} employment type: ` +
+          err.message,
+      );
     }
   };
 
   const getSortIcon = (field: SortField) => {
     if (sortField !== field) return <ArrowUpDown className="size-4" />;
-    return sortDirection === 'asc' ? <ArrowUp className="size-4" /> : <ArrowDown className="size-4" />;
+    return sortDirection === 'asc' ? (
+      <ArrowUp className="size-4" />
+    ) : (
+      <ArrowDown className="size-4" />
+    );
   };
 
   return (
@@ -179,10 +220,18 @@ export function EmploymentTypeMasterDialog({
               <TableBody>
                 {sortedAndFilteredEmploymentTypes.map((employmentType) => (
                   <TableRow key={employmentType.id}>
-                    <TableCell className="font-medium">{employmentType.employment_type_name}</TableCell>
+                    <TableCell className="font-medium">
+                      {employmentType.employment_type_name}
+                    </TableCell>
                     <TableCell>{employmentType.description || '-'}</TableCell>
                     <TableCell>
-                      <Badge variant={employmentType.status === 'Active' ? 'success' : 'secondary'}>
+                      <Badge
+                        variant={
+                          employmentType.status === 'Active'
+                            ? 'success'
+                            : 'secondary'
+                        }
+                      >
                         {employmentType.status}
                       </Badge>
                     </TableCell>
@@ -200,7 +249,9 @@ export function EmploymentTypeMasterDialog({
                           size="sm"
                           onClick={() => handleToggleStatus(employmentType)}
                         >
-                          {employmentType.status === 'Active' ? 'Deactivate' : 'Activate'}
+                          {employmentType.status === 'Active'
+                            ? 'Deactivate'
+                            : 'Activate'}
                         </Button>
                       </div>
                     </TableCell>

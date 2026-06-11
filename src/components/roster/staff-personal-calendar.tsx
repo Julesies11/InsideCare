@@ -1,16 +1,25 @@
-import { 
+import { LeaveBlock } from '@/pages/roster-board/components/staff-roster-calendar';
+import { format, isSameDay, isSameMonth } from 'date-fns';
+import {
+  Calendar as CalendarIcon,
+  ClipboardList,
+  Clock,
+  FileText,
+  MapPin,
+  Plus,
+  User,
+  Users,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Button } from '@/components/ui/button';
-import { Plus, Clock, MapPin, User, Users, Calendar as CalendarIcon, FileText, ClipboardList } from 'lucide-react';
-import { format, isSameDay, isSameMonth } from 'date-fns';
-import { ShiftCard, ShiftCardData } from './shift-card';
 import { generateMonthDays, generateWeekDays, ViewMode } from './roster-utils';
-import { LeaveBlock } from '@/pages/roster-board/components/staff-roster-calendar';
-import { cn } from '@/lib/utils';
+import { ShiftCard, ShiftCardData } from './shift-card';
 
 export interface StaffPersonalCalendarProps {
   staffId: string;
@@ -28,7 +37,13 @@ export interface StaffPersonalCalendarProps {
   onEditLeave?: (leave: LeaveBlock) => void;
 }
 
-function LeaveBlockBadge({ leave, onClick }: { leave: LeaveBlock; onClick?: () => void }) {
+function LeaveBlockBadge({
+  leave,
+  onClick,
+}: {
+  leave: LeaveBlock;
+  onClick?: () => void;
+}) {
   const isPending = leave.status === 'pending';
   const reason = leave.reason;
   return (
@@ -48,7 +63,8 @@ function LeaveBlockBadge({ leave, onClick }: { leave: LeaveBlock; onClick?: () =
       }`}
       title={`${leave.leave_type_name} (${leave.status})${leave.reason ? `: ${leave.reason}` : ''}`}
     >
-      {isPending ? '⏳' : '🏖'} {leave.leave_type_name}{reason ? ` - ${reason}` : ''}
+      {isPending ? '⏳' : '🏖'} {leave.leave_type_name}
+      {reason ? ` - ${reason}` : ''}
     </div>
   );
 }
@@ -73,7 +89,7 @@ export function StaffPersonalCalendar({
       const startA = a.start_time || '00:00';
       const startB = b.start_time || '00:00';
       if (startA !== startB) return startA.localeCompare(startB);
-      
+
       const endA = a.end_time || '00:00';
       const endB = b.end_time || '00:00';
       return endA.localeCompare(endB);
@@ -82,43 +98,52 @@ export function StaffPersonalCalendar({
 
   const getShiftsForDate = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    const filtered = shifts.filter(shift =>
-      shift.start_date && shift.start_date === dateStr
+    const filtered = shifts.filter(
+      (shift) => shift.start_date && shift.start_date === dateStr,
     );
     return sortShifts(filtered);
   };
 
   const getLeaveForDate = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    const filtered = leaveBlocks.filter(leave => {
+    const filtered = leaveBlocks.filter((leave) => {
       return dateStr >= leave.start_date && dateStr <= leave.end_date;
     });
-    
+
     // Deduplicate by ID
-    const uniqueLeave = Array.from(new Map(filtered.map(l => [l.id, l])).values());
+    const uniqueLeave = Array.from(
+      new Map(filtered.map((l) => [l.id, l])).values(),
+    );
     return uniqueLeave;
   };
 
-  const getConflictingShifts = (staffIdParam: string, date: Date, excludeShiftId?: string) => {
+  const getConflictingShifts = (
+    staffIdParam: string,
+    date: Date,
+    excludeShiftId?: string,
+  ) => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    return shifts.filter(shift => 
-      shift.staff_id === staffIdParam && 
-      shift.start_date && shift.start_date === dateStr &&
-      shift.id !== excludeShiftId
+    return shifts.filter(
+      (shift) =>
+        shift.staff_id === staffIdParam &&
+        shift.start_date &&
+        shift.start_date === dateStr &&
+        shift.id !== excludeShiftId,
     );
   };
 
   const renderShiftCardWithWarning = (
-    shift: ShiftCardData, 
-    date: Date, 
-    compact: boolean = true, 
-    showHouseName: boolean = true
+    shift: ShiftCardData,
+    date: Date,
+    compact: boolean = true,
+    showHouseName: boolean = true,
   ) => {
-    const conflictingShifts = shift.staff_id ? 
-      getConflictingShifts(shift.staff_id, date, shift.id) : [];
-    
+    const conflictingShifts = shift.staff_id
+      ? getConflictingShifts(shift.staff_id, date, shift.id)
+      : [];
+
     const hasDoubleBooking = conflictingShifts.length > 0;
-    
+
     return (
       <div key={shift.id} className={hasDoubleBooking ? 'relative' : ''}>
         {hasDoubleBooking && (
@@ -126,30 +151,45 @@ export function StaffPersonalCalendar({
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div 
-                    className={`bg-red-500 text-white text-[10px] rounded-full font-bold flex items-center justify-center cursor-help shadow-sm ${compact ? 'w-3.5 h-3.5' : 'w-4 h-4'}`} 
+                  <div
+                    className={`bg-red-500 text-white text-[10px] rounded-full font-bold flex items-center justify-center cursor-help shadow-sm ${compact ? 'w-3.5 h-3.5' : 'w-4 h-4'}`}
                   >
                     !
                   </div>
                 </TooltipTrigger>
-                <TooltipContent side="right" className="max-w-[250px] p-3 shadow-xl border-red-100">
+                <TooltipContent
+                  side="right"
+                  className="max-w-[250px] p-3 shadow-xl border-red-100"
+                >
                   <div className="space-y-2">
                     <p className="font-bold text-red-600 text-xs flex items-center gap-1.5">
-                      <span className="bg-red-100 text-red-600 size-4 rounded-full flex items-center justify-center text-[10px]">!</span>
+                      <span className="bg-red-100 text-red-600 size-4 rounded-full flex items-center justify-center text-[10px]">
+                        !
+                      </span>
                       Double Booking Warning
                     </p>
                     <p className="text-[10px] text-muted-foreground leading-tight">
                       Other shifts rostered on this day:
                     </p>
                     <ul className="space-y-2 pt-1 border-t border-red-50 mt-1">
-                      {conflictingShifts.map(conf => (
-                        <li key={conf.id} className="text-[10px] leading-tight flex flex-col gap-0.5">
+                      {conflictingShifts.map((conf) => (
+                        <li
+                          key={conf.id}
+                          className="text-[10px] leading-tight flex flex-col gap-0.5"
+                        >
                           <div className="flex items-center justify-between gap-2">
-                            <span className="font-bold text-gray-900">{conf.title || conf.shift_template}</span>
-                            <span className="text-gray-500 font-medium">{(conf.start_time || '').slice(0, 5)} - {(conf.end_time || '').slice(0, 5)}</span>
+                            <span className="font-bold text-gray-900">
+                              {conf.title || conf.shift_template}
+                            </span>
+                            <span className="text-gray-500 font-medium">
+                              {(conf.start_time || '').slice(0, 5)} -{' '}
+                              {(conf.end_time || '').slice(0, 5)}
+                            </span>
                           </div>
                           <div className="text-gray-600 italic">
-                            {conf.entry_type === 'event' ? (conf.location || 'No location') : `at ${conf.house?.house_name || 'Unknown House'}`}
+                            {conf.entry_type === 'event'
+                              ? conf.location || 'No location'
+                              : `at ${conf.house?.house_name || 'Unknown House'}`}
                           </div>
                         </li>
                       ))}
@@ -181,8 +221,11 @@ export function StaffPersonalCalendar({
     return (
       <div className="space-y-4">
         <div className="grid grid-cols-7 gap-2">
-          {weekDays.map(day => (
-            <div key={day} className="text-center font-medium text-sm p-2 uppercase tracking-tighter text-muted-foreground/60">
+          {weekDays.map((day) => (
+            <div
+              key={day}
+              className="text-center font-medium text-sm p-2 uppercase tracking-tighter text-muted-foreground/60"
+            >
               {day}
             </div>
           ))}
@@ -206,7 +249,9 @@ export function StaffPersonalCalendar({
                 } ${isToday ? 'ring-2 ring-primary border-primary/20 shadow-lg shadow-primary/5' : 'hover:border-gray-300'}`}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <div className={`text-xs font-black ${!isCurrentMonth ? 'text-muted-foreground' : (isToday ? 'text-primary' : 'text-gray-500')}`}>
+                  <div
+                    className={`text-xs font-black ${!isCurrentMonth ? 'text-muted-foreground' : isToday ? 'text-primary' : 'text-gray-500'}`}
+                  >
                     {format(day, 'd')}
                   </div>
                   {canEdit && isCurrentMonth && (
@@ -224,15 +269,17 @@ export function StaffPersonalCalendar({
                   )}
                 </div>
                 <div className="space-y-2">
-                  {getLeaveForDate(day).map(leave => (
-                    <LeaveBlockBadge 
-                      key={leave.id} 
-                      leave={leave} 
-                      onClick={onEditLeave ? () => onEditLeave(leave) : undefined}
+                  {getLeaveForDate(day).map((leave) => (
+                    <LeaveBlockBadge
+                      key={leave.id}
+                      leave={leave}
+                      onClick={
+                        onEditLeave ? () => onEditLeave(leave) : undefined
+                      }
                     />
                   ))}
-                  
-                  {dayShifts.map(shift => (
+
+                  {dayShifts.map((shift) => (
                     <div key={shift.id} onClick={(e) => e.stopPropagation()}>
                       {renderShiftCardWithWarning(shift, day, true, true)}
                     </div>
@@ -248,26 +295,28 @@ export function StaffPersonalCalendar({
 
   const renderWeekView = (days: Date[]) => {
     return (
-      <div className={cn(
-        "grid gap-4",
-        days.length === 1 ? "grid-cols-1" : "grid-cols-1 lg:grid-cols-7"
-      )}>
+      <div
+        className={cn(
+          'grid gap-4',
+          days.length === 1 ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-7',
+        )}
+      >
         {days.map((day, index) => {
           const dayShifts = getShiftsForDate(day);
           const isToday = isSameDay(day, new Date());
 
           return (
             <div key={index} className="space-y-3">
-              <div 
+              <div
                 onClick={() => canEdit && onAddShift(day)}
                 className={`text-center p-3 rounded-xl group relative border transition-all cursor-pointer ${isToday ? 'bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20' : 'bg-muted/30 border-gray-100'}`}
               >
-                <p className={`text-[10px] font-black uppercase tracking-widest ${isToday ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
+                <p
+                  className={`text-[10px] font-black uppercase tracking-widest ${isToday ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}
+                >
                   {format(day, 'EEE')}
                 </p>
-                <p className="text-xl font-black">
-                  {format(day, 'd')}
-                </p>
+                <p className="text-xl font-black">{format(day, 'd')}</p>
                 {canEdit && (
                   <Button
                     variant="ghost"
@@ -282,28 +331,31 @@ export function StaffPersonalCalendar({
                   </Button>
                 )}
               </div>
-              
-              <div 
+
+              <div
                 className="space-y-2 min-h-[100px] cursor-pointer"
                 onClick={() => canEdit && onAddShift(day)}
               >
-                {getLeaveForDate(day).map(leave => (
-                  <LeaveBlockBadge 
-                    key={leave.id} 
-                    leave={leave} 
+                {getLeaveForDate(day).map((leave) => (
+                  <LeaveBlockBadge
+                    key={leave.id}
+                    leave={leave}
                     onClick={onEditLeave ? () => onEditLeave(leave) : undefined}
                   />
                 ))}
-                {dayShifts.map(shift => (
+                {dayShifts.map((shift) => (
                   <div key={shift.id} onClick={(e) => e.stopPropagation()}>
                     {renderShiftCardWithWarning(shift, day, false, true)}
                   </div>
                 ))}
-                {dayShifts.length === 0 && getLeaveForDate(day).length === 0 && (
-                  <div className="text-center py-8 bg-gray-50/50 rounded-xl border border-dashed border-gray-100">
-                    <span className="text-[10px] font-medium text-muted-foreground italic uppercase tracking-widest opacity-40">No shifts</span>
-                  </div>
-                )}
+                {dayShifts.length === 0 &&
+                  getLeaveForDate(day).length === 0 && (
+                    <div className="text-center py-8 bg-gray-50/50 rounded-xl border border-dashed border-gray-100">
+                      <span className="text-[10px] font-medium text-muted-foreground italic uppercase tracking-widest opacity-40">
+                        No shifts
+                      </span>
+                    </div>
+                  )}
               </div>
             </div>
           );
@@ -322,13 +374,11 @@ export function StaffPersonalCalendar({
 
   return (
     <div className="space-y-4">
-      {viewMode === 'today' ? (
-        renderWeekView([currentDate])
-      ) : viewMode === 'week' ? (
-        renderWeekView(generateWeekDays(currentDate))
-      ) : (
-        renderMonthView()
-      )}
+      {viewMode === 'today'
+        ? renderWeekView([currentDate])
+        : viewMode === 'week'
+          ? renderWeekView(generateWeekDays(currentDate))
+          : renderMonthView()}
     </div>
   );
 }

@@ -5,19 +5,22 @@
  * house_assignments, the map should correctly compute which staff belong to each house
  * based on active assignment dates.
  */
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 // ─── Pure helper that mirrors the useMemo logic in StaffRosterCalendar ────────
 function buildHouseStaffMap(
   houses: Array<{ id: string; house_name: string }>,
-  staff: Array<{ id: string; house_assignments?: Array<{ house_id?: string; end_date?: string | null }> }>
+  staff: Array<{
+    id: string;
+    house_assignments?: Array<{ house_id?: string; end_date?: string | null }>;
+  }>,
 ): Map<string, typeof staff> {
   const todayStr = new Date().toISOString().split('T')[0];
   const map = new Map<string, typeof staff>();
-  houses.forEach(house => {
-    const assigned = staff.filter(s => {
+  houses.forEach((house) => {
+    const assigned = staff.filter((s) => {
       const assignments = s.house_assignments || [];
-      return assignments.some(a => {
+      return assignments.some((a) => {
         const assignmentHouseId = (a.house_id || '').toLowerCase();
         const isTargetHouse = assignmentHouseId === house.id.toLowerCase();
         const isAssignmentActive = !a.end_date || a.end_date >= todayStr;
@@ -128,7 +131,7 @@ describe('houseStaffMap memoization logic', () => {
     const map = buildHouseStaffMap([house1], [staffA, staffB, staffC]);
     // staffA (no end) + staffB (future) = 2 active; staffC (past) excluded
     expect(map.get('house-1')).toHaveLength(2);
-    const ids = map.get('house-1')!.map(s => s.id);
+    const ids = map.get('house-1')!.map((s) => s.id);
     expect(ids).toContain('staff-a');
     expect(ids).toContain('staff-b');
     expect(ids).not.toContain('staff-c');

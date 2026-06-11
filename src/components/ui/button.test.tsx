@@ -1,28 +1,34 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 import { Button } from './button';
 
 describe('Button', () => {
   it('renders correctly with children', () => {
     render(<Button>Click me</Button>);
-    expect(screen.getByRole('button', { name: /click me/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /click me/i }),
+    ).toBeInTheDocument();
   });
 
   it('handles click events', () => {
     const handleClick = vi.fn();
     render(<Button onClick={handleClick}>Click me</Button>);
-    
+
     fireEvent.click(screen.getByRole('button', { name: /click me/i }));
     expect(handleClick).toHaveBeenCalledTimes(1);
   });
 
   it('is disabled when the disabled prop is true', () => {
     const handleClick = vi.fn();
-    render(<Button onClick={handleClick} disabled={true}>Click me</Button>);
-    
+    render(
+      <Button onClick={handleClick} disabled={true}>
+        Click me
+      </Button>,
+    );
+
     const button = screen.getByRole('button', { name: /click me/i });
     expect(button).toBeDisabled();
-    
+
     fireEvent.click(button);
     expect(handleClick).not.toHaveBeenCalled();
   });

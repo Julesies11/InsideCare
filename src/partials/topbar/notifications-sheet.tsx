@@ -1,16 +1,19 @@
 import { ReactNode } from 'react';
-import { useNavigate } from 'react-router';
 import { formatDistanceToNow } from 'date-fns';
-import { 
-  Bell, 
-  CheckCircle, 
-  XCircle, 
-  ClipboardList, 
-  Umbrella, 
-  AlertTriangle, 
-  Stethoscope, 
-  CalendarDays 
+import {
+  AlertTriangle,
+  Bell,
+  CalendarDays,
+  CheckCircle,
+  ClipboardList,
+  Stethoscope,
+  Umbrella,
+  XCircle,
 } from 'lucide-react';
+import { useNavigate } from 'react-router';
+import { ROUTES } from '@/config/routes.config';
+import { cn } from '@/lib/utils';
+import { AppNotification, useNotifications } from '@/hooks/useNotifications';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
@@ -22,9 +25,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { cn } from '@/lib/utils';
-import { useNotifications, AppNotification } from '@/hooks/useNotifications';
-import { ROUTES } from '@/config/routes.config';
 
 const TYPE_ICON: Record<string, React.ElementType> = {
   timesheet_approved: CheckCircle,
@@ -60,24 +60,32 @@ const TYPE_COLOR: Record<string, string> = {
   shift_cancelled: 'text-destructive',
 };
 
-function NotificationItem({ notification, onRead }: { notification: AppNotification; onRead: (id: string) => void }) {
+function NotificationItem({
+  notification,
+  onRead,
+}: {
+  notification: AppNotification;
+  onRead: (id: string) => void;
+}) {
   const navigate = useNavigate();
   const Icon = TYPE_ICON[notification.type] ?? Bell;
   const iconColor = TYPE_COLOR[notification.type] ?? 'text-muted-foreground';
 
   const handleClick = () => {
     if (!notification.is_read) onRead(notification.id);
-    
+
     if (notification.link) {
       let targetPath = notification.link;
-      
+
       // If metadata contains tab, append it to URL for deep linking
       if (notification.metadata?.tab) {
         const separator = targetPath.includes('?') ? '&' : '?';
         targetPath += `${separator}tab=${notification.metadata.tab}`;
       }
-      
-      navigate(targetPath, { state: { notificationMetadata: notification.metadata } });
+
+      navigate(targetPath, {
+        state: { notificationMetadata: notification.metadata },
+      });
     }
   };
 
@@ -97,10 +105,14 @@ function NotificationItem({ notification, onRead }: { notification: AppNotificat
           {notification.title}
         </p>
         {notification.body && (
-          <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{notification.body}</p>
+          <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
+            {notification.body}
+          </p>
         )}
         <p className="text-xs text-muted-foreground mt-1">
-          {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+          {formatDistanceToNow(new Date(notification.created_at), {
+            addSuffix: true,
+          })}
         </p>
       </div>
       {!notification.is_read && (
@@ -111,7 +123,8 @@ function NotificationItem({ notification, onRead }: { notification: AppNotificat
 }
 
 export function NotificationsSheet({ trigger }: { trigger: ReactNode }) {
-  const { notifications, loading, unreadCount, markAllRead, markRead } = useNotifications();
+  const { notifications, loading, unreadCount, markAllRead, markRead } =
+    useNotifications();
   const navigate = useNavigate();
 
   return (
@@ -139,12 +152,18 @@ export function NotificationsSheet({ trigger }: { trigger: ReactNode }) {
             ) : notifications.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 gap-2">
                 <Bell className="size-8 text-muted-foreground/40" />
-                <p className="text-sm text-muted-foreground">No notifications yet</p>
+                <p className="text-sm text-muted-foreground">
+                  No notifications yet
+                </p>
               </div>
             ) : (
               <div className="divide-y divide-border">
                 {notifications.map((n) => (
-                  <NotificationItem key={n.id} notification={n} onRead={markRead} />
+                  <NotificationItem
+                    key={n.id}
+                    notification={n}
+                    onRead={markRead}
+                  />
                 ))}
               </div>
             )}

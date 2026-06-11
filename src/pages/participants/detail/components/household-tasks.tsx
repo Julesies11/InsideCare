@@ -21,11 +21,15 @@ export function HouseholdTasks({
       <CardContent className="grid gap-5">
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <Label className="flex w-full max-w-56">Household Support Needs</Label>
+            <Label className="flex w-full max-w-56">
+              Household Support Needs
+            </Label>
             <Textarea
               id="household_support"
               value={formData.household_support || ''}
-              onChange={(e) => onFormChange('household_support', e.target.value)}
+              onChange={(e) =>
+                onFormChange('household_support', e.target.value)
+              }
               rows={5}
               placeholder="Describe household tasks support needs..."
               disabled={!canEdit}

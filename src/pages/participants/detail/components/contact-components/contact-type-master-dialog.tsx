@@ -1,14 +1,30 @@
-import { useState, useMemo } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
-import { useContactTypesMaster, useAddContactTypeMaster, useUpdateContactTypeMaster } from '@/hooks/use-contact-types-master';
+import { useMemo, useState } from 'react';
 import { ContactTypeMaster } from '@/models/contact-type-master';
-import { ContactTypeMasterQuickAdd } from './contact-type-master-quick-add';
+import { ArrowDown, ArrowUp, ArrowUpDown, Edit, Plus } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  useAddContactTypeMaster,
+  useContactTypesMaster,
+  useUpdateContactTypeMaster,
+} from '@/hooks/use-contact-types-master';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { ContactTypeMasterQuickAdd } from './contact-type-master-quick-add';
 
 interface ContactTypeMasterDialogProps {
   open: boolean;
@@ -24,11 +40,13 @@ export function ContactTypeMasterDialog({
   onClose,
   onUpdate,
 }: ContactTypeMasterDialogProps) {
-  const { data: contactTypes = [], isLoading: loading } = useContactTypesMaster();
+  const { data: contactTypes = [], isLoading: loading } =
+    useContactTypesMaster();
   const { mutateAsync: addContactType } = useAddContactTypeMaster();
   const { mutateAsync: updateContactType } = useUpdateContactTypeMaster();
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const [editingContactType, setEditingContactType] = useState<ContactTypeMaster | null>(null);
+  const [editingContactType, setEditingContactType] =
+    useState<ContactTypeMaster | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState<SortField>('contact_type_name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
@@ -44,7 +62,7 @@ export function ContactTypeMasterDialog({
 
   const sortedAndFilteredContactTypes = useMemo(() => {
     const filtered = contactTypes.filter((ct) =>
-      ct.contact_type_name.toLowerCase().includes(searchQuery.toLowerCase())
+      ct.contact_type_name.toLowerCase().includes(searchQuery.toLowerCase()),
     );
 
     filtered.sort((a, b) => {
@@ -80,19 +98,32 @@ export function ContactTypeMasterDialog({
   const handleToggleStatus = async (contactType: ContactTypeMaster) => {
     const newStatus = !contactType.is_active;
     try {
-      await updateContactType({ id: contactType.id, updates: { is_active: newStatus }, oldContactType: contactType });
-      toast.success(`Contact type ${newStatus ? 'activated' : 'deactivated'} successfully`);
+      await updateContactType({
+        id: contactType.id,
+        updates: { is_active: newStatus },
+        oldContactType: contactType,
+      });
+      toast.success(
+        `Contact type ${newStatus ? 'activated' : 'deactivated'} successfully`,
+      );
       onUpdate();
     } catch (error) {
       const err = error as Error;
-      toast.error(`Failed to ${newStatus ? 'activate' : 'deactivate'} contact type: ` + err.message);
+      toast.error(
+        `Failed to ${newStatus ? 'activate' : 'deactivate'} contact type: ` +
+          err.message,
+      );
     }
   };
 
   const handleSave = async (contactTypeData: Partial<ContactTypeMaster>) => {
     try {
       if (editingContactType) {
-        await updateContactType({ id: editingContactType.id, updates: contactTypeData, oldContactType: editingContactType });
+        await updateContactType({
+          id: editingContactType.id,
+          updates: contactTypeData,
+          oldContactType: editingContactType,
+        });
         toast.success('Contact type updated successfully');
       } else {
         await addContactType({
@@ -105,21 +136,30 @@ export function ContactTypeMasterDialog({
       onUpdate();
     } catch (error) {
       const err = error as Error;
-      toast.error(`Failed to ${editingContactType ? 'update' : 'add'} contact type: ` + err.message);
+      toast.error(
+        `Failed to ${editingContactType ? 'update' : 'add'} contact type: ` +
+          err.message,
+      );
     }
   };
 
   const SortIcon = ({ field }: { field: SortField }) => {
-    if (sortField !== field) return <ArrowUpDown className="size-4 ms-1 inline opacity-30" />;
-    return sortDirection === 'asc' ? 
-      <ArrowUp className="size-4 ms-1 inline" /> : 
-      <ArrowDown className="size-4 ms-1 inline" />;
+    if (sortField !== field)
+      return <ArrowUpDown className="size-4 ms-1 inline opacity-30" />;
+    return sortDirection === 'asc' ? (
+      <ArrowUp className="size-4 ms-1 inline" />
+    ) : (
+      <ArrowDown className="size-4 ms-1 inline" />
+    );
   };
 
   return (
     <>
       <Dialog open={open} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl h-[80vh] flex flex-col" style={{ zIndex: 60 }}>
+        <DialogContent
+          className="max-w-4xl h-[80vh] flex flex-col"
+          style={{ zIndex: 60 }}
+        >
           <DialogHeader>
             <DialogTitle>Manage Contact Types</DialogTitle>
           </DialogHeader>
@@ -131,7 +171,12 @@ export function ContactTypeMasterDialog({
               onChange={(e) => setSearchQuery(e.target.value)}
               className="max-w-xs"
             />
-            <Button variant="secondary" size="sm" className="border border-gray-300" onClick={handleAdd}>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="border border-gray-300"
+              onClick={handleAdd}
+            >
               <Plus className="size-4 me-1.5" />
               Add Contact Type
             </Button>
@@ -139,23 +184,27 @@ export function ContactTypeMasterDialog({
 
           <div className="flex-1 overflow-auto min-h-0">
             {loading ? (
-              <div className="text-center py-8 text-muted-foreground">Loading contact types...</div>
+              <div className="text-center py-8 text-muted-foreground">
+                Loading contact types...
+              </div>
             ) : sortedAndFilteredContactTypes.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                {searchQuery ? 'No contact types found matching your search' : 'No contact types available'}
+                {searchQuery
+                  ? 'No contact types found matching your search'
+                  : 'No contact types available'}
               </div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead 
+                    <TableHead
                       className="cursor-pointer select-none"
                       onClick={() => handleSort('contact_type_name')}
                     >
                       Contact Type Name
                       <SortIcon field="contact_type_name" />
                     </TableHead>
-                    <TableHead 
+                    <TableHead
                       className="cursor-pointer select-none"
                       onClick={() => handleSort('is_active')}
                     >
@@ -168,22 +217,34 @@ export function ContactTypeMasterDialog({
                 <TableBody>
                   {sortedAndFilteredContactTypes.map((contactType) => (
                     <TableRow key={contactType.id}>
-                      <TableCell className="font-medium">{contactType.contact_type_name}</TableCell>
+                      <TableCell className="font-medium">
+                        {contactType.contact_type_name}
+                      </TableCell>
                       <TableCell>
-                        <Badge variant={contactType.is_active ? 'success' : 'secondary'}>
+                        <Badge
+                          variant={
+                            contactType.is_active ? 'success' : 'secondary'
+                          }
+                        >
                           {contactType.is_active ? 'Active' : 'Inactive'}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex justify-end gap-1">
-                          <Button variant="ghost" size="sm" onClick={() => handleEdit(contactType)}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEdit(contactType)}
+                          >
                             <Edit className="size-4" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => handleToggleStatus(contactType)}
-                            title={contactType.is_active ? 'Deactivate' : 'Activate'}
+                            title={
+                              contactType.is_active ? 'Deactivate' : 'Activate'
+                            }
                           >
                             {contactType.is_active ? 'Deactivate' : 'Activate'}
                           </Button>

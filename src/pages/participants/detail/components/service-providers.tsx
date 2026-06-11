@@ -1,15 +1,29 @@
 import { useState } from 'react';
+import { Building2, Clock, Edit, Plus, Trash2 } from 'lucide-react';
+import { useParticipantProviders } from '@/hooks/use-participant-providers';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Plus, Edit, Trash2, Building2, Clock } from 'lucide-react';
-import { useParticipantProviders } from '@/hooks/use-participant-providers';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Textarea } from '@/components/ui/textarea';
 
 interface ServiceProvidersProps {
   participantId?: string;
@@ -19,15 +33,22 @@ interface ServiceProvidersProps {
   onPendingChangesChange?: (changes: ParticipantPendingChanges) => void;
 }
 
-export function ServiceProviders({ 
-  participantId, 
-  canAdd, 
+export function ServiceProviders({
+  participantId,
+  canAdd,
   canDelete,
   pendingChanges,
-  onPendingChangesChange 
+  onPendingChangesChange,
 }: ServiceProvidersProps) {
   const [showDialog, setShowDialog] = useState(false);
-  const [editingProvider, setEditingProvider] = useState<{ id?: string; tempId?: string; provider_name: string; provider_type?: string; provider_description?: string; is_active: boolean } | null>(null);
+  const [editingProvider, setEditingProvider] = useState<{
+    id?: string;
+    tempId?: string;
+    provider_name: string;
+    provider_type?: string;
+    provider_description?: string;
+    is_active: boolean;
+  } | null>(null);
   const [formData, setFormData] = useState({
     provider_name: '',
     provider_type: '',
@@ -35,7 +56,8 @@ export function ServiceProviders({
     is_active: true,
   });
 
-  const { data: providers = [], isLoading: loading } = useParticipantProviders(participantId);
+  const { data: providers = [], isLoading: loading } =
+    useParticipantProviders(participantId);
 
   const handleAdd = () => {
     setEditingProvider(null);
@@ -48,7 +70,14 @@ export function ServiceProviders({
     setShowDialog(true);
   };
 
-  const handleEdit = (provider: { id?: string; tempId?: string; provider_name: string; provider_type?: string; provider_description?: string; is_active: boolean }) => {
+  const handleEdit = (provider: {
+    id?: string;
+    tempId?: string;
+    provider_name: string;
+    provider_type?: string;
+    provider_description?: string;
+    is_active: boolean;
+  }) => {
     setEditingProvider(provider);
     setFormData({
       provider_name: provider.provider_name,
@@ -73,8 +102,10 @@ export function ServiceProviders({
           ...pendingChanges,
           serviceProviders: {
             ...pendingChanges.serviceProviders,
-            toAdd: pendingChanges.serviceProviders.toAdd.map(prov =>
-              prov.tempId === editingProvider.tempId ? { ...prov, ...formData } : prov
+            toAdd: pendingChanges.serviceProviders.toAdd.map((prov) =>
+              prov.tempId === editingProvider.tempId
+                ? { ...prov, ...formData }
+                : prov,
             ),
           },
         };
@@ -86,7 +117,9 @@ export function ServiceProviders({
           serviceProviders: {
             ...pendingChanges.serviceProviders,
             toUpdate: [
-              ...pendingChanges.serviceProviders.toUpdate.filter(p => p.id !== editingProvider.id),
+              ...pendingChanges.serviceProviders.toUpdate.filter(
+                (p) => p.id !== editingProvider.id,
+              ),
               { id: editingProvider.id, ...formData },
             ],
           },
@@ -121,7 +154,11 @@ export function ServiceProviders({
     }
 
     // Otherwise, mark existing provider for deletion
-    if (confirm('Mark this provider for deletion? It will be removed when you click Save Changes.')) {
+    if (
+      confirm(
+        'Mark this provider for deletion? It will be removed when you click Save Changes.',
+      )
+    ) {
       const newPending = {
         ...pendingChanges,
         serviceProviders: {
@@ -140,7 +177,9 @@ export function ServiceProviders({
       ...pendingChanges,
       serviceProviders: {
         ...pendingChanges.serviceProviders,
-        toAdd: pendingChanges.serviceProviders.toAdd.filter(prov => prov.tempId !== tempId),
+        toAdd: pendingChanges.serviceProviders.toAdd.filter(
+          (prov) => prov.tempId !== tempId,
+        ),
       },
     };
     onPendingChangesChange(newPending);
@@ -153,7 +192,9 @@ export function ServiceProviders({
       ...pendingChanges,
       serviceProviders: {
         ...pendingChanges.serviceProviders,
-        toUpdate: pendingChanges.serviceProviders.toUpdate.filter(prov => prov.id !== id),
+        toUpdate: pendingChanges.serviceProviders.toUpdate.filter(
+          (prov) => prov.id !== id,
+        ),
       },
     };
     onPendingChangesChange(newPending);
@@ -166,7 +207,9 @@ export function ServiceProviders({
       ...pendingChanges,
       serviceProviders: {
         ...pendingChanges.serviceProviders,
-        toDelete: pendingChanges.serviceProviders.toDelete.filter(provId => provId !== id),
+        toDelete: pendingChanges.serviceProviders.toDelete.filter(
+          (provId) => provId !== id,
+        ),
       },
     };
     onPendingChangesChange(newPending);
@@ -174,7 +217,9 @@ export function ServiceProviders({
 
   // Combine existing providers with pending adds, filter out pending deletes
   const visibleProviders = [
-    ...providers.filter(prov => !pendingChanges?.serviceProviders.toDelete.includes(prov.id)),
+    ...providers.filter(
+      (prov) => !pendingChanges?.serviceProviders.toDelete.includes(prov.id),
+    ),
     ...(pendingChanges?.serviceProviders.toAdd || []),
   ];
 
@@ -183,16 +228,26 @@ export function ServiceProviders({
       <Card className="pb-2.5" id="providers">
         <CardHeader>
           <CardTitle>Service Providers</CardTitle>
-          <Button variant="secondary" size="sm" className="border border-gray-300" onClick={handleAdd} disabled={!participantId || !canAdd}>
+          <Button
+            variant="secondary"
+            size="sm"
+            className="border border-gray-300"
+            onClick={handleAdd}
+            disabled={!participantId || !canAdd}
+          >
             <Plus className="size-4 me-1.5" />
             Add Provider
           </Button>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="text-center py-8 text-muted-foreground">Loading providers...</div>
+            <div className="text-center py-8 text-muted-foreground">
+              Loading providers...
+            </div>
           ) : visibleProviders.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">No service providers recorded</div>
+            <div className="text-center py-8 text-muted-foreground">
+              No service providers recorded
+            </div>
           ) : (
             <Table>
               <TableHeader>
@@ -207,22 +262,34 @@ export function ServiceProviders({
               <TableBody>
                 {visibleProviders.map((provider) => {
                   const isPendingAdd = 'tempId' in provider;
-                  const isPendingUpdate = pendingChanges?.serviceProviders.toUpdate.some(p => p.id === provider.id);
-                  const isPendingDelete = pendingChanges?.serviceProviders.toDelete.includes(provider.id);
-                  
+                  const isPendingUpdate =
+                    pendingChanges?.serviceProviders.toUpdate.some(
+                      (p) => p.id === provider.id,
+                    );
+                  const isPendingDelete =
+                    pendingChanges?.serviceProviders.toDelete.includes(
+                      provider.id,
+                    );
+
                   return (
-                    <TableRow 
-                      key={provider.id || provider.tempId} 
+                    <TableRow
+                      key={provider.id || provider.tempId}
                       className={
-                        isPendingAdd ? 'bg-primary/5' : 
-                        isPendingDelete ? 'opacity-50 bg-destructive/5' : 
-                        isPendingUpdate ? 'bg-warning/5' : ''
+                        isPendingAdd
+                          ? 'bg-primary/5'
+                          : isPendingDelete
+                            ? 'opacity-50 bg-destructive/5'
+                            : isPendingUpdate
+                              ? 'bg-warning/5'
+                              : ''
                       }
                     >
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Building2 className="size-4 text-muted-foreground" />
-                          <span className={`font-medium ${isPendingDelete ? 'line-through' : ''}`}>
+                          <span
+                            className={`font-medium ${isPendingDelete ? 'line-through' : ''}`}
+                          >
                             {provider.provider_name}
                           </span>
                           {isPendingAdd && (
@@ -250,7 +317,9 @@ export function ServiceProviders({
                         {provider.provider_description || 'N/A'}
                       </TableCell>
                       <TableCell>
-                        <Badge variant={provider.is_active ? 'success' : 'secondary'}>
+                        <Badge
+                          variant={provider.is_active ? 'success' : 'secondary'}
+                        >
                           {provider.is_active ? 'Active' : 'Inactive'}
                         </Badge>
                       </TableCell>
@@ -258,7 +327,12 @@ export function ServiceProviders({
                         <div className="flex justify-end gap-1">
                           {!isPendingDelete && (
                             <>
-                              <Button variant="ghost" size="sm" onClick={() => handleEdit(provider)} disabled={!canAdd}>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEdit(provider)}
+                                disabled={!canAdd}
+                              >
                                 <Edit className="size-4" />
                               </Button>
                               {canDelete && (
@@ -277,7 +351,9 @@ export function ServiceProviders({
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleCancelPendingAdd(provider.tempId!)}
+                              onClick={() =>
+                                handleCancelPendingAdd(provider.tempId!)
+                              }
                             >
                               Remove
                             </Button>
@@ -286,7 +362,9 @@ export function ServiceProviders({
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleCancelPendingUpdate(provider.id)}
+                              onClick={() =>
+                                handleCancelPendingUpdate(provider.id)
+                              }
                             >
                               Undo
                             </Button>
@@ -295,7 +373,9 @@ export function ServiceProviders({
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleCancelPendingDelete(provider.id)}
+                              onClick={() =>
+                                handleCancelPendingDelete(provider.id)
+                              }
                             >
                               Undo
                             </Button>
@@ -314,7 +394,9 @@ export function ServiceProviders({
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingProvider ? 'Edit Provider' : 'Add Provider'}</DialogTitle>
+            <DialogTitle>
+              {editingProvider ? 'Edit Provider' : 'Add Provider'}
+            </DialogTitle>
             <DialogDescription>
               {editingProvider
                 ? 'Update provider details'
@@ -327,7 +409,9 @@ export function ServiceProviders({
               <Input
                 id="provider_name"
                 value={formData.provider_name || ''}
-                onChange={(e) => setFormData({ ...formData, provider_name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, provider_name: e.target.value })
+                }
               />
             </div>
             <div className="space-y-2">
@@ -335,7 +419,9 @@ export function ServiceProviders({
               <Input
                 id="provider_type"
                 value={formData.provider_type || ''}
-                onChange={(e) => setFormData({ ...formData, provider_type: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, provider_type: e.target.value })
+                }
                 placeholder="e.g., GP, Physiotherapist"
               />
             </div>
@@ -345,7 +431,10 @@ export function ServiceProviders({
                 id="provider_description"
                 value={formData.provider_description || ''}
                 onChange={(e) =>
-                  setFormData({ ...formData, provider_description: e.target.value })
+                  setFormData({
+                    ...formData,
+                    provider_description: e.target.value,
+                  })
                 }
                 rows={3}
               />
@@ -354,7 +443,9 @@ export function ServiceProviders({
               <Switch
                 id="is_active_provider"
                 checked={formData.is_active}
-                onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, is_active: checked })
+                }
               />
               <Label htmlFor="is_active_provider">Active</Label>
             </div>
@@ -363,7 +454,9 @@ export function ServiceProviders({
             <Button variant="outline" onClick={() => setShowDialog(false)}>
               Cancel
             </Button>
-            <Button variant="primary" onClick={handleSave}>Save</Button>
+            <Button variant="primary" onClick={handleSave}>
+              Save
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

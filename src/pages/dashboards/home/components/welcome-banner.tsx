@@ -10,7 +10,9 @@ export function WelcomeBanner() {
           </div>
           <div>
             <h2 className="text-xl font-medium mb-1">Welcome to InsideCare</h2>
-            <p className="text-blue-100 text-sm">Making a difference, one step at a time</p>
+            <p className="text-blue-100 text-sm">
+              Making a difference, one step at a time
+            </p>
           </div>
         </div>
         <Sparkles className="size-8 text-white/60" />

@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { generateIncidentReferenceId } from './incident-utils';
 
 describe('generateIncidentReferenceId', () => {
@@ -6,7 +6,7 @@ describe('generateIncidentReferenceId', () => {
     const result = generateIncidentReferenceId({
       incidentDate: '2026-06-08T14:22:00.000Z',
       participantName: 'John Doe',
-      orgPrefix: 'INC'
+      orgPrefix: 'INC',
     });
     expect(result).toBe('INC-20260608-2222-JD');
   });
@@ -15,7 +15,7 @@ describe('generateIncidentReferenceId', () => {
     const result = generateIncidentReferenceId({
       incidentDate: '2026-06-08T14:22:00.000Z',
       participantName: '',
-      orgPrefix: 'INC'
+      orgPrefix: 'INC',
     });
     expect(result).toBe('INC-20260608-2222-GEN');
   });
@@ -24,7 +24,7 @@ describe('generateIncidentReferenceId', () => {
     const result = generateIncidentReferenceId({
       incidentDate: 'invalid-date',
       participantName: 'John Doe',
-      orgPrefix: 'INC'
+      orgPrefix: 'INC',
     });
     expect(result).toBe('INC-00000000-0000-GEN');
   });
@@ -33,7 +33,7 @@ describe('generateIncidentReferenceId', () => {
     const result = generateIncidentReferenceId({
       incidentDate: '2026-06-08T10:05:00.000Z',
       participantName: 'Jane Smith',
-      orgPrefix: 'TEST'
+      orgPrefix: 'TEST',
     });
     expect(result).toBe('TEST-20260608-1805-JS');
   });

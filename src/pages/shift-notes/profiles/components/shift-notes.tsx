@@ -11,12 +11,14 @@ import {
   SortingState,
   useReactTable,
 } from '@tanstack/react-table';
-import {
-  Filter,
-  Search,
-  X,
-  House as HouseIcon,
-} from 'lucide-react';
+import { format } from 'date-fns';
+import { Filter, House as HouseIcon, Search, X } from 'lucide-react';
+import { Link, useLocation } from 'react-router';
+import { ROUTES } from '@/config/routes.config';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
+import { useHouses } from '@/hooks/use-houses';
+import { ShiftNote, useShiftNotes } from '@/hooks/use-shift-notes';
+import { useStaff } from '@/hooks/use-staff';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -39,14 +41,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { useShiftNotes, ShiftNote } from '@/hooks/use-shift-notes';
-import { useHouses } from '@/hooks/use-houses';
-import { useStaff } from '@/hooks/use-staff';
-import { Link, useLocation } from 'react-router';
-import { format } from 'date-fns';
-import { ROUTES } from '@/config/routes.config';
 import { SecureAvatar } from '@/components/ui/secure-avatar';
-import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 
 const getInitials = (name?: string) => {
   if (!name) return '??';
@@ -75,13 +70,13 @@ const ShiftNotes = () => {
 
   const handleHouseChange = (checked: boolean, houseId: string) => {
     setSelectedHouses((prev) =>
-      checked ? [...prev, houseId] : prev.filter((id) => id !== houseId)
+      checked ? [...prev, houseId] : prev.filter((id) => id !== houseId),
     );
   };
 
   const handleStaffChange = (checked: boolean, staffId: string) => {
     setSelectedStaff((prev) =>
-      checked ? [...prev, staffId] : prev.filter((id) => id !== staffId)
+      checked ? [...prev, staffId] : prev.filter((id) => id !== staffId),
     );
   };
 
@@ -102,9 +97,14 @@ const ShiftNotes = () => {
       const searchLower = searchQuery.toLowerCase();
       const matchesSearch =
         !searchQuery ||
-        (item.participant?.participant_name && item.participant.participant_name.toLowerCase().includes(searchLower)) ||
-        (item.staff?.staff_name && item.staff.staff_name.toLowerCase().includes(searchLower)) ||
-        (item.house?.house_name && item.house.house_name.toLowerCase().includes(searchLower)) ||
+        (item.participant?.participant_name &&
+          item.participant.participant_name
+            .toLowerCase()
+            .includes(searchLower)) ||
+        (item.staff?.staff_name &&
+          item.staff.staff_name.toLowerCase().includes(searchLower)) ||
+        (item.house?.house_name &&
+          item.house.house_name.toLowerCase().includes(searchLower)) ||
         (item.notes && item.notes.toLowerCase().includes(searchLower)) ||
         (item.full_note && item.full_note.toLowerCase().includes(searchLower));
 
@@ -114,22 +114,28 @@ const ShiftNotes = () => {
 
   // Count of shift notes per house
   const houseCounts = useMemo(() => {
-    return shiftNotes.reduce((acc, item) => {
-      if (item.house_id) {
-        acc[item.house_id] = (acc[item.house_id] || 0) + 1;
-      }
-      return acc;
-    }, {} as Record<string, number>);
+    return shiftNotes.reduce(
+      (acc, item) => {
+        if (item.house_id) {
+          acc[item.house_id] = (acc[item.house_id] || 0) + 1;
+        }
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
   }, [shiftNotes]);
 
   // Count of shift notes per staff
   const staffCounts = useMemo(() => {
-    return shiftNotes.reduce((acc, item) => {
-      if (item.staff_id) {
-        acc[item.staff_id] = (acc[item.staff_id] || 0) + 1;
-      }
-      return acc;
-    }, {} as Record<string, number>);
+    return shiftNotes.reduce(
+      (acc, item) => {
+        if (item.staff_id) {
+          acc[item.staff_id] = (acc[item.staff_id] || 0) + 1;
+        }
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
   }, [shiftNotes]);
 
   const columns = useMemo<ColumnDef<ShiftNote>[]>(
@@ -141,7 +147,7 @@ const ShiftNotes = () => {
           <DataGridColumnHeader title="Date" column={column} />
         ),
         cell: ({ row }) => (
-          <Link 
+          <Link
             to={`${ROUTES.SHIFT_NOTES_DETAIL}/${row.original.id}`}
             state={{ from: location.pathname + location.search }}
             className="text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline transition-colors break-words whitespace-normal w-full max-w-full block text-left"
@@ -174,18 +180,23 @@ const ShiftNotes = () => {
         ),
         cell: ({ row }) => {
           const participant = row.original.participant;
-          if (!participant) return <span className="text-muted-foreground italic text-xs">General Note</span>;
+          if (!participant)
+            return (
+              <span className="text-muted-foreground italic text-xs">
+                General Note
+              </span>
+            );
 
           return (
-            <Link 
+            <Link
               to={`${ROUTES.PARTICIPANT_DETAIL}/${participant.id}`}
               className="flex items-center gap-2 group/participant w-fit"
             >
-              <SecureAvatar 
-                src={participant.photo_url} 
-                initials={getInitials(participant.participant_name)} 
+              <SecureAvatar
+                src={participant.photo_url}
+                initials={getInitials(participant.participant_name)}
                 className="size-6 transition-all group-hover/participant:ring-2 group-hover/participant:ring-primary/20"
-                bucket={STORAGE_BUCKETS.PARTICIPANT_PHOTOS} 
+                bucket={STORAGE_BUCKETS.PARTICIPANT_PHOTOS}
               />
               <span className="text-sm font-medium text-blue-700 dark:text-blue-400 group-hover/participant:underline transition-colors truncate max-w-[150px]">
                 {participant.participant_name}
@@ -204,18 +215,19 @@ const ShiftNotes = () => {
         ),
         cell: ({ row }) => {
           const staffMember = row.original.staff;
-          if (!staffMember) return <span className="text-muted-foreground">-</span>;
+          if (!staffMember)
+            return <span className="text-muted-foreground">-</span>;
 
           return (
-            <Link 
+            <Link
               to={`${ROUTES.STAFF_DETAIL}/${staffMember.id}`}
               className="flex items-center gap-2 group/staff w-fit"
             >
-              <SecureAvatar 
-                src={staffMember.photo_url} 
-                initials={getInitials(staffMember.staff_name)} 
+              <SecureAvatar
+                src={staffMember.photo_url}
+                initials={getInitials(staffMember.staff_name)}
                 className="size-6 transition-all group-hover/staff:ring-2 group-hover/staff:ring-primary/20"
-                bucket={STORAGE_BUCKETS.STAFF_PHOTOS} 
+                bucket={STORAGE_BUCKETS.STAFF_PHOTOS}
               />
               <span className="text-sm font-medium text-blue-700 dark:text-blue-400 group-hover/staff:underline transition-colors truncate max-w-[120px]">
                 {staffMember.staff_name}
@@ -237,7 +249,7 @@ const ShiftNotes = () => {
           if (!house) return <span className="text-muted-foreground">-</span>;
 
           return (
-            <Link 
+            <Link
               to={`${ROUTES.HOUSE_DETAIL}/${house.id}`}
               className="flex items-center gap-2 group/house w-fit"
             >
@@ -261,14 +273,16 @@ const ShiftNotes = () => {
         ),
         cell: ({ row }) => (
           <div className="max-w-[300px] truncate text-foreground font-normal break-words whitespace-normal text-left block">
-            {row.original.notes || row.original.full_note?.substring(0, 100) || '-'}
+            {row.original.notes ||
+              row.original.full_note?.substring(0, 100) ||
+              '-'}
           </div>
         ),
         enableSorting: false,
         size: 300,
       },
     ],
-    []
+    [],
   );
 
   const table = useReactTable({
@@ -397,7 +411,10 @@ const ShiftNotes = () => {
                   </div>
                   <div className="space-y-3">
                     {staff.map((member) => (
-                      <div key={member.id} className="flex items-center gap-2.5">
+                      <div
+                        key={member.id}
+                        className="flex items-center gap-2.5"
+                      >
                         <Checkbox
                           id={member.id}
                           checked={selectedStaff.includes(member.id)}
@@ -424,8 +441,12 @@ const ShiftNotes = () => {
           <Toolbar />
         </CardHeader>
 
-        {loading && <div className="p-4 text-center">Loading shift notes...</div>}
-        {error && <div className="p-4 text-center text-destructive">{error}</div>}
+        {loading && (
+          <div className="p-4 text-center">Loading shift notes...</div>
+        )}
+        {error && (
+          <div className="p-4 text-center text-destructive">{error}</div>
+        )}
 
         <CardTable>
           <ScrollArea>

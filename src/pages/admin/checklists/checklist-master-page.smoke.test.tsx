@@ -1,9 +1,9 @@
-import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import { ChecklistMasterPage } from './checklist-master-page';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
+import { describe, expect, it } from 'vitest';
 import { SettingsProvider } from '@/providers/settings-provider';
+import { ChecklistMasterPage } from './checklist-master-page';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -22,7 +22,7 @@ describe('ChecklistMasterPage Smoke Test', () => {
             <ChecklistMasterPage />
           </QueryClientProvider>
         </SettingsProvider>
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     // Check for page title

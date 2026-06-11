@@ -1,5 +1,5 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { systemApi } from '@/api/system.api';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { QUERY_KEYS } from '@/config/query-keys';
 
 export function useReportPreferences(staffId?: string, reportType?: string) {
@@ -35,11 +35,19 @@ export function useSaveReportPreferences() {
       reportType: string;
       criteria: any;
     }) => {
-      return await systemApi.reportPreferences.save(staffId, reportType, criteria);
+      return await systemApi.reportPreferences.save(
+        staffId,
+        reportType,
+        criteria,
+      );
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.REPORT_PREFERENCES, variables.staffId, variables.reportType],
+        queryKey: [
+          QUERY_KEYS.REPORT_PREFERENCES,
+          variables.staffId,
+          variables.reportType,
+        ],
       });
     },
   });

@@ -1,26 +1,55 @@
-import { useState, useRef } from 'react';
+import { useRef, useState } from 'react';
+import { HousePendingChanges } from '@/models/house-pending-changes';
+import {
+  Clock,
+  Download,
+  FileText,
+  MapPin,
+  Phone,
+  Plus,
+  Upload,
+  X,
+} from 'lucide-react';
+import { toAbsoluteUrl } from '@/lib/helpers';
+import { cn } from '@/lib/utils';
+import { useHouseResources } from '@/hooks/useHouseResources';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Download, FileText, Clock, MapPin, Phone, Upload, X } from 'lucide-react';
-import { useHouseResources } from '@/hooks/useHouseResources';
-import { cn } from '@/lib/utils';
-import { KeenIcon } from '@/components/keenicons';
-import { HousePendingChanges } from '@/models/house-pending-changes';
-import { toAbsoluteUrl } from '@/lib/helpers';
-import { Switch } from '@/components/ui/switch';
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
 } from '@/components/ui/context-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Textarea } from '@/components/ui/textarea';
+import { KeenIcon } from '@/components/keenicons';
 
 interface HouseResourcesProps {
   houseId?: string;
@@ -74,16 +103,18 @@ const getFileIcon = (fileName?: string) => {
   }
 };
 
-export function HouseResources({ 
-  houseId, 
-  canAdd, 
+export function HouseResources({
+  houseId,
+  canAdd,
   pendingChanges,
-  onPendingChangesChange 
+  onPendingChangesChange,
 }: HouseResourcesProps) {
   const [showResourceDialog, setShowResourceDialog] = useState(false);
   const [showOnlyActive, setShowOnlyActive] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [editingResource, setEditingResource] = useState<ResourceItem | null>(null);
+  const [editingResource, setEditingResource] = useState<ResourceItem | null>(
+    null,
+  );
   const [formData, setFormData] = useState({
     title: '',
     category: '',
@@ -121,9 +152,11 @@ export function HouseResources({
   };
 
   const handleEdit = (resource: ResourceItem) => {
-    const pendingUpdate = resource.id ? pendingChanges?.resources.toUpdate.find(r => r.id === resource.id) : null;
+    const pendingUpdate = resource.id
+      ? pendingChanges?.resources.toUpdate.find((r) => r.id === resource.id)
+      : null;
     const mergedResource = { ...resource, ...pendingUpdate };
-    
+
     setEditingResource(mergedResource);
     setFormData({
       title: mergedResource.title,
@@ -145,21 +178,21 @@ export function HouseResources({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         file: file,
         fileName: file.name,
-        toDeleteFile: false
+        toDeleteFile: false,
       }));
     }
   };
 
   const handleRemoveFile = () => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       file: null,
       fileName: '',
-      toDeleteFile: !!editingResource?.file_url
+      toDeleteFile: !!editingResource?.file_url,
     }));
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -167,7 +200,11 @@ export function HouseResources({
   };
 
   const handleSave = () => {
-    if (!formData.title.trim() || !formData.category.trim() || !formData.type.trim()) {
+    if (
+      !formData.title.trim() ||
+      !formData.category.trim() ||
+      !formData.type.trim()
+    ) {
       return;
     }
     if (!pendingChanges || !onPendingChangesChange) return;
@@ -182,8 +219,16 @@ export function HouseResources({
       address: formData.address,
       notes: formData.notes,
       file: formData.file || undefined,
-      file_url: formData.file ? undefined : (formData.toDeleteFile ? null : editingResource?.file_url),
-      file_name: formData.file ? formData.file.name : (formData.toDeleteFile ? undefined : formData.fileName),
+      file_url: formData.file
+        ? undefined
+        : formData.toDeleteFile
+          ? null
+          : editingResource?.file_url,
+      file_name: formData.file
+        ? formData.file.name
+        : formData.toDeleteFile
+          ? undefined
+          : formData.fileName,
       file_size: formData.file ? formData.file.size : undefined,
       toDeleteFile: formData.toDeleteFile,
       is_active: formData.is_active,
@@ -198,8 +243,10 @@ export function HouseResources({
           ...pendingChanges,
           resources: {
             ...pendingChanges.resources,
-            toAdd: pendingChanges.resources.toAdd.map(resource =>
-              resource.tempId === editingResource.tempId ? { ...resource, ...resourceData } : resource
+            toAdd: pendingChanges.resources.toAdd.map((resource) =>
+              resource.tempId === editingResource.tempId
+                ? { ...resource, ...resourceData }
+                : resource,
             ),
           },
         };
@@ -211,7 +258,9 @@ export function HouseResources({
           resources: {
             ...pendingChanges.resources,
             toUpdate: [
-              ...pendingChanges.resources.toUpdate.filter(r => r.id !== editingResource.id),
+              ...pendingChanges.resources.toUpdate.filter(
+                (r) => r.id !== editingResource.id,
+              ),
               { id: editingResource.id!, ...resourceData },
             ],
           },
@@ -248,17 +297,24 @@ export function HouseResources({
 
   // Filter out resources marked for deletion
   const visibleResources = [
-    ...houseResources.filter(resource => {
-      const isDeleted = pendingChanges?.resources.toDelete.some(r => r.id === resource.id);
+    ...houseResources.filter((resource) => {
+      const isDeleted = pendingChanges?.resources.toDelete.some(
+        (r) => r.id === resource.id,
+      );
       if (isDeleted) return false;
 
-      const isPendingUpdate = pendingChanges?.resources.toUpdate.find(r => r.id === resource.id);
-      const isActive = isPendingUpdate?.is_active !== undefined ? isPendingUpdate.is_active : resource.is_active;
+      const isPendingUpdate = pendingChanges?.resources.toUpdate.find(
+        (r) => r.id === resource.id,
+      );
+      const isActive =
+        isPendingUpdate?.is_active !== undefined
+          ? isPendingUpdate.is_active
+          : resource.is_active;
 
       if (showOnlyActive && !isActive) return false;
       return true;
     }),
-    ...(pendingChanges?.resources.toAdd || []).filter(resource => {
+    ...(pendingChanges?.resources.toAdd || []).filter((resource) => {
       if (showOnlyActive && !resource.is_active) return false;
       return true;
     }),
@@ -269,30 +325,42 @@ export function HouseResources({
     if (!bytes) return 'N/A';
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(1024));
-    return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
+    return Math.round((bytes / Math.pow(1024, i)) * 100) / 100 + ' ' + sizes[i];
   };
 
   // Get priority color
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'High': return 'red';
-      case 'Medium': return 'yellow';
-      case 'Low': return 'green';
-      default: return 'gray';
+      case 'High':
+        return 'red';
+      case 'Medium':
+        return 'yellow';
+      case 'Low':
+        return 'green';
+      default:
+        return 'gray';
     }
   };
 
   // Get category color
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case 'Emergency': return 'red';
-      case 'Medical': return 'blue';
-      case 'Legal': return 'purple';
-      case 'Financial': return 'green';
-      case 'Educational': return 'orange';
-      case 'Maintenance': return 'yellow';
-      case 'Other': return 'gray';
-      default: return 'gray';
+      case 'Emergency':
+        return 'red';
+      case 'Medical':
+        return 'blue';
+      case 'Legal':
+        return 'purple';
+      case 'Financial':
+        return 'green';
+      case 'Educational':
+        return 'orange';
+      case 'Maintenance':
+        return 'yellow';
+      case 'Other':
+        return 'gray';
+      default:
+        return 'gray';
     }
   };
 
@@ -313,9 +381,20 @@ export function HouseResources({
                 checked={showOnlyActive}
                 onCheckedChange={setShowOnlyActive}
               />
-              <Label htmlFor="show-only-active-resources" className="text-xs font-bold cursor-pointer">Active Only</Label>
+              <Label
+                htmlFor="show-only-active-resources"
+                className="text-xs font-bold cursor-pointer"
+              >
+                Active Only
+              </Label>
             </div>
-            <Button variant="secondary" size="sm" className="border border-gray-300" onClick={handleAdd} disabled={!houseId || !canAdd}>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="border border-gray-300"
+              onClick={handleAdd}
+              disabled={!houseId || !canAdd}
+            >
               <Plus className="size-4 me-1.5" />
               Add Resource
             </Button>
@@ -323,170 +402,234 @@ export function HouseResources({
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="text-center py-8 text-muted-foreground">Loading resources...</div>
+            <div className="text-center py-8 text-muted-foreground">
+              Loading resources...
+            </div>
           ) : visibleResources.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <div className="flex flex-col items-center gap-2">
                 <FileText className="size-12 text-muted-foreground opacity-50" />
                 <p>No resources added yet</p>
-                <p className="text-sm">Add important resources, contacts, and information for this house</p>
+                <p className="text-sm">
+                  Add important resources, contacts, and information for this
+                  house
+                </p>
               </div>
             </div>
           ) : (
-            <div className="overflow-x-auto"><Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Priority</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>File</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {visibleResources.map((resource) => {
-                  const isPendingAdd = 'tempId' in resource;
-                  const isPendingUpdate = pendingChanges?.resources.toUpdate.some(r => r.id === resource.id);
-                  const isPendingDelete = pendingChanges?.resources.toDelete.some(r => r.id === resource.id);
-                  
-                  const pendingUpdate = pendingChanges?.resources.toUpdate.find(r => r.id === resource.id);
-                  const mergedResource = isPendingUpdate ? { ...resource, ...pendingUpdate } : resource;
-                  const isActive = mergedResource.is_active !== false;
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Title</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Priority</TableHead>
+                    <TableHead>Contact</TableHead>
+                    <TableHead>File</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {visibleResources.map((resource) => {
+                    const isPendingAdd = 'tempId' in resource;
+                    const isPendingUpdate =
+                      pendingChanges?.resources.toUpdate.some(
+                        (r) => r.id === resource.id,
+                      );
+                    const isPendingDelete =
+                      pendingChanges?.resources.toDelete.some(
+                        (r) => r.id === resource.id,
+                      );
 
-                  const currentFile = isPendingAdd ? mergedResource.file : null;
-                  const fileName = currentFile ? currentFile.name : mergedResource.file_name;
-                  const fileSize = currentFile ? currentFile.size : mergedResource.file_size;
+                    const pendingUpdate =
+                      pendingChanges?.resources.toUpdate.find(
+                        (r) => r.id === resource.id,
+                      );
+                    const mergedResource = isPendingUpdate
+                      ? { ...resource, ...pendingUpdate }
+                      : resource;
+                    const isActive = mergedResource.is_active !== false;
 
-                  return (
-                    <ContextMenu key={mergedResource.id || mergedResource.tempId}>
-                      <ContextMenuTrigger asChild>
-                        <TableRow 
-                          className={cn(
-                            "cursor-context-menu",
-                            isPendingAdd ? 'bg-primary/5' : 
-                            isPendingDelete ? 'opacity-50 bg-destructive/5' : 
-                            isPendingUpdate ? 'bg-warning/5' : ''
-                          )}
-                        >
-                          <TableCell>
-                            <div className="flex items-center gap-3">
-                              <img 
-                                src={toAbsoluteUrl(`/media/file-types/${getFileIcon(fileName)}`)} 
-                                className="size-8 shrink-0" 
-                                alt="file icon" 
-                              />
-                              <div className={`flex flex-col ${isPendingDelete ? 'line-through' : ''}`}>
-                                <button 
-                                  onClick={() => handleEdit(mergedResource)}
-                                  className="text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline text-left"
+                    const currentFile = isPendingAdd
+                      ? mergedResource.file
+                      : null;
+                    const fileName = currentFile
+                      ? currentFile.name
+                      : mergedResource.file_name;
+                    const fileSize = currentFile
+                      ? currentFile.size
+                      : mergedResource.file_size;
+
+                    return (
+                      <ContextMenu
+                        key={mergedResource.id || mergedResource.tempId}
+                      >
+                        <ContextMenuTrigger asChild>
+                          <TableRow
+                            className={cn(
+                              'cursor-context-menu',
+                              isPendingAdd
+                                ? 'bg-primary/5'
+                                : isPendingDelete
+                                  ? 'opacity-50 bg-destructive/5'
+                                  : isPendingUpdate
+                                    ? 'bg-warning/5'
+                                    : '',
+                            )}
+                          >
+                            <TableCell>
+                              <div className="flex items-center gap-3">
+                                <img
+                                  src={toAbsoluteUrl(
+                                    `/media/file-types/${getFileIcon(fileName)}`,
+                                  )}
+                                  className="size-8 shrink-0"
+                                  alt="file icon"
+                                />
+                                <div
+                                  className={`flex flex-col ${isPendingDelete ? 'line-through' : ''}`}
                                 >
-                                  {mergedResource.title}
-                                </button>
-                                {mergedResource.description && (
-                                  <span className="text-xs text-muted-foreground line-clamp-2">
-                                    {mergedResource.description}
+                                  <button
+                                    onClick={() => handleEdit(mergedResource)}
+                                    className="text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline text-left"
+                                  >
+                                    {mergedResource.title}
+                                  </button>
+                                  {mergedResource.description && (
+                                    <span className="text-xs text-muted-foreground line-clamp-2">
+                                      {mergedResource.description}
+                                    </span>
+                                  )}
+                                </div>
+                                {isPendingAdd && (
+                                  <span className="text-xs text-primary flex items-center gap-1">
+                                    <Clock className="size-3" />
+                                    Pending add
+                                  </span>
+                                )}
+                                {isPendingUpdate && (
+                                  <span className="text-xs text-warning flex items-center gap-1">
+                                    <Clock className="size-3" />
+                                    Pending update
+                                  </span>
+                                )}
+                                {isPendingDelete && (
+                                  <span className="text-xs text-destructive flex items-center gap-1">
+                                    <Clock className="size-3" />
+                                    Pending deletion
                                   </span>
                                 )}
                               </div>
-                              {isPendingAdd && (
-                                <span className="text-xs text-primary flex items-center gap-1">
-                                  <Clock className="size-3" />
-                                  Pending add
-                                </span>
-                              )}
-                              {isPendingUpdate && (
-                                <span className="text-xs text-warning flex items-center gap-1">
-                                  <Clock className="size-3" />
-                                  Pending update
-                                </span>
-                              )}
-                              {isPendingDelete && (
-                                <span className="text-xs text-destructive flex items-center gap-1">
-                                  <Clock className="size-3" />
-                                  Pending deletion
-                                </span>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className={`text-xs border-${getCategoryColor(mergedResource.category)}-500 text-${getCategoryColor(mergedResource.category)}-700`}>
-                              {mergedResource.category}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className={`text-xs border-${getPriorityColor(mergedResource.priority)}-500 text-${getPriorityColor(mergedResource.priority)}-700`}>
-                              {mergedResource.priority}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="text-sm space-y-1">
-                              {mergedResource.phone && (
-                                <div className="flex items-center gap-2">
-                                  <Phone className="size-4 text-muted-foreground" />
-                                  <span>{mergedResource.phone}</span>
-                                </div>
-                              )}
-                              {mergedResource.address && (
-                                <div className="flex items-center gap-2">
-                                  <MapPin className="size-4 text-muted-foreground" />
-                                  <span className="line-clamp-2">{mergedResource.address}</span>
-                                </div>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="text-sm">
-                              {fileName ? (
-                                <div 
-                                  className="flex items-center gap-2 cursor-pointer select-none group"
-                                  onClick={() => mergedResource.file_url && handleView(mergedResource.file_url)}
-                                  title="Click to view"
-                                >
-                                  <Download className="size-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                                  <div>
-                                    <div className="line-clamp-1 group-hover:text-primary group-hover:underline transition-colors">{fileName}</div>
-                                    <div className="text-xs text-muted-foreground">
-                                      {formatFileSize(fileSize)}
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                variant="outline"
+                                className={`text-xs border-${getCategoryColor(mergedResource.category)}-500 text-${getCategoryColor(mergedResource.category)}-700`}
+                              >
+                                {mergedResource.category}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                variant="outline"
+                                className={`text-xs border-${getPriorityColor(mergedResource.priority)}-500 text-${getPriorityColor(mergedResource.priority)}-700`}
+                              >
+                                {mergedResource.priority}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <div className="text-sm space-y-1">
+                                {mergedResource.phone && (
+                                  <div className="flex items-center gap-2">
+                                    <Phone className="size-4 text-muted-foreground" />
+                                    <span>{mergedResource.phone}</span>
+                                  </div>
+                                )}
+                                {mergedResource.address && (
+                                  <div className="flex items-center gap-2">
+                                    <MapPin className="size-4 text-muted-foreground" />
+                                    <span className="line-clamp-2">
+                                      {mergedResource.address}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="text-sm">
+                                {fileName ? (
+                                  <div
+                                    className="flex items-center gap-2 cursor-pointer select-none group"
+                                    onClick={() =>
+                                      mergedResource.file_url &&
+                                      handleView(mergedResource.file_url)
+                                    }
+                                    title="Click to view"
+                                  >
+                                    <Download className="size-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                                    <div>
+                                      <div className="line-clamp-1 group-hover:text-primary group-hover:underline transition-colors">
+                                        {fileName}
+                                      </div>
+                                      <div className="text-xs text-muted-foreground">
+                                        {formatFileSize(fileSize)}
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
-                              ) : (
-                                <span className="text-muted-foreground text-xs italic">No attachment</span>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge 
-                              variant={isActive ? "outline" : "secondary"}
-                              className={cn(
-                                "text-[10px] uppercase font-bold",
-                                isActive ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-gray-100 text-gray-500 border-gray-200"
-                              )}
+                                ) : (
+                                  <span className="text-muted-foreground text-xs italic">
+                                    No attachment
+                                  </span>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                variant={isActive ? 'outline' : 'secondary'}
+                                className={cn(
+                                  'text-[10px] uppercase font-bold',
+                                  isActive
+                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                    : 'bg-gray-100 text-gray-500 border-gray-200',
+                                )}
+                              >
+                                {isActive ? 'Active' : 'Inactive'}
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        </ContextMenuTrigger>
+
+                        <ContextMenuContent className="w-48">
+                          {mergedResource.file_url && (
+                            <ContextMenuItem
+                              onClick={() =>
+                                handleDownload(
+                                  mergedResource.file_url!,
+                                  mergedResource.file_name || 'resource',
+                                )
+                              }
                             >
-                              {isActive ? 'Active' : 'Inactive'}
-                            </Badge>
-                          </TableCell>
-                        </TableRow>
-                      </ContextMenuTrigger>
-                      
-                      <ContextMenuContent className="w-48">
-                        {mergedResource.file_url && (
-                          <ContextMenuItem onClick={() => handleDownload(mergedResource.file_url!, mergedResource.file_name || 'resource')}>
-                            <KeenIcon icon="cloud-download" className="me-2" />
-                            Download File
+                              <KeenIcon
+                                icon="cloud-download"
+                                className="me-2"
+                              />
+                              Download File
+                            </ContextMenuItem>
+                          )}
+                          <ContextMenuItem
+                            onClick={() => handleEdit(mergedResource)}
+                            disabled={!canAdd}
+                          >
+                            <KeenIcon icon="pencil" className="me-2" />
+                            Edit Resource
                           </ContextMenuItem>
-                        )}
-                        <ContextMenuItem onClick={() => handleEdit(mergedResource)} disabled={!canAdd}>
-                          <KeenIcon icon="pencil" className="me-2" />
-                          Edit Resource
-                        </ContextMenuItem>
-                      </ContextMenuContent>
-                    </ContextMenu>
-                  );
-                })}
-              </TableBody>
-            </Table></div>
+                        </ContextMenuContent>
+                      </ContextMenu>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>
@@ -494,7 +637,9 @@ export function HouseResources({
       <Dialog open={showResourceDialog} onOpenChange={setShowResourceDialog}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingResource ? 'Edit Resource' : 'Add Resource'}</DialogTitle>
+            <DialogTitle>
+              {editingResource ? 'Edit Resource' : 'Add Resource'}
+            </DialogTitle>
             <DialogDescription>
               {editingResource
                 ? 'Update resource details'
@@ -508,13 +653,20 @@ export function HouseResources({
                 <Input
                   id="title"
                   value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, title: e.target.value })
+                  }
                   placeholder="Resource title"
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="category">Category *</Label>
-                <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
+                <Select
+                  value={formData.category}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, category: value })
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
@@ -536,13 +688,20 @@ export function HouseResources({
                 <Input
                   id="type"
                   value={formData.type}
-                  onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, type: e.target.value })
+                  }
                   placeholder="Resource type"
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="priority">Priority</Label>
-                <Select value={formData.priority} onValueChange={(value) => setFormData({ ...formData, priority: value })}>
+                <Select
+                  value={formData.priority}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, priority: value })
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select priority" />
                   </SelectTrigger>
@@ -559,7 +718,9 @@ export function HouseResources({
               <Textarea
                 id="description"
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
                 placeholder="Describe this resource"
                 rows={3}
               />
@@ -570,7 +731,9 @@ export function HouseResources({
                 <Input
                   id="phone"
                   value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, phone: e.target.value })
+                  }
                   placeholder="Contact phone number"
                 />
               </div>
@@ -579,7 +742,9 @@ export function HouseResources({
                 <Input
                   id="address"
                   value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, address: e.target.value })
+                  }
                   placeholder="Physical address"
                 />
               </div>
@@ -589,7 +754,9 @@ export function HouseResources({
               <Textarea
                 id="notes"
                 value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, notes: e.target.value })
+                }
                 placeholder="Additional notes"
                 rows={3}
               />
@@ -601,13 +768,17 @@ export function HouseResources({
                 {formData.fileName ? (
                   <div className="flex items-center justify-between p-3 border rounded-lg bg-gray-50">
                     <div className="flex items-center gap-3 overflow-hidden">
-                      <img 
-                        src={toAbsoluteUrl(`/media/file-types/${getFileIcon(formData.fileName)}`)} 
-                        className="size-8 shrink-0" 
-                        alt="file icon" 
+                      <img
+                        src={toAbsoluteUrl(
+                          `/media/file-types/${getFileIcon(formData.fileName)}`,
+                        )}
+                        className="size-8 shrink-0"
+                        alt="file icon"
                       />
                       <div className="flex flex-col overflow-hidden">
-                        <span className="text-sm font-medium truncate">{formData.fileName}</span>
+                        <span className="text-sm font-medium truncate">
+                          {formData.fileName}
+                        </span>
                         {formData.file && (
                           <span className="text-xs text-muted-foreground">
                             {formatFileSize(formData.file.size)}
@@ -626,13 +797,17 @@ export function HouseResources({
                     </Button>
                   </div>
                 ) : (
-                  <div 
+                  <div
                     className="flex flex-col items-center justify-center py-8 border-2 border-dashed rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
                     onClick={() => fileInputRef.current?.click()}
                   >
                     <Upload className="size-8 text-muted-foreground mb-2" />
-                    <span className="text-sm font-medium">Click to upload or drag and drop</span>
-                    <span className="text-xs text-muted-foreground mt-1">PDF, DOC, DOCX, JPG, PNG up to 10MB</span>
+                    <span className="text-sm font-medium">
+                      Click to upload or drag and drop
+                    </span>
+                    <span className="text-xs text-muted-foreground mt-1">
+                      PDF, DOC, DOCX, JPG, PNG up to 10MB
+                    </span>
                   </div>
                 )}
                 <input
@@ -646,24 +821,39 @@ export function HouseResources({
 
             <div className="flex items-center justify-between p-4 border rounded-xl bg-gray-50/50">
               <div className="flex flex-col gap-1">
-                <Label htmlFor="resource-status" className="text-sm font-bold">Resource Status</Label>
-                <p className="text-xs text-muted-foreground">Inactive resources are hidden by default</p>
+                <Label htmlFor="resource-status" className="text-sm font-bold">
+                  Resource Status
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Inactive resources are hidden by default
+                </p>
               </div>
               <div className="flex items-center gap-3">
-                <span className={cn("text-xs font-bold uppercase tracking-tight", formData.is_active ? "text-emerald-600" : "text-gray-400")}>
+                <span
+                  className={cn(
+                    'text-xs font-bold uppercase tracking-tight',
+                    formData.is_active ? 'text-emerald-600' : 'text-gray-400',
+                  )}
+                >
                   {formData.is_active ? 'Active' : 'Inactive'}
                 </span>
                 <Switch
                   id="resource-status"
                   checked={formData.is_active}
-                  onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, is_active: checked })
+                  }
                 />
               </div>
             </div>
           </div>
 
           <DialogFooter className="border-t pt-4 mt-2">
-            <Button variant="outline" size="sm" onClick={() => setShowResourceDialog(false)}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowResourceDialog(false)}
+            >
               Cancel
             </Button>
             <Button variant="primary" size="sm" onClick={handleSave}>

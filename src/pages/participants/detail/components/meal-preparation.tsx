@@ -21,11 +21,15 @@ export function MealPreparation({
       <CardContent className="grid gap-5">
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <Label className="flex w-full max-w-56">Meal Preparation Support Needs</Label>
+            <Label className="flex w-full max-w-56">
+              Meal Preparation Support Needs
+            </Label>
             <Textarea
               id="meal_prep_support"
               value={formData.meal_prep_support || ''}
-              onChange={(e) => onFormChange('meal_prep_support', e.target.value)}
+              onChange={(e) =>
+                onFormChange('meal_prep_support', e.target.value)
+              }
               rows={5}
               placeholder="Describe meal preparation and kitchen safety support needs..."
               disabled={!canEdit}

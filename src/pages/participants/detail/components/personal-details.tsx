@@ -1,11 +1,17 @@
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
+import { useHousesLightweight } from '@/hooks/use-houses';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useHousesLightweight } from '@/hooks/use-houses';
 import { AvatarInput } from '@/components/image-input/avatar-input';
-import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 
 interface PersonalDetailsProps {
   canEdit: boolean;
@@ -23,7 +29,7 @@ export function PersonalDetails({
 }: PersonalDetailsProps) {
   const { data: allHouses = [] } = useHousesLightweight();
   const houses = allHouses.filter(
-    (house) => house.status === 'active' || house.id === formData.house_id
+    (house) => house.status === 'active' || house.id === formData.house_id,
   );
 
   const handlePhotoChange = (file: File | null, dataURL: string | null) => {
@@ -48,24 +54,36 @@ export function PersonalDetails({
               size="lg"
               bucket={STORAGE_BUCKETS.PARTICIPANT_PHOTOS}
             />
-            {!canEdit && <span className="text-sm text-muted-foreground">View only</span>}
+            {!canEdit && (
+              <span className="text-sm text-muted-foreground">View only</span>
+            )}
           </div>
         </div>
 
         {/* Form Fields */}
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <Label htmlFor="participant_name" className="flex w-full max-w-56">Full Name *</Label>
+            <Label htmlFor="participant_name" className="flex w-full max-w-56">
+              Full Name *
+            </Label>
             <div className="grow">
               <Input
                 id="participant_name"
                 value={formData.participant_name || ''}
-                onChange={(e) => onFormChange('participant_name', e.target.value)}
+                onChange={(e) =>
+                  onFormChange('participant_name', e.target.value)
+                }
                 disabled={!canEdit}
-                className={validationErrors.participant_name ? 'border-red-500 focus-visible:ring-red-500' : ''}
+                className={
+                  validationErrors.participant_name
+                    ? 'border-red-500 focus-visible:ring-red-500'
+                    : ''
+                }
               />
               {validationErrors.participant_name && (
-                <p className="text-red-500 text-sm mt-1">{validationErrors.participant_name}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {validationErrors.participant_name}
+                </p>
               )}
             </div>
           </div>
@@ -73,7 +91,9 @@ export function PersonalDetails({
 
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <Label htmlFor="ndis_number" className="flex w-full max-w-56">NDIS Number</Label>
+            <Label htmlFor="ndis_number" className="flex w-full max-w-56">
+              NDIS Number
+            </Label>
             <Input
               id="ndis_number"
               value={formData.ndis_number || ''}
@@ -85,7 +105,9 @@ export function PersonalDetails({
 
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <Label htmlFor="date_of_birth" className="flex w-full max-w-56">Date of Birth</Label>
+            <Label htmlFor="date_of_birth" className="flex w-full max-w-56">
+              Date of Birth
+            </Label>
             <Input
               id="date_of_birth"
               type="date"
@@ -111,7 +133,9 @@ export function PersonalDetails({
 
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <Label htmlFor="personal_mobile" className="flex w-full max-w-56">Personal Mobile</Label>
+            <Label htmlFor="personal_mobile" className="flex w-full max-w-56">
+              Personal Mobile
+            </Label>
             <Input
               id="personal_mobile"
               type="tel"
@@ -124,7 +148,9 @@ export function PersonalDetails({
 
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <Label className="flex w-full max-w-56">Email {formData.status !== 'draft' && '*'}</Label>
+            <Label className="flex w-full max-w-56">
+              Email {formData.status !== 'draft' && '*'}
+            </Label>
             <div className="grow">
               <Input
                 id="email"
@@ -132,10 +158,16 @@ export function PersonalDetails({
                 value={formData.email || ''}
                 onChange={(e) => onFormChange('email', e.target.value)}
                 disabled={!canEdit}
-                className={validationErrors.email ? 'border-red-500 focus-visible:ring-red-500' : ''}
+                className={
+                  validationErrors.email
+                    ? 'border-red-500 focus-visible:ring-red-500'
+                    : ''
+                }
               />
               {validationErrors.email && (
-                <p className="text-red-500 text-sm mt-1">{validationErrors.email}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {validationErrors.email}
+                </p>
               )}
             </div>
           </div>
@@ -155,7 +187,9 @@ export function PersonalDetails({
         </div>
 
         <div className="flex items-center flex-wrap gap-2.5">
-          <Label className="flex w-full max-w-56" htmlFor="support_level">Support Level</Label>
+          <Label className="flex w-full max-w-56" htmlFor="support_level">
+            Support Level
+          </Label>
           <div className="grow">
             <Select
               value={formData.support_level}
@@ -177,18 +211,27 @@ export function PersonalDetails({
 
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <Label className="flex w-full max-w-56" htmlFor="support_coordinator">Support Coordinator</Label>
+            <Label
+              className="flex w-full max-w-56"
+              htmlFor="support_coordinator"
+            >
+              Support Coordinator
+            </Label>
             <Input
               id="support_coordinator"
               value={formData.support_coordinator || ''}
-              onChange={(e) => onFormChange('support_coordinator', e.target.value)}
+              onChange={(e) =>
+                onFormChange('support_coordinator', e.target.value)
+              }
               disabled={!canEdit}
             />
           </div>
         </div>
 
         <div className="flex items-center flex-wrap gap-2.5">
-          <Label className="flex w-full max-w-56" htmlFor="house_id">House</Label>
+          <Label className="flex w-full max-w-56" htmlFor="house_id">
+            House
+          </Label>
           <div className="grow">
             <Select
               value={formData.house_id || ''}
@@ -201,7 +244,8 @@ export function PersonalDetails({
               <SelectContent>
                 {houses?.map((house) => (
                   <SelectItem key={house.id} value={house.id}>
-                    {house.house_name}{house.status !== 'active' ? ` (${house.status})` : ''}
+                    {house.house_name}
+                    {house.status !== 'active' ? ` (${house.status})` : ''}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -210,7 +254,9 @@ export function PersonalDetails({
         </div>
 
         <div className="flex items-center flex-wrap gap-2.5">
-          <Label className="flex w-full max-w-56" htmlFor="status">Status</Label>
+          <Label className="flex w-full max-w-56" htmlFor="status">
+            Status
+          </Label>
           <div className="grow">
             <Select
               value={formData.status}
@@ -228,7 +274,6 @@ export function PersonalDetails({
             </Select>
           </div>
         </div>
-
       </CardContent>
     </Card>
   );

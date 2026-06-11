@@ -1,9 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { LeaveTypeMaster } from '@/models/leave-type-master';
-import { useAuth } from '@/auth/context/auth-context';
-import { logActivity, detectChanges } from '@/lib/activity-logger';
-import { QUERY_KEYS } from '@/config/query-keys';
 import { masterListsApi } from '@/api/master-lists.api';
+import { useAuth } from '@/auth/context/auth-context';
+import { LeaveTypeMaster } from '@/models/leave-type-master';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { QUERY_KEYS } from '@/config/query-keys';
+import { detectChanges, logActivity } from '@/lib/activity-logger';
 
 export function useLeaveTypesMaster() {
   return useQuery({
@@ -21,7 +21,9 @@ export function useAddLeaveTypeMaster() {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async (leaveType: Omit<LeaveTypeMaster, 'id' | 'created_at'>) => {
+    mutationFn: async (
+      leaveType: Omit<LeaveTypeMaster, 'id' | 'created_at'>,
+    ) => {
       const data = await masterListsApi.leaveTypes.upsert(leaveType as any);
 
       await logActivity({
@@ -45,8 +47,19 @@ export function useUpdateLeaveTypeMaster() {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ id, updates, oldLeaveType }: { id: string; updates: Partial<LeaveTypeMaster>; oldLeaveType?: LeaveTypeMaster }) => {
-      const data = await masterListsApi.leaveTypes.upsert({ ...updates, id } as any);
+    mutationFn: async ({
+      id,
+      updates,
+      oldLeaveType,
+    }: {
+      id: string;
+      updates: Partial<LeaveTypeMaster>;
+      oldLeaveType?: LeaveTypeMaster;
+    }) => {
+      const data = await masterListsApi.leaveTypes.upsert({
+        ...updates,
+        id,
+      } as any);
 
       if (oldLeaveType) {
         const changes = detectChanges(oldLeaveType, data);
@@ -75,7 +88,13 @@ export function useDeleteLeaveTypeMaster() {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ id, leave_type_name }: { id: string; leave_type_name: string }) => {
+    mutationFn: async ({
+      id,
+      leave_type_name,
+    }: {
+      id: string;
+      leave_type_name: string;
+    }) => {
       // Hard delete since we don't have is_active
       await masterListsApi.leaveTypes.delete(id);
 

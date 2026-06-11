@@ -1,6 +1,6 @@
 import { Fragment } from 'react';
 import { ChevronRight } from 'lucide-react';
-import { useLocation, Link } from 'react-router';
+import { Link, useLocation } from 'react-router';
 import { MENU_SIDEBAR } from '@/config/menu.config';
 import { MenuItem } from '@/config/types';
 import { cn } from '@/lib/utils';
@@ -24,7 +24,11 @@ export function Breadcrumb() {
 
         // Special handling for detail pages to show entity name
         let displayTitle = item.title;
-        if (last && (pathname.includes('/staff-detail/') || pathname.includes('/participants/detail/'))) {
+        if (
+          last &&
+          (pathname.includes('/staff-detail/') ||
+            pathname.includes('/participants/detail/'))
+        ) {
           const entityName = (window as any).entityName;
           if (entityName) displayTitle = entityName;
         }
@@ -36,7 +40,7 @@ export function Breadcrumb() {
                 to={item.path!}
                 className={cn(
                   'hover:text-primary transition-colors cursor-pointer',
-                  active ? 'text-mono' : 'text-secondary-foreground'
+                  active ? 'text-mono' : 'text-secondary-foreground',
                 )}
                 key={`item-${index}`}
               >
@@ -46,7 +50,7 @@ export function Breadcrumb() {
               <span
                 className={cn(
                   last ? 'cursor-default' : '',
-                  active ? 'text-mono' : 'text-secondary-foreground'
+                  active ? 'text-mono' : 'text-secondary-foreground',
                 )}
                 key={`item-${index}`}
               >

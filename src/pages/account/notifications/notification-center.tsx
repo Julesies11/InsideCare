@@ -1,30 +1,41 @@
-import { useState, useEffect } from 'react';
-import { formatDistanceToNow, format } from 'date-fns';
-import { useNavigate } from 'react-router';
-import { 
-  Bell, 
-  CheckCircle, 
-  XCircle, 
-  ClipboardList, 
-  Umbrella, 
-  Trash2, 
-  MailOpen, 
-  Mail,
+import { useEffect, useState } from 'react';
+import {
+  Toolbar,
+  ToolbarDescription,
+  ToolbarHeading,
+  ToolbarPageTitle,
+} from '@/partials/common/toolbar';
+import { format, formatDistanceToNow } from 'date-fns';
+import {
   AlertTriangle,
+  Bell,
+  CalendarDays,
+  CheckCircle,
+  ClipboardList,
+  Mail,
+  MailOpen,
   Stethoscope,
-  CalendarDays
+  Trash2,
+  Umbrella,
+  XCircle,
 } from 'lucide-react';
-import { useNotifications, AppNotification } from '@/hooks/useNotifications';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Container } from '@/components/common/container';
-import { Toolbar, ToolbarHeading, ToolbarPageTitle, ToolbarDescription } from '@/partials/common/toolbar';
+import { useNavigate } from 'react-router';
 import { cn } from '@/lib/utils';
+import { AppNotification, useNotifications } from '@/hooks/useNotifications';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import {
   Pagination,
   PaginationContent,
   PaginationItem,
 } from '@/components/ui/pagination';
+import { Container } from '@/components/common/container';
 
 const TYPE_ICON: Record<string, React.ElementType> = {
   timesheet_approved: CheckCircle,
@@ -66,18 +77,18 @@ export function NotificationCenter() {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
-  
-  const { 
-    notifications, 
-    loading, 
-    totalCount, 
+
+  const {
+    notifications,
+    loading,
+    totalCount,
     unreadCount,
-    markAllRead, 
-    markRead, 
+    markAllRead,
+    markRead,
     markUnread,
     clearAll,
     clearNotification,
-    refetch 
+    refetch,
   } = useNotifications();
 
   // Re-fetch when page or filter changes
@@ -92,19 +103,21 @@ export function NotificationCenter() {
     if (!notification.is_read) {
       markRead(notification.id);
     }
-    
+
     if (notification.link) {
       // For deep linking, we can pass metadata to the destination page via navigation state
       // or append it as query parameters if the link doesn't already have them.
       let targetPath = notification.link;
-      
+
       if (notification.metadata?.tab) {
         // If the link already has a query string, append with &, else with ?
         const separator = targetPath.includes('?') ? '&' : '?';
         targetPath += `${separator}tab=${notification.metadata.tab}`;
       }
-      
-      navigate(targetPath, { state: { notificationMetadata: notification.metadata } });
+
+      navigate(targetPath, {
+        state: { notificationMetadata: notification.metadata },
+      });
     }
   };
 
@@ -114,21 +127,23 @@ export function NotificationCenter() {
         <Toolbar>
           <ToolbarHeading>
             <ToolbarPageTitle text="Notification Center" />
-            <ToolbarDescription>Manage your alerts and updates</ToolbarDescription>
+            <ToolbarDescription>
+              Manage your alerts and updates
+            </ToolbarDescription>
           </ToolbarHeading>
           <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               onClick={markAllRead}
               disabled={unreadCount === 0}
             >
               <CheckCircle className="size-4 mr-2" />
               Mark all read
             </Button>
-            <Button 
-              variant="destructive" 
-              size="sm" 
+            <Button
+              variant="destructive"
+              size="sm"
               onClick={clearAll}
               disabled={totalCount === 0}
             >
@@ -144,20 +159,28 @@ export function NotificationCenter() {
           <CardHeader className="flex flex-row items-center justify-between border-b pb-4">
             <div>
               <CardTitle>History</CardTitle>
-              <CardDescription>You have {unreadCount} unread notifications.</CardDescription>
+              <CardDescription>
+                You have {unreadCount} unread notifications.
+              </CardDescription>
             </div>
             <div className="flex gap-2">
-              <Button 
-                variant={filter === 'all' ? 'default' : 'outline'} 
+              <Button
+                variant={filter === 'all' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => { setFilter('all'); setPage(1); }}
+                onClick={() => {
+                  setFilter('all');
+                  setPage(1);
+                }}
               >
                 All
               </Button>
-              <Button 
-                variant={filter === 'unread' ? 'default' : 'outline'} 
+              <Button
+                variant={filter === 'unread' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => { setFilter('unread'); setPage(1); }}
+                onClick={() => {
+                  setFilter('unread');
+                  setPage(1);
+                }}
               >
                 Unread
               </Button>
@@ -178,47 +201,63 @@ export function NotificationCenter() {
               <div className="divide-y">
                 {notifications.map((notification) => {
                   const Icon = TYPE_ICON[notification.type] ?? Bell;
-                  const colorClass = TYPE_COLOR[notification.type] ?? 'text-muted-foreground bg-muted';
-                  
+                  const colorClass =
+                    TYPE_COLOR[notification.type] ??
+                    'text-muted-foreground bg-muted';
+
                   return (
-                    <div 
-                      key={notification.id} 
+                    <div
+                      key={notification.id}
                       className={cn(
-                        "flex items-start gap-4 p-4 lg:p-6 transition-colors hover:bg-muted/50",
-                        !notification.is_read && "bg-primary/5"
+                        'flex items-start gap-4 p-4 lg:p-6 transition-colors hover:bg-muted/50',
+                        !notification.is_read && 'bg-primary/5',
                       )}
                     >
-                      <div className={cn("p-2 rounded-full shrink-0", colorClass)}>
+                      <div
+                        className={cn('p-2 rounded-full shrink-0', colorClass)}
+                      >
                         <Icon className="size-5" />
                       </div>
-                      
+
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-4 mb-1">
-                          <h4 
+                          <h4
                             className={cn(
-                              "text-base cursor-pointer hover:text-primary transition-colors",
-                              !notification.is_read ? "font-semibold" : "font-medium"
+                              'text-base cursor-pointer hover:text-primary transition-colors',
+                              !notification.is_read
+                                ? 'font-semibold'
+                                : 'font-medium',
                             )}
-                            onClick={() => handleNotificationClick(notification)}
+                            onClick={() =>
+                              handleNotificationClick(notification)
+                            }
                           >
                             {notification.title}
                           </h4>
                           <span className="text-xs text-muted-foreground whitespace-nowrap shrink-0">
-                            {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+                            {formatDistanceToNow(
+                              new Date(notification.created_at),
+                              { addSuffix: true },
+                            )}
                           </span>
                         </div>
-                        
+
                         {notification.body && (
                           <p className="text-sm text-muted-foreground mb-2">
                             {notification.body}
                           </p>
                         )}
-                        
+
                         <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                          <span>{format(new Date(notification.created_at), 'MMM d, yyyy h:mm a')}</span>
-                          
+                          <span>
+                            {format(
+                              new Date(notification.created_at),
+                              'MMM d, yyyy h:mm a',
+                            )}
+                          </span>
+
                           <div className="flex items-center gap-3 ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button 
+                            <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 if (notification.is_read) {
@@ -230,12 +269,16 @@ export function NotificationCenter() {
                               className="hover:text-primary flex items-center gap-1"
                             >
                               {notification.is_read ? (
-                                <><Mail className="size-3" /> Mark unread</>
+                                <>
+                                  <Mail className="size-3" /> Mark unread
+                                </>
                               ) : (
-                                <><MailOpen className="size-3" /> Mark read</>
+                                <>
+                                  <MailOpen className="size-3" /> Mark read
+                                </>
                               )}
                             </button>
-                            <button 
+                            <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 clearNotification(notification.id);
@@ -247,7 +290,7 @@ export function NotificationCenter() {
                           </div>
                         </div>
                       </div>
-                      
+
                       {!notification.is_read && (
                         <div className="size-2.5 rounded-full bg-primary shrink-0 mt-2" />
                       )}
@@ -256,7 +299,7 @@ export function NotificationCenter() {
                 })}
               </div>
             )}
-            
+
             {/* Pagination */}
             {totalPages > 1 && (
               <div className="border-t p-4 flex justify-center">
@@ -266,31 +309,35 @@ export function NotificationCenter() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setPage(p => Math.max(1, p - 1))}
+                        onClick={() => setPage((p) => Math.max(1, p - 1))}
                         disabled={page === 1}
                       >
                         Previous
                       </Button>
                     </PaginationItem>
-                    
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                      <PaginationItem key={p}>
-                        <Button
-                          variant={page === p ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setPage(p)}
-                          className="w-9"
-                        >
-                          {p}
-                        </Button>
-                      </PaginationItem>
-                    ))}
-                    
+
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                      (p) => (
+                        <PaginationItem key={p}>
+                          <Button
+                            variant={page === p ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setPage(p)}
+                            className="w-9"
+                          >
+                            {p}
+                          </Button>
+                        </PaginationItem>
+                      ),
+                    )}
+
                     <PaginationItem>
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                        onClick={() =>
+                          setPage((p) => Math.min(totalPages, p + 1))
+                        }
                         disabled={page === totalPages}
                       >
                         Next

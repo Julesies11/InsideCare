@@ -1,8 +1,14 @@
-import { Outlet, NavLink, useNavigate } from 'react-router';
-import { LayoutDashboard, Calendar, Umbrella, ClipboardList, LogOut } from 'lucide-react';
 import { useAuth } from '@/auth/context/auth-context';
-import { cn } from '@/lib/utils';
+import {
+  Calendar,
+  ClipboardList,
+  LayoutDashboard,
+  LogOut,
+  Umbrella,
+} from 'lucide-react';
+import { NavLink, Outlet, useNavigate } from 'react-router';
 import { ROUTES } from '@/config/routes.config';
+import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
   { to: ROUTES.MY_DASHBOARD, icon: LayoutDashboard, label: 'Home' },

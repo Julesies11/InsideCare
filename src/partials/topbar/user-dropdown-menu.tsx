@@ -1,12 +1,10 @@
 import { ReactNode } from 'react';
 import { useAuth } from '@/auth/context/auth-context';
-import {
-  Moon,
-  UserCircle,
-  Bell,
-} from 'lucide-react';
+import { Bell, Moon, UserCircle } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Link } from 'react-router';
+import { ROUTES } from '@/config/routes.config';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -15,10 +13,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Switch } from '@/components/ui/switch';
 import { SecureAvatar } from '@/components/ui/secure-avatar';
-import { STORAGE_BUCKETS } from '@/config/storage-buckets';
-import { ROUTES } from '@/config/routes.config';
+import { Switch } from '@/components/ui/switch';
 
 export function UserDropdownMenu({ trigger }: { trigger: ReactNode }) {
   const { logout, user } = useAuth();
@@ -33,13 +29,18 @@ export function UserDropdownMenu({ trigger }: { trigger: ReactNode }) {
       : user?.username || 'User');
 
   const displayEmail = user?.email || '';
-  const initials = (user?.staff_name
-    ? user.staff_name.split(' ').map(n => n[0]).join('').toUpperCase()
-    : [user?.first_name, user?.last_name]
-        .filter(Boolean)
-        .map((n) => n![0].toUpperCase())
-        .join('')
-  ) || (user?.email?.[0]?.toUpperCase() ?? '?');
+  const initials =
+    (user?.staff_name
+      ? user.staff_name
+          .split(' ')
+          .map((n) => n[0])
+          .join('')
+          .toUpperCase()
+      : [user?.first_name, user?.last_name]
+          .filter(Boolean)
+          .map((n) => n![0].toUpperCase())
+          .join('')) ||
+    (user?.email?.[0]?.toUpperCase() ?? '?');
 
   const handleThemeToggle = (checked: boolean) => {
     setTheme(checked ? 'dark' : 'light');
@@ -52,10 +53,10 @@ export function UserDropdownMenu({ trigger }: { trigger: ReactNode }) {
         {/* Header */}
         <div className="flex items-center justify-between p-3">
           <div className="flex items-center gap-2">
-            <SecureAvatar 
-              src={user?.photo_url} 
-              initials={initials} 
-              className="size-9 border-2 border-green-500" 
+            <SecureAvatar
+              src={user?.photo_url}
+              initials={initials}
+              className="size-9 border-2 border-green-500"
               bucket={STORAGE_BUCKETS.STAFF_PHOTOS}
             />
             <div className="flex flex-col">
@@ -79,20 +80,14 @@ export function UserDropdownMenu({ trigger }: { trigger: ReactNode }) {
 
         {/* Menu Items */}
         <DropdownMenuItem asChild>
-          <Link
-            to={ROUTES.STAFF_PROFILE}
-            className="flex items-center gap-2"
-          >
+          <Link to={ROUTES.STAFF_PROFILE} className="flex items-center gap-2">
             <UserCircle className="size-4" />
             My Profile
           </Link>
         </DropdownMenuItem>
 
         <DropdownMenuItem asChild>
-          <Link
-            to={ROUTES.NOTIFICATIONS}
-            className="flex items-center gap-2"
-          >
+          <Link to={ROUTES.NOTIFICATIONS} className="flex items-center gap-2">
             <Bell className="size-4" />
             Notifications
           </Link>

@@ -13,10 +13,13 @@ export interface LogErrorParams {
  * Logs an error to the console and potentially to an external monitoring service in the future.
  */
 export async function logError(params: LogErrorParams): Promise<void> {
-  console.error(`[${params.componentName || 'General'}] Error: ${params.message}`, {
-    stack: params.stack,
-    metadata: params.metadata,
-  });
-  
+  console.error(
+    `[${params.componentName || 'General'}] Error: ${params.message}`,
+    {
+      stack: params.stack,
+      metadata: params.metadata,
+    },
+  );
+
   // Future: Add integration with Sentry or similar service here
 }

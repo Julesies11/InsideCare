@@ -1,9 +1,9 @@
-import { describe, it, expect, vi } from 'vitest';
+import { ReactNode } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { describe, expect, it, vi } from 'vitest';
 import { StaffRosterCalendar } from './staff-roster-calendar';
-import { ReactNode } from 'react';
 
 // Mock required hooks and components
 vi.mock('@/hooks/use-house-shift-templates', () => ({
@@ -25,7 +25,7 @@ vi.mock('@/components/roster/use-roster-data', () => ({
   useShiftsQuery: vi.fn(() => ({
     shifts: [
       { id: '1', start_time: null, start_date: '2026-06-01' },
-      { id: '2', start_time: '10:00', start_date: '2026-06-01' }
+      { id: '2', start_time: '10:00', start_date: '2026-06-01' },
     ],
     isLoading: false,
   })),
@@ -36,17 +36,18 @@ vi.mock('@/api/roster.api', () => ({
   rosterApi: {
     shifts: {
       list: vi.fn(),
-    }
-  }
-}));
-
-const createTestQueryClient = () => new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
     },
   },
-});
+}));
+
+const createTestQueryClient = () =>
+  new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
 
 const wrapper = ({ children }: { children: ReactNode }) => (
   <MemoryRouter>
@@ -61,7 +62,7 @@ describe('StaffRosterCalendar', () => {
     // This test ensures that the component renders even when shifts have null start_time
     // (which previously caused a TypeError with localeCompare)
     render(
-      <StaffRosterCalendar 
+      <StaffRosterCalendar
         staffId="test-staff"
         viewMode="day"
         currentDate={new Date('2026-06-01')}
@@ -71,9 +72,9 @@ describe('StaffRosterCalendar', () => {
         canEdit={true}
         checklists={[]}
       />,
-      { wrapper }
+      { wrapper },
     );
-    
+
     // If it didn't throw, it passed the regression check for the TypeError
     expect(screen.getByText(/Mon/i)).toBeDefined();
   });

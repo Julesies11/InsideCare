@@ -1,17 +1,34 @@
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2, Loader2 } from 'lucide-react';
+import { Loader2, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useHouseShiftTemplates } from '@/hooks/use-house-shift-templates';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface BulkActionModalProps {
   open: boolean;
   onClose: () => void;
-  onConfirm: (params: any, action: 'update' | 'delete', updates?: any) => Promise<void>;
+  onConfirm: (
+    params: any,
+    action: 'update' | 'delete',
+    updates?: any,
+  ) => Promise<void>;
   houses: any[];
   staff: any[];
   shiftTemplates: any[];
@@ -23,34 +40,40 @@ interface BulkActionModalProps {
   };
 }
 
-export function BulkActionModal({ 
-  open, 
-  onClose, 
-  onConfirm, 
-  houses, 
-  staff: _staff, 
+export function BulkActionModal({
+  open,
+  onClose,
+  onConfirm,
+  houses,
+  staff: _staff,
   shiftTemplates,
-  initialFilters 
+  initialFilters,
 }: BulkActionModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [filters, setFilters] = useState({
     houseId: initialFilters?.houseId || 'all',
     staffId: 'all',
     shiftTemplateId: 'all',
-    startDate: initialFilters?.startDate || new Date().toISOString().split('T')[0],
+    startDate:
+      initialFilters?.startDate || new Date().toISOString().split('T')[0],
     endDate: initialFilters?.endDate || new Date().toISOString().split('T')[0],
   });
 
   const { shiftTemplates: houseTemplates } = useHouseShiftTemplates(
-    open && filters.houseId !== 'all' ? filters.houseId : undefined
+    open && filters.houseId !== 'all' ? filters.houseId : undefined,
   );
 
-  const displayTemplates = filters.houseId !== 'all'
-    ? houseTemplates.map(t => ({ id: t.id, name: t.shift_template_name }))
-    : shiftTemplates;
+  const displayTemplates =
+    filters.houseId !== 'all'
+      ? houseTemplates.map((t) => ({ id: t.id, name: t.shift_template_name }))
+      : shiftTemplates;
 
-  const selectedHouse = houses.find(h => h.id === filters.houseId);
-  const houseName = selectedHouse ? selectedHouse.name : (filters.houseId === 'all' ? 'All Houses' : 'Selected House');
+  const selectedHouse = houses.find((h) => h.id === filters.houseId);
+  const houseName = selectedHouse
+    ? selectedHouse.name
+    : filters.houseId === 'all'
+      ? 'All Houses'
+      : 'Selected House';
 
   const handleConfirm = async () => {
     if (!filters.startDate || !filters.endDate) {
@@ -58,16 +81,22 @@ export function BulkActionModal({
       return;
     }
 
-    const confirmed = window.confirm(`ARE YOU ABSOLUTELY SURE? This will permanently delete all shifts matching your criteria for ${houseName}. This action cannot be undone.`);
+    const confirmed = window.confirm(
+      `ARE YOU ABSOLUTELY SURE? This will permanently delete all shifts matching your criteria for ${houseName}. This action cannot be undone.`,
+    );
     if (!confirmed) return;
 
     setIsSubmitting(true);
     try {
       const result = await onConfirm(filters, 'delete');
       if (result && result.skippedCount > 0) {
-        toast.warning(`Deleted ${result.deletedCount} shifts. Skipped ${result.skippedCount} shifts with notes, timesheets, or checklists.`);
+        toast.warning(
+          `Deleted ${result.deletedCount} shifts. Skipped ${result.skippedCount} shifts with notes, timesheets, or checklists.`,
+        );
       } else {
-        toast.success(`Deleted ${result?.deletedCount || 0} shifts successfully.`);
+        toast.success(
+          `Deleted ${result?.deletedCount || 0} shifts successfully.`,
+        );
       }
       onClose();
     } catch (error: any) {
@@ -87,7 +116,9 @@ export function BulkActionModal({
               <Trash2 className="h-5 w-5 text-orange-600" />
             </div>
             <div>
-              <DialogTitle className="text-xl font-black uppercase tracking-tight">Delete Shifts</DialogTitle>
+              <DialogTitle className="text-xl font-black uppercase tracking-tight">
+                Delete Shifts
+              </DialogTitle>
               <DialogDescription className="text-sm font-bold text-orange-600 uppercase tracking-wider">
                 House: {houseName}
               </DialogDescription>
@@ -97,34 +128,53 @@ export function BulkActionModal({
 
         <div className="grid gap-5 py-4">
           <div className="space-y-2">
-            <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">Filter by Template Type</Label>
-            <Select value={filters.shiftTemplateId} onValueChange={(val) => setFilters({ ...filters, shiftTemplateId: val })}>
+            <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">
+              Filter by Template Type
+            </Label>
+            <Select
+              value={filters.shiftTemplateId}
+              onValueChange={(val) =>
+                setFilters({ ...filters, shiftTemplateId: val })
+              }
+            >
               <SelectTrigger className="h-10 text-sm bg-gray-50/50">
                 <SelectValue placeholder="All Template Types" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Types</SelectItem>
-                {displayTemplates.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+                {displayTemplates.map((t) => (
+                  <SelectItem key={t.id} value={t.id}>
+                    {t.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">Start Date</Label>
-              <Input 
-                type="date" 
-                value={filters.startDate} 
-                onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">
+                Start Date
+              </Label>
+              <Input
+                type="date"
+                value={filters.startDate}
+                onChange={(e) =>
+                  setFilters({ ...filters, startDate: e.target.value })
+                }
                 className="h-10 text-sm bg-gray-50/50"
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">End Date</Label>
-              <Input 
-                type="date" 
-                value={filters.endDate} 
-                onChange={(e) => setFilters({ ...filters, endDate: e.target.value })} 
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">
+                End Date
+              </Label>
+              <Input
+                type="date"
+                value={filters.endDate}
+                onChange={(e) =>
+                  setFilters({ ...filters, endDate: e.target.value })
+                }
                 className="h-10 text-sm bg-gray-50/50"
               />
             </div>
@@ -132,10 +182,15 @@ export function BulkActionModal({
         </div>
 
         <DialogFooter className="pt-2">
-          <Button variant="ghost" onClick={onClose} disabled={isSubmitting} className="font-bold text-xs uppercase tracking-widest">
+          <Button
+            variant="ghost"
+            onClick={onClose}
+            disabled={isSubmitting}
+            className="font-bold text-xs uppercase tracking-widest"
+          >
             Cancel
           </Button>
-          <Button 
+          <Button
             variant="destructive"
             onClick={handleConfirm}
             disabled={isSubmitting}

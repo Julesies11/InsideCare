@@ -25,17 +25,22 @@ const ScrollspyMenu = ({ items }: ScrollspyMenuProps) => {
         data-scrollspy-anchor={item.target}
         className={cn(
           'cursor-pointer flex items-center rounded-lg pe-2.5 border border-transparent text-accent-foreground hover:text-primary data-[active=true]:bg-accent data-[active=true]:text-primary data-[active=true]:font-medium',
-          indent ? 'ps-0 gap-1.5 relative py-0.5 text-xs leading-tight' : 'ps-2.5 gap-1.5 py-1 font-semibold',
+          indent
+            ? 'ps-0 gap-1.5 relative py-0.5 text-xs leading-tight'
+            : 'ps-2.5 gap-1.5 py-1 font-semibold',
         )}
       >
         {indent && (
           <>
             <span className="flex w-[26px] h-full absolute left-0 top-0">
               <span className="absolute left-[11px] top-0 bottom-1/2 w-px bg-border"></span>
-              <span className={cn(
-                "absolute left-[11px] top-1/2 w-[15px] h-px bg-border",
-                isLast && "after:absolute after:left-0 after:top-0 after:bottom-0 after:w-px after:bg-background"
-              )}></span>
+              <span
+                className={cn(
+                  'absolute left-[11px] top-1/2 w-[15px] h-px bg-border',
+                  isLast &&
+                    'after:absolute after:left-0 after:top-0 after:bottom-0 after:w-px after:bg-background',
+                )}
+              ></span>
             </span>
             <span className="flex w-1.5 relative ml-[26px] before:absolute start-px rtl:-start-[5px] before:top-0 before:size-1.5 before:rounded-full before:-translate-x-2/4 before:-translate-y-2/4 [[data-active=true]>&]:before:bg-primary"></span>
           </>

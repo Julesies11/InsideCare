@@ -3,16 +3,17 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return new Response(null, { 
-      status: 204, 
-      headers: corsHeaders 
+    return new Response(null, {
+      status: 204,
+      headers: corsHeaders,
     });
   }
 
@@ -36,7 +37,10 @@ serve(async (req) => {
 
     const isServiceRole = authHeader === `Bearer ${supabaseServiceKey}`;
     console.log('Diagnostic: isServiceRole:', isServiceRole);
-    console.log('Diagnostic: authHeader start:', authHeader.substring(0, 15) + '...');
+    console.log(
+      'Diagnostic: authHeader start:',
+      authHeader.substring(0, 15) + '...',
+    );
     let isCallerAdmin = false;
     let callingUserId = '';
 
@@ -48,7 +52,10 @@ serve(async (req) => {
         global: { headers: { Authorization: authHeader } },
       });
 
-      const { data: { user: callingUser }, error: userError } = await supabaseUser.auth.getUser();
+      const {
+        data: { user: callingUser },
+        error: userError,
+      } = await supabaseUser.auth.getUser();
       if (userError || !callingUser) {
         throw new Error('Unauthorized');
       }
@@ -89,7 +96,7 @@ serve(async (req) => {
     } catch (e) {
       throw new Error('Invalid JSON body');
     }
-    
+
     const { userId } = body;
     if (!userId) {
       throw new Error('userId is required');
@@ -99,8 +106,12 @@ serve(async (req) => {
     const isSelfSync = !isServiceRole && callingUserId === userId;
 
     if (!isServiceRole && !isSelfSync && !isCallerAdmin) {
-      console.error(`User ${callingUserId} attempted to sync permissions for ${userId} without admin rights.`);
-      throw new Error('Forbidden: Admin access (full access_control) required for cross-user sync');
+      console.error(
+        `User ${callingUserId} attempted to sync permissions for ${userId} without admin rights.`,
+      );
+      throw new Error(
+        'Forbidden: Admin access (full access_control) required for cross-user sync',
+      );
     }
     // --- END HARDENING ---
 
@@ -109,13 +120,15 @@ serve(async (req) => {
     // 3. Fetch Target Staff Profile & Role
     const { data: staff, error: staffError } = await supabaseAdmin
       .from('ic_staff')
-      .select(`
+      .select(
+        `
         id, 
         role_id, 
         manager_id, 
         auth_user_id,
         role:ic_roles!staff_role_id_fkey(role_name)
-      `)
+      `,
+      )
       .eq('auth_user_id', userId)
       .maybeSingle();
 
@@ -142,7 +155,7 @@ serve(async (req) => {
       .or(`end_date.is.null,end_date.gte.${today}`);
 
     if (assignError) throw assignError;
-    const assignedHouses = assignments?.map(a => a.house_id) || [];
+    const assignedHouses = assignments?.map((a) => a.house_id) || [];
 
     // 6. Fetch Managed Staff IDs (Direct Reports)
     const { data: reports, error: reportsError } = await supabaseAdmin
@@ -151,16 +164,16 @@ serve(async (req) => {
       .eq('manager_id', staff.id);
 
     if (reportsError) throw reportsError;
-    const managedStaffIds = reports?.map(r => r.id) || [];
+    const managedStaffIds = reports?.map((r) => r.id) || [];
 
     // 7. Compile app_metadata
     // Clean up permissions object (remove DB internal fields)
-    const { 
-      id: _pId, 
-      role_id: _rId, 
-      created_at: _ca, 
-      updated_at: _ua, 
-      ...modulePermissions 
+    const {
+      id: _pId,
+      role_id: _rId,
+      created_at: _ca,
+      updated_at: _ua,
+      ...modulePermissions
     } = permissions || {};
 
     const targetRoleName = staff.role?.role_name || '';
@@ -174,28 +187,28 @@ serve(async (req) => {
       permissions: modulePermissions,
       assigned_houses: assignedHouses,
       managed_staff_ids: managedStaffIds,
-      last_sync: new Date().toISOString()
+      last_sync: new Date().toISOString(),
     };
 
     console.log(`Final metadata for ${userId}:`, JSON.stringify(app_metadata));
 
     // 8. Update Auth User app_metadata
-    const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
-      userId,
-      { app_metadata }
-    );
+    const { error: updateError } =
+      await supabaseAdmin.auth.admin.updateUserById(userId, { app_metadata });
 
     if (updateError) throw updateError;
 
-    return new Response(JSON.stringify({ 
-      success: true, 
-      userId, 
-      app_metadata 
-    }), {
-      status: 200,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-
+    return new Response(
+      JSON.stringify({
+        success: true,
+        userId,
+        app_metadata,
+      }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      },
+    );
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : String(err);
     console.error('Edge Function Error:', errorMessage);

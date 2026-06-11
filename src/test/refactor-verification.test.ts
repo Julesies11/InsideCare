@@ -1,11 +1,11 @@
-import { describe, it, expect } from 'vitest';
-import { supabase } from '@/lib/supabase';
+import { describe, expect, it } from 'vitest';
 import { TABLES } from '@/config/db-tables';
+import { supabase } from '@/lib/supabase';
 
 /**
  * Refactor Verification Unit Test
- * 
- * This test verifies that the application code is actually interacting with 
+ *
+ * This test verifies that the application code is actually interacting with
  * the 'ic_' prefixed tables, ensuring the refactor is functionally correct.
  */
 describe('Database Prefix Integrity', () => {

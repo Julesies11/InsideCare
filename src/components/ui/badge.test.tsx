@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
 import { Badge } from './badge';
 
 describe('Badge', () => {
@@ -10,15 +10,23 @@ describe('Badge', () => {
 
   it('applies the correct variant classes', () => {
     const { rerender } = render(<Badge variant="success">Success</Badge>);
-    expect(screen.getByText('Success')).toHaveClass('bg-[var(--color-success-accent,var(--color-green-500))]');
+    expect(screen.getByText('Success')).toHaveClass(
+      'bg-[var(--color-success-accent,var(--color-green-500))]',
+    );
 
     rerender(<Badge variant="destructive">Delete</Badge>);
     expect(screen.getByText('Delete')).toHaveClass('bg-destructive');
   });
 
   it('applies light appearance classes', () => {
-    render(<Badge variant="success" appearance="light">Light Success</Badge>);
-    expect(screen.getByText('Light Success')).toHaveClass('text-[var(--color-success-accent,var(--color-green-800))]');
+    render(
+      <Badge variant="success" appearance="light">
+        Light Success
+      </Badge>,
+    );
+    expect(screen.getByText('Light Success')).toHaveClass(
+      'text-[var(--color-success-accent,var(--color-green-800))]',
+    );
   });
 
   it('applies the correct size classes', () => {

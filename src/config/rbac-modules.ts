@@ -63,4 +63,4 @@ export const RBAC_MODULES = {
   REPORTING_COMPLIANCE: 'reporting_compliance',
 } as const;
 
-export type RBACModule = typeof RBAC_MODULES[keyof typeof RBAC_MODULES];
+export type RBACModule = (typeof RBAC_MODULES)[keyof typeof RBAC_MODULES];

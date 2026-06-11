@@ -27,7 +27,9 @@ export function EmergencyManagement({
             <Textarea
               id="mental_health_plan"
               value={formData.mental_health_plan || ''}
-              onChange={(e) => onFormChange('mental_health_plan', e.target.value)}
+              onChange={(e) =>
+                onFormChange('mental_health_plan', e.target.value)
+              }
               rows={5}
               placeholder="Describe mental health management plan..."
               disabled={!canEdit}
@@ -53,11 +55,15 @@ export function EmergencyManagement({
         {/* Natural Disaster / Relocation Plan */}
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <Label className="w-full max-w-56">Natural Disaster / Relocation Plan</Label>
+            <Label className="w-full max-w-56">
+              Natural Disaster / Relocation Plan
+            </Label>
             <Textarea
               id="natural_disaster_plan"
               value={formData.natural_disaster_plan || ''}
-              onChange={(e) => onFormChange('natural_disaster_plan', e.target.value)}
+              onChange={(e) =>
+                onFormChange('natural_disaster_plan', e.target.value)
+              }
               rows={5}
               placeholder="Describe natural disaster and relocation procedures..."
               disabled={!canEdit}

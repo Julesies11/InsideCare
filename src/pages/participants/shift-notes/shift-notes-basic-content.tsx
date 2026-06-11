@@ -1,8 +1,8 @@
 import { ClipboardList, Plus } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router';
 import { ROUTES } from '@/config/routes.config';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { ShiftNotes } from './components';
 
 export function ShiftNotesContent() {
@@ -34,8 +34,9 @@ export function ShiftNotesContent() {
                 Accurate Documentation, Better Care
               </h3>
               <p className="text-sm text-emerald-700 dark:text-emerald-300">
-                Detailed shift notes ensure continuity of care and help track progress toward participant goals. 
-                Your observations are vital for the entire support team.
+                Detailed shift notes ensure continuity of care and help track
+                progress toward participant goals. Your observations are vital
+                for the entire support team.
               </p>
             </div>
           </div>

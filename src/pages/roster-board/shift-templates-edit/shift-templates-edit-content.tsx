@@ -4,14 +4,12 @@ interface ShiftTemplatesEditContentProps {
   houseId: string;
 }
 
-export function ShiftTemplatesEditContent({ houseId }: ShiftTemplatesEditContentProps) {
+export function ShiftTemplatesEditContent({
+  houseId,
+}: ShiftTemplatesEditContentProps) {
   return (
     <div className="flex flex-col gap-5 lg:gap-7.5">
-      <HouseShiftSetup 
-        houseId={houseId} 
-        directSave={true} 
-        canEdit={true} 
-      />
+      <HouseShiftSetup houseId={houseId} directSave={true} canEdit={true} />
     </div>
   );
 }

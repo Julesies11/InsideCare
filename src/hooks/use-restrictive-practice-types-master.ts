@@ -1,7 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { masterListsApi } from '@/api/master-lists.api';
-import { QUERY_KEYS } from '@/config/query-keys';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { QUERY_KEYS } from '@/config/query-keys';
 
 export interface RestrictivePracticeTypeMaster {
   id: string;
@@ -16,7 +16,9 @@ export function useRestrictivePracticeTypesMaster(includeInactive = false) {
   return useQuery({
     queryKey: [QUERY_KEYS.RESTRICTIVE_PRACTICE_TYPES_MASTER, includeInactive],
     queryFn: async () => {
-      return await masterListsApi.restrictivePracticeTypes.list(includeInactive);
+      return await masterListsApi.restrictivePracticeTypes.list(
+        includeInactive,
+      );
     },
   });
 }
@@ -26,10 +28,14 @@ export function useAddRestrictivePracticeTypeMaster() {
 
   return useMutation({
     mutationFn: async (newItem: Partial<RestrictivePracticeTypeMaster>) => {
-      return await masterListsApi.restrictivePracticeTypes.upsert(newItem as any);
+      return await masterListsApi.restrictivePracticeTypes.upsert(
+        newItem as any,
+      );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.RESTRICTIVE_PRACTICE_TYPES_MASTER] });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.RESTRICTIVE_PRACTICE_TYPES_MASTER],
+      });
       toast.success('Restrictive practice type added successfully');
     },
     onError: (error: Error) => {
@@ -43,16 +49,24 @@ export function useUpdateRestrictivePracticeTypeMaster() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (updatedItem: Partial<RestrictivePracticeTypeMaster> & { id: string }) => {
-      return await masterListsApi.restrictivePracticeTypes.upsert(updatedItem as any);
+    mutationFn: async (
+      updatedItem: Partial<RestrictivePracticeTypeMaster> & { id: string },
+    ) => {
+      return await masterListsApi.restrictivePracticeTypes.upsert(
+        updatedItem as any,
+      );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.RESTRICTIVE_PRACTICE_TYPES_MASTER] });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.RESTRICTIVE_PRACTICE_TYPES_MASTER],
+      });
       toast.success('Restrictive practice type updated successfully');
     },
     onError: (error: Error) => {
       console.error('Error updating restrictive practice type:', error);
-      toast.error(error.message || 'Failed to update restrictive practice type');
+      toast.error(
+        error.message || 'Failed to update restrictive practice type',
+      );
     },
   });
 }

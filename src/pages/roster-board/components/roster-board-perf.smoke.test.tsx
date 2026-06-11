@@ -5,11 +5,11 @@
  * after the houseStaffMap optimisation. No Playwright — these are unit-level
  * smoke tests using vitest + @testing-library/react.
  */
-import { describe, it, expect, vi } from 'vitest';
+import React from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import React from 'react';
+import { describe, expect, it, vi } from 'vitest';
 
 // ─── Mock all external dependencies ─────────────────────────────────────────
 vi.mock('@/api/roster.api', () => ({
@@ -70,13 +70,14 @@ const renderWithProviders = (ui: React.ReactNode) =>
   render(
     <QueryClientProvider client={createTestQueryClient()}>
       <MemoryRouter>{ui}</MemoryRouter>
-    </QueryClientProvider>
+    </QueryClientProvider>,
   );
 
 // ─── ShiftCalendar smoke tests ───────────────────────────────────────────────
 describe('ShiftCalendar smoke tests', () => {
   it('renders without crashing when houseStaffMap is undefined (fallback path)', async () => {
-    const { ShiftCalendar } = await import('@/components/roster/shift-calendar');
+    const { ShiftCalendar } =
+      await import('@/components/roster/shift-calendar');
     renderWithProviders(
       <ShiftCalendar
         staffId="all"
@@ -91,14 +92,15 @@ describe('ShiftCalendar smoke tests', () => {
         houses={[{ id: 'house-1', house_name: 'Test House' } as any]}
         staffList={[]}
         // houseStaffMap intentionally omitted to test fallback path
-      />
+      />,
     );
     // Should render without crashing — no error boundary triggered
     expect(document.querySelector('#root') ?? document.body).toBeTruthy();
   });
 
   it('renders without crashing when houseStaffMap is provided (optimised path)', async () => {
-    const { ShiftCalendar } = await import('@/components/roster/shift-calendar');
+    const { ShiftCalendar } =
+      await import('@/components/roster/shift-calendar');
     const houseStaffMap = new Map([['house-1', []]]);
 
     renderWithProviders(
@@ -115,13 +117,14 @@ describe('ShiftCalendar smoke tests', () => {
         houses={[{ id: 'house-1', house_name: 'Test House' } as any]}
         staffList={[]}
         houseStaffMap={houseStaffMap}
-      />
+      />,
     );
     expect(document.querySelector('#root') ?? document.body).toBeTruthy();
   });
 
   it('renders loading skeleton without crashing', async () => {
-    const { ShiftCalendar } = await import('@/components/roster/shift-calendar');
+    const { ShiftCalendar } =
+      await import('@/components/roster/shift-calendar');
     renderWithProviders(
       <ShiftCalendar
         staffId="all"
@@ -132,7 +135,7 @@ describe('ShiftCalendar smoke tests', () => {
         canEdit={false}
         onAddShift={vi.fn()}
         onEditShift={vi.fn()}
-      />
+      />,
     );
     expect(document.querySelector('#root') ?? document.body).toBeTruthy();
   });
@@ -141,9 +144,8 @@ describe('ShiftCalendar smoke tests', () => {
 // ─── RosterBoardContent smoke test ──────────────────────────────────────────
 describe('RosterBoardContent smoke tests', () => {
   it('renders the roster board header without crashing', async () => {
-    const { RosterBoardContent } = await import(
-      '@/pages/roster-board/roster-board-content'
-    );
+    const { RosterBoardContent } =
+      await import('@/pages/roster-board/roster-board-content');
     renderWithProviders(<RosterBoardContent />);
     expect(await screen.findByText(/Roster Board/i)).toBeInTheDocument();
   });

@@ -1,15 +1,22 @@
-import { supabase } from '@/lib/supabase';
-import { TABLES } from '@/config/db-tables';
-import { STAFF_VIEWS, MISC_VIEWS } from '@/config/query-views';
 import { Database } from '@/models/database.types';
-import { STATUS } from '@/config/enums';
 import { format, subDays } from 'date-fns';
+import { TABLES } from '@/config/db-tables';
+import { STATUS } from '@/config/enums';
+import { MISC_VIEWS, STAFF_VIEWS } from '@/config/query-views';
+import { supabase } from '@/lib/supabase';
 
 export type StaffStatus = Database['public']['Enums']['ic_status_enum'];
-export type StaffCompliance = Database['public']['Tables']['ic_staff_compliance']['Row'];
-export type StaffTraining = Database['public']['Tables']['ic_staff_training']['Row'];
+export type StaffCompliance =
+  Database['public']['Tables']['ic_staff_compliance']['Row'];
+export type StaffTraining =
+  Database['public']['Tables']['ic_staff_training']['Row'];
 
-export interface StaffUpdateData extends Partial<Omit<Database['public']['Tables']['ic_staff']['Update'], 'id' | 'created_at' | 'updated_at' | 'created_by' | 'updated_by'>> {
+export interface StaffUpdateData extends Partial<
+  Omit<
+    Database['public']['Tables']['ic_staff']['Update'],
+    'id' | 'created_at' | 'updated_at' | 'created_by' | 'updated_by'
+  >
+> {
   name?: string; // Kept for backward compatibility in forms, maps to staff_name
 }
 
@@ -33,12 +40,17 @@ export const staffApi = {
    */
   sanitizeRecord(record: any, forbidden: string[] = []) {
     const sanitized = { ...record };
-    forbidden.forEach(key => delete sanitized[key]);
-    
+    forbidden.forEach((key) => delete sanitized[key]);
+
     // Standard system-managed fields that should never be sent in mutations
-    const systemFields = ['created_at', 'updated_at', 'created_by', 'updated_by'];
-    systemFields.forEach(key => delete sanitized[key]);
-    
+    const systemFields = [
+      'created_at',
+      'updated_at',
+      'created_by',
+      'updated_by',
+    ];
+    systemFields.forEach((key) => delete sanitized[key]);
+
     return sanitized;
   },
 
@@ -49,7 +61,7 @@ export const staffApi = {
     pageIndex = 0,
     pageSize = 10,
     sort = [],
-    filters = {}
+    filters = {},
   }: {
     pageIndex?: number;
     pageSize?: number;
@@ -61,7 +73,9 @@ export const staffApi = {
       .select(STAFF_VIEWS.LIST, { count: 'exact' });
 
     if (filters.search) {
-      query = query.or(`staff_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%,phone.ilike.%${filters.search}%`);
+      query = query.or(
+        `staff_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%,phone.ilike.%${filters.search}%`,
+      );
     }
 
     if (filters.statuses && filters.statuses.length > 0) {
@@ -73,13 +87,13 @@ export const staffApi = {
     }
 
     if (sort.length > 0) {
-      sort.forEach(s => {
+      sort.forEach((s) => {
         let column = s.id;
         if (s.id === 'department') column = 'department_id';
         if (s.id === 'role') column = 'role_id';
         if (s.id === 'name') column = 'staff_name';
         if (s.id === 'contact') column = 'email';
-        
+
         query = query.order(column as any, { ascending: !s.desc });
       });
     } else {
@@ -96,13 +110,17 @@ export const staffApi = {
     const formatted = (data || []).map((item: any) => ({
       ...item,
       name: item.staff_name,
-      department_info: Array.isArray(item.department_info) ? item.department_info[0] : item.department_info,
-      employment_type_info: Array.isArray(item.employment_type_info) ? item.employment_type_info[0] : item.employment_type_info,
+      department_info: Array.isArray(item.department_info)
+        ? item.department_info[0]
+        : item.department_info,
+      employment_type_info: Array.isArray(item.employment_type_info)
+        ? item.employment_type_info[0]
+        : item.employment_type_info,
       role: Array.isArray(item.role) ? item.role[0] : item.role,
       house_assignments: (item.house_assignments || []).map((ha: any) => ({
         ...ha,
-        house: Array.isArray(ha.house) ? ha.house[0] : ha.house
-      }))
+        house: Array.isArray(ha.house) ? ha.house[0] : ha.house,
+      })),
     }));
 
     return { data: formatted, count: count || 0 };
@@ -115,7 +133,8 @@ export const staffApi = {
     const today = new Date().toISOString().split('T')[0];
     const { data, error } = await supabase
       .from(TABLES.STAFF)
-      .select(`
+      .select(
+        `
         id, staff_name, status, email, photo_url,
         house_assignments:${TABLES.HOUSE_STAFF_ASSIGNMENTS}!staff_id(
           id,
@@ -123,23 +142,26 @@ export const staffApi = {
           end_date,
           house:${TABLES.HOUSES}(id, house_name)
         )
-      `)
+      `,
+      )
       .eq('status', 'active')
       .order('staff_name');
     if (error) throw error;
-    
+
     return (data || []).map((s: any) => {
-      const activeAssignments = (s.house_assignments || []).filter((ha: any) => {
-        return !ha.end_date || ha.end_date >= today;
-      }).map((ha: any) => ({
-        ...ha,
-        house: Array.isArray(ha.house) ? ha.house[0] : ha.house
-      }));
+      const activeAssignments = (s.house_assignments || [])
+        .filter((ha: any) => {
+          return !ha.end_date || ha.end_date >= today;
+        })
+        .map((ha: any) => ({
+          ...ha,
+          house: Array.isArray(ha.house) ? ha.house[0] : ha.house,
+        }));
 
       return {
         ...s,
         name: s.staff_name,
-        house_assignments: activeAssignments
+        house_assignments: activeAssignments,
       };
     });
   },
@@ -152,7 +174,8 @@ export const staffApi = {
     const today = new Date().toISOString().split('T')[0];
     const { data, error } = await supabase
       .from(TABLES.STAFF)
-      .select(`
+      .select(
+        `
         id, staff_name, email, photo_url, status,
         house_assignments:${TABLES.HOUSE_STAFF_ASSIGNMENTS}!staff_id(
           house_id,
@@ -162,25 +185,28 @@ export const staffApi = {
         compliance:${TABLES.STAFF_COMPLIANCE}!staff_id(
           id, compliance_type_id, compliance_name, status, expiry_date
         )
-      `)
+      `,
+      )
       .eq('status', 'active')
       .order('staff_name');
 
     if (error) throw error;
-    
+
     return (data || []).map((s: any) => {
-      const activeAssignments = (s.house_assignments || []).filter((ha: any) => {
-        return !ha.end_date || ha.end_date >= today;
-      }).map((ha: any) => ({
-        ...ha,
-        house: Array.isArray(ha.house) ? ha.house[0] : ha.house
-      }));
+      const activeAssignments = (s.house_assignments || [])
+        .filter((ha: any) => {
+          return !ha.end_date || ha.end_date >= today;
+        })
+        .map((ha: any) => ({
+          ...ha,
+          house: Array.isArray(ha.house) ? ha.house[0] : ha.house,
+        }));
 
       return {
         ...s,
         name: s.staff_name,
         house_assignments: activeAssignments,
-        compliance: s.compliance || []
+        compliance: s.compliance || [],
       };
     });
   },
@@ -213,10 +239,18 @@ export const staffApi = {
     const formatted = {
       ...data,
       name: (data as any).staff_name,
-      department_info: Array.isArray((data as any).department_info) ? (data as any).department_info[0] : (data as any).department_info,
-      employment_type_info: Array.isArray((data as any).employment_type_info) ? (data as any).employment_type_info[0] : (data as any).employment_type_info,
-      manager_info: Array.isArray((data as any).manager_info) ? (data as any).manager_info[0] : (data as any).manager_info,
-      role: Array.isArray((data as any).role) ? (data as any).role[0] : (data as any).role,
+      department_info: Array.isArray((data as any).department_info)
+        ? (data as any).department_info[0]
+        : (data as any).department_info,
+      employment_type_info: Array.isArray((data as any).employment_type_info)
+        ? (data as any).employment_type_info[0]
+        : (data as any).employment_type_info,
+      manager_info: Array.isArray((data as any).manager_info)
+        ? (data as any).manager_info[0]
+        : (data as any).manager_info,
+      role: Array.isArray((data as any).role)
+        ? (data as any).role[0]
+        : (data as any).role,
     };
 
     return formatted;
@@ -244,7 +278,10 @@ export const staffApi = {
       .maybeSingle();
 
     if (error) throw error;
-    if (!data) throw new Error('Failed to create staff member. This is likely an RLS policy violation (missing INSERT permission).');
+    if (!data)
+      throw new Error(
+        'Failed to create staff member. This is likely an RLS policy violation (missing INSERT permission).',
+      );
 
     const formatted = {
       ...data,
@@ -274,7 +311,10 @@ export const staffApi = {
       .maybeSingle();
 
     if (error) throw error;
-    if (!data) throw new Error('Staff member not found or permission denied (RLS Violation).');
+    if (!data)
+      throw new Error(
+        'Staff member not found or permission denied (RLS Violation).',
+      );
 
     const formatted = {
       ...data,
@@ -288,10 +328,7 @@ export const staffApi = {
    * Deletes a staff member.
    */
   async delete(id: string) {
-    const { error } = await supabase
-      .from(TABLES.STAFF)
-      .delete()
-      .eq('id', id);
+    const { error } = await supabase.from(TABLES.STAFF).delete().eq('id', id);
 
     if (error) throw error;
     return true;
@@ -314,7 +351,9 @@ export const staffApi = {
     }
 
     if (filters.search) {
-      query = query.or(`staff_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%,phone.ilike.%${filters.search}%`);
+      query = query.or(
+        `staff_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%,phone.ilike.%${filters.search}%`,
+      );
     }
 
     const { count, error } = await query;
@@ -332,9 +371,11 @@ export const staffApi = {
       .order('staff_name');
 
     if (error) throw error;
-    
+
     // Return unique non-null names
-    return [...new Set((data || []).map(s => s.staff_name).filter(Boolean))] as string[];
+    return [
+      ...new Set((data || []).map((s) => s.staff_name).filter(Boolean)),
+    ] as string[];
   },
 
   /**
@@ -352,7 +393,9 @@ export const staffApi = {
     return (data || []).map((item: any) => ({
       ...item,
       name: item.staff_name,
-      department_info: Array.isArray(item.department_info) ? item.department_info[0] : item.department_info,
+      department_info: Array.isArray(item.department_info)
+        ? item.department_info[0]
+        : item.department_info,
     }));
   },
 
@@ -392,13 +435,16 @@ export const staffApi = {
    * Invites a staff member.
    */
   async invite(staffId: string, email: string) {
-    const { data, error } = await supabase.functions.invoke('ic-invite-staff-user', {
-      body: { 
-        staffId, 
-        email,
-        redirectTo: `${window.location.origin}/auth/change-password`
+    const { data, error } = await supabase.functions.invoke(
+      'ic-invite-staff-user',
+      {
+        body: {
+          staffId,
+          email,
+          redirectTo: `${window.location.origin}/auth/change-password`,
+        },
       },
-    });
+    );
 
     if (error) throw error;
     return data;
@@ -408,9 +454,12 @@ export const staffApi = {
    * Revokes a staff invite.
    */
   async revokeInvite(staffId: string, authUserId: string) {
-    const { data, error } = await supabase.functions.invoke('ic-revoke-staff-invite', {
-      body: { staffId, authUserId },
-    });
+    const { data, error } = await supabase.functions.invoke(
+      'ic-revoke-staff-invite',
+      {
+        body: { staffId, authUserId },
+      },
+    );
 
     if (error) throw error;
     return data;
@@ -437,10 +486,19 @@ export const staffApi = {
     const lastWeek = subDays(new Date(), 7).toISOString();
     const thirtyDaysAgo = subDays(new Date(), 30).toISOString().split('T')[0];
 
-    const [shiftsRes, eventsRes, leaveRes, timesheetsRes, allTimesheetsRes, pastShiftsRes, allShiftNotesRes] = await Promise.all([
+    const [
+      shiftsRes,
+      eventsRes,
+      leaveRes,
+      timesheetsRes,
+      allTimesheetsRes,
+      pastShiftsRes,
+      allShiftNotesRes,
+    ] = await Promise.all([
       supabase
         .from(TABLES.STAFF_SHIFTS)
-        .select(`
+        .select(
+          `
           id, 
           start_date, 
           end_date,
@@ -454,7 +512,8 @@ export const staffApi = {
             assignment_title,
             submissions:ic_house_checklist_submissions(id, status, shift_id)
           )
-        `)
+        `,
+        )
         .eq('staff_id', staffId)
         .gte('end_date', today)
         .order('start_date', { ascending: true })
@@ -462,7 +521,8 @@ export const staffApi = {
         .limit(5),
       supabase
         .from(TABLES.HOUSE_CALENDAR_EVENTS)
-        .select(`
+        .select(
+          `
           id,
           title,
           event_date,
@@ -472,21 +532,28 @@ export const staffApi = {
           type:ic_house_calendar_event_types_master(event_type_name, color),
           house:ic_houses(house_name),
           staff_assignments:ic_house_calendar_event_staff!inner(staff_id)
-        `)
+        `,
+        )
         .eq('staff_assignments.staff_id', staffId)
         .gte('event_date', today)
         .order('event_date', { ascending: true })
         .limit(5),
       supabase
         .from(TABLES.LEAVE_REQUESTS)
-        .select('id, leave_type:ic_leave_types(leave_type_name), start_date, end_date, status, updated_at')
+        .select(
+          'id, leave_type:ic_leave_types(leave_type_name), start_date, end_date, status, updated_at',
+        )
         .eq('staff_id', staffId)
-        .or(`status.eq.pending,and(status.eq.approved,updated_at.gte.${lastWeek})`)
+        .or(
+          `status.eq.pending,and(status.eq.approved,updated_at.gte.${lastWeek})`,
+        )
         .order('start_date', { ascending: true })
         .limit(3),
       supabase
         .from(TABLES.TIMESHEETS)
-        .select('id, status, clock_in, shift:ic_staff_shifts!timesheets_shift_id_fkey(start_date)')
+        .select(
+          'id, status, clock_in, shift:ic_staff_shifts!timesheets_shift_id_fkey(start_date)',
+        )
         .eq('staff_id', staffId)
         .in('status', ['pending'])
         .order('clock_in', { ascending: false })
@@ -498,12 +565,14 @@ export const staffApi = {
         .not('shift_id', 'is', null),
       supabase
         .from(TABLES.STAFF_SHIFTS)
-        .select(`
+        .select(
+          `
           id, 
           end_date, 
           end_time,
           participants:ic_shift_participants(participant_id)
-        `)
+        `,
+        )
         .eq('staff_id', staffId)
         .gte('end_date', thirtyDaysAgo)
         .lt('end_date', today),
@@ -511,29 +580,32 @@ export const staffApi = {
         .from(TABLES.SHIFT_NOTES)
         .select('shift_id, participant_id, status')
         .eq('staff_id', staffId)
-        .not('shift_id', 'is', null)
+        .not('shift_id', 'is', null),
     ]);
 
     const shifts = (shiftsRes.data as any[]) || [];
     const events = (eventsRes.data as any[]) || [];
 
-    const timesheetedShiftIds = new Set((allTimesheetsRes.data as any[])?.map(ts => ts.shift_id) || []);
+    const timesheetedShiftIds = new Set(
+      (allTimesheetsRes.data as any[])?.map((ts) => ts.shift_id) || [],
+    );
     const allShiftNotes = (allShiftNotesRes.data as any[]) || [];
     const completedNoteKeys = new Set(
       allShiftNotes
         .filter((n: any) => n.status === 'active')
-        .map((n: any) => `${n.shift_id}-${n.participant_id || 'general'}`)
+        .map((n: any) => `${n.shift_id}-${n.participant_id || 'general'}`),
     );
     const now = new Date();
-    
-    const missingShifts = (pastShiftsRes.data as any[])?.filter(s => {
-      if (timesheetedShiftIds.has(s.id)) return false;
-      const shiftEnd = new Date(`${s.end_date}T${s.end_time}`);
-      return shiftEnd < now;
-    }) || [];
+
+    const missingShifts =
+      (pastShiftsRes.data as any[])?.filter((s) => {
+        if (timesheetedShiftIds.has(s.id)) return false;
+        const shiftEnd = new Date(`${s.end_date}T${s.end_time}`);
+        return shiftEnd < now;
+      }) || [];
 
     let missingNotesCount = 0;
-    (pastShiftsRes.data as any[] || []).forEach(s => {
+    ((pastShiftsRes.data as any[]) || []).forEach((s) => {
       const shiftEnd = new Date(`${s.end_date}T${s.end_time}`);
       if (shiftEnd >= now) return;
 
@@ -553,11 +625,13 @@ export const staffApi = {
       }
     });
 
-    const upcomingShifts = shifts.map(shift => {
+    const upcomingShifts = shifts.map((shift) => {
       const checklists = shift.assigned_checklists || [];
       const total = checklists.length;
-      const completed = checklists.filter((cl: any) => 
-        cl.submissions?.some((s: any) => s.shift_id === shift.id && s.status === 'completed')
+      const completed = checklists.filter((cl: any) =>
+        cl.submissions?.some(
+          (s: any) => s.shift_id === shift.id && s.status === 'completed',
+        ),
       ).length;
 
       return {
@@ -569,12 +643,12 @@ export const staffApi = {
         checklist_stats: {
           total,
           completed,
-          all_done: total > 0 && total === completed
-        }
+          all_done: total > 0 && total === completed,
+        },
       };
     });
 
-    const upcomingEvents = events.map(event => ({
+    const upcomingEvents = events.map((event) => ({
       ...event,
       entry_type: 'event' as const,
       start_date: event.event_date,
@@ -582,11 +656,15 @@ export const staffApi = {
       type_color: event.type?.color || 'blue',
     }));
 
-    const upcomingSchedule = [...upcomingShifts, ...upcomingEvents].sort((a, b) => {
-      const dateCompare = (a.start_date || '').localeCompare(b.start_date || '');
-      if (dateCompare !== 0) return dateCompare;
-      return (a.start_time || '').localeCompare(b.start_time || '');
-    }).slice(0, 5);
+    const upcomingSchedule = [...upcomingShifts, ...upcomingEvents]
+      .sort((a, b) => {
+        const dateCompare = (a.start_date || '').localeCompare(
+          b.start_date || '',
+        );
+        if (dateCompare !== 0) return dateCompare;
+        return (a.start_time || '').localeCompare(b.start_time || '');
+      })
+      .slice(0, 5);
 
     return {
       upcomingSchedule,
@@ -595,5 +673,5 @@ export const staffApi = {
       pendingLeave: (leaveRes.data as any[]) || [],
       pendingTimesheets: (timesheetsRes.data as any[]) || [],
     };
-  }
+  },
 };

@@ -1,14 +1,30 @@
-import { useState, useMemo } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
-import { useMedicationsMaster, useAddMedicationMaster, useUpdateMedicationMaster } from '@/hooks/use-medications-master';
+import { useMemo, useState } from 'react';
 import { MedicationMaster } from '@/models/medication-master';
-import { MedicationMasterQuickAdd } from './medication-master-quick-add';
+import { ArrowDown, ArrowUp, ArrowUpDown, Edit, Plus } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  useAddMedicationMaster,
+  useMedicationsMaster,
+  useUpdateMedicationMaster,
+} from '@/hooks/use-medications-master';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { MedicationMasterQuickAdd } from './medication-master-quick-add';
 
 interface MedicationMasterDialogProps {
   open: boolean;
@@ -30,17 +46,22 @@ export function MedicationMasterDialog({
   const [pageIndex, setPageIndex] = useState(0);
   const pageSize = 50;
 
-  const { medications = [], count = 0, isLoading: loading } = useMedicationsMaster(
+  const {
+    medications = [],
+    count = 0,
+    isLoading: loading,
+  } = useMedicationsMaster(
     pageIndex,
     pageSize,
     [{ id: sortField, desc: sortDirection === 'desc' }],
-    { search: searchQuery, includeInactive: true }
+    { search: searchQuery, includeInactive: true },
   );
 
   const { mutateAsync: addMedication } = useAddMedicationMaster();
   const { mutateAsync: updateMedication } = useUpdateMedicationMaster();
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const [editingMedication, setEditingMedication] = useState<MedicationMaster | null>(null);
+  const [editingMedication, setEditingMedication] =
+    useState<MedicationMaster | null>(null);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -65,19 +86,32 @@ export function MedicationMasterDialog({
   const handleToggleStatus = async (medication: MedicationMaster) => {
     const newStatus = !medication.is_active;
     try {
-      await updateMedication({ id: medication.id, updates: { is_active: newStatus }, oldMedication: medication });
-      toast.success(`Medication ${newStatus ? 'activated' : 'deactivated'} successfully`);
+      await updateMedication({
+        id: medication.id,
+        updates: { is_active: newStatus },
+        oldMedication: medication,
+      });
+      toast.success(
+        `Medication ${newStatus ? 'activated' : 'deactivated'} successfully`,
+      );
       onUpdate();
     } catch (error) {
       const err = error as Error;
-      toast.error(`Failed to ${newStatus ? 'activate' : 'deactivate'} medication: ` + err.message);
+      toast.error(
+        `Failed to ${newStatus ? 'activate' : 'deactivate'} medication: ` +
+          err.message,
+      );
     }
   };
 
   const handleSave = async (medicationData: Partial<MedicationMaster>) => {
     try {
       if (editingMedication) {
-        await updateMedication({ id: editingMedication.id, updates: medicationData, oldMedication: editingMedication });
+        await updateMedication({
+          id: editingMedication.id,
+          updates: medicationData,
+          oldMedication: editingMedication,
+        });
         toast.success('Medication updated successfully');
       } else {
         await addMedication({
@@ -97,27 +131,37 @@ export function MedicationMasterDialog({
       const err = error as Error;
       if (err.message === 'DUPLICATE_NAME') {
         toast.error('Duplicate medication name', {
-          description: 'A medication with this name already exists. Please use a different name.'
+          description:
+            'A medication with this name already exists. Please use a different name.',
         });
       } else {
-        toast.error(`Failed to ${editingMedication ? 'update' : 'add'} medication`, {
-          description: err.message
-        });
+        toast.error(
+          `Failed to ${editingMedication ? 'update' : 'add'} medication`,
+          {
+            description: err.message,
+          },
+        );
       }
     }
   };
 
   const SortIcon = ({ field }: { field: SortField }) => {
-    if (sortField !== field) return <ArrowUpDown className="size-4 ms-1 inline opacity-30" />;
-    return sortDirection === 'asc' ? 
-      <ArrowUp className="size-4 ms-1 inline" /> : 
-      <ArrowDown className="size-4 ms-1 inline" />;
+    if (sortField !== field)
+      return <ArrowUpDown className="size-4 ms-1 inline opacity-30" />;
+    return sortDirection === 'asc' ? (
+      <ArrowUp className="size-4 ms-1 inline" />
+    ) : (
+      <ArrowDown className="size-4 ms-1 inline" />
+    );
   };
 
   return (
     <>
       <Dialog open={open} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl h-[80vh] flex flex-col" style={{ zIndex: 60 }}>
+        <DialogContent
+          className="max-w-4xl h-[80vh] flex flex-col"
+          style={{ zIndex: 60 }}
+        >
           <DialogHeader>
             <DialogTitle>Manage Medication List</DialogTitle>
           </DialogHeader>
@@ -132,7 +176,12 @@ export function MedicationMasterDialog({
               }}
               className="max-w-xs"
             />
-            <Button variant="secondary" size="sm" className="border border-gray-300" onClick={handleAdd}>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="border border-gray-300"
+              onClick={handleAdd}
+            >
               <Plus className="size-4 me-1.5" />
               Add Medication
             </Button>
@@ -140,30 +189,34 @@ export function MedicationMasterDialog({
 
           <div className="flex-1 overflow-auto min-h-0">
             {loading ? (
-              <div className="text-center py-8 text-muted-foreground">Loading medications...</div>
+              <div className="text-center py-8 text-muted-foreground">
+                Loading medications...
+              </div>
             ) : medications.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                {searchQuery ? 'No medications found matching your search' : 'No medications available'}
+                {searchQuery
+                  ? 'No medications found matching your search'
+                  : 'No medications available'}
               </div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead 
+                    <TableHead
                       className="cursor-pointer select-none"
                       onClick={() => handleSort('medication_name')}
                     >
                       Generic Name
                       <SortIcon field="medication_name" />
                     </TableHead>
-                    <TableHead 
+                    <TableHead
                       className="cursor-pointer select-none"
                       onClick={() => handleSort('brand_name')}
                     >
                       Brand Name
                       <SortIcon field="brand_name" />
                     </TableHead>
-                    <TableHead 
+                    <TableHead
                       className="cursor-pointer select-none"
                       onClick={() => handleSort('type_id')}
                     >
@@ -172,7 +225,7 @@ export function MedicationMasterDialog({
                     </TableHead>
                     <TableHead>General Side Effects</TableHead>
                     <TableHead>Contraindication/Interactions</TableHead>
-                    <TableHead 
+                    <TableHead
                       className="cursor-pointer select-none"
                       onClick={() => handleSort('is_active')}
                     >
@@ -185,48 +238,78 @@ export function MedicationMasterDialog({
                 <TableBody>
                   {medications.map((medication) => (
                     <TableRow key={medication.id}>
-                      <TableCell className="font-medium">{medication.medication_name}</TableCell>
+                      <TableCell className="font-medium">
+                        {medication.medication_name}
+                      </TableCell>
                       <TableCell>{medication.brand_name || '-'}</TableCell>
                       <TableCell>
-                        {(medication as any).medication_type?.medication_type_name ? (
-                          <Badge variant="secondary">{(medication as any).medication_type.medication_type_name}</Badge>
+                        {(medication as any).medication_type
+                          ?.medication_type_name ? (
+                          <Badge variant="secondary">
+                            {
+                              (medication as any).medication_type
+                                .medication_type_name
+                            }
+                          </Badge>
                         ) : (
-                          <span className="text-muted-foreground text-sm">-</span>
+                          <span className="text-muted-foreground text-sm">
+                            -
+                          </span>
                         )}
                       </TableCell>
                       <TableCell>
                         {medication.side_effects ? (
-                          <span className="text-sm text-muted-foreground max-w-xs truncate block" title={medication.side_effects}>
+                          <span
+                            className="text-sm text-muted-foreground max-w-xs truncate block"
+                            title={medication.side_effects}
+                          >
                             {medication.side_effects}
                           </span>
                         ) : (
-                          <span className="text-muted-foreground text-sm">-</span>
+                          <span className="text-muted-foreground text-sm">
+                            -
+                          </span>
                         )}
                       </TableCell>
                       <TableCell>
                         {medication.interactions ? (
-                          <span className="text-sm text-muted-foreground max-w-xs truncate block" title={medication.interactions}>
+                          <span
+                            className="text-sm text-muted-foreground max-w-xs truncate block"
+                            title={medication.interactions}
+                          >
                             {medication.interactions}
                           </span>
                         ) : (
-                          <span className="text-muted-foreground text-sm">-</span>
+                          <span className="text-muted-foreground text-sm">
+                            -
+                          </span>
                         )}
                       </TableCell>
                       <TableCell>
-                        <Badge variant={medication.is_active ? 'success' : 'secondary'}>
+                        <Badge
+                          variant={
+                            medication.is_active ? 'success' : 'secondary'
+                          }
+                        >
                           {medication.is_active ? 'Active' : 'Inactive'}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex justify-end gap-1">
-                          <Button variant="ghost" size="sm" onClick={() => handleEdit(medication)}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEdit(medication)}
+                          >
                             <Edit className="size-4" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => handleToggleStatus(medication)}
-                            title={medication.is_active ? 'Deactivate' : 'Activate'}
+                            title={
+                              medication.is_active ? 'Deactivate' : 'Activate'
+                            }
                           >
                             {medication.is_active ? 'Deactivate' : 'Activate'}
                           </Button>

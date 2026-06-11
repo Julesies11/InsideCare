@@ -1,13 +1,13 @@
 'use client';
 
 import { ReactNode, useState } from 'react';
+import { handleError } from '@/errors/error-handler';
 import {
-  QueryCache,
   MutationCache,
+  QueryCache,
   QueryClient,
   QueryClientProvider,
 } from '@tanstack/react-query';
-import { handleError } from '@/errors/error-handler';
 
 const QueryProvider = ({ children }: { children: ReactNode }) => {
   const [queryClient] = useState(
@@ -15,7 +15,10 @@ const QueryProvider = ({ children }: { children: ReactNode }) => {
       new QueryClient({
         queryCache: new QueryCache({
           onError: (error) => {
-            handleError(error, { category: 'network', title: 'Data Fetching Error' });
+            handleError(error, {
+              category: 'network',
+              title: 'Data Fetching Error',
+            });
           },
         }),
         mutationCache: new MutationCache({

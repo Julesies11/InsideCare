@@ -3,7 +3,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, apikey, content-type',
 };
 
 serve(async (req) => {
@@ -19,7 +20,7 @@ serve(async (req) => {
     // Validate the request is coming from Supabase Auth Webhook
     // Note: In a production environment, you should verify the webhook signature
     // for security. Supabase adds a header like 'x-supabase-signature'.
-    
+
     const body = await req.json();
     console.log('Webhook payload received:', JSON.stringify(body, null, 2));
 
@@ -32,8 +33,14 @@ serve(async (req) => {
     const email = userRecord?.email || 'unknown';
 
     if (!authUserId) {
-      console.log('No user ID found in webhook payload. Payload structure:', Object.keys(body));
-      return new Response(JSON.stringify({ message: 'No user data' }), { status: 200, headers: corsHeaders });
+      console.log(
+        'No user ID found in webhook payload. Payload structure:',
+        Object.keys(body),
+      );
+      return new Response(JSON.stringify({ message: 'No user data' }), {
+        status: 200,
+        headers: corsHeaders,
+      });
     }
 
     // 1. Look up the staff member's name for a better log entry
@@ -50,43 +57,56 @@ serve(async (req) => {
     }
 
     if (!staff) {
-      console.log(`User ${email} (${authUserId}) signed in, but does not exist in ic_staff. Ignoring as they likely belong to another app in this shared database.`);
-      return new Response(JSON.stringify({ success: true, message: 'Ignored: Non-InsideCare user' }), {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      console.log(
+        `User ${email} (${authUserId}) signed in, but does not exist in ic_staff. Ignoring as they likely belong to another app in this shared database.`,
+      );
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: 'Ignored: Non-InsideCare user',
+        }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        },
+      );
     }
 
     // Resolve the best display name
-    const userName = staff.staff_name || 
-                     userRecord?.user_metadata?.full_name || 
-                     userRecord?.user_metadata?.name || 
-                     email || 
-                     'Unknown User';
+    const userName =
+      staff.staff_name ||
+      userRecord?.user_metadata?.full_name ||
+      userRecord?.user_metadata?.name ||
+      email ||
+      'Unknown User';
 
     // 2. Log the activity
 
     const { error: logError } = await supabaseAdmin
       .from('ic_activity_log')
-      .insert([{
-        activity_type: 'login',
-        entity_type: 'auth',
-        entity_id: authUserId,
-        entity_name: email,
-        description: `User signed in: ${userName}`,
-        user_name: userName,
-        user_id: staff.id,
-        table_name: 'auth.users',
-        parent_type: 'Staff',
-        metadata: {
-          auth_user_id: authUserId,
-          email: email,
-          login_timestamp: new Date().toISOString(),
-          ip_address: req.headers.get('x-real-ip') || req.headers.get('x-forwarded-for'),
-          user_agent: req.headers.get('user-agent'),
-          hook_event: body.event || body.type || 'unknown'
-        }
-      }]);
+      .insert([
+        {
+          activity_type: 'login',
+          entity_type: 'auth',
+          entity_id: authUserId,
+          entity_name: email,
+          description: `User signed in: ${userName}`,
+          user_name: userName,
+          user_id: staff.id,
+          table_name: 'auth.users',
+          parent_type: 'Staff',
+          metadata: {
+            auth_user_id: authUserId,
+            email: email,
+            login_timestamp: new Date().toISOString(),
+            ip_address:
+              req.headers.get('x-real-ip') ||
+              req.headers.get('x-forwarded-for'),
+            user_agent: req.headers.get('user-agent'),
+            hook_event: body.event || body.type || 'unknown',
+          },
+        },
+      ]);
 
     if (logError) {
       console.error('Error logging activity:', logError);

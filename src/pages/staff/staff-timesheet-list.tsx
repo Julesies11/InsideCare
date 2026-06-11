@@ -1,42 +1,48 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router';
-import { useAuth } from '@/auth/context/auth-context';
-import { format, parseISO, subDays, isBefore } from 'date-fns';
-import {
-  Clock,
-  ClipboardList,
-  CheckCircle2,
-  XCircle,
-  AlertCircle,
-  AlertTriangle,
-  FileText,
-  House,
-} from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTable, CardFooter } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Container } from '@/components/common/container';
-import {
-  Toolbar,
-  ToolbarHeading,
-  ToolbarPageTitle,
-  ToolbarDescription,
-} from '@/partials/common/toolbar';
-import {
-  useReactTable,
-  getCoreRowModel,
-  getPaginationRowModel,
-  ColumnDef,
-} from '@tanstack/react-table';
-import { DataGrid } from '@/components/ui/data-grid';
-import { DataGridTable } from '@/components/ui/data-grid-table';
-import { DataGridPagination } from '@/components/ui/data-grid-pagination';
-import { timesheetsApi } from '@/api/timesheets.api';
-import { rosterApi } from '@/api/roster.api';
-import { shiftNotesApi } from '@/api/shift-notes.api';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { checklistsApi } from '@/api/checklists.api';
 import { housesApi } from '@/api/houses.api';
+import { rosterApi } from '@/api/roster.api';
+import { shiftNotesApi } from '@/api/shift-notes.api';
+import { timesheetsApi } from '@/api/timesheets.api';
+import { useAuth } from '@/auth/context/auth-context';
+import {
+  Toolbar,
+  ToolbarDescription,
+  ToolbarHeading,
+  ToolbarPageTitle,
+} from '@/partials/common/toolbar';
+import {
+  ColumnDef,
+  getCoreRowModel,
+  getPaginationRowModel,
+  useReactTable,
+} from '@tanstack/react-table';
+import { format, isBefore, parseISO, subDays } from 'date-fns';
+import {
+  AlertCircle,
+  AlertTriangle,
+  CheckCircle2,
+  ClipboardList,
+  Clock,
+  FileText,
+  House,
+  XCircle,
+} from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router';
 import { ROUTES } from '@/config/routes.config';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTable,
+} from '@/components/ui/card';
+import { DataGrid } from '@/components/ui/data-grid';
+import { DataGridPagination } from '@/components/ui/data-grid-pagination';
+import { DataGridTable } from '@/components/ui/data-grid-table';
+import { Container } from '@/components/common/container';
 
 interface TimesheetParticipantNote {
   participant_id: string;
@@ -94,33 +100,52 @@ function ClaimsBadges({ ts }: { ts: Timesheet }) {
 
   if (ts.overtime_hours > 0) {
     badges.push(
-      <Badge key="overtime" variant="warning" appearance="light" className="text-[10px] py-0 h-4 px-1.5 uppercase font-bold">
+      <Badge
+        key="overtime"
+        variant="warning"
+        appearance="light"
+        className="text-[10px] py-0 h-4 px-1.5 uppercase font-bold"
+      >
         +{Number(ts.overtime_hours).toFixed(1)} hrs OT
-      </Badge>
+      </Badge>,
     );
   }
 
   if (ts.travel_km > 0) {
     badges.push(
-      <Badge key="travel" variant="outline" className="text-[10px] py-0 h-4 px-1.5 uppercase font-bold bg-blue-50 text-blue-700 border-blue-200">
+      <Badge
+        key="travel"
+        variant="outline"
+        className="text-[10px] py-0 h-4 px-1.5 uppercase font-bold bg-blue-50 text-blue-700 border-blue-200"
+      >
         {ts.travel_km} km Travel
-      </Badge>
+      </Badge>,
     );
   }
 
   if (ts.sick_shift) {
     badges.push(
-      <Badge key="sick" variant="secondary" appearance="light" className="text-[10px] py-0 h-4 px-1.5 uppercase font-bold bg-purple-100 text-purple-700 border-purple-200">
+      <Badge
+        key="sick"
+        variant="secondary"
+        appearance="light"
+        className="text-[10px] py-0 h-4 px-1.5 uppercase font-bold bg-purple-100 text-purple-700 border-purple-200"
+      >
         Sick Shift
-      </Badge>
+      </Badge>,
     );
   }
 
   if (ts.incident_tag) {
     badges.push(
-      <Badge key="incident" variant="destructive" appearance="light" className="text-[10px] py-0 h-4 px-1.5 uppercase font-bold">
+      <Badge
+        key="incident"
+        variant="destructive"
+        appearance="light"
+        className="text-[10px] py-0 h-4 px-1.5 uppercase font-bold"
+      >
         Incident Tagged
-      </Badge>
+      </Badge>,
     );
   }
 
@@ -128,59 +153,62 @@ function ClaimsBadges({ ts }: { ts: Timesheet }) {
     return <span className="text-xs text-muted-foreground/60">—</span>;
   }
 
-  return (
-    <div className="flex flex-wrap items-center gap-1">
-      {badges}
-    </div>
-  );
+  return <div className="flex flex-wrap items-center gap-1">{badges}</div>;
 }
-
 
 type TabKey = 'missing' | 'pending' | 'approved' | 'rejected';
 
 const TABS: { key: TabKey; label: string; icon: React.ElementType }[] = [
-  { key: 'missing',  label: 'Needs Submission',  icon: AlertCircle  },
-  { key: 'pending',  label: 'Awaiting Approval', icon: Clock        },
-  { key: 'approved', label: 'Approved',          icon: CheckCircle2 },
-  { key: 'rejected', label: 'Rejected',          icon: XCircle      },
+  { key: 'missing', label: 'Needs Submission', icon: AlertCircle },
+  { key: 'pending', label: 'Awaiting Approval', icon: Clock },
+  { key: 'approved', label: 'Approved', icon: CheckCircle2 },
+  { key: 'rejected', label: 'Rejected', icon: XCircle },
 ];
 
-const statusVariant: Record<TabKey, 'warning' | 'secondary' | 'success' | 'destructive'> = {
-  missing:  'warning',
-  pending:  'secondary',
+const statusVariant: Record<
+  TabKey,
+  'warning' | 'secondary' | 'success' | 'destructive'
+> = {
+  missing: 'warning',
+  pending: 'secondary',
   approved: 'success',
   rejected: 'destructive',
 };
 
 const statusLabel: Record<TabKey, string> = {
-  missing:  'Needs Submission',
-  pending:  'Awaiting Approval',
+  missing: 'Needs Submission',
+  pending: 'Awaiting Approval',
   approved: 'Approved',
   rejected: 'Rejected',
 };
 
 function calcHours(ts: Timesheet) {
   const s = ts.actual_start || ts.clock_in;
-  const e = ts.actual_end   || ts.clock_out;
-  const mins = (new Date(e).getTime() - new Date(s).getTime()) / 60000 - (ts.break_minutes || 0);
+  const e = ts.actual_end || ts.clock_out;
+  const mins =
+    (new Date(e).getTime() - new Date(s).getTime()) / 60000 -
+    (ts.break_minutes || 0);
   return Math.max(0, mins / 60);
 }
 
 export function StaffTimesheetList() {
-  const { user }   = useAuth();
-  const navigate   = useNavigate();
-  const location   = useLocation();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [timesheets, setTimesheets] = useState<Timesheet[]>([]);
-  const [loading, setLoading]       = useState(true);
-  
+  const [loading, setLoading] = useState(true);
+
   // Initialize tab from location state if coming back from a form
-  const [activeTab, setActiveTab]   = useState<TabKey>(
-    (location.state as any)?.activeTab || 'missing'
+  const [activeTab, setActiveTab] = useState<TabKey>(
+    (location.state as any)?.activeTab || 'missing',
   );
 
   const fetchTimesheets = useCallback(async () => {
-    if (!user?.staff_id) { setLoading(false); return; }
-    
+    if (!user?.staff_id) {
+      setLoading(false);
+      return;
+    }
+
     const now = new Date();
     const thirtyDaysAgo = subDays(now, 30).toISOString().split('T')[0];
     const todayStr = format(now, 'yyyy-MM-dd');
@@ -192,9 +220,9 @@ export function StaffTimesheetList() {
         rosterApi.listShifts({
           staffId: user.staff_id,
           startDate: thirtyDaysAgo,
-          endDate: todayStr
+          endDate: todayStr,
         }),
-        housesApi.listLightweight()
+        housesApi.listLightweight(),
       ]);
 
       const tsList = (existingTs as Timesheet[]) || [];
@@ -209,32 +237,42 @@ export function StaffTimesheetList() {
       });
 
       // Extract unique shift IDs and house IDs
-      const activeShiftIds = Array.from(new Set([
-        ...shifts.map(s => s.id).filter(Boolean),
-        ...tsList.map(ts => ts.shift_id).filter(Boolean)
-      ])) as string[];
+      const activeShiftIds = Array.from(
+        new Set([
+          ...shifts.map((s) => s.id).filter(Boolean),
+          ...tsList.map((ts) => ts.shift_id).filter(Boolean),
+        ]),
+      ) as string[];
 
-      const activeHouseIds = Array.from(new Set([
-        ...shifts.map(s => s.house_id || s.house?.id || (s.house as any)?.id).filter(Boolean),
-        ...tsList.map(ts => ts.shift?.house_id || ts.shift?.house?.id).filter(Boolean)
-      ])) as string[];
+      const activeHouseIds = Array.from(
+        new Set([
+          ...shifts
+            .map((s) => s.house_id || s.house?.id || (s.house as any)?.id)
+            .filter(Boolean),
+          ...tsList
+            .map((ts) => ts.shift?.house_id || ts.shift?.house?.id)
+            .filter(Boolean),
+        ]),
+      ) as string[];
 
       // 2. Fetch shift notes tasks and checklist details in parallel
       const [noteTasks, checklistDetails] = await Promise.all([
         shiftNotesApi.listNoteTasks({
           staffId: user.staff_id,
-          startDate: thirtyDaysAgo
+          startDate: thirtyDaysAgo,
         }),
         checklistsApi.getChecklistDetailsForShifts({
           shiftIds: activeShiftIds,
           houseIds: activeHouseIds,
           startDate: thirtyDaysAgo,
-          endDate: todayStr
-        })
+          endDate: todayStr,
+        }),
       ]);
 
       // Helper to calculate clinical shift notes status for a shift
-      const getParticipantNotes = (shiftId: string | null): TimesheetParticipantNote[] => {
+      const getParticipantNotes = (
+        shiftId: string | null,
+      ): TimesheetParticipantNote[] => {
         if (!shiftId) return [];
         return (noteTasks || [])
           .filter((t: any) => t.shift_id === shiftId && t.participant_id)
@@ -243,75 +281,107 @@ export function StaffTimesheetList() {
             participant_name: t.participant_name,
             participant_photo_url: t.participant_photo_url || null,
             note_status: t.note_status,
-            note_id: t.note_id
+            note_id: t.note_id,
           }));
       };
 
-      const getShiftNotesStatus = (participantNotes: TimesheetParticipantNote[]) => {
+      const getShiftNotesStatus = (
+        participantNotes: TimesheetParticipantNote[],
+      ) => {
         if (participantNotes.length === 0) return 'Missing';
-        const statuses = participantNotes.map(p => p.note_status);
-        const allCompleted = statuses.every(s => s === 'active');
-        const hasSomeNotes = statuses.some(s => s === 'active' || s === 'draft');
-        
+        const statuses = participantNotes.map((p) => p.note_status);
+        const allCompleted = statuses.every((s) => s === 'active');
+        const hasSomeNotes = statuses.some(
+          (s) => s === 'active' || s === 'draft',
+        );
+
         if (allCompleted) return 'Completed';
         if (hasSomeNotes) return 'Draft';
         return 'Missing';
       };
 
-      const getShiftRoutines = (shiftId: string | null): TimesheetChecklist[] => {
+      const getShiftRoutines = (
+        shiftId: string | null,
+      ): TimesheetChecklist[] => {
         if (!shiftId) return [];
-        const assigned = (checklistDetails.assigned || []).filter((ac: any) => ac.shift_id === shiftId);
+        const assigned = (checklistDetails.assigned || []).filter(
+          (ac: any) => ac.shift_id === shiftId,
+        );
         return assigned.map((ac: any) => {
           const submission = (checklistDetails.submissions || []).find(
-            (s: any) => s.shift_id === shiftId && s.checklist_id === ac.checklist_id
+            (s: any) =>
+              s.shift_id === shiftId && s.checklist_id === ac.checklist_id,
           );
           return {
             checklist_id: ac.checklist_id,
             title: ac.assignment_title,
-            status: (submission?.status === 'completed' ? 'completed' : (submission?.status === 'in_progress' ? 'in_progress' : 'pending')) as 'completed' | 'in_progress' | 'pending',
+            status: (submission?.status === 'completed'
+              ? 'completed'
+              : submission?.status === 'in_progress'
+                ? 'in_progress'
+                : 'pending') as 'completed' | 'in_progress' | 'pending',
             submission_id: submission?.id,
-            is_shift_routine: true
+            is_shift_routine: true,
           };
         });
       };
 
-      const getHouseChecklists = (houseId: string | null, date: string | null): TimesheetChecklist[] => {
+      const getHouseChecklists = (
+        houseId: string | null,
+        date: string | null,
+      ): TimesheetChecklist[] => {
         if (!houseId || !date) return [];
         const events = (checklistDetails.events || []).filter(
-          (e: any) => e.house_id === houseId && e.event_date === date
+          (e: any) => e.house_id === houseId && e.event_date === date,
         );
         return events.map((e: any) => {
           const submission = (checklistDetails.submissions || []).find(
-            (s: any) => s.house_id === houseId && s.scheduled_date === date && s.checklist_id === e.house_checklist_id && s.shift_id === null
+            (s: any) =>
+              s.house_id === houseId &&
+              s.scheduled_date === date &&
+              s.checklist_id === e.house_checklist_id &&
+              s.shift_id === null,
           );
           return {
             checklist_id: e.house_checklist_id,
             title: e.title,
-            status: (submission?.status === 'completed' ? 'completed' : (submission?.status === 'in_progress' ? 'in_progress' : 'pending')) as 'completed' | 'in_progress' | 'pending',
+            status: (submission?.status === 'completed'
+              ? 'completed'
+              : submission?.status === 'in_progress'
+                ? 'in_progress'
+                : 'pending') as 'completed' | 'in_progress' | 'pending',
             submission_id: submission?.id,
-            is_shift_routine: false
+            is_shift_routine: false,
           };
         });
       };
 
       // 3. Identify shifts that have passed but have no timesheet
-      const timesheetedShiftIds = new Set(tsList.map(ts => ts.shift_id).filter(Boolean) as string[]);
-      
+      const timesheetedShiftIds = new Set(
+        tsList.map((ts) => ts.shift_id).filter(Boolean) as string[],
+      );
+
       const missingTimesheets: Timesheet[] = shifts
-        .filter(s => {
+        .filter((s) => {
           if (s.entry_type !== 'shift') return false;
           // If it already has a timesheet, skip
           if (timesheetedShiftIds.has(s.id)) return false;
-          
+
           // Check if the shift has actually finished
           const shiftEnd = parseISO(`${s.end_date}T${s.end_time}`);
           return isBefore(shiftEnd, now);
         })
-        .map(s => {
+        .map((s) => {
           const partNotes = getParticipantNotes(s.id);
           const routines = getShiftRoutines(s.id);
-          const houseCls = getHouseChecklists(s.house_id || s.house?.id || null, s.start_date);
-          const houseName = s.house?.house_name || (s.house_id ? houseMap.get(s.house_id) : null) || 'Unknown House';
+          const houseCls = getHouseChecklists(
+            s.house_id || s.house?.id || null,
+            s.start_date,
+          );
+          const houseName =
+            s.house?.house_name ||
+            (s.house_id ? houseMap.get(s.house_id) : null) ||
+            'Unknown House';
 
           return {
             id: `missing-${s.id}`,
@@ -337,26 +407,29 @@ export function StaffTimesheetList() {
               end_time: s.end_time,
               shift_template: s.shift_template,
               house: { house_name: houseName },
-              house_id: s.house_id
+              house_id: s.house_id,
             },
             participantNotes: partNotes,
             notesStatus: getShiftNotesStatus(partNotes),
             shiftRoutines: routines,
-            houseChecklists: houseCls
+            houseChecklists: houseCls,
           };
         });
 
       // 4. Combine, attach notes status, routines, house checklists, and sort
       const combined = [...missingTimesheets, ...tsList]
-        .map(ts => {
+        .map((ts) => {
           const shiftId = ts.shift_id;
-          const houseId = ts.shift?.house_id || (ts.shift as any)?.house?.id || null;
-          const dateStr = ts.shift?.start_date || ts.clock_in?.split('T')[0] || null;
+          const houseId =
+            ts.shift?.house_id || (ts.shift as any)?.house?.id || null;
+          const dateStr =
+            ts.shift?.start_date || ts.clock_in?.split('T')[0] || null;
 
           const partNotes = ts.participantNotes || getParticipantNotes(shiftId);
           const routines = ts.shiftRoutines || getShiftRoutines(shiftId);
-          const houseCls = ts.houseChecklists || getHouseChecklists(houseId, dateStr);
-          
+          const houseCls =
+            ts.houseChecklists || getHouseChecklists(houseId, dateStr);
+
           let houseObj = ts.shift?.house;
           if (Array.isArray(houseObj)) {
             houseObj = (houseObj as any)[0];
@@ -370,14 +443,16 @@ export function StaffTimesheetList() {
 
           return {
             ...ts,
-            shift: ts.shift ? {
-              ...ts.shift,
-              house: houseObj
-            } : null,
+            shift: ts.shift
+              ? {
+                  ...ts.shift,
+                  house: houseObj,
+                }
+              : null,
             participantNotes: partNotes,
             notesStatus: ts.notesStatus || getShiftNotesStatus(partNotes),
             shiftRoutines: routines,
-            houseChecklists: houseCls
+            houseChecklists: houseCls,
           };
         })
         .sort((a, b) => {
@@ -394,14 +469,22 @@ export function StaffTimesheetList() {
     }
   }, [user?.staff_id]);
 
-  useEffect(() => { fetchTimesheets(); }, [fetchTimesheets]);
+  useEffect(() => {
+    fetchTimesheets();
+  }, [fetchTimesheets]);
 
-  const counts = TABS.reduce<Record<TabKey, number>>((acc, t) => {
-    acc[t.key] = timesheets.filter(ts => ts.status === t.key).length;
-    return acc;
-  }, {} as Record<TabKey, number>);
+  const counts = TABS.reduce<Record<TabKey, number>>(
+    (acc, t) => {
+      acc[t.key] = timesheets.filter((ts) => ts.status === t.key).length;
+      return acc;
+    },
+    {} as Record<TabKey, number>,
+  );
 
-  const visible = useMemo(() => timesheets.filter(ts => ts.status === activeTab), [timesheets, activeTab]);
+  const visible = useMemo(
+    () => timesheets.filter((ts) => ts.status === activeTab),
+    [timesheets, activeTab],
+  );
 
   const columns = useMemo<ColumnDef<Timesheet>[]>(() => {
     const shiftColumn: ColumnDef<Timesheet> = {
@@ -413,9 +496,10 @@ export function StaffTimesheetList() {
           ? format(parseISO(ts.shift.start_date), 'EEE dd MMM yyyy')
           : format(new Date(ts.clock_in), 'EEE dd MMM yyyy');
 
-        const path = ts.status === 'missing'
-          ? `${ROUTES.MY_TIMESHEETS}/${ts.shift_id}`
-          : `${ROUTES.MY_TIMESHEETS}/${ts.shift_id || ts.id}`;
+        const path =
+          ts.status === 'missing'
+            ? `${ROUTES.MY_TIMESHEETS}/${ts.shift_id}`
+            : `${ROUTES.MY_TIMESHEETS}/${ts.shift_id || ts.id}`;
 
         let rosteredTimeStr = '';
         if (ts.shift) {
@@ -437,7 +521,7 @@ export function StaffTimesheetList() {
 
         return (
           <div className="flex flex-col">
-            <Link 
+            <Link
               to={path}
               state={{ fromTab: activeTab }}
               className="text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline transition-colors"
@@ -464,12 +548,15 @@ export function StaffTimesheetList() {
       header: 'House',
       cell: ({ row }) => {
         const house = row.original.shift?.house;
-        const houseId = (row.original.shift as any)?.house_id || (row.original.shift as any)?.house?.id;
-        
-        if (!house || !houseId) return <span className="text-sm text-gray-500">—</span>;
+        const houseId =
+          (row.original.shift as any)?.house_id ||
+          (row.original.shift as any)?.house?.id;
+
+        if (!house || !houseId)
+          return <span className="text-sm text-gray-500">—</span>;
 
         return (
-          <Link 
+          <Link
             to={`${ROUTES.HOUSE_DETAIL}/${houseId}`}
             className="flex items-center gap-2 group/house w-fit"
             onClick={(e) => e.stopPropagation()}
@@ -488,10 +575,17 @@ export function StaffTimesheetList() {
 
     const statusColumn: ColumnDef<Timesheet> = {
       id: 'status_date',
-      header: activeTab === 'pending' ? 'Awaiting Approval' : activeTab === 'approved' ? 'Approved' : activeTab === 'rejected' ? 'Rejected' : 'Status',
+      header:
+        activeTab === 'pending'
+          ? 'Awaiting Approval'
+          : activeTab === 'approved'
+            ? 'Approved'
+            : activeTab === 'rejected'
+              ? 'Rejected'
+              : 'Status',
       cell: ({ row }) => {
         const ts = row.original;
-        
+
         if (ts.status === 'pending' && ts.submitted_at) {
           try {
             return (
@@ -506,7 +600,7 @@ export function StaffTimesheetList() {
             );
           } catch (e) {}
         }
-        
+
         if (ts.status === 'approved' && ts.approved_at) {
           try {
             const approver = ts.approved_by_staff?.staff_name || 'Supervisor';
@@ -522,13 +616,13 @@ export function StaffTimesheetList() {
             );
           } catch (e) {}
         }
-        
+
         if (ts.status === 'rejected') {
           const approver = ts.approved_by_staff?.staff_name || 'Supervisor';
           const formattedDateTime = ts.approved_at
             ? format(new Date(ts.approved_at), 'dd MMM yyyy HH:mm')
             : 'Rejected';
-            
+
           return (
             <div className="flex flex-col">
               <span className="text-sm font-medium text-destructive">
@@ -545,7 +639,7 @@ export function StaffTimesheetList() {
             </div>
           );
         }
-        
+
         return <span className="text-sm text-gray-500">—</span>;
       },
       meta: { className: 'hidden md:table-cell' },
@@ -559,16 +653,27 @@ export function StaffTimesheetList() {
         if (participantNotes.length === 0) {
           return <span className="text-xs text-muted-foreground">—</span>;
         }
-        const completed = participantNotes.filter(pn => pn.note_status === 'active').length;
+        const completed = participantNotes.filter(
+          (pn) => pn.note_status === 'active',
+        ).length;
         const total = participantNotes.length;
-        const variant = completed === total ? 'success' : completed > 0 ? 'warning' : 'destructive';
-        
+        const variant =
+          completed === total
+            ? 'success'
+            : completed > 0
+              ? 'warning'
+              : 'destructive';
+
         return (
-          <Badge variant={variant} appearance="light" className="text-[10px] uppercase font-bold py-0.5 px-1.5 h-fit whitespace-nowrap">
+          <Badge
+            variant={variant}
+            appearance="light"
+            className="text-[10px] uppercase font-bold py-0.5 px-1.5 h-fit whitespace-nowrap"
+          >
             {completed}/{total} Completed
           </Badge>
         );
-      }
+      },
     };
 
     const checklistsColumn: ColumnDef<Timesheet> = {
@@ -578,35 +683,55 @@ export function StaffTimesheetList() {
         const routines = row.original.shiftRoutines || [];
         const houseChecklists = row.original.houseChecklists || [];
         const total = routines.length + houseChecklists.length;
-        if (total === 0) return <span className="text-xs text-muted-foreground">—</span>;
-        
-        const completedRoutines = routines.filter(r => r.status === 'completed').length;
-        const completedHouse = houseChecklists.filter(c => c.status === 'completed').length;
+        if (total === 0)
+          return <span className="text-xs text-muted-foreground">—</span>;
+
+        const completedRoutines = routines.filter(
+          (r) => r.status === 'completed',
+        ).length;
+        const completedHouse = houseChecklists.filter(
+          (c) => c.status === 'completed',
+        ).length;
         const completed = completedRoutines + completedHouse;
-        
-        const variant = completed === total ? 'success' : completed > 0 ? 'warning' : 'destructive';
+
+        const variant =
+          completed === total
+            ? 'success'
+            : completed > 0
+              ? 'warning'
+              : 'destructive';
         return (
-          <Badge variant={variant} appearance="light" className="text-[10px] uppercase font-bold py-0.5 px-1.5 h-fit whitespace-nowrap">
+          <Badge
+            variant={variant}
+            appearance="light"
+            className="text-[10px] uppercase font-bold py-0.5 px-1.5 h-fit whitespace-nowrap"
+          >
             {completed}/{total} Completed
           </Badge>
         );
-      }
+      },
     };
-
 
     const actionColumn: ColumnDef<Timesheet> = {
       id: 'actions',
       header: 'Action',
       cell: ({ row }) => {
         const ts = row.original;
-        const path = ts.status === 'missing'
-          ? `${ROUTES.MY_TIMESHEETS}/${ts.shift_id}`
-          : `${ROUTES.MY_TIMESHEETS}/${ts.shift_id || ts.id}`;
-        
+        const path =
+          ts.status === 'missing'
+            ? `${ROUTES.MY_TIMESHEETS}/${ts.shift_id}`
+            : `${ROUTES.MY_TIMESHEETS}/${ts.shift_id || ts.id}`;
+
         return (
           <Button
             type="button"
-            variant={ts.status === 'missing' ? 'primary' : ts.status === 'rejected' ? 'warning' : 'outline'}
+            variant={
+              ts.status === 'missing'
+                ? 'primary'
+                : ts.status === 'rejected'
+                  ? 'warning'
+                  : 'outline'
+            }
             size="sm"
             className="h-8"
             onClick={(e) => {
@@ -614,11 +739,15 @@ export function StaffTimesheetList() {
               navigate(path, { state: { fromTab: activeTab } });
             }}
           >
-            {ts.status === 'missing' ? 'Submit' : ts.status === 'rejected' ? 'Edit' : 'View'}
+            {ts.status === 'missing'
+              ? 'Submit'
+              : ts.status === 'rejected'
+                ? 'Edit'
+                : 'View'}
           </Button>
         );
       },
-      meta: { className: 'text-right' }
+      meta: { className: 'text-right' },
     };
 
     const claimsColumn: ColumnDef<Timesheet> = {
@@ -635,7 +764,7 @@ export function StaffTimesheetList() {
         houseColumn,
         shiftNotesColumn,
         checklistsColumn,
-        actionColumn
+        actionColumn,
       ];
     }
 
@@ -647,7 +776,7 @@ export function StaffTimesheetList() {
         shiftNotesColumn,
         checklistsColumn,
         claimsColumn,
-        actionColumn
+        actionColumn,
       ];
     }
 
@@ -659,7 +788,7 @@ export function StaffTimesheetList() {
       shiftNotesColumn,
       checklistsColumn,
       claimsColumn,
-      actionColumn
+      actionColumn,
     ];
   }, [activeTab, navigate, user]);
 
@@ -681,14 +810,15 @@ export function StaffTimesheetList() {
         <Toolbar className="hidden sm:flex">
           <ToolbarHeading>
             <ToolbarPageTitle text="My Timesheets" />
-            <ToolbarDescription>Track and submit your shift timesheets</ToolbarDescription>
+            <ToolbarDescription>
+              Track and submit your shift timesheets
+            </ToolbarDescription>
           </ToolbarHeading>
         </Toolbar>
       </Container>
 
       <Container className="py-6 sm:py-0">
         <div className="grid gap-5 lg:gap-7.5">
-
           {/* Tab bar */}
           <div className="flex items-center gap-1 rounded-xl border sm:border-muted/40 p-1 overflow-x-auto bg-muted/40 sm:bg-muted/40">
             {TABS.map(({ key, label, icon: Icon }) => (
@@ -707,11 +837,13 @@ export function StaffTimesheetList() {
                 <Icon className="size-4" />
                 {label}
                 {counts[key] > 0 && (
-                  <span className={`inline-flex items-center justify-center size-5 rounded-full text-xs font-semibold ${
-                    activeTab === key
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-muted-foreground'
-                  }`}>
+                  <span
+                    className={`inline-flex items-center justify-center size-5 rounded-full text-xs font-semibold ${
+                      activeTab === key
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted text-muted-foreground'
+                    }`}
+                  >
                     {counts[key]}
                   </span>
                 )}
@@ -725,10 +857,12 @@ export function StaffTimesheetList() {
               <AlertTriangle className="size-5 text-destructive mt-0.5 shrink-0" />
               <div>
                 <p className="text-sm font-semibold text-destructive">
-                  {visible.length} timesheet{visible.length !== 1 ? 's' : ''} rejected
+                  {visible.length} timesheet{visible.length !== 1 ? 's' : ''}{' '}
+                  rejected
                 </p>
                 <p className="text-sm text-destructive/80 mt-0.5">
-                  Review the rejection reasons below and contact your supervisor if needed.
+                  Review the rejection reasons below and contact your supervisor
+                  if needed.
                 </p>
               </div>
             </div>
@@ -740,10 +874,12 @@ export function StaffTimesheetList() {
               <AlertCircle className="size-5 text-warning mt-0.5 shrink-0" />
               <div>
                 <p className="text-sm font-semibold text-warning-foreground">
-                  {visible.length} timesheet{visible.length !== 1 ? 's' : ''} awaiting submission
+                  {visible.length} timesheet{visible.length !== 1 ? 's' : ''}{' '}
+                  awaiting submission
                 </p>
                 <p className="text-sm text-muted-foreground mt-0.5">
-                  Please submit your timesheets as soon as possible after each shift.
+                  Please submit your timesheets as soon as possible after each
+                  shift.
                 </p>
               </div>
             </div>

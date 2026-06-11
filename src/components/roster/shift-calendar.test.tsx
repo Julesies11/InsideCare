@@ -1,7 +1,7 @@
-import { render, screen, fireEvent } from '@testing-library/react';
-import { ShiftCalendar, ShiftCalendarProps } from './shift-calendar';
-import { describe, it, expect, vi } from 'vitest';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { ShiftCalendar, ShiftCalendarProps } from './shift-calendar';
 
 const mockProps: ShiftCalendarProps = {
   staffId: 'all',
@@ -19,14 +19,14 @@ describe('ShiftCalendar', () => {
     render(
       <TooltipProvider>
         <ShiftCalendar {...mockProps} />
-      </TooltipProvider>
+      </TooltipProvider>,
     );
 
     // Week of April 15, 2026 (Wednesday).
     // Let's find the empty cell indicator or the date and click it.
     const emptyCell = screen.getAllByText(/No shifts/i)[0];
     fireEvent.click(emptyCell.parentElement!);
-    
+
     expect(mockProps.onAddShift).toHaveBeenCalled();
   });
 
@@ -34,13 +34,13 @@ describe('ShiftCalendar', () => {
     render(
       <TooltipProvider>
         <ShiftCalendar {...mockProps} />
-      </TooltipProvider>
+      </TooltipProvider>,
     );
 
     // Week of April 15, 2026. Monday is April 13.
     const dateBadge = screen.getByText('13').closest('div');
     fireEvent.click(dateBadge!);
-    
+
     expect(mockProps.onAddShift).toHaveBeenCalled();
   });
 });

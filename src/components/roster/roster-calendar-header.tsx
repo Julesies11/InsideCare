@@ -1,38 +1,44 @@
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { ViewMode } from './roster-utils';
-import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { ViewMode } from './roster-utils';
 
 interface RosterCalendarHeaderProps {
   // View mode
   viewMode: ViewMode;
   onViewModeChange: (mode: ViewMode) => void;
-  
+
   // Date navigation
   onNavigate: (direction: 'prev' | 'next') => void;
   getPeriodLabel: () => string;
-  
+
   // Filter visibility flags
   showStaffFilter?: boolean;
   showParticipantFilter?: boolean;
   showHouseFilter?: boolean;
   showShiftTemplateFilter?: boolean;
-  
+
   // Filter values and handlers
   staffFilter?: string;
   onStaffFilterChange?: (value: string) => void;
   staffList?: Array<{ id: string; name: string }>;
-  
+
   participantFilter?: string;
   onParticipantFilterChange?: (value: string) => void;
   participantList?: Array<{ id: string; participant_name: string }>;
-  
+
   houseFilter?: string;
   onHouseFilterChange?: (value: string) => void;
   houseList?: Array<{ id: string; house_name: string }>;
-  
+
   shiftTemplateFilter?: string;
   onShiftTemplateFilterChange?: (value: string) => void;
   shiftTemplateList?: Array<{ id: string; name: string }>;
@@ -86,26 +92,26 @@ export function RosterCalendarHeader({
       {/* View Mode and Navigation */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full lg:w-auto">
         <div className="flex items-center gap-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => onViewModeChange('today')} 
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onViewModeChange('today')}
             className={viewMode === 'today' ? 'bg-accent' : ''}
           >
             Today
           </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => onViewModeChange('week')} 
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onViewModeChange('week')}
             className={viewMode === 'week' ? 'bg-accent' : ''}
           >
             Week
           </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => onViewModeChange('month')} 
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onViewModeChange('month')}
             className={viewMode === 'month' ? 'bg-accent' : ''}
           >
             Month
@@ -113,13 +119,21 @@ export function RosterCalendarHeader({
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => onNavigate('prev')}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onNavigate('prev')}
+          >
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <div className="text-center min-w-[200px]">
             <p className="text-sm font-medium">{getPeriodLabel()}</p>
           </div>
-          <Button variant="outline" size="sm" onClick={() => onNavigate('next')}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onNavigate('next')}
+          >
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
@@ -129,14 +143,14 @@ export function RosterCalendarHeader({
       <div className="flex flex-wrap gap-4 w-full lg:w-auto items-center">
         {onShowLeaveChange && (
           <div className="flex items-center gap-2 mr-2">
-            <Switch 
-              id="header-show-leave" 
-              checked={showLeave} 
-              onCheckedChange={onShowLeaveChange} 
-              size="sm" 
+            <Switch
+              id="header-show-leave"
+              checked={showLeave}
+              onCheckedChange={onShowLeaveChange}
+              size="sm"
             />
-            <Label 
-              htmlFor="header-show-leave" 
+            <Label
+              htmlFor="header-show-leave"
               className="font-bold text-[10px] uppercase tracking-wider cursor-pointer text-muted-foreground"
             >
               Leave
@@ -146,14 +160,14 @@ export function RosterCalendarHeader({
 
         {onShowEventsChange && (
           <div className="flex items-center gap-2 mr-2">
-            <Switch 
-              id="header-show-events" 
-              checked={showEvents} 
-              onCheckedChange={onShowEventsChange} 
-              size="sm" 
+            <Switch
+              id="header-show-events"
+              checked={showEvents}
+              onCheckedChange={onShowEventsChange}
+              size="sm"
             />
-            <Label 
-              htmlFor="header-show-events" 
+            <Label
+              htmlFor="header-show-events"
               className="font-bold text-[10px] uppercase tracking-wider cursor-pointer text-muted-foreground"
             >
               Meetings
@@ -168,7 +182,7 @@ export function RosterCalendarHeader({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Staff</SelectItem>
-              {staffList.map(member => (
+              {staffList.map((member) => (
                 <SelectItem key={member.id} value={member.id}>
                   {member.name || 'Unnamed Staff'}
                 </SelectItem>
@@ -184,7 +198,7 @@ export function RosterCalendarHeader({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Houses</SelectItem>
-              {houseList.map(house => (
+              {houseList.map((house) => (
                 <SelectItem key={house.id} value={house.id}>
                   {house.house_name}
                 </SelectItem>
@@ -194,13 +208,16 @@ export function RosterCalendarHeader({
         )}
 
         {showParticipantFilter && onParticipantFilterChange && (
-          <Select value={participantFilter} onValueChange={onParticipantFilterChange}>
+          <Select
+            value={participantFilter}
+            onValueChange={onParticipantFilterChange}
+          >
             <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="All Participants" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Participants</SelectItem>
-              {participantList.map(participant => (
+              {participantList.map((participant) => (
                 <SelectItem key={participant.id} value={participant.id}>
                   {participant.participant_name}
                 </SelectItem>
@@ -210,13 +227,16 @@ export function RosterCalendarHeader({
         )}
 
         {showShiftTemplateFilter && onShiftTemplateFilterChange && (
-          <Select value={shiftTemplateFilter} onValueChange={onShiftTemplateFilterChange}>
+          <Select
+            value={shiftTemplateFilter}
+            onValueChange={onShiftTemplateFilterChange}
+          >
             <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="All Types" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Types</SelectItem>
-              {shiftTemplateList.map(type => (
+              {shiftTemplateList.map((type) => (
                 <SelectItem key={type.id} value={type.id}>
                   {type.name}
                 </SelectItem>

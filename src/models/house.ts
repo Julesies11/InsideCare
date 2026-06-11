@@ -1,6 +1,7 @@
 import { Database } from './database.types';
 
-export type HouseType = Database['public']['Tables']['ic_house_types_master']['Row'];
+export type HouseType =
+  Database['public']['Tables']['ic_house_types_master']['Row'];
 export type HouseRow = Database['public']['Tables']['ic_houses']['Row'];
 
 export interface House extends HouseRow {

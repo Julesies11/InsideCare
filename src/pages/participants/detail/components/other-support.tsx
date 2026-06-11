@@ -21,7 +21,9 @@ export function OtherSupport({
       <CardContent className="grid gap-5">
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <Label className="flex w-full max-w-56">Any Other Support Needs</Label>
+            <Label className="flex w-full max-w-56">
+              Any Other Support Needs
+            </Label>
             <Textarea
               id="other_support"
               value={formData.other_support || ''}

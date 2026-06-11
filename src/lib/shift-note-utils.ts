@@ -12,7 +12,7 @@ export function generateShiftNoteReferenceId({
   startDate,
   shiftTime,
   participantName,
-  orgPrefix = 'SC'
+  orgPrefix = 'SC',
 }: ReferenceIdParams): string {
   // Normalize date to YYYYMMDD
   const cleanDate = (startDate || '').trim().replace(/-/g, '');
@@ -30,7 +30,9 @@ export function generateShiftNoteReferenceId({
     formattedTime = digitsOnly.padEnd(4, '0');
   }
 
-  const partInitials = participantName ? (getInitials(participantName) || 'XX') : 'GH';
-  
+  const partInitials = participantName
+    ? getInitials(participantName) || 'XX'
+    : 'GH';
+
   return `${orgPrefix}-${formattedDate}-${formattedTime}-${partInitials}`;
 }

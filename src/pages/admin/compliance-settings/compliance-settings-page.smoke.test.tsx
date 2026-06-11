@@ -1,16 +1,26 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import { ComplianceSettingsPage } from './compliance-settings-page';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
+import { describe, expect, it, vi } from 'vitest';
 import { SettingsProvider } from '@/providers/settings-provider';
+import { ComplianceSettingsPage } from './compliance-settings-page';
 
 // Mock the queries and mutations in hooks/use-staff
 vi.mock('@/hooks/use-staff', () => ({
   useComplianceTypes: vi.fn().mockReturnValue({
     types: [
-      { id: '1', compliance_name: 'NDIS Screen Check', description: 'NDIS Screen', is_active: true },
-      { id: '2', compliance_name: 'Drivers License', description: 'Valid Drivers License', is_active: true },
+      {
+        id: '1',
+        compliance_name: 'NDIS Screen Check',
+        description: 'NDIS Screen',
+        is_active: true,
+      },
+      {
+        id: '2',
+        compliance_name: 'Drivers License',
+        description: 'Valid Drivers License',
+        is_active: true,
+      },
     ],
     isLoading: false,
     refetch: vi.fn(),
@@ -54,12 +64,16 @@ describe('ComplianceSettingsPage Smoke Test', () => {
             <ComplianceSettingsPage />
           </QueryClientProvider>
         </SettingsProvider>
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     // Check for page title/header
     expect(screen.getByText('Compliance Settings')).toBeInTheDocument();
-    expect(screen.getByText('Manage the master list of mandatory and optional compliance checks.')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Manage the master list of mandatory and optional compliance checks.',
+      ),
+    ).toBeInTheDocument();
     expect(screen.getByText('NDIS Screen Check')).toBeInTheDocument();
     expect(screen.getByText('Drivers License')).toBeInTheDocument();
   });

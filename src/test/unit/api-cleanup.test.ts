@@ -1,11 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { staffApi } from '@/api/staff.api';
-import { systemApi } from '@/api/system.api';
 import { checklistsApi } from '@/api/checklists.api';
 import { housesApi } from '@/api/houses.api';
 import { rosterApi } from '@/api/roster.api';
-import { supabase } from '@/lib/supabase';
+import { staffApi } from '@/api/staff.api';
+import { systemApi } from '@/api/system.api';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TABLES } from '@/config/db-tables';
+import { supabase } from '@/lib/supabase';
 
 // Mock Supabase client
 vi.mock('@/lib/supabase', () => ({
@@ -34,14 +34,22 @@ const createMockQuery = (data: any = [], error: any = null) => {
     order: vi.fn().mockReturnThis(),
     limit: vi.fn().mockReturnThis(),
     range: vi.fn().mockReturnThis(),
-    maybeSingle: vi.fn().mockResolvedValue({ data: Array.isArray(data) ? data[0] : data, error }),
-    single: vi.fn().mockResolvedValue({ data: Array.isArray(data) ? data[0] : data, error }),
+    maybeSingle: vi
+      .fn()
+      .mockResolvedValue({ data: Array.isArray(data) ? data[0] : data, error }),
+    single: vi
+      .fn()
+      .mockResolvedValue({ data: Array.isArray(data) ? data[0] : data, error }),
     insert: vi.fn().mockResolvedValue({ data: null, error }),
     update: vi.fn().mockReturnThis(),
     upsert: vi.fn().mockReturnThis(),
     delete: vi.fn().mockResolvedValue({ error }),
     then: vi.fn().mockImplementation((callback) => {
-      return Promise.resolve({ data, error, count: Array.isArray(data) ? data.length : 1 }).then(callback);
+      return Promise.resolve({
+        data,
+        error,
+        count: Array.isArray(data) ? data.length : 1,
+      }).then(callback);
     }),
   };
   return query;
@@ -54,7 +62,11 @@ describe('API Layer Cleanup - New Features Unit Tests', () => {
 
   describe('staffApi', () => {
     it('listNames should return unique ordered staff names', async () => {
-      const mockData = [{ staff_name: 'Zoe' }, { staff_name: 'Alice' }, { staff_name: 'Alice' }];
+      const mockData = [
+        { staff_name: 'Zoe' },
+        { staff_name: 'Alice' },
+        { staff_name: 'Alice' },
+      ];
       vi.mocked(supabase.from).mockReturnValue(createMockQuery(mockData));
 
       const result = await staffApi.listNames();
@@ -73,12 +85,17 @@ describe('API Layer Cleanup - New Features Unit Tests', () => {
 
   describe('systemApi', () => {
     it('auth.getAdminStatus should invoke edge function', async () => {
-      const mockStatus = { 'user1': { email: 'test@example.com' } };
-      vi.mocked(supabase.functions.invoke).mockResolvedValue({ data: mockStatus, error: null });
+      const mockStatus = { user1: { email: 'test@example.com' } };
+      vi.mocked(supabase.functions.invoke).mockResolvedValue({
+        data: mockStatus,
+        error: null,
+      });
 
       const result = await systemApi.auth.getAdminStatus();
       expect(result).toEqual(mockStatus);
-      expect(supabase.functions.invoke).toHaveBeenCalledWith('ic-admin-auth-status');
+      expect(supabase.functions.invoke).toHaveBeenCalledWith(
+        'ic-admin-auth-status',
+      );
     });
 
     it('notifications.subscribe should setup a channel', () => {
@@ -91,7 +108,7 @@ describe('API Layer Cleanup - New Features Unit Tests', () => {
 
       const unsubscribe = systemApi.notifications.subscribe('user1', vi.fn());
       expect(supabase.channel).toHaveBeenCalled();
-      
+
       unsubscribe();
       expect(supabase.removeChannel).toHaveBeenCalledWith(mockChannel);
     });
@@ -100,12 +117,20 @@ describe('API Layer Cleanup - New Features Unit Tests', () => {
   describe('housesApi', () => {
     it('listStaffAssignmentsByStaff should return normalized house data', async () => {
       const mockAssignments = [
-        { id: 'a1', house_id: 'h1', house: { id: 'h1', house_name: 'House 1', status: 'active' } }
+        {
+          id: 'a1',
+          house_id: 'h1',
+          house: { id: 'h1', house_name: 'House 1', status: 'active' },
+        },
       ];
-      vi.mocked(supabase.from).mockReturnValue(createMockQuery(mockAssignments));
+      vi.mocked(supabase.from).mockReturnValue(
+        createMockQuery(mockAssignments),
+      );
 
       const result = await housesApi.listStaffAssignmentsByStaff('staff1');
-      expect(result).toEqual([{ id: 'h1', house_name: 'House 1', status: 'active', name: 'House 1' }]);
+      expect(result).toEqual([
+        { id: 'h1', house_name: 'House 1', status: 'active', name: 'House 1' },
+      ]);
     });
 
     it('finalizeSetup should update setup_step and status', async () => {
@@ -118,12 +143,17 @@ describe('API Layer Cleanup - New Features Unit Tests', () => {
 
   describe('rosterApi', () => {
     it('listApprovedLeaveForRollout should use correct date filters', async () => {
-      const mockLeave = [{ staff_id: 's1', start_date: '2026-06-01', end_date: '2026-06-07' }];
+      const mockLeave = [
+        { staff_id: 's1', start_date: '2026-06-01', end_date: '2026-06-07' },
+      ];
       const mockQuery = createMockQuery(mockLeave);
       vi.mocked(supabase.from).mockReturnValue(mockQuery);
 
-      const result = await rosterApi.listApprovedLeaveForRollout('2026-06-01', '2026-06-30');
-      
+      const result = await rosterApi.listApprovedLeaveForRollout(
+        '2026-06-01',
+        '2026-06-30',
+      );
+
       expect(mockQuery.gte).toHaveBeenCalledWith('end_date', '2026-06-01');
       expect(mockQuery.lte).toHaveBeenCalledWith('start_date', '2026-06-30');
       expect(result).toEqual(mockLeave);
@@ -134,14 +164,18 @@ describe('API Layer Cleanup - New Features Unit Tests', () => {
       vi.mocked(supabase.from).mockReturnValue(createMockQuery());
 
       await rosterApi.appendShiftAssignments(mockAssignments);
-      expect(supabase.from).toHaveBeenCalledWith(TABLES.SHIFT_ASSIGNED_CHECKLISTS);
+      expect(supabase.from).toHaveBeenCalledWith(
+        TABLES.SHIFT_ASSIGNED_CHECKLISTS,
+      );
     });
 
     it('updateShift should handle undefined updates gracefully', async () => {
       vi.mocked(supabase.from).mockReturnValue(createMockQuery({}));
-      
+
       // Should not throw ReferenceError or TypeError
-      await expect(rosterApi.updateShift('shift-1', undefined)).resolves.not.toThrow();
+      await expect(
+        rosterApi.updateShift('shift-1', undefined),
+      ).resolves.not.toThrow();
     });
   });
 });

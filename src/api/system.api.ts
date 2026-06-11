@@ -1,11 +1,11 @@
-import { supabase } from '@/lib/supabase';
+import { Database } from '@/models/database.types';
 import { TABLES } from '@/config/db-tables';
 import { SYSTEM_VIEWS } from '@/config/query-views';
-import { Database } from '@/models/database.types';
+import { supabase } from '@/lib/supabase';
 
 /**
  * Data Access Layer (DAL) for System-wide Entities.
- * 
+ *
  * Handles Notifications, RBAC Permissions, and System Settings.
  */
 export const systemApi = {
@@ -16,7 +16,9 @@ export const systemApi = {
     async list(userId: string, limit = 50, offset = 0, filterRead?: boolean) {
       let query = supabase
         .from(TABLES.NOTIFICATIONS)
-        .select('id, type, title, body, link, metadata, is_read, created_at', { count: 'exact' })
+        .select('id, type, title, body, link, metadata, is_read, created_at', {
+          count: 'exact',
+        })
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
@@ -24,7 +26,10 @@ export const systemApi = {
         query = query.eq('is_read', filterRead);
       }
 
-      const { data, count, error } = await query.range(offset, offset + limit - 1);
+      const { data, count, error } = await query.range(
+        offset,
+        offset + limit - 1,
+      );
       if (error) throw error;
       return { data, count };
     },
@@ -101,14 +106,14 @@ export const systemApi = {
             table: TABLES.NOTIFICATIONS,
             filter: `user_id=eq.${userId}`,
           },
-          (payload) => onInsert(payload)
+          (payload) => onInsert(payload),
         )
         .subscribe();
 
       return () => {
         supabase.removeChannel(channel);
       };
-    }
+    },
   },
 
   /**
@@ -120,7 +125,9 @@ export const systemApi = {
      * Strictly for Admin use.
      */
     async getAdminStatus() {
-      const { data, error } = await supabase.functions.invoke('ic-admin-auth-status');
+      const { data, error } = await supabase.functions.invoke(
+        'ic-admin-auth-status',
+      );
       if (error) throw error;
       return data;
     },
@@ -132,7 +139,7 @@ export const systemApi = {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
       return true;
-    }
+    },
   },
 
   /**
@@ -142,17 +149,19 @@ export const systemApi = {
     async list() {
       const { data, error } = await supabase
         .from(TABLES.ROLES)
-        .select(`
+        .select(
+          `
           *,
           staff:${TABLES.STAFF}!staff_role_id_fkey(count)
-        `)
+        `,
+        )
         .order('role_name', { ascending: true });
 
       if (error) throw error;
-      
-      return (data || []).map(role => ({
+
+      return (data || []).map((role) => ({
         ...role,
-        assigned_count: (role as any).staff?.[0]?.count || 0
+        assigned_count: (role as any).staff?.[0]?.count || 0,
       }));
     },
 
@@ -164,11 +173,15 @@ export const systemApi = {
         .maybeSingle();
 
       if (error) throw error;
-      if (!data) throw new Error('You do not have permission to perform this action');
+      if (!data)
+        throw new Error('You do not have permission to perform this action');
       return data;
     },
 
-    async update(id: string, updates: Database['public']['Tables']['ic_roles']['Update']) {
+    async update(
+      id: string,
+      updates: Database['public']['Tables']['ic_roles']['Update'],
+    ) {
       const { data, error } = await supabase
         .from(TABLES.ROLES)
         .update(updates)
@@ -177,19 +190,17 @@ export const systemApi = {
         .maybeSingle();
 
       if (error) throw error;
-      if (!data) throw new Error('You do not have permission to perform this action');
+      if (!data)
+        throw new Error('You do not have permission to perform this action');
       return data;
     },
 
     async delete(id: string) {
-      const { error } = await supabase
-        .from(TABLES.ROLES)
-        .delete()
-        .eq('id', id);
+      const { error } = await supabase.from(TABLES.ROLES).delete().eq('id', id);
 
       if (error) throw error;
       return true;
-    }
+    },
   },
 
   /**
@@ -215,7 +226,10 @@ export const systemApi = {
       return data || [];
     },
 
-    async updatePermission(id: string, accessLevel: Database['public']['Enums']['ic_access_level_enum']) {
+    async updatePermission(
+      id: string,
+      accessLevel: Database['public']['Enums']['ic_access_level_enum'],
+    ) {
       const { data, error } = await supabase
         .from(TABLES.ROLE_PERMISSIONS)
         .update({ access_level: accessLevel })
@@ -230,15 +244,13 @@ export const systemApi = {
     async upsert(role_id: string, updates: any) {
       const { data, error } = await supabase
         .from(TABLES.ROLE_PERMISSIONS)
-        .upsert(
-          { role_id, ...updates },
-          { onConflict: 'role_id' }
-        )
+        .upsert({ role_id, ...updates }, { onConflict: 'role_id' })
         .select()
         .maybeSingle();
 
       if (error) throw error;
-      if (!data) throw new Error('You do not have permission to perform this action');
+      if (!data)
+        throw new Error('You do not have permission to perform this action');
       return data;
     },
 
@@ -248,13 +260,15 @@ export const systemApi = {
     async listStaffDocumentPermissions(documentId: string) {
       const { data, error } = await supabase
         .from(TABLES.STAFF_DOCUMENT_ROLES)
-        .select(`
+        .select(
+          `
           id,
           document_id,
           role_id,
           access_level,
           role:${TABLES.ROLES}(id, role_name)
-        `)
+        `,
+        )
         .eq('document_id', documentId);
 
       if (error) throw error;
@@ -265,33 +279,43 @@ export const systemApi = {
       if (!documentIds || documentIds.length === 0) return [];
       const { data, error } = await supabase
         .from(TABLES.STAFF_DOCUMENT_ROLES)
-        .select(`
+        .select(
+          `
           id,
           document_id,
           role_id,
           access_level,
           role:${TABLES.ROLES}(id, role_name)
-        `)
+        `,
+        )
         .in('document_id', documentIds);
 
       if (error) throw error;
       return data || [];
     },
 
-    async updateStaffDocumentPermissions(documentId: string, roles: Array<{ role_id: string; access_level: string }>) {
-      await supabase.from(TABLES.STAFF_DOCUMENT_ROLES).delete().eq('document_id', documentId);
+    async updateStaffDocumentPermissions(
+      documentId: string,
+      roles: Array<{ role_id: string; access_level: string }>,
+    ) {
+      await supabase
+        .from(TABLES.STAFF_DOCUMENT_ROLES)
+        .delete()
+        .eq('document_id', documentId);
       if (roles.length > 0) {
         const { error } = await supabase
           .from(TABLES.STAFF_DOCUMENT_ROLES)
-          .insert(roles.map(r => ({
-            document_id: documentId,
-            role_id: r.role_id,
-            access_level: r.access_level as any,
-          })));
+          .insert(
+            roles.map((r) => ({
+              document_id: documentId,
+              role_id: r.role_id,
+              access_level: r.access_level as any,
+            })),
+          );
         if (error) throw error;
       }
       return true;
-    }
+    },
   },
 
   /**
@@ -314,14 +338,19 @@ export const systemApi = {
       const { data, error } = await supabase
         .from(TABLES.REPORT_PREFERENCES)
         .upsert(
-          { staff_id: staffId, report_type: reportType, criteria, updated_at: new Date().toISOString() },
-          { onConflict: 'staff_id,report_type' }
+          {
+            staff_id: staffId,
+            report_type: reportType,
+            criteria,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: 'staff_id,report_type' },
         )
         .select()
         .maybeSingle();
 
       if (error) throw error;
       return data;
-    }
-  }
+    },
+  },
 };

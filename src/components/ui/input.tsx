@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { cn } from '@/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
+import { cn } from '@/lib/utils';
 
 // Define input size variants
 const inputVariants = cva(
@@ -122,8 +122,18 @@ function Input({
   variant,
   id, // Added id prop
   ...props
-}: React.ComponentProps<'input'> & VariantProps<typeof inputVariants> & { id?: string }) { // Added id to type
-  return <input data-slot="input" id={id} type={type} className={cn(inputVariants({ variant }), className)} {...props} />;
+}: React.ComponentProps<'input'> &
+  VariantProps<typeof inputVariants> & { id?: string }) {
+  // Added id to type
+  return (
+    <input
+      data-slot="input"
+      id={id}
+      type={type}
+      className={cn(inputVariants({ variant }), className)}
+      {...props}
+    />
+  );
 }
 
 function InputAddon({
@@ -132,11 +142,26 @@ function InputAddon({
   mode,
   ...props
 }: React.ComponentProps<'div'> & VariantProps<typeof inputAddonVariants>) {
-  return <div data-slot="input-addon" className={cn(inputAddonVariants({ variant, mode }), className)} {...props} />;
+  return (
+    <div
+      data-slot="input-addon"
+      className={cn(inputAddonVariants({ variant, mode }), className)}
+      {...props}
+    />
+  );
 }
 
-function InputGroup({ className, ...props }: React.ComponentProps<'div'> & VariantProps<typeof inputGroupVariants>) {
-  return <div data-slot="input-group" className={cn(inputGroupVariants(), className)} {...props} />;
+function InputGroup({
+  className,
+  ...props
+}: React.ComponentProps<'div'> & VariantProps<typeof inputGroupVariants>) {
+  return (
+    <div
+      data-slot="input-group"
+      className={cn(inputGroupVariants(), className)}
+      {...props}
+    />
+  );
 }
 
 function InputWrapper({
@@ -147,10 +172,21 @@ function InputWrapper({
   return (
     <div
       data-slot="input-wrapper"
-      className={cn(inputVariants({ variant }), inputWrapperVariants({ variant }), className)}
+      className={cn(
+        inputVariants({ variant }),
+        inputWrapperVariants({ variant }),
+        className,
+      )}
       {...props}
     />
   );
 }
 
-export { Input, InputAddon, InputGroup, InputWrapper, inputVariants, inputAddonVariants };
+export {
+  Input,
+  InputAddon,
+  InputGroup,
+  InputWrapper,
+  inputVariants,
+  inputAddonVariants,
+};

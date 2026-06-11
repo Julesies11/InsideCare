@@ -1,12 +1,22 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { Documents } from './documents';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AuthContext } from '@/auth/context/auth-context';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { Documents } from './documents';
 
 // Mock Hooks
 vi.mock('@/hooks/use-staff-documents', () => ({
-  useStaffDocuments: vi.fn(() => ({ data: [{ id: '1', file_name: 'Test Staff Doc', file_path: 'staff-1/documents/test.pdf', staff_id: 'staff-1' }], isLoading: false })),
+  useStaffDocuments: vi.fn(() => ({
+    data: [
+      {
+        id: '1',
+        file_name: 'Test Staff Doc',
+        file_path: 'staff-1/documents/test.pdf',
+        staff_id: 'staff-1',
+      },
+    ],
+    isLoading: false,
+  })),
   getStaffFileUrl: vi.fn(() => Promise.resolve('https://test.com')),
   useUpdateStaffDocument: vi.fn(() => ({ mutateAsync: vi.fn() })),
 }));
@@ -20,14 +30,24 @@ vi.mock('@/hooks/use-role-permissions', () => ({
 }));
 
 vi.mock('@/hooks/use-staff-document-role-permissions', () => ({
-  useStaffDocumentRolePermissions: vi.fn(() => ({ data: [], isLoading: false })),
+  useStaffDocumentRolePermissions: vi.fn(() => ({
+    data: [],
+    isLoading: false,
+  })),
   useAllStaffDocumentOverrides: vi.fn(() => ({ data: [], isLoading: false })),
-  useUpdateStaffDocumentRolePermissions: vi.fn(() => ({ mutateAsync: vi.fn() })),
+  useUpdateStaffDocumentRolePermissions: vi.fn(() => ({
+    mutateAsync: vi.fn(),
+  })),
 }));
 
 vi.mock('@/hooks/useRBAC', () => ({
   useRBAC: vi.fn(() => ({ isAdmin: true, hasAccess: vi.fn(() => true) })),
-  ACCESS_LEVEL: { FULL: 'full', NONE: 'none', CONTEXT_READ_ONLY: 'context_read_only', READ_ONLY: 'read_only' }
+  ACCESS_LEVEL: {
+    FULL: 'full',
+    NONE: 'none',
+    CONTEXT_READ_ONLY: 'context_read_only',
+    READ_ONLY: 'read_only',
+  },
 }));
 
 vi.mock('@/hooks/use-file-upload', () => ({
@@ -48,7 +68,13 @@ vi.mock('@/hooks/use-file-upload', () => ({
 }));
 
 const mockAuthValue = {
-  user: { id: '1', fullname: 'Admin', email: 'admin@test.com', role_name: 'Admin', permissions: {} },
+  user: {
+    id: '1',
+    fullname: 'Admin',
+    email: 'admin@test.com',
+    role_name: 'Admin',
+    permissions: {},
+  },
   isAdmin: true,
   isLoading: false,
   isAuthenticated: true,
@@ -98,7 +124,11 @@ describe('Staff Documents Smoke Test', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Upload Documents')).toBeDefined();
-      expect(screen.getByText('Drag and drop files here or click to browse. Multiple files supported.')).toBeDefined();
+      expect(
+        screen.getByText(
+          'Drag and drop files here or click to browse. Multiple files supported.',
+        ),
+      ).toBeDefined();
     });
   });
 
@@ -117,18 +147,20 @@ describe('Staff Documents Smoke Test', () => {
     // Table should now be visible
     expect(screen.getByText('Document Name')).toBeDefined();
     expect(screen.getByText('Access Control')).toBeDefined();
-    
+
     // Switch back to Grid
     const gridToggle = screen.getByTitle('Grid View');
     fireEvent.click(gridToggle);
-    
+
     expect(screen.queryByText('Document Name')).toBeNull();
   });
 
   it('triggers document view on single click', async () => {
     // We need to mock window.open
-    const windowOpenSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
-    
+    const windowOpenSpy = vi
+      .spyOn(window, 'open')
+      .mockImplementation(() => null);
+
     render(<Documents staffId="staff-1" canAdd={true} canDelete={true} />, {
       wrapper: createWrapper(),
     });
@@ -143,7 +175,7 @@ describe('Staff Documents Smoke Test', () => {
     await waitFor(() => {
       expect(windowOpenSpy).toHaveBeenCalled();
     });
-    
+
     windowOpenSpy.mockRestore();
   });
 });

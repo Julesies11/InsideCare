@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
 import { AspectRatio } from './aspect-ratio';
 
 describe('AspectRatio', () => {
@@ -9,9 +9,9 @@ describe('AspectRatio', () => {
         <AspectRatio ratio={16 / 9} data-testid="aspect-ratio">
           <div>Content</div>
         </AspectRatio>
-      </div>
+      </div>,
     );
-    
+
     expect(screen.getByTestId('aspect-ratio')).toBeInTheDocument();
     expect(screen.getByText('Content')).toBeInTheDocument();
   });

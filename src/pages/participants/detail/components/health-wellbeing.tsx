@@ -21,11 +21,15 @@ export function HealthWellbeing({
       <CardContent className="grid gap-5">
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <Label className="flex w-full max-w-56">Health & Wellbeing Support Needs</Label>
+            <Label className="flex w-full max-w-56">
+              Health & Wellbeing Support Needs
+            </Label>
             <Textarea
               id="health_wellbeing_support"
               value={formData.health_wellbeing_support || ''}
-              onChange={(e) => onFormChange('health_wellbeing_support', e.target.value)}
+              onChange={(e) =>
+                onFormChange('health_wellbeing_support', e.target.value)
+              }
               rows={5}
               placeholder="Describe health and wellbeing support needs..."
               disabled={!canEdit}

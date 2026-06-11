@@ -1,10 +1,10 @@
-import { renderWithProviders, screen } from './test-utils';
-import { describe, it, expect, vi } from 'vitest';
 import { AdminLeaveRequestsPage } from '@/pages/employees/leave-requests/admin-leave-requests-page';
 import { AdminTimesheetsPage } from '@/pages/employees/timesheets/admin-timesheets-page';
-import { StaffTimesheetList } from '@/pages/staff/staff-timesheet-list';
-import { HouseChecklistHistory } from '@/pages/houses/detail/components/house-checklist-history';
 import { HouseCalendarEvents } from '@/pages/houses/detail/components/house-calendar-events';
+import { HouseChecklistHistory } from '@/pages/houses/detail/components/house-checklist-history';
+import { StaffTimesheetList } from '@/pages/staff/staff-timesheet-list';
+import { describe, expect, it, vi } from 'vitest';
+import { renderWithProviders, screen } from './test-utils';
 
 // Mock Supabase
 vi.mock('@/lib/supabase', () => {
@@ -20,9 +20,12 @@ vi.mock('@/lib/supabase', () => {
     lte: vi.fn().mockReturnThis(),
     or: vi.fn().mockReturnThis(),
     abortSignal: vi.fn().mockReturnThis(),
-    maybeSingle: vi.fn().mockReturnValue(Promise.resolve({ data: null, error: null })),
+    maybeSingle: vi
+      .fn()
+      .mockReturnValue(Promise.resolve({ data: null, error: null })),
     single: vi.fn().mockReturnValue(Promise.resolve({ data: {}, error: null })),
-    then: (onFulfilled: (res: { data: any[]; error: any }) => any) => Promise.resolve({ data: [], error: null }).then(onFulfilled),
+    then: (onFulfilled: (res: { data: any[]; error: any }) => any) =>
+      Promise.resolve({ data: [], error: null }).then(onFulfilled),
   };
 
   return {
@@ -30,10 +33,15 @@ vi.mock('@/lib/supabase', () => {
       from: vi.fn(() => mockQuery),
       storage: {
         from: vi.fn(() => ({
-          createSignedUrl: vi.fn(() => Promise.resolve({ data: { signedUrl: 'https://test.com' }, error: null })),
-        }))
-      }
-    }
+          createSignedUrl: vi.fn(() =>
+            Promise.resolve({
+              data: { signedUrl: 'https://test.com' },
+              error: null,
+            }),
+          ),
+        })),
+      },
+    },
   };
 });
 
@@ -54,19 +62,17 @@ describe('Join Fixes Smoke Tests', () => {
   });
 
   it('House Checklist History component renders', async () => {
-    renderWithProviders(
-      <HouseChecklistHistory houseId="test-house" />
-    );
+    renderWithProviders(<HouseChecklistHistory houseId="test-house" />);
     expect(screen.getByText(/Checklist History/i)).toBeDefined();
   });
 
   it('House Calendar Events component renders', async () => {
     renderWithProviders(
-      <HouseCalendarEvents 
-        houseId="test-house" 
-        canEdit={true} 
-        canDelete={true} 
-      />
+      <HouseCalendarEvents
+        houseId="test-house"
+        canEdit={true}
+        canDelete={true}
+      />,
     );
     expect(screen.getByText(/House Calendar/i)).toBeDefined();
   });

@@ -106,7 +106,9 @@ export const emptyParticipantPendingChanges: ParticipantPendingChanges = {
 };
 
 // Helper to check if there are any pending changes for participants
-export function hasParticipantPendingChanges(pending: ParticipantPendingChanges): boolean {
+export function hasParticipantPendingChanges(
+  pending: ParticipantPendingChanges,
+): boolean {
   return (
     pending.goals.toAdd.length > 0 ||
     pending.goals.toUpdate.length > 0 ||
@@ -126,7 +128,9 @@ export function hasParticipantPendingChanges(pending: ParticipantPendingChanges)
 }
 
 // Helper to count total pending changes for participants
-export function countParticipantPendingChanges(pending: ParticipantPendingChanges): number {
+export function countParticipantPendingChanges(
+  pending: ParticipantPendingChanges,
+): number {
   return (
     pending.goals.toAdd.length +
     pending.goals.toUpdate.length +

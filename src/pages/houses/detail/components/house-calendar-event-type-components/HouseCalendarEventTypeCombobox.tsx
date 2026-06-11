@@ -1,5 +1,7 @@
 import * as React from 'react';
 import { useState } from 'react';
+import { Settings } from 'lucide-react';
+import { useHouseCalendarEventTypesMaster } from '@/hooks/use-house-calendar-event-types-master';
 import { Button, ButtonArrow } from '@/components/ui/button';
 import {
   Command,
@@ -16,8 +18,6 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Settings } from 'lucide-react';
-import { useHouseCalendarEventTypesMaster } from '@/hooks/use-house-calendar-event-types-master';
 
 interface HouseCalendarEventTypeComboboxProps {
   value: string;
@@ -31,11 +31,14 @@ export function HouseCalendarEventTypeCombobox({
   onManageList,
 }: HouseCalendarEventTypeComboboxProps) {
   const [open, setOpen] = useState(false);
-  const { data: eventTypes = [], isLoading: loading } = useHouseCalendarEventTypesMaster();
+  const { data: eventTypes = [], isLoading: loading } =
+    useHouseCalendarEventTypesMaster();
 
   // Filter active event types for the dropdown list
-  const activeEventTypes = eventTypes.filter((type) => type.status?.toLowerCase() === 'active');
-  
+  const activeEventTypes = eventTypes.filter(
+    (type) => type.status?.toLowerCase() === 'active',
+  );
+
   // Find selected event type from full list (including inactive) so saved values display
   const selectedEventType = eventTypes.find((type) => type.id === value);
 
@@ -58,8 +61,12 @@ export function HouseCalendarEventTypeCombobox({
           >
             {selectedEventType ? (
               <div className="flex items-center gap-2 truncate">
-                <div className={`size-2.5 rounded-full bg-${selectedEventType.color || 'blue'}-500 shrink-0`} />
-                <span className="truncate">{selectedEventType.event_type_name}</span>
+                <div
+                  className={`size-2.5 rounded-full bg-${selectedEventType.color || 'blue'}-500 shrink-0`}
+                />
+                <span className="truncate">
+                  {selectedEventType.event_type_name}
+                </span>
               </div>
             ) : (
               <span>Select event type...</span>
@@ -85,8 +92,12 @@ export function HouseCalendarEventTypeCombobox({
                         value={eventType.event_type_name}
                         onSelect={() => handleSelect(eventType.id)}
                       >
-                        <div className={`size-2 rounded-full bg-${eventType.color || 'blue'}-500 shrink-0`} />
-                        <span className="truncate flex-1">{eventType.event_type_name}</span>
+                        <div
+                          className={`size-2 rounded-full bg-${eventType.color || 'blue'}-500 shrink-0`}
+                        />
+                        <span className="truncate flex-1">
+                          {eventType.event_type_name}
+                        </span>
                         {value === eventType.id && <CommandCheck />}
                       </CommandItem>
                     ))

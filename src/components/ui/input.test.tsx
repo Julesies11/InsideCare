@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 import { Input } from './input';
 
 describe('Input', () => {
@@ -11,10 +11,10 @@ describe('Input', () => {
   it('handles value changes', () => {
     const handleChange = vi.fn();
     render(<Input placeholder="Enter name" onChange={handleChange} />);
-    
+
     const input = screen.getByPlaceholderText('Enter name');
     fireEvent.change(input, { target: { value: 'John' } });
-    
+
     expect(handleChange).toHaveBeenCalled();
     expect((input as HTMLInputElement).value).toBe('John');
   });

@@ -1,25 +1,29 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { housesApi, HousesFilter, HousesSort } from '@/api/houses.api';
-import { useLogActivity } from '@/hooks/use-activity-log';
 import { Database } from '@/models/database.types';
 import { House } from '@/models/house';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { QUERY_KEYS } from '@/config/query-keys';
+import { useLogActivity } from '@/hooks/use-activity-log';
 
 // Re-export types for backward compatibility
 export type { HousesFilter, HousesSort };
 
-export type HouseUIData = House; 
+export type HouseUIData = House;
 
 export function useHouses(
   pageIndex: number = 0,
   pageSize: number = 10,
   sort: HousesSort[] = [],
   filters: HousesFilter = {},
-  branchId?: string
+  branchId?: string,
 ) {
   const query = useQuery({
-    queryKey: [QUERY_KEYS.HOUSES, { pageIndex, pageSize, sort, filters, branchId }],
-    queryFn: () => housesApi.list({ pageIndex, pageSize, sort, filters, branchId }),
+    queryKey: [
+      QUERY_KEYS.HOUSES,
+      { pageIndex, pageSize, sort, filters, branchId },
+    ],
+    queryFn: () =>
+      housesApi.list({ pageIndex, pageSize, sort, filters, branchId }),
     staleTime: 1000 * 30, // 30 seconds
   });
 
@@ -37,7 +41,7 @@ export function useActiveHouses(options?: { enabled?: boolean }) {
     queryKey: [QUERY_KEYS.HOUSES, 'active'],
     queryFn: () => housesApi.listActive(),
     staleTime: 1000 * 60 * 5, // 5 minutes
-    ...options
+    ...options,
   });
 }
 
@@ -54,15 +58,17 @@ export function useAddHouse() {
   const { mutateAsync: logActivity } = useLogActivity();
 
   return useMutation({
-    mutationFn: async (house: Database['public']['Tables']['ic_houses']['Insert']) => {
+    mutationFn: async (
+      house: Database['public']['Tables']['ic_houses']['Insert'],
+    ) => {
       const data = await housesApi.create(house);
-      
+
       await logActivity({
         activityType: 'create',
         entityType: 'house',
         entityId: data.id,
         entityName: data.house_name,
-        customDescription: `New house added: ${data.house_name}`
+        customDescription: `New house added: ${data.house_name}`,
       });
 
       return data;
@@ -78,7 +84,13 @@ export function useUpdateHouse() {
   const { mutateAsync: logActivity } = useLogActivity();
 
   return useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: Database['public']['Tables']['ic_houses']['Update'] }) => {
+    mutationFn: async ({
+      id,
+      updates,
+    }: {
+      id: string;
+      updates: Database['public']['Tables']['ic_houses']['Update'];
+    }) => {
       const data = await housesApi.update(id, updates);
 
       await logActivity({
@@ -86,7 +98,7 @@ export function useUpdateHouse() {
         entityType: 'house',
         entityId: data.id,
         entityName: data.house_name,
-        customDescription: `House updated: ${data.house_name}`
+        customDescription: `House updated: ${data.house_name}`,
       });
 
       return data;
@@ -103,7 +115,13 @@ export function useDeleteHouse() {
   const { mutateAsync: logActivity } = useLogActivity();
 
   return useMutation({
-    mutationFn: async ({ id, house_name }: { id: string; house_name: string }) => {
+    mutationFn: async ({
+      id,
+      house_name,
+    }: {
+      id: string;
+      house_name: string;
+    }) => {
       await housesApi.delete(id);
 
       await logActivity({
@@ -111,7 +129,7 @@ export function useDeleteHouse() {
         entityType: 'house',
         entityId: id,
         entityName: house_name,
-        customDescription: `House deleted: ${house_name}`
+        customDescription: `House deleted: ${house_name}`,
       });
     },
     onSuccess: () => {

@@ -1,9 +1,9 @@
-import { renderHook, act } from '@testing-library/react';
-import { useNotifications } from './useNotifications';
-import { supabase } from '@/lib/supabase';
-import { vi, describe, it, expect, beforeEach } from 'vitest';
-import { AuthContext } from '@/auth/context/auth-context';
 import { ReactNode } from 'react';
+import { AuthContext } from '@/auth/context/auth-context';
+import { act, renderHook } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { supabase } from '@/lib/supabase';
+import { useNotifications } from './useNotifications';
 
 // Mock Supabase
 vi.mock('@/lib/supabase', () => ({
@@ -14,22 +14,32 @@ vi.mock('@/lib/supabase', () => ({
           order: vi.fn(() => ({
             range: vi.fn().mockResolvedValue({
               data: [
-                { id: 'notif-1', is_read: false, type: 'alert', title: 'Test 1' },
-                { id: 'notif-2', is_read: true, type: 'alert', title: 'Test 2' }
+                {
+                  id: 'notif-1',
+                  is_read: false,
+                  type: 'alert',
+                  title: 'Test 1',
+                },
+                {
+                  id: 'notif-2',
+                  is_read: true,
+                  type: 'alert',
+                  title: 'Test 2',
+                },
               ],
               count: 2,
-              error: null
-            })
-          }))
-        }))
+              error: null,
+            }),
+          })),
+        })),
       })),
       update: vi.fn(() => ({
         eq: vi.fn(() => ({
-          eq: vi.fn().mockResolvedValue({ error: null })
-        }))
+          eq: vi.fn().mockResolvedValue({ error: null }),
+        })),
       })),
       delete: vi.fn(() => ({
-        eq: vi.fn().mockResolvedValue({ error: null })
+        eq: vi.fn().mockResolvedValue({ error: null }),
       })),
     })),
     channel: vi.fn(() => ({
@@ -87,7 +97,7 @@ describe('useNotifications', () => {
 
     // Wait for the async effect to resolve
     await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
     });
 
     expect(result.current.loading).toBe(false);
@@ -100,14 +110,14 @@ describe('useNotifications', () => {
     const { result } = renderHook(() => useNotifications(), { wrapper });
 
     await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
     });
 
     await act(async () => {
       await result.current.markAllRead();
     });
 
-    expect(result.current.notifications.every(n => n.is_read)).toBe(true);
+    expect(result.current.notifications.every((n) => n.is_read)).toBe(true);
     expect(result.current.unreadCount).toBe(0);
   });
 });

@@ -1,5 +1,5 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { rosterApi } from '@/api/roster.api';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export interface StaffShift {
   id: string;
@@ -27,7 +27,10 @@ export interface StaffShift {
   duration_hours?: number;
 }
 
-export const calculateDuration = (startTime: string, endTime: string): number => {
+export const calculateDuration = (
+  startTime: string,
+  endTime: string,
+): number => {
   try {
     const [startHour, startMinute] = startTime.split(':').map(Number);
     const [endHour, endMinute] = endTime.split(':').map(Number);
@@ -47,24 +50,35 @@ export const calculateDuration = (startTime: string, endTime: string): number =>
   }
 };
 
-export function useStaffShifts(staffId?: string, startDate?: string, endDate?: string) {
+export function useStaffShifts(
+  staffId?: string,
+  startDate?: string,
+  endDate?: string,
+) {
   const query = useQuery({
     queryKey: ['staff-shifts', { staffId, startDate, endDate }],
     queryFn: async () => {
       if (!staffId) return [];
 
-      const shifts = await rosterApi.listShifts({ staffId, startDate, endDate });
+      const shifts = await rosterApi.listShifts({
+        staffId,
+        startDate,
+        endDate,
+      });
 
       return (shifts || []).map((shift: any) => {
         // Map participants from the structure returned by rosterApi (SHIFT_DETAIL view)
-        const participants = (shift.participants || [])?.map((p: any) => {
-          const part = p.participant || p;
-          return {
-            id: part.id,
-            participant_name: part.participant_name,
-            name: part.participant_name
-          };
-        }).filter((p: any) => p.id && p.participant_name) || [];
+        const participants =
+          (shift.participants || [])
+            ?.map((p: any) => {
+              const part = p.participant || p;
+              return {
+                id: part.id,
+                participant_name: part.participant_name,
+                name: part.participant_name,
+              };
+            })
+            .filter((p: any) => p.id && p.participant_name) || [];
 
         return {
           ...shift,
@@ -102,7 +116,8 @@ export function useUpdateShift() {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: ({ id, updates }: { id: string; updates: any }) => rosterApi.updateShift(id, updates),
+    mutationFn: ({ id, updates }: { id: string; updates: any }) =>
+      rosterApi.updateShift(id, updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staff-shifts'] });
     },
@@ -110,7 +125,8 @@ export function useUpdateShift() {
 
   return {
     ...mutation,
-    mutateAsync: (id: string, updates: any) => mutation.mutateAsync({ id, updates })
+    mutateAsync: (id: string, updates: any) =>
+      mutation.mutateAsync({ id, updates }),
   };
 }
 
@@ -132,12 +148,12 @@ export function useShiftParticipants(shiftId?: string) {
       if (!shiftId) return [];
       const shift = await rosterApi.getShift(shiftId);
       if (!shift) return [];
-      
+
       return (shift.participants || []).map((p: any) => {
         const part = p.participant || p;
         return {
           ...p,
-          participant: part
+          participant: part,
         };
       });
     },
@@ -157,9 +173,17 @@ export function useAddShiftParticipant() {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: ({ shiftId, participantId }: { shiftId: string; participantId: string }) => rosterApi.addShiftParticipant(shiftId, participantId),
+    mutationFn: ({
+      shiftId,
+      participantId,
+    }: {
+      shiftId: string;
+      participantId: string;
+    }) => rosterApi.addShiftParticipant(shiftId, participantId),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['shift-participants', variables.shiftId] });
+      queryClient.invalidateQueries({
+        queryKey: ['shift-participants', variables.shiftId],
+      });
       queryClient.invalidateQueries({ queryKey: ['staff-shifts'] });
       queryClient.invalidateQueries({ queryKey: ['roster-shifts'] });
     },
@@ -167,7 +191,8 @@ export function useAddShiftParticipant() {
 
   return {
     ...mutation,
-    mutateAsync: (shiftId: string, participantId: string) => mutation.mutateAsync({ shiftId, participantId })
+    mutateAsync: (shiftId: string, participantId: string) =>
+      mutation.mutateAsync({ shiftId, participantId }),
   };
 }
 
@@ -175,9 +200,17 @@ export function useRemoveShiftParticipant() {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: ({ shiftId, participantId }: { shiftId: string; participantId: string }) => rosterApi.removeShiftParticipant(shiftId, participantId),
+    mutationFn: ({
+      shiftId,
+      participantId,
+    }: {
+      shiftId: string;
+      participantId: string;
+    }) => rosterApi.removeShiftParticipant(shiftId, participantId),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['shift-participants', variables.shiftId] });
+      queryClient.invalidateQueries({
+        queryKey: ['shift-participants', variables.shiftId],
+      });
       queryClient.invalidateQueries({ queryKey: ['staff-shifts'] });
       queryClient.invalidateQueries({ queryKey: ['roster-shifts'] });
     },
@@ -185,6 +218,7 @@ export function useRemoveShiftParticipant() {
 
   return {
     ...mutation,
-    mutateAsync: (shiftId: string, participantId: string) => mutation.mutateAsync({ shiftId, participantId })
+    mutateAsync: (shiftId: string, participantId: string) =>
+      mutation.mutateAsync({ shiftId, participantId }),
   };
 }

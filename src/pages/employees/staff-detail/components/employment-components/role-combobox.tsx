@@ -1,5 +1,7 @@
 import * as React from 'react';
 import { useState } from 'react';
+import { Settings } from 'lucide-react';
+import { useRoles } from '@/hooks/use-roles';
 import { Button, ButtonArrow } from '@/components/ui/button';
 import {
   Command,
@@ -16,8 +18,6 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Settings } from 'lucide-react';
-import { useRoles } from '@/hooks/use-roles';
 
 interface RoleComboboxProps {
   value: string;
@@ -37,7 +37,7 @@ export function RoleCombobox({
 
   // Filter active roles for the dropdown list
   const activeRoles = roles.filter((role) => role.is_active);
-  
+
   // Find selected role from full list (including inactive) so saved values display
   const selectedRole = roles.find((role) => role.id === value);
 
@@ -85,7 +85,9 @@ export function RoleCombobox({
                         value={role.role_name}
                         onSelect={() => handleSelect(role.id)}
                       >
-                        <span className="truncate flex-1">{role.role_name}</span>
+                        <span className="truncate flex-1">
+                          {role.role_name}
+                        </span>
                         {value === role.id && <CommandCheck />}
                       </CommandItem>
                     ))

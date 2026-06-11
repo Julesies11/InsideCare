@@ -1,5 +1,7 @@
 import * as React from 'react';
 import { useState } from 'react';
+import { Settings } from 'lucide-react';
+import { useEmploymentTypesMaster } from '@/hooks/use-employment-types-master';
 import { Button, ButtonArrow } from '@/components/ui/button';
 import {
   Command,
@@ -16,8 +18,6 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Settings } from 'lucide-react';
-import { useEmploymentTypesMaster } from '@/hooks/use-employment-types-master';
 
 interface EmploymentTypeComboboxProps {
   value: string;
@@ -33,13 +33,18 @@ export function EmploymentTypeCombobox({
   onManageList,
 }: EmploymentTypeComboboxProps) {
   const [open, setOpen] = useState(false);
-  const { data: employmentTypes = [], isLoading: loading } = useEmploymentTypesMaster();
+  const { data: employmentTypes = [], isLoading: loading } =
+    useEmploymentTypesMaster();
 
   // Filter active employment types for the dropdown list
-  const activeEmploymentTypes = employmentTypes.filter((type) => type.status === 'Active');
-  
+  const activeEmploymentTypes = employmentTypes.filter(
+    (type) => type.status === 'Active',
+  );
+
   // Find selected employment type from full list (including inactive) so saved values display
-  const selectedEmploymentType = employmentTypes.find((type) => type.id === value);
+  const selectedEmploymentType = employmentTypes.find(
+    (type) => type.id === value,
+  );
 
   const handleSelect = (employmentTypeId: string) => {
     onChange(employmentTypeId === value ? '' : employmentTypeId);
@@ -60,7 +65,9 @@ export function EmploymentTypeCombobox({
             disabled={!canEdit}
           >
             {selectedEmploymentType ? (
-              <span className="truncate">{selectedEmploymentType.employment_type_name}</span>
+              <span className="truncate">
+                {selectedEmploymentType.employment_type_name}
+              </span>
             ) : (
               <span>Select employment type...</span>
             )}
@@ -85,7 +92,9 @@ export function EmploymentTypeCombobox({
                         value={employmentType.employment_type_name}
                         onSelect={() => handleSelect(employmentType.id)}
                       >
-                        <span className="truncate flex-1">{employmentType.employment_type_name}</span>
+                        <span className="truncate flex-1">
+                          {employmentType.employment_type_name}
+                        </span>
                         {value === employmentType.id && <CommandCheck />}
                       </CommandItem>
                     ))

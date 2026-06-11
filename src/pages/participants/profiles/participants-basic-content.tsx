@@ -1,21 +1,21 @@
+import { participantsApi } from '@/api/participants.api';
 import { UserRoundPlus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Participants } from './components';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { RBAC_MODULES } from '@/config/rbac-modules';
-import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
-import { participantsApi } from '@/api/participants.api';
 import { ROUTES } from '@/config/routes.config';
+import { ACCESS_LEVEL, useRBAC } from '@/hooks/useRBAC';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Participants } from './components';
 
 export function ParticipantsProfilesContent() {
   const navigate = useNavigate();
   const { hasAccess } = useRBAC();
-  
-  const canAdd = hasAccess({ 
-    resource: RBAC_MODULES.PARTICIPANTS, 
-    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE 
+
+  const canAdd = hasAccess({
+    resource: RBAC_MODULES.PARTICIPANTS,
+    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE,
   });
 
   const handleAddParticipant = async () => {
@@ -27,7 +27,8 @@ export function ParticipantsProfilesContent() {
       } as any);
       console.log('[DEBUG] participant created successfully:', data);
 
-      if (!data) throw new Error("You do not have permission to perform this action");
+      if (!data)
+        throw new Error('You do not have permission to perform this action');
 
       // Navigate to the detail page
       navigate(`${ROUTES.PARTICIPANT_DETAIL}/${data.id}`);
@@ -36,9 +37,11 @@ export function ParticipantsProfilesContent() {
         message: error.message,
         code: error.code,
         details: error.details,
-        hint: error.hint
+        hint: error.hint,
       });
-      toast.error('Failed to create participant', { description: error.message });
+      toast.error('Failed to create participant', {
+        description: error.message,
+      });
     }
   };
 
@@ -74,8 +77,9 @@ export function ParticipantsProfilesContent() {
                 Supporting Every Individual Journey
               </h3>
               <p className="text-sm text-blue-700 dark:text-blue-300">
-                Each participant profile represents a unique story of growth, independence, and achievement. 
-                Your dedicated support makes their goals a reality.
+                Each participant profile represents a unique story of growth,
+                independence, and achievement. Your dedicated support makes
+                their goals a reality.
               </p>
             </div>
           </div>

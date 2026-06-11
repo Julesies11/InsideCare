@@ -1,14 +1,31 @@
-import { useState, useMemo } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { HouseType } from '@/models/house';
-import { useHouseTypesMaster, useAddHouseTypeMaster, useUpdateHouseTypeMaster } from '@/hooks/use-house-types-master';
-import { HouseTypeMasterQuickAdd } from './HouseTypeMasterQuickAdd';
+import { ArrowDown, ArrowUp, ArrowUpDown, Edit, Plus } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  useAddHouseTypeMaster,
+  useHouseTypesMaster,
+  useUpdateHouseTypeMaster,
+} from '@/hooks/use-house-types-master';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { HouseTypeMasterQuickAdd } from './HouseTypeMasterQuickAdd';
 
 interface HouseTypeMasterDialogProps {
   open: boolean;
@@ -28,7 +45,9 @@ export function HouseTypeMasterDialog({
   const { mutateAsync: addHouseType } = useAddHouseTypeMaster();
   const { mutateAsync: updateHouseType } = useUpdateHouseTypeMaster();
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const [editingHouseType, setEditingHouseType] = useState<HouseType | null>(null);
+  const [editingHouseType, setEditingHouseType] = useState<HouseType | null>(
+    null,
+  );
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState<SortField>('house_type_name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
@@ -43,9 +62,13 @@ export function HouseTypeMasterDialog({
   };
 
   const sortedAndFilteredHouseTypes = useMemo(() => {
-    const filtered = houseTypes.filter((type) =>
-      type.house_type_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (type.description && type.description.toLowerCase().includes(searchQuery.toLowerCase()))
+    const filtered = houseTypes.filter(
+      (type) =>
+        type.house_type_name
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        (type.description &&
+          type.description.toLowerCase().includes(searchQuery.toLowerCase())),
     );
 
     filtered.sort((a, b) => {
@@ -81,19 +104,30 @@ export function HouseTypeMasterDialog({
   const handleToggleStatus = async (houseType: HouseType) => {
     const newStatus = houseType.status === 'Active' ? 'Inactive' : 'Active';
     try {
-      await updateHouseType({ id: houseType.id, updates: { status: newStatus } });
-      toast.success(`House type ${newStatus === 'Active' ? 'activated' : 'deactivated'} successfully`);
+      await updateHouseType({
+        id: houseType.id,
+        updates: { status: newStatus },
+      });
+      toast.success(
+        `House type ${newStatus === 'Active' ? 'activated' : 'deactivated'} successfully`,
+      );
       onUpdate();
     } catch (error) {
       const err = error as Error;
-      toast.error(`Failed to ${newStatus === 'Active' ? 'activate' : 'deactivate'} house type: ` + err.message);
+      toast.error(
+        `Failed to ${newStatus === 'Active' ? 'activate' : 'deactivate'} house type: ` +
+          err.message,
+      );
     }
   };
 
   const handleSave = async (houseTypeData: Partial<HouseType>) => {
     try {
       if (editingHouseType) {
-        await updateHouseType({ id: editingHouseType.id, updates: houseTypeData });
+        await updateHouseType({
+          id: editingHouseType.id,
+          updates: houseTypeData,
+        });
         toast.success('House type updated successfully');
       } else {
         await addHouseType({
@@ -107,13 +141,20 @@ export function HouseTypeMasterDialog({
       onUpdate();
     } catch (error) {
       const err = error as Error;
-      toast.error(`Failed to ${editingHouseType ? 'update' : 'add'} house type: ` + err.message);
+      toast.error(
+        `Failed to ${editingHouseType ? 'update' : 'add'} house type: ` +
+          err.message,
+      );
     }
   };
 
   const getSortIcon = (field: SortField) => {
     if (sortField !== field) return <ArrowUpDown className="size-4" />;
-    return sortDirection === 'asc' ? <ArrowUp className="size-4" /> : <ArrowDown className="size-4" />;
+    return sortDirection === 'asc' ? (
+      <ArrowUp className="size-4" />
+    ) : (
+      <ArrowDown className="size-4" />
+    );
   };
 
   return (
@@ -123,7 +164,8 @@ export function HouseTypeMasterDialog({
           <DialogHeader>
             <DialogTitle>Manage House Types</DialogTitle>
             <DialogDescription>
-              View and manage the master list of house types available across all locations.
+              View and manage the master list of house types available across
+              all locations.
             </DialogDescription>
           </DialogHeader>
 
@@ -183,10 +225,18 @@ export function HouseTypeMasterDialog({
               <TableBody>
                 {sortedAndFilteredHouseTypes.map((houseType) => (
                   <TableRow key={houseType.id}>
-                    <TableCell className="font-medium">{houseType.house_type_name}</TableCell>
+                    <TableCell className="font-medium">
+                      {houseType.house_type_name}
+                    </TableCell>
                     <TableCell>{houseType.description || '-'}</TableCell>
                     <TableCell>
-                      <Badge variant={houseType.status === 'Active' ? 'success' : 'secondary'}>
+                      <Badge
+                        variant={
+                          houseType.status === 'Active'
+                            ? 'success'
+                            : 'secondary'
+                        }
+                      >
                         {houseType.status}
                       </Badge>
                     </TableCell>
@@ -204,7 +254,9 @@ export function HouseTypeMasterDialog({
                           size="sm"
                           onClick={() => handleToggleStatus(houseType)}
                         >
-                          {houseType.status === 'Active' ? 'Deactivate' : 'Activate'}
+                          {houseType.status === 'Active'
+                            ? 'Deactivate'
+                            : 'Activate'}
                         </Button>
                       </div>
                     </TableCell>

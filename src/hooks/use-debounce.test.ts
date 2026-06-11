@@ -1,6 +1,6 @@
-import { renderHook, act } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useDebounce } from './use-debounce';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 describe('useDebounce', () => {
   beforeEach(() => {
@@ -15,7 +15,7 @@ describe('useDebounce', () => {
   it('should debounce value updates', () => {
     const { result, rerender } = renderHook(
       ({ value }) => useDebounce(value, 500),
-      { initialProps: { value: 'initial' } }
+      { initialProps: { value: 'initial' } },
     );
 
     // Update the value
@@ -40,11 +40,11 @@ describe('useDebounce', () => {
   it('should reset the timer if value changes again before delay', () => {
     const { result, rerender } = renderHook(
       ({ value }) => useDebounce(value, 500),
-      { initialProps: { value: 'v1' } }
+      { initialProps: { value: 'v1' } },
     );
 
     rerender({ value: 'v2' });
-    
+
     act(() => {
       vi.advanceTimersByTime(300);
     });

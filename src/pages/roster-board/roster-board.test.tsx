@@ -1,20 +1,16 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
-import RosterBoard from './index';
-import { renderWithProviders } from '@/test/test-utils';
-import { TABLES } from '@/config/db-tables';
-import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
+import { renderWithProviders } from '@/test/test-utils';
+import { screen, waitFor } from '@testing-library/react';
+import { http, HttpResponse } from 'msw';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { TABLES } from '@/config/db-tables';
+import RosterBoard from './index';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
-const mockStaff = [
-  { id: 'staff-1', name: 'John Doe', status: 'active' },
-];
+const mockStaff = [{ id: 'staff-1', name: 'John Doe', status: 'active' }];
 
-const mockHouses = [
-  { id: 'house-1', name: 'Sunset House', status: 'active' },
-];
+const mockHouses = [{ id: 'house-1', name: 'Sunset House', status: 'active' }];
 
 const mockParticipants = [
   { id: 'part-1', name: 'Alice Smith', status: 'active' },
@@ -30,8 +26,8 @@ vi.mock('@/hooks/use-house-shift-templates', () => ({
   useHouseShiftTemplates: () => ({
     shiftTemplates: [],
     defaults: [],
-    isLoading: false
-  })
+    isLoading: false,
+  }),
 }));
 
 describe('RosterBoard', () => {
@@ -58,9 +54,12 @@ describe('RosterBoard', () => {
       http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSE_CHECKLISTS}`, () => {
         return HttpResponse.json([]);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.SHIFT_TEMPLATE_DEFAULT_CHECKLISTS}`, () => {
-        return HttpResponse.json([]);
-      })
+      http.get(
+        `${SUPABASE_URL}/rest/v1/${TABLES.SHIFT_TEMPLATE_DEFAULT_CHECKLISTS}`,
+        () => {
+          return HttpResponse.json([]);
+        },
+      ),
     );
   });
 
@@ -68,7 +67,7 @@ describe('RosterBoard', () => {
     renderWithProviders(<RosterBoard />);
 
     expect(screen.getByText('Roster Board')).toBeInTheDocument();
-    
+
     await waitFor(() => {
       expect(screen.getByText(/manage shift schedules/i)).toBeInTheDocument();
     });
@@ -81,6 +80,8 @@ describe('RosterBoard', () => {
 
   it('does not show the Group By House toggle (permanently enabled)', () => {
     renderWithProviders(<RosterBoard />);
-    expect(screen.queryByRole('switch', { name: /group by house/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('switch', { name: /group by house/i }),
+    ).not.toBeInTheDocument();
   });
 });

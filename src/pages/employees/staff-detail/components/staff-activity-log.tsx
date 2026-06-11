@@ -1,18 +1,27 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useEffect, useState } from 'react';
 import { useActivityLog } from '@/hooks/use-activity-log';
-import { ActivityLogItem } from '@/components/activities/activity-log-item';
 import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { ActivityLogItem } from '@/components/activities/activity-log-item';
 
 interface StaffActivityLogProps {
   staffId?: string;
   refreshTrigger?: number;
 }
 
-export function StaffActivityLog({ staffId, refreshTrigger }: StaffActivityLogProps) {
+export function StaffActivityLog({
+  staffId,
+  refreshTrigger,
+}: StaffActivityLogProps) {
   const [showAll, setShowAll] = useState(false);
   const limit = showAll ? 100 : 10;
-  
+
   const { activities, loading, error, refetch } = useActivityLog({
     entityId: staffId,
     limit,
@@ -37,11 +46,15 @@ export function StaffActivityLog({ staffId, refreshTrigger }: StaffActivityLogPr
       </CardHeader>
       <CardContent>
         {loading ? (
-          <div className="text-center py-8 text-muted-foreground">Loading activity log...</div>
+          <div className="text-center py-8 text-muted-foreground">
+            Loading activity log...
+          </div>
         ) : error ? (
           <div className="text-center py-8 text-destructive">{error}</div>
         ) : activities.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">No activity recorded yet</div>
+          <div className="text-center py-8 text-muted-foreground">
+            No activity recorded yet
+          </div>
         ) : (
           <div className="space-y-0">
             {activities.map((activity, index) => (

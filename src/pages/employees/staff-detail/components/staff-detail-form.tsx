@@ -1,14 +1,14 @@
+import { StaffPendingChanges } from '@/models/staff-pending-changes';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { PersonalDetails } from './personal-details';
-import { EmploymentDetails } from './employment-details';
-import { StaffAvailability } from './staff-availability';
+import { Documents } from './documents';
 import { EmergencyContact } from './emergency-contact';
+import { EmploymentDetails } from './employment-details';
+import { PersonalDetails } from './personal-details';
+import { StaffActivityLog } from './staff-activity-log';
+import { StaffAvailability } from './staff-availability';
 import { StaffComplianceSection } from './staff-compliance';
 import { StaffRoster } from './staff-roster';
 import { StaffTrainingSection } from './staff-training';
-import { StaffActivityLog } from './staff-activity-log';
-import { StaffPendingChanges } from '@/models/staff-pending-changes';
-import { Documents } from './documents';
 
 interface StaffDetailFormProps {
   staffId: string;
@@ -165,10 +165,7 @@ export function StaffDetailForm({
 
       {/* 8. Roster */}
       {canViewRoster && (
-        <StaffRoster
-          staffId={staffId}
-          canEdit={canEditRoster}
-        />
+        <StaffRoster staffId={staffId} canEdit={canEditRoster} />
       )}
 
       {/* 9. Leave */}
@@ -179,7 +176,9 @@ export function StaffDetailForm({
           </CardHeader>
           <CardContent>
             <div className="flex flex-col items-center justify-center py-10 text-muted-foreground border-2 border-dashed rounded-lg">
-              <p className="text-sm font-medium">Leave Management section coming soon.</p>
+              <p className="text-sm font-medium">
+                Leave Management section coming soon.
+              </p>
               {!canEditLeave && <p className="text-xs italic">(Read Only)</p>}
             </div>
           </CardContent>
@@ -194,8 +193,12 @@ export function StaffDetailForm({
           </CardHeader>
           <CardContent>
             <div className="flex flex-col items-center justify-center py-10 text-muted-foreground border-2 border-dashed rounded-lg">
-              <p className="text-sm font-medium">Staff Warnings section coming soon.</p>
-              {!canEditWarnings && <p className="text-xs italic">(Read Only)</p>}
+              <p className="text-sm font-medium">
+                Staff Warnings section coming soon.
+              </p>
+              {!canEditWarnings && (
+                <p className="text-xs italic">(Read Only)</p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -203,7 +206,10 @@ export function StaffDetailForm({
 
       {/* 11. Activity Log */}
       {canViewActivityLog && (
-        <StaffActivityLog staffId={staffId} refreshTrigger={activityRefreshTrigger} />
+        <StaffActivityLog
+          staffId={staffId}
+          refreshTrigger={activityRefreshTrigger}
+        />
       )}
     </div>
   );

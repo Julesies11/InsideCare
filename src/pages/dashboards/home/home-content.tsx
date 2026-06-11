@@ -1,17 +1,25 @@
+import { useAuth } from '@/auth/context/auth-context';
+import { CheckSquare, ClipboardList, UserCheck, Users } from 'lucide-react';
 import { useNavigate } from 'react-router';
-import { Users, UserCheck, CheckSquare, ClipboardList } from 'lucide-react';
-import { WelcomeBanner, StatCard, MotivationalBanner, RecentActivity, UpcomingShifts } from './components';
+import { ROUTES } from '@/config/routes.config';
 import { useParticipantsCount } from '@/hooks/use-participants';
 import { useStaffCount } from '@/hooks/use-staff';
-import { useAuth } from '@/auth/context/auth-context';
-import { ROUTES } from '@/config/routes.config';
+import {
+  MotivationalBanner,
+  RecentActivity,
+  StatCard,
+  UpcomingShifts,
+  WelcomeBanner,
+} from './components';
 
 export function HomeContent() {
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
-  
+
   // Optimized count-only fetching
-  const { count: participantCount } = useParticipantsCount({ statuses: ['active'] });
+  const { count: participantCount } = useParticipantsCount({
+    statuses: ['active'],
+  });
   const { count: staffCount } = useStaffCount({ statuses: ['active'] });
 
   return (

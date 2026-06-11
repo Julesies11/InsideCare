@@ -1,8 +1,8 @@
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Trash2, Edit, Calendar } from 'lucide-react';
 import { ReactNode } from 'react';
+import { Calendar, Edit, Trash2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 
 interface ChecklistCardProps {
   checklist: {
@@ -38,10 +38,10 @@ interface ChecklistCardProps {
 /**
  * Reusable Card component for displaying a Checklist Template.
  */
-export function ChecklistCard({ 
-  checklist, 
-  isPendingAdd, 
-  isPendingUpdate, 
+export function ChecklistCard({
+  checklist,
+  isPendingAdd,
+  isPendingUpdate,
   isPendingDelete,
   onEdit,
   onDelete,
@@ -53,17 +53,25 @@ export function ChecklistCard({
   maxTasksPreview = 2,
   isMaster = false,
   canDelete = true,
-  canEdit = true
+  canEdit = true,
 }: ChecklistCardProps) {
   const checklistItems = checklist.items || [];
-  const displayName = checklist.house_checklist_name || checklist.checklist_name || checklist.name || 'Untitled Checklist';
+  const displayName =
+    checklist.house_checklist_name ||
+    checklist.checklist_name ||
+    checklist.name ||
+    'Untitled Checklist';
 
   return (
-    <Card 
+    <Card
       className={`flex flex-row h-full transition-all hover:shadow-sm overflow-hidden ${
-        isPendingAdd ? 'bg-primary/5 border-primary/20' :
-        isPendingDelete ? 'opacity-50 bg-destructive/5 border-destructive/20' :
-        isPendingUpdate ? 'bg-warning/5 border-warning/20' : ''
+        isPendingAdd
+          ? 'bg-primary/5 border-primary/20'
+          : isPendingDelete
+            ? 'opacity-50 bg-destructive/5 border-destructive/20'
+            : isPendingUpdate
+              ? 'bg-warning/5 border-warning/20'
+              : ''
       }`}
     >
       {dragHandle && (
@@ -75,30 +83,74 @@ export function ChecklistCard({
         <CardHeader className="pb-3 flex flex-row items-start justify-between space-y-0">
           <div className="flex flex-col gap-1 min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <h3 className={`text-base font-bold text-gray-900 break-words whitespace-normal ${isPendingDelete ? 'line-through' : ''}`}>
+              <h3
+                className={`text-base font-bold text-gray-900 break-words whitespace-normal ${isPendingDelete ? 'line-through' : ''}`}
+              >
                 {displayName}
               </h3>
-              {isPendingAdd && <Badge variant="outline" className="text-[9px] h-4 border-primary-200 text-primary bg-primary/10 px-1">PENDING ADD</Badge>}
-              {isPendingUpdate && <Badge variant="outline" className="text-[9px] h-4 border-warning-200 text-warning bg-warning/10 px-1">PENDING UPDATE</Badge>}
-              {isMaster && <Badge variant="outline" className="text-[9px] h-4 border-gray-200 text-gray-500 bg-gray-100 px-1">MASTER</Badge>}
+              {isPendingAdd && (
+                <Badge
+                  variant="outline"
+                  className="text-[9px] h-4 border-primary-200 text-primary bg-primary/10 px-1"
+                >
+                  PENDING ADD
+                </Badge>
+              )}
+              {isPendingUpdate && (
+                <Badge
+                  variant="outline"
+                  className="text-[9px] h-4 border-warning-200 text-warning bg-warning/10 px-1"
+                >
+                  PENDING UPDATE
+                </Badge>
+              )}
+              {isMaster && (
+                <Badge
+                  variant="outline"
+                  className="text-[9px] h-4 border-gray-200 text-gray-500 bg-gray-100 px-1"
+                >
+                  MASTER
+                </Badge>
+              )}
             </div>
-            {checklist.description && <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{checklist.description}</p>}
+            {checklist.description && (
+              <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
+                {checklist.description}
+              </p>
+            )}
           </div>
-          
+
           <div className="flex gap-0.5 shrink-0 ml-2">
             {renderActions && renderActions(checklist)}
             {onSchedule && (
-              <Button variant="ghost" size="icon" className="size-8 text-primary" onClick={() => onSchedule(checklist)}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-8 text-primary"
+                onClick={() => onSchedule(checklist)}
+              >
                 <Calendar className="size-3.5" />
               </Button>
             )}
             {onEdit && canEdit && (
-              <Button variant="ghost" size="icon" className="size-8 text-primary" onClick={() => onEdit(checklist)} aria-label="edit">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-8 text-primary"
+                onClick={() => onEdit(checklist)}
+                aria-label="edit"
+              >
                 <Edit className="size-3.5" />
               </Button>
             )}
             {onDelete && canDelete && !isPendingDelete && (
-              <Button variant="ghost" size="icon" className="size-8 text-destructive" onClick={() => onDelete(checklist)} aria-label="delete">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-8 text-destructive"
+                onClick={() => onDelete(checklist)}
+                aria-label="delete"
+              >
                 <Trash2 className="size-3.5" />
               </Button>
             )}
@@ -113,16 +165,23 @@ export function ChecklistCard({
                   No tasks defined yet
                 </div>
               ) : (
-                checklistItems.slice(0, maxTasksPreview).map((item, index: number) => (
-                  <div key={item.id || item.tempId || index} className="flex items-start gap-3 relative z-10">
-                    <div className="shrink-0 size-5 rounded-full bg-background border border-muted-foreground/30 flex items-center justify-center text-[10px] font-bold text-muted-foreground">
-                      {index + 1}
+                checklistItems
+                  .slice(0, maxTasksPreview)
+                  .map((item, index: number) => (
+                    <div
+                      key={item.id || item.tempId || index}
+                      className="flex items-start gap-3 relative z-10"
+                    >
+                      <div className="shrink-0 size-5 rounded-full bg-background border border-muted-foreground/30 flex items-center justify-center text-[10px] font-bold text-muted-foreground">
+                        {index + 1}
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-xs font-medium text-gray-700 break-words whitespace-normal">
+                          {item.title}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-xs font-medium text-gray-700 break-words whitespace-normal">{item.title}</span>
-                    </div>
-                  </div>
-                ))
+                  ))
               )}
               {checklistItems.length > maxTasksPreview && (
                 <div className="ml-6 text-[10px] text-muted-foreground font-medium">
@@ -133,7 +192,10 @@ export function ChecklistCard({
           )}
           {!showTasksPreview && (
             <div className="text-xs text-muted-foreground font-medium">
-              <span className="text-gray-900 font-bold">{checklistItems.length}</span> tasks defined
+              <span className="text-gray-900 font-bold">
+                {checklistItems.length}
+              </span>{' '}
+              tasks defined
             </div>
           )}
         </CardContent>

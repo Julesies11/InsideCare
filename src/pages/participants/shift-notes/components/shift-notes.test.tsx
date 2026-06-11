@@ -1,7 +1,7 @@
-import { describe, it, expect, vi } from 'vitest';
-import { screen, waitFor, fireEvent } from '@testing-library/react';
-import { ShiftNotes } from './shift-notes';
 import { renderWithProviders } from '@/test/test-utils';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+import { ShiftNotes } from './shift-notes';
 
 const mocks = vi.hoisted(() => ({
   mockNavigate: vi.fn(),
@@ -34,35 +34,35 @@ vi.mock('@/hooks/use-shift-notes', () => ({
         house_name: 'House A',
         shift_template: 'Morning',
         note_id: 'note-1',
-        note_status: 'draft'
-      }
+        note_status: 'draft',
+      },
     ],
     isLoading: false,
-    error: null
-  })
+    error: null,
+  }),
 }));
 
 vi.mock('@/hooks/use-houses', () => ({
   useHouses: () => ({
     houses: [
       { id: 'h-1', house_name: 'House A', status: 'active' },
-      { id: 'h-2', house_name: 'House B', status: 'active' }
+      { id: 'h-2', house_name: 'House B', status: 'active' },
     ],
-    loading: false
+    loading: false,
   }),
   useActiveHouses: () => ({
     data: [
       { id: 'h-1', house_name: 'House A', status: 'active' },
-      { id: 'h-2', house_name: 'House B', status: 'active' }
+      { id: 'h-2', house_name: 'House B', status: 'active' },
     ],
-    loading: false
-  })
+    loading: false,
+  }),
 }));
 
 describe('ShiftNotes', () => {
   it('renders correctly and loads data', async () => {
     renderWithProviders(<ShiftNotes />);
-    
+
     await waitFor(() => {
       // Use getAllByText for names that appear in both filter and table
       expect(screen.getAllByText(/John Doe/i)[0]).toBeInTheDocument();
@@ -84,7 +84,7 @@ describe('ShiftNotes', () => {
     await waitFor(() => {
       expect(screen.queryByText(/John Doe/i)).not.toBeInTheDocument();
     });
-    
+
     fireEvent.change(searchInput, { target: { value: 'John' } });
     await waitFor(() => {
       expect(screen.getAllByText(/John Doe/i)[0]).toBeInTheDocument();
@@ -103,7 +103,10 @@ describe('ShiftNotes', () => {
     await user.click(shiftLink);
 
     // In this test, we verify the link href since we are not testing the actual navigation
-    expect(shiftLink).toHaveAttribute('href', expect.stringContaining('note-1'));
+    expect(shiftLink).toHaveAttribute(
+      'href',
+      expect.stringContaining('note-1'),
+    );
   });
 
   it('filters by house using popover', async () => {
@@ -114,9 +117,13 @@ describe('ShiftNotes', () => {
     });
 
     // Click House filter button — using popover-trigger slot
-    const houseFilterBtn = screen.getAllByRole('button').find(
-      btn => btn.textContent?.includes('House') && btn.getAttribute('data-slot') === 'popover-trigger'
-    );
+    const houseFilterBtn = screen
+      .getAllByRole('button')
+      .find(
+        (btn) =>
+          btn.textContent?.includes('House') &&
+          btn.getAttribute('data-slot') === 'popover-trigger',
+      );
     if (!houseFilterBtn) throw new Error('House filter button not found');
     await user.click(houseFilterBtn);
 
@@ -125,7 +132,7 @@ describe('ShiftNotes', () => {
     await user.click(houseBCheckbox);
 
     await waitFor(() => {
-        expect(screen.queryByText(/John Doe/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/John Doe/i)).not.toBeInTheDocument();
     });
   });
 });

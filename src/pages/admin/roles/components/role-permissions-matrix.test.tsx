@@ -1,7 +1,7 @@
 import { renderWithProviders, screen } from '@/test/test-utils';
-import { RolePermissionsMatrix } from './role-permissions-matrix';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { ACCESS_LEVEL } from '@/hooks/useRBAC';
+import { RolePermissionsMatrix } from './role-permissions-matrix';
 
 // Mock dependencies
 vi.mock('@/hooks/use-roles', () => ({
@@ -13,7 +13,9 @@ vi.mock('@/hooks/use-roles', () => ({
 
 vi.mock('@/hooks/use-role-permissions', () => ({
   useAllRolePermissions: () => ({
-    data: [{ role_id: 'role-1', participants: ACCESS_LEVEL.CONTEXT_READ_WRITE }],
+    data: [
+      { role_id: 'role-1', participants: ACCESS_LEVEL.CONTEXT_READ_WRITE },
+    ],
     isLoading: false,
   }),
   useUpdateRolePermissions: () => ({

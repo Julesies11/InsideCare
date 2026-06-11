@@ -1,21 +1,22 @@
-import { describe, it, expect } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
-import { useStaffShifts } from './use-staff-shifts';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactNode, ReactElement } from 'react';
-import { http, HttpResponse } from 'msw';
+import { ReactElement, ReactNode } from 'react';
 import { server } from '@/test/mocks/server';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { renderHook, waitFor } from '@testing-library/react';
+import { http, HttpResponse } from 'msw';
+import { describe, expect, it } from 'vitest';
 import { TABLES } from '@/config/db-tables';
+import { useStaffShifts } from './use-staff-shifts';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
-const createTestQueryClient = () => new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
+const createTestQueryClient = () =>
+  new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
     },
-  },
-});
+  });
 
 const wrapper = ({ children }: { children: ReactNode }): ReactElement => (
   <QueryClientProvider client={createTestQueryClient()}>
@@ -40,12 +41,15 @@ describe('useStaffShifts', () => {
             house_info: { id: 'house-1', house_name: 'Test House 1' },
             participants: [
               {
-                participant: { id: 'participant-1', participant_name: 'John Doe' }
-              }
-            ]
+                participant: {
+                  id: 'participant-1',
+                  participant_name: 'John Doe',
+                },
+              },
+            ],
           },
         ]);
-      })
+      }),
     );
 
     const { result } = renderHook(() => useStaffShifts('staff-1'), { wrapper });
@@ -55,6 +59,8 @@ describe('useStaffShifts', () => {
     expect(result.current.data).toHaveLength(1);
     expect(result.current.data?.[0].duration_hours).toBe(8);
     expect(result.current.data?.[0].participants).toHaveLength(1);
-    expect(result.current.data?.[0].participants?.[0].participant_name).toBe('John Doe');
+    expect(result.current.data?.[0].participants?.[0].participant_name).toBe(
+      'John Doe',
+    );
   });
 });

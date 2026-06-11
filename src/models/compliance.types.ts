@@ -1,9 +1,9 @@
-export type ComplianceStatus = 
-  | 'complete' 
-  | 'in_progress' 
-  | 'not_applicable' 
-  | 'Expired' 
-  | 'Expiring Soon' 
+export type ComplianceStatus =
+  | 'complete'
+  | 'in_progress'
+  | 'not_applicable'
+  | 'Expired'
+  | 'Expiring Soon'
   | 'Missing';
 
 export interface VerifiedDocument {

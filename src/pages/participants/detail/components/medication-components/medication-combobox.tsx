@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useState } from 'react';
+import { useMedicationsMaster } from '@/hooks/use-medications-master';
 import { Button, ButtonArrow } from '@/components/ui/button';
 import {
   Command,
@@ -16,7 +17,6 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useMedicationsMaster } from '@/hooks/use-medications-master';
 
 interface MedicationComboboxProps {
   value: string;
@@ -30,9 +30,14 @@ export function MedicationCombobox({
   canEdit,
 }: MedicationComboboxProps) {
   const [open, setOpen] = useState(false);
-  const { medications = [], isLoading: loading } = useMedicationsMaster(0, 1000);
+  const { medications = [], isLoading: loading } = useMedicationsMaster(
+    0,
+    1000,
+  );
 
-  const activeMedications = medications.filter((med) => med.is_active || med.id === value);
+  const activeMedications = medications.filter(
+    (med) => med.is_active || med.id === value,
+  );
   const selectedMedication = medications.find((med) => med.id === value);
 
   const handleSelect = (medicationId: string) => {
@@ -54,7 +59,9 @@ export function MedicationCombobox({
             disabled={!canEdit}
           >
             {selectedMedication ? (
-              <span className="truncate">{selectedMedication.medication_name}</span>
+              <span className="truncate">
+                {selectedMedication.medication_name}
+              </span>
             ) : (
               <span>Select medication...</span>
             )}
@@ -81,16 +88,22 @@ export function MedicationCombobox({
                       >
                         <span className="flex flex-col gap-0.5 flex-1">
                           <span className="flex items-center gap-2">
-                            <span className="truncate font-medium">{medication.medication_name}</span>
+                            <span className="truncate font-medium">
+                              {medication.medication_name}
+                            </span>
                             {medication.brand_name && (
                               <span className="text-xs text-muted-foreground">
                                 ({medication.brand_name})
                               </span>
                             )}
                           </span>
-                          {(medication as any).medication_type?.medication_type_name && (
+                          {(medication as any).medication_type
+                            ?.medication_type_name && (
                             <span className="text-[10px] text-muted-foreground uppercase font-medium">
-                              {(medication as any).medication_type.medication_type_name}
+                              {
+                                (medication as any).medication_type
+                                  .medication_type_name
+                              }
                             </span>
                           )}
                         </span>

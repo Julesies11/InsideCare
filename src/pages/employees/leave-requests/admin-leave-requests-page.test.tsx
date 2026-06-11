@@ -1,10 +1,10 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
-import { AdminLeaveRequestsPage } from './admin-leave-requests-page';
-import { renderWithProviders } from '@/test/test-utils';
-import { TABLES } from '@/config/db-tables';
-import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
+import { renderWithProviders } from '@/test/test-utils';
+import { screen, waitFor } from '@testing-library/react';
+import { http, HttpResponse } from 'msw';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { TABLES } from '@/config/db-tables';
+import { AdminLeaveRequestsPage } from './admin-leave-requests-page';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
@@ -31,7 +31,7 @@ describe('AdminLeaveRequestsPage', () => {
       }),
       http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF_SHIFTS}`, () => {
         return HttpResponse.json([
-          { id: 'shift-1', staff_id: 'staff-2', start_date: '2024-02-02' }
+          { id: 'shift-1', staff_id: 'staff-2', start_date: '2024-02-02' },
         ]);
       }),
       http.patch(`${SUPABASE_URL}/rest/v1/${TABLES.LEAVE_REQUESTS}`, () => {
@@ -39,15 +39,17 @@ describe('AdminLeaveRequestsPage', () => {
       }),
       http.post(`${SUPABASE_URL}/rest/v1/${TABLES.NOTIFICATIONS}`, () => {
         return HttpResponse.json({});
-      })
+      }),
     );
   });
 
   it('renders the page and loads leave requests', async () => {
     renderWithProviders(<AdminLeaveRequestsPage />);
 
-    expect(screen.getByRole('heading', { name: /leave management/i })).toBeInTheDocument();
-    
+    expect(
+      screen.getByRole('heading', { name: /leave management/i }),
+    ).toBeInTheDocument();
+
     await waitFor(() => {
       expect(screen.getByText('Jane Smith')).toBeInTheDocument();
       expect(screen.getByText('Annual Leave')).toBeInTheDocument();

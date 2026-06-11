@@ -1,7 +1,7 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { ShiftCalendar, ShiftCalendarProps } from './shift-calendar';
-import { describe, it, expect, vi } from 'vitest';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { ShiftCalendar, ShiftCalendarProps } from './shift-calendar';
 
 const mockShifts: any[] = [
   {
@@ -12,7 +12,7 @@ const mockShifts: any[] = [
     start_time: '08:00:00',
     end_time: '12:00:00',
     shift_template: 'Morning',
-    house: { id: 'h1', name: 'House Alpha' }
+    house: { id: 'h1', name: 'House Alpha' },
   },
   {
     id: 's2',
@@ -22,8 +22,8 @@ const mockShifts: any[] = [
     start_time: '13:00:00',
     end_time: '17:00:00',
     shift_template: 'Afternoon',
-    house: { id: 'h2', name: 'House Beta' }
-  }
+    house: { id: 'h2', name: 'House Beta' },
+  },
 ];
 
 const mockProps: ShiftCalendarProps = {
@@ -42,7 +42,7 @@ describe('ShiftCalendar Warnings', () => {
     render(
       <TooltipProvider>
         <ShiftCalendar {...mockProps} />
-      </TooltipProvider>
+      </TooltipProvider>,
     );
 
     // Should find the "!" exclamation mark
@@ -50,7 +50,7 @@ describe('ShiftCalendar Warnings', () => {
     expect(warnings.length).toBeGreaterThan(0);
   });
 
-  // Note: Testing actual Radix Tooltip content in Vitest/JSDOM can be tricky 
+  // Note: Testing actual Radix Tooltip content in Vitest/JSDOM can be tricky
   // as it often requires specific event triggering and sometimes doesn't portal correctly in tests.
   // But we can verify the trigger exists.
 });

@@ -1,9 +1,9 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import { ParticipantsReportPage } from './participants-report-page';
-import { SettingsProvider } from '@/providers/settings-provider';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
+import { describe, expect, it, vi } from 'vitest';
+import { SettingsProvider } from '@/providers/settings-provider';
+import { ParticipantsReportPage } from './participants-report-page';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -15,7 +15,12 @@ const queryClient = new QueryClient({
 
 vi.mock('@/auth/context/auth-context', () => ({
   useAuth: () => ({
-    user: { id: 'test-user', staff_id: 'test-staff-id', email: 'test@example.com', staff_name: 'Test Staff' },
+    user: {
+      id: 'test-user',
+      staff_id: 'test-staff-id',
+      email: 'test@example.com',
+      staff_name: 'Test Staff',
+    },
   }),
 }));
 
@@ -31,16 +36,28 @@ vi.mock('@/hooks/use-report-preferences', () => ({
 }));
 
 vi.mock('@/hooks/use-participants', () => ({
-  useParticipants: () => ({ participants: [], count: 0, loading: false, error: null }),
+  useParticipants: () => ({
+    participants: [],
+    count: 0,
+    loading: false,
+    error: null,
+  }),
   useParticipant: () => ({ participant: null, loading: false, error: null }),
 }));
 
 vi.mock('@/hooks/use-participant-medications', () => ({
-  useParticipantMedications: () => ({ medications: [], loading: false, error: null }),
+  useParticipantMedications: () => ({
+    medications: [],
+    loading: false,
+    error: null,
+  }),
 }));
 
 vi.mock('@/hooks/use-participant-goals', () => ({
-  useParticipantGoals: () => ({ data: { goals: [], progress: [] }, isLoading: false }),
+  useParticipantGoals: () => ({
+    data: { goals: [], progress: [] },
+    isLoading: false,
+  }),
 }));
 
 vi.mock('@/hooks/use-participant-contacts', () => ({
@@ -52,7 +69,11 @@ vi.mock('@/hooks/use-participant-documents', () => ({
 }));
 
 vi.mock('@/hooks/use-shift-notes', () => ({
-  useShiftNotesByParticipantId: () => ({ shiftNotes: [], loading: false, error: null }),
+  useShiftNotesByParticipantId: () => ({
+    shiftNotes: [],
+    loading: false,
+    error: null,
+  }),
 }));
 
 vi.mock('@/hooks/use-activity-log', () => ({
@@ -68,12 +89,12 @@ describe('ParticipantsReportPage Smoke Test', () => {
             <ParticipantsReportPage />
           </MemoryRouter>
         </QueryClientProvider>
-      </SettingsProvider>
+      </SettingsProvider>,
     );
-    
+
     // Check dropdown select component exists
     expect(screen.getByText('Select Participant')).toBeInTheDocument();
-    
+
     // Checks that the default "No Participant Selected" placeholder card displays
     expect(screen.getByText('No Participant Selected')).toBeInTheDocument();
   });

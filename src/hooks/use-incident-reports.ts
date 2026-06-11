@@ -1,7 +1,10 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { IncidentListOptions, incidentsApi } from '@/api/incidents.api';
+import {
+  IncidentReportInsert,
+  IncidentReportUpdate,
+} from '@/models/incident-report';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { QUERY_KEYS } from '@/config/query-keys';
-import { IncidentReportInsert, IncidentReportUpdate } from '@/models/incident-report';
-import { incidentsApi, IncidentListOptions } from '@/api/incidents.api';
 
 export function useIncidentReports(options: IncidentListOptions = {}) {
   return useQuery({
@@ -16,7 +19,9 @@ export function useCreateIncidentReport() {
   return useMutation({
     mutationFn: (report: IncidentReportInsert) => incidentsApi.create(report),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INCIDENT_REPORTS] });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.INCIDENT_REPORTS],
+      });
     },
   });
 }
@@ -25,11 +30,15 @@ export function useUpdateIncidentReport() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, ...report }: IncidentReportUpdate & { id: string }) => 
+    mutationFn: ({ id, ...report }: IncidentReportUpdate & { id: string }) =>
       incidentsApi.update(id, report),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INCIDENT_REPORTS] });
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INCIDENT_REPORTS, variables.id] });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.INCIDENT_REPORTS],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.INCIDENT_REPORTS, variables.id],
+      });
     },
   });
 }

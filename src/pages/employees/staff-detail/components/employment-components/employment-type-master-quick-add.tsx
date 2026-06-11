@@ -1,11 +1,23 @@
-import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useEffect, useState } from 'react';
+import { EmploymentType } from '@/hooks/use-employment-types-master';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { EmploymentType } from '@/hooks/use-employment-types-master';
 
 interface EmploymentTypeMasterQuickAddProps {
   open: boolean;
@@ -52,7 +64,9 @@ export function EmploymentTypeMasterQuickAdd({
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{employmentType ? 'Edit Employment Type' : 'Add Employment Type'}</DialogTitle>
+          <DialogTitle>
+            {employmentType ? 'Edit Employment Type' : 'Add Employment Type'}
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
@@ -61,7 +75,12 @@ export function EmploymentTypeMasterQuickAdd({
               <Input
                 id="name"
                 value={formData.employment_type_name}
-                onChange={(e) => setFormData({ ...formData, employment_type_name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    employment_type_name: e.target.value,
+                  })
+                }
                 placeholder="Employment type name"
                 required
               />
@@ -72,7 +91,9 @@ export function EmploymentTypeMasterQuickAdd({
               <Textarea
                 id="description"
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
                 placeholder="Employment type description"
                 rows={3}
               />
@@ -82,7 +103,9 @@ export function EmploymentTypeMasterQuickAdd({
               <Label htmlFor="status">Status</Label>
               <Select
                 value={formData.status}
-                onValueChange={(value) => setFormData({ ...formData, status: value })}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, status: value })
+                }
               >
                 <SelectTrigger id="status">
                   <SelectValue />
@@ -99,9 +122,7 @@ export function EmploymentTypeMasterQuickAdd({
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit">
-              {employmentType ? 'Update' : 'Add'}
-            </Button>
+            <Button type="submit">{employmentType ? 'Update' : 'Add'}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

@@ -1,25 +1,24 @@
-import { describe, it, expect } from 'vitest';
-import { 
-  PARTICIPANT_VIEWS, 
-  STAFF_VIEWS, 
-  HOUSE_VIEWS, 
-  ROSTER_VIEWS,
-  CHECKLIST_VIEWS,
-  SHIFT_NOTE_VIEWS,
-  INCIDENT_VIEWS
-} from '@/config/query-views';
+import { describe, expect, it } from 'vitest';
 import { TABLES } from '@/config/db-tables';
+import {
+  CHECKLIST_VIEWS,
+  HOUSE_VIEWS,
+  INCIDENT_VIEWS,
+  PARTICIPANT_VIEWS,
+  ROSTER_VIEWS,
+  SHIFT_NOTE_VIEWS,
+  STAFF_VIEWS,
+} from '@/config/query-views';
 
 /**
  * EXHAUSTIVE SCHEMA INTEGRITY TEST
- * 
+ *
  * This test suite performs literal string validation on every query view.
  * It ensures that non-existent columns are NOT present and that all
  * relationship hints match the schema-defined foreign keys.
  */
 
 describe('Tier 1: Query View Column & Join Validation', () => {
-  
   describe('PARTICIPANT_VIEWS', () => {
     it('DETAIL should contain expected core fields and valid house join', () => {
       const view = PARTICIPANT_VIEWS.DETAIL;
@@ -33,7 +32,9 @@ describe('Tier 1: Query View Column & Join Validation', () => {
       const view = PARTICIPANT_VIEWS.MEDICATIONS;
       expect(view).not.toContain('frequency');
       expect(view).not.toContain('instructions');
-      expect(view).toContain(`medication_info:${TABLES.MEDICATIONS_MASTER}!medication_id`);
+      expect(view).toContain(
+        `medication_info:${TABLES.MEDICATIONS_MASTER}!medication_id`,
+      );
     });
 
     it('DOCUMENTS should use created_by for uploader join', () => {
@@ -99,15 +100,21 @@ describe('Tier 1: Query View Column & Join Validation', () => {
       const view = ROSTER_VIEWS.SHIFT_DETAIL;
       expect(view).toContain(`staff_info:${TABLES.STAFF}!staff_id`);
       expect(view).toContain(`house_info:${TABLES.HOUSES}!house_id`);
-      expect(view).toContain(`type_details:${TABLES.HOUSE_SHIFT_TEMPLATES}!shift_template_id`);
-      expect(view).toContain(`participants:${TABLES.SHIFT_PARTICIPANTS}!shift_id`);
+      expect(view).toContain(
+        `type_details:${TABLES.HOUSE_SHIFT_TEMPLATES}!shift_template_id`,
+      );
+      expect(view).toContain(
+        `participants:${TABLES.SHIFT_PARTICIPANTS}!shift_id`,
+      );
     });
   });
 
   describe('CHECKLIST_VIEWS', () => {
     it('HISTORY should use valid completed_by relationship', () => {
       const view = CHECKLIST_VIEWS.HISTORY;
-      expect(view).toContain(`staff:${TABLES.STAFF}!house_checklist_submissions_submitted_by_fkey`);
+      expect(view).toContain(
+        `staff:${TABLES.STAFF}!house_checklist_submissions_submitted_by_fkey`,
+      );
     });
 
     it('SUBMISSION_DETAIL should contain items and completed_by join', () => {

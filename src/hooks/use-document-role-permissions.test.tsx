@@ -1,20 +1,31 @@
-import { renderHook, waitFor } from '@testing-library/react';
-import { useDocumentRolePermissions, useUpdateDocumentRolePermissions } from './use-document-role-permissions';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { renderHook, waitFor } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { supabase } from '@/lib/supabase';
+import {
+  useDocumentRolePermissions,
+  useUpdateDocumentRolePermissions,
+} from './use-document-role-permissions';
 
 // Mock Supabase
 vi.mock('@/lib/supabase', () => ({
   supabase: {
     from: vi.fn(() => ({
       select: vi.fn(() => ({
-        eq: vi.fn(() => Promise.resolve({ 
-          data: [
-            { id: '1', document_id: 'doc-1', role_id: 'role-1', access_level: 'read_only', role: { role_name: 'Staff' } }
-          ], 
-          error: null 
-        })),
+        eq: vi.fn(() =>
+          Promise.resolve({
+            data: [
+              {
+                id: '1',
+                document_id: 'doc-1',
+                role_id: 'role-1',
+                access_level: 'read_only',
+                role: { role_name: 'Staff' },
+              },
+            ],
+            error: null,
+          }),
+        ),
       })),
       delete: vi.fn(() => ({
         eq: vi.fn(() => Promise.resolve({ error: null })),

@@ -1,13 +1,25 @@
-import { useState, useMemo } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
-import { useRoles, useAddRole, useUpdateRole, Role } from '@/hooks/use-roles';
-import { RoleMasterQuickAdd } from './role-master-quick-add';
+import { useMemo, useState } from 'react';
+import { ArrowDown, ArrowUp, ArrowUpDown, Edit, Plus } from 'lucide-react';
 import { toast } from 'sonner';
+import { Role, useAddRole, useRoles, useUpdateRole } from '@/hooks/use-roles';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { RoleMasterQuickAdd } from './role-master-quick-add';
 
 interface RoleMasterDialogProps {
   open: boolean;
@@ -26,7 +38,7 @@ export function RoleMasterDialog({
   const { roles = [] } = useRoles();
   const { mutateAsync: addRole } = useAddRole();
   const { mutateAsync: updateRole } = useUpdateRole();
-  
+
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingRole, setEditingRole] = useState<Role | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -43,9 +55,11 @@ export function RoleMasterDialog({
   };
 
   const sortedAndFilteredRoles = useMemo(() => {
-    const filtered = roles.filter((role) =>
-      role.role_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (role.description && role.description.toLowerCase().includes(searchQuery.toLowerCase()))
+    const filtered = roles.filter(
+      (role) =>
+        role.role_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (role.description &&
+          role.description.toLowerCase().includes(searchQuery.toLowerCase())),
     );
 
     filtered.sort((a, b) => {
@@ -82,11 +96,16 @@ export function RoleMasterDialog({
     const newStatus = !role.is_active;
     try {
       await updateRole({ id: role.id, updates: { is_active: newStatus } });
-      toast.success(`Role ${newStatus ? 'activated' : 'deactivated'} successfully`);
+      toast.success(
+        `Role ${newStatus ? 'activated' : 'deactivated'} successfully`,
+      );
       onUpdate();
     } catch (error) {
       const err = error as Error;
-      toast.error(`Failed to ${newStatus ? 'activate' : 'deactivate'} role: ` + err.message);
+      toast.error(
+        `Failed to ${newStatus ? 'activate' : 'deactivate'} role: ` +
+          err.message,
+      );
     }
   };
 
@@ -96,20 +115,28 @@ export function RoleMasterDialog({
         await updateRole({ id: editingRole.id, updates: roleData });
         toast.success('Role updated successfully');
       } else {
-        await addRole(roleData as Omit<Role, 'id' | 'created_at' | 'updated_at'>);
+        await addRole(
+          roleData as Omit<Role, 'id' | 'created_at' | 'updated_at'>,
+        );
         toast.success('Role added successfully');
       }
       setShowAddDialog(false);
       onUpdate();
     } catch (error) {
       const err = error as Error;
-      toast.error(`Failed to ${editingRole ? 'update' : 'add'} role: ` + err.message);
+      toast.error(
+        `Failed to ${editingRole ? 'update' : 'add'} role: ` + err.message,
+      );
     }
   };
 
   const getSortIcon = (field: SortField) => {
     if (sortField !== field) return <ArrowUpDown className="size-4" />;
-    return sortDirection === 'asc' ? <ArrowUp className="size-4" /> : <ArrowDown className="size-4" />;
+    return sortDirection === 'asc' ? (
+      <ArrowUp className="size-4" />
+    ) : (
+      <ArrowDown className="size-4" />
+    );
   };
 
   return (
@@ -176,7 +203,9 @@ export function RoleMasterDialog({
               <TableBody>
                 {sortedAndFilteredRoles.map((role) => (
                   <TableRow key={role.id}>
-                    <TableCell className="font-medium">{role.role_name}</TableCell>
+                    <TableCell className="font-medium">
+                      {role.role_name}
+                    </TableCell>
                     <TableCell>{role.description || '-'}</TableCell>
                     <TableCell>
                       <Badge variant={role.is_active ? 'success' : 'secondary'}>

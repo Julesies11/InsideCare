@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
 import { shiftTemplatesApi } from '@/api/shift-templates.api';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { QUERY_KEYS } from '@/config/query-keys';
 
 export interface HouseShiftTemplate {
@@ -44,29 +44,42 @@ export function useHouseShiftTemplates(houseId?: string) {
   });
 
   const createShiftTemplate = useMutation({
-    mutationFn: async (shiftTemplate: Partial<HouseShiftTemplate> & { default_checklists?: string[] }) => {
+    mutationFn: async (
+      shiftTemplate: Partial<HouseShiftTemplate> & {
+        default_checklists?: string[];
+      },
+    ) => {
       return await shiftTemplatesApi.upsert(shiftTemplate, undefined);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.HOUSE_SHIFT_TEMPLATES, houseId] });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.HOUSE_SHIFT_TEMPLATES, houseId],
+      });
       toast.success('Shift template created successfully');
     },
     onError: (error: any) => {
       toast.error(`Failed to create shift template: ${error.message}`);
-    }
+    },
   });
 
   const updateShiftTemplate = useMutation({
-    mutationFn: async (shiftTemplate: Partial<HouseShiftTemplate> & { id: string, default_checklists?: string[] }) => {
+    mutationFn: async (
+      shiftTemplate: Partial<HouseShiftTemplate> & {
+        id: string;
+        default_checklists?: string[];
+      },
+    ) => {
       return await shiftTemplatesApi.upsert(shiftTemplate, shiftTemplate.id);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.HOUSE_SHIFT_TEMPLATES, houseId] });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.HOUSE_SHIFT_TEMPLATES, houseId],
+      });
       toast.success('Shift template updated successfully');
     },
     onError: (error: any) => {
       toast.error(`Failed to update shift template: ${error.message}`);
-    }
+    },
   });
 
   const deleteShiftTemplate = useMutation({
@@ -74,20 +87,25 @@ export function useHouseShiftTemplates(houseId?: string) {
       await shiftTemplatesApi.delete(id);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.HOUSE_SHIFT_TEMPLATES, houseId] });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.HOUSE_SHIFT_TEMPLATES, houseId],
+      });
       toast.success('Shift template deleted successfully');
     },
     onError: (error: any) => {
       toast.error(`Failed to delete shift template: ${error.message}`);
-    }
+    },
   });
 
-  return useMemo(() => ({
-    ...query,
-    shiftTemplates: query.data?.types || [],
-    defaults: query.data?.defaults || [],
-    createShiftTemplate,
-    updateShiftTemplate,
-    deleteShiftTemplate
-  }), [query, createShiftTemplate, updateShiftTemplate, deleteShiftTemplate]);
+  return useMemo(
+    () => ({
+      ...query,
+      shiftTemplates: query.data?.types || [],
+      defaults: query.data?.defaults || [],
+      createShiftTemplate,
+      updateShiftTemplate,
+      deleteShiftTemplate,
+    }),
+    [query, createShiftTemplate, updateShiftTemplate, deleteShiftTemplate],
+  );
 }

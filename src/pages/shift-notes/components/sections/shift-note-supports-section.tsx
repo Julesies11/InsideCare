@@ -22,7 +22,9 @@ export function ShiftNoteSupportsSection({
         <div className="space-y-2">
           <Label htmlFor="adl_supports">ADLs (Personal Care)</Label>
           <p className="text-xs text-muted-foreground">
-            What personal care supports were provided? Include areas such as hygiene, dressing. Describe level of support (independent, prompted, assisted) and any refusals or challenges.
+            What personal care supports were provided? Include areas such as
+            hygiene, dressing. Describe level of support (independent, prompted,
+            assisted) and any refusals or challenges.
           </p>
           <Textarea
             id="adl_supports"
@@ -37,7 +39,9 @@ export function ShiftNoteSupportsSection({
         <div className="space-y-2">
           <Label htmlFor="domestic_tasks">Domestic Tasks</Label>
           <p className="text-xs text-muted-foreground">
-            What household tasks were completed or supported? Include how the participant engaged (e.g. completed independently, needed prompting, declined).
+            What household tasks were completed or supported? Include how the
+            participant engaged (e.g. completed independently, needed prompting,
+            declined).
           </p>
           <Textarea
             id="domestic_tasks"
@@ -50,14 +54,19 @@ export function ShiftNoteSupportsSection({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="capacity_building_goals">Capacity Building / Goals</Label>
+          <Label htmlFor="capacity_building_goals">
+            Capacity Building / Goals
+          </Label>
           <p className="text-xs text-muted-foreground">
-            What skill-building or goal-related supports were provided? Describe the activity and how the participant responded.
+            What skill-building or goal-related supports were provided? Describe
+            the activity and how the participant responded.
           </p>
           <Textarea
             id="capacity_building_goals"
             value={formData.capacity_building_goals || ''}
-            onChange={(e) => onFormChange('capacity_building_goals', e.target.value)}
+            onChange={(e) =>
+              onFormChange('capacity_building_goals', e.target.value)
+            }
             placeholder="Describe goal-related supports..."
             rows={4}
             disabled={!canEdit}

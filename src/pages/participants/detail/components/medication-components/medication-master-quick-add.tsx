@@ -1,17 +1,36 @@
 import { useEffect, useMemo } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
 import { MedicationMaster } from '@/models/medication-master';
-import { useMedicationTypes } from '@/hooks/use-medications-master';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
 import { getDisplayMedicationTypes } from '@/lib/medication-utils';
+import { useMedicationTypes } from '@/hooks/use-medications-master';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
 
 const medicationSchema = z.object({
   medication_name: z.string().min(1, 'Medication name is required'),
@@ -40,9 +59,10 @@ export function MedicationMasterQuickAdd({
 }: MedicationMasterQuickAddProps) {
   const { data: medicationTypes = [] } = useMedicationTypes(true); // Fetch all for manual contextual filtering
 
-  const displayTypes = useMemo(() => 
-    getDisplayMedicationTypes(medicationTypes, editingMedication?.type_id),
-    [medicationTypes, editingMedication]
+  const displayTypes = useMemo(
+    () =>
+      getDisplayMedicationTypes(medicationTypes, editingMedication?.type_id),
+    [medicationTypes, editingMedication],
   );
 
   const form = useForm<MedicationFormValues>({
@@ -94,7 +114,6 @@ export function MedicationMasterQuickAdd({
     });
   };
 
-
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent style={{ zIndex: 70 }} className="max-w-2xl">
@@ -104,7 +123,10 @@ export function MedicationMasterQuickAdd({
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 py-4">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-4 py-4"
+          >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -148,9 +170,10 @@ export function MedicationMasterQuickAdd({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {displayTypes.map(type => (
+                        {displayTypes.map((type) => (
                           <SelectItem key={type.id} value={type.id}>
-                            {type.medication_type_name} {!type.is_active && '(Inactive)'}
+                            {type.medication_type_name}{' '}
+                            {!type.is_active && '(Inactive)'}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -215,7 +238,10 @@ export function MedicationMasterQuickAdd({
                 <FormItem>
                   <div className="flex items-center gap-2">
                     <FormControl>
-                      <Switch checked={field.value} onCheckedChange={field.onChange} />
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
                     </FormControl>
                     <FormLabel>Active</FormLabel>
                   </div>

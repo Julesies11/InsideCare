@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { NotificationService } from './notification-service';
-import { supabase } from '@/lib/supabase';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TABLES } from '@/config/db-tables';
+import { supabase } from '@/lib/supabase';
+import { NotificationService } from './notification-service';
 
 // Mock Supabase client
 vi.mock('@/lib/supabase', () => ({
@@ -30,7 +30,7 @@ describe('NotificationService', () => {
         title: 'Test Alert',
         body: 'Test Body',
         link: '/test',
-        metadata: { key: 'value' }
+        metadata: { key: 'value' },
       });
 
       expect(supabase.from).toHaveBeenCalledWith(TABLES.NOTIFICATIONS);
@@ -40,7 +40,7 @@ describe('NotificationService', () => {
         title: 'Test Alert',
         body: 'Test Body',
         link: '/test',
-        metadata: { key: 'value' }
+        metadata: { key: 'value' },
       });
     });
 
@@ -81,7 +81,12 @@ describe('NotificationService', () => {
 
     it('notifyClinicalUpdate', async () => {
       const spy = vi.spyOn(NotificationService, 'send').mockResolvedValue();
-      await NotificationService.notifyClinicalUpdate('user-1', 'part-1', 'John Doe', 'medication');
+      await NotificationService.notifyClinicalUpdate(
+        'user-1',
+        'part-1',
+        'John Doe',
+        'medication',
+      );
       expect(spy).toHaveBeenCalledWith({
         userId: 'user-1',
         type: 'medication_update',
@@ -90,8 +95,8 @@ describe('NotificationService', () => {
         link: '/participants/detail/part-1',
         metadata: {
           participantId: 'part-1',
-          tab: 'medications'
-        }
+          tab: 'medications',
+        },
       });
     });
   });
@@ -104,16 +109,29 @@ describe('NotificationService', () => {
         { staff: null }, // edge case test
       ];
 
-      const mockEq = vi.fn().mockResolvedValue({ data: mockAssignments, error: null });
+      const mockEq = vi
+        .fn()
+        .mockResolvedValue({ data: mockAssignments, error: null });
       const mockSelect = vi.fn().mockReturnValue({ eq: mockEq });
       (supabase.from as any).mockReturnValue({ select: mockSelect });
 
-      const spy = vi.spyOn(NotificationService, 'notifyClinicalUpdate').mockResolvedValue();
+      const spy = vi
+        .spyOn(NotificationService, 'notifyClinicalUpdate')
+        .mockResolvedValue();
 
-      await NotificationService.notifyAssignedStaff('house-1', 'part-1', 'John Doe', 'note');
+      await NotificationService.notifyAssignedStaff(
+        'house-1',
+        'part-1',
+        'John Doe',
+        'note',
+      );
 
-      expect(supabase.from).toHaveBeenCalledWith(TABLES.HOUSE_STAFF_ASSIGNMENTS);
-      expect(mockSelect).toHaveBeenCalledWith('staff:ic_staff!house_staff_assignments_staff_id_fkey(auth_user_id)');
+      expect(supabase.from).toHaveBeenCalledWith(
+        TABLES.HOUSE_STAFF_ASSIGNMENTS,
+      );
+      expect(mockSelect).toHaveBeenCalledWith(
+        'staff:ic_staff!house_staff_assignments_staff_id_fkey(auth_user_id)',
+      );
       expect(mockEq).toHaveBeenCalledWith('house_id', 'house-1');
 
       expect(spy).toHaveBeenCalledTimes(2);

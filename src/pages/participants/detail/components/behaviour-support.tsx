@@ -1,8 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
 
 interface BehaviourSupportProps {
   canEdit: boolean;
@@ -26,9 +26,7 @@ export function BehaviourSupport({
         {/* Behaviour of Concern */}
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <Label className="w-full max-w-56">
-              Behaviour of Concern
-            </Label>
+            <Label className="w-full max-w-56">Behaviour of Concern</Label>
             <Textarea
               id="behaviour_of_concern"
               value={formData.behaviour_of_concern || ''}
@@ -48,7 +46,9 @@ export function BehaviourSupport({
           <Checkbox
             checked={formData.pbsp_engaged || false}
             disabled={!canEdit}
-            onCheckedChange={(val) => onFormChange('pbsp_engaged', val === true)}
+            onCheckedChange={(val) =>
+              onFormChange('pbsp_engaged', val === true)
+            }
           />
         </div>
 
@@ -83,9 +83,7 @@ export function BehaviourSupport({
             id="specialist_name"
             value={formData.specialist_name || ''}
             disabled={!canEdit}
-            onChange={(e) =>
-              onFormChange('specialist_name', e.target.value)
-            }
+            onChange={(e) => onFormChange('specialist_name', e.target.value)}
             placeholder="Enter specialist name..."
           />
         </div>
@@ -97,9 +95,7 @@ export function BehaviourSupport({
             id="specialist_phone"
             value={formData.specialist_phone || ''}
             disabled={!canEdit}
-            onChange={(e) =>
-              onFormChange('specialist_phone', e.target.value)
-            }
+            onChange={(e) => onFormChange('specialist_phone', e.target.value)}
             placeholder="Specialist Phone number..."
           />
         </div>
@@ -111,9 +107,7 @@ export function BehaviourSupport({
             id="specialist_email"
             value={formData.specialist_email || ''}
             disabled={!canEdit}
-            onChange={(e) =>
-              onFormChange('specialist_email', e.target.value)
-            }
+            onChange={(e) => onFormChange('specialist_email', e.target.value)}
             placeholder="Specialist Email address..."
           />
         </div>
@@ -127,10 +121,7 @@ export function BehaviourSupport({
             checked={formData.restrictive_practice_authorisation || false}
             disabled={!canEdit}
             onCheckedChange={(val) =>
-              onFormChange(
-                'restrictive_practice_authorisation',
-                val === true
-              )
+              onFormChange('restrictive_practice_authorisation', val === true)
             }
           />
         </div>

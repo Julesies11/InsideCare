@@ -1,20 +1,34 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { Clock, Edit, Plus, Trash2, Users } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useContactTypesMaster } from '@/hooks/use-contact-types-master';
+import { useParticipantContacts } from '@/hooks/use-participant-contacts';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Plus, Edit, Trash2, Users, Clock } from 'lucide-react';
-import { useParticipantContacts } from '@/hooks/use-participant-contacts';
-import { useContactTypesMaster } from '@/hooks/use-contact-types-master';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Textarea } from '@/components/ui/textarea';
 import { ContactTypeCombobox } from './contact-components/contact-type-combobox';
 import { ContactTypeMasterDialog } from './contact-components/contact-type-master-dialog';
-import { cn } from '@/lib/utils';
 
 interface ContactPendingChanges {
   toAdd: any[];
@@ -32,9 +46,9 @@ interface ContactsProps {
   refreshTrigger?: number;
 }
 
-export function Contacts({ 
-  participantId, 
-  canAdd, 
+export function Contacts({
+  participantId,
+  canAdd,
   canDelete,
   canEdit,
   pendingChanges,
@@ -43,8 +57,19 @@ export function Contacts({
 }: ContactsProps) {
   const queryClient = useQueryClient();
   const [showDialog, setShowDialog] = useState(false);
-  const [showContactTypeMasterDialog, setShowContactTypeMasterDialog] = useState(false);
-  const [editingContact, setEditingContact] = useState<{ id?: string; tempId?: string; contact_name: string; contact_type_id?: string; phone?: string; email?: string; address?: string; notes?: string; is_active: boolean } | null>(null);
+  const [showContactTypeMasterDialog, setShowContactTypeMasterDialog] =
+    useState(false);
+  const [editingContact, setEditingContact] = useState<{
+    id?: string;
+    tempId?: string;
+    contact_name: string;
+    contact_type_id?: string;
+    phone?: string;
+    email?: string;
+    address?: string;
+    notes?: string;
+    is_active: boolean;
+  } | null>(null);
   const [formData, setFormData] = useState({
     contact_name: '',
     contact_type_id: '',
@@ -55,7 +80,11 @@ export function Contacts({
     is_active: true,
   });
 
-  const { data: contacts = [], isLoading: loading, refetch } = useParticipantContacts(participantId);
+  const {
+    data: contacts = [],
+    isLoading: loading,
+    refetch,
+  } = useParticipantContacts(participantId);
   const { data: contactTypes = [] } = useContactTypesMaster();
 
   useEffect(() => {
@@ -99,8 +128,8 @@ export function Contacts({
       if (editingContact.tempId) {
         const newPending = {
           ...pendingChanges,
-          toAdd: pendingChanges.toAdd.map(c => 
-            c.tempId === editingContact.tempId ? { ...c, ...formData } : c
+          toAdd: pendingChanges.toAdd.map((c) =>
+            c.tempId === editingContact.tempId ? { ...c, ...formData } : c,
           ),
         };
         onPendingChangesChange(newPending);
@@ -108,7 +137,9 @@ export function Contacts({
         const newPending = {
           ...pendingChanges,
           toUpdate: [
-            ...pendingChanges.toUpdate.filter(c => c.id !== editingContact.id),
+            ...pendingChanges.toUpdate.filter(
+              (c) => c.id !== editingContact.id,
+            ),
             { id: editingContact.id, ...formData },
           ],
         };
@@ -118,10 +149,7 @@ export function Contacts({
       const tempId = `temp-${Date.now()}-${Math.random()}`;
       const newPending = {
         ...pendingChanges,
-        toAdd: [
-          ...pendingChanges.toAdd,
-          { tempId, ...formData },
-        ],
+        toAdd: [...pendingChanges.toAdd, { tempId, ...formData }],
       };
       onPendingChangesChange(newPending);
     }
@@ -135,13 +163,17 @@ export function Contacts({
     if (contact.tempId) {
       const newPending = {
         ...pendingChanges,
-        toAdd: pendingChanges.toAdd.filter(c => c.tempId !== contact.tempId),
+        toAdd: pendingChanges.toAdd.filter((c) => c.tempId !== contact.tempId),
       };
       onPendingChangesChange(newPending);
       return;
     }
 
-    if (confirm('Mark this contact for deletion? It will be removed when you click Save Changes.')) {
+    if (
+      confirm(
+        'Mark this contact for deletion? It will be removed when you click Save Changes.',
+      )
+    ) {
       const newPending = {
         ...pendingChanges,
         toDelete: [...pendingChanges.toDelete, contact.id],
@@ -154,7 +186,7 @@ export function Contacts({
     if (!pendingChanges || !onPendingChangesChange) return;
     const newPending = {
       ...pendingChanges,
-      toUpdate: pendingChanges.toUpdate.filter(c => c.id !== id),
+      toUpdate: pendingChanges.toUpdate.filter((c) => c.id !== id),
     };
     onPendingChangesChange(newPending);
   };
@@ -163,26 +195,28 @@ export function Contacts({
     if (!pendingChanges || !onPendingChangesChange) return;
     const newPending = {
       ...pendingChanges,
-      toDelete: pendingChanges.toDelete.filter(contactId => contactId !== id),
+      toDelete: pendingChanges.toDelete.filter((contactId) => contactId !== id),
     };
     onPendingChangesChange(newPending);
   };
 
   const getContactTypeName = (id: string) => {
-    return contactTypes.find(t => t.id === id)?.contact_type_name || 'Unknown Type';
+    return (
+      contactTypes.find((t) => t.id === id)?.contact_type_name || 'Unknown Type'
+    );
   };
 
   // Combine actual and pending contacts
   const visibleContacts = contacts
-    .filter(c => !pendingChanges?.toDelete.includes(c.id))
-    .map(c => {
-      const update = pendingChanges?.toUpdate.find(u => u.id === c.id);
+    .filter((c) => !pendingChanges?.toDelete.includes(c.id))
+    .map((c) => {
+      const update = pendingChanges?.toUpdate.find((u) => u.id === c.id);
       return update ? { ...c, ...update, isPendingUpdate: true } : c;
     });
 
   const allContacts = [
     ...visibleContacts,
-    ...(pendingChanges?.toAdd.map(c => ({ ...c, isPendingAdd: true })) || []),
+    ...(pendingChanges?.toAdd.map((c) => ({ ...c, isPendingAdd: true })) || []),
   ];
 
   return (
@@ -190,16 +224,26 @@ export function Contacts({
       <Card className="pb-2.5" id="contacts">
         <CardHeader>
           <CardTitle>Contacts</CardTitle>
-          <Button variant="secondary" size="sm" className="border border-gray-300" onClick={handleAdd} disabled={!participantId || !canAdd}>
+          <Button
+            variant="secondary"
+            size="sm"
+            className="border border-gray-300"
+            onClick={handleAdd}
+            disabled={!participantId || !canAdd}
+          >
             <Plus className="size-4 me-1.5" />
             Add Contact
           </Button>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="text-center py-8 text-muted-foreground">Loading contacts...</div>
+            <div className="text-center py-8 text-muted-foreground">
+              Loading contacts...
+            </div>
           ) : allContacts.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">No contacts recorded yet</div>
+            <div className="text-center py-8 text-muted-foreground">
+              No contacts recorded yet
+            </div>
           ) : (
             <Table>
               <TableHeader>
@@ -213,57 +257,107 @@ export function Contacts({
               </TableHeader>
               <TableBody>
                 {allContacts.map((contact) => {
-                  const isPendingDelete = !contact.isPendingAdd && pendingChanges?.toDelete.includes(contact.id);
+                  const isPendingDelete =
+                    !contact.isPendingAdd &&
+                    pendingChanges?.toDelete.includes(contact.id);
                   const isPendingUpdate = contact.isPendingUpdate;
                   const isPendingAdd = contact.isPendingAdd;
 
                   return (
-                    <TableRow 
+                    <TableRow
                       key={contact.id || contact.tempId}
                       className={cn(
                         isPendingAdd && 'bg-primary/5',
                         isPendingUpdate && 'bg-warning/5',
-                        isPendingDelete && 'opacity-50 grayscale bg-red-50'
+                        isPendingDelete && 'opacity-50 grayscale bg-red-50',
                       )}
                     >
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
                           <Users className="size-4 text-muted-foreground" />
-                          <button 
+                          <button
                             type="button"
                             onClick={() => handleEdit(contact)}
                             disabled={!canEdit || isPendingDelete}
                             className={cn(
-                              "text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline transition-colors text-left disabled:pointer-events-none",
-                              isPendingDelete && 'line-through opacity-50'
+                              'text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline transition-colors text-left disabled:pointer-events-none',
+                              isPendingDelete && 'line-through opacity-50',
                             )}
                           >
                             {contact.contact_name}
                           </button>
-                          {isPendingAdd && <Badge variant="outline" className="text-[10px] uppercase">New</Badge>}
-                          {isPendingUpdate && <Badge variant="outline" className="text-[10px] uppercase border-warning text-warning">Pending Update</Badge>}
-                          {isPendingDelete && <Badge variant="destructive" className="text-[10px] uppercase">Pending Delete</Badge>}
+                          {isPendingAdd && (
+                            <Badge
+                              variant="outline"
+                              className="text-[10px] uppercase"
+                            >
+                              New
+                            </Badge>
+                          )}
+                          {isPendingUpdate && (
+                            <Badge
+                              variant="outline"
+                              className="text-[10px] uppercase border-warning text-warning"
+                            >
+                              Pending Update
+                            </Badge>
+                          )}
+                          {isPendingDelete && (
+                            <Badge
+                              variant="destructive"
+                              className="text-[10px] uppercase"
+                            >
+                              Pending Delete
+                            </Badge>
+                          )}
                         </div>
                       </TableCell>
-                      <TableCell className={cn(isPendingDelete && 'line-through')}>
+                      <TableCell
+                        className={cn(isPendingDelete && 'line-through')}
+                      >
                         {getContactTypeName(contact.contact_type_id)}
                       </TableCell>
-                      <TableCell className={cn(isPendingDelete && 'line-through')}>{contact.phone}</TableCell>
-                      <TableCell className={cn(isPendingDelete && 'line-through')}>{contact.email}</TableCell>
+                      <TableCell
+                        className={cn(isPendingDelete && 'line-through')}
+                      >
+                        {contact.phone}
+                      </TableCell>
+                      <TableCell
+                        className={cn(isPendingDelete && 'line-through')}
+                      >
+                        {contact.email}
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
-                          {!isPendingDelete && !isPendingAdd && !isPendingUpdate && (
-                            <>
-                              <Button variant="ghost" size="sm" onClick={() => handleEdit(contact)} disabled={!canEdit}>
-                                <Edit className="size-4" />
-                              </Button>
-                              <Button variant="ghost" size="sm" className="text-destructive" onClick={() => handleDelete(contact)} disabled={!canDelete}>
-                                <Trash2 className="size-4" />
-                              </Button>
-                            </>
-                          )}
+                          {!isPendingDelete &&
+                            !isPendingAdd &&
+                            !isPendingUpdate && (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleEdit(contact)}
+                                  disabled={!canEdit}
+                                >
+                                  <Edit className="size-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-destructive"
+                                  onClick={() => handleDelete(contact)}
+                                  disabled={!canDelete}
+                                >
+                                  <Trash2 className="size-4" />
+                                </Button>
+                              </>
+                            )}
                           {isPendingAdd && (
-                            <Button variant="ghost" size="sm" onClick={() => handleDelete(contact)}>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDelete(contact)}
+                            >
                               Remove
                             </Button>
                           )}
@@ -271,7 +365,9 @@ export function Contacts({
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleCancelPendingUpdate(contact.id)}
+                              onClick={() =>
+                                handleCancelPendingUpdate(contact.id)
+                              }
                               disabled={!canEdit}
                             >
                               Undo
@@ -281,7 +377,9 @@ export function Contacts({
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleCancelPendingDelete(contact.id)}
+                              onClick={() =>
+                                handleCancelPendingDelete(contact.id)
+                              }
                               disabled={!canDelete}
                             >
                               Undo
@@ -301,9 +399,13 @@ export function Contacts({
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>{editingContact ? 'Edit Contact' : 'Add Contact'}</DialogTitle>
+            <DialogTitle>
+              {editingContact ? 'Edit Contact' : 'Add Contact'}
+            </DialogTitle>
             <DialogDescription>
-              {editingContact ? 'Update contact details' : 'Add a new contact for this participant'}
+              {editingContact
+                ? 'Update contact details'
+                : 'Add a new contact for this participant'}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -312,7 +414,9 @@ export function Contacts({
               <Input
                 id="contact_name"
                 value={formData.contact_name || ''}
-                onChange={(e) => setFormData({ ...formData, contact_name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, contact_name: e.target.value })
+                }
               />
             </div>
             <div className="grid gap-2">
@@ -320,7 +424,9 @@ export function Contacts({
               <div className="flex gap-2">
                 <ContactTypeCombobox
                   value={formData.contact_type_id || ''}
-                  onChange={(val) => setFormData({ ...formData, contact_type_id: val })}
+                  onChange={(val) =>
+                    setFormData({ ...formData, contact_type_id: val })
+                  }
                   canEdit={canEdit}
                   onManageList={() => setShowContactTypeMasterDialog(true)}
                 />
@@ -332,7 +438,9 @@ export function Contacts({
                 <Input
                   id="phone"
                   value={formData.phone || ''}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, phone: e.target.value })
+                  }
                 />
               </div>
               <div className="grid gap-2">
@@ -341,7 +449,9 @@ export function Contacts({
                   id="email"
                   type="email"
                   value={formData.email || ''}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
                 />
               </div>
             </div>
@@ -350,7 +460,9 @@ export function Contacts({
               <Input
                 id="address"
                 value={formData.address || ''}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, address: e.target.value })
+                }
               />
             </div>
             <div className="grid gap-2">
@@ -358,21 +470,30 @@ export function Contacts({
               <Textarea
                 id="notes"
                 value={formData.notes || ''}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, notes: e.target.value })
+                }
               />
             </div>
             <div className="flex items-center gap-2">
               <Switch
                 id="contact_active"
                 checked={formData.is_active}
-                onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, is_active: checked })
+                }
               />
               <Label htmlFor="contact_active">Active Contact</Label>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDialog(false)}>Cancel</Button>
-            <Button onClick={handleSave} disabled={!formData.contact_name || !formData.contact_type_id}>
+            <Button variant="outline" onClick={() => setShowDialog(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSave}
+              disabled={!formData.contact_name || !formData.contact_type_id}
+            >
               {editingContact ? 'Update Queue' : 'Add to Queue'}
             </Button>
           </DialogFooter>
@@ -382,7 +503,9 @@ export function Contacts({
       <ContactTypeMasterDialog
         open={showContactTypeMasterDialog}
         onClose={() => setShowContactTypeMasterDialog(false)}
-        onUpdate={() => queryClient.invalidateQueries({ queryKey: ['contact-types-master'] })}
+        onUpdate={() =>
+          queryClient.invalidateQueries({ queryKey: ['contact-types-master'] })
+        }
       />
     </>
   );

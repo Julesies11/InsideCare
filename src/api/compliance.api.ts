@@ -1,8 +1,9 @@
-import { supabase } from '@/lib/supabase';
-import { TABLES } from '@/config/db-tables';
 import { Database } from '@/models/database.types';
+import { TABLES } from '@/config/db-tables';
+import { supabase } from '@/lib/supabase';
 
-export type ComplianceType = Database['public']['Tables']['ic_compliance_types_master']['Row'];
+export type ComplianceType =
+  Database['public']['Tables']['ic_compliance_types_master']['Row'];
 
 export interface ComplianceMonitoringItem {
   staff_id: string;
@@ -10,7 +11,13 @@ export interface ComplianceMonitoringItem {
   photo_url: string | null;
   compliance_type_id: string;
   compliance_name: string;
-  status: 'Complete' | 'In Progress' | 'Not Applicable' | 'Missing' | 'Expired' | 'Expiring Soon';
+  status:
+    | 'Complete'
+    | 'In Progress'
+    | 'Not Applicable'
+    | 'Missing'
+    | 'Expired'
+    | 'Expiring Soon';
   expiry_date: string | null;
   document_number: string | null;
   comments: string | null;
@@ -36,7 +43,15 @@ export const complianceApi = {
       return data || [];
     },
 
-    async upsert(records: Partial<Database['public']['Tables']['ic_compliance_types_master']['Insert']> | Partial<Database['public']['Tables']['ic_compliance_types_master']['Insert']>[]) {
+    async upsert(
+      records:
+        | Partial<
+            Database['public']['Tables']['ic_compliance_types_master']['Insert']
+          >
+        | Partial<
+            Database['public']['Tables']['ic_compliance_types_master']['Insert']
+          >[],
+    ) {
       const payload = Array.isArray(records) ? records : [records];
       const { data, error } = await supabase
         .from(TABLES.COMPLIANCE_TYPES_MASTER)
@@ -55,7 +70,7 @@ export const complianceApi = {
 
       if (error) throw error;
       return true;
-    }
+    },
   },
 
   monitoring: {
@@ -68,20 +83,18 @@ export const complianceApi = {
       sortBy?: string;
       sortOrder?: 'asc' | 'desc';
     }) {
-      const { 
-        page = 1, 
-        pageSize = 10, 
-        searchTerm, 
-        statusFilter = [], 
+      const {
+        page = 1,
+        pageSize = 10,
+        searchTerm,
+        statusFilter = [],
         staffStatuses = ['active'],
-        sortBy = 'staff_name', 
-        sortOrder = 'asc' 
+        sortBy = 'staff_name',
+        sortOrder = 'asc',
       } = params;
 
       // 1. Fetch only active staff IDs and basic info first to minimize data transfer
-      let staffQuery = supabase
-        .from(TABLES.STAFF)
-        .select(`
+      let staffQuery = supabase.from(TABLES.STAFF).select(`
           id,
           staff_name,
           photo_url,
@@ -108,13 +121,16 @@ export const complianceApi = {
         .eq('is_active', true);
 
       if (typesError) throw typesError;
-      const masterTypes = (masterTypesResult || []).filter(t => t.expiry_date_applicable !== false);
+      const masterTypes = (masterTypesResult || []).filter(
+        (t) => t.expiry_date_applicable !== false,
+      );
 
       // 3. Batch fetch ALL compliance records for these staff in a single query
-      const staffIds = staff.map(s => s.id);
+      const staffIds = staff.map((s) => s.id);
       const { data: allRecords, error: recordsError } = await supabase
         .from(TABLES.STAFF_COMPLIANCE)
-        .select(`
+        .select(
+          `
           staff_id,
           compliance_type_id,
           expiry_date,
@@ -123,7 +139,8 @@ export const complianceApi = {
           comments,
           updated_at,
           updater:${TABLES.STAFF}!updated_by(staff_name)
-        `)
+        `,
+        )
         .in('staff_id', staffIds);
 
       if (recordsError) throw recordsError;
@@ -132,26 +149,32 @@ export const complianceApi = {
       const allRequirements: ComplianceMonitoringItem[] = [];
       const today = new Date();
       const parseISO = (s: string) => new Date(s);
-      const differenceInDays = (d1: Date, d2: Date) => Math.ceil((d1.getTime() - d2.getTime()) / (1000 * 60 * 60 * 24));
+      const differenceInDays = (d1: Date, d2: Date) =>
+        Math.ceil((d1.getTime() - d2.getTime()) / (1000 * 60 * 60 * 24));
 
       const recordMap = new Map();
-      allRecords?.forEach(r => {
+      allRecords?.forEach((r) => {
         const key = `${r.staff_id}_${r.compliance_type_id}`;
         recordMap.set(key, r);
       });
 
-      staff.forEach(s => {
-        const houseNames = s.house_assignments?.map((ha: any) => ha.house?.house_name).filter(Boolean) || [];
-        
-        masterTypes.forEach(type => {
+      staff.forEach((s) => {
+        const houseNames =
+          s.house_assignments
+            ?.map((ha: any) => ha.house?.house_name)
+            .filter(Boolean) || [];
+
+        masterTypes.forEach((type) => {
           const typeId = type.id;
           const record = recordMap.get(`${s.id}_${typeId}`);
-          
+
           let status: ComplianceMonitoringItem['status'] = 'Missing';
           if (record) {
-            const dbStatus = (record.status || '').toLowerCase().replace(/_/g, ' ');
-            if (dbStatus === 'not applicable') return; 
-            
+            const dbStatus = (record.status || '')
+              .toLowerCase()
+              .replace(/_/g, ' ');
+            if (dbStatus === 'not applicable') return;
+
             if (dbStatus === 'in progress') {
               status = 'In Progress';
             } else if (dbStatus === 'complete') {
@@ -181,7 +204,7 @@ export const complianceApi = {
             comments: record?.comments || null,
             assigned_houses: houseNames,
             updated_at: record?.updated_at || null,
-            updated_by_name: record?.updater?.staff_name || null
+            updated_by_name: record?.updater?.staff_name || null,
           });
         });
       });
@@ -190,26 +213,33 @@ export const complianceApi = {
       let filtered = allRequirements;
       if (searchTerm) {
         const term = searchTerm.toLowerCase();
-        filtered = filtered.filter(item => 
-          (item.staff_name?.toLowerCase() || '').includes(term) || 
-          (item.compliance_name?.toLowerCase() || '').includes(term)
+        filtered = filtered.filter(
+          (item) =>
+            (item.staff_name?.toLowerCase() || '').includes(term) ||
+            (item.compliance_name?.toLowerCase() || '').includes(term),
         );
       }
 
-      if (statusFilter && statusFilter.length > 0 && !statusFilter.includes('all')) {
-        const lowerStatuses = statusFilter.map(s => s.toLowerCase());
-        filtered = filtered.filter(item => lowerStatuses.includes(item.status?.toLowerCase() || ''));
+      if (
+        statusFilter &&
+        statusFilter.length > 0 &&
+        !statusFilter.includes('all')
+      ) {
+        const lowerStatuses = statusFilter.map((s) => s.toLowerCase());
+        filtered = filtered.filter((item) =>
+          lowerStatuses.includes(item.status?.toLowerCase() || ''),
+        );
       }
 
       // 6. Sorting
       filtered.sort((a: any, b: any) => {
         const valA = a[sortBy];
         const valB = b[sortBy];
-        
+
         if (valA === valB) return 0;
         if (valA === null) return 1;
         if (valB === null) return -1;
-        
+
         const result = valA < valB ? -1 : 1;
         return sortOrder === 'asc' ? result : -result;
       });
@@ -222,9 +252,9 @@ export const complianceApi = {
 
       return {
         data: pagedData,
-        totalCount
+        totalCount,
       };
-    }
+    },
   },
 
   idDocumentTypes: {
@@ -243,7 +273,15 @@ export const complianceApi = {
       return data || [];
     },
 
-    async upsert(records: Partial<Database['public']['Tables']['ic_id_document_types']['Insert']> | Partial<Database['public']['Tables']['ic_id_document_types']['Insert']>[]) {
+    async upsert(
+      records:
+        | Partial<
+            Database['public']['Tables']['ic_id_document_types']['Insert']
+          >
+        | Partial<
+            Database['public']['Tables']['ic_id_document_types']['Insert']
+          >[],
+    ) {
       const payload = Array.isArray(records) ? records : [records];
       const { data, error } = await supabase
         .from(TABLES.ID_DOCUMENT_TYPES)
@@ -262,6 +300,6 @@ export const complianceApi = {
 
       if (error) throw error;
       return true;
-    }
-  }
+    },
+  },
 };

@@ -1,11 +1,11 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, waitFor, screen, act } from '@testing-library/react';
-import { AuthProvider } from './supabase-provider';
-import { useAuth } from '@/auth/context/auth-context';
-import { supabase } from '@/lib/supabase';
-import { SupabaseAdapter } from '@/auth/adapters/supabase-adapter';
 import { ReactNode } from 'react';
+import { SupabaseAdapter } from '@/auth/adapters/supabase-adapter';
+import { useAuth } from '@/auth/context/auth-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { act, render, screen, waitFor } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { supabase } from '@/lib/supabase';
+import { AuthProvider } from './supabase-provider';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -16,9 +16,7 @@ const queryClient = new QueryClient({
 });
 
 const Wrapper = ({ children }: { children: ReactNode }) => (
-  <QueryClientProvider client={queryClient}>
-    {children}
-  </QueryClientProvider>
+  <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
 );
 
 // Mock Supabase
@@ -68,13 +66,16 @@ describe('AuthProvider Concurrency & Hardening', () => {
       return { data: { subscription: { unsubscribe: vi.fn() } } };
     });
 
-    (supabase.auth.getSession as any).mockResolvedValue({ data: { session: null }, error: null });
+    (supabase.auth.getSession as any).mockResolvedValue({
+      data: { session: null },
+      error: null,
+    });
 
     render(
       <AuthProvider>
         <TestConsumer />
       </AuthProvider>,
-      { wrapper: Wrapper }
+      { wrapper: Wrapper },
     );
 
     expect(supabase.auth.getSession).not.toHaveBeenCalled();
@@ -104,13 +105,16 @@ describe('AuthProvider Concurrency & Hardening', () => {
       return { data: { subscription: { unsubscribe: vi.fn() } } };
     });
 
-    (supabase.auth.getSession as any).mockResolvedValue({ data: { session: null }, error: null });
+    (supabase.auth.getSession as any).mockResolvedValue({
+      data: { session: null },
+      error: null,
+    });
 
     render(
       <AuthProvider>
         <TestConsumer />
       </AuthProvider>,
-      { wrapper: Wrapper }
+      { wrapper: Wrapper },
     );
 
     expect(supabase.auth.getSession).not.toHaveBeenCalled();
@@ -125,7 +129,7 @@ describe('AuthProvider Concurrency & Hardening', () => {
     await waitFor(() => {
       expect(supabase.auth.getSession).toHaveBeenCalled();
     });
-    
+
     await waitFor(() => {
       expect(screen.queryByTestId('loading')).not.toBeInTheDocument();
     });
@@ -143,7 +147,7 @@ describe('AuthProvider Concurrency & Hardening', () => {
     let fetchCount = 0;
     (SupabaseAdapter.getCurrentUser as any).mockImplementation(async () => {
       fetchCount++;
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await new Promise((resolve) => setTimeout(resolve, 50));
       return mockProfile;
     });
 
@@ -151,7 +155,7 @@ describe('AuthProvider Concurrency & Hardening', () => {
       <AuthProvider>
         <TestConsumer />
       </AuthProvider>,
-      { wrapper: Wrapper }
+      { wrapper: Wrapper },
     );
 
     const mockSession = { access_token: 't', user: { id: '1' } };
@@ -162,9 +166,14 @@ describe('AuthProvider Concurrency & Hardening', () => {
       authCallback('TOKEN_REFRESHED', mockSession);
     });
 
-    await waitFor(() => {
-      expect(screen.getByTestId('user-email')).toHaveTextContent('concurrent@example.com');
-    }, { timeout: 2000 });
+    await waitFor(
+      () => {
+        expect(screen.getByTestId('user-email')).toHaveTextContent(
+          'concurrent@example.com',
+        );
+      },
+      { timeout: 2000 },
+    );
 
     expect(fetchCount).toBe(1);
   });

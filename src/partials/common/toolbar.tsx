@@ -1,10 +1,10 @@
 import { Fragment, ReactNode } from 'react';
-import { useLocation, Link } from 'react-router';
 import { ChevronRight } from 'lucide-react';
+import { Link, useLocation } from 'react-router';
 import { MENU_SIDEBAR } from '@/config/menu.config';
 import { MenuItem } from '@/config/types';
-import { useMenu } from '@/hooks/use-menu';
 import { cn } from '@/lib/utils';
+import { useMenu } from '@/hooks/use-menu';
 
 const Toolbar = ({ children }: { children: ReactNode }) => {
   return (

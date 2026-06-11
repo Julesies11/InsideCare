@@ -1,6 +1,6 @@
+import { rosterApi } from '@/api/roster.api';
 import { useQuery } from '@tanstack/react-query';
 import { QUERY_KEYS } from '@/config/query-keys';
-import { rosterApi } from '@/api/roster.api';
 
 export interface StaffShift {
   id: string;
@@ -27,4 +27,3 @@ export function useCurrentStaffShift(staffId?: string) {
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 }
-

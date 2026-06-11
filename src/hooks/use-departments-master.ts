@@ -1,7 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Database } from '@/models/database.types';
-import { QUERY_KEYS } from '@/config/query-keys';
 import { masterListsApi } from '@/api/master-lists.api';
+import { Database } from '@/models/database.types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { QUERY_KEYS } from '@/config/query-keys';
 
 export type Department = Database['public']['Tables']['ic_departments']['Row'];
 
@@ -25,10 +25,13 @@ export function useAddDepartmentMaster() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (departmentData: Database['public']['Tables']['ic_departments']['Insert']) => 
-      masterListsApi.departments.create(departmentData),
+    mutationFn: (
+      departmentData: Database['public']['Tables']['ic_departments']['Insert'],
+    ) => masterListsApi.departments.create(departmentData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.DEPARTMENTS_MASTER] });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.DEPARTMENTS_MASTER],
+      });
     },
   });
 }
@@ -37,10 +40,17 @@ export function useUpdateDepartmentMaster() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, updates }: { id: string; updates: Database['public']['Tables']['ic_departments']['Update'] }) => 
-      masterListsApi.departments.update(id, updates),
+    mutationFn: ({
+      id,
+      updates,
+    }: {
+      id: string;
+      updates: Database['public']['Tables']['ic_departments']['Update'];
+    }) => masterListsApi.departments.update(id, updates),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.DEPARTMENTS_MASTER] });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.DEPARTMENTS_MASTER],
+      });
     },
   });
 }

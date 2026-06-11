@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useAuth } from '@/auth/context/auth-context';
+import { House } from '@/models/house';
 import {
   ColumnDef,
   getCoreRowModel,
@@ -12,48 +14,31 @@ import {
   SortingState,
   useReactTable,
 } from '@tanstack/react-table';
-import {
-  Search,
-  House as HouseIcon,
-  X,
-  MapPin,
-} from 'lucide-react';
+import { House as HouseIcon, MapPin, Search, X } from 'lucide-react';
+import { Link, useNavigate, useSearchParams } from 'react-router';
 import { toast } from 'sonner';
+import { RBAC_MODULES } from '@/config/rbac-modules';
+import { ROUTES } from '@/config/routes.config';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
+import { parseSupabaseError } from '@/lib/error-parser';
+import { useDebounce } from '@/hooks/use-debounce';
+import { useHouses, useUpdateHouse } from '@/hooks/use-houses';
+import { useParticipants } from '@/hooks/use-participants';
+import { ACCESS_LEVEL, useRBAC } from '@/hooks/useRBAC';
 import { Alert, AlertIcon, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { StatusFilter, StatusOption } from '@/components/ui/status-filter';
-import {
-  Card,
-  CardFooter,
-  CardHeader,
-  CardTable,
-} from '@/components/ui/card';
+import { Card, CardFooter, CardHeader, CardTable } from '@/components/ui/card';
 import { DataGrid } from '@/components/ui/data-grid';
 import { DataGridColumnHeader } from '@/components/ui/data-grid-column-header';
 import { DataGridPagination } from '@/components/ui/data-grid-pagination';
-import {
-  DataGridTable,
-} from '@/components/ui/data-grid-table';
+import { DataGridTable } from '@/components/ui/data-grid-table';
 import { Input } from '@/components/ui/input';
+import { Progress } from '@/components/ui/progress';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-
-import { House } from '@/models/house';
-import { useHouses, useUpdateHouse } from '@/hooks/use-houses';
-import { useParticipants } from '@/hooks/use-participants';
-import { useNavigate, Link } from 'react-router';
-import { useAuth } from '@/auth/context/auth-context';
-import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
-import { RBAC_MODULES } from '@/config/rbac-modules';
-import { parseSupabaseError } from '@/lib/error-parser';
-import { ROUTES } from '@/config/routes.config';
-
-import { useSearchParams } from 'react-router';
-import { useDebounce } from '@/hooks/use-debounce';
-import { Skeleton } from '@/components/ui/skeleton';
 import { SecureAvatar } from '@/components/ui/secure-avatar';
-import { STORAGE_BUCKETS } from '@/config/storage-buckets';
+import { Skeleton } from '@/components/ui/skeleton';
+import { StatusFilter, StatusOption } from '@/components/ui/status-filter';
 
 const HOUSE_STATUS_OPTIONS: StatusOption[] = [
   { value: 'active', label: 'Active', badge: 'success' },
@@ -62,15 +47,27 @@ const HOUSE_STATUS_OPTIONS: StatusOption[] = [
 ];
 
 // Helper function to get participants for a house
-function getHouseParticipants(houseId: string, allParticipants: Array<{ id: string; participant_name: string; house_id?: string; status: string; photo_url?: string }>) {
+function getHouseParticipants(
+  houseId: string,
+  allParticipants: Array<{
+    id: string;
+    participant_name: string;
+    house_id?: string;
+    status: string;
+    photo_url?: string;
+  }>,
+) {
   return allParticipants
-    .filter(participant => participant.house_id === houseId && participant.status === 'active')
-    .map(participant => ({ 
-      id: participant.id, 
+    .filter(
+      (participant) =>
+        participant.house_id === houseId && participant.status === 'active',
+    )
+    .map((participant) => ({
+      id: participant.id,
       name: participant.participant_name,
-      photo_url: participant.photo_url 
+      photo_url: participant.photo_url,
     }))
-    .filter(p => p.name);
+    .filter((p) => p.name);
 }
 
 // Helper function to create Google Maps URL from address
@@ -87,21 +84,45 @@ export function Houses() {
   const { hasAccess } = useRBAC();
   const { mutateAsync: updateHouseMutation } = useUpdateHouse();
 
-  const canManageGlobal = hasAccess({ resource: RBAC_MODULES.HOUSES, requiredLevel: ACCESS_LEVEL.FULL });
-  const canManageAny = hasAccess({ resource: RBAC_MODULES.HOUSES, requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE });
+  const canManageGlobal = hasAccess({
+    resource: RBAC_MODULES.HOUSES,
+    requiredLevel: ACCESS_LEVEL.FULL,
+  });
+  const canManageAny = hasAccess({
+    resource: RBAC_MODULES.HOUSES,
+    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE,
+  });
 
   // Helper functions to parse URL params
-  const page = useMemo(() => Math.max(1, parseInt(searchParams.get('page') || '1')), [searchParams]);
-  const pageSize = useMemo(() => parseInt(searchParams.get('pageSize') || '25'), [searchParams]);
-  const sortParam = useMemo(() => searchParams.get('sort') || '', [searchParams]);
-  const searchParam = useMemo(() => searchParams.get('search') || '', [searchParams]);
-  const statusParam = useMemo(() => searchParams.get('statuses') || 'active', [searchParams]);
+  const page = useMemo(
+    () => Math.max(1, parseInt(searchParams.get('page') || '1')),
+    [searchParams],
+  );
+  const pageSize = useMemo(
+    () => parseInt(searchParams.get('pageSize') || '25'),
+    [searchParams],
+  );
+  const sortParam = useMemo(
+    () => searchParams.get('sort') || '',
+    [searchParams],
+  );
+  const searchParam = useMemo(
+    () => searchParams.get('search') || '',
+    [searchParams],
+  );
+  const statusParam = useMemo(
+    () => searchParams.get('statuses') || 'active',
+    [searchParams],
+  );
 
   // Derived states for TanStack Table
-  const pagination = useMemo(() => ({
-    pageIndex: page - 1,
-    pageSize: pageSize,
-  }), [page, pageSize]);
+  const pagination = useMemo(
+    () => ({
+      pageIndex: page - 1,
+      pageSize: pageSize,
+    }),
+    [page, pageSize],
+  );
 
   const sorting = useMemo((): SortingState => {
     if (!sortParam) return [];
@@ -109,9 +130,13 @@ export function Houses() {
     return [{ id: field, desc: direction === 'desc' }];
   }, [sortParam]);
 
-  const selectedStatuses = useMemo(() => 
-    statusParam.split(',').filter((s) => HOUSE_STATUS_OPTIONS.some(opt => opt.value === s)),
-  [statusParam]);
+  const selectedStatuses = useMemo(
+    () =>
+      statusParam
+        .split(',')
+        .filter((s) => HOUSE_STATUS_OPTIONS.some((opt) => opt.value === s)),
+    [statusParam],
+  );
 
   // Search query state (local for immediate input feedback)
   const [searchQuery, setSearchQuery] = useState(searchParam);
@@ -136,28 +161,36 @@ export function Houses() {
     setSearchQuery(searchParam);
   }, [searchParam]);
 
-  const filters = useMemo(() => ({
-    search: debouncedSearchQuery,
-    statuses: selectedStatuses
-  }), [debouncedSearchQuery, selectedStatuses]);
-
-  const { houses, count, isLoading: loading, error } = useHouses(
-    pagination.pageIndex,
-    pagination.pageSize,
-    sorting,
-    filters
+  const filters = useMemo(
+    () => ({
+      search: debouncedSearchQuery,
+      statuses: selectedStatuses,
+    }),
+    [debouncedSearchQuery, selectedStatuses],
   );
-  
+
+  const {
+    houses,
+    count,
+    isLoading: loading,
+    error,
+  } = useHouses(pagination.pageIndex, pagination.pageSize, sorting, filters);
+
   const { participants: allParticipants } = useParticipants(0, 1000); // Fetch more for occupancy calculation
   const participants = useMemo(() => allParticipants || [], [allParticipants]);
 
-  console.log('[DEBUG] Houses rendering:', { housesCount: houses?.length, participantsCount: participants?.length, loading, error });
+  console.log('[DEBUG] Houses rendering:', {
+    housesCount: houses?.length,
+    participantsCount: participants?.length,
+    loading,
+    error,
+  });
 
   // Handle pagination change
   const handlePaginationChange = (updater: any) => {
     const next = typeof updater === 'function' ? updater(pagination) : updater;
     const params = new URLSearchParams(searchParams);
-    
+
     if (next.pageIndex > 0) {
       params.set('page', (next.pageIndex + 1).toString());
     } else {
@@ -169,7 +202,7 @@ export function Houses() {
     } else {
       params.delete('pageSize');
     }
-    
+
     setSearchParams(params, { replace: true });
   };
 
@@ -177,14 +210,14 @@ export function Houses() {
   const handleSortingChange = (updater: any) => {
     const next = typeof updater === 'function' ? updater(sorting) : updater;
     const params = new URLSearchParams(searchParams);
-    
+
     if (next.length > 0) {
       const sort = next[0];
       params.set('sort', `${sort.id}.${sort.desc ? 'desc' : 'asc'}`);
     } else {
       params.delete('sort');
     }
-    
+
     setSearchParams(params, { replace: true });
   };
 
@@ -215,7 +248,7 @@ export function Houses() {
         cell: ({ row }) => {
           const detailUrl = `${ROUTES.HOUSE_DETAIL}/${row.original.id}`;
           return (
-            <Link 
+            <Link
               to={detailUrl}
               className="flex items-center gap-3 group w-full max-w-full text-left"
             >
@@ -277,32 +310,43 @@ export function Houses() {
         ),
         cell: ({ row }) => {
           const assignments = (row.original as any).staff_assignments || [];
-          const activeAssignments = assignments.filter((a: any) => 
-            a.staff && a.staff.status === 'active' && (!a.end_date || new Date(a.end_date) >= new Date())
+          const activeAssignments = assignments.filter(
+            (a: any) =>
+              a.staff &&
+              a.staff.status === 'active' &&
+              (!a.end_date || new Date(a.end_date) >= new Date()),
           );
-          
-          if (activeAssignments.length === 0) return <span className="text-xs text-gray-500">No active staff</span>;
-          
+
+          if (activeAssignments.length === 0)
+            return (
+              <span className="text-xs text-gray-500">No active staff</span>
+            );
+
           return (
             <div className="flex flex-col gap-1.5 break-words whitespace-normal text-left">
               {activeAssignments.map((assignment: any) => {
                 const staff = assignment.staff;
                 if (!staff) return null;
                 const initials = staff.staff_name
-                  ? staff.staff_name.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2)
+                  ? staff.staff_name
+                      .split(' ')
+                      .map((w: string) => w[0])
+                      .join('')
+                      .toUpperCase()
+                      .slice(0, 2)
                   : '??';
-                
+
                 return (
-                  <Link 
+                  <Link
                     key={assignment.id}
                     to={`${ROUTES.STAFF_DETAIL}/${staff.id}`}
                     className="flex items-center gap-2 group/staff w-fit"
                   >
-                    <SecureAvatar 
-                      src={staff.photo_url} 
-                      initials={initials} 
+                    <SecureAvatar
+                      src={staff.photo_url}
+                      initials={initials}
                       className="size-6 transition-all group-hover/staff:ring-2 group-hover/staff:ring-primary/20"
-                      bucket={STORAGE_BUCKETS.STAFF_PHOTOS} 
+                      bucket={STORAGE_BUCKETS.STAFF_PHOTOS}
                     />
                     <span className="text-xs font-medium text-gray-700 dark:text-gray-300 group-hover/staff:text-primary transition-colors truncate max-w-[120px]">
                       {staff.staff_name}
@@ -340,27 +384,38 @@ export function Houses() {
           />
         ),
         cell: ({ row }) => {
-          const participantsForHouse = getHouseParticipants(row.original.id, participants);
-          if (participantsForHouse.length === 0) return <span className="text-xs text-gray-500">No participants</span>;
-          
+          const participantsForHouse = getHouseParticipants(
+            row.original.id,
+            participants,
+          );
+          if (participantsForHouse.length === 0)
+            return (
+              <span className="text-xs text-gray-500">No participants</span>
+            );
+
           return (
             <div className="flex flex-col gap-1.5 break-words whitespace-normal text-left">
               {participantsForHouse.map((p) => {
                 const initials = p.name
-                  ? p.name.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2)
+                  ? p.name
+                      .split(' ')
+                      .map((w: string) => w[0])
+                      .join('')
+                      .toUpperCase()
+                      .slice(0, 2)
                   : '??';
-                
+
                 return (
                   <Link
                     key={p.id}
                     to={`${ROUTES.PARTICIPANT_DETAIL}/${p.id}`}
                     className="flex items-center gap-2 group/participant w-fit"
                   >
-                    <SecureAvatar 
-                      src={p.photo_url} 
-                      initials={initials} 
+                    <SecureAvatar
+                      src={p.photo_url}
+                      initials={initials}
                       className="size-6 transition-all group-hover/participant:ring-2 group-hover/participant:ring-primary/20"
-                      bucket={STORAGE_BUCKETS.PARTICIPANT_PHOTOS} 
+                      bucket={STORAGE_BUCKETS.PARTICIPANT_PHOTOS}
                     />
                     <span className="text-xs font-medium text-gray-700 dark:text-gray-300 group-hover/participant:text-primary transition-colors truncate max-w-[120px]">
                       {p.name}
@@ -401,7 +456,7 @@ export function Houses() {
           return (
             <div className="break-words whitespace-normal">
               <Badge
-                variant={variantMap[status] as any || 'secondary'}
+                variant={(variantMap[status] as any) || 'secondary'}
                 appearance="light"
                 size="sm"
               >
@@ -427,23 +482,30 @@ export function Houses() {
           />
         ),
         cell: ({ row }) => {
-          const participantsForHouse = getHouseParticipants(row.original.id, participants);
+          const participantsForHouse = getHouseParticipants(
+            row.original.id,
+            participants,
+          );
           const currentOccupancy = participantsForHouse.length;
           const capacity = row.original.capacity || 0;
-          
+
           // Handle divide by zero
-          const percentage = capacity > 0 ? (currentOccupancy / capacity) * 100 : 0;
-          const occupancyText = capacity > 0 ? `${currentOccupancy}/${capacity}` : `${currentOccupancy}/0`;
-          
+          const percentage =
+            capacity > 0 ? (currentOccupancy / capacity) * 100 : 0;
+          const occupancyText =
+            capacity > 0
+              ? `${currentOccupancy}/${capacity}`
+              : `${currentOccupancy}/0`;
+
           return (
             <div className="flex flex-col gap-1 break-words whitespace-normal text-left">
               <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
                 {occupancyText}
               </div>
               <div className="flex items-center gap-2">
-                <Progress 
-                  value={Math.min(percentage, 100)} 
-                  className="flex-1 h-2" 
+                <Progress
+                  value={Math.min(percentage, 100)}
+                  className="flex-1 h-2"
                 />
                 <span className="text-xs text-gray-500 dark:text-gray-400 min-w-[35px]">
                   {Math.round(percentage)}%
@@ -464,7 +526,7 @@ export function Houses() {
         size: 150,
       },
     ],
-    [participants]
+    [participants],
   );
 
   const pageCount = useMemo(() => {
@@ -517,7 +579,7 @@ export function Houses() {
         columnsMovable: true,
         columnsVisibility: true,
         cellBorder: true,
-        width: 'fixed'
+        width: 'fixed',
       }}
     >
       <Card id="houses_table">
@@ -549,7 +611,12 @@ export function Houses() {
               label="Status"
             />
             {!canManageAny && (
-              <Badge variant="warning" appearance="light" size="sm" className="h-9 px-3">
+              <Badge
+                variant="warning"
+                appearance="light"
+                size="sm"
+                className="h-9 px-3"
+              >
                 Read Only
               </Badge>
             )}
@@ -568,4 +635,3 @@ export function Houses() {
     </DataGrid>
   );
 }
-

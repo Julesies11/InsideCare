@@ -1,21 +1,21 @@
-import { Settings2, Clock } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { ShiftTemplatesTable } from './components';
-import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
-import { RBAC_MODULES } from '@/config/rbac-modules';
 import {
   Toolbar,
+  ToolbarDescription,
   ToolbarHeading,
   ToolbarPageTitle,
-  ToolbarDescription,
 } from '@/partials/common/toolbar';
+import { Clock, Settings2 } from 'lucide-react';
+import { RBAC_MODULES } from '@/config/rbac-modules';
+import { ACCESS_LEVEL, useRBAC } from '@/hooks/useRBAC';
+import { Card, CardContent } from '@/components/ui/card';
+import { ShiftTemplatesTable } from './components';
 
 export function ShiftTemplatesContent() {
   const { hasAccess } = useRBAC();
-  
-  const canView = hasAccess({ 
-    resource: RBAC_MODULES.ROSTER_BOARD, 
-    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE 
+
+  const canView = hasAccess({
+    resource: RBAC_MODULES.ROSTER_BOARD,
+    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE,
   });
 
   if (!canView) {
@@ -25,7 +25,7 @@ export function ShiftTemplatesContent() {
           <Settings2 className="size-12 mx-auto text-muted-foreground opacity-20" />
           <h2 className="text-xl font-bold text-gray-900">Access Denied</h2>
           <p className="text-muted-foreground max-w-sm">
-            You do not have the required permissions to manage shift templates. 
+            You do not have the required permissions to manage shift templates.
             Please contact your administrator if you believe this is an error.
           </p>
         </div>
@@ -57,8 +57,9 @@ export function ShiftTemplatesContent() {
                 Optimizing Roster efficiency
               </h3>
               <p className="text-sm text-blue-700 dark:text-blue-300">
-                Shift templates allow you to define standardized work periods and routines. 
-                Applying these templates ensures consistency in care delivery across every house.
+                Shift templates allow you to define standardized work periods
+                and routines. Applying these templates ensures consistency in
+                care delivery across every house.
               </p>
             </div>
           </div>

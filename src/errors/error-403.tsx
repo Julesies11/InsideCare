@@ -17,7 +17,9 @@ export function Error403() {
         />
       </div>
 
-      <span className="badge badge-danger badge-outline mb-3">403 Access Denied</span>
+      <span className="badge badge-danger badge-outline mb-3">
+        403 Access Denied
+      </span>
 
       <h3 className="text-2xl font-semibold text-mono text-center mb-2">
         You don't have permission to access this page

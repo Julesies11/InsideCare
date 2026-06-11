@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
 import { checklistsApi } from '@/api/checklists.api';
+import { useQuery } from '@tanstack/react-query';
 import { QUERY_KEYS } from '@/config/query-keys';
 
 export type HouseChecklistWithRelations = any; // Will be typed by api response
@@ -29,7 +29,10 @@ export function useHouseChecklists(houseId?: string, scheduledDate?: string) {
     queryKey: [QUERY_KEYS.CHECKLISTS, houseId, scheduledDate],
     queryFn: async () => {
       if (!houseId) return [];
-      return await checklistsApi.listHouseChecklists(houseId, scheduledDate) as unknown as HouseChecklist[];
+      return (await checklistsApi.listHouseChecklists(
+        houseId,
+        scheduledDate,
+      )) as unknown as HouseChecklist[];
     },
     enabled: !!houseId,
     staleTime: 0, // Real-time RLS enforcement
@@ -43,4 +46,3 @@ export function useHouseChecklists(houseId?: string, scheduledDate?: string) {
     refresh: query.refetch,
   };
 }
-

@@ -1,12 +1,13 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { screen, waitFor, fireEvent } from '@testing-library/react';
-import { StaffLeaveForm } from './staff-leave-form';
+import { server } from '@/test/mocks/server';
 import { renderWithProviders } from '@/test/test-utils';
+import { HouseRow, LeaveRequestRow, Row, ShiftRow } from '@/test/type-helpers';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { http, HttpResponse } from 'msw';
+import { useParams } from 'react-router';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TABLES } from '@/config/db-tables';
 import { ROUTES } from '@/config/routes.config';
-import { http, HttpResponse } from 'msw';
-import { server } from '@/test/mocks/server';
-import { ShiftRow, HouseRow, LeaveRequestRow, Row } from '@/test/type-helpers';
+import { StaffLeaveForm } from './staff-leave-form';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
@@ -15,7 +16,9 @@ const mockLeaveTypes: Partial<Row<'ic_leave_types'>>[] = [
   { id: 'type-2', leave_type_name: 'Sick Leave' },
 ];
 
-const mockConflictingShifts: (Partial<ShiftRow> & { house: Partial<HouseRow> })[] = [
+const mockConflictingShifts: (Partial<ShiftRow> & {
+  house: Partial<HouseRow>;
+})[] = [
   {
     id: 'shift-1',
     start_date: '2026-03-10',
@@ -24,8 +27,6 @@ const mockConflictingShifts: (Partial<ShiftRow> & { house: Partial<HouseRow> })[
     house: { house_name: 'Test House' },
   },
 ];
-
-import { useParams } from 'react-router';
 
 const mockNavigate = vi.fn();
 
@@ -40,7 +41,7 @@ vi.mock('react-router', async () => {
 
 describe('StaffLeaveForm', () => {
   vi.setConfig({ testTimeout: 15000 });
-  
+
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(useParams).mockReturnValue({ id: undefined });
@@ -53,13 +54,13 @@ describe('StaffLeaveForm', () => {
       }),
       http.post(`${SUPABASE_URL}/rest/v1/${TABLES.LEAVE_REQUESTS}`, () => {
         return HttpResponse.json([{ id: 'new-leave-id' }]);
-      })
+      }),
     );
   });
 
   it('renders correctly and loads leave types', async () => {
     renderWithProviders(<StaffLeaveForm />);
-    
+
     await waitFor(() => {
       expect(screen.getByText(/New Leave Request/i)).toBeInTheDocument();
     });
@@ -67,22 +68,31 @@ describe('StaffLeaveForm', () => {
 
   it('shows conflict warning when shifts overlap', async () => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF_SHIFTS}`, ({ request }) => {
-        const url = new URL(request.url);
-        if (url.searchParams.get('start_date') === 'gte.2026-03-10') {
-           return HttpResponse.json(mockConflictingShifts);
-        }
-        return HttpResponse.json([]);
-      })
+      http.get(
+        `${SUPABASE_URL}/rest/v1/${TABLES.STAFF_SHIFTS}`,
+        ({ request }) => {
+          const url = new URL(request.url);
+          if (url.searchParams.get('start_date') === 'gte.2026-03-10') {
+            return HttpResponse.json(mockConflictingShifts);
+          }
+          return HttpResponse.json([]);
+        },
+      ),
     );
 
     renderWithProviders(<StaffLeaveForm />);
 
-    fireEvent.change(screen.getByLabelText(/Start Date/i), { target: { value: '2026-03-10' } });
-    fireEvent.change(screen.getByLabelText(/End Date/i), { target: { value: '2026-03-12' } });
+    fireEvent.change(screen.getByLabelText(/Start Date/i), {
+      target: { value: '2026-03-10' },
+    });
+    fireEvent.change(screen.getByLabelText(/End Date/i), {
+      target: { value: '2026-03-12' },
+    });
 
     await waitFor(() => {
-      expect(screen.getByText(/1 rostered shift overlap with these dates/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/1 rostered shift overlap with these dates/i),
+      ).toBeInTheDocument();
       expect(screen.getByText(/Test House/i)).toBeInTheDocument();
     });
   });
@@ -91,29 +101,33 @@ describe('StaffLeaveForm', () => {
     const { user } = renderWithProviders(<StaffLeaveForm />);
 
     await waitFor(() => {
-        expect(screen.getByLabelText(/Start Date/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/Start Date/i)).toBeInTheDocument();
     });
 
     // Select leave type
     const selectTrigger = screen.getByLabelText(/Leave Type/i);
     fireEvent.click(selectTrigger);
-    
+
     // Find the option in the portal/listbox
     const options = await screen.findAllByText('Annual Leave');
     fireEvent.click(options[options.length - 1]);
 
     const reasonInput = screen.getByLabelText(/Reason/i);
     fireEvent.change(reasonInput, { target: { value: 'Going on holiday' } });
-    
-    fireEvent.change(screen.getByLabelText(/Start Date/i), { target: { value: '2026-03-10' } });
-    fireEvent.change(screen.getByLabelText(/End Date/i), { target: { value: '2026-03-12' } });
+
+    fireEvent.change(screen.getByLabelText(/Start Date/i), {
+      target: { value: '2026-03-10' },
+    });
+    fireEvent.change(screen.getByLabelText(/End Date/i), {
+      target: { value: '2026-03-12' },
+    });
 
     // Submit button
     const submitBtn = screen.getByRole('button', { name: /Submit Request/i });
     await user.click(submitBtn);
 
     await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.MY_LEAVE);
+      expect(mockNavigate).toHaveBeenCalledWith(ROUTES.MY_LEAVE);
     });
   });
 
@@ -132,7 +146,7 @@ describe('StaffLeaveForm', () => {
       }),
       http.patch(`${SUPABASE_URL}/rest/v1/${TABLES.LEAVE_REQUESTS}`, () => {
         return HttpResponse.json({});
-      })
+      }),
     );
 
     renderWithProviders(<StaffLeaveForm />);

@@ -1,7 +1,7 @@
 import { renderWithProviders, screen, waitFor } from '@/test/test-utils';
-import { StaffDeactivationDialog } from './staff-deactivation-dialog';
+import { describe, expect, it, vi } from 'vitest';
 import { StaffActivationDialog } from './staff-activation-dialog';
-import { describe, it, expect, vi } from 'vitest';
+import { StaffDeactivationDialog } from './staff-deactivation-dialog';
 
 describe('Staff Lifecycle Dialogs', () => {
   describe('StaffDeactivationDialog', () => {
@@ -14,7 +14,7 @@ describe('Staff Lifecycle Dialogs', () => {
           staffName="John Doe"
           hasPortalAccess={true}
           onConfirmDeactivate={onConfirm}
-        />
+        />,
       );
 
       expect(screen.getByText(/Deactivate Staff Member/i)).toBeInTheDocument();
@@ -32,12 +32,16 @@ describe('Staff Lifecycle Dialogs', () => {
           staffName="John Doe"
           hasPortalAccess={false}
           onConfirmDeactivate={async () => {}}
-        />
+        />,
       );
 
-      expect(screen.queryByText(/Portal Access Detected/i)).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(/Portal Access Detected/i),
+      ).not.toBeInTheDocument();
       // Use getByRole to target the actual button, avoiding the dialog title
-      expect(screen.getByRole('button', { name: /^Deactivate Staff$/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: /^Deactivate Staff$/i }),
+      ).toBeInTheDocument();
     });
   });
 
@@ -50,13 +54,17 @@ describe('Staff Lifecycle Dialogs', () => {
           staffName="Jane Smith"
           email="jane@example.com"
           onConfirmActivate={async () => {}}
-        />
+        />,
       );
 
       expect(screen.getByText(/Activate Staff Member/i)).toBeInTheDocument();
       expect(screen.getByText(/Portal Access Required/i)).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /Activate & Invite/i })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /Activate Only/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: /Activate & Invite/i }),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: /Activate Only/i }),
+      ).toBeInTheDocument();
     });
 
     it('shows simple activation when no email is provided', async () => {
@@ -66,11 +74,15 @@ describe('Staff Lifecycle Dialogs', () => {
           onOpenChange={() => {}}
           staffName="Jane Smith"
           onConfirmActivate={async () => {}}
-        />
+        />,
       );
 
-      expect(screen.queryByText(/Portal Access Required/i)).not.toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /^Activate Staff$/i })).toBeInTheDocument();
+      expect(
+        screen.queryByText(/Portal Access Required/i),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: /^Activate Staff$/i }),
+      ).toBeInTheDocument();
     });
   });
 });

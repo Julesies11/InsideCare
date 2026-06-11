@@ -1,7 +1,7 @@
-import { describe, it, expect, vi } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
-import { NotificationsSheet } from './notifications-sheet';
 import { renderWithProviders } from '@/test/test-utils';
+import { screen, waitFor } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+import { NotificationsSheet } from './notifications-sheet';
 
 vi.mock('react-router', async () => {
   const actual = await vi.importActual('react-router');
@@ -38,8 +38,10 @@ describe('NotificationsSheet', () => {
   });
 
   it('renders notifications inside sheet', async () => {
-    const { user } = renderWithProviders(<NotificationsSheet trigger={<button>Open</button>} />);
-    
+    const { user } = renderWithProviders(
+      <NotificationsSheet trigger={<button>Open</button>} />,
+    );
+
     await user.click(screen.getByRole('button', { name: 'Open' }));
 
     await waitFor(() => {

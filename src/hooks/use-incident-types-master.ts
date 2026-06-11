@@ -1,7 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { masterListsApi } from '@/api/master-lists.api';
-import { QUERY_KEYS } from '@/config/query-keys';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { QUERY_KEYS } from '@/config/query-keys';
 
 export interface IncidentTypeMaster {
   id: string;
@@ -29,7 +29,9 @@ export function useAddIncidentTypeMaster() {
       return await masterListsApi.incidentTypes.upsert(newItem as any);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INCIDENT_TYPES_MASTER] });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.INCIDENT_TYPES_MASTER],
+      });
       toast.success('Incident type added successfully');
     },
     onError: (error: Error) => {
@@ -43,11 +45,15 @@ export function useUpdateIncidentTypeMaster() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (updatedItem: Partial<IncidentTypeMaster> & { id: string }) => {
+    mutationFn: async (
+      updatedItem: Partial<IncidentTypeMaster> & { id: string },
+    ) => {
       return await masterListsApi.incidentTypes.upsert(updatedItem as any);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INCIDENT_TYPES_MASTER] });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.INCIDENT_TYPES_MASTER],
+      });
       toast.success('Incident type updated successfully');
     },
     onError: (error: Error) => {

@@ -1,8 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { cn } from '@/lib/utils';
 import { Progress as ProgressPrimitive } from 'radix-ui';
+import { cn } from '@/lib/utils';
 
 function Progress({
   className,
@@ -15,13 +15,19 @@ function Progress({
   return (
     <ProgressPrimitive.Root
       data-slot="progress"
-      className={cn('relative h-1.5 w-full overflow-hidden rounded-full bg-secondary', className)}
+      className={cn(
+        'relative h-1.5 w-full overflow-hidden rounded-full bg-secondary',
+        className,
+      )}
       value={value}
       {...props}
     >
       <ProgressPrimitive.Indicator
         data-slot="progress-indicator"
-        className={cn('h-full w-full flex-1 bg-primary transition-all', indicatorClassName)}
+        className={cn(
+          'h-full w-full flex-1 bg-primary transition-all',
+          indicatorClassName,
+        )}
         style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
       />
     </ProgressPrimitive.Root>
@@ -70,11 +76,19 @@ function ProgressCircle({
   return (
     <div
       data-slot="progress-circle"
-      className={cn('relative inline-flex items-center justify-center', className)}
+      className={cn(
+        'relative inline-flex items-center justify-center',
+        className,
+      )}
       style={{ width: size, height: size }}
       {...props}
     >
-      <svg className="absolute inset-0 -rotate-90" width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      <svg
+        className="absolute inset-0 -rotate-90"
+        width={size}
+        height={size}
+        viewBox={`0 0 ${size} ${size}`}
+      >
         <circle
           data-slot="progress-circle-track"
           cx={size / 2}
@@ -96,7 +110,10 @@ function ProgressCircle({
           strokeDasharray={circumference}
           strokeDashoffset={offset}
           strokeLinecap="round"
-          className={cn('text-primary transition-all duration-300 ease-in-out', indicatorClassName)}
+          className={cn(
+            'text-primary transition-all duration-300 ease-in-out',
+            indicatorClassName,
+          )}
         />
       </svg>
       {children && (
@@ -169,17 +186,34 @@ function ProgressRadial({
 
   const startX = size / 2 + radius * Math.cos(toRadians(startAngle));
   const startY = size / 2 + radius * Math.sin(toRadians(startAngle));
-  const endX = size / 2 + radius * Math.cos(toRadians(startAngle + progressAngle));
-  const endY = size / 2 + radius * Math.sin(toRadians(startAngle + progressAngle));
+  const endX =
+    size / 2 + radius * Math.cos(toRadians(startAngle + progressAngle));
+  const endY =
+    size / 2 + radius * Math.sin(toRadians(startAngle + progressAngle));
 
   const largeArc = progressAngle > 180 ? 1 : 0;
 
-  const pathData = ['M', startX, startY, 'A', radius, radius, 0, largeArc, 1, endX, endY].join(' ');
+  const pathData = [
+    'M',
+    startX,
+    startY,
+    'A',
+    radius,
+    radius,
+    0,
+    largeArc,
+    1,
+    endX,
+    endY,
+  ].join(' ');
 
   return (
     <div
       data-slot="progress-radial"
-      className={cn('relative inline-flex items-center justify-center', className)}
+      className={cn(
+        'relative inline-flex items-center justify-center',
+        className,
+      )}
       style={{ width: size, height: size }}
       {...props}
     >
@@ -210,7 +244,10 @@ function ProgressRadial({
           strokeWidth={strokeWidth}
           fill="none"
           strokeLinecap="round"
-          className={cn('text-primary transition-all duration-300 ease-in-out', indicatorClassName)}
+          className={cn(
+            'text-primary transition-all duration-300 ease-in-out',
+            indicatorClassName,
+          )}
         />
       </svg>
       {(showLabel || children) && (

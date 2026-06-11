@@ -1,6 +1,6 @@
-import { Reporter, TestCase, TestResult } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
+import { Reporter, TestCase, TestResult } from '@playwright/test';
 
 class FailedJsonReporter implements Reporter {
   private failedTests: any[] = [];
@@ -25,7 +25,7 @@ class FailedJsonReporter implements Reporter {
   async onEnd() {
     // Path points exactly to your tests/ folder
     const outputPath = path.join(process.cwd(), 'tests', 'failed-results.json');
-    
+
     try {
       // Overwrites the file with the fresh failure array
       fs.writeFileSync(outputPath, JSON.stringify(this.failedTests, null, 2));

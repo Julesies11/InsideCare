@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom';
 import { cleanup } from '@testing-library/react';
-import { afterEach, beforeAll, afterAll, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, vi } from 'vitest';
 import { server } from './mocks/server';
 
 vi.stubEnv('VITE_SUPABASE_URL', 'https://rdnaqrzqpcicskylmsyl.supabase.co');
@@ -21,7 +21,7 @@ afterAll(() => server.close());
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: vi.fn().mockImplementation(query => ({
+  value: vi.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,

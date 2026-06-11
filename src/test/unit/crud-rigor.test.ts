@@ -1,10 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { staffDetailsApi } from '@/api/staff-details.api';
-import { rosterApi } from '@/api/roster.api';
 import { housesApi } from '@/api/houses.api';
 import { participantDetailsApi } from '@/api/participant-details.api';
-import { supabase } from '@/lib/supabase';
+import { rosterApi } from '@/api/roster.api';
+import { staffDetailsApi } from '@/api/staff-details.api';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TABLES } from '@/config/db-tables';
+import { supabase } from '@/lib/supabase';
 
 // Mock Supabase client
 vi.mock('@/lib/supabase', () => ({
@@ -13,7 +13,9 @@ vi.mock('@/lib/supabase', () => ({
     storage: {
       from: vi.fn(() => ({
         remove: vi.fn().mockResolvedValue({ error: null }),
-        upload: vi.fn().mockResolvedValue({ data: { path: 'test' }, error: null }),
+        upload: vi
+          .fn()
+          .mockResolvedValue({ data: { path: 'test' }, error: null }),
       })),
     },
   },
@@ -27,7 +29,9 @@ const createMockQuery = (data: any = [], error: any = null) => {
     upsert: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
     select: vi.fn().mockReturnThis(),
-    maybeSingle: vi.fn().mockResolvedValue({ data: Array.isArray(data) ? data[0] : data, error }),
+    maybeSingle: vi
+      .fn()
+      .mockResolvedValue({ data: Array.isArray(data) ? data[0] : data, error }),
     in: vi.fn().mockResolvedValue({ error }),
     delete: vi.fn().mockResolvedValue({ error }),
   };
@@ -64,7 +68,9 @@ describe('CRUD Rigor - Payload Validation Suite', () => {
 
     it('updateShift should handle undefined updates without crashing', async () => {
       vi.mocked(supabase.from).mockReturnValue(createMockQuery({}));
-      await expect(rosterApi.updateShift('s1', undefined)).resolves.not.toThrow();
+      await expect(
+        rosterApi.updateShift('s1', undefined),
+      ).resolves.not.toThrow();
     });
   });
 
@@ -78,7 +84,7 @@ describe('CRUD Rigor - Payload Validation Suite', () => {
         medication_id: 'm1',
         dosage: '1 tablet',
         frequency: 'Daily', // FORBIDDEN
-        instructions: 'Take with food' // FORBIDDEN
+        instructions: 'Take with food', // FORBIDDEN
       };
 
       await participantDetailsApi.medications.upsert(med as any);
@@ -100,7 +106,7 @@ describe('CRUD Rigor - Payload Validation Suite', () => {
           toAdd: [{ title: 'T1', date_completed: '' }],
           toUpdate: [],
           toDelete: [],
-        }
+        },
       };
 
       await staffDetailsApi.syncDetails('staff1', pending);

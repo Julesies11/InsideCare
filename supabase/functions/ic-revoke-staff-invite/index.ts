@@ -3,15 +3,16 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { 
-      status: 204, 
-      headers: corsHeaders 
+    return new Response(null, {
+      status: 204,
+      headers: corsHeaders,
     });
   }
 
@@ -35,7 +36,10 @@ serve(async (req) => {
         global: { headers: { Authorization: authHeader } },
       });
 
-      const { data: { user: callingUser }, error: userError } = await supabaseUser.auth.getUser();
+      const {
+        data: { user: callingUser },
+        error: userError,
+      } = await supabaseUser.auth.getUser();
       if (userError || !callingUser) {
         throw new Error('Unauthorized');
       }
@@ -63,7 +67,9 @@ serve(async (req) => {
       isCallerAdmin = callerPerms?.[ACCESS_CONTROL_MODULE] === 'full';
 
       if (!isCallerAdmin) {
-        throw new Error('Forbidden: Admin access (full access_control) required');
+        throw new Error(
+          'Forbidden: Admin access (full access_control) required',
+        );
       }
     }
 
@@ -82,14 +88,17 @@ serve(async (req) => {
     // SECURITY: Prevent a user from revoking their own access
     const callerId = req.headers.get('x-caller-id'); // Optional extra header for validation
     if (authUserId === callerId) {
-       throw new Error('Forbidden: You cannot revoke your own portal access');
+      throw new Error('Forbidden: You cannot revoke your own portal access');
     }
 
-    console.log(`Unlinking portal access: Staff ${staffId}, Auth ${authUserId}`);
+    console.log(
+      `Unlinking portal access: Staff ${staffId}, Auth ${authUserId}`,
+    );
 
     // Delete the user from Supabase Auth
-    const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(authUserId);
-    
+    const { error: deleteError } =
+      await supabaseAdmin.auth.admin.deleteUser(authUserId);
+
     // Note: If the user is already deleted, we still want to clear the staff record
     if (deleteError && !deleteError.message.includes('User not found')) {
       return new Response(JSON.stringify({ error: deleteError.message }), {

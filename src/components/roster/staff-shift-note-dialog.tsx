@@ -1,16 +1,24 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { shiftNotesApi } from '@/api/shift-notes.api';
+import { useAuth } from '@/auth/context/auth-context';
+import { format, parseISO } from 'date-fns';
+import { Calendar, Clock, FileText, Home, Loader2, User } from 'lucide-react';
+import { toast } from 'sonner';
+import { generateShiftNoteReferenceId } from '@/lib/shift-note-utils';
+import { useActiveParticipants } from '@/hooks/use-participants';
+import { useShiftNotes } from '@/hooks/use-shift-notes';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
+  DialogBody,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-  DialogBody,
-  DialogDescription,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -18,16 +26,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { format, parseISO } from 'date-fns';
-import { toast } from 'sonner';
-import { useAuth } from '@/auth/context/auth-context';
-import { useActiveParticipants } from '@/hooks/use-participants';
-import { useShiftNotes } from '@/hooks/use-shift-notes';
+import { Textarea } from '@/components/ui/textarea';
 import { StaffShift } from './use-roster-data';
-import { FileText, User, Clock, Home, Calendar, Loader2 } from 'lucide-react';
-import { shiftNotesApi } from '@/api/shift-notes.api';
-import { generateShiftNoteReferenceId } from '@/lib/shift-note-utils';
 
 interface StaffShiftNoteDialogProps {
   open: boolean;
@@ -46,18 +46,19 @@ export function StaffShiftNoteDialog({
   const { createShiftNote } = useShiftNotes();
   const [saving, setSaving] = useState(false);
   const [fetching, setFetching] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     participant_id: '',
     shift_time: format(new Date(), 'HH:mm'),
     notes: '',
   });
 
-  const { participants: allParticipants, loading: loadingParticipants } = useActiveParticipants();
+  const { participants: allParticipants, loading: loadingParticipants } =
+    useActiveParticipants();
 
   const participants = useMemo(() => {
     if (!shift?.house_id) return [];
-    return allParticipants.filter(p => p.house_id === shift.house_id);
+    return allParticipants.filter((p) => p.house_id === shift.house_id);
   }, [allParticipants, shift?.house_id]);
 
   useEffect(() => {
@@ -72,7 +73,10 @@ export function StaffShiftNoteDialog({
         });
 
         try {
-          const data = await shiftNotesApi.getByShiftAndStaff(shift.id, user.staff_id!);
+          const data = await shiftNotesApi.getByShiftAndStaff(
+            shift.id,
+            user.staff_id!,
+          );
 
           if (data && data.length > 0) {
             const note = data[0];
@@ -103,15 +107,18 @@ export function StaffShiftNoteDialog({
 
     setSaving(true);
     try {
-      const pId = formData.participant_id === 'none' || !formData.participant_id ? null : formData.participant_id;
-      const selectedPart = pId ? participants.find(p => p.id === pId) : null;
+      const pId =
+        formData.participant_id === 'none' || !formData.participant_id
+          ? null
+          : formData.participant_id;
+      const selectedPart = pId ? participants.find((p) => p.id === pId) : null;
 
       const reference_id = generateShiftNoteReferenceId({
         startDate: shift.start_date,
         shiftTime: formData.shift_time,
         staffName: user?.fullname,
         participantName: selectedPart?.participant_name || selectedPart?.name,
-        orgPrefix: 'SC'
+        orgPrefix: 'SC',
       });
 
       await createShiftNote({
@@ -132,8 +139,12 @@ export function StaffShiftNoteDialog({
     } catch (error: any) {
       console.error('Failed to save shift note:', error);
       let errorMessage = `Failed to save note: ${error.message || 'Unknown error'}`;
-      if (error?.code === '23505' || error?.message?.includes('unique constraint')) {
-        errorMessage = 'A shift note already exists for this participant on this shift.';
+      if (
+        error?.code === '23505' ||
+        error?.message?.includes('unique constraint')
+      ) {
+        errorMessage =
+          'A shift note already exists for this participant on this shift.';
       }
       toast.error(errorMessage);
     } finally {
@@ -178,7 +189,10 @@ export function StaffShiftNoteDialog({
           <div className="grid grid-cols-2 gap-4">
             {/* Time - Defaults to Now */}
             <div className="space-y-1.5">
-              <Label htmlFor="noteTime" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5 ml-0.5">
+              <Label
+                htmlFor="noteTime"
+                className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5 ml-0.5"
+              >
                 <Clock className="size-3" />
                 Note Time
               </Label>
@@ -186,7 +200,9 @@ export function StaffShiftNoteDialog({
                 id="noteTime"
                 type="time"
                 value={formData.shift_time}
-                onChange={(e) => setFormData({ ...formData, shift_time: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, shift_time: e.target.value })
+                }
                 className="bg-muted/30"
               />
             </div>
@@ -195,11 +211,16 @@ export function StaffShiftNoteDialog({
             <div className="space-y-1.5">
               <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5 ml-0.5">
                 <User className="size-3" />
-                Participant <span className="text-[9px] lowercase font-normal italic opacity-60">(Optional)</span>
+                Participant{' '}
+                <span className="text-[9px] lowercase font-normal italic opacity-60">
+                  (Optional)
+                </span>
               </Label>
               <Select
                 value={formData.participant_id || 'none'}
-                onValueChange={(val) => setFormData({ ...formData, participant_id: val })}
+                onValueChange={(val) =>
+                  setFormData({ ...formData, participant_id: val })
+                }
               >
                 <SelectTrigger className="bg-muted/30">
                   <SelectValue placeholder="General Note" />
@@ -212,7 +233,9 @@ export function StaffShiftNoteDialog({
                     </SelectItem>
                   ))}
                   {loadingParticipants && participants.length === 0 && (
-                    <div className="p-2 text-center text-xs italic">Loading participants...</div>
+                    <div className="p-2 text-center text-xs italic">
+                      Loading participants...
+                    </div>
                   )}
                 </SelectContent>
               </Select>
@@ -221,7 +244,10 @@ export function StaffShiftNoteDialog({
 
           {/* Note Content */}
           <div className="space-y-1.5">
-            <Label htmlFor="noteContent" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5 ml-0.5">
+            <Label
+              htmlFor="noteContent"
+              className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5 ml-0.5"
+            >
               <FileText className="size-3" />
               Observation / Note
             </Label>
@@ -230,17 +256,28 @@ export function StaffShiftNoteDialog({
               placeholder="Record clinical observations, participant wellbeing, or shift events..."
               rows={8}
               value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, notes: e.target.value })
+              }
               className="resize-none bg-muted/10 focus:bg-background transition-colors"
             />
           </div>
         </DialogBody>
 
         <DialogFooter className="gap-2 sm:gap-0 mt-2">
-          <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={saving || fetching} className="text-muted-foreground">
+          <Button
+            variant="ghost"
+            onClick={() => onOpenChange(false)}
+            disabled={saving || fetching}
+            className="text-muted-foreground"
+          >
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={saving || fetching} className="min-w-[140px] shadow-lg shadow-primary/20">
+          <Button
+            onClick={handleSave}
+            disabled={saving || fetching}
+            className="min-w-[140px] shadow-lg shadow-primary/20"
+          >
             {saving ? (
               <>
                 <Loader2 className="size-4 animate-spin mr-2" />

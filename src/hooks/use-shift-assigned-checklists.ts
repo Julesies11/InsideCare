@@ -1,5 +1,5 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { rosterApi } from '@/api/roster.api';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { QUERY_KEYS } from '@/config/query-keys';
 
@@ -33,23 +33,25 @@ export function useShiftAssignedChecklists(houseId?: string) {
         checklist_id: a.checklist_id,
         shift_template_id: a.shift_template_id,
         assignment_title: a.assignment_title || 'Routine',
-        sort_order: a.sort_order ?? index
+        sort_order: a.sort_order ?? index,
       }));
 
       await rosterApi.syncShiftAssignments(houseId, toInsert);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SHIFT_ASSIGNED_CHECKLISTS, houseId] });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.SHIFT_ASSIGNED_CHECKLISTS, houseId],
+      });
       toast.success('Shift routines updated successfully');
     },
     onError: (error: any) => {
       toast.error(`Failed to sync shift routines: ${error.message}`);
-    }
+    },
   });
 
   return {
     ...query,
     assignments: query.data || [],
-    syncAssignments
+    syncAssignments,
   };
 }

@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { format, addDays, parseISO } from 'date-fns';
-import { expandRRule } from '@/lib/rrule-utils';
-import { toast } from 'sonner';
 import { checklistsApi } from '@/api/checklists.api';
+import { addDays, format, parseISO } from 'date-fns';
+import { toast } from 'sonner';
+import { expandRRule } from '@/lib/rrule-utils';
 
 export interface ChecklistSchedule {
   id: string;
@@ -30,24 +30,28 @@ export function useChecklistSchedules(houseId?: string) {
 
       // 2. Materialize Events (e.g., for the next 6 months)
       const rangeStart = new Date();
-      const rangeEnd = schedule.end_date ? new Date(schedule.end_date) : addDays(rangeStart, 180);
-      
+      const rangeEnd = schedule.end_date
+        ? new Date(schedule.end_date)
+        : addDays(rangeStart, 180);
+
       const eventDates = expandRRule(
-        schedule.rrule, 
-        parseISO(schedule.start_date), 
-        rangeStart, 
-        rangeEnd
+        schedule.rrule,
+        parseISO(schedule.start_date),
+        rangeStart,
+        rangeEnd,
       );
 
       if (eventDates.length > 0) {
         // Fetch the house checklist info for the title
-        const houseChecklist = await checklistsApi.getHouseChecklist(schedule.house_checklist_id);
+        const houseChecklist = await checklistsApi.getHouseChecklist(
+          schedule.house_checklist_id,
+        );
 
         if (!houseChecklist) {
           throw new Error('You do not have permission to perform this action');
         }
 
-        const calendarEvents = eventDates.map(date => ({
+        const calendarEvents = eventDates.map((date) => ({
           house_id: schedule.house_id,
           title: houseChecklist?.house_checklist_name || 'Scheduled Checklist',
           event_date: format(date, 'yyyy-MM-dd'),
@@ -110,6 +114,6 @@ export function useChecklistSchedules(houseId?: string) {
     createSchedule,
     deleteSchedule,
     deleteEvent,
-    loading
+    loading,
   };
 }

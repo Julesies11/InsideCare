@@ -1,21 +1,21 @@
-import { Users, UserRoundPlus } from 'lucide-react';
+import { staffApi } from '@/api/staff.api';
+import { handleError } from '@/errors/error-handler';
+import { UserRoundPlus, Users } from 'lucide-react';
+import { useNavigate } from 'react-router';
+import { RBAC_MODULES } from '@/config/rbac-modules';
+import { ROUTES } from '@/config/routes.config';
+import { ACCESS_LEVEL, useRBAC } from '@/hooks/useRBAC';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { StaffTable } from './components';
-import { useNavigate } from 'react-router';
-import { staffApi } from '@/api/staff.api';
-import { handleError } from '@/errors/error-handler';
-import { RBAC_MODULES } from '@/config/rbac-modules';
-import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
-import { ROUTES } from '@/config/routes.config';
 
 export function StaffProfilesContent() {
   const navigate = useNavigate();
   const { hasAccess } = useRBAC();
-  
-  const canAdd = hasAccess({ 
-    resource: RBAC_MODULES.EMPLOYEES, 
-    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE 
+
+  const canAdd = hasAccess({
+    resource: RBAC_MODULES.EMPLOYEES,
+    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE,
   });
 
   const handleAddStaff = async () => {
@@ -26,7 +26,10 @@ export function StaffProfilesContent() {
       // Navigate to the detail page
       navigate(`${ROUTES.STAFF_DETAIL}/${data.id}`);
     } catch (error) {
-      handleError(error as Error, { category: 'network', title: 'Failed to create staff member' });
+      handleError(error as Error, {
+        category: 'network',
+        title: 'Failed to create staff member',
+      });
     }
   };
 
@@ -62,8 +65,9 @@ export function StaffProfilesContent() {
                 Empowering Our Team
               </h3>
               <p className="text-sm text-purple-700 dark:text-purple-300">
-                Our staff members are the backbone of exceptional service delivery. Their dedication, expertise, 
-                and compassion ensure every participant receives the highest quality support and care.
+                Our staff members are the backbone of exceptional service
+                delivery. Their dedication, expertise, and compassion ensure
+                every participant receives the highest quality support and care.
               </p>
             </div>
           </div>

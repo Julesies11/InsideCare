@@ -1,5 +1,5 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { participantDetailsApi } from '@/api/participant-details.api';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { QUERY_KEYS } from '@/config/query-keys';
 
 export interface ParticipantProvider {
@@ -38,12 +38,18 @@ export function useAddParticipantProvider() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (provider: Omit<ParticipantProvider, 'id' | 'created_at' | 'updated_at'>) => {
-      const data = await participantDetailsApi.providers.upsert(provider as any);
+    mutationFn: async (
+      provider: Omit<ParticipantProvider, 'id' | 'created_at' | 'updated_at'>,
+    ) => {
+      const data = await participantDetailsApi.providers.upsert(
+        provider as any,
+      );
       return (Array.isArray(data) ? data[0] : data) as ParticipantProvider;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PARTICIPANT_PROVIDERS, data.participant_id] });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.PARTICIPANT_PROVIDERS, data.participant_id],
+      });
     },
   });
 }
@@ -52,12 +58,23 @@ export function useUpdateParticipantProvider() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: Partial<ParticipantProvider> }) => {
-      const data = await participantDetailsApi.providers.upsert({ id, ...updates } as any);
+    mutationFn: async ({
+      id,
+      updates,
+    }: {
+      id: string;
+      updates: Partial<ParticipantProvider>;
+    }) => {
+      const data = await participantDetailsApi.providers.upsert({
+        id,
+        ...updates,
+      } as any);
       return (Array.isArray(data) ? data[0] : data) as ParticipantProvider;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PARTICIPANT_PROVIDERS, data.participant_id] });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.PARTICIPANT_PROVIDERS, data.participant_id],
+      });
     },
   });
 }
@@ -66,11 +83,19 @@ export function useDeleteParticipantProvider() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, participantId }: { id: string; participantId: string }) => {
+    mutationFn: async ({
+      id,
+      participantId,
+    }: {
+      id: string;
+      participantId: string;
+    }) => {
       await participantDetailsApi.providers.delete(id);
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PARTICIPANT_PROVIDERS, variables.participantId] });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.PARTICIPANT_PROVIDERS, variables.participantId],
+      });
     },
   });
 }

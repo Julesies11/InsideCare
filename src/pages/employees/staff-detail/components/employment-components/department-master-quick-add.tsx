@@ -1,11 +1,23 @@
-import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useEffect, useState } from 'react';
+import { Department } from '@/hooks/use-departments-master';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Department } from '@/hooks/use-departments-master';
 
 interface DepartmentMasterQuickAddProps {
   open: boolean;
@@ -55,7 +67,9 @@ export function DepartmentMasterQuickAdd({
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{department ? 'Edit Department' : 'Add Department'}</DialogTitle>
+          <DialogTitle>
+            {department ? 'Edit Department' : 'Add Department'}
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
@@ -64,7 +78,9 @@ export function DepartmentMasterQuickAdd({
               <Input
                 id="name"
                 value={formData.department_name}
-                onChange={(e) => setFormData({ ...formData, department_name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, department_name: e.target.value })
+                }
                 placeholder="Department name"
                 required
               />
@@ -75,7 +91,9 @@ export function DepartmentMasterQuickAdd({
               <Textarea
                 id="description"
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
                 placeholder="Department description"
                 rows={3}
               />
@@ -85,7 +103,9 @@ export function DepartmentMasterQuickAdd({
               <Label htmlFor="access_level">Access Level</Label>
               <Select
                 value={formData.access_level}
-                onValueChange={(value) => setFormData({ ...formData, access_level: value })}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, access_level: value })
+                }
               >
                 <SelectTrigger id="access_level">
                   <SelectValue />
@@ -102,7 +122,9 @@ export function DepartmentMasterQuickAdd({
               <Label htmlFor="status">Status</Label>
               <Select
                 value={formData.status}
-                onValueChange={(value) => setFormData({ ...formData, status: value })}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, status: value })
+                }
               >
                 <SelectTrigger id="status">
                   <SelectValue />
@@ -119,9 +141,7 @@ export function DepartmentMasterQuickAdd({
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit">
-              {department ? 'Update' : 'Add'}
-            </Button>
+            <Button type="submit">{department ? 'Update' : 'Add'}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

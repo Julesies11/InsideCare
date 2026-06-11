@@ -1,7 +1,13 @@
+import {
+  Calendar,
+  ClipboardCheck,
+  ClipboardList,
+  LayoutDashboard,
+  Umbrella,
+} from 'lucide-react';
 import { NavLink } from 'react-router';
-import { LayoutDashboard, Calendar, Umbrella, ClipboardList, ClipboardCheck } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { ROUTES } from '@/config/routes.config';
+import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
   { to: ROUTES.MY_DASHBOARD, icon: LayoutDashboard, label: 'Home' },

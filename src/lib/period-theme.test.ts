@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest';
+import { CloudSun, Moon, Sun } from 'lucide-react';
+import { describe, expect, it } from 'vitest';
 import { getPeriodTheme } from './utils';
-import { Sun, CloudSun, Moon } from 'lucide-react';
 
 describe('getPeriodTheme', () => {
   it('should return correct theme for Morning', () => {

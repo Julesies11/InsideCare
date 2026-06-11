@@ -1,11 +1,11 @@
+import { useCallback, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useCallback, useRef, useEffect } from 'react';
 
 /**
  * A debounced version of useSearchParams from React Router.
  * Updates to the URL are delayed by the specified amount to reduce
  * browser history API calls and minimize status bar appearances.
- * 
+ *
  * @param delay - Delay in milliseconds before updating URL (default: 300ms)
  * @returns Tuple of [searchParams, setDebouncedSearchParams]
  */
@@ -25,7 +25,7 @@ export function useDebouncedSearchParams(delay: number = 300) {
         setSearchParams(params, options);
       }, delay);
     },
-    [setSearchParams, delay]
+    [setSearchParams, delay],
   );
 
   // Cleanup timeout on unmount

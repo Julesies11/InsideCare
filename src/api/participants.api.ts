@@ -1,7 +1,7 @@
-import { supabase } from '@/lib/supabase';
+import { Database } from '@/models/database.types';
 import { TABLES } from '@/config/db-tables';
 import { PARTICIPANT_VIEWS } from '@/config/query-views';
-import { Database } from '@/models/database.types';
+import { supabase } from '@/lib/supabase';
 
 export interface ParticipantsFilter {
   search?: string;
@@ -23,12 +23,17 @@ export const participantsApi = {
    */
   sanitizeRecord(record: any, forbidden: string[] = []) {
     const sanitized = { ...record };
-    forbidden.forEach(key => delete sanitized[key]);
-    
+    forbidden.forEach((key) => delete sanitized[key]);
+
     // Standard system-managed fields that should never be sent in mutations
-    const systemFields = ['created_at', 'updated_at', 'created_by', 'updated_by'];
-    systemFields.forEach(key => delete sanitized[key]);
-    
+    const systemFields = [
+      'created_at',
+      'updated_at',
+      'created_by',
+      'updated_by',
+    ];
+    systemFields.forEach((key) => delete sanitized[key]);
+
     return sanitized;
   },
 
@@ -39,7 +44,7 @@ export const participantsApi = {
     pageIndex = 0,
     pageSize = 10,
     sort = [],
-    filters = {}
+    filters = {},
   }: {
     pageIndex?: number;
     pageSize?: number;
@@ -51,7 +56,9 @@ export const participantsApi = {
       .select(PARTICIPANT_VIEWS.LIST, { count: 'exact' });
 
     if (filters.search) {
-      query = query.or(`participant_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%,personal_mobile.ilike.%${filters.search}%,ndis_number.ilike.%${filters.search}%`);
+      query = query.or(
+        `participant_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%,personal_mobile.ilike.%${filters.search}%,ndis_number.ilike.%${filters.search}%`,
+      );
     }
 
     if (filters.statuses && filters.statuses.length > 0) {
@@ -63,13 +70,13 @@ export const participantsApi = {
     }
 
     if (sort.length > 0) {
-      sort.forEach(s => {
+      sort.forEach((s) => {
         let column = s.id;
         if (s.id === 'house') column = 'house_id';
         if (s.id === 'participant') column = 'participant_name';
         if (s.id === 'contact') column = 'email';
         if (s.id === 'ndis') column = 'ndis_number';
-        
+
         query = query.order(column as any, { ascending: !s.desc });
       });
     } else {
@@ -83,13 +90,13 @@ export const participantsApi = {
     const { data, error, count } = await query;
     if (error) throw error;
 
-    return { 
-      data: (data || []).map(p => ({
+    return {
+      data: (data || []).map((p) => ({
         ...p,
         name: (p as any).participant_name,
         house_name: (p as any).houses?.house_name || null,
-      })), 
-      count: count || 0 
+      })),
+      count: count || 0,
     };
   },
 
@@ -122,7 +129,7 @@ export const participantsApi = {
     const { data, error } = await query.order('participant_name');
     if (error) throw error;
 
-    return (data || []).map(p => ({
+    return (data || []).map((p) => ({
       ...p,
       name: (p as any).participant_name,
       house_name: (p as any).houses?.house_name || null,
@@ -152,8 +159,13 @@ export const participantsApi = {
   /**
    * Creates a new participant.
    */
-  async create(participant: Database['public']['Tables']['ic_participants']['Insert']) {
-    const payload = this.sanitizeRecord(participant, ['frequency', 'instructions']);
+  async create(
+    participant: Database['public']['Tables']['ic_participants']['Insert'],
+  ) {
+    const payload = this.sanitizeRecord(participant, [
+      'frequency',
+      'instructions',
+    ]);
 
     const { data, error } = await supabase
       .from(TABLES.PARTICIPANTS)
@@ -162,7 +174,10 @@ export const participantsApi = {
       .maybeSingle();
 
     if (error) throw error;
-    if (!data) throw new Error('Failed to create participant. This is likely an RLS policy violation (missing INSERT permission).');
+    if (!data)
+      throw new Error(
+        'Failed to create participant. This is likely an RLS policy violation (missing INSERT permission).',
+      );
 
     return data;
   },
@@ -170,7 +185,10 @@ export const participantsApi = {
   /**
    * Updates an existing participant.
    */
-  async update(id: string, updates: Database['public']['Tables']['ic_participants']['Update']) {
+  async update(
+    id: string,
+    updates: Database['public']['Tables']['ic_participants']['Update'],
+  ) {
     const payload = this.sanitizeRecord(updates, ['frequency', 'instructions']);
 
     const { data, error } = await supabase
@@ -181,7 +199,10 @@ export const participantsApi = {
       .maybeSingle();
 
     if (error) throw error;
-    if (!data) throw new Error('Participant not found or permission denied (RLS Violation).');
+    if (!data)
+      throw new Error(
+        'Participant not found or permission denied (RLS Violation).',
+      );
 
     return data;
   },
@@ -216,11 +237,13 @@ export const participantsApi = {
     }
 
     if (filters.search) {
-      query = query.or(`participant_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%,personal_mobile.ilike.%${filters.search}%,ndis_number.ilike.%${filters.search}%`);
+      query = query.or(
+        `participant_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%,personal_mobile.ilike.%${filters.search}%,ndis_number.ilike.%${filters.search}%`,
+      );
     }
 
     const { count, error } = await query;
     if (error) throw error;
     return count || 0;
-  }
+  },
 };

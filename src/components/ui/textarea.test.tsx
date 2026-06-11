@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 import { Textarea } from './textarea';
 
 describe('Textarea', () => {
@@ -11,10 +11,10 @@ describe('Textarea', () => {
   it('handles value changes', () => {
     const handleChange = vi.fn();
     render(<Textarea placeholder="Enter notes" onChange={handleChange} />);
-    
+
     const textarea = screen.getByPlaceholderText('Enter notes');
     fireEvent.change(textarea, { target: { value: 'Some notes' } });
-    
+
     expect(handleChange).toHaveBeenCalled();
     expect((textarea as HTMLTextAreaElement).value).toBe('Some notes');
   });
