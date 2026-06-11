@@ -5345,14 +5345,10 @@ export type Database = {
           auth_user_id: string | null
           availability: string | null
           branch_id: string | null
-          comprehensive_car_insurance: boolean | null
-          comprehensive_car_insurance_expiry: string | null
           created_at: string | null
           created_by: string | null
           date_of_birth: string | null
           department_id: string | null
-          drivers_license: boolean | null
-          drivers_license_expiry: string | null
           email: string | null
           emergency_contact_name: string | null
           emergency_contact_phone: string | null
@@ -5361,14 +5357,6 @@ export type Database = {
           hobbies: string | null
           id: string
           manager_id: string | null
-          ndis_code_of_conduct: boolean | null
-          ndis_code_of_conduct_expiry: string | null
-          ndis_infection_control_training: boolean | null
-          ndis_infection_control_training_expiry: string | null
-          ndis_orientation_module: boolean | null
-          ndis_orientation_module_expiry: string | null
-          ndis_worker_screening_check: boolean | null
-          ndis_worker_screening_check_expiry: string | null
           notes: string | null
           phone: string | null
           photo_url: string | null
@@ -5385,14 +5373,10 @@ export type Database = {
           auth_user_id?: string | null
           availability?: string | null
           branch_id?: string | null
-          comprehensive_car_insurance?: boolean | null
-          comprehensive_car_insurance_expiry?: string | null
           created_at?: string | null
           created_by?: string | null
           date_of_birth?: string | null
           department_id?: string | null
-          drivers_license?: boolean | null
-          drivers_license_expiry?: string | null
           email?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
@@ -5401,14 +5385,6 @@ export type Database = {
           hobbies?: string | null
           id?: string
           manager_id?: string | null
-          ndis_code_of_conduct?: boolean | null
-          ndis_code_of_conduct_expiry?: string | null
-          ndis_infection_control_training?: boolean | null
-          ndis_infection_control_training_expiry?: string | null
-          ndis_orientation_module?: boolean | null
-          ndis_orientation_module_expiry?: string | null
-          ndis_worker_screening_check?: boolean | null
-          ndis_worker_screening_check_expiry?: string | null
           notes?: string | null
           phone?: string | null
           photo_url?: string | null
@@ -5425,14 +5401,10 @@ export type Database = {
           auth_user_id?: string | null
           availability?: string | null
           branch_id?: string | null
-          comprehensive_car_insurance?: boolean | null
-          comprehensive_car_insurance_expiry?: string | null
           created_at?: string | null
           created_by?: string | null
           date_of_birth?: string | null
           department_id?: string | null
-          drivers_license?: boolean | null
-          drivers_license_expiry?: string | null
           email?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
@@ -5441,14 +5413,6 @@ export type Database = {
           hobbies?: string | null
           id?: string
           manager_id?: string | null
-          ndis_code_of_conduct?: boolean | null
-          ndis_code_of_conduct_expiry?: string | null
-          ndis_infection_control_training?: boolean | null
-          ndis_infection_control_training_expiry?: string | null
-          ndis_orientation_module?: boolean | null
-          ndis_orientation_module_expiry?: string | null
-          ndis_worker_screening_check?: boolean | null
-          ndis_worker_screening_check_expiry?: string | null
           notes?: string | null
           phone?: string | null
           photo_url?: string | null
@@ -5508,8 +5472,7 @@ export type Database = {
         Row: {
           comments: string | null
           completion_date: string | null
-          compliance_name: string
-          compliance_type_id: string | null
+          compliance_type_id: string
           created_at: string | null
           created_by: string | null
           document_number: string | null
@@ -5525,8 +5488,7 @@ export type Database = {
         Insert: {
           comments?: string | null
           completion_date?: string | null
-          compliance_name: string
-          compliance_type_id?: string | null
+          compliance_type_id: string
           created_at?: string | null
           created_by?: string | null
           document_number?: string | null
@@ -5542,8 +5504,7 @@ export type Database = {
         Update: {
           comments?: string | null
           completion_date?: string | null
-          compliance_name?: string
-          compliance_type_id?: string | null
+          compliance_type_id?: string
           created_at?: string | null
           created_by?: string | null
           document_number?: string | null

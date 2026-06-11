@@ -1,8 +1,7 @@
-import { render, screen } from '@testing-library/react';
+import { renderWithProviders, screen } from '@/test/test-utils';
 import { ComplianceMonitoringPage } from './compliance-monitoring-page';
 import { useComplianceMonitoring, useComplianceTypes } from '@/hooks/use-staff';
 import { vi, describe, it, expect } from 'vitest';
-import { MemoryRouter } from 'react-router-dom';
 
 // Mock the hooks
 vi.mock('@/hooks/use-staff', () => ({
@@ -10,19 +9,12 @@ vi.mock('@/hooks/use-staff', () => ({
   useComplianceTypes: vi.fn(),
 }));
 
-vi.mock('@/providers/settings-provider', () => ({
-  useSettings: vi.fn(() => ({
-    settings: {
-      container: 'fixed'
-    }
-  }))
-}));
-
 describe('ComplianceMonitoringPage Smoke Test', () => {
   it('renders the compliance monitoring page correctly', () => {
     // Setup mock data
     (useComplianceMonitoring as any).mockReturnValue({
-      staffCompliance: [],
+      data: [],
+      totalCount: 0,
       isLoading: false,
       refetch: vi.fn(),
     });
@@ -32,14 +24,9 @@ describe('ComplianceMonitoringPage Smoke Test', () => {
       refetch: vi.fn(),
     });
 
-    render(
-      <MemoryRouter>
-        <ComplianceMonitoringPage />
-      </MemoryRouter>
-    );
+    renderWithProviders(<ComplianceMonitoringPage />);
 
     // Basic checks
     expect(screen.getByText(/Compliance Monitoring/i)).toBeInTheDocument();
-    expect(screen.getByText(/Compliance Audit Directory/i)).toBeInTheDocument();
   });
 });

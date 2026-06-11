@@ -156,7 +156,6 @@ export function useStaffComplianceState({
           {
             id: recordId,
             compliance_type_id: reqId,
-            compliance_name: complianceName,
             status: newStatus,
             expiry_date: summaryItem?.expiry_date || null,
             document_number: summaryItem?.document_number || null,
@@ -181,15 +180,14 @@ export function useStaffComplianceState({
           ...pendingChanges.staffCompliance,
           toAdd: [
             ...pendingChanges.staffCompliance.toAdd,
-            {
-              compliance_type_id: reqId,
-              compliance_name: complianceName,
-              status: newStatus,
-              expiry_date: null,
-              document_number: '',
-              comments: '',
-              verifiedDocuments: null
-            }
+          {
+            compliance_type_id: reqId,
+            status: newStatus,
+            expiry_date: null,
+            document_number: '',
+            comments: '',
+            verifiedDocuments: null
+          }
           ]
         }
       });
@@ -226,7 +224,6 @@ export function useStaffComplianceState({
           {
             id: recordId,
             compliance_type_id: reqId,
-            compliance_name: complianceName,
             status: summaryItem?.record_status || 'complete',
             expiry_date: field === 'expiry_date' ? (value || null) : (summaryItem?.expiry_date || null),
             document_number: field === 'document_number' ? (value || null) : (summaryItem?.document_number || null),
@@ -289,7 +286,6 @@ export function useStaffComplianceState({
           {
             id: recordId,
             compliance_type_id: reqId,
-            compliance_name: summaryItem?.compliance_name || '',
             status: summaryItem?.record_status || 'complete',
             expiry_date: summaryItem?.expiry_date || null,
             document_number: summaryItem?.document_number || null,
@@ -410,7 +406,6 @@ export function useStaffComplianceState({
           {
             id: recordId,
             compliance_type_id: reqId,
-            compliance_name: complianceName,
             status,
             expiry_date: calculatedExpiry,
             verifiedDocuments
@@ -433,13 +428,12 @@ export function useStaffComplianceState({
           ...pendingChanges.staffCompliance,
           toAdd: [
             ...pendingChanges.staffCompliance.toAdd,
-            {
-              compliance_type_id: reqId,
-              compliance_name: complianceName,
-              status,
-              expiry_date: calculatedExpiry,
-              verifiedDocuments
-            }
+          {
+            compliance_type_id: reqId,
+            status,
+            expiry_date: calculatedExpiry,
+            verifiedDocuments
+          }
           ]
         }
       });

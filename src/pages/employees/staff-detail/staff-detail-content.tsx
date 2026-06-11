@@ -302,20 +302,11 @@ export function StaffDetailContent({
           const employmentFields = ['department_id', 'employment_type_id', 'role_id', 'manager_id', 'hire_date', 'separation_date', 'notes'];
           const availabilityFields = ['availability'];
           const emergencyFields = ['emergency_contact_name', 'emergency_contact_phone'];
-          const complianceFields = [
-            'ndis_worker_screening_check', 'ndis_worker_screening_check_expiry',
-            'ndis_orientation_module', 'ndis_orientation_module_expiry',
-            'ndis_code_of_conduct', 'ndis_code_of_conduct_expiry',
-            'ndis_infection_control_training', 'ndis_infection_control_training_expiry',
-            'drivers_license', 'drivers_license_expiry',
-            'comprehensive_car_insurance', 'comprehensive_car_insurance_expiry'
-          ];
 
           if (personalFields.includes(field)) canUpdateField = canEditPersonal;
           else if (employmentFields.includes(field)) canUpdateField = canEditEmployment;
           else if (availabilityFields.includes(field)) canUpdateField = canEditAvailability;
           else if (emergencyFields.includes(field)) canUpdateField = canEditEmergency;
-          else if (complianceFields.includes(field)) canUpdateField = canEditCompliance;
 
           if (canUpdateField) {
             changedFields[field] = (normalizedNew === '' ? null : normalizedNew);

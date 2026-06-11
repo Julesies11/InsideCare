@@ -42,7 +42,7 @@ export const staffDetailsApi = {
         supabase
           .from(TABLES.STAFF_COMPLIANCE)
           .select(`
-            id, compliance_type_id, compliance_name, status, expiry_date, completion_date, document_number, comments, updated_at,
+            id, compliance_type_id, status, expiry_date, completion_date, document_number, comments, updated_at,
             updater:${TABLES.STAFF}!updated_by(staff_name),
             verified_documents:${TABLES.STAFF_COMPLIANCE_DOCUMENTS}!staff_compliance_id(
               id, document_type, document_number, expiry_date, file_name, file_path, points, comments
@@ -336,84 +336,91 @@ export const staffDetailsApi = {
     };
 
     // 1. Process Compliance
-    if (pending?.staffCompliance?.toAdd?.length > 0) {
-      for (const c of pending.staffCompliance.toAdd) {
-        const { data, error } = await supabase.from(TABLES.STAFF_COMPLIANCE).upsert({
-          staff_id: staffId,
-          compliance_type_id: c.compliance_type_id ?? null,
-          compliance_name: c.compliance_name,
-          status: mapStatusForDb(c.status),
-          expiry_date: normalizeDate(c.expiry_date),
-          document_number: c.document_number ?? null,
-          comments: c.comments ?? null
-        }, { onConflict: 'staff_id,compliance_type_id' }).select('id').single();
+    const complianceToAdd = pending?.staffCompliance?.toAdd || [];
+    for (const c of complianceToAdd) {
+      // Defensive: compliance_name is NOT NULL in the database
+      if (!c.compliance_name) {
+        errors.push(`Compliance Add: Missing name for requirement ${c.compliance_type_id || 'new'}`);
+        continue;
+      }
 
-        if (error) {
-          errors.push(`Compliance Add: ${error.message}`);
-          continue;
-        }
+      const { data, error } = await supabase.from(TABLES.STAFF_COMPLIANCE).upsert({
+        staff_id: staffId,
+        compliance_type_id: c.compliance_type_id || null,
+        status: mapStatusForDb(c.status),
+        expiry_date: normalizeDate(c.expiry_date),
+        document_number: c.document_number || null,
+        comments: c.comments || null
+      }, { onConflict: 'staff_id,compliance_type_id' }).select('id');
 
-        // Insert verified documents if any
-        if (data && c.verifiedDocuments && c.verifiedDocuments.length > 0) {
-          // Robustness: Clear existing docs just in case this was an upsert conflict
-          await supabase.from(TABLES.STAFF_COMPLIANCE_DOCUMENTS).delete().eq('staff_compliance_id', data.id);
+      const recordId = data?.[0]?.id;
 
-          const docsPayload = c.verifiedDocuments.map(doc => ({
-            staff_compliance_id: data.id,
-            document_type: doc.document_type === 'attachment' ? null : doc.document_type,
-            document_number: doc.document_number || null,
-            expiry_date: normalizeDate(doc.expiry_date),
-            file_name: doc.file_name ?? null,
-            file_path: doc.file_path ?? null,
-            points: doc.points,
-            comments: doc.comments ?? null
-          }));
-          const { error: docsError } = await supabase.from(TABLES.STAFF_COMPLIANCE_DOCUMENTS).insert(docsPayload);
-          if (docsError) errors.push(`Compliance Docs Add for ${c.compliance_name}: ${docsError.message}`);
-        }
+      if (error) {
+        errors.push(`Compliance Add: ${error.message}`);
+        continue;
+      }
+
+      // Insert verified documents if any
+      if (recordId && c.verifiedDocuments && c.verifiedDocuments.length > 0) {
+        // Robustness: Clear existing docs just in case this was an upsert conflict
+        await supabase.from(TABLES.STAFF_COMPLIANCE_DOCUMENTS).delete().eq('staff_compliance_id', recordId);
+
+        const docsPayload = c.verifiedDocuments.map(doc => ({
+          staff_compliance_id: recordId,
+          document_type: doc.document_type === 'attachment' ? null : doc.document_type,
+          document_number: doc.document_number || null,
+          expiry_date: normalizeDate(doc.expiry_date),
+          file_name: doc.file_name ?? null,
+          file_path: doc.file_path ?? null,
+          points: doc.points,
+          comments: doc.comments ?? null
+        }));
+        const { error: docsError } = await supabase.from(TABLES.STAFF_COMPLIANCE_DOCUMENTS).insert(docsPayload);
+        if (docsError) errors.push(`Compliance Docs Add for ${c.compliance_name}: ${docsError.message}`);
       }
     }
-    if (pending?.staffCompliance?.toUpdate?.length > 0) {
-      for (const c of pending.staffCompliance.toUpdate) {
-        const { error } = await supabase.from(TABLES.STAFF_COMPLIANCE).update({
-          compliance_type_id: c.compliance_type_id ?? null,
-          compliance_name: c.compliance_name,
-          status: mapStatusForDb(c.status),
-          expiry_date: normalizeDate(c.expiry_date),
-          document_number: c.document_number ?? null,
-          comments: c.comments ?? null
-        }).eq('id', c.id);
 
-        if (error) {
-          errors.push(`Compliance Update ${c.id}: ${error.message}`);
-          continue;
-        }
+    const complianceToUpdate = pending?.staffCompliance?.toUpdate || [];
+    for (const c of complianceToUpdate) {
+      if (!c.id) continue;
+      
+      const { error } = await supabase.from(TABLES.STAFF_COMPLIANCE).update({
+        compliance_type_id: c.compliance_type_id ?? null,
+        status: mapStatusForDb(c.status),
+        expiry_date: normalizeDate(c.expiry_date),
+        document_number: c.document_number ?? null,
+        comments: c.comments ?? null
+      }).eq('id', c.id);
 
-        // Clear existing compliance docs and insert current list
-        const { error: deleteDocsError } = await supabase
-          .from(TABLES.STAFF_COMPLIANCE_DOCUMENTS)
-          .delete()
-          .eq('staff_compliance_id', c.id);
+      if (error) {
+        errors.push(`Compliance Update ${c.id}: ${error.message}`);
+        continue;
+      }
 
-        if (deleteDocsError) {
-          errors.push(`Compliance Docs Clear for ${c.id}: ${deleteDocsError.message}`);
-          continue;
-        }
+      // Clear existing compliance docs and insert current list
+      const { error: deleteDocsError } = await supabase
+        .from(TABLES.STAFF_COMPLIANCE_DOCUMENTS)
+        .delete()
+        .eq('staff_compliance_id', c.id);
 
-        if (c.verifiedDocuments && c.verifiedDocuments.length > 0) {
-          const docsPayload = c.verifiedDocuments.map(doc => ({
-            staff_compliance_id: c.id!,
-            document_type: doc.document_type === 'attachment' ? null : doc.document_type,
-            document_number: doc.document_number || null,
-            expiry_date: normalizeDate(doc.expiry_date),
-            file_name: doc.file_name ?? null,
-            file_path: doc.file_path ?? null,
-            points: doc.points,
-            comments: doc.comments ?? null
-          }));
-          const { error: docsError } = await supabase.from(TABLES.STAFF_COMPLIANCE_DOCUMENTS).insert(docsPayload);
-          if (docsError) errors.push(`Compliance Docs Insert for ${c.id}: ${docsError.message}`);
-        }
+      if (deleteDocsError) {
+        errors.push(`Compliance Docs Clear for ${c.id}: ${deleteDocsError.message}`);
+        continue;
+      }
+
+      if (c.verifiedDocuments && c.verifiedDocuments.length > 0) {
+        const docsPayload = c.verifiedDocuments.map(doc => ({
+          staff_compliance_id: c.id!,
+          document_type: doc.document_type === 'attachment' ? null : doc.document_type,
+          document_number: doc.document_number || null,
+          expiry_date: normalizeDate(doc.expiry_date),
+          file_name: doc.file_name ?? null,
+          file_path: doc.file_path ?? null,
+          points: doc.points,
+          comments: doc.comments ?? null
+        }));
+        const { error: docsError } = await supabase.from(TABLES.STAFF_COMPLIANCE_DOCUMENTS).insert(docsPayload);
+        if (docsError) errors.push(`Compliance Docs Insert for ${c.id}: ${docsError.message}`);
       }
     }
     if (pending?.staffCompliance?.toDelete?.length > 0) {

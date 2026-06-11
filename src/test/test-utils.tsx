@@ -1,6 +1,6 @@
 import { render, RenderOptions } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { MemoryRouter } from 'react-router';
+import { MemoryRouter } from 'react-router-dom';
 import userEvent from '@testing-library/user-event';
 import { ReactElement, ReactNode } from 'react';
 import { SettingsProvider } from '@/providers/settings-provider';
