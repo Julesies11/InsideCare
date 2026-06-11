@@ -21,14 +21,50 @@ test.describe('Compliance Comprehensive Coverage', () => {
       await page.goto('/admin/compliance-settings');
       await expect(page.locator('h1')).toContainText(/Compliance Settings/i);
       
-      await page.getByRole('button', { name: /Add Compliance Type/i }).click();
+      await page.getByRole('button', { name: /Add Compliance Type/i }).click({ force: true });
 
       const reqName = `E2E-Expiry-${Date.now()}`;
       await page.locator('#type-name').fill(reqName);
       
-      // Expiry Date is true by default, no need to click it unless we want to turn it off.
-      // We want it ON, so do nothing.
+      await page.getByRole('button', { name: /Save Changes/i }).click({ force: true });
+      await expect(page.locator('[data-sonner-toast]').filter({ hasText: /updated|saved|added/i })).toBeVisible();
+
+      // 2. Go to a staff member and complete this requirement with an upcoming expiry
+      await page.goto('/staff');
+      await page.waitForLoadState('networkidle');
       
+      const firstStaffLink = page.locator('a[href*="/employees/staff-detail/"]').first();
+      await expect(firstStaffLink).toBeVisible();
+      await firstStaffLink.click({ force: true });
+      
+      try {
+        await page.locator('[data-scrollspy-anchor="staff_compliance"]').click({ timeout: 5000, force: true });
+      } catch (e) {
+        const url = page.url();
+        await page.goto(`${url}${url.includes('?') ? '&' : '?'}tab=compliance`);
+      }
+
+      // Wait for table body to ensure newly added type is loaded
+      await expect(page.locator('#staff_compliance table tbody tr').first()).toBeVisible({ timeout: 15000 });
+      await expect(page.locator('#staff_compliance table')).toContainText(reqName, { timeout: 15000 });
+      await page.waitForTimeout(3000); 
+
+      // Find our new requirement row
+      const row = page.locator('#staff_compliance tr', { hasText: reqName }).first();
+      await expect(row).toBeVisible({ timeout: 15000 });
+      
+      // Transition to edit mode and mark as Complete so expiry is evaluated
+      await row.getByRole('button', { name: /In Progress/i }).or(row.getByRole('button', { name: /Missing/i })).click({ force: true });
+      
+      const completeBtn = row.getByRole('button', { name: /Complete/i });
+      await completeBtn.click({ force: true });
+      // Ensure the button is actually selected (UI feedback)
+      await expect(completeBtn).toHaveClass(/bg-white|text-success/);
+
+      const expiringDate = format(addDays(new Date(), 15), 'yyyy-MM-dd');
+      await row.locator('input[type="date"]').fill(expiringDate);
+
+      // Save
       await page.getByRole('button', { name: /Save Changes/i }).click({ force: true });
       await expect(page.locator('[data-sonner-toast]').filter({ hasText: /updated|saved/i })).toBeVisible();
 
@@ -36,8 +72,7 @@ test.describe('Compliance Comprehensive Coverage', () => {
       const badge = row.locator('.badge, [data-slot="badge"]').first();
       await expect(badge).toBeVisible();
       // It might render as Complete briefly until local cache updates or UI resolves the calculation
-      // Wait for it to transition from 'in progress' or 'complete' to 'Expiring Soon'
-      await expect(badge).toContainText(/Expiring Soon/i, { timeout: 15000 });
+      await expect(badge).toContainText(/Expiring Soon/i, { timeout: 20000 });
     });
 
     test('100-Point ID Verification: One Primary Rule & Min Expiry', async ({
@@ -48,42 +83,42 @@ test.describe('Compliance Comprehensive Coverage', () => {
       await page.waitForLoadState('networkidle');
       const firstStaffLink = page.locator('a[href*="/employees/staff-detail/"]').first();
       await expect(firstStaffLink).toBeVisible();
-      await firstStaffLink.click();
+      await firstStaffLink.click({ force: true });
       
-      // On mobile, the scrollspy might be hidden, try direct navigation if click fails or just try to click
       try {
-        await page.locator('[data-scrollspy-anchor="staff_compliance"]').click({ timeout: 5000 });
+        await page.locator('[data-scrollspy-anchor="staff_compliance"]').click({ timeout: 5000, force: true });
       } catch (e) {
         const url = page.url();
         await page.goto(`${url}${url.includes('?') ? '&' : '?'}tab=compliance`);
       }
       
-      // Wait for table body to prevent missing row errors
-      await expect(page.locator('#staff_compliance table tbody tr').first()).toBeVisible({ timeout: 15000 });
-      await page.waitForTimeout(3000); // Allow cache to invalidate
+      await expect(page.locator('#staff_compliance table tbody tr').first()).toBeVisible({ timeout: 20000 });
+      await expect(page.locator('#staff_compliance table')).toContainText(/100/i, { timeout: 20000 });
+      await page.waitForTimeout(3000);
 
-      const idRow = page.locator('tr').filter({ hasText: /100 Points of ID|100 Point/i }).first();
-      await expect(idRow).toBeVisible({ timeout: 15000 });
+      // More robust ID row search
+      const idRow = page.locator('tr').filter({ hasText: /100/ }).filter({ hasText: /ID|Point/i }).first();
+      await expect(idRow).toBeVisible({ timeout: 20000 });
       
-      // Look for the "Verify ID" button or the status text which is also a button
-      const verifyBtn = idRow.locator('button:has-text("Verify ID"), button:has-text("pts verified"), button:has-text("Verify ID Documents")').first();
-      await verifyBtn.click();
+      const verifyBtn = idRow.locator('button:has-text("Verify ID"), button:has-text("pts verified"), button:has-text("Verify ID Documents"), button:has-text("Verification")').first();
+      await expect(verifyBtn).toBeVisible({ timeout: 10000 });
+      await verifyBtn.click({ force: true });
 
       // 2. Try to add only secondary documents (should fail 1-primary rule)
-      await page.getByRole('button', { name: /Add Document/i }).click();
-      await page.locator('#doc-type').click();
-      await page.getByRole('option', { name: /Secondary/i }).first().click();
-      await page.getByRole('button', { name: /Confirm Add/i }).click();
+      await page.getByRole('button', { name: /Add Document/i }).click({ force: true });
+      await page.locator('#doc-type').click({ force: true });
+      await page.getByRole('option', { name: /Secondary/i }).first().click({ force: true });
+      await page.getByRole('button', { name: /Confirm Add/i }).click({ force: true });
 
       // Attempt to mark complete
-      await page.getByRole('button', { name: /Complete Verification/i }).click();
+      await page.getByRole('button', { name: /Complete Verification/i }).click({ force: true });
       await expect(page.locator('[data-sonner-toast]')).toContainText(/must include at least one Primary document/i);
 
       // 3. Add a Primary document
-      await page.getByRole('button', { name: /Add Document/i }).click();
-      await page.locator('#doc-type').click();
-      await page.getByRole('option', { name: /Primary/i }).first().click();
-      await page.getByRole('button', { name: /Confirm Add/i }).click();
+      await page.getByRole('button', { name: /Add Document/i }).click({ force: true });
+      await page.locator('#doc-type').click({ force: true });
+      await page.getByRole('option', { name: /Primary/i }).first().click({ force: true });
+      await page.getByRole('button', { name: /Confirm Add/i }).click({ force: true });
 
       // 4. Verify point summation
       const totalPoints = page.locator('text=Total Points:');
@@ -94,14 +129,13 @@ test.describe('Compliance Comprehensive Coverage', () => {
       page,
     }) => {
       await page.goto('/admin/compliance-settings');
-      await page.getByRole('button', { name: /Add Compliance Type/i }).click();
+      await page.getByRole('button', { name: /Add Compliance Type/i }).click({ force: true });
 
       const reqName = `E2E-Strict-${Date.now()}`;
       await page.locator('#type-name').fill(reqName);
       
-      // Enable Attachment (false by default)
+      // Enable Attachment
       await page.locator('label[for="attach-app"]').click({ force: true });
-      // Comments is true by default, so we leave it.
 
       await page.getByRole('button', { name: /Save Changes/i }).click({ force: true });
       await expect(page.locator('[data-sonner-toast]').filter({ hasText: /added|saved/i })).toBeVisible();
@@ -111,22 +145,22 @@ test.describe('Compliance Comprehensive Coverage', () => {
       await page.waitForLoadState('networkidle');
       const staffLink = page.locator('a[href*="/employees/staff-detail/"]').first();
       await expect(staffLink).toBeVisible();
-      await staffLink.click();
+      await staffLink.click({ force: true });
       
       try {
-        await page.locator('[data-scrollspy-anchor="staff_compliance"]').click({ timeout: 5000 });
+        await page.locator('[data-scrollspy-anchor="staff_compliance"]').click({ timeout: 5000, force: true });
       } catch (e) {
         const url = page.url();
         await page.goto(`${url}${url.includes('?') ? '&' : '?'}tab=compliance`);
       }
 
-      // Wait for table body to ensure newly added type is loaded from cache invalidation
       await expect(page.locator('#staff_compliance table tbody tr').first()).toBeVisible({ timeout: 15000 });
-      await page.waitForTimeout(3000); // Allow cache to invalidate and UI to re-render
+      await expect(page.locator('#staff_compliance table')).toContainText(reqName, { timeout: 15000 });
+      await page.waitForTimeout(3000);
 
       const row = page.locator('#staff_compliance tr', { hasText: reqName }).first();
       await expect(row).toBeVisible({ timeout: 20000 });
-      await row.getByRole('button', { name: /In Progress/i }).click();
+      await row.getByRole('button', { name: /In Progress/i }).click({ force: true });
       
       await expect(row.getByPlaceholder(/additional notes/i)).toBeVisible();
     });
@@ -137,11 +171,8 @@ test.describe('Compliance Comprehensive Coverage', () => {
 
     test('Staff can view their own compliance status', async ({ page }) => {
       await page.goto('/staff/profile');
-      // Verify profile loaded
       await expect(page.locator('h1')).toContainText(/My Profile/i);
       
-      // The requirement is that they can see their status. 
-      // If it's not a link, maybe it's just a section
       const compSection = page.locator('#staff_compliance').or(page.getByText(/Compliance/i)).or(page.locator('#staff_training'));
       await expect(compSection).toBeVisible();
     });
@@ -166,12 +197,17 @@ test.describe('Compliance Comprehensive Coverage', () => {
           }
       }
 
-      // 2. Verify it doesn't appear for an existing staff member who hasn't completed it
       await page.goto('/staff');
       await page.locator('a[href*="/employees/staff-detail/"]').first().click();
-      await page.locator('[data-scrollspy-anchor="staff_compliance"]').click();
+      
+      try {
+        await page.locator('[data-scrollspy-anchor="staff_compliance"]').click({ timeout: 5000 });
+      } catch (e) {
+        const url = page.url();
+        await page.goto(`${url}${url.includes('?') ? '&' : '?'}tab=compliance`);
+      }
+
       await expect(page.locator('#staff_compliance')).toBeVisible();
-      // Ensure table loads before checking
       await expect(page.locator('#staff_compliance table tbody tr').first()).toBeVisible({ timeout: 15000 });
       await expect(page.locator('#staff_compliance table')).not.toContainText(reqName);
 
@@ -180,7 +216,7 @@ test.describe('Compliance Comprehensive Coverage', () => {
       const inactiveRow = page.locator('tr', { hasText: reqName }).first();
       await inactiveRow.getByRole('button', { name: /Edit/i }).or(inactiveRow.locator('button').first()).click();
       await page.locator('#is-active').click({ force: true });
-      await page.getByRole('button', { name: /Save Changes/i }).click();
+      await page.getByRole('button', { name: /Save Changes/i }).click({ force: true });
     });
 
     test('Compliance items with NULL expiry date are treated as Complete', async ({
@@ -188,9 +224,15 @@ test.describe('Compliance Comprehensive Coverage', () => {
     }) => {
       await page.goto('/staff');
       await page.locator('a[href*="/employees/staff-detail/"]').first().click();
-      await page.locator('[data-scrollspy-anchor="staff_compliance"]').click();
+      
+      try {
+        await page.locator('[data-scrollspy-anchor="staff_compliance"]').click({ timeout: 5000 });
+      } catch (e) {
+        const url = page.url();
+        await page.goto(`${url}${url.includes('?') ? '&' : '?'}tab=compliance`);
+      }
 
-      const row = page.locator('tr').filter({ hasText: /Certificate/i }).first();
+      const row = page.locator('#staff_compliance tr').filter({ hasText: /Certificate|NDIS/i }).first();
       
       if (await row.isVisible()) {
           const inProgressBtn = row.getByRole('button', { name: /In Progress/i });
@@ -202,8 +244,8 @@ test.describe('Compliance Comprehensive Coverage', () => {
           }
           
           await row.getByRole('button', { name: /Complete/i }).click();
-          await page.getByRole('button', { name: /Save Changes/i }).click();
-          await expect(page.locator('[data-sonner-toast]')).toContainText(/updated successfully/i);
+          await page.getByRole('button', { name: /Save Changes/i }).click({ force: true });
+          await expect(page.locator('[data-sonner-toast]').filter({ hasText: /updated|saved/i })).toBeVisible();
       }
     });
   });

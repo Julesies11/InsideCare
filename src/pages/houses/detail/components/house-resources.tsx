@@ -2,7 +2,6 @@ import { useRef, useState } from 'react';
 import { HousePendingChanges } from '@/models/house-pending-changes';
 import {
   Clock,
-  Download,
   FileText,
   MapPin,
   Phone,
@@ -16,12 +15,6 @@ import { useHouseResources } from '@/hooks/useHouseResources';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger,
-} from '@/components/ui/context-menu';
 import {
   Dialog,
   DialogContent,
@@ -49,7 +42,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
-import { KeenIcon } from '@/components/keenicons';
 
 interface HouseResourcesProps {
   houseId?: string;
@@ -227,10 +219,15 @@ export function HouseResources({
       file_name: formData.file
         ? formData.file.name
         : formData.toDeleteFile
-          ? undefined
+          ? null
           : formData.fileName,
-      file_size: formData.file ? formData.file.size : undefined,
+      file_size: formData.file
+        ? formData.file.size
+        : formData.toDeleteFile
+          ? null
+          : undefined,
       toDeleteFile: formData.toDeleteFile,
+      oldFilePath: formData.toDeleteFile ? editingResource?.file_url : undefined,
       is_active: formData.is_active,
       house_id: houseId,
     };
@@ -283,11 +280,6 @@ export function HouseResources({
       onPendingChangesChange(newPending);
     }
     setShowResourceDialog(false);
-  };
-
-  const handleDownload = async (filePath: string, fileName: string) => {
-    const url = await getFileUrl(filePath, fileName);
-    if (url) window.open(url, '_blank');
   };
 
   const handleView = async (filePath: string) => {
@@ -461,170 +453,139 @@ export function HouseResources({
                       : mergedResource.file_size;
 
                     return (
-                      <ContextMenu
+                      <TableRow
                         key={mergedResource.id || mergedResource.tempId}
+                        className={cn(
+                          'cursor-default',
+                          isPendingAdd
+                            ? 'bg-primary/5'
+                            : isPendingDelete
+                              ? 'opacity-50 bg-destructive/5'
+                              : isPendingUpdate
+                                ? 'bg-warning/5'
+                                : '',
+                        )}
                       >
-                        <ContextMenuTrigger asChild>
-                          <TableRow
-                            className={cn(
-                              'cursor-context-menu',
-                              isPendingAdd
-                                ? 'bg-primary/5'
-                                : isPendingDelete
-                                  ? 'opacity-50 bg-destructive/5'
-                                  : isPendingUpdate
-                                    ? 'bg-warning/5'
-                                    : '',
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <div
+                              className={`flex flex-col ${isPendingDelete ? 'line-through' : ''}`}
+                            >
+                              <button
+                                onClick={() => handleEdit(mergedResource)}
+                                className="text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline text-left cursor-pointer"
+                              >
+                                {mergedResource.title}
+                              </button>
+                              {mergedResource.description && (
+                                <span className="text-xs text-muted-foreground line-clamp-2">
+                                  {mergedResource.description}
+                                </span>
+                              )}
+                            </div>
+                            {isPendingAdd && (
+                              <span className="text-xs text-primary flex items-center gap-1">
+                                <Clock className="size-3" />
+                                Pending add
+                              </span>
                             )}
+                            {isPendingUpdate && (
+                              <span className="text-xs text-warning flex items-center gap-1">
+                                <Clock className="size-3" />
+                                Pending update
+                              </span>
+                            )}
+                            {isPendingDelete && (
+                              <span className="text-xs text-destructive flex items-center gap-1">
+                                <Clock className="size-3" />
+                                Pending deletion
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant="outline"
+                            className={`text-xs border-${getCategoryColor(mergedResource.category)}-500 text-${getCategoryColor(mergedResource.category)}-700`}
                           >
-                            <TableCell>
-                              <div className="flex items-center gap-3">
+                            {mergedResource.category}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant="outline"
+                            className={`text-xs border-${getPriorityColor(mergedResource.priority)}-500 text-${getPriorityColor(mergedResource.priority)}-700`}
+                          >
+                            {mergedResource.priority}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm space-y-1">
+                            {mergedResource.phone && (
+                              <div className="flex items-center gap-2">
+                                <Phone className="size-4 text-muted-foreground" />
+                                <span>{mergedResource.phone}</span>
+                              </div>
+                            )}
+                            {mergedResource.address && (
+                              <div className="flex items-center gap-2">
+                                <MapPin className="size-4 text-muted-foreground" />
+                                <span className="line-clamp-2">
+                                  {mergedResource.address}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm">
+                            {fileName ? (
+                              <button
+                                type="button"
+                                className="flex items-center gap-2 cursor-pointer select-none group"
+                                onClick={() =>
+                                  mergedResource.file_url &&
+                                  handleView(mergedResource.file_url)
+                                }
+                                title="Click to view"
+                              >
                                 <img
                                   src={toAbsoluteUrl(
                                     `/media/file-types/${getFileIcon(fileName)}`,
                                   )}
-                                  className="size-8 shrink-0"
+                                  className="size-6 shrink-0 transition-opacity group-hover:opacity-80"
                                   alt="file icon"
                                 />
-                                <div
-                                  className={`flex flex-col ${isPendingDelete ? 'line-through' : ''}`}
-                                >
-                                  <button
-                                    onClick={() => handleEdit(mergedResource)}
-                                    className="text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline text-left"
-                                  >
-                                    {mergedResource.title}
-                                  </button>
-                                  {mergedResource.description && (
-                                    <span className="text-xs text-muted-foreground line-clamp-2">
-                                      {mergedResource.description}
-                                    </span>
-                                  )}
+                                <div>
+                                  <div className="line-clamp-1 text-muted-foreground group-hover:text-primary group-hover:underline transition-colors text-[10px]">
+                                    {fileName}
+                                  </div>
+                                  <div className="text-[9px] text-muted-foreground text-left">
+                                    {formatFileSize(fileSize)}
+                                  </div>
                                 </div>
-                                {isPendingAdd && (
-                                  <span className="text-xs text-primary flex items-center gap-1">
-                                    <Clock className="size-3" />
-                                    Pending add
-                                  </span>
-                                )}
-                                {isPendingUpdate && (
-                                  <span className="text-xs text-warning flex items-center gap-1">
-                                    <Clock className="size-3" />
-                                    Pending update
-                                  </span>
-                                )}
-                                {isPendingDelete && (
-                                  <span className="text-xs text-destructive flex items-center gap-1">
-                                    <Clock className="size-3" />
-                                    Pending deletion
-                                  </span>
-                                )}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <Badge
-                                variant="outline"
-                                className={`text-xs border-${getCategoryColor(mergedResource.category)}-500 text-${getCategoryColor(mergedResource.category)}-700`}
-                              >
-                                {mergedResource.category}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <Badge
-                                variant="outline"
-                                className={`text-xs border-${getPriorityColor(mergedResource.priority)}-500 text-${getPriorityColor(mergedResource.priority)}-700`}
-                              >
-                                {mergedResource.priority}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <div className="text-sm space-y-1">
-                                {mergedResource.phone && (
-                                  <div className="flex items-center gap-2">
-                                    <Phone className="size-4 text-muted-foreground" />
-                                    <span>{mergedResource.phone}</span>
-                                  </div>
-                                )}
-                                {mergedResource.address && (
-                                  <div className="flex items-center gap-2">
-                                    <MapPin className="size-4 text-muted-foreground" />
-                                    <span className="line-clamp-2">
-                                      {mergedResource.address}
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="text-sm">
-                                {fileName ? (
-                                  <div
-                                    className="flex items-center gap-2 cursor-pointer select-none group"
-                                    onClick={() =>
-                                      mergedResource.file_url &&
-                                      handleView(mergedResource.file_url)
-                                    }
-                                    title="Click to view"
-                                  >
-                                    <Download className="size-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                                    <div>
-                                      <div className="line-clamp-1 group-hover:text-primary group-hover:underline transition-colors">
-                                        {fileName}
-                                      </div>
-                                      <div className="text-xs text-muted-foreground">
-                                        {formatFileSize(fileSize)}
-                                      </div>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <span className="text-muted-foreground text-xs italic">
-                                    No attachment
-                                  </span>
-                                )}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <Badge
-                                variant={isActive ? 'outline' : 'secondary'}
-                                className={cn(
-                                  'text-[10px] uppercase font-bold',
-                                  isActive
-                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                    : 'bg-gray-100 text-gray-500 border-gray-200',
-                                )}
-                              >
-                                {isActive ? 'Active' : 'Inactive'}
-                              </Badge>
-                            </TableCell>
-                          </TableRow>
-                        </ContextMenuTrigger>
-
-                        <ContextMenuContent className="w-48">
-                          {mergedResource.file_url && (
-                            <ContextMenuItem
-                              onClick={() =>
-                                handleDownload(
-                                  mergedResource.file_url!,
-                                  mergedResource.file_name || 'resource',
-                                )
-                              }
-                            >
-                              <KeenIcon
-                                icon="cloud-download"
-                                className="me-2"
-                              />
-                              Download File
-                            </ContextMenuItem>
-                          )}
-                          <ContextMenuItem
-                            onClick={() => handleEdit(mergedResource)}
-                            disabled={!canAdd}
+                              </button>
+                            ) : (
+                              <span className="text-muted-foreground text-xs italic">
+                                No attachment
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={isActive ? 'outline' : 'secondary'}
+                            className={cn(
+                              'text-[10px] uppercase font-bold',
+                              isActive
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                : 'bg-gray-100 text-gray-500 border-gray-200',
+                            )}
                           >
-                            <KeenIcon icon="pencil" className="me-2" />
-                            Edit Resource
-                          </ContextMenuItem>
-                        </ContextMenuContent>
-                      </ContextMenu>
+                            {isActive ? 'Active' : 'Inactive'}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
                     );
                   })}
                 </TableBody>
@@ -792,6 +753,7 @@ export function HouseResources({
                       size="sm"
                       className="text-destructive hover:bg-destructive/10 shrink-0"
                       onClick={handleRemoveFile}
+                      title="Remove attachment"
                     >
                       <X className="size-4" />
                     </Button>

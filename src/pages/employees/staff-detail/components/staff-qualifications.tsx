@@ -1,16 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { staffDetailsApi } from '@/api/staff-details.api';
 import { StaffPendingChanges } from '@/models/staff-pending-changes';
 import { differenceInDays, format, parseISO } from 'date-fns';
 import {
-  CheckSquare,
   Clock,
-  Download,
   Edit,
-  ExternalLink,
-  FileText,
   Plus,
   Trash2,
+  Upload,
+  X,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -36,7 +34,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Textarea } from '@/components/ui/textarea';
+import { toAbsoluteUrl } from '@/lib/helpers';
 
 interface StaffQualificationsSectionProps {
   staffId?: string;
@@ -47,6 +45,36 @@ interface StaffQualificationsSectionProps {
 }
 
 type QualificationStatus = 'Current' | 'Expiring Soon' | 'Expired';
+
+const getFileIcon = (fileName?: string) => {
+  if (!fileName) return 'doc.svg';
+  const extension = fileName.split('.').pop()?.toLowerCase();
+  switch (extension) {
+    case 'pdf':
+      return 'pdf.svg';
+    case 'doc':
+    case 'docx':
+      return 'word.svg';
+    case 'xls':
+    case 'xlsx':
+      return 'excel.svg';
+    case 'jpg':
+    case 'jpeg':
+    case 'png':
+    case 'svg':
+      return 'image.svg';
+    case 'webp':
+      return 'image.svg';
+    case 'txt':
+      return 'text.svg';
+    case 'zip':
+    case 'rar':
+    case '7z':
+      return 'zip.svg';
+    default:
+      return 'doc.svg';
+  }
+};
 
 function calculateQualificationStatus(
   expiryDate?: string | null,
@@ -86,13 +114,16 @@ export function StaffQualificationsSection({
   const [editingItem, setEditingItem] = useState<StaffQualification | null>(
     null,
   );
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
     title: '',
     institution: '',
     date_completed: '',
     expiry_date: '',
+    file: null as File | null,
+    fileName: '',
+    toRemoveFile: false,
   });
 
   const {
@@ -110,12 +141,14 @@ export function StaffQualificationsSection({
 
   const handleAdd = () => {
     setEditingItem(null);
-    setSelectedFile(null);
     setFormData({
       title: '',
       institution: '',
       date_completed: '',
       expiry_date: '',
+      file: null,
+      fileName: '',
+      toRemoveFile: false,
     });
     setShowDialog(true);
   };
@@ -124,19 +157,39 @@ export function StaffQualificationsSection({
     item: StaffQualification | (StaffQualification & { tempId: string }),
   ) => {
     setEditingItem(item as StaffQualification);
-    setSelectedFile(null);
     setFormData({
       title: item.title,
       institution: item.institution || '',
       date_completed: item.date_completed || '',
       expiry_date: item.expiry_date || '',
+      file: (item as any).file || null,
+      fileName: (item as any).fileName || item.file_name || '',
+      toRemoveFile: false,
     });
     setShowDialog(true);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setSelectedFile(e.target.files[0]);
+      const file = e.target.files[0];
+      setFormData((prev) => ({
+        ...prev,
+        file: file,
+        fileName: file.name,
+        toRemoveFile: false,
+      }));
+    }
+  };
+
+  const handleRemoveFile = () => {
+    setFormData((prev) => ({
+      ...prev,
+      file: null,
+      fileName: '',
+      toRemoveFile: true,
+    }));
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -148,6 +201,22 @@ export function StaffQualificationsSection({
 
     if (!pendingChanges || !onPendingChangesChange) return;
 
+    const qualificationData: any = {
+      title: formData.title,
+      institution: formData.institution,
+      date_completed: formData.date_completed,
+      expiry_date: formData.expiry_date,
+      file: formData.toRemoveFile ? null : (formData.file || undefined),
+      fileName: formData.toRemoveFile ? null : (formData.fileName || undefined),
+      filePath: formData.toRemoveFile ? null : undefined,
+      file_name: formData.toRemoveFile ? null : undefined,
+      file_path: formData.toRemoveFile ? null : undefined,
+      oldFilePath:
+        formData.toRemoveFile && editingItem
+          ? editingItem.file_path || (editingItem as any).filePath
+          : undefined,
+    };
+
     if (editingItem) {
       if ((editingItem as any).tempId) {
         const newPending = {
@@ -158,13 +227,7 @@ export function StaffQualificationsSection({
               item.tempId === (editingItem as any).tempId
                 ? {
                     ...item,
-                    ...formData,
-                    file: (editingItem as any)._removeFile
-                      ? null
-                      : selectedFile || item.file,
-                    fileName: (editingItem as any)._removeFile
-                      ? null
-                      : selectedFile?.name || item.fileName,
+                    ...qualificationData,
                   }
                 : item,
             ),
@@ -182,12 +245,8 @@ export function StaffQualificationsSection({
               ),
               {
                 id: editingItem.id,
-                ...formData,
-                file: (editingItem as any)._removeFile ? null : selectedFile,
-                fileName: (editingItem as any)._removeFile
-                  ? null
-                  : selectedFile?.name,
                 filePath: editingItem.file_path,
+                ...qualificationData,
               },
             ],
           },
@@ -204,9 +263,7 @@ export function StaffQualificationsSection({
             ...pendingChanges.qualifications.toAdd,
             {
               tempId,
-              ...formData,
-              file: selectedFile,
-              fileName: selectedFile?.name,
+              ...qualificationData,
             },
           ],
         },
@@ -214,7 +271,6 @@ export function StaffQualificationsSection({
       onPendingChangesChange(newPending);
     }
     setShowDialog(false);
-    setSelectedFile(null);
   };
 
   const handleDelete = (item: any) => {
@@ -287,12 +343,19 @@ export function StaffQualificationsSection({
     onPendingChangesChange(newPending);
   };
 
-  const handleViewFile = async (filePath: string) => {
+  const handleViewFile = async (fileSource: string | File) => {
     try {
-      const signedUrl = await staffDetailsApi.documents.getAttachmentSignedUrl(
-        filePath,
-      );
-      window.open(signedUrl, '_blank');
+      if (typeof fileSource === 'string') {
+        const signedUrl = await staffDetailsApi.documents.getAttachmentSignedUrl(
+          fileSource,
+        );
+        window.open(signedUrl, '_blank');
+      } else {
+        const url = URL.createObjectURL(fileSource);
+        window.open(url, '_blank');
+        // Clean up URL after a delay
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
     } catch (error) {
       console.error('Error opening file:', error);
       toast.error('Failed to open document');
@@ -444,26 +507,27 @@ export function StaffQualificationsSection({
                       </TableCell>
                       <TableCell>
                         {hasFile ? (
-                          <div className="flex items-center gap-2 max-w-[120px]">
-                            <FileText className="size-3.5 text-primary shrink-0" />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleViewFile(itemFilePath || (item as any).file)
+                            }
+                            className="flex items-center gap-2 max-w-[150px] group cursor-pointer"
+                          >
+                            <img
+                              src={toAbsoluteUrl(
+                                `/media/file-types/${getFileIcon(itemFileName)}`,
+                              )}
+                              className="size-6 shrink-0 transition-opacity group-hover:opacity-80"
+                              alt="file icon"
+                            />
                             <span
-                              className="text-[10px] text-muted-foreground truncate"
+                              className="text-[10px] text-muted-foreground truncate group-hover:text-primary group-hover:underline transition-colors"
                               title={itemFileName || 'File'}
                             >
                               {itemFileName || 'File attached'}
                             </span>
-                            {itemFilePath && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="size-6 shrink-0"
-                                onClick={() => handleViewFile(itemFilePath)}
-                                title="View document"
-                              >
-                                <ExternalLink className="size-3.5 text-primary" />
-                              </Button>
-                            )}
-                          </div>
+                          </button>
                         ) : (
                           <span className="text-[10px] text-muted-foreground italic">
                             No document
@@ -479,6 +543,7 @@ export function StaffQualificationsSection({
                                 size="sm"
                                 onClick={() => handleEdit(item)}
                                 disabled={!canEdit}
+                                title="Edit qualification"
                               >
                                 <Edit className="size-4" />
                               </Button>
@@ -488,6 +553,7 @@ export function StaffQualificationsSection({
                                 className="text-destructive"
                                 onClick={() => handleDelete(item)}
                                 disabled={!canEdit}
+                                title="Delete qualification"
                               >
                                 <Trash2 className="size-4" />
                               </Button>
@@ -603,48 +669,62 @@ export function StaffQualificationsSection({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="file">Qualification Document</Label>
-              <div className="flex items-center gap-3">
-                <Input
-                  id="file"
+              <Label>Attachment</Label>
+              <div className="flex flex-col gap-2">
+                {formData.fileName ? (
+                  <div className="flex items-center justify-between p-3 border rounded-lg bg-gray-50">
+                    <div className="flex items-center gap-3 overflow-hidden">
+                      <img
+                        src={toAbsoluteUrl(
+                          `/media/file-types/${getFileIcon(formData.fileName)}`,
+                        )}
+                        className="size-8 shrink-0"
+                        alt="file icon"
+                      />
+                      <div className="flex flex-col overflow-hidden">
+                        <span className="text-sm font-medium truncate">
+                          {formData.fileName}
+                        </span>
+                        {formData.file && (
+                          <span className="text-xs text-muted-foreground">
+                            {Math.round(formData.file.size / 1024)} KB
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="text-destructive hover:bg-destructive/10 shrink-0"
+                      onClick={handleRemoveFile}
+                      title="Remove attachment"
+                    >
+                      <X className="size-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div
+                    className="flex flex-col items-center justify-center py-8 border-2 border-dashed rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <Upload className="size-8 text-muted-foreground mb-2" />
+                    <span className="text-sm font-medium">
+                      Click to upload or drag and drop
+                    </span>
+                    <span className="text-xs text-muted-foreground mt-1">
+                      PDF, DOC, DOCX, JPG, PNG up to 10MB
+                    </span>
+                  </div>
+                )}
+                <input
                   type="file"
+                  ref={fileInputRef}
+                  className="hidden"
                   onChange={handleFileChange}
                   accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                  className="flex-1"
                 />
-                {(selectedFile || editingItem?.file_name) && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-destructive border-destructive/20 hover:bg-destructive/5 gap-2"
-                    onClick={() => {
-                      setSelectedFile(null);
-                      if (editingItem) {
-                        (editingItem as any)._removeFile = true;
-                      }
-                      const input = document.getElementById(
-                        'file',
-                      ) as HTMLInputElement;
-                      if (input) input.value = '';
-                    }}
-                  >
-                    <Trash2 className="size-3.5" />
-                    Remove
-                  </Button>
-                )}
               </div>
-
-              {selectedFile ? (
-                <p className="text-[10px] text-primary font-bold flex items-center gap-1.5 mt-1 animate-pulse">
-                  <CheckSquare className="size-3" />
-                  New file selected: {selectedFile.name}
-                </p>
-              ) : editingItem?.file_name ? (
-                <p className="text-[10px] text-muted-foreground flex items-center gap-1.5 mt-1">
-                  <FileText className="size-3" />
-                  Current file: {editingItem.file_name}
-                </p>
-              ) : null}
             </div>
           </div>
           <DialogFooter>

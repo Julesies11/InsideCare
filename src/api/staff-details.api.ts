@@ -687,10 +687,11 @@ export const staffDetailsApi = {
           }
         } else if (t.file === null) {
           // Explicit removal
-          if (t.filePath || t.file_path) {
+          const pathToDelete = t.oldFilePath || t.filePath || (t as any).file_path;
+          if (pathToDelete) {
             await supabase.storage
               .from(STORAGE_BUCKETS.STAFF_DOCUMENTS)
-              .remove([t.filePath || t.file_path]);
+              .remove([pathToDelete]);
           }
           fileName = null;
           filePath = null;
@@ -785,10 +786,11 @@ export const staffDetailsApi = {
             errors.push(`Qualification File Update (${q.title}): ${e.message}`);
           }
         } else if (q.file === null) {
-          if (q.filePath || (q as any).file_path) {
+          const pathToDelete = q.oldFilePath || q.filePath || (q as any).file_path;
+          if (pathToDelete) {
             await supabase.storage
               .from(STORAGE_BUCKETS.STAFF_DOCUMENTS)
-              .remove([q.filePath || (q as any).file_path]);
+              .remove([pathToDelete]);
           }
           fileName = null;
           filePath = null;

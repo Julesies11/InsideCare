@@ -787,10 +787,10 @@ export const houseOperationsApi = {
           updates.is_active = res.is_active;
         }
 
-        if (res.toDeleteFile && res.file_url) {
+        if (res.toDeleteFile && (res.oldFilePath || res.file_url)) {
           await supabase.storage
             .from(STORAGE_BUCKETS.HOUSE_DOCUMENTS)
-            .remove([res.file_url]);
+            .remove([res.oldFilePath || res.file_url!]);
           updates.file_url = null;
           updates.file_name = null;
           updates.file_size = null;

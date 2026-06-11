@@ -29,9 +29,10 @@ export interface PendingStaffTraining {
   provider?: string | null;
   date_completed?: string | null;
   expiry_date?: string | null;
-  file?: File;
-  fileName?: string;
-  filePath?: string;
+  file?: File | null;
+  fileName?: string | null;
+  filePath?: string | null;
+  oldFilePath?: string | null;
 }
 
 export interface PendingStaffQualification {
@@ -41,9 +42,10 @@ export interface PendingStaffQualification {
   institution?: string | null;
   date_completed?: string | null;
   expiry_date?: string | null;
-  file?: File;
-  fileName?: string;
-  filePath?: string;
+  file?: File | null;
+  fileName?: string | null;
+  filePath?: string | null;
+  oldFilePath?: string | null;
 }
 
 export interface PendingStaffOnboarding {

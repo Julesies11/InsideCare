@@ -87,6 +87,13 @@ Facility-level documentation, contacts, and guidelines.
 - **Soft Delete**: Uses `is_active: boolean` to manage visibility. Inactive resources are preserved for audit purposes.
 - **Attachments**: Links to private storage files.
 
+### Attachment Deletion Pattern (Pending Changes)
+
+When implementing attachment deletion within a "Pending Changes" workflow:
+- **`oldFilePath` Standard**: Always include an `oldFilePath` property in the pending update model.
+- **State Preservation**: When a user removes a file, set `file_url`/`filePath` to `null` (for UI display) but store the original path in `oldFilePath`.
+- **API Sync**: The synchronization logic must check `oldFilePath` to perform the physical storage cleanup (e.g., `supabase.storage.remove()`) before updating the database record. This prevents losing the reference needed for storage cleanup when the display URL is nullified.
+
 ### 4. Operational Tables
 
 - **`ic_shift_notes`**: Flat normalization with 75+ clinical columns.

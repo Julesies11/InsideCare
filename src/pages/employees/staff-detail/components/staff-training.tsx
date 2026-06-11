@@ -1,15 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { staffDetailsApi } from '@/api/staff-details.api';
 import { StaffPendingChanges } from '@/models/staff-pending-changes';
 import { differenceInDays, format, parseISO } from 'date-fns';
 import {
-  CheckSquare,
   Clock,
-  Download,
   Edit,
-  FileText,
   Plus,
   Trash2,
+  Upload,
+  X,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -36,6 +35,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
+import { toAbsoluteUrl } from '@/lib/helpers';
 
 interface StaffTrainingSectionProps {
   staffId?: string;
@@ -46,6 +46,35 @@ interface StaffTrainingSectionProps {
 }
 
 type TrainingStatus = 'Current' | 'Expiring Soon' | 'Expired';
+
+const getFileIcon = (fileName?: string) => {
+  if (!fileName) return 'doc.svg';
+  const extension = fileName.split('.').pop()?.toLowerCase();
+  switch (extension) {
+    case 'pdf':
+      return 'pdf.svg';
+    case 'doc':
+    case 'docx':
+      return 'word.svg';
+    case 'xls':
+    case 'xlsx':
+      return 'excel.svg';
+    case 'jpg':
+    case 'jpeg':
+    case 'png':
+    case 'svg':
+    case 'webp':
+      return 'image.svg';
+    case 'txt':
+      return 'text.svg';
+    case 'zip':
+    case 'rar':
+    case '7z':
+      return 'zip.svg';
+    default:
+      return 'doc.svg';
+  }
+};
 
 function calculateTrainingStatus(expiryDate?: string | null): TrainingStatus {
   if (!expiryDate) return 'Current';
@@ -81,7 +110,7 @@ export function StaffTrainingSection({
 }: StaffTrainingSectionProps) {
   const [showDialog, setShowDialog] = useState(false);
   const [editingItem, setEditingItem] = useState<StaffTraining | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -90,6 +119,9 @@ export function StaffTrainingSection({
     provider: '',
     date_completed: '',
     expiry_date: '',
+    file: null as File | null,
+    fileName: '',
+    toRemoveFile: false,
   });
 
   const {
@@ -107,7 +139,6 @@ export function StaffTrainingSection({
 
   const handleAdd = () => {
     setEditingItem(null);
-    setSelectedFile(null);
     setFormData({
       title: '',
       category: '',
@@ -115,6 +146,9 @@ export function StaffTrainingSection({
       provider: '',
       date_completed: '',
       expiry_date: '',
+      file: null,
+      fileName: '',
+      toRemoveFile: false,
     });
     setShowDialog(true);
   };
@@ -123,7 +157,6 @@ export function StaffTrainingSection({
     item: StaffTraining | (StaffTraining & { tempId: string }),
   ) => {
     setEditingItem(item as StaffTraining);
-    setSelectedFile(null);
     setFormData({
       title: item.title,
       category: item.category,
@@ -131,13 +164,34 @@ export function StaffTrainingSection({
       provider: item.provider || '',
       date_completed: item.date_completed || '',
       expiry_date: item.expiry_date || '',
+      file: (item as any).file || null,
+      fileName: (item as any).fileName || item.file_name || '',
+      toRemoveFile: false,
     });
     setShowDialog(true);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setSelectedFile(e.target.files[0]);
+      const file = e.target.files[0];
+      setFormData((prev) => ({
+        ...prev,
+        file: file,
+        fileName: file.name,
+        toRemoveFile: false,
+      }));
+    }
+  };
+
+  const handleRemoveFile = () => {
+    setFormData((prev) => ({
+      ...prev,
+      file: null,
+      fileName: '',
+      toRemoveFile: true,
+    }));
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -149,6 +203,24 @@ export function StaffTrainingSection({
 
     if (!pendingChanges || !onPendingChangesChange) return;
 
+    const trainingData: any = {
+      title: formData.title,
+      category: formData.category,
+      description: formData.description,
+      provider: formData.provider,
+      date_completed: formData.date_completed,
+      expiry_date: formData.expiry_date,
+      file: formData.toRemoveFile ? null : (formData.file || undefined),
+      fileName: formData.toRemoveFile ? null : (formData.fileName || undefined),
+      filePath: formData.toRemoveFile ? null : undefined,
+      file_name: formData.toRemoveFile ? null : undefined,
+      file_path: formData.toRemoveFile ? null : undefined,
+      oldFilePath:
+        formData.toRemoveFile && editingItem
+          ? editingItem.file_path || (editingItem as any).filePath
+          : undefined,
+    };
+
     if (editingItem) {
       if ((editingItem as any).tempId) {
         const newPending = {
@@ -159,13 +231,7 @@ export function StaffTrainingSection({
               item.tempId === (editingItem as any).tempId
                 ? {
                     ...item,
-                    ...formData,
-                    file: (editingItem as any)._removeFile
-                      ? null
-                      : selectedFile || item.file,
-                    fileName: (editingItem as any)._removeFile
-                      ? null
-                      : selectedFile?.name || item.fileName,
+                    ...trainingData,
                   }
                 : item,
             ),
@@ -183,12 +249,8 @@ export function StaffTrainingSection({
               ),
               {
                 id: editingItem.id,
-                ...formData,
-                file: (editingItem as any)._removeFile ? null : selectedFile,
-                fileName: (editingItem as any)._removeFile
-                  ? null
-                  : selectedFile?.name,
                 filePath: editingItem.file_path,
+                ...trainingData,
               },
             ],
           },
@@ -205,9 +267,7 @@ export function StaffTrainingSection({
             ...pendingChanges.training.toAdd,
             {
               tempId,
-              ...formData,
-              file: selectedFile,
-              fileName: selectedFile?.name,
+              ...trainingData,
             },
           ],
         },
@@ -215,7 +275,6 @@ export function StaffTrainingSection({
       onPendingChangesChange(newPending);
     }
     setShowDialog(false);
-    setSelectedFile(null);
   };
 
   const handleDelete = (item: any) => {
@@ -288,22 +347,22 @@ export function StaffTrainingSection({
     onPendingChangesChange(newPending);
   };
 
-  const handleDownload = async (filePath: string) => {
+  const handleViewFile = async (fileSource: string | File) => {
     try {
-      const data = await staffDetailsApi.documents.downloadFile(filePath);
-
-      // Create a download link
-      const url = window.URL.createObjectURL(data);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filePath.split('/').pop() || 'download';
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      if (typeof fileSource === 'string') {
+        const signedUrl = await staffDetailsApi.documents.getAttachmentSignedUrl(
+          fileSource,
+        );
+        window.open(signedUrl, '_blank');
+      } else {
+        const url = URL.createObjectURL(fileSource);
+        window.open(url, '_blank');
+        // Clean up URL after a delay
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
     } catch (error) {
-      console.error('Error downloading file:', error);
-      toast.error('Failed to download file');
+      console.error('Error opening file:', error);
+      toast.error('Failed to open document');
     }
   };
 
@@ -450,25 +509,27 @@ export function StaffTrainingSection({
                       </TableCell>
                       <TableCell>
                         {hasFile ? (
-                          <div className="flex items-center gap-2 max-w-[120px]">
-                            <FileText className="size-3.5 text-primary shrink-0" />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleViewFile(itemFilePath || (item as any).file)
+                            }
+                            className="flex items-center gap-2 max-w-[150px] group cursor-pointer"
+                          >
+                            <img
+                              src={toAbsoluteUrl(
+                                `/media/file-types/${getFileIcon(itemFileName)}`,
+                              )}
+                              className="size-6 shrink-0 transition-opacity group-hover:opacity-80"
+                              alt="file icon"
+                            />
                             <span
-                              className="text-[10px] text-muted-foreground truncate"
+                              className="text-[10px] text-muted-foreground truncate group-hover:text-primary group-hover:underline transition-colors"
                               title={itemFileName || 'File'}
                             >
                               {itemFileName || 'File attached'}
                             </span>
-                            {itemFilePath && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="size-6 shrink-0"
-                                onClick={() => handleDownload(itemFilePath)}
-                              >
-                                <Download className="size-3" />
-                              </Button>
-                            )}
-                          </div>
+                          </button>
                         ) : (
                           <span className="text-[10px] text-muted-foreground italic">
                             No document
@@ -484,6 +545,7 @@ export function StaffTrainingSection({
                                 size="sm"
                                 onClick={() => handleEdit(item)}
                                 disabled={!canEdit}
+                                title="Edit training"
                               >
                                 <Edit className="size-4" />
                               </Button>
@@ -493,6 +555,7 @@ export function StaffTrainingSection({
                                 className="text-destructive"
                                 onClick={() => handleDelete(item)}
                                 disabled={!canEdit}
+                                title="Delete training"
                               >
                                 <Trash2 className="size-4" />
                               </Button>
@@ -636,51 +699,62 @@ export function StaffTrainingSection({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="file">Training Document</Label>
-              <div className="flex items-center gap-3">
-                <Input
-                  id="file"
+              <Label>Attachment</Label>
+              <div className="flex flex-col gap-2">
+                {formData.fileName ? (
+                  <div className="flex items-center justify-between p-3 border rounded-lg bg-gray-50">
+                    <div className="flex items-center gap-3 overflow-hidden">
+                      <img
+                        src={toAbsoluteUrl(
+                          `/media/file-types/${getFileIcon(formData.fileName)}`,
+                        )}
+                        className="size-8 shrink-0"
+                        alt="file icon"
+                      />
+                      <div className="flex flex-col overflow-hidden">
+                        <span className="text-sm font-medium truncate">
+                          {formData.fileName}
+                        </span>
+                        {formData.file && (
+                          <span className="text-xs text-muted-foreground">
+                            {Math.round(formData.file.size / 1024)} KB
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="text-destructive hover:bg-destructive/10 shrink-0"
+                      onClick={handleRemoveFile}
+                      title="Remove attachment"
+                    >
+                      <X className="size-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div
+                    className="flex flex-col items-center justify-center py-8 border-2 border-dashed rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <Upload className="size-8 text-muted-foreground mb-2" />
+                    <span className="text-sm font-medium">
+                      Click to upload or drag and drop
+                    </span>
+                    <span className="text-xs text-muted-foreground mt-1">
+                      PDF, DOC, DOCX, JPG, PNG up to 10MB
+                    </span>
+                  </div>
+                )}
+                <input
                   type="file"
+                  ref={fileInputRef}
+                  className="hidden"
                   onChange={handleFileChange}
                   accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                  className="flex-1"
                 />
-                {(selectedFile || editingItem?.file_name) && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-destructive border-destructive/20 hover:bg-destructive/5 gap-2"
-                    onClick={() => {
-                      setSelectedFile(null);
-                      if (editingItem) {
-                        // Mark for removal by setting file to null explicitly
-                        // We'll handle this in handleSave
-                        (editingItem as any)._removeFile = true;
-                      }
-                      // Reset file input
-                      const input = document.getElementById(
-                        'file',
-                      ) as HTMLInputElement;
-                      if (input) input.value = '';
-                    }}
-                  >
-                    <Trash2 className="size-3.5" />
-                    Remove
-                  </Button>
-                )}
               </div>
-
-              {selectedFile ? (
-                <p className="text-[10px] text-primary font-bold flex items-center gap-1.5 mt-1 animate-pulse">
-                  <CheckSquare className="size-3" />
-                  New file selected: {selectedFile.name}
-                </p>
-              ) : editingItem?.file_name ? (
-                <p className="text-[10px] text-muted-foreground flex items-center gap-1.5 mt-1">
-                  <FileText className="size-3" />
-                  Current file: {editingItem.file_name}
-                </p>
-              ) : null}
             </div>
           </div>
           <DialogFooter>
