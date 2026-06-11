@@ -1,4 +1,5 @@
 import { complianceApi } from '@/api/compliance.api';
+import { onboardingApi } from '@/api/onboarding.api';
 import {
   StaffComplianceSummaryRow,
   staffDetailsApi,
@@ -471,6 +472,109 @@ export function useIDDocumentTypes(includeInactive = false) {
     error: query.error ? (query.error as any).message : null,
     refresh: query.refetch,
   };
+}
+
+export function useStaffOnboardingSummary(staffId?: string) {
+  const query = useQuery({
+    queryKey: [QUERY_KEYS.STAFF_ONBOARDING, staffId],
+    queryFn: async () => {
+      if (!staffId) return [];
+      return staffDetailsApi.onboarding.getSummary(staffId);
+    },
+    enabled: !!staffId,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+
+  return {
+    ...query,
+    data: query.data || [],
+    isLoading: query.isLoading,
+    error: query.error ? (query.error as any).message : null,
+    refresh: query.refetch,
+  };
+}
+
+export function useOnboardingMonitoring(params: {
+  page: number;
+  pageSize: number;
+  searchTerm?: string;
+  statusFilter?: string[];
+  staffStatuses?: string[];
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}) {
+  const query = useQuery({
+    queryKey: ['onboarding-monitoring', params],
+    queryFn: () => onboardingApi.monitoring.getPaginatedList(params),
+    placeholderData: (previousData) => previousData,
+  });
+
+  return {
+    ...query,
+    data: query.data?.data || [],
+    totalCount: query.data?.totalCount || 0,
+    loading: query.isLoading,
+    error: query.error ? (query.error as any).message : null,
+    refresh: query.refetch,
+  };
+}
+
+export function useOnboardingItemsMaster(includeInactive = false) {
+  const query = useQuery({
+    queryKey: [QUERY_KEYS.ONBOARDING_ITEMS_MASTER, { includeInactive }],
+    queryFn: () => onboardingApi.master.list(includeInactive),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+
+  return {
+    ...query,
+    items: query.data || [],
+    loading: query.isLoading,
+    error: query.error ? (query.error as any).message : null,
+    refresh: query.refetch,
+  };
+}
+
+export function useAddOnboardingItemMaster() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (
+      newItem: Partial<
+        Database['public']['Tables']['ic_onboarding_items_master']['Insert']
+      >,
+    ) => onboardingApi.master.upsert(newItem),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.ONBOARDING_ITEMS_MASTER],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.STAFF_ONBOARDING],
+      });
+    },
+  });
+}
+
+export function useUpdateOnboardingItemMaster() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      updates,
+    }: {
+      id: string;
+      updates: Partial<
+        Database['public']['Tables']['ic_onboarding_items_master']['Update']
+      >;
+    }) => onboardingApi.master.upsert({ id, ...updates }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.ONBOARDING_ITEMS_MASTER],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.STAFF_ONBOARDING],
+      });
+    },
+  });
 }
 
 export function useAddIDDocumentType() {

@@ -33,6 +33,7 @@ export const RBAC_MODULES = {
   STAFF_COMPLIANCE: 'staff_compliance',
   STAFF_TRAINING: 'staff_training',
   STAFF_DOCUMENTS: 'staff_documents',
+  STAFF_ONBOARDING: 'staff_onboarding',
   STAFF_ROSTER: 'staff_roster',
   STAFF_LEAVE: 'staff_leave',
   STAFF_WARNINGS: 'staff_warnings',
@@ -53,6 +54,8 @@ export const RBAC_MODULES = {
   // System Administration
   ACCESS_CONTROL: 'access_control',
   MASTER_LISTS: 'master_lists',
+  ADMIN_COMPLIANCE: 'admin_compliance',
+  ADMIN_ONBOARDING: 'admin_onboarding',
   ACTIVITY_LOG: 'activity_log',
   HOUSE_ACTIVITY_LOG: 'house_activity_log',
   INCIDENT_MANAGEMENT: 'incident_management',

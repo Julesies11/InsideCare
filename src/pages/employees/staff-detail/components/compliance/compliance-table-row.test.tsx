@@ -1,5 +1,5 @@
 import { ResolvedComplianceItem } from '@/models/compliance.types';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { ComplianceTableRow } from './compliance-table-row';
 
@@ -18,7 +18,7 @@ describe('ComplianceTableRow', () => {
     expiryDate: '2025-12-31',
     docNumber: 'REF-123',
     comments: 'Test comments',
-    status: 'Complete',
+    status: 'complete',
     isTemp: false,
     isPendingDelete: false,
     isPendingUpdate: false,
@@ -30,7 +30,7 @@ describe('ComplianceTableRow', () => {
     userName: 'John Doe',
     item: mockItem,
     canEdit: true,
-    onToggle: vi.fn(),
+    onStatusChange: vi.fn(),
     onFieldChange: vi.fn(),
     onAddAttachment: vi.fn(),
     onRemoveAttachment: vi.fn(),
@@ -57,7 +57,7 @@ describe('ComplianceTableRow', () => {
       ...mockItem,
       systemCategory: 'id_verification',
       complianceName: 'Any Name',
-      isCompleted: false,
+      status: 'Missing',
     };
     render(
       <table>
@@ -71,7 +71,7 @@ describe('ComplianceTableRow', () => {
     expect(screen.getByText(/Verify ID Documents/i)).toBeInTheDocument();
   });
 
-  it('triggers onToggle when checkbox is clicked', () => {
+  it('renders status buttons correctly', () => {
     render(
       <table>
         <tbody>
@@ -80,14 +80,8 @@ describe('ComplianceTableRow', () => {
       </table>,
     );
 
-    const checkbox = screen.getByRole('checkbox');
-    fireEvent.click(checkbox);
-
-    expect(mockProps.onToggle).toHaveBeenCalledWith(
-      'req-1',
-      'rec-1',
-      'Standard Requirement',
-      false,
-    );
+    expect(screen.getByTitle('Mark as Complete')).toBeInTheDocument();
+    expect(screen.getByTitle('Mark as In Progress')).toBeInTheDocument();
+    expect(screen.getByTitle('Mark as Not Applicable')).toBeInTheDocument();
   });
 });

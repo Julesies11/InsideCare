@@ -47,6 +47,7 @@ export const TABLES = {
   STAFF_TRAINING: 'ic_staff_training',
   STAFF_DOCUMENTS: 'ic_staff_documents',
   STAFF_DOCUMENT_ROLES: 'ic_staff_document_roles',
+  STAFF_ONBOARDING: 'ic_staff_onboarding',
   STAFF_SHIFTS: 'ic_staff_shifts',
 
   // Operations
@@ -77,6 +78,7 @@ export const TABLES = {
   RESTRICTIVE_PRACTICE_TYPES_MASTER: 'ic_restrictive_practice_types_master',
   COMPLIANCE_TYPES_MASTER: 'ic_compliance_types_master',
   ID_DOCUMENT_TYPES: 'ic_id_document_types',
+  ONBOARDING_ITEMS_MASTER: 'ic_onboarding_items_master',
 
   // Enums (PostgreSQL Enums don't need 'ic_' prefix in queries but might be useful to track)
   SHIFT_PERIOD_ENUM: 'ic_shift_period_enum',
@@ -91,3 +93,4 @@ export const TABLES = {
 } as const;
 
 export type TableName = (typeof TABLES)[keyof typeof TABLES];
+

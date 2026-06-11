@@ -129,9 +129,19 @@ const ComplianceSettingsPage = lazy(() =>
     (m) => ({ default: m.ComplianceSettingsPage }),
   ),
 );
+const OnboardingSettingsPage = lazy(() =>
+  import('@/pages/admin/onboarding-settings/onboarding-settings-page').then(
+    (m) => ({ default: m.OnboardingSettingsPage }),
+  ),
+);
 const ComplianceMonitoringPage = lazy(() =>
   import('@/pages/admin/compliance-monitoring/compliance-monitoring-page').then(
     (m) => ({ default: m.ComplianceMonitoringPage }),
+  ),
+);
+const OnboardingMonitoringPage = lazy(() =>
+  import('@/pages/admin/onboarding-monitoring/onboarding-monitoring-page').then(
+    (m) => ({ default: m.OnboardingMonitoringPage }),
   ),
 );
 const RolesPage = lazy(() =>
@@ -167,6 +177,11 @@ const ParticipantsReportPage = lazy(() =>
 const ComplianceReportPage = lazy(() =>
   import('@/pages/admin/reporting/compliance-report-page').then((m) => ({
     default: m.ComplianceReportPage,
+  })),
+);
+const OnboardingReportPage = lazy(() =>
+  import('@/pages/admin/reporting/onboarding-report-page').then((m) => ({
+    default: m.OnboardingReportPage,
   })),
 );
 const NotificationCenter = lazy(() =>
@@ -377,9 +392,44 @@ export function AppRoutingSetup() {
                 path={`${ROUTES.REPORTING_CLINICAL_PARTICIPANTS}/:id?`}
                 element={<ParticipantsReportPage />}
               />
+            </Route>
+
+            {/* Combined Compliance & Onboarding Admin Protection */}
+            <Route
+              element={
+                <RequirePermission module={RBAC_MODULES.ADMIN_COMPLIANCE} />
+              }
+            >
+              <Route
+                path={ROUTES.COMPLIANCE_SETTINGS}
+                element={<ComplianceSettingsPage />}
+              />
+              <Route
+                path={ROUTES.COMPLIANCE_MONITORING}
+                element={<ComplianceMonitoringPage />}
+              />
               <Route
                 path={ROUTES.REPORT_COMPLIANCE}
                 element={<ComplianceReportPage />}
+              />
+            </Route>
+
+            <Route
+              element={
+                <RequirePermission module={RBAC_MODULES.ADMIN_ONBOARDING} />
+              }
+            >
+              <Route
+                path={ROUTES.ONBOARDING_SETTINGS}
+                element={<OnboardingSettingsPage />}
+              />
+              <Route
+                path={ROUTES.ONBOARDING_MONITORING}
+                element={<OnboardingMonitoringPage />}
+              />
+              <Route
+                path={ROUTES.REPORT_ONBOARDING}
+                element={<OnboardingReportPage />}
               />
             </Route>
 
@@ -396,14 +446,6 @@ export function AppRoutingSetup() {
                 <Route
                   path={ROUTES.LEAVE_TYPES}
                   element={<LeaveTypeMasterPage />}
-                />
-                <Route
-                  path={ROUTES.COMPLIANCE_SETTINGS}
-                  element={<ComplianceSettingsPage />}
-                />
-                <Route
-                  path={ROUTES.COMPLIANCE_MONITORING}
-                  element={<ComplianceMonitoringPage />}
                 />
               </Route>
               <Route path={ROUTES.ACCESS_CONTROL} element={<RolesPage />} />

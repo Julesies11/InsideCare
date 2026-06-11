@@ -290,7 +290,17 @@ export function ReportingHubPage() {
         icon: ShieldCheck,
         path: ROUTES.REPORT_COMPLIANCE,
         category: 'Compliance',
-        permission: RBAC_MODULES.REPORTING_CLINICAL,
+        permission: RBAC_MODULES.ADMIN_COMPLIANCE,
+        implemented: true,
+      },
+      {
+        title: 'Onboarding Audit',
+        description:
+          'Tracking of staff setup checklists and orientation progress.',
+        icon: ClipboardList,
+        path: ROUTES.REPORT_ONBOARDING,
+        category: 'Compliance',
+        permission: RBAC_MODULES.ADMIN_ONBOARDING,
         implemented: true,
       },
       {

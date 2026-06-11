@@ -1432,16 +1432,6 @@
   {
     "schemaname": "public",
     "tablename": "ic_medications_master",
-    "policyname": "RBAC ic_medications_master UPDATE",
-    "permissive": "PERMISSIVE",
-    "roles": "{authenticated}",
-    "cmd": "UPDATE",
-    "qual": "ic_jwt_is_admin()",
-    "with_check": null
-  },
-  {
-    "schemaname": "public",
-    "tablename": "ic_medications_master",
     "policyname": "RBAC medications_master UPDATE",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
@@ -1451,12 +1441,42 @@
   },
   {
     "schemaname": "public",
+    "tablename": "ic_medications_master",
+    "policyname": "RBAC ic_medications_master UPDATE",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "UPDATE",
+    "qual": "ic_jwt_is_admin()",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
     "tablename": "ic_notifications",
     "policyname": "RBAC notifications ALL",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "ALL",
     "qual": "((user_id = auth.uid()) OR ic_jwt_is_admin())",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "ic_onboarding_items_master",
+    "policyname": "Onboarding Items Admin ALL",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('admin_onboarding'::text) = 'full'::text))",
+    "with_check": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('admin_onboarding'::text) = 'full'::text))"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "ic_onboarding_items_master",
+    "policyname": "Onboarding Items Select",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('admin_onboarding'::text) <> 'none'::text) OR (ic_jwt_get_perm('staff_onboarding'::text) <> 'none'::text) OR (ic_jwt_get_perm('employees'::text) <> 'none'::text))",
     "with_check": null
   },
   {
@@ -2132,16 +2152,6 @@
   {
     "schemaname": "public",
     "tablename": "ic_shift_assigned_checklists",
-    "policyname": "RBAC ic_shift_assigned_checklists ALL (Admin)",
-    "permissive": "PERMISSIVE",
-    "roles": "{authenticated}",
-    "cmd": "ALL",
-    "qual": "ic_jwt_is_admin()",
-    "with_check": null
-  },
-  {
-    "schemaname": "public",
-    "tablename": "ic_shift_assigned_checklists",
     "policyname": "RBAC ic_shift_assigned_checklists - Roster Manager",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
@@ -2152,11 +2162,11 @@
   {
     "schemaname": "public",
     "tablename": "ic_shift_assigned_checklists",
-    "policyname": "RBAC shift_assigned_checklists SELECT (Roster Board)",
+    "policyname": "RBAC ic_shift_assigned_checklists ALL (Admin)",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
-    "cmd": "SELECT",
-    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('roster_board'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR ((ic_jwt_get_perm('roster_board'::text) = ANY (ARRAY['context_read_write'::text, 'context_read_only'::text])) AND ic_jwt_has_house(house_id)))",
+    "cmd": "ALL",
+    "qual": "ic_jwt_is_admin()",
     "with_check": null
   },
   {
@@ -2171,12 +2181,12 @@
   },
   {
     "schemaname": "public",
-    "tablename": "ic_shift_notes",
-    "policyname": "RBAC ic_shift_notes ALL (Admin)",
+    "tablename": "ic_shift_assigned_checklists",
+    "policyname": "RBAC shift_assigned_checklists SELECT (Roster Board)",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
-    "cmd": "ALL",
-    "qual": "ic_jwt_is_admin()",
+    "cmd": "SELECT",
+    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('roster_board'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR ((ic_jwt_get_perm('roster_board'::text) = ANY (ARRAY['context_read_write'::text, 'context_read_only'::text])) AND ic_jwt_has_house(house_id)))",
     "with_check": null
   },
   {
@@ -2187,6 +2197,16 @@
     "roles": "{authenticated}",
     "cmd": "ALL",
     "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('shift_notes'::text) = 'full'::text) OR (ic_jwt_get_perm('participant_shift_notes'::text) = 'full'::text) OR (((ic_jwt_get_perm('shift_notes'::text) = 'context_read_write'::text) OR (ic_jwt_get_perm('participant_shift_notes'::text) = 'context_read_write'::text)) AND (EXISTS ( SELECT 1\n   FROM ic_participants p\n  WHERE ((p.id = ic_shift_notes.participant_id) AND ic_jwt_has_house(p.house_id))))))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "ic_shift_notes",
+    "policyname": "RBAC ic_shift_notes ALL (Admin)",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "ic_jwt_is_admin()",
     "with_check": null
   },
   {
@@ -2262,21 +2282,21 @@
   {
     "schemaname": "public",
     "tablename": "ic_shift_participants",
-    "policyname": "RBAC staff_participants SELECT",
-    "permissive": "PERMISSIVE",
-    "roles": "{authenticated}",
-    "cmd": "SELECT",
-    "qual": "(ic_jwt_is_admin() OR (EXISTS ( SELECT 1\n   FROM ic_staff_shifts ss\n  WHERE ((ss.id = ic_shift_participants.shift_id) AND (ss.staff_id = ic_jwt_get_staff_id())))))",
-    "with_check": null
-  },
-  {
-    "schemaname": "public",
-    "tablename": "ic_shift_participants",
     "policyname": "RBAC staff_participants SELECT (Roster Board)",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "SELECT",
     "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('roster_board'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR ((ic_jwt_get_perm('roster_board'::text) = ANY (ARRAY['context_read_write'::text, 'context_read_only'::text])) AND (EXISTS ( SELECT 1\n   FROM ic_staff_shifts ss\n  WHERE ((ss.id = ic_shift_participants.shift_id) AND ic_jwt_has_house(ss.house_id))))))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "ic_shift_participants",
+    "policyname": "RBAC staff_participants SELECT",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(ic_jwt_is_admin() OR (EXISTS ( SELECT 1\n   FROM ic_staff_shifts ss\n  WHERE ((ss.id = ic_shift_participants.shift_id) AND (ss.staff_id = ic_jwt_get_staff_id())))))",
     "with_check": null
   },
   {
@@ -2392,11 +2412,11 @@
   {
     "schemaname": "public",
     "tablename": "ic_staff",
-    "policyname": "RBAC staff SELECT SELF",
+    "policyname": "RBAC staff SELECT",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "SELECT",
-    "qual": "(auth_user_id = auth.uid())",
+    "qual": "(ic_jwt_is_admin() OR (auth.uid() = auth_user_id) OR (ic_jwt_get_perm('employees'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR ((ic_jwt_get_perm('employees'::text) = ANY (ARRAY['context_read_write'::text, 'context_read_only'::text])) AND (ic_jwt_manages_staff(id) OR (EXISTS ( SELECT 1\n   FROM ic_house_staff_assignments hsa\n  WHERE ((hsa.staff_id = ic_staff.id) AND ic_jwt_has_house(hsa.house_id)))))))",
     "with_check": null
   },
   {
@@ -2412,11 +2432,11 @@
   {
     "schemaname": "public",
     "tablename": "ic_staff",
-    "policyname": "RBAC staff SELECT",
+    "policyname": "RBAC staff SELECT SELF",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "SELECT",
-    "qual": "(ic_jwt_is_admin() OR (auth.uid() = auth_user_id) OR (ic_jwt_get_perm('employees'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR ((ic_jwt_get_perm('employees'::text) = ANY (ARRAY['context_read_write'::text, 'context_read_only'::text])) AND (ic_jwt_manages_staff(id) OR (EXISTS ( SELECT 1\n   FROM ic_house_staff_assignments hsa\n  WHERE ((hsa.staff_id = ic_staff.id) AND ic_jwt_has_house(hsa.house_id)))))))",
+    "qual": "(auth_user_id = auth.uid())",
     "with_check": null
   },
   {
@@ -2512,16 +2532,6 @@
   {
     "schemaname": "public",
     "tablename": "ic_staff_documents",
-    "policyname": "RBAC staff_documents ALL",
-    "permissive": "PERMISSIVE",
-    "roles": "{authenticated}",
-    "cmd": "ALL",
-    "qual": "(ic_jwt_is_admin() OR (COALESCE(( SELECT (pdr.access_level)::text AS access_level\n   FROM ic_staff_document_roles pdr\n  WHERE ((pdr.document_id = ic_staff_documents.id) AND (pdr.role_id = ic_jwt_get_role_id()))), ic_jwt_get_perm('staff_documents'::text)) = 'full'::text) OR ((COALESCE(( SELECT (pdr.access_level)::text AS access_level\n   FROM ic_staff_document_roles pdr\n  WHERE ((pdr.document_id = ic_staff_documents.id) AND (pdr.role_id = ic_jwt_get_role_id()))), ic_jwt_get_perm('staff_documents'::text)) = 'context_read_write'::text) AND ic_jwt_manages_staff(staff_id)) OR (staff_id = ic_jwt_get_staff_id()))",
-    "with_check": null
-  },
-  {
-    "schemaname": "public",
-    "tablename": "ic_staff_documents",
     "policyname": "RBAC ic_staff_documents ALL (Admin)",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
@@ -2532,11 +2542,51 @@
   {
     "schemaname": "public",
     "tablename": "ic_staff_documents",
+    "policyname": "RBAC staff_documents ALL",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "(ic_jwt_is_admin() OR (COALESCE(( SELECT (pdr.access_level)::text AS access_level\n   FROM ic_staff_document_roles pdr\n  WHERE ((pdr.document_id = ic_staff_documents.id) AND (pdr.role_id = ic_jwt_get_role_id()))), ic_jwt_get_perm('staff_documents'::text)) = 'full'::text) OR ((COALESCE(( SELECT (pdr.access_level)::text AS access_level\n   FROM ic_staff_document_roles pdr\n  WHERE ((pdr.document_id = ic_staff_documents.id) AND (pdr.role_id = ic_jwt_get_role_id()))), ic_jwt_get_perm('staff_documents'::text)) = 'context_read_write'::text) AND ic_jwt_manages_staff(staff_id)) OR (staff_id = ic_jwt_get_staff_id()))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "ic_staff_documents",
     "policyname": "RBAC staff_documents SELECT",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "SELECT",
     "qual": "(ic_jwt_is_admin() OR (COALESCE(( SELECT (pdr.access_level)::text AS access_level\n   FROM ic_staff_document_roles pdr\n  WHERE ((pdr.document_id = ic_staff_documents.id) AND (pdr.role_id = ic_jwt_get_role_id()))), ic_jwt_get_perm('staff_documents'::text)) = ANY (ARRAY['full'::text, 'read_only'::text])) OR ((COALESCE(( SELECT (pdr.access_level)::text AS access_level\n   FROM ic_staff_document_roles pdr\n  WHERE ((pdr.document_id = ic_staff_documents.id) AND (pdr.role_id = ic_jwt_get_role_id()))), ic_jwt_get_perm('staff_documents'::text)) = ANY (ARRAY['context_read_write'::text, 'context_read_only'::text])) AND ic_jwt_manages_staff(staff_id)) OR (staff_id = ic_jwt_get_staff_id()))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "ic_staff_onboarding",
+    "policyname": "Staff Onboarding Write",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('admin_onboarding'::text) = 'full'::text) OR (ic_jwt_get_perm('staff_onboarding'::text) = 'full'::text) OR ((ic_jwt_get_perm('staff_onboarding'::text) = 'context_read_write'::text) AND ic_jwt_manages_staff(staff_id)))",
+    "with_check": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('admin_onboarding'::text) = 'full'::text) OR (ic_jwt_get_perm('staff_onboarding'::text) = 'full'::text) OR ((ic_jwt_get_perm('staff_onboarding'::text) = 'context_read_write'::text) AND ic_jwt_manages_staff(staff_id)))"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "ic_staff_onboarding",
+    "policyname": "Staff Onboarding Select",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('admin_onboarding'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR (ic_jwt_get_perm('staff_onboarding'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR ((ic_jwt_get_perm('staff_onboarding'::text) = ANY (ARRAY['context_read_write'::text, 'context_read_only'::text])) AND ic_jwt_manages_staff(staff_id)) OR (ic_jwt_get_staff_id() = staff_id))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "ic_staff_shifts",
+    "policyname": "RBAC ic_staff_shifts - Roster Manager",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "ALL",
+    "qual": "((ic_jwt_get_perm('roster_board'::text) = 'full'::text) OR ((ic_jwt_get_perm('roster_board'::text) = 'context_read_write'::text) AND ic_jwt_has_house(house_id)))",
     "with_check": null
   },
   {
@@ -2552,11 +2602,11 @@
   {
     "schemaname": "public",
     "tablename": "ic_staff_shifts",
-    "policyname": "RBAC ic_staff_shifts - Roster Manager",
+    "policyname": "RBAC ic_staff_shifts SELECT",
     "permissive": "PERMISSIVE",
-    "roles": "{public}",
-    "cmd": "ALL",
-    "qual": "((ic_jwt_get_perm('roster_board'::text) = 'full'::text) OR ((ic_jwt_get_perm('roster_board'::text) = 'context_read_write'::text) AND ic_jwt_has_house(house_id)))",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(ic_jwt_is_admin() OR (staff_id = ic_jwt_get_staff_id()) OR (ic_jwt_get_perm('my_roster'::text) = ANY (ARRAY['full'::text, 'read_only'::text])))",
     "with_check": null
   },
   {
@@ -2581,12 +2631,12 @@
   },
   {
     "schemaname": "public",
-    "tablename": "ic_staff_shifts",
-    "policyname": "RBAC ic_staff_shifts SELECT",
+    "tablename": "ic_staff_training",
+    "policyname": "RBAC staff_training ALL",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
-    "cmd": "SELECT",
-    "qual": "(ic_jwt_is_admin() OR (staff_id = ic_jwt_get_staff_id()) OR (ic_jwt_get_perm('my_roster'::text) = ANY (ARRAY['full'::text, 'read_only'::text])))",
+    "cmd": "ALL",
+    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('staff_training'::text) = 'full'::text) OR ((ic_jwt_get_perm('staff_training'::text) = 'context_read_write'::text) AND ic_jwt_manages_staff(staff_id)))",
     "with_check": null
   },
   {
@@ -2597,16 +2647,6 @@
     "roles": "{authenticated}",
     "cmd": "ALL",
     "qual": "ic_jwt_is_admin()",
-    "with_check": null
-  },
-  {
-    "schemaname": "public",
-    "tablename": "ic_staff_training",
-    "policyname": "RBAC staff_training ALL",
-    "permissive": "PERMISSIVE",
-    "roles": "{authenticated}",
-    "cmd": "ALL",
-    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('staff_training'::text) = 'full'::text) OR ((ic_jwt_get_perm('staff_training'::text) = 'context_read_write'::text) AND ic_jwt_manages_staff(staff_id)))",
     "with_check": null
   },
   {

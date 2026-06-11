@@ -24,7 +24,7 @@ import {
   ShieldX,
   UserCheck,
 } from 'lucide-react';
-import { useParams } from 'react-router';
+import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAdminAuthStatus } from '@/hooks/use-auth-status';
 import {

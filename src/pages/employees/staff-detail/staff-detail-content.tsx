@@ -263,26 +263,6 @@ export function StaffDetailContent({
         separation_date: staffData.separation_date ?? '',
         availability: staffData.availability ?? '',
         notes: staffData.notes ?? '',
-        ndis_worker_screening_check:
-          staffData.ndis_worker_screening_check ?? false,
-        ndis_worker_screening_check_expiry:
-          staffData.ndis_worker_screening_check_expiry ?? '',
-        ndis_orientation_module: staffData.ndis_orientation_module ?? false,
-        ndis_orientation_module_expiry:
-          staffData.ndis_orientation_module_expiry ?? '',
-        ndis_code_of_conduct: staffData.ndis_code_of_conduct ?? false,
-        ndis_code_of_conduct_expiry:
-          staffData.ndis_code_of_conduct_expiry ?? '',
-        ndis_infection_control_training:
-          staffData.ndis_infection_control_training ?? false,
-        ndis_infection_control_training_expiry:
-          staffData.ndis_infection_control_training_expiry ?? '',
-        drivers_license: staffData.drivers_license ?? false,
-        drivers_license_expiry: staffData.drivers_license_expiry ?? '',
-        comprehensive_car_insurance:
-          staffData.comprehensive_car_insurance ?? false,
-        comprehensive_car_insurance_expiry:
-          staffData.comprehensive_car_insurance_expiry ?? '',
         status: staffData.status ?? 'draft',
       };
       setFormData(initialData);
@@ -314,6 +294,7 @@ export function StaffDetailContent({
 
   const [refreshKeys, setRefreshKeys] = useState({
     compliance: 0,
+    onboarding: 0,
     resources: 0,
     training: 0,
     activityLog: 0,
@@ -513,9 +494,13 @@ export function StaffDetailContent({
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.STAFF_DOCUMENTS, staffId],
       });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.STAFF_ONBOARDING, staffId],
+      });
 
       setRefreshKeys((prev) => ({
         compliance: prev.compliance + 1,
+        onboarding: prev.onboarding + 1,
         resources: prev.resources + 1,
         training: prev.training + 1,
         activityLog: prev.activityLog + 1,
@@ -600,7 +585,7 @@ export function StaffDetailContent({
       )}
       <div className="flex flex-col items-stretch grow gap-5 lg:gap-7.5">
         <StaffDetailForm
-          key={`staff-form-${refreshKeys.compliance}-${refreshKeys.resources}-${refreshKeys.training}-${refreshKeys.activityLog}`}
+          key={`staff-form-${refreshKeys.compliance}-${refreshKeys.onboarding}-${refreshKeys.resources}-${refreshKeys.training}-${refreshKeys.activityLog}`}
           staffId={staffId}
           formData={{ ...formData, photo_url_preview: photoPreview }}
           onFormDataChange={(data) => {
@@ -644,3 +629,4 @@ export function StaffDetailContent({
     </div>
   );
 }
+

@@ -6,6 +6,7 @@ import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TABLES } from '@/config/db-tables';
 import { StaffDetailPage } from './staff-detail-page';
+import { Route, Routes } from 'react-router-dom';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
@@ -16,15 +17,6 @@ const mockStaff: Partial<StaffRow> = {
   status: 'active',
   auth_user_id: 'test-user-id',
 };
-
-// Mock useParams
-vi.mock('react-router', async () => {
-  const actual = await vi.importActual('react-router');
-  return {
-    ...actual,
-    useParams: () => ({ id: 'staff-1' }),
-  };
-});
 
 // Mock hooks that use browser APIs
 vi.mock('@/hooks/use-mobile', () => ({
@@ -52,8 +44,17 @@ describe('StaffDetailPage', () => {
     );
   });
 
+  const renderPage = () => {
+    return renderWithProviders(
+      <Routes>
+        <Route path="/staff/:id" element={<StaffDetailPage />} />
+      </Routes>,
+      { route: '/staff/staff-1' }
+    );
+  };
+
   it('renders the page with toolbar and content', async () => {
-    renderWithProviders(<StaffDetailPage />);
+    renderPage();
 
     expect(
       screen.getByRole('heading', { name: /staff details/i }),
@@ -68,7 +69,7 @@ describe('StaffDetailPage', () => {
   });
 
   it('enables save button when data is changed', async () => {
-    const { user } = renderWithProviders(<StaffDetailPage />);
+    const { user } = renderPage();
 
     await waitFor(
       () => {
@@ -107,7 +108,7 @@ describe('StaffDetailPage', () => {
       ),
     );
 
-    const { user } = renderWithProviders(<StaffDetailPage />);
+    const { user } = renderPage();
 
     await waitFor(
       () => {

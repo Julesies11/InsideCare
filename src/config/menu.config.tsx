@@ -173,17 +173,34 @@ export const MENU_SIDEBAR: MenuItemConfig[] = [
   {
     title: 'Compliance',
     icon: ShieldCheck,
-    permission: RBAC_MODULES.MASTER_LISTS,
+    permission: RBAC_MODULES.ADMIN_COMPLIANCE,
     children: [
       {
         title: 'Compliance Monitoring',
         path: ROUTES.COMPLIANCE_MONITORING,
-        permission: RBAC_MODULES.MASTER_LISTS,
+        permission: RBAC_MODULES.ADMIN_COMPLIANCE,
       },
       {
         title: 'Compliance Settings',
         path: ROUTES.COMPLIANCE_SETTINGS,
-        permission: RBAC_MODULES.MASTER_LISTS,
+        permission: RBAC_MODULES.ADMIN_COMPLIANCE,
+      },
+    ],
+  },
+  {
+    title: 'Onboarding',
+    icon: ClipboardList,
+    permission: RBAC_MODULES.ADMIN_ONBOARDING,
+    children: [
+      {
+        title: 'Onboarding Monitoring',
+        path: ROUTES.ONBOARDING_MONITORING,
+        permission: RBAC_MODULES.ADMIN_ONBOARDING,
+      },
+      {
+        title: 'Onboarding Settings',
+        path: ROUTES.ONBOARDING_SETTINGS,
+        permission: RBAC_MODULES.ADMIN_ONBOARDING,
       },
     ],
   },

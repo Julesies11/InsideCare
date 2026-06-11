@@ -228,6 +228,47 @@ export const staffDetailsApi = {
   },
 
   /**
+   * Onboarding
+   */
+  onboarding: {
+    async getSummary(staffId: string) {
+      const [actualRecordsResult, masterItemsResult] = await Promise.all([
+        supabase
+          .from(TABLES.STAFF_ONBOARDING)
+          .select('*')
+          .eq('staff_id', staffId),
+        supabase
+          .from(TABLES.ONBOARDING_ITEMS_MASTER)
+          .select('*')
+          .order('sort_order', { ascending: true }),
+      ]);
+
+      if (actualRecordsResult.error) throw actualRecordsResult.error;
+      if (masterItemsResult.error) throw masterItemsResult.error;
+
+      const masterItems = masterItemsResult.data || [];
+      const actualRecords = actualRecordsResult.error ? [] : actualRecordsResult.data || [];
+
+      // Contextual Filtering:
+      // Include all active master items + any inactive master items that already have a staff record
+      return masterItems
+        .filter(m => m.is_active || actualRecords.some(r => r.onboarding_item_id === m.id))
+        .map(item => {
+          const record = actualRecords.find(r => r.onboarding_item_id === item.id);
+          return {
+            item_id: item.id,
+            item_name: item.item_name,
+            description: item.description,
+            record_id: record?.id || null,
+            is_complete: record?.is_complete || false,
+            comments: record?.comments || '',
+            updated_at: record?.updated_at || null,
+          };
+        });
+    }
+  },
+
+  /**
    * Documents
    */
   documents: {
@@ -514,7 +555,32 @@ export const staffDetailsApi = {
       if (error) errors.push(`Compliance Delete: ${error.message}`);
     }
 
-    // 2. Process Training
+    // 2. Process Onboarding
+    const onboardingToUpsert = pending?.onboarding?.toUpsert || [];
+    if (onboardingToUpsert.length > 0) {
+      const payload = onboardingToUpsert.map((item) => ({
+        staff_id: staffId,
+        onboarding_item_id: item.onboarding_item_id,
+        is_complete: item.is_complete,
+        comments: item.comments || null,
+      }));
+
+      const { error } = await supabase
+        .from(TABLES.STAFF_ONBOARDING)
+        .upsert(payload, { onConflict: 'staff_id,onboarding_item_id' });
+
+      if (error) errors.push(`Onboarding Upsert: ${error.message}`);
+    }
+
+    if (pending?.onboarding?.toDelete?.length > 0) {
+      const { error } = await supabase
+        .from(TABLES.STAFF_ONBOARDING)
+        .delete()
+        .in('id', pending.onboarding.toDelete);
+      if (error) errors.push(`Onboarding Delete: ${error.message}`);
+    }
+
+    // 3. Process Training
     if (pending?.training?.toAdd?.length > 0) {
       for (const t of pending.training.toAdd) {
         let fileName = t.fileName || null;
