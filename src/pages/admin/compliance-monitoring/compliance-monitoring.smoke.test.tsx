@@ -4,7 +4,7 @@ import { useComplianceMonitoring, useComplianceTypes } from '@/hooks/use-staff';
 import { ComplianceMonitoringPage } from './compliance-monitoring-page';
 
 // Fix for React Router v7 context issues
-vi.mock('react-router-dom', async (importOriginal) => {
+vi.mock('react-router', async (importOriginal) => {
   const actual = await importOriginal<any>();
   const reactRouter = await import('react-router');
   return {
