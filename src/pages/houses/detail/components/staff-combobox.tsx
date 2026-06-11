@@ -1,12 +1,23 @@
 import { useState } from 'react';
 import { Check, ChevronsUpDown } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { SecureAvatar } from '@/components/ui/secure-avatar';
-import { useActiveStaff } from '@/hooks/use-staff';
 import { STORAGE_BUCKETS } from '@/config/storage-buckets';
+import { cn } from '@/lib/utils';
+import { useActiveStaff } from '@/hooks/use-staff';
+import { Button } from '@/components/ui/button';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { SecureAvatar } from '@/components/ui/secure-avatar';
 
 interface StaffComboboxProps {
   value?: string;
@@ -15,11 +26,16 @@ interface StaffComboboxProps {
   disabled?: boolean;
 }
 
-export function StaffCombobox({ value, onChange, placeholder = "Select staff...", disabled = false }: StaffComboboxProps) {
+export function StaffCombobox({
+  value,
+  onChange,
+  placeholder = 'Select staff...',
+  disabled = false,
+}: StaffComboboxProps) {
   const [open, setOpen] = useState(false);
   const { staff, loading } = useActiveStaff();
 
-  const selectedStaff = staff.find(s => s.id === value);
+  const selectedStaff = staff.find((s) => s.id === value);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -33,11 +49,13 @@ export function StaffCombobox({ value, onChange, placeholder = "Select staff..."
         >
           {selectedStaff ? (
             <div className="flex items-center gap-2">
-              <SecureAvatar 
-                src={selectedStaff.photo_url || undefined} 
-                initials={selectedStaff.staff_name?.substring(0, 2).toUpperCase() ?? '?'} 
+              <SecureAvatar
+                src={selectedStaff.photo_url || undefined}
+                initials={
+                  selectedStaff.staff_name?.substring(0, 2).toUpperCase() ?? '?'
+                }
                 className="size-6"
-                bucket={STORAGE_BUCKETS.STAFF_PHOTOS} 
+                bucket={STORAGE_BUCKETS.STAFF_PHOTOS}
               />
               <span className="font-bold">{selectedStaff.staff_name}</span>
             </div>
@@ -47,10 +65,15 @@ export function StaffCombobox({ value, onChange, placeholder = "Select staff..."
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+      <PopoverContent
+        className="w-[var(--radix-popover-trigger-width)] p-0"
+        align="start"
+      >
         <Command>
           <CommandInput placeholder="Search staff..." />
-          <CommandEmpty>{loading ? "Loading..." : "No active staff found."}</CommandEmpty>
+          <CommandEmpty>
+            {loading ? 'Loading...' : 'No active staff found.'}
+          </CommandEmpty>
           <CommandList className="max-h-[300px]">
             <CommandGroup>
               {staff.map((staffMember) => (
@@ -64,14 +87,19 @@ export function StaffCombobox({ value, onChange, placeholder = "Select staff..."
                   className="flex items-center gap-3 py-3"
                 >
                   <div className="flex items-center flex-1 gap-3">
-                    <SecureAvatar 
-                      src={staffMember.photo_url || undefined} 
-                      initials={staffMember.staff_name?.substring(0, 2).toUpperCase() ?? '?'} 
+                    <SecureAvatar
+                      src={staffMember.photo_url || undefined}
+                      initials={
+                        staffMember.staff_name?.substring(0, 2).toUpperCase() ??
+                        '?'
+                      }
                       className="size-8"
-                      bucket={STORAGE_BUCKETS.STAFF_PHOTOS} 
+                      bucket={STORAGE_BUCKETS.STAFF_PHOTOS}
                     />
                     <div className="flex flex-col">
-                      <span className="font-bold text-sm text-gray-900">{staffMember.staff_name}</span>
+                      <span className="font-bold text-sm text-gray-900">
+                        {staffMember.staff_name}
+                      </span>
                       <span className="text-[10px] text-primary font-black uppercase tracking-widest leading-none mt-0.5">
                         {staffMember.role?.role_name || 'No Role'}
                       </span>
@@ -79,8 +107,8 @@ export function StaffCombobox({ value, onChange, placeholder = "Select staff..."
                   </div>
                   <Check
                     className={cn(
-                      "h-4 w-4 text-primary",
-                      value === staffMember.id ? "opacity-100" : "opacity-0"
+                      'h-4 w-4 text-primary',
+                      value === staffMember.id ? 'opacity-100' : 'opacity-0',
                     )}
                   />
                 </CommandItem>

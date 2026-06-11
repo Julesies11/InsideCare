@@ -1,6 +1,6 @@
+import path from 'path';
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
-import path from 'path';
 
 dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
@@ -13,11 +13,14 @@ const password = process.env.PLAYWRIGHT_STAFF_PASSWORD;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function run() {
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
   if (error) {
-    console.error("STAFF LOGIN FAILED:", error.message);
+    console.error('STAFF LOGIN FAILED:', error.message);
   } else {
-    console.log("STAFF LOGIN SUCCESS:", data.user.id);
+    console.log('STAFF LOGIN SUCCESS:', data.user.id);
   }
 }
 run();

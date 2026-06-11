@@ -7,7 +7,9 @@ interface ShiftNoteDetailSidebarProps {
   formData: Record<string, unknown> | null;
 }
 
-export function ShiftNoteDetailSidebar({ formData }: ShiftNoteDetailSidebarProps) {
+export function ShiftNoteDetailSidebar({
+  formData,
+}: ShiftNoteDetailSidebarProps) {
   const items: ScrollspyMenuItems = [
     {
       title: 'Overview',
@@ -25,15 +27,47 @@ export function ShiftNoteDetailSidebar({ formData }: ShiftNoteDetailSidebarProps
       title: 'Trackers',
       target: 'shift_note_trackers',
       children: [
-        { title: 'Bowel Tracking', target: 'tracker_bowel', hidden: !formData?.bowel_movement_occurred },
-        { title: 'Seizure Activity', target: 'tracker_seizure', hidden: !formData?.seizure_occurred },
-        { title: 'Sleep Tracking', target: 'tracker_sleep', hidden: !formData?.sleep_occurred },
-        { title: 'Behaviour Observation', target: 'tracker_behaviour', hidden: !formData?.behaviour_observed },
-        { title: 'Community Participation', target: 'tracker_community', hidden: !formData?.community_access_occurred },
-        { title: 'Nutrition Tracker', target: 'tracker_nutrition', hidden: !formData?.meal_provided },
-        { title: 'Mealtime Management', target: 'tracker_mtm', hidden: !formData?.mtm_meal_provided },
-        { title: 'Hygiene Tracking', target: 'tracker_hygiene', hidden: !formData?.hygiene_support_required },
-      ]
+        {
+          title: 'Bowel Tracking',
+          target: 'tracker_bowel',
+          hidden: !formData?.bowel_movement_occurred,
+        },
+        {
+          title: 'Seizure Activity',
+          target: 'tracker_seizure',
+          hidden: !formData?.seizure_occurred,
+        },
+        {
+          title: 'Sleep Tracking',
+          target: 'tracker_sleep',
+          hidden: !formData?.sleep_occurred,
+        },
+        {
+          title: 'Behaviour Observation',
+          target: 'tracker_behaviour',
+          hidden: !formData?.behaviour_observed,
+        },
+        {
+          title: 'Community Participation',
+          target: 'tracker_community',
+          hidden: !formData?.community_access_occurred,
+        },
+        {
+          title: 'Nutrition Tracker',
+          target: 'tracker_nutrition',
+          hidden: !formData?.meal_provided,
+        },
+        {
+          title: 'Mealtime Management',
+          target: 'tracker_mtm',
+          hidden: !formData?.mtm_meal_provided,
+        },
+        {
+          title: 'Hygiene Tracking',
+          target: 'tracker_hygiene',
+          hidden: !formData?.hygiene_support_required,
+        },
+      ],
     },
     {
       title: 'Summary',
@@ -42,11 +76,11 @@ export function ShiftNoteDetailSidebar({ formData }: ShiftNoteDetailSidebarProps
   ];
 
   // Process items: filter out hidden children
-  const processedItems = items.map(item => {
+  const processedItems = items.map((item) => {
     if (item.children) {
       return {
         ...item,
-        children: item.children.filter(child => !child.hidden)
+        children: item.children.filter((child) => !child.hidden),
       };
     }
     return item;

@@ -1,5 +1,5 @@
-import { ActivityType, EntityType } from '@/models/activity-log';
 import { activityLogApi } from '@/api/activity-log.api';
+import { ActivityType, EntityType } from '@/models/activity-log';
 
 interface LogActivityParams {
   activityType: ActivityType;
@@ -70,7 +70,7 @@ function generateDescription(
   activityType: ActivityType,
   entityType: EntityType,
   changes?: Record<string, { old: unknown; new: unknown }>,
-  customDescription?: string
+  customDescription?: string,
 ): string {
   if (customDescription) {
     return customDescription;
@@ -95,8 +95,11 @@ function generateDescription(
   // For updates, generate description based on what changed
   if (activityType === 'update' && changes) {
     const changedFields = Object.keys(changes)
-      .filter(key => key !== 'updated_at' && key !== 'photo_file' && key !== 'created_at') // Exclude system fields
-      .filter(key => changes[key].old !== changes[key].new); // Only actual changes
+      .filter(
+        (key) =>
+          key !== 'updated_at' && key !== 'photo_file' && key !== 'created_at',
+      ) // Exclude system fields
+      .filter((key) => changes[key].old !== changes[key].new); // Only actual changes
 
     if (changedFields.length === 0) {
       return `Updated ${entityType.replace('_', ' ')}`;
@@ -107,22 +110,22 @@ function generateDescription(
       const label = fieldLabels[field] || field;
       const oldVal = formatValue(changes[field].old);
       const newVal = formatValue(changes[field].new);
-      
+
       // Special case for photo
       if (field === 'photo_url') {
         return 'Updated profile photo';
       }
-      
+
       return `Updated ${label} from "${oldVal}" to "${newVal}"`;
     }
 
     if (changedFields.length === 2) {
-      const labels = changedFields.map(key => fieldLabels[key] || key);
+      const labels = changedFields.map((key) => fieldLabels[key] || key);
       return `Updated ${labels[0]} and ${labels[1]}`;
     }
 
     // For 3+ fields, show first two and count
-    const labels = changedFields.map(key => fieldLabels[key] || key);
+    const labels = changedFields.map((key) => fieldLabels[key] || key);
     const remaining = changedFields.length - 2;
     return `Updated ${labels[0]}, ${labels[1]} and ${remaining} other field${remaining > 1 ? 's' : ''}`;
   }
@@ -140,7 +143,12 @@ export async function logActivity({
   customDescription,
 }: LogActivityParams): Promise<void> {
   try {
-    const description = generateDescription(activityType, entityType, changes, customDescription);
+    const description = generateDescription(
+      activityType,
+      entityType,
+      changes,
+      customDescription,
+    );
 
     await activityLogApi.log({
       activityType,
@@ -166,7 +174,10 @@ function normalizeValue(value: unknown): unknown {
 }
 
 // Helper to detect changes between old and new objects
-export function detectChanges(oldData: Record<string, unknown>, newData: Record<string, unknown>): Record<string, { old: unknown; new: unknown }> {
+export function detectChanges(
+  oldData: Record<string, unknown>,
+  newData: Record<string, unknown>,
+): Record<string, { old: unknown; new: unknown }> {
   const changes: Record<string, { old: unknown; new: unknown }> = {};
 
   for (const key in newData) {

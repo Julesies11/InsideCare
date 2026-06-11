@@ -9951,11 +9951,7 @@
       },
       {
         "name": "ic_compliance_status_enum",
-        "values": [
-          "complete",
-          "in_progress",
-          "not_applicable"
-        ]
+        "values": ["complete", "in_progress", "not_applicable"]
       },
       {
         "name": "ic_shift_period_enum",
@@ -9971,12 +9967,7 @@
       },
       {
         "name": "ic_status_enum",
-        "values": [
-          "draft",
-          "active",
-          "inactive",
-          "archived"
-        ]
+        "values": ["draft", "active", "inactive", "archived"]
       }
     ],
     "functions": [

@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { staffDetailsApi } from '@/api/staff-details.api';
-import { supabase } from '@/lib/supabase';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TABLES } from '@/config/db-tables';
+import { supabase } from '@/lib/supabase';
 
 // Mock Supabase client
 vi.mock('@/lib/supabase', () => ({

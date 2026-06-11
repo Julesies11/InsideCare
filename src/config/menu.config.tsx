@@ -1,21 +1,21 @@
-import { 
-  Home, 
-  CheckSquare, 
-  Calendar, 
-  LogOut, 
-  Clock, 
-  Users, 
-  Settings, 
-  ClipboardList,
-  Activity,
-  UserCheck,
-  BarChart3,
-  ShieldAlert,
-  ShieldCheck
-} from 'lucide-react';
 import { MenuItemConfig } from '@/layouts/demo1/sidebar/SidebarMenu';
-import { RBAC_MODULES } from './rbac-modules';
+import {
+  Activity,
+  BarChart3,
+  Calendar,
+  CheckSquare,
+  ClipboardList,
+  Clock,
+  Home,
+  LogOut,
+  Settings,
+  ShieldAlert,
+  ShieldCheck,
+  UserCheck,
+  Users,
+} from 'lucide-react';
 import { ROUTES } from '@/config/routes.config';
+import { RBAC_MODULES } from './rbac-modules';
 
 export const MENU_SIDEBAR: MenuItemConfig[] = [
   {
@@ -26,11 +26,11 @@ export const MENU_SIDEBAR: MenuItemConfig[] = [
   {
     heading: 'Staff Portal',
     permission: [
-      RBAC_MODULES.SHIFT_ROUTINES, 
-      RBAC_MODULES.HOUSE_CHECKLISTS, 
-      RBAC_MODULES.MY_ROSTER, 
-      RBAC_MODULES.MY_LEAVE, 
-      RBAC_MODULES.MY_TIMESHEETS
+      RBAC_MODULES.SHIFT_ROUTINES,
+      RBAC_MODULES.HOUSE_CHECKLISTS,
+      RBAC_MODULES.MY_ROSTER,
+      RBAC_MODULES.MY_LEAVE,
+      RBAC_MODULES.MY_TIMESHEETS,
     ],
   },
   {
@@ -59,7 +59,12 @@ export const MENU_SIDEBAR: MenuItemConfig[] = [
   },
   {
     heading: 'People & Houses',
-    permission: [RBAC_MODULES.EMPLOYEES, RBAC_MODULES.HOUSES, RBAC_MODULES.PARTICIPANTS, RBAC_MODULES.REPORTING_CLINICAL],
+    permission: [
+      RBAC_MODULES.EMPLOYEES,
+      RBAC_MODULES.HOUSES,
+      RBAC_MODULES.PARTICIPANTS,
+      RBAC_MODULES.REPORTING_CLINICAL,
+    ],
   },
   {
     title: 'Staff',
@@ -78,9 +83,21 @@ export const MENU_SIDEBAR: MenuItemConfig[] = [
     icon: Users,
     permission: RBAC_MODULES.PARTICIPANTS,
     children: [
-      { title: 'Participant Profiles', path: ROUTES.PARTICIPANT_PROFILES, permission: RBAC_MODULES.PARTICIPANTS },
-      { title: 'Medication Register', path: ROUTES.MEDICATION_REGISTER, permission: RBAC_MODULES.MASTER_LISTS },
-      { title: 'Shift Notes', path: ROUTES.SHIFT_NOTES, permission: RBAC_MODULES.SHIFT_NOTES },
+      {
+        title: 'Participant Profiles',
+        path: ROUTES.PARTICIPANT_PROFILES,
+        permission: RBAC_MODULES.PARTICIPANTS,
+      },
+      {
+        title: 'Medication Register',
+        path: ROUTES.MEDICATION_REGISTER,
+        permission: RBAC_MODULES.MASTER_LISTS,
+      },
+      {
+        title: 'Shift Notes',
+        path: ROUTES.SHIFT_NOTES,
+        permission: RBAC_MODULES.SHIFT_NOTES,
+      },
     ],
   },
   {
@@ -91,7 +108,11 @@ export const MENU_SIDEBAR: MenuItemConfig[] = [
   },
   {
     heading: 'Roster & Staff Scheduling',
-    permission: [RBAC_MODULES.ROSTER_BOARD, RBAC_MODULES.TIMESHEETS, RBAC_MODULES.LEAVE_REQUESTS],
+    permission: [
+      RBAC_MODULES.ROSTER_BOARD,
+      RBAC_MODULES.TIMESHEETS,
+      RBAC_MODULES.LEAVE_REQUESTS,
+    ],
   },
   {
     title: 'Roster Board',
@@ -117,15 +138,15 @@ export const MENU_SIDEBAR: MenuItemConfig[] = [
     path: ROUTES.LEAVE_APPROVALS,
     permission: RBAC_MODULES.LEAVE_REQUESTS,
   },
-  { 
-    heading: 'Administration', 
+  {
+    heading: 'Administration',
     permission: [
-      RBAC_MODULES.ACCESS_CONTROL, 
+      RBAC_MODULES.ACCESS_CONTROL,
       RBAC_MODULES.ACTIVITY_LOG,
       RBAC_MODULES.REPORTING_CLINICAL,
       RBAC_MODULES.REPORTING_OPERATIONAL,
-      RBAC_MODULES.REPORTING_COMPLIANCE
-    ] 
+      RBAC_MODULES.REPORTING_COMPLIANCE,
+    ],
   },
   {
     title: 'Access Control',
@@ -143,15 +164,27 @@ export const MENU_SIDEBAR: MenuItemConfig[] = [
     title: 'Reporting',
     icon: BarChart3,
     path: ROUTES.REPORTING,
-    permission: [RBAC_MODULES.REPORTING_CLINICAL, RBAC_MODULES.REPORTING_OPERATIONAL, RBAC_MODULES.REPORTING_COMPLIANCE],
+    permission: [
+      RBAC_MODULES.REPORTING_CLINICAL,
+      RBAC_MODULES.REPORTING_OPERATIONAL,
+      RBAC_MODULES.REPORTING_COMPLIANCE,
+    ],
   },
   {
     title: 'Compliance',
     icon: ShieldCheck,
     permission: RBAC_MODULES.MASTER_LISTS,
     children: [
-      { title: 'Compliance Monitoring', path: ROUTES.COMPLIANCE_MONITORING, permission: RBAC_MODULES.MASTER_LISTS },
-      { title: 'Compliance Settings', path: ROUTES.COMPLIANCE_SETTINGS, permission: RBAC_MODULES.MASTER_LISTS },
+      {
+        title: 'Compliance Monitoring',
+        path: ROUTES.COMPLIANCE_MONITORING,
+        permission: RBAC_MODULES.MASTER_LISTS,
+      },
+      {
+        title: 'Compliance Settings',
+        path: ROUTES.COMPLIANCE_SETTINGS,
+        permission: RBAC_MODULES.MASTER_LISTS,
+      },
     ],
   },
   {

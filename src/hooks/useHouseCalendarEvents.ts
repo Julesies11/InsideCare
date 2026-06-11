@@ -1,7 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
 import { houseOperationsApi } from '@/api/house-operations.api';
-import { CALENDAR_VIEWS } from '@/config/query-views';
+import { useQuery } from '@tanstack/react-query';
 import { QUERY_KEYS } from '@/config/query-keys';
+import { CALENDAR_VIEWS } from '@/config/query-views';
 
 export interface HouseCalendarEventType {
   id: string;
@@ -42,7 +42,9 @@ export interface HouseCalendarEvent {
   created_at: string;
   updated_at: string;
   // Relationship data from junction tables
-  event_participants?: Array<{ participant: { id: string; participant_name: string } }>;
+  event_participants?: Array<{
+    participant: { id: string; participant_name: string };
+  }>;
   event_staff?: Array<{ staff: { id: string; staff_name: string } }>;
   // Checklist-specific fields
   is_checklist_event?: boolean;
@@ -65,9 +67,17 @@ export interface HouseCalendarEvent {
   };
 }
 
-export function useHouseCalendarEvents(houseId?: string, staffId?: string, startDate?: string, endDate?: string) {
+export function useHouseCalendarEvents(
+  houseId?: string,
+  staffId?: string,
+  startDate?: string,
+  endDate?: string,
+) {
   const query = useQuery({
-    queryKey: [QUERY_KEYS.CALENDAR_EVENTS, { houseId, staffId, startDate, endDate }],
+    queryKey: [
+      QUERY_KEYS.CALENDAR_EVENTS,
+      { houseId, staffId, startDate, endDate },
+    ],
     queryFn: async ({ signal }) => {
       if (!houseId) return [];
 
@@ -76,13 +86,13 @@ export function useHouseCalendarEvents(houseId?: string, staffId?: string, start
         startDate,
         endDate,
         view: CALENDAR_VIEWS.FULL_LIST,
-        signal
+        signal,
       });
 
       return (events || []).map((e: any) => {
         let type = 'other';
         const typeName = e.type?.event_type_name || '';
-        
+
         if (e.is_checklist_event) {
           type = 'checklist';
         } else if (typeName) {
@@ -95,7 +105,7 @@ export function useHouseCalendarEvents(houseId?: string, staffId?: string, start
 
         return {
           ...e,
-          type
+          type,
         };
       });
     },
@@ -106,6 +116,6 @@ export function useHouseCalendarEvents(houseId?: string, staffId?: string, start
     houseCalendarEvents: query.data || [],
     loading: query.isLoading,
     error: query.error ? (query.error as Error).message : null,
-    refresh: query.refetch
+    refresh: query.refetch,
   };
 }

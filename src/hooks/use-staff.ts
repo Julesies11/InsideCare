@@ -1,13 +1,31 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { staffApi, StaffUpdateData, StaffFilter, StaffSort, StaffStatus, StaffCompliance, StaffTraining } from '@/api/staff.api';
-import { syncUserPermissionsByStaffId } from '@/lib/rbac-sync';
-import { staffDetailsApi, StaffComplianceSummaryRow } from '@/api/staff-details.api';
 import { complianceApi } from '@/api/compliance.api';
+import {
+  StaffComplianceSummaryRow,
+  staffDetailsApi,
+} from '@/api/staff-details.api';
+import {
+  staffApi,
+  StaffCompliance,
+  StaffFilter,
+  StaffSort,
+  StaffStatus,
+  StaffTraining,
+  StaffUpdateData,
+} from '@/api/staff.api';
 import { Database } from '@/models/database.types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { QUERY_KEYS } from '@/config/query-keys';
+import { syncUserPermissionsByStaffId } from '@/lib/rbac-sync';
 
 // Re-export types for backward compatibility
-export type { StaffStatus, StaffCompliance, StaffTraining, StaffUpdateData, StaffFilter, StaffSort };
+export type {
+  StaffStatus,
+  StaffCompliance,
+  StaffTraining,
+  StaffUpdateData,
+  StaffFilter,
+  StaffSort,
+};
 
 // UI Expects mapped relations (objects instead of arrays) and backward compat name property
 export type Staff = {
@@ -23,19 +41,21 @@ export type Staff = {
   auth_user_id?: string | null;
   created_at: string;
   updated_at: string;
-  department_info?: { id: string; department_name: string; } | null;
-  employment_type_info?: { id: string; employment_type_name: string; } | null;
-  manager_info?: { id: string; staff_name: string; } | null;
-  role?: { id: string; role_name: string; description?: string | null; } | null;
-  house_assignments?: Array<{ id: string; house: { id: string; house_name: string; }; }>;
+  department_info?: { id: string; department_name: string } | null;
+  employment_type_info?: { id: string; employment_type_name: string } | null;
+  manager_info?: { id: string; staff_name: string } | null;
+  role?: { id: string; role_name: string; description?: string | null } | null;
+  house_assignments?: Array<{
+    id: string;
+    house: { id: string; house_name: string };
+  }>;
 } & Partial<Database['public']['Tables']['ic_staff']['Row']>;
-
 
 export function useStaff(
   pageIndex: number = 0,
   pageSize: number = 10,
   sort: StaffSort[] = [],
-  filters: StaffFilter = {}
+  filters: StaffFilter = {},
 ) {
   const query = useQuery({
     queryKey: [QUERY_KEYS.STAFF, { pageIndex, pageSize, sort, filters }],
@@ -55,7 +75,11 @@ export function useStaff(
       try {
         const data = await staffApi.get(id);
         if (!data) {
-          return { data: null, error: "Staff member not found or you do not have permission to view them" };
+          return {
+            data: null,
+            error:
+              'Staff member not found or you do not have permission to view them',
+          };
         }
         return { data: data as unknown as Staff, error: null };
       } catch (error: any) {
@@ -110,7 +134,7 @@ export function useActiveStaff(options?: { enabled?: boolean }) {
     queryKey: [QUERY_KEYS.STAFF, 'active'],
     queryFn: () => staffApi.listActive(),
     staleTime: 1000 * 60 * 5, // 5 minutes cache
-    ...options
+    ...options,
   });
 
   return {
@@ -122,14 +146,16 @@ export function useActiveStaff(options?: { enabled?: boolean }) {
   };
 }
 
-
 export function useStaffMember(id?: string) {
   const query = useQuery({
     queryKey: [QUERY_KEYS.STAFF, id],
     queryFn: async () => {
       if (!id) return null;
       const data = await staffApi.get(id);
-      if (!data) throw new Error("Staff member not found or you do not have permission to view them");
+      if (!data)
+        throw new Error(
+          'Staff member not found or you do not have permission to view them',
+        );
       return data as unknown as Staff;
     },
     enabled: !!id,
@@ -159,12 +185,12 @@ export function useUpdateStaff() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, updates }: { id: string; updates: StaffUpdateData }) => 
+    mutationFn: ({ id, updates }: { id: string; updates: StaffUpdateData }) =>
       staffApi.update(id, updates),
     onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF] });
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF, data.id] });
-      
+
       // Sync RBAC permissions to Auth metadata
       syncUserPermissionsByStaffId(data.id);
     },
@@ -186,11 +212,13 @@ export function useInviteStaff() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ staffId, email }: { staffId: string; email: string }) => 
+    mutationFn: ({ staffId, email }: { staffId: string; email: string }) =>
       staffApi.invite(staffId, email),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF] });
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF, variables.staffId] });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.STAFF, variables.staffId],
+      });
     },
   });
 }
@@ -199,11 +227,18 @@ export function useRevokeInvite() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ staffId, authUserId }: { staffId: string; authUserId: string }) => 
-      staffApi.revokeInvite(staffId, authUserId),
+    mutationFn: ({
+      staffId,
+      authUserId,
+    }: {
+      staffId: string;
+      authUserId: string;
+    }) => staffApi.revokeInvite(staffId, authUserId),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF] });
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF, variables.staffId] });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.STAFF, variables.staffId],
+      });
     },
   });
 }
@@ -234,7 +269,6 @@ export function useComplianceMonitoring(params: {
 }
 
 export function useStaffCompliance(staffId: string) {
-
   const query = useQuery({
     queryKey: [QUERY_KEYS.STAFF_COMPLIANCE, staffId],
     queryFn: async () => {
@@ -378,12 +412,21 @@ export function useHouseComplianceRequirements(houseId?: string) {
 export function useAddComplianceType() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (newType: Partial<Database['public']['Tables']['ic_compliance_types_master']['Insert']>) =>
-      complianceApi.types.upsert(newType),
+    mutationFn: (
+      newType: Partial<
+        Database['public']['Tables']['ic_compliance_types_master']['Insert']
+      >,
+    ) => complianceApi.types.upsert(newType),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.COMPLIANCE_TYPES_MASTER] });
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF_COMPLIANCE] });
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF_COMPLIANCE_SUMMARY] });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.COMPLIANCE_TYPES_MASTER],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.STAFF_COMPLIANCE],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.STAFF_COMPLIANCE_SUMMARY],
+      });
     },
   });
 }
@@ -391,12 +434,25 @@ export function useAddComplianceType() {
 export function useUpdateComplianceType() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, updates }: { id: string; updates: Partial<Database['public']['Tables']['ic_compliance_types_master']['Update']> }) =>
-      complianceApi.types.upsert({ id, ...updates }),
+    mutationFn: ({
+      id,
+      updates,
+    }: {
+      id: string;
+      updates: Partial<
+        Database['public']['Tables']['ic_compliance_types_master']['Update']
+      >;
+    }) => complianceApi.types.upsert({ id, ...updates }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.COMPLIANCE_TYPES_MASTER] });
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF_COMPLIANCE] });
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF_COMPLIANCE_SUMMARY] });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.COMPLIANCE_TYPES_MASTER],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.STAFF_COMPLIANCE],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.STAFF_COMPLIANCE_SUMMARY],
+      });
     },
   });
 }
@@ -420,10 +476,15 @@ export function useIDDocumentTypes(includeInactive = false) {
 export function useAddIDDocumentType() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (newType: Partial<Database['public']['Tables']['ic_id_document_types']['Insert']>) =>
-      complianceApi.idDocumentTypes.upsert(newType),
+    mutationFn: (
+      newType: Partial<
+        Database['public']['Tables']['ic_id_document_types']['Insert']
+      >,
+    ) => complianceApi.idDocumentTypes.upsert(newType),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ID_DOCUMENT_TYPES] });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.ID_DOCUMENT_TYPES],
+      });
     },
   });
 }
@@ -431,10 +492,19 @@ export function useAddIDDocumentType() {
 export function useUpdateIDDocumentType() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, updates }: { id: string; updates: Partial<Database['public']['Tables']['ic_id_document_types']['Update']> }) =>
-      complianceApi.idDocumentTypes.upsert({ id, ...updates }),
+    mutationFn: ({
+      id,
+      updates,
+    }: {
+      id: string;
+      updates: Partial<
+        Database['public']['Tables']['ic_id_document_types']['Update']
+      >;
+    }) => complianceApi.idDocumentTypes.upsert({ id, ...updates }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ID_DOCUMENT_TYPES] });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.ID_DOCUMENT_TYPES],
+      });
     },
   });
 }
@@ -444,7 +514,9 @@ export function useDeleteIDDocumentType() {
   return useMutation({
     mutationFn: (id: string) => complianceApi.idDocumentTypes.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ID_DOCUMENT_TYPES] });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.ID_DOCUMENT_TYPES],
+      });
     },
   });
 }

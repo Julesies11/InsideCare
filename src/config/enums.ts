@@ -6,7 +6,7 @@ export const STATUS = {
   ACTIVE: 'Active',
   INACTIVE: 'Inactive',
   DRAFT: 'Draft',
-  
+
   // Database lowercase variants
   active: 'active',
   inactive: 'inactive',
@@ -16,7 +16,7 @@ export const STATUS = {
 export const CHECKLIST_STATUS = {
   PENDING: 'Pending',
   COMPLETED: 'Completed',
-  
+
   // Database lowercase variants
   pending: 'pending',
   completed: 'completed',
@@ -54,4 +54,3 @@ export const SHIFT_PERIODS = {
 } as const;
 
 export type ShiftPeriod = (typeof SHIFT_PERIODS)[keyof typeof SHIFT_PERIODS];
-

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 describe('Edge Function RBAC Bypass', () => {
   it('should allow Service Role Key to bypass Admin checks', () => {

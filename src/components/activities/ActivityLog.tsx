@@ -1,8 +1,14 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useEffect, useState } from 'react';
 import { useActivityLog } from '@/hooks/use-activity-log';
-import { ActivityLogItem } from '@/components/activities/activity-log-item';
 import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { ActivityLogItem } from '@/components/activities/activity-log-item';
 
 interface ActivityLogProps {
   entityId?: string;
@@ -12,11 +18,22 @@ interface ActivityLogProps {
   id?: string;
 }
 
-export function ActivityLog({ entityId, entityType, refreshTrigger, title = 'Activity Log', id = 'activity_log' }: ActivityLogProps) {
+export function ActivityLog({
+  entityId,
+  entityType,
+  refreshTrigger,
+  title = 'Activity Log',
+  id = 'activity_log',
+}: ActivityLogProps) {
   const [showAll, setShowAll] = useState(false);
   const limit = showAll ? 100 : 10;
-  
-  const { activities = [], loading, error, refetch } = useActivityLog({
+
+  const {
+    activities = [],
+    loading,
+    error,
+    refetch,
+  } = useActivityLog({
     entityId,
     entityType,
     limit,
@@ -34,7 +51,12 @@ export function ActivityLog({ entityId, entityType, refreshTrigger, title = 'Act
     setShowAll(!showAll);
   };
 
-  const errorMessage = error instanceof Error ? error.message : typeof error === 'string' ? error : 'An error occurred';
+  const errorMessage =
+    error instanceof Error
+      ? error.message
+      : typeof error === 'string'
+        ? error
+        : 'An error occurred';
 
   return (
     <Card className="pb-2.5" id={id}>
@@ -43,11 +65,17 @@ export function ActivityLog({ entityId, entityType, refreshTrigger, title = 'Act
       </CardHeader>
       <CardContent>
         {loading ? (
-          <div className="text-center py-8 text-muted-foreground">Loading activity log...</div>
+          <div className="text-center py-8 text-muted-foreground">
+            Loading activity log...
+          </div>
         ) : error ? (
-          <div className="text-center py-8 text-destructive">{errorMessage}</div>
+          <div className="text-center py-8 text-destructive">
+            {errorMessage}
+          </div>
         ) : activities.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">No activity recorded yet</div>
+          <div className="text-center py-8 text-muted-foreground">
+            No activity recorded yet
+          </div>
         ) : (
           <div className="space-y-0">
             {activities.map((activity, index) => (

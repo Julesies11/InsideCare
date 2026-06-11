@@ -1,29 +1,40 @@
 import { useEffect, useState } from 'react';
-import { useAuth } from '@/auth/context/auth-context';
-import { toast } from 'sonner';
-import { format, differenceInDays, parseISO } from 'date-fns';
-import { Download } from 'lucide-react';
-import { Container } from '@/components/common/container';
 import { staffDetailsApi } from '@/api/staff-details.api';
+import { staffApi } from '@/api/staff.api';
+import { useAuth } from '@/auth/context/auth-context';
+import { EmergencyContact } from '@/pages/employees/staff-detail/components/emergency-contact';
+import { PersonalDetails } from '@/pages/employees/staff-detail/components/personal-details';
 import {
   Toolbar,
   ToolbarActions,
+  ToolbarDescription,
   ToolbarHeading,
   ToolbarPageTitle,
-  ToolbarDescription,
 } from '@/partials/common/toolbar';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PersonalDetails } from '@/pages/employees/staff-detail/components/personal-details';
-import { EmergencyContact } from '@/pages/employees/staff-detail/components/emergency-contact';
-import { AccountSecurity } from './components/account-security';
-import { useStaffMember, useUpdateStaff, StaffTraining } from '@/hooks/use-staff';
-import { handleAvatarUpload } from '@/lib/api/profiles';
-import { staffApi } from '@/api/staff.api';
+import { differenceInDays, format, parseISO } from 'date-fns';
+import { Download } from 'lucide-react';
+import { toast } from 'sonner';
 import { TABLES } from '@/config/db-tables';
 import { STORAGE_BUCKETS } from '@/config/storage-buckets';
+import { handleAvatarUpload } from '@/lib/api/profiles';
+import {
+  StaffTraining,
+  useStaffMember,
+  useUpdateStaff,
+} from '@/hooks/use-staff';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Container } from '@/components/common/container';
+import { AccountSecurity } from './components/account-security';
 
 type TrainingStatus = 'Current' | 'Expiring Soon' | 'Expired';
 
@@ -35,7 +46,10 @@ function calcTrainingStatus(expiryDate?: string | null): TrainingStatus {
   return 'Current';
 }
 
-const trainingStatusVariant: Record<TrainingStatus, 'success' | 'warning' | 'destructive'> = {
+const trainingStatusVariant: Record<
+  TrainingStatus,
+  'success' | 'warning' | 'destructive'
+> = {
   Current: 'success',
   'Expiring Soon': 'warning',
   Expired: 'destructive',
@@ -62,13 +76,15 @@ export function StaffProfile() {
     emergency_contact_name: '',
     emergency_contact_phone: '',
   });
-  const [originalData, setOriginalData] = useState<Record<string, any> | null>(null);
+  const [originalData, setOriginalData] = useState<Record<string, any> | null>(
+    null,
+  );
 
   const [training, setTraining] = useState<StaffTraining[]>([]);
   const [loadingTraining, setLoadingTraining] = useState(true);
 
   const { data: staffData } = useStaffMember(staffId ?? undefined);
-  
+
   useEffect(() => {
     if (staffData) {
       const d = {
@@ -89,7 +105,7 @@ export function StaffProfile() {
     }
 
     if (staffId) {
-      staffApi.getTraining(staffId).then(data => {
+      staffApi.getTraining(staffId).then((data) => {
         setTraining(data as any[]);
         setLoadingTraining(false);
       });
@@ -102,13 +118,17 @@ export function StaffProfile() {
   const isDirty =
     isPhotoDirty ||
     (originalData !== null &&
-      Object.keys(originalData).some(
-        (k) => formData[k] !== originalData[k]
-      ));
+      Object.keys(originalData).some((k) => formData[k] !== originalData[k]));
 
   const handleFormChange = (field: string, value: any) => {
-    if (field === 'photo_file') { setPhotoFile(value); return; }
-    if (field === 'photo_url_preview') { setPhotoPreview(value); return; }
+    if (field === 'photo_file') {
+      setPhotoFile(value);
+      return;
+    }
+    if (field === 'photo_url_preview') {
+      setPhotoPreview(value);
+      return;
+    }
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -117,7 +137,11 @@ export function StaffProfile() {
     setSaving(true);
     try {
       if (photoFile) {
-        const newPhotoUrl = await handleAvatarUpload(photoFile, STORAGE_BUCKETS.STAFF_PHOTOS, staffId);
+        const newPhotoUrl = await handleAvatarUpload(
+          photoFile,
+          STORAGE_BUCKETS.STAFF_PHOTOS,
+          staffId,
+        );
         await staffApi.update(staffId, { photo_url: newPhotoUrl });
         setOriginalPhotoUrl(newPhotoUrl);
         if (setUser && user) setUser({ ...user, photo_url: newPhotoUrl });
@@ -184,7 +208,9 @@ export function StaffProfile() {
         <Toolbar className="hidden sm:flex">
           <ToolbarHeading>
             <ToolbarPageTitle text="My Profile" />
-            <ToolbarDescription>View and update your personal information</ToolbarDescription>
+            <ToolbarDescription>
+              View and update your personal information
+            </ToolbarDescription>
           </ToolbarHeading>
           <ToolbarActions>
             <Button
@@ -224,16 +250,24 @@ export function StaffProfile() {
             </CardHeader>
             <CardContent>
               {loadingTraining ? (
-                <div className="text-center py-8 text-sm text-muted-foreground">Loading training records...</div>
+                <div className="text-center py-8 text-sm text-muted-foreground">
+                  Loading training records...
+                </div>
               ) : training.length === 0 ? (
-                <div className="text-center py-8 text-sm text-muted-foreground">No training records available</div>
+                <div className="text-center py-8 text-sm text-muted-foreground">
+                  No training records available
+                </div>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow className="hidden sm:table-row">
                       <TableHead>Training Name</TableHead>
-                      <TableHead className="hidden md:table-cell">Category</TableHead>
-                      <TableHead className="hidden sm:table-cell">Date Completed</TableHead>
+                      <TableHead className="hidden md:table-cell">
+                        Category
+                      </TableHead>
+                      <TableHead className="hidden sm:table-cell">
+                        Date Completed
+                      </TableHead>
                       <TableHead>Expiry Date</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="text-right">Document</TableHead>
@@ -247,22 +281,36 @@ export function StaffProfile() {
                           <TableCell className="font-medium">
                             <div className="flex flex-col gap-1">
                               <span>{item.title}</span>
-                              <span className="text-[10px] text-muted-foreground md:hidden">{item.category}</span>
+                              <span className="text-[10px] text-muted-foreground md:hidden">
+                                {item.category}
+                              </span>
                             </div>
                           </TableCell>
-                          <TableCell className="hidden md:table-cell">{item.category}</TableCell>
+                          <TableCell className="hidden md:table-cell">
+                            {item.category}
+                          </TableCell>
                           <TableCell className="hidden sm:table-cell">
                             {item.date_completed
-                              ? format(parseISO(item.date_completed), 'dd MMM yyyy')
+                              ? format(
+                                  parseISO(item.date_completed),
+                                  'dd MMM yyyy',
+                                )
                               : '—'}
                           </TableCell>
                           <TableCell>
                             {item.expiry_date
-                              ? format(parseISO(item.expiry_date), 'dd MMM yyyy')
+                              ? format(
+                                  parseISO(item.expiry_date),
+                                  'dd MMM yyyy',
+                                )
                               : '—'}
                           </TableCell>
                           <TableCell>
-                            <Badge variant={trainingStatusVariant[status]} size="sm" className="text-[10px] font-bold px-1.5 h-4 uppercase">
+                            <Badge
+                              variant={trainingStatusVariant[status]}
+                              size="sm"
+                              className="text-[10px] font-bold px-1.5 h-4 uppercase"
+                            >
                               {status}
                             </Badge>
                           </TableCell>
@@ -271,13 +319,17 @@ export function StaffProfile() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleDownloadTraining(item.file_path!)}
+                                onClick={() =>
+                                  handleDownloadTraining(item.file_path!)
+                                }
                                 title="Download document"
                               >
                                 <Download className="size-4" />
                               </Button>
                             ) : (
-                              <span className="text-xs text-muted-foreground">—</span>
+                              <span className="text-xs text-muted-foreground">
+                                —
+                              </span>
                             )}
                           </TableCell>
                         </TableRow>

@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { systemApi } from '@/api/system.api';
 import { useAuth } from '@/auth/context/auth-context';
 import { toast } from 'sonner';
-import { systemApi } from '@/api/system.api';
 
 export interface AppNotification {
   id: string;
@@ -20,23 +20,31 @@ export function useNotifications() {
   const [loading, setLoading] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
 
-  const fetchNotifications = useCallback(async (limit = 50, offset = 0, filterRead?: boolean) => {
-    if (!user?.id) {
-      setLoading(false);
-      return;
-    }
+  const fetchNotifications = useCallback(
+    async (limit = 50, offset = 0, filterRead?: boolean) => {
+      if (!user?.id) {
+        setLoading(false);
+        return;
+      }
 
-    setLoading(true);
-    try {
-      const { data, count } = await systemApi.notifications.list(user.id, limit, offset, filterRead);
-      setNotifications((data as AppNotification[]) || []);
-      if (count !== null) setTotalCount(count);
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [user?.id]);
+      setLoading(true);
+      try {
+        const { data, count } = await systemApi.notifications.list(
+          user.id,
+          limit,
+          offset,
+          filterRead,
+        );
+        setNotifications((data as AppNotification[]) || []);
+        if (count !== null) setTotalCount(count);
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [user?.id],
+  );
 
   useEffect(() => {
     if (!user?.id) {
@@ -45,22 +53,25 @@ export function useNotifications() {
     }
 
     if (!auth?.access_token) return;
-    
+
     // Initial fetch for the topbar (latest 50)
     fetchNotifications(50, 0);
 
     // Subscribe to real-time inserts via DAL
-    const unsubscribe = systemApi.notifications.subscribe(user.id, (payload) => {
-      const newNotification = payload.new as AppNotification;
-      
-      setNotifications((prev) => [newNotification, ...prev]);
-      setTotalCount(prev => prev - 1);
-      
-      toast.info(newNotification.title, {
-        description: newNotification.body,
-        duration: 5000,
-      });
-    });
+    const unsubscribe = systemApi.notifications.subscribe(
+      user.id,
+      (payload) => {
+        const newNotification = payload.new as AppNotification;
+
+        setNotifications((prev) => [newNotification, ...prev]);
+        setTotalCount((prev) => prev - 1);
+
+        toast.info(newNotification.title, {
+          description: newNotification.body,
+          duration: 5000,
+        });
+      },
+    );
 
     return () => {
       unsubscribe();
@@ -76,14 +87,14 @@ export function useNotifications() {
   const markRead = useCallback(async (id: string) => {
     await systemApi.notifications.markAsRead(id);
     setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
+      prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)),
     );
   }, []);
 
   const markUnread = useCallback(async (id: string) => {
     await systemApi.notifications.markAsUnread(id);
     setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, is_read: false } : n))
+      prev.map((n) => (n.id === id ? { ...n, is_read: false } : n)),
     );
   }, []);
 
@@ -98,21 +109,21 @@ export function useNotifications() {
   const clearNotification = useCallback(async (id: string) => {
     await systemApi.notifications.clear(id);
     setNotifications((prev) => prev.filter((n) => n.id !== id));
-    setTotalCount(prev => prev - 1);
+    setTotalCount((prev) => prev - 1);
   }, []);
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
-  return { 
-    notifications, 
-    loading, 
-    unreadCount, 
+  return {
+    notifications,
+    loading,
+    unreadCount,
     totalCount,
-    markAllRead, 
-    markRead, 
+    markAllRead,
+    markRead,
     markUnread,
     clearAll,
     clearNotification,
-    refetch: fetchNotifications 
+    refetch: fetchNotifications,
   };
 }

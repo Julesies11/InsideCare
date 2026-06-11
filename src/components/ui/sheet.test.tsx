@@ -1,12 +1,12 @@
-import { describe, it, expect } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { 
-  Sheet, 
-  SheetTrigger, 
-  SheetContent, 
-  SheetHeader, 
-  SheetTitle, 
-  SheetDescription 
+import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
 } from './sheet';
 
 describe('Sheet', () => {
@@ -19,9 +19,9 @@ describe('Sheet', () => {
             <SheetTitle>Sheet Title</SheetTitle>
           </SheetHeader>
         </SheetContent>
-      </Sheet>
+      </Sheet>,
     );
-    
+
     expect(screen.getByText('Open Sheet')).toBeInTheDocument();
   });
 
@@ -36,12 +36,12 @@ describe('Sheet', () => {
           </SheetHeader>
           <div>Sheet Content</div>
         </SheetContent>
-      </Sheet>
+      </Sheet>,
     );
-    
+
     const trigger = screen.getByText('Open Sheet');
     fireEvent.click(trigger);
-    
+
     expect(await screen.findByText('Sheet Title')).toBeInTheDocument();
     expect(screen.getByText('Sheet Description')).toBeInTheDocument();
     expect(screen.getByText('Sheet Content')).toBeInTheDocument();
@@ -55,14 +55,14 @@ describe('Sheet', () => {
             <SheetTitle>Closable Sheet</SheetTitle>
           </SheetHeader>
         </SheetContent>
-      </Sheet>
+      </Sheet>,
     );
-    
+
     expect(await screen.findByText('Closable Sheet')).toBeInTheDocument();
-    
+
     const closeButton = screen.getByRole('button', { name: /close/i });
     fireEvent.click(closeButton);
-    
+
     // The sheet should be closing/closed
     // Radix might take a moment to remove it from DOM due to animations
     // but in JSDOM it might be immediate if animations are mocked/disabled
@@ -74,9 +74,9 @@ describe('Sheet', () => {
         <SheetContent side="left" data-testid="sheet-content">
           <SheetTitle>Left Sheet</SheetTitle>
         </SheetContent>
-      </Sheet>
+      </Sheet>,
     );
-    
+
     const content = await screen.findByTestId('sheet-content');
     expect(content).toHaveClass('inset-y-0');
     expect(content).toHaveClass('start-0');

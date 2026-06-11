@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { AlertCircle, Info, LogOut, UserX } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -7,9 +10,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { AlertCircle, UserX, LogOut, Info } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface StaffDeactivationDialogProps {
   open: boolean;
@@ -45,9 +45,12 @@ export function StaffDeactivationDialog({
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 mb-4">
             <UserX className="h-6 w-6 text-amber-600" />
           </div>
-          <DialogTitle className="text-center text-xl">Deactivate Staff Member</DialogTitle>
+          <DialogTitle className="text-center text-xl">
+            Deactivate Staff Member
+          </DialogTitle>
           <DialogDescription className="text-center pt-2 text-base">
-            Are you sure you want to set <strong>{staffName}</strong> to Inactive?
+            Are you sure you want to set <strong>{staffName}</strong> to
+            Inactive?
           </DialogDescription>
         </DialogHeader>
 
@@ -57,8 +60,10 @@ export function StaffDeactivationDialog({
             <div className="space-y-1">
               <p className="font-semibold">What does deactivation mean?</p>
               <p className="leading-relaxed opacity-90">
-                Deactivating this staff member will remove them from active rosters, manager selection lists, and active staff views. 
-                They will remain in the system for historical and compliance purposes.
+                Deactivating this staff member will remove them from active
+                rosters, manager selection lists, and active staff views. They
+                will remain in the system for historical and compliance
+                purposes.
               </p>
             </div>
           </div>
@@ -66,9 +71,13 @@ export function StaffDeactivationDialog({
           {hasPortalAccess && (
             <Alert className="bg-slate-50 border-slate-200">
               <AlertCircle className="h-4 w-4 text-slate-600" />
-              <AlertTitle className="text-slate-800 font-semibold text-sm">Portal Access Detected</AlertTitle>
+              <AlertTitle className="text-slate-800 font-semibold text-sm">
+                Portal Access Detected
+              </AlertTitle>
               <AlertDescription className="text-slate-600 text-xs mt-1">
-                This staff member has an active login. You can choose to revoke their access immediately, or keep it active for historical record viewing.
+                This staff member has an active login. You can choose to revoke
+                their access immediately, or keep it active for historical
+                record viewing.
               </AlertDescription>
             </Alert>
           )}
@@ -98,7 +107,7 @@ export function StaffDeactivationDialog({
                 Revoke Access
               </Button>
             )}
-            
+
             <Button
               type="button"
               className="bg-amber-600 hover:bg-amber-700 text-white w-full sm:w-auto"

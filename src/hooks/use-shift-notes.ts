@@ -1,7 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
-import { QUERY_KEYS } from '@/config/query-keys';
 import { shiftNotesApi, ShiftNoteUpdateData } from '@/api/shift-notes.api';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { QUERY_KEYS } from '@/config/query-keys';
 
 export interface ShiftNote {
   id: string;
@@ -77,10 +77,18 @@ export interface ShiftNoteTask {
   note_reference_id?: string | null;
 }
 
-export function useShiftNoteTasks(params: { staffId?: string; participantId?: string; houseId?: string; startDate?: string } = {}) {
+export function useShiftNoteTasks(
+  params: {
+    staffId?: string;
+    participantId?: string;
+    houseId?: string;
+    startDate?: string;
+  } = {},
+) {
   return useQuery({
     queryKey: [QUERY_KEYS.SHIFT_NOTES, 'tasks', params],
-    queryFn: () => shiftNotesApi.listNoteTasks(params) as Promise<ShiftNoteTask[]>,
+    queryFn: () =>
+      shiftNotesApi.listNoteTasks(params) as Promise<ShiftNoteTask[]>,
     staleTime: 0,
   });
 }
@@ -108,7 +116,9 @@ export function useShiftNotes() {
   const { mutateAsync: deleteShiftNote } = useDeleteShiftNote();
 
   const fetchShiftNotesByShiftId = useCallback(async (shiftId: string) => {
-    return await shiftNotesApi.getByShiftId(shiftId) as unknown as ShiftNote[];
+    return (await shiftNotesApi.getByShiftId(
+      shiftId,
+    )) as unknown as ShiftNote[];
   }, []);
 
   return {
@@ -130,7 +140,9 @@ export function useShiftNotesByShiftId(shiftId?: string) {
     queryKey: [QUERY_KEYS.SHIFT_NOTES, { shiftId }],
     queryFn: async () => {
       if (!shiftId) return [];
-      return await shiftNotesApi.getByShiftId(shiftId) as unknown as ShiftNote[];
+      return (await shiftNotesApi.getByShiftId(
+        shiftId,
+      )) as unknown as ShiftNote[];
     },
     enabled: !!shiftId,
   });
@@ -158,7 +170,8 @@ export function useCreateShiftNote() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (noteData: ShiftNoteUpdateData) => shiftNotesApi.upsert(noteData),
+    mutationFn: (noteData: ShiftNoteUpdateData) =>
+      shiftNotesApi.upsert(noteData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SHIFT_NOTES] });
     },
@@ -169,7 +182,13 @@ export function useUpdateShiftNote() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, updates }: { id: string; updates: ShiftNoteUpdateData }) => {
+    mutationFn: ({
+      id,
+      updates,
+    }: {
+      id: string;
+      updates: ShiftNoteUpdateData;
+    }) => {
       if (!id || id === 'undefined') {
         throw new Error('Shift note ID is required for update');
       }
@@ -178,7 +197,9 @@ export function useUpdateShiftNote() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SHIFT_NOTES] });
       if (data.shift_id) {
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SHIFT_NOTES, { shiftId: data.shift_id }] });
+        queryClient.invalidateQueries({
+          queryKey: [QUERY_KEYS.SHIFT_NOTES, { shiftId: data.shift_id }],
+        });
       }
     },
   });
@@ -205,4 +226,3 @@ export function useDeleteShiftNote() {
     },
   });
 }
-

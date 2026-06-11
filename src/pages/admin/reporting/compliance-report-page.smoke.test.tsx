@@ -1,9 +1,9 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import { ComplianceReportPage } from './compliance-report-page';
-import { SettingsProvider } from '@/providers/settings-provider';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
+import { describe, expect, it, vi } from 'vitest';
+import { SettingsProvider } from '@/providers/settings-provider';
+import { ComplianceReportPage } from './compliance-report-page';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -59,17 +59,19 @@ describe('ComplianceReportPage Smoke Test', () => {
             <ComplianceReportPage />
           </MemoryRouter>
         </QueryClientProvider>
-      </SettingsProvider>
+      </SettingsProvider>,
     );
 
-    expect(screen.getByText(/Compliance Monitoring Report/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Compliance Monitoring Report/i),
+    ).toBeInTheDocument();
     expect(screen.getByText(/Report Criteria/i)).toBeInTheDocument();
-    
+
     // Verify filters exist
     expect(screen.getByText(/Filter by House/i)).toBeInTheDocument();
     expect(screen.getByText(/Filter by Staff Member/i)).toBeInTheDocument();
     expect(screen.getByText(/Group Results By/i)).toBeInTheDocument();
-    
+
     // Verify actions exist
     expect(screen.getByText(/Print Preview/i)).toBeInTheDocument();
     expect(screen.getByText(/Reset Criteria/i)).toBeInTheDocument();

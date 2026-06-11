@@ -1,16 +1,16 @@
 import { renderWithProviders, screen, waitFor } from '@/test/test-utils';
-import { describe, it, expect, vi } from 'vitest';
-import { HouseDetailContent } from './house-detail-content';
+import { describe, expect, it, vi } from 'vitest';
 import { RBAC_MODULES } from '@/config/rbac-modules';
 import { ACCESS_LEVEL } from '@/hooks/useRBAC';
 import * as useRBACModule from '@/hooks/useRBAC';
+import { HouseDetailContent } from './house-detail-content';
 
 // Mock hooks and supabase as in the main smoke test
 vi.mock('react-router', async (importOriginal) => {
   const actual = await importOriginal<any>();
   return {
     ...actual,
-    useParams: vi.fn(() => ({ id: 'house-1' }))
+    useParams: vi.fn(() => ({ id: 'house-1' })),
   };
 });
 
@@ -27,19 +27,33 @@ const mockSupabaseQuery = {
   or: vi.fn().mockReturnThis(),
   order: vi.fn().mockReturnThis(),
   limit: vi.fn().mockReturnThis(),
-  single: vi.fn(() => Promise.resolve({ data: { id: 'house-1', house_name: 'Test House' }, error: null })),
-  maybeSingle: vi.fn(() => Promise.resolve({ data: { id: 'house-1', house_name: 'Test House' }, error: null })),
-  then: vi.fn((onFulfilled) => Promise.resolve({ data: [], error: null }).then(onFulfilled))
+  single: vi.fn(() =>
+    Promise.resolve({
+      data: { id: 'house-1', house_name: 'Test House' },
+      error: null,
+    }),
+  ),
+  maybeSingle: vi.fn(() =>
+    Promise.resolve({
+      data: { id: 'house-1', house_name: 'Test House' },
+      error: null,
+    }),
+  ),
+  then: vi.fn((onFulfilled) =>
+    Promise.resolve({ data: [], error: null }).then(onFulfilled),
+  ),
 };
 
 vi.mock('@/lib/supabase', () => ({
   supabase: {
     from: vi.fn(() => mockSupabaseQuery),
     auth: {
-      getUser: vi.fn(() => Promise.resolve({ data: { user: { id: '1' } }, error: null })),
+      getUser: vi.fn(() =>
+        Promise.resolve({ data: { user: { id: '1' } }, error: null }),
+      ),
     },
-    storage: { from: vi.fn(() => ({ remove: vi.fn() })) }
-  }
+    storage: { from: vi.fn(() => ({ remove: vi.fn() })) },
+  },
 }));
 
 // Mock useRBAC
@@ -47,7 +61,7 @@ vi.mock('@/hooks/useRBAC', async (importOriginal) => {
   const actual = await importOriginal<any>();
   return {
     ...actual,
-    useRBAC: vi.fn()
+    useRBAC: vi.fn(),
   };
 });
 
@@ -57,7 +71,12 @@ describe('House Granular Security UI Enforcement', () => {
     staff: { toAdd: [], toUpdate: [], toDelete: [] },
     calendarEvents: { toAdd: [], toUpdate: [], toDelete: [] },
     documents: { toAdd: [], toUpdate: [], toDelete: [] },
-    checklists: { toAdd: [], toUpdate: [], toDelete: [], checklistItems: { toAdd: [], toUpdate: [], toDelete: [] } },
+    checklists: {
+      toAdd: [],
+      toUpdate: [],
+      toDelete: [],
+      checklistItems: { toAdd: [], toUpdate: [], toDelete: [] },
+    },
     forms: { toAdd: [], toUpdate: [], toDelete: [] },
     resources: { toAdd: [], toUpdate: [], toDelete: [] },
     comms: { toAdd: [], toUpdate: [], toDelete: [] },
@@ -68,11 +87,19 @@ describe('House Granular Security UI Enforcement', () => {
     vi.mocked(useRBACModule.useRBAC).mockReturnValue({
       hasAccess: vi.fn(({ resource, requiredLevel }) => {
         const userLevel = permissions[resource] || ACCESS_LEVEL.NONE;
-        const levels = [ACCESS_LEVEL.NONE, ACCESS_LEVEL.CONTEXT_READ_ONLY, ACCESS_LEVEL.READ_ONLY, ACCESS_LEVEL.CONTEXT_READ_WRITE, ACCESS_LEVEL.FULL];
-        return levels.indexOf(userLevel as any) >= levels.indexOf(requiredLevel);
+        const levels = [
+          ACCESS_LEVEL.NONE,
+          ACCESS_LEVEL.CONTEXT_READ_ONLY,
+          ACCESS_LEVEL.READ_ONLY,
+          ACCESS_LEVEL.CONTEXT_READ_WRITE,
+          ACCESS_LEVEL.FULL,
+        ];
+        return (
+          levels.indexOf(userLevel as any) >= levels.indexOf(requiredLevel)
+        );
       }),
       permissions,
-      isAdmin: false
+      isAdmin: false,
     });
   };
 
@@ -84,19 +111,23 @@ describe('House Granular Security UI Enforcement', () => {
     });
 
     renderWithProviders(
-      <HouseDetailContent 
+      <HouseDetailContent
         pendingChanges={mockPendingChanges as any}
         onPendingChangesChange={() => {}}
         canEdit={false}
-      />
+      />,
     );
 
     await waitFor(() => {
       // Basics should be visible
       expect(screen.queryByText(/House Name/i)).toBeInTheDocument();
       // Management and Operations should be hidden (check for CardTitle headings)
-      expect(screen.queryByRole('heading', { name: /House Management/i })).not.toBeInTheDocument();
-      expect(screen.queryByRole('heading', { name: /Daily Operations/i })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('heading', { name: /House Management/i }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('heading', { name: /Daily Operations/i }),
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -106,11 +137,11 @@ describe('House Granular Security UI Enforcement', () => {
     });
 
     renderWithProviders(
-      <HouseDetailContent 
+      <HouseDetailContent
         pendingChanges={mockPendingChanges as any}
         onPendingChangesChange={() => {}}
         canEdit={false}
-      />
+      />,
     );
 
     await waitFor(() => {
@@ -125,11 +156,11 @@ describe('House Granular Security UI Enforcement', () => {
     });
 
     renderWithProviders(
-      <HouseDetailContent 
+      <HouseDetailContent
         pendingChanges={mockPendingChanges as any}
         onPendingChangesChange={() => {}}
         canEdit={true}
-      />
+      />,
     );
 
     await waitFor(() => {

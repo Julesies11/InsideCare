@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
 import { housesApi } from '@/api/houses.api';
+import { useQuery } from '@tanstack/react-query';
 import { QUERY_KEYS } from '@/config/query-keys';
 
 export interface HouseStaffAssignment {
@@ -14,7 +14,8 @@ export interface HouseStaffAssignment {
   updated_at: string;
   staff?: {
     id: string;
-    staff_name?: string; role_name?: string;
+    staff_name?: string;
+    role_name?: string;
     email?: string;
     phone?: string;
     status?: string;
@@ -23,13 +24,17 @@ export interface HouseStaffAssignment {
     photo_url?: string;
     role?: {
       id: string;
-      staff_name?: string; role_name?: string;
+      staff_name?: string;
+      role_name?: string;
       description?: string;
     };
   };
 }
 
-export function useHouseStaffAssignments(houseId?: string, options?: { enabled?: boolean }) {
+export function useHouseStaffAssignments(
+  houseId?: string,
+  options?: { enabled?: boolean },
+) {
   const query = useQuery({
     queryKey: [QUERY_KEYS.HOUSE_STAFF_ASSIGNMENTS, { houseId }],
     queryFn: async () => {

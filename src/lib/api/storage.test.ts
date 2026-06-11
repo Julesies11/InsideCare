@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { uploadFile, deleteFile, getPublicUrl } from './storage';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { logError } from '@/lib/logger';
 import { supabase } from '@/lib/supabase';
 import * as imageUtils from '@/lib/utils/image';
-import { logError } from '@/lib/logger';
+import { deleteFile, getPublicUrl, uploadFile } from './storage';
 
 // Mock Supabase
 vi.mock('@/lib/supabase', () => ({
@@ -11,7 +11,11 @@ vi.mock('@/lib/supabase', () => ({
       from: vi.fn().mockReturnThis(),
       upload: vi.fn().mockResolvedValue({ data: {}, error: null }),
       remove: vi.fn().mockResolvedValue({ data: {}, error: null }),
-      getPublicUrl: vi.fn().mockReturnValue({ data: { publicUrl: 'http://example.com/file.jpg' } }),
+      getPublicUrl: vi
+        .fn()
+        .mockReturnValue({
+          data: { publicUrl: 'http://example.com/file.jpg' },
+        }),
     },
   },
 }));
@@ -30,11 +34,18 @@ describe('Storage API', () => {
 
   describe('uploadFile', () => {
     it('should validate, compress and upload file', async () => {
-      const validateSpy = vi.spyOn(imageUtils, 'validateImage').mockReturnValue({});
-      const compressSpy = vi.spyOn(imageUtils, 'compressImage').mockResolvedValue(mockFile);
-      
-      const result = await uploadFile(mockFile, { bucket: 'avatars', folder: 'user1' });
-      
+      const validateSpy = vi
+        .spyOn(imageUtils, 'validateImage')
+        .mockReturnValue({});
+      const compressSpy = vi
+        .spyOn(imageUtils, 'compressImage')
+        .mockResolvedValue(mockFile);
+
+      const result = await uploadFile(mockFile, {
+        bucket: 'avatars',
+        folder: 'user1',
+      });
+
       expect(validateSpy).toHaveBeenCalledWith(mockFile);
       expect(compressSpy).toHaveBeenCalled();
       expect(supabase.storage.from).toHaveBeenCalledWith('avatars');
@@ -43,20 +54,27 @@ describe('Storage API', () => {
     });
 
     it('should throw error if validation fails', async () => {
-      vi.spyOn(imageUtils, 'validateImage').mockReturnValue({ error: 'Too big' });
-      
-      await expect(uploadFile(mockFile, { bucket: 'avatars' }))
-        .rejects.toThrow('Too big');
+      vi.spyOn(imageUtils, 'validateImage').mockReturnValue({
+        error: 'Too big',
+      });
+
+      await expect(uploadFile(mockFile, { bucket: 'avatars' })).rejects.toThrow(
+        'Too big',
+      );
     });
 
     it('should log error and throw if upload fails', async () => {
       vi.spyOn(imageUtils, 'validateImage').mockReturnValue({});
       vi.spyOn(imageUtils, 'compressImage').mockResolvedValue(mockFile);
-      vi.mocked(supabase.storage.upload).mockResolvedValueOnce({ data: null, error: { message: 'Upload failed' } as any });
-      
-      await expect(uploadFile(mockFile, { bucket: 'avatars' }))
-        .rejects.toThrow('Storage upload failed: Upload failed');
-      
+      vi.mocked(supabase.storage.upload).mockResolvedValueOnce({
+        data: null,
+        error: { message: 'Upload failed' } as any,
+      });
+
+      await expect(uploadFile(mockFile, { bucket: 'avatars' })).rejects.toThrow(
+        'Storage upload failed: Upload failed',
+      );
+
       expect(logError).toHaveBeenCalled();
     });
   });
@@ -64,17 +82,21 @@ describe('Storage API', () => {
   describe('deleteFile', () => {
     it('should call remove with correct path', async () => {
       await deleteFile('avatars', 'user1/photo.jpg');
-      
+
       expect(supabase.storage.from).toHaveBeenCalledWith('avatars');
       expect(supabase.storage.remove).toHaveBeenCalledWith(['user1/photo.jpg']);
     });
 
     it('should log error if deletion fails', async () => {
-      vi.mocked(supabase.storage.remove).mockResolvedValueOnce({ data: null, error: { message: 'Delete failed' } as any });
-      
-      await expect(deleteFile('avatars', 'path'))
-        .rejects.toThrow('Delete failed');
-      
+      vi.mocked(supabase.storage.remove).mockResolvedValueOnce({
+        data: null,
+        error: { message: 'Delete failed' } as any,
+      });
+
+      await expect(deleteFile('avatars', 'path')).rejects.toThrow(
+        'Delete failed',
+      );
+
       expect(logError).toHaveBeenCalled();
     });
   });
@@ -85,13 +107,17 @@ describe('Storage API', () => {
     });
 
     it('should return path if it is already a URL', () => {
-      expect(getPublicUrl('avatars', 'http://external.com/img.jpg')).toBe('http://external.com/img.jpg');
+      expect(getPublicUrl('avatars', 'http://external.com/img.jpg')).toBe(
+        'http://external.com/img.jpg',
+      );
     });
 
     it('should call getPublicUrl with correct path', () => {
       const result = getPublicUrl('avatars', 'photo.jpg', 'user1');
       expect(supabase.storage.from).toHaveBeenCalledWith('avatars');
-      expect(supabase.storage.getPublicUrl).toHaveBeenCalledWith('user1/photo.jpg');
+      expect(supabase.storage.getPublicUrl).toHaveBeenCalledWith(
+        'user1/photo.jpg',
+      );
       expect(result).toBe('http://example.com/file.jpg');
     });
   });

@@ -1,7 +1,7 @@
-import { render, screen, fireEvent } from '@testing-library/react';
-import { ShiftCard, ShiftCardData } from './shift-card';
-import { describe, it, expect, vi } from 'vitest';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { ShiftCard, ShiftCardData } from './shift-card';
 
 const mockShift: ShiftCardData = {
   id: 'shift-1',
@@ -13,8 +13,15 @@ const mockShift: ShiftCardData = {
   staff_id: 'staff-1',
   house: { id: 'house-1', house_name: 'Test House' },
   participants: [{ id: 'p-1', participant_name: 'Participant 1' }],
-  assigned_checklists: [{ id: 'cl-1', checklist_id: 'check-1', assignment_title: 'Morning Routine', is_completed: false }],
-  notesCount: 2
+  assigned_checklists: [
+    {
+      id: 'cl-1',
+      checklist_id: 'check-1',
+      assignment_title: 'Morning Routine',
+      is_completed: false,
+    },
+  ],
+  notesCount: 2,
 };
 
 describe('ShiftCard', () => {
@@ -23,13 +30,13 @@ describe('ShiftCard', () => {
   it('renders compact view correctly', () => {
     render(
       <TooltipProvider>
-        <ShiftCard 
-          shift={mockShift} 
-          compact={true} 
-          showStaffName={true} 
-          onClick={onClick} 
+        <ShiftCard
+          shift={mockShift}
+          compact={true}
+          showStaffName={true}
+          onClick={onClick}
         />
-      </TooltipProvider>
+      </TooltipProvider>,
     );
 
     expect(screen.getByText('Morning')).toBeDefined();
@@ -42,13 +49,13 @@ describe('ShiftCard', () => {
   it('renders expanded view correctly', () => {
     render(
       <TooltipProvider>
-        <ShiftCard 
-          shift={mockShift} 
-          compact={false} 
-          showStaffName={true} 
-          onClick={onClick} 
+        <ShiftCard
+          shift={mockShift}
+          compact={false}
+          showStaffName={true}
+          onClick={onClick}
         />
-      </TooltipProvider>
+      </TooltipProvider>,
     );
 
     expect(screen.getByText('Morning')).toBeDefined();
@@ -62,13 +69,13 @@ describe('ShiftCard', () => {
   it('calls onClick when clicked', () => {
     render(
       <TooltipProvider>
-        <ShiftCard 
-          shift={mockShift} 
-          compact={true} 
-          showStaffName={true} 
-          onClick={onClick} 
+        <ShiftCard
+          shift={mockShift}
+          compact={true}
+          showStaffName={true}
+          onClick={onClick}
         />
-      </TooltipProvider>
+      </TooltipProvider>,
     );
 
     fireEvent.click(screen.getByText('Morning').closest('div')!);
@@ -76,16 +83,20 @@ describe('ShiftCard', () => {
   });
 
   it('shows OPEN SHIFT for unassigned shifts', () => {
-    const unassignedShift = { ...mockShift, staff_id: undefined, staff_name: undefined };
+    const unassignedShift = {
+      ...mockShift,
+      staff_id: undefined,
+      staff_name: undefined,
+    };
     render(
       <TooltipProvider>
-        <ShiftCard 
-          shift={unassignedShift} 
-          compact={true} 
-          showStaffName={true} 
-          onClick={onClick} 
+        <ShiftCard
+          shift={unassignedShift}
+          compact={true}
+          showStaffName={true}
+          onClick={onClick}
         />
-      </TooltipProvider>
+      </TooltipProvider>,
     );
 
     expect(screen.getByText('OPEN SHIFT')).toBeDefined();

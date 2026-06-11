@@ -1,23 +1,23 @@
+import { housesApi } from '@/api/houses.api';
+import { handleSupabaseError } from '@/errors/error-handler';
 import { House as HouseIcon } from 'lucide-react';
+import { useNavigate } from 'react-router';
+import { RBAC_MODULES } from '@/config/rbac-modules';
+import { ROUTES } from '@/config/routes.config';
+import { ACCESS_LEVEL, useRBAC } from '@/hooks/useRBAC';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Houses } from './components';
-import { useNavigate } from 'react-router';
-import { housesApi } from '@/api/houses.api';
-import { handleSupabaseError } from '@/errors/error-handler';
-import { RBAC_MODULES } from '@/config/rbac-modules';
-import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
-import { ROUTES } from '@/config/routes.config';
 
 export function HousesProfilesContent() {
   const navigate = useNavigate();
   const { hasAccess } = useRBAC();
-  
+
   console.log('[DEBUG] HousesProfilesContent rendering');
 
-  const canAdd = hasAccess({ 
-    resource: RBAC_MODULES.HOUSES, 
-    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE 
+  const canAdd = hasAccess({
+    resource: RBAC_MODULES.HOUSES,
+    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE,
   });
 
   const handleAddHouse = async () => {
@@ -31,7 +31,7 @@ export function HousesProfilesContent() {
         message: error.message,
         code: error.code,
         details: error.details,
-        hint: error.hint
+        hint: error.hint,
       });
       handleSupabaseError(error, 'Failed to create house');
     }
@@ -69,8 +69,9 @@ export function HousesProfilesContent() {
                 Creating Safe and Comfortable Homes
               </h3>
               <p className="text-sm text-green-700 dark:text-green-300">
-                Each house represents a safe haven where individuals can thrive, grow, and feel at home. 
-                Your management ensures quality living environments for everyone.
+                Each house represents a safe haven where individuals can thrive,
+                grow, and feel at home. Your management ensures quality living
+                environments for everyone.
               </p>
             </div>
           </div>

@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from './tabs';
 import userEvent from '@testing-library/user-event';
+import { describe, expect, it } from 'vitest';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './tabs';
 
 describe('Tabs', () => {
   it('renders correctly and switches content', async () => {
@@ -14,7 +14,7 @@ describe('Tabs', () => {
         </TabsList>
         <TabsContent value="tab1">Content 1</TabsContent>
         <TabsContent value="tab2">Content 2</TabsContent>
-      </Tabs>
+      </Tabs>,
     );
 
     expect(screen.getByText('Content 1')).toBeInTheDocument();

@@ -1,9 +1,9 @@
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { AvatarInput } from '@/components/image-input/avatar-input';
-import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 
 interface PersonalDetailsProps {
   formData: Record<string, any>;
@@ -35,13 +35,17 @@ export function PersonalDetails({
             <Label className="flex w-full max-w-56">Profile Photo</Label>
             <div className="flex items-center gap-4">
               <AvatarInput
-                value={formData.photo_url_preview ?? formData.photo_url ?? undefined}
+                value={
+                  formData.photo_url_preview ?? formData.photo_url ?? undefined
+                }
                 onChange={canEdit ? handlePhotoChange : () => {}}
                 size="lg"
                 bucket={STORAGE_BUCKETS.STAFF_PHOTOS}
               />
               {canEdit && (
-                <p className="text-xs text-muted-foreground">Click the photo to change it</p>
+                <p className="text-xs text-muted-foreground">
+                  Click the photo to change it
+                </p>
               )}
             </div>
           </div>
@@ -49,7 +53,9 @@ export function PersonalDetails({
 
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <Label htmlFor="staff_name" className="flex w-full max-w-56">Full Name *</Label>
+            <Label htmlFor="staff_name" className="flex w-full max-w-56">
+              Full Name *
+            </Label>
             <div className="grow">
               <Input
                 id="staff_name"
@@ -57,10 +63,16 @@ export function PersonalDetails({
                 value={formData.staff_name || ''}
                 onChange={(e) => onFormChange('staff_name', e.target.value)}
                 disabled={!canEdit}
-                className={validationErrors.staff_name ? 'border-red-500 focus-visible:ring-red-500' : ''}
+                className={
+                  validationErrors.staff_name
+                    ? 'border-red-500 focus-visible:ring-red-500'
+                    : ''
+                }
               />
               {validationErrors.staff_name && (
-                <p className="text-red-500 text-sm mt-1">{validationErrors.staff_name}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {validationErrors.staff_name}
+                </p>
               )}
             </div>
           </div>
@@ -79,10 +91,16 @@ export function PersonalDetails({
                 value={formData.email || ''}
                 onChange={(e) => onFormChange('email', e.target.value)}
                 disabled={!canEdit}
-                className={validationErrors.email ? 'border-red-500 focus-visible:ring-red-500' : ''}
+                className={
+                  validationErrors.email
+                    ? 'border-red-500 focus-visible:ring-red-500'
+                    : ''
+                }
               />
               {validationErrors.email && (
-                <p className="text-red-500 text-sm mt-1">{validationErrors.email}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {validationErrors.email}
+                </p>
               )}
             </div>
           </div>

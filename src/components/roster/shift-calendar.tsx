@@ -1,16 +1,16 @@
-import { 
+import { LeaveBlock } from '@/pages/roster-board/components/staff-roster-calendar';
+import { format, isSameDay, isSameMonth } from 'date-fns';
+import { Plus, Trash2, Zap } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Button } from '@/components/ui/button';
-import { Plus, Zap, Trash2 } from 'lucide-react';
-import { format, isSameDay, isSameMonth } from 'date-fns';
-import { ShiftCard, ShiftCardData } from './shift-card';
 import { generateMonthDays, generateWeekDays, ViewMode } from './roster-utils';
-import { LeaveBlock } from '@/pages/roster-board/components/staff-roster-calendar';
-import { cn } from '@/lib/utils';
+import { ShiftCard, ShiftCardData } from './shift-card';
 
 export interface ShiftCalendarProps {
   staffId: string;
@@ -31,13 +31,25 @@ export interface ShiftCalendarProps {
   /** Pre-computed map of houseId -> assigned active staff. Used to avoid O(n²) lookups per cell. */
   houseStaffMap?: Map<string, Array<{ id: string; name: string }>>;
   /** Shift templates for the selected house filter, passed down to child cards. */
-  shiftTemplates?: Array<{ id: string; shift_template_name: string; [key: string]: any }>;
+  shiftTemplates?: Array<{
+    id: string;
+    shift_template_name: string;
+    [key: string]: any;
+  }>;
   groupByHouse?: boolean;
   onQuickAssign?: (shiftId: string, staffId: string) => void;
   onEditLeave?: (leave: LeaveBlock) => void;
 }
 
-function LeaveBlockBadge({ leave, staffName, onClick }: { leave: LeaveBlock; staffName?: string, onClick?: () => void }) {
+function LeaveBlockBadge({
+  leave,
+  staffName,
+  onClick,
+}: {
+  leave: LeaveBlock;
+  staffName?: string;
+  onClick?: () => void;
+}) {
   const isPending = leave.status === 'pending';
   const reason = leave.reason;
   return (
@@ -57,7 +69,9 @@ function LeaveBlockBadge({ leave, staffName, onClick }: { leave: LeaveBlock; sta
       }`}
       title={`${staffName ? `${staffName} - ` : ''}${leave.leave_type_name} (${leave.status})${leave.reason ? `: ${leave.reason}` : ''}`}
     >
-      {isPending ? '⏳' : '🏖'} {staffName ? `${staffName}: ` : ''}{leave.leave_type_name}{reason ? ` - ${reason}` : ''}
+      {isPending ? '⏳' : '🏖'} {staffName ? `${staffName}: ` : ''}
+      {leave.leave_type_name}
+      {reason ? ` - ${reason}` : ''}
     </div>
   );
 }
@@ -89,7 +103,7 @@ export function ShiftCalendar({
       const startA = a.start_time || '00:00';
       const startB = b.start_time || '00:00';
       if (startA !== startB) return startA.localeCompare(startB);
-      
+
       const endA = a.end_time || '00:00';
       const endB = b.end_time || '00:00';
       return endA.localeCompare(endB);
@@ -98,52 +112,64 @@ export function ShiftCalendar({
 
   const getShiftsForDate = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    const filtered = shifts.filter(shift =>
-      shift.start_date && shift.start_date === dateStr
+    const filtered = shifts.filter(
+      (shift) => shift.start_date && shift.start_date === dateStr,
     );
     return sortShifts(filtered);
   };
 
   const getLeaveForDate = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    const filtered = leaveBlocks.filter(leave => {
+    const filtered = leaveBlocks.filter((leave) => {
       return dateStr >= leave.start_date && dateStr <= leave.end_date;
     });
-    
+
     // Deduplicate by ID to prevent "doubling up"
-    const uniqueLeave = Array.from(new Map(filtered.map(l => [l.id, l])).values());
+    const uniqueLeave = Array.from(
+      new Map(filtered.map((l) => [l.id, l])).values(),
+    );
     return uniqueLeave;
   };
 
   const getShiftsForHouseAndDate = (houseId: string, date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    const filtered = shifts.filter(shift =>
-      shift.house?.id === houseId && shift.start_date && shift.start_date === dateStr
+    const filtered = shifts.filter(
+      (shift) =>
+        shift.house?.id === houseId &&
+        shift.start_date &&
+        shift.start_date === dateStr,
     );
     return sortShifts(filtered);
   };
 
-  const getConflictingShifts = (staffIdParam: string, date: Date, excludeShiftId?: string) => {
+  const getConflictingShifts = (
+    staffIdParam: string,
+    date: Date,
+    excludeShiftId?: string,
+  ) => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    return shifts.filter(shift => 
-      shift.staff_id === staffIdParam && 
-      shift.start_date && shift.start_date === dateStr &&
-      shift.id !== excludeShiftId
+    return shifts.filter(
+      (shift) =>
+        shift.staff_id === staffIdParam &&
+        shift.start_date &&
+        shift.start_date === dateStr &&
+        shift.id !== excludeShiftId,
     );
   };
 
   const renderShiftCardWithWarning = (
-    shift: ShiftCardData, 
-    date: Date, 
-    compact: boolean = true, 
+    shift: ShiftCardData,
+    date: Date,
+    compact: boolean = true,
     showHouseName: boolean = true,
-    customStaffList?: Array<{ id: string; name: string }>
+    customStaffList?: Array<{ id: string; name: string }>,
   ) => {
-    const conflictingShifts = shift.staff_id ? 
-      getConflictingShifts(shift.staff_id, date, shift.id) : [];
-    
+    const conflictingShifts = shift.staff_id
+      ? getConflictingShifts(shift.staff_id, date, shift.id)
+      : [];
+
     const hasDoubleBooking = conflictingShifts.length > 0;
-    
+
     return (
       <div key={shift.id} className={hasDoubleBooking ? 'relative' : ''}>
         {hasDoubleBooking && (
@@ -151,30 +177,46 @@ export function ShiftCalendar({
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div 
-                    className={`bg-red-500 text-white text-[10px] rounded-full font-bold flex items-center justify-center cursor-help shadow-sm ${compact ? 'w-3.5 h-3.5' : 'w-4 h-4'}`} 
+                  <div
+                    className={`bg-red-500 text-white text-[10px] rounded-full font-bold flex items-center justify-center cursor-help shadow-sm ${compact ? 'w-3.5 h-3.5' : 'w-4 h-4'}`}
                   >
                     !
                   </div>
                 </TooltipTrigger>
-                <TooltipContent side="right" className="max-w-[250px] p-3 shadow-xl border-red-100">
+                <TooltipContent
+                  side="right"
+                  className="max-w-[250px] p-3 shadow-xl border-red-100"
+                >
                   <div className="space-y-2">
                     <p className="font-bold text-red-600 text-xs flex items-center gap-1.5">
-                      <span className="bg-red-100 text-red-600 size-4 rounded-full flex items-center justify-center text-[10px]">!</span>
+                      <span className="bg-red-100 text-red-600 size-4 rounded-full flex items-center justify-center text-[10px]">
+                        !
+                      </span>
                       Double Booking Warning
                     </p>
                     <p className="text-[10px] text-muted-foreground leading-tight">
-                      This staff member is already rostered for other shifts on this day:
+                      This staff member is already rostered for other shifts on
+                      this day:
                     </p>
                     <ul className="space-y-2 pt-1 border-t border-red-50 mt-1">
-                      {conflictingShifts.map(conf => (
-                        <li key={conf.id} className="text-[10px] leading-tight flex flex-col gap-0.5">
+                      {conflictingShifts.map((conf) => (
+                        <li
+                          key={conf.id}
+                          className="text-[10px] leading-tight flex flex-col gap-0.5"
+                        >
                           <div className="flex items-center justify-between gap-2">
-                            <span className="font-bold text-gray-900">{conf.title || conf.shift_template}</span>
-                            <span className="text-gray-500 font-medium">{(conf.start_time || '').slice(0, 5)} - {(conf.end_time || '').slice(0, 5)}</span>
+                            <span className="font-bold text-gray-900">
+                              {conf.title || conf.shift_template}
+                            </span>
+                            <span className="text-gray-500 font-medium">
+                              {(conf.start_time || '').slice(0, 5)} -{' '}
+                              {(conf.end_time || '').slice(0, 5)}
+                            </span>
                           </div>
                           <div className="text-gray-600 italic">
-                            {conf.entry_type === 'event' ? (conf.location || 'No location') : `at ${conf.house?.house_name || 'Unknown House'}`}
+                            {conf.entry_type === 'event'
+                              ? conf.location || 'No location'
+                              : `at ${conf.house?.house_name || 'Unknown House'}`}
                           </div>
                         </li>
                       ))}
@@ -193,7 +235,9 @@ export function ShiftCalendar({
           onClick={() => onEditShift(shift)}
           onWriteNote={onWriteNote}
           onNotesClick={onNotesClick}
-          staffList={customStaffList !== undefined ? customStaffList : staffList}
+          staffList={
+            customStaffList !== undefined ? customStaffList : staffList
+          }
           onQuickAssign={onQuickAssign}
         />
       </div>
@@ -207,8 +251,11 @@ export function ShiftCalendar({
     return (
       <div className="space-y-4">
         <div className="grid grid-cols-7 gap-2">
-          {weekDays.map(day => (
-            <div key={day} className="text-center font-medium text-sm p-2 uppercase tracking-tighter text-muted-foreground/60">
+          {weekDays.map((day) => (
+            <div
+              key={day}
+              className="text-center font-medium text-sm p-2 uppercase tracking-tighter text-muted-foreground/60"
+            >
               {day}
             </div>
           ))}
@@ -232,7 +279,9 @@ export function ShiftCalendar({
                 } ${isToday ? 'ring-2 ring-primary border-primary/20 shadow-lg shadow-primary/5' : 'hover:border-gray-300'}`}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <div className={`text-xs font-black ${!isCurrentMonth ? 'text-muted-foreground' : (isToday ? 'text-primary' : 'text-gray-500')}`}>
+                  <div
+                    className={`text-xs font-black ${!isCurrentMonth ? 'text-muted-foreground' : isToday ? 'text-primary' : 'text-gray-500'}`}
+                  >
                     {format(day, 'd')}
                   </div>
                   {canEdit && isCurrentMonth && (
@@ -250,23 +299,36 @@ export function ShiftCalendar({
                   )}
                 </div>
                 <div className="space-y-2">
-                  {getLeaveForDate(day).map(leave => (
-                    <LeaveBlockBadge 
-                      key={leave.id} 
-                      leave={leave} 
-                      staffName={staffId === 'all' ? staffList?.find(s => s.id === leave.staff_id)?.name : undefined}
-                      onClick={onEditLeave ? () => onEditLeave(leave) : undefined}
+                  {getLeaveForDate(day).map((leave) => (
+                    <LeaveBlockBadge
+                      key={leave.id}
+                      leave={leave}
+                      staffName={
+                        staffId === 'all'
+                          ? staffList?.find((s) => s.id === leave.staff_id)
+                              ?.name
+                          : undefined
+                      }
+                      onClick={
+                        onEditLeave ? () => onEditLeave(leave) : undefined
+                      }
                     />
                   ))}
-                  
+
                   {/* Group shifts by house within the day */}
                   {(() => {
-                    const shiftsByHouse: Record<string, { name: string, shifts: ShiftCardData[] }> = {};
-                    dayShifts.forEach(s => {
+                    const shiftsByHouse: Record<
+                      string,
+                      { name: string; shifts: ShiftCardData[] }
+                    > = {};
+                    dayShifts.forEach((s) => {
                       const houseId = s.house?.id || 'unassigned';
                       const houseName = s.house?.house_name || 'Unassigned';
                       if (!shiftsByHouse[houseId]) {
-                        shiftsByHouse[houseId] = { name: houseName, shifts: [] };
+                        shiftsByHouse[houseId] = {
+                          name: houseName,
+                          shifts: [],
+                        };
                       }
                       shiftsByHouse[houseId].shifts.push(s);
                     });
@@ -276,9 +338,17 @@ export function ShiftCalendar({
                         <div className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/50 border-b border-gray-100 mb-1 px-0.5">
                           {group.name}
                         </div>
-                        {group.shifts.map(shift => (
-                          <div key={shift.id} onClick={(e) => e.stopPropagation()}>
-                            {renderShiftCardWithWarning(shift, day, true, false)}
+                        {group.shifts.map((shift) => (
+                          <div
+                            key={shift.id}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {renderShiftCardWithWarning(
+                              shift,
+                              day,
+                              true,
+                              false,
+                            )}
                           </div>
                         ))}
                       </div>
@@ -299,26 +369,28 @@ export function ShiftCalendar({
     }
 
     return (
-      <div className={cn(
-        "grid gap-4",
-        days.length === 1 ? "grid-cols-1" : "grid-cols-1 lg:grid-cols-7"
-      )}>
+      <div
+        className={cn(
+          'grid gap-4',
+          days.length === 1 ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-7',
+        )}
+      >
         {days.map((day, index) => {
           const dayShifts = getShiftsForDate(day);
           const isToday = isSameDay(day, new Date());
 
           return (
             <div key={index} className="space-y-3">
-              <div 
+              <div
                 onClick={() => canEdit && onAddShift(day)}
                 className={`text-center p-3 rounded-xl group relative border transition-all cursor-pointer ${isToday ? 'bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20' : 'bg-muted/30 border-gray-100'}`}
               >
-                <p className={`text-[10px] font-black uppercase tracking-widest ${isToday ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
+                <p
+                  className={`text-[10px] font-black uppercase tracking-widest ${isToday ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}
+                >
                   {format(day, 'EEE')}
                 </p>
-                <p className="text-xl font-black">
-                  {format(day, 'd')}
-                </p>
+                <p className="text-xl font-black">{format(day, 'd')}</p>
                 {canEdit && (
                   <Button
                     variant="ghost"
@@ -333,29 +405,36 @@ export function ShiftCalendar({
                   </Button>
                 )}
               </div>
-              
-              <div 
+
+              <div
                 className="space-y-2 min-h-[100px] cursor-pointer"
                 onClick={() => canEdit && onAddShift(day)}
               >
-                {getLeaveForDate(day).map(leave => (
-                  <LeaveBlockBadge 
-                    key={leave.id} 
-                    leave={leave} 
-                    staffName={staffId === 'all' ? staffList?.find(s => s.id === leave.staff_id)?.name : undefined}
+                {getLeaveForDate(day).map((leave) => (
+                  <LeaveBlockBadge
+                    key={leave.id}
+                    leave={leave}
+                    staffName={
+                      staffId === 'all'
+                        ? staffList?.find((s) => s.id === leave.staff_id)?.name
+                        : undefined
+                    }
                     onClick={onEditLeave ? () => onEditLeave(leave) : undefined}
                   />
                 ))}
-                {dayShifts.map(shift => (
+                {dayShifts.map((shift) => (
                   <div key={shift.id} onClick={(e) => e.stopPropagation()}>
                     {renderShiftCardWithWarning(shift, day, false, true)}
                   </div>
                 ))}
-                {dayShifts.length === 0 && getLeaveForDate(day).length === 0 && (
-                  <div className="text-center py-8 bg-gray-50/50 rounded-xl border border-dashed border-gray-100">
-                    <span className="text-[10px] font-medium text-muted-foreground italic uppercase tracking-widest opacity-40">No shifts</span>
-                  </div>
-                )}
+                {dayShifts.length === 0 &&
+                  getLeaveForDate(day).length === 0 && (
+                    <div className="text-center py-8 bg-gray-50/50 rounded-xl border border-dashed border-gray-100">
+                      <span className="text-[10px] font-medium text-muted-foreground italic uppercase tracking-widest opacity-40">
+                        No shifts
+                      </span>
+                    </div>
+                  )}
               </div>
             </div>
           );
@@ -367,84 +446,125 @@ export function ShiftCalendar({
   const renderHouseGroupedWeekView = (days: Date[]) => {
     const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     const allHouses = [...houses];
-    if (shifts.some(shift => !shift.house)) {
+    if (shifts.some((shift) => !shift.house)) {
       allHouses.push({ id: 'unassigned', name: 'Unassigned' });
     }
-    
-    const gridColsClass = days.length === 1 
-      ? "grid-cols-[140px_1fr]" 
-      : "grid-cols-[140px_repeat(7,1fr)]";
+
+    const gridColsClass =
+      days.length === 1
+        ? 'grid-cols-[140px_1fr]'
+        : 'grid-cols-[140px_repeat(7,1fr)]';
 
     return (
       <div className="space-y-2 overflow-x-auto pb-4 custom-scrollbar">
-        <div className={cn(days.length === 1 ? "w-full" : "min-w-[1000px]")}>
-          <div className={cn("grid gap-2 border-b border-gray-100 pb-3 mb-2 px-1", gridColsClass)}>
-            <div className="font-black text-[10px] uppercase tracking-[0.2em] text-muted-foreground/50 self-end pb-1">Location</div>
+        <div className={cn(days.length === 1 ? 'w-full' : 'min-w-[1000px]')}>
+          <div
+            className={cn(
+              'grid gap-2 border-b border-gray-100 pb-3 mb-2 px-1',
+              gridColsClass,
+            )}
+          >
+            <div className="font-black text-[10px] uppercase tracking-[0.2em] text-muted-foreground/50 self-end pb-1">
+              Location
+            </div>
             {days.map((day, index) => {
               const isToday = isSameDay(day, new Date());
               return (
-                <div key={index} className={cn(
-                  "text-center font-medium p-2 rounded-xl transition-all",
-                  isToday ? "bg-primary/5 border border-primary/10 shadow-sm" : ""
-                )}>
-                  <div className={cn(
-                    "text-[10px] uppercase font-black tracking-widest mb-1",
-                    isToday ? "text-primary" : "text-muted-foreground/60"
-                  )}>
-                    {days.length === 1 ? format(day, 'EEEE') : weekDays[day.getDay() === 0 ? 6 : day.getDay() - 1]}
+                <div
+                  key={index}
+                  className={cn(
+                    'text-center font-medium p-2 rounded-xl transition-all',
+                    isToday
+                      ? 'bg-primary/5 border border-primary/10 shadow-sm'
+                      : '',
+                  )}
+                >
+                  <div
+                    className={cn(
+                      'text-[10px] uppercase font-black tracking-widest mb-1',
+                      isToday ? 'text-primary' : 'text-muted-foreground/60',
+                    )}
+                  >
+                    {days.length === 1
+                      ? format(day, 'EEEE')
+                      : weekDays[day.getDay() === 0 ? 6 : day.getDay() - 1]}
                   </div>
-                  <div className={cn(
-                    "text-xl font-black leading-none",
-                    isToday ? "text-primary" : "text-gray-900"
-                  )}>
+                  <div
+                    className={cn(
+                      'text-xl font-black leading-none',
+                      isToday ? 'text-primary' : 'text-gray-900',
+                    )}
+                  >
                     {format(day, 'd')}
                   </div>
                 </div>
               );
             })}
           </div>
-          
+
           <div className="space-y-2">
             {allHouses.map((house) => {
               // Use pre-computed Map for O(1) lookup; fall back to O(n) filter if map is unavailable
-              const houseStaffList: Array<{ id: string; name: string }> = 
+              const houseStaffList: Array<{ id: string; name: string }> =
                 house.id.toLowerCase() === 'unassigned'
-                  ? (staffList || [])
-                  : (houseStaffMap?.get(house.id) ?? staffList?.filter(s => {
+                  ? staffList || []
+                  : (houseStaffMap?.get(house.id) ??
+                    staffList?.filter((s) => {
                       const today = new Date().toISOString().split('T')[0];
-                      const assignments: Array<{ house_id?: string; house?: { id: string }; end_date?: string | null }> = (s as any).house_assignments || [];
+                      const assignments: Array<{
+                        house_id?: string;
+                        house?: { id: string };
+                        end_date?: string | null;
+                      }> = (s as any).house_assignments || [];
                       return assignments.some((a) => {
-                        const assignmentHouseId = (a.house_id || a.house?.id || '').toLowerCase();
+                        const assignmentHouseId = (
+                          a.house_id ||
+                          a.house?.id ||
+                          ''
+                        ).toLowerCase();
                         const targetHouseId = house.id.toLowerCase();
-                        const isTargetHouse = assignmentHouseId === targetHouseId;
-                        const isAssignmentActive = !a.end_date || a.end_date >= today;
+                        const isTargetHouse =
+                          assignmentHouseId === targetHouseId;
+                        const isAssignmentActive =
+                          !a.end_date || a.end_date >= today;
                         return isTargetHouse && isAssignmentActive;
                       });
-                    }) ?? []);
+                    }) ??
+                    []);
 
               return (
-                <div key={house.id} className={cn("grid gap-2 border-b border-gray-50 hover:bg-gray-50/30 transition-all rounded-xl p-1 group/row", gridColsClass)}>
+                <div
+                  key={house.id}
+                  className={cn(
+                    'grid gap-2 border-b border-gray-50 hover:bg-gray-50/30 transition-all rounded-xl p-1 group/row',
+                    gridColsClass,
+                  )}
+                >
                   <div className="font-black text-xs p-4 bg-muted/20 flex flex-col gap-3 justify-center rounded-xl border border-transparent group-hover/row:border-gray-100 transition-all">
-                    <span className="truncate text-gray-900 uppercase tracking-tight">{house.house_name}</span>
+                    <span className="truncate text-gray-900 uppercase tracking-tight">
+                      {house.house_name}
+                    </span>
                     <div className="flex flex-col gap-1.5">
-                      {canEdit && house.id !== 'unassigned' && onPopulateRoster && (
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="h-7 text-[9px] font-black px-2 gap-1.5 border-primary/20 text-primary hover:bg-primary hover:text-white bg-white shadow-sm w-full justify-start transition-all"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onPopulateRoster(house.id);
-                          }}
-                        >
-                          <Zap className="size-3 fill-primary/20 group-hover:fill-white/20" />
-                          BUILD ROSTER
-                        </Button>
-                      )}
+                      {canEdit &&
+                        house.id !== 'unassigned' &&
+                        onPopulateRoster && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 text-[9px] font-black px-2 gap-1.5 border-primary/20 text-primary hover:bg-primary hover:text-white bg-white shadow-sm w-full justify-start transition-all"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onPopulateRoster(house.id);
+                            }}
+                          >
+                            <Zap className="size-3 fill-primary/20 group-hover:fill-white/20" />
+                            BUILD ROSTER
+                          </Button>
+                        )}
                       {canEdit && house.id !== 'unassigned' && onBulkAction && (
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
+                        <Button
+                          variant="outline"
+                          size="sm"
                           className="h-7 text-[9px] font-black px-2 gap-1.5 border-orange-200 text-orange-600 hover:bg-orange-500 hover:text-white bg-white shadow-sm w-full justify-start transition-all"
                           onClick={(e) => {
                             e.stopPropagation();
@@ -457,25 +577,38 @@ export function ShiftCalendar({
                       )}
                     </div>
                   </div>
-                  
+
                   {days.map((day, dayIndex) => {
                     const dateStr = format(day, 'yyyy-MM-dd');
-                    const houseShifts = house.id === 'unassigned' 
-                      ? sortShifts(shifts.filter(shift => shift.start_date && !shift.house && shift.start_date === dateStr))
-                      : getShiftsForHouseAndDate(house.id, day);
+                    const houseShifts =
+                      house.id === 'unassigned'
+                        ? sortShifts(
+                            shifts.filter(
+                              (shift) =>
+                                shift.start_date &&
+                                !shift.house &&
+                                shift.start_date === dateStr,
+                            ),
+                          )
+                        : getShiftsForHouseAndDate(house.id, day);
                     const isToday = isSameDay(day, new Date());
-                    
+
                     return (
                       <div
                         key={dayIndex}
                         onClick={() => {
                           if (canEdit) {
-                            onAddShift(day, house.id === 'unassigned' ? undefined : house.id);
+                            onAddShift(
+                              day,
+                              house.id === 'unassigned' ? undefined : house.id,
+                            );
                           }
                         }}
                         className={cn(
-                          "min-h-[100px] p-2 border border-transparent rounded-xl group/cell relative transition-all cursor-pointer",
-                          isToday ? "bg-primary/[0.02] ring-1 ring-primary/10" : "hover:bg-white hover:shadow-sm hover:border-gray-100"
+                          'min-h-[100px] p-2 border border-transparent rounded-xl group/cell relative transition-all cursor-pointer',
+                          isToday
+                            ? 'bg-primary/[0.02] ring-1 ring-primary/10'
+                            : 'hover:bg-white hover:shadow-sm hover:border-gray-100',
                         )}
                       >
                         {canEdit && (
@@ -485,41 +618,74 @@ export function ShiftCalendar({
                             className="h-5 w-5 p-0 opacity-0 group-hover/cell:opacity-100 transition-opacity absolute top-1.5 right-1.5 bg-primary/5 text-primary hover:bg-primary/10"
                             onClick={(e) => {
                               e.stopPropagation();
-                              onAddShift(day, house.id === 'unassigned' ? undefined : house.id);
+                              onAddShift(
+                                day,
+                                house.id === 'unassigned'
+                                  ? undefined
+                                  : house.id,
+                              );
                             }}
                           >
                             <Plus className="h-3.5 w-3.5" />
                           </Button>
                         )}
-                        
+
                         <div className="space-y-1.5">
                           {/* Render leave blocks for staff assigned to this house */}
                           {(() => {
                             const dateStr = format(day, 'yyyy-MM-dd');
-                            const houseLeave = leaveBlocks.filter(leave => {
-                              return houseStaffList.some(s => s.id === leave.staff_id) && 
-                                     dateStr >= leave.start_date && dateStr <= leave.end_date;
+                            const houseLeave = leaveBlocks.filter((leave) => {
+                              return (
+                                houseStaffList.some(
+                                  (s) => s.id === leave.staff_id,
+                                ) &&
+                                dateStr >= leave.start_date &&
+                                dateStr <= leave.end_date
+                              );
                             });
-                            const uniqueHouseLeave = Array.from(new Map(houseLeave.map(l => [l.id, l])).values());
-                            
-                            return uniqueHouseLeave.map(leave => (
-                              <LeaveBlockBadge 
-                                key={leave.id} 
-                                leave={leave} 
-                                staffName={staffList?.find(s => s.id === leave.staff_id)?.name} 
-                                onClick={onEditLeave ? () => onEditLeave(leave) : undefined}
+                            const uniqueHouseLeave = Array.from(
+                              new Map(
+                                houseLeave.map((l) => [l.id, l]),
+                              ).values(),
+                            );
+
+                            return uniqueHouseLeave.map((leave) => (
+                              <LeaveBlockBadge
+                                key={leave.id}
+                                leave={leave}
+                                staffName={
+                                  staffList?.find(
+                                    (s) => s.id === leave.staff_id,
+                                  )?.name
+                                }
+                                onClick={
+                                  onEditLeave
+                                    ? () => onEditLeave(leave)
+                                    : undefined
+                                }
                               />
                             ));
                           })()}
 
-                          {houseShifts.map(shift => (
-                            <div key={shift.id} onClick={(e) => e.stopPropagation()}>
-                              {renderShiftCardWithWarning(shift, day, true, false, houseStaffList)}
+                          {houseShifts.map((shift) => (
+                            <div
+                              key={shift.id}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {renderShiftCardWithWarning(
+                                shift,
+                                day,
+                                true,
+                                false,
+                                houseStaffList,
+                              )}
                             </div>
                           ))}
                           {houseShifts.length === 0 && (
                             <div className="text-center py-6 opacity-0 group-hover/cell:opacity-20 transition-opacity">
-                              <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Empty</span>
+                              <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                                Empty
+                              </span>
                             </div>
                           )}
                         </div>
@@ -545,13 +711,11 @@ export function ShiftCalendar({
 
   return (
     <div className="space-y-4">
-      {viewMode === 'today' ? (
-        renderWeekView([currentDate])
-      ) : viewMode === 'week' ? (
-        renderWeekView(generateWeekDays(currentDate))
-      ) : (
-        renderMonthView()
-      )}
+      {viewMode === 'today'
+        ? renderWeekView([currentDate])
+        : viewMode === 'week'
+          ? renderWeekView(generateWeekDays(currentDate))
+          : renderMonthView()}
     </div>
   );
 }

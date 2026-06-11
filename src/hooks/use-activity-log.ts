@@ -1,7 +1,11 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  activityLogApi,
+  ActivityLogListOptions,
+  LogActivityParams,
+} from '@/api/activity-log.api';
 import { ActivityType } from '@/models/activity-log';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { QUERY_KEYS } from '@/config/query-keys';
-import { activityLogApi, ActivityLogListOptions, LogActivityParams } from '@/api/activity-log.api';
 
 export function useActivityLog(options: ActivityLogListOptions = {}) {
   const query = useQuery({
@@ -37,81 +41,87 @@ export function useActivityLogHelpers() {
     type: ActivityType,
     participantId: string,
     participantName: string,
-    userName?: string
-  ) => logActivity({
-    activityType: type,
-    entityType: 'participant',
-    entityId: participantId,
-    entityName: participantName,
-    userName
-  });
+    userName?: string,
+  ) =>
+    logActivity({
+      activityType: type,
+      entityType: 'participant',
+      entityId: participantId,
+      entityName: participantName,
+      userName,
+    });
 
   const logStaffActivity = (
     type: ActivityType,
     staffId: string,
     staffName: string,
-    userName?: string
-  ) => logActivity({
-    activityType: type,
-    entityType: 'staff',
-    entityId: staffId,
-    entityName: staffName,
-    userName
-  });
+    userName?: string,
+  ) =>
+    logActivity({
+      activityType: type,
+      entityType: 'staff',
+      entityId: staffId,
+      entityName: staffName,
+      userName,
+    });
 
   const logIncidentActivity = (
     type: ActivityType,
     incidentId: string,
     incidentType: string,
-    userName?: string
-  ) => logActivity({
-    activityType: type,
-    entityType: 'incident',
-    entityId: incidentId,
-    entityName: incidentType,
-    userName
-  });
+    userName?: string,
+  ) =>
+    logActivity({
+      activityType: type,
+      entityType: 'incident',
+      entityId: incidentId,
+      entityName: incidentType,
+      userName,
+    });
 
   const logComplianceActivity = (
     type: ActivityType,
     complianceId: string,
     complianceName: string,
     staffName: string,
-    userName?: string
-  ) => logActivity({
-    activityType: type,
-    entityType: 'compliance',
-    entityId: complianceId,
-    entityName: complianceName,
-    userName,
-    metadata: { staff_name: staffName }
-  });
+    userName?: string,
+  ) =>
+    logActivity({
+      activityType: type,
+      entityType: 'compliance',
+      entityId: complianceId,
+      entityName: complianceName,
+      userName,
+      metadata: { staff_name: staffName },
+    });
 
   const logShiftNoteActivity = (
     type: ActivityType,
     noteId: string,
     summary: string,
-    userName?: string
-  ) => logActivity({
-    activityType: type,
-    entityType: 'shift_note',
-    entityId: noteId,
-    entityName: summary,
-    userName
-  });
+    userName?: string,
+  ) =>
+    logActivity({
+      activityType: type,
+      entityType: 'shift_note',
+      entityId: noteId,
+      entityName: summary,
+      userName,
+    });
 
   const logBranchActivity = (
     type: ActivityType,
     branchId: string,
     branchName: string,
-    userName?: string
-  ) => logActivity({
-    activityType: type,
-    entityType: 'branch',
-    entityId: branchId,
-    entityName: branchName,
-    userName
-  });
+    userName?: string,
+  ) =>
+    logActivity({
+      activityType: type,
+      entityType: 'branch',
+      entityId: branchId,
+      entityName: branchName,
+      userName,
+    });
 
   return {
     logParticipantActivity,

@@ -1,9 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ContactTypeMaster } from '@/models/contact-type-master';
-import { useAuth } from '@/auth/context/auth-context';
-import { logActivity, detectChanges } from '@/lib/activity-logger';
-import { QUERY_KEYS } from '@/config/query-keys';
 import { masterListsApi } from '@/api/master-lists.api';
+import { useAuth } from '@/auth/context/auth-context';
+import { ContactTypeMaster } from '@/models/contact-type-master';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { QUERY_KEYS } from '@/config/query-keys';
+import { detectChanges, logActivity } from '@/lib/activity-logger';
 
 export function useContactTypesMaster(includeInactive = true) {
   return useQuery({
@@ -18,7 +18,9 @@ export function useAddContactTypeMaster() {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async (contactType: Omit<ContactTypeMaster, 'id' | 'created_at' | 'updated_at'>) => {
+    mutationFn: async (
+      contactType: Omit<ContactTypeMaster, 'id' | 'created_at' | 'updated_at'>,
+    ) => {
       const data = await masterListsApi.contactTypes.create(contactType);
 
       await logActivity({
@@ -32,7 +34,9 @@ export function useAddContactTypeMaster() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.CONTACT_TYPES_MASTER] });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.CONTACT_TYPES_MASTER],
+      });
     },
   });
 }
@@ -42,7 +46,15 @@ export function useUpdateContactTypeMaster() {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ id, updates, oldContactType }: { id: string; updates: Partial<ContactTypeMaster>; oldContactType?: ContactTypeMaster }) => {
+    mutationFn: async ({
+      id,
+      updates,
+      oldContactType,
+    }: {
+      id: string;
+      updates: Partial<ContactTypeMaster>;
+      oldContactType?: ContactTypeMaster;
+    }) => {
       const data = await masterListsApi.contactTypes.update(id, updates);
 
       if (oldContactType) {
@@ -62,7 +74,9 @@ export function useUpdateContactTypeMaster() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.CONTACT_TYPES_MASTER] });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.CONTACT_TYPES_MASTER],
+      });
     },
   });
 }
@@ -72,7 +86,13 @@ export function useDeleteContactTypeMaster() {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ id, contact_type_name }: { id: string; contact_type_name: string }) => {
+    mutationFn: async ({
+      id,
+      contact_type_name,
+    }: {
+      id: string;
+      contact_type_name: string;
+    }) => {
       await masterListsApi.contactTypes.delete(id);
 
       await logActivity({
@@ -84,7 +104,9 @@ export function useDeleteContactTypeMaster() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.CONTACT_TYPES_MASTER] });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.CONTACT_TYPES_MASTER],
+      });
     },
   });
 }

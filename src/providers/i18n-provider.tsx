@@ -43,7 +43,7 @@ const getInitialLanguage = () => {
 
 const initialProps: I18nProviderProps = {
   currenLanguage: getInitialLanguage(),
-   
+
   changeLanguage: (_: Language) => {},
   isRTL: () => false,
 };

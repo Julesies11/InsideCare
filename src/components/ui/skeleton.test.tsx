@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
 import { Skeleton } from './skeleton';
 
 describe('Skeleton', () => {
@@ -10,7 +10,9 @@ describe('Skeleton', () => {
   });
 
   it('applies custom classes for size', () => {
-    render(<Skeleton className="h-10 w-10 rounded-full" data-testid="skeleton" />);
+    render(
+      <Skeleton className="h-10 w-10 rounded-full" data-testid="skeleton" />,
+    );
     const skeleton = screen.getByTestId('skeleton');
     expect(skeleton).toHaveClass('h-10');
     expect(skeleton).toHaveClass('w-10');

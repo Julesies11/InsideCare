@@ -1,12 +1,12 @@
 import { fileURLToPath, URL } from 'node:url';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
-import { defineConfig } from 'vite';
 import { visualizer } from 'rollup-plugin-visualizer';
+import { defineConfig } from 'vite';
 
 export default defineConfig({
   plugins: [
-    react(), 
+    react(),
     tailwindcss(),
     // visualizer({
     //   open: false,
@@ -34,8 +34,8 @@ export default defineConfig({
           'vendor-utils': ['date-fns', 'zod', 'clsx', 'tailwind-merge'],
           'ui-icons': ['lucide-react', '@remixicon/react'],
           'ui-components': ['sonner', 'notistack', 'framer-motion'],
-          'charts': ['apexcharts', 'react-apexcharts', 'recharts'],
-          'maps': ['leaflet', 'react-leaflet'],
+          charts: ['apexcharts', 'react-apexcharts', 'recharts'],
+          maps: ['leaflet', 'react-leaflet'],
         },
       },
     },

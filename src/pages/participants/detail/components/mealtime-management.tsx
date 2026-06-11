@@ -1,8 +1,8 @@
+import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
-import { cn } from '@/lib/utils';
 
 interface MealtimeManagementProps {
   canEdit: boolean;
@@ -24,12 +24,9 @@ export function MealtimeManagement({
       </CardHeader>
 
       <CardContent className="grid gap-2.5">
-
         {/* MTMP Required */}
         <div className="flex items-center flex-wrap lg:flex-nowrap gap-2.5">
-          <Label className="w-full max-w-56">
-            Is there a MTMP?
-          </Label>
+          <Label className="w-full max-w-56">Is there a MTMP?</Label>
           <Checkbox
             checked={formData.mtmp_required || false}
             disabled={!canEdit}
@@ -41,7 +38,13 @@ export function MealtimeManagement({
 
         {/* MTMP Details */}
         <div className="flex items-start flex-wrap lg:flex-nowrap gap-2.5">
-          <Label className={cn("w-full max-w-56", formData.mtmp_required && "after:content-['*'] after:ml-0.5 after:text-destructive")}>
+          <Label
+            className={cn(
+              'w-full max-w-56',
+              formData.mtmp_required &&
+                "after:content-['*'] after:ml-0.5 after:text-destructive",
+            )}
+          >
             If Yes, provide details
           </Label>
           <div className="flex-1 w-full">
@@ -52,7 +55,10 @@ export function MealtimeManagement({
               rows={4}
               placeholder="Describe the Mealtime Management Plan..."
               disabled={!canEdit || !formData.mtmp_required}
-              className={cn(validationErrors.mtmp_details && "border-destructive focus-visible:ring-destructive")}
+              className={cn(
+                validationErrors.mtmp_details &&
+                  'border-destructive focus-visible:ring-destructive',
+              )}
             />
             {validationErrors.mtmp_details && (
               <p className="text-sm text-destructive mt-1.5">
@@ -61,7 +67,6 @@ export function MealtimeManagement({
             )}
           </div>
         </div>
-
       </CardContent>
     </Card>
   );

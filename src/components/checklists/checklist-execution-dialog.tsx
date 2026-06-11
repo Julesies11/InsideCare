@@ -1,11 +1,17 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { PlayCircle } from 'lucide-react';
-import { HouseChecklistExecution } from '@/pages/houses/detail/components/house-checklist-execution';
+import { useCallback, useEffect, useState } from 'react';
+import { checklistsApi } from '@/api/checklists.api';
 import { useAuth } from '@/auth/context/auth-context';
+import { HouseChecklistExecution } from '@/pages/houses/detail/components/house-checklist-execution';
+import { PlayCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { CHECKLIST_STATUS } from '@/config/enums';
-import { checklistsApi } from '@/api/checklists.api';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 interface ChecklistExecutionDialogProps {
   open: boolean;
@@ -29,12 +35,12 @@ interface ChecklistExecutionDialogProps {
  * Reusable Dialog for executing a checklist.
  * Handles fetching existing drafts, saving progress, and completion.
  */
-export function ChecklistExecutionDialog({ 
-  open, 
-  onOpenChange, 
-  checklist, 
+export function ChecklistExecutionDialog({
+  open,
+  onOpenChange,
+  checklist,
   houseId,
-  onSuccess 
+  onSuccess,
 }: ChecklistExecutionDialogProps) {
   const { user } = useAuth();
   const [activeSubmission, setActiveSubmission] = useState<{
@@ -48,43 +54,62 @@ export function ChecklistExecutionDialog({
   const fetchDraft = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await checklistsApi.getDraftSubmission(checklist.id, houseId);
+      const data = await checklistsApi.getDraftSubmission(
+        checklist.id,
+        houseId,
+      );
 
       if (data) {
         const completedItems: Record<string, boolean> = {};
         const itemNotes: Record<string, string> = {};
         const completedBy: Record<string, { id: string; name: string }> = {};
-        
-        const submissionItems = (data as any).ic_house_checklist_submission_items || [];
+
+        const submissionItems =
+          (data as any).ic_house_checklist_submission_items || [];
         submissionItems.forEach((item: any) => {
-          const isDone = item.status === CHECKLIST_STATUS.COMPLETED || item.is_completed;
+          const isDone =
+            item.status === CHECKLIST_STATUS.COMPLETED || item.is_completed;
           completedItems[item.item_id] = isDone;
           itemNotes[item.item_id] = item.note || '';
           if (isDone && item.completed_by_staff) {
             completedBy[item.item_id] = {
               id: item.completed_by_staff.id,
-              name: item.completed_by_staff.staff_name
+              name: item.completed_by_staff.staff_name,
             };
           }
         });
 
         // Fetch existing attachments
-        const attachmentData = await checklistsApi.getSubmissionAttachments(data.id);
+        const attachmentData = await checklistsApi.getSubmissionAttachments(
+          data.id,
+        );
 
         const attachments: Record<string, any[]> = {};
         if (attachmentData) {
           for (const att of attachmentData) {
             if (!attachments[att.item_id]) attachments[att.item_id] = [];
             try {
-              const signedUrl = await checklistsApi.getAttachmentSignedUrl(att.file_path, att.file_name);
+              const signedUrl = await checklistsApi.getAttachmentSignedUrl(
+                att.file_path,
+                att.file_name,
+              );
               attachments[att.item_id].push({ ...att, file_path: signedUrl });
             } catch (urlError) {
-              console.error('Error creating signed URL for attachment:', urlError);
+              console.error(
+                'Error creating signed URL for attachment:',
+                urlError,
+              );
             }
           }
         }
 
-        setActiveSubmission({ id: data.id, completedItems, itemNotes, completedBy, attachments });
+        setActiveSubmission({
+          id: data.id,
+          completedItems,
+          itemNotes,
+          completedBy,
+          attachments,
+        });
       }
     } catch (error) {
       console.error('Error fetching draft:', error);
@@ -102,16 +127,19 @@ export function ChecklistExecutionDialog({
     }
   }, [open, checklist, houseId, fetchDraft]);
 
-  const persistExecution = async (results: {
-    checklist_id: string;
-    items: Array<{
-      item_id: string;
-      is_completed: boolean;
-      note: string;
-    }>;
-    toDeleteAttachments?: string[];
-    queuedAttachments?: Record<string, Array<{ file: File }>>;
-  }, status: 'in_progress' | 'completed') => {
+  const persistExecution = async (
+    results: {
+      checklist_id: string;
+      items: Array<{
+        item_id: string;
+        is_completed: boolean;
+        note: string;
+      }>;
+      toDeleteAttachments?: string[];
+      queuedAttachments?: Record<string, Array<{ file: File }>>;
+    },
+    status: 'in_progress' | 'completed',
+  ) => {
     const staffId = user?.staff_id;
     let submissionId = activeSubmission?.id;
 
@@ -122,16 +150,26 @@ export function ChecklistExecutionDialog({
         master_id: checklist?.master_id || null,
         submitted_by: staffId || null,
         status: status as any,
-        completed_at: status === CHECKLIST_STATUS.completed ? new Date().toISOString() : null
+        completed_at:
+          status === CHECKLIST_STATUS.completed
+            ? new Date().toISOString()
+            : null,
       });
-      if (!data) throw new Error("You do not have permission to perform this action");
+      if (!data)
+        throw new Error('You do not have permission to perform this action');
       submissionId = data.id;
     } else {
-      await checklistsApi.upsertSubmission({
-        status: status as any,
-        submitted_by: staffId || null,
-        completed_at: status === CHECKLIST_STATUS.completed ? new Date().toISOString() : null,
-      }, submissionId);
+      await checklistsApi.upsertSubmission(
+        {
+          status: status as any,
+          submitted_by: staffId || null,
+          completed_at:
+            status === CHECKLIST_STATUS.completed
+              ? new Date().toISOString()
+              : null,
+        },
+        submissionId,
+      );
     }
 
     const submissionItems = results.items.map((item) => {
@@ -141,10 +179,12 @@ export function ChecklistExecutionDialog({
         item_id: item.item_id,
         master_item_id: originalItem?.master_item_id || null,
         is_completed: item.is_completed,
-        status: item.is_completed ? CHECKLIST_STATUS.COMPLETED : CHECKLIST_STATUS.PENDING,
+        status: item.is_completed
+          ? CHECKLIST_STATUS.COMPLETED
+          : CHECKLIST_STATUS.PENDING,
         completed_by: (item as any).completed_by,
         note: item.note,
-        completed_at: item.is_completed ? new Date().toISOString() : null
+        completed_at: item.is_completed ? new Date().toISOString() : null,
       };
     });
     await checklistsApi.upsertSubmissionItems(submissionItems);
@@ -158,7 +198,12 @@ export function ChecklistExecutionDialog({
     if (results.queuedAttachments) {
       for (const itemId in results.queuedAttachments) {
         for (const queued of results.queuedAttachments[itemId]) {
-          await checklistsApi.uploadAttachment(submissionId!, itemId, queued.file, staffId);
+          await checklistsApi.uploadAttachment(
+            submissionId!,
+            itemId,
+            queued.file,
+            staffId,
+          );
         }
       }
     }
@@ -228,21 +273,27 @@ export function ChecklistExecutionDialog({
         </DialogHeader>
         <div className="flex-1 px-6 pb-6 overflow-hidden">
           {checklist && !loading && (
-            <HouseChecklistExecution 
+            <HouseChecklistExecution
               checklist={checklist}
               onComplete={handleComplete}
               onSave={handleSave}
               onCancel={() => onOpenChange(false)}
-              initialData={activeSubmission ? {
-                completedItems: activeSubmission.completedItems,
-                itemNotes: activeSubmission.itemNotes,
-                attachments: activeSubmission.attachments
-              } : undefined}
+              initialData={
+                activeSubmission
+                  ? {
+                      completedItems: activeSubmission.completedItems,
+                      itemNotes: activeSubmission.itemNotes,
+                      attachments: activeSubmission.attachments,
+                    }
+                  : undefined
+              }
             />
           )}
           {loading && (
             <div className="h-full flex items-center justify-center">
-              <div className="text-sm text-muted-foreground animate-pulse">Loading checklist details...</div>
+              <div className="text-sm text-muted-foreground animate-pulse">
+                Loading checklist details...
+              </div>
             </div>
           )}
         </div>

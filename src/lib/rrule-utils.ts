@@ -1,19 +1,19 @@
-import { 
-  addDays, 
-  addWeeks, 
-  addMonths, 
-  isBefore, 
-  isAfter, 
-  parseISO, 
+import {
+  addDays,
+  addMonths,
+  addWeeks,
   format,
   getDay,
-  startOfDay
+  isAfter,
+  isBefore,
+  parseISO,
+  startOfDay,
 } from 'date-fns';
 
 /**
  * A simplified RRule expander for the InsideCare app.
  * Focuses on common patterns: Daily, Weekly, Monthly.
- * 
+ *
  * RRule Format supported (subset of RFC 5545):
  * - FREQ=DAILY
  * - FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR,SA,SU
@@ -30,7 +30,13 @@ export interface RRuleOptions {
 }
 
 const DAY_MAP: Record<string, number> = {
-  'SU': 0, 'MO': 1, 'TU': 2, 'WE': 3, 'TH': 4, 'FR': 5, 'SA': 6
+  SU: 0,
+  MO: 1,
+  TU: 2,
+  WE: 3,
+  TH: 4,
+  FR: 5,
+  SA: 6,
 };
 
 /**
@@ -38,7 +44,7 @@ const DAY_MAP: Record<string, number> = {
  */
 export function parseRRule(rruleStr: string, startDate: Date): RRuleOptions {
   const parts = Object.fromEntries(
-    rruleStr.split(';').map(part => part.split('='))
+    rruleStr.split(';').map((part) => part.split('=')),
   );
 
   return {
@@ -53,11 +59,11 @@ export function parseRRule(rruleStr: string, startDate: Date): RRuleOptions {
  * Expands an RRule into an array of dates within a range.
  */
 export function expandRRule(
-  rruleStr: string, 
-  startDate: Date, 
-  rangeStart: Date, 
+  rruleStr: string,
+  startDate: Date,
+  rangeStart: Date,
   rangeEnd: Date,
-  maxInstances: number = 100
+  maxInstances: number = 100,
 ): Date[] {
   const options = parseRRule(rruleStr, startDate);
   const dates: Date[] = [];
@@ -69,7 +75,7 @@ export function expandRRule(
 
   // Safety cap
   let iterations = 0;
-  
+
   while (format(current, 'yyyy-MM-dd') <= rangeEndStr) {
     if (iterations++ > 1000) break;
 
@@ -77,11 +83,17 @@ export function expandRRule(
 
     // Only add if it's within our viewing range
     if (currentStr >= rangeStartStr) {
-      
       if (options.freq === 'DAILY') {
         dates.push(new Date(current));
       } else if (options.freq === 'WEEKLY') {
-        if (!options.byDay || options.byDay.includes(Object.keys(DAY_MAP).find(key => DAY_MAP[key] === getDay(current))!)) {
+        if (
+          !options.byDay ||
+          options.byDay.includes(
+            Object.keys(DAY_MAP).find(
+              (key) => DAY_MAP[key] === getDay(current),
+            )!,
+          )
+        ) {
           dates.push(new Date(current));
         }
       } else if (options.freq === 'MONTHLY') {
@@ -112,7 +124,9 @@ export function expandRRule(
  */
 export function generateRRule(options: Partial<RRuleOptions>): string {
   const parts = [`FREQ=${options.freq}`];
-  if (options.interval && options.interval > 1) parts.push(`INTERVAL=${options.interval}`);
-  if (options.byDay && options.byDay.length > 0) parts.push(`BYDAY=${options.byDay.join(',')}`);
+  if (options.interval && options.interval > 1)
+    parts.push(`INTERVAL=${options.interval}`);
+  if (options.byDay && options.byDay.length > 0)
+    parts.push(`BYDAY=${options.byDay.join(',')}`);
   return parts.join(';');
 }

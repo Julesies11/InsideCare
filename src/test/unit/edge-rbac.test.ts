@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 describe('RBAC Hardening Logic', () => {
   it('should treat SERVICE_ROLE_KEY as administrative access', () => {

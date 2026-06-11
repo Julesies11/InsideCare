@@ -1,12 +1,34 @@
-import { useState, useEffect, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router';
+import { useEffect, useRef, useState } from 'react';
+import { rosterApi } from '@/api/roster.api';
 import { useAuth } from '@/auth/context/auth-context';
-import { toast } from 'sonner';
+import { LeaveTypeMasterDialog } from '@/pages/admin/leave-types/components/leave-type-master-dialog';
+import {
+  Toolbar,
+  ToolbarActions,
+  ToolbarDescription,
+  ToolbarHeading,
+  ToolbarPageTitle,
+} from '@/partials/common/toolbar';
 import { format, parseISO } from 'date-fns';
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Paperclip,
+  Settings2,
+  X,
+} from 'lucide-react';
+import { useNavigate, useParams } from 'react-router';
+import { toast } from 'sonner';
+import { LEAVE_STATUS } from '@/config/enums';
+import { RBAC_MODULES } from '@/config/rbac-modules';
+import { ROUTES } from '@/config/routes.config';
+import { useLeaveTypesMaster } from '@/hooks/use-leave-types-master';
+import { ACCESS_LEVEL, useRBAC } from '@/hooks/useRBAC';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -14,24 +36,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ArrowLeft, AlertTriangle, Paperclip, X, Settings2 } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
 import { Container } from '@/components/common/container';
-import {
-  Toolbar,
-  ToolbarActions,
-  ToolbarHeading,
-  ToolbarPageTitle,
-  ToolbarDescription,
-} from '@/partials/common/toolbar';
-import { LEAVE_STATUS } from '@/config/enums';
-import { useLeaveTypesMaster } from '@/hooks/use-leave-types-master';
-import { LeaveTypeMasterDialog } from '@/pages/admin/leave-types/components/leave-type-master-dialog';
-import { RBAC_MODULES } from '@/config/rbac-modules';
-import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
-import { ROUTES } from '@/config/routes.config';
-import { rosterApi } from '@/api/roster.api';
 
 interface ConflictingShift {
   id: string;
@@ -49,14 +55,17 @@ export function StaffLeaveForm() {
   const isEdit = !!id;
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { data: leaveTypes = [], refetch: refetchLeaveTypes } = useLeaveTypesMaster(false);
+  const { data: leaveTypes = [], refetch: refetchLeaveTypes } =
+    useLeaveTypesMaster(false);
   const [showManageDialog, setShowManageDialog] = useState(false);
   const [leaveTypeId, setLeaveTypeId] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [reason, setReason] = useState('');
   const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
-  const [existingAttachmentUrl, setExistingAttachmentUrl] = useState<string | null>(null);
+  const [existingAttachmentUrl, setExistingAttachmentUrl] = useState<
+    string | null
+  >(null);
   const [saving, setSaving] = useState(false);
   const [loadingEdit, setLoadingEdit] = useState(isEdit);
 
@@ -66,7 +75,9 @@ export function StaffLeaveForm() {
   });
 
   // Conflict detection
-  const [conflictingShifts, setConflictingShifts] = useState<ConflictingShift[]>([]);
+  const [conflictingShifts, setConflictingShifts] = useState<
+    ConflictingShift[]
+  >([]);
   const [checkingConflicts, setCheckingConflicts] = useState(false);
 
   // Load existing leave for edit mode
@@ -103,7 +114,11 @@ export function StaffLeaveForm() {
     const check = async () => {
       setCheckingConflicts(true);
       try {
-        const data = await rosterApi.listConflictingShifts(user.staff_id!, startDate, endDate);
+        const data = await rosterApi.listConflictingShifts(
+          user.staff_id!,
+          startDate,
+          endDate,
+        );
         setConflictingShifts(data as any[]);
       } catch (error) {
         console.error('Error checking conflicts:', error);
@@ -131,7 +146,10 @@ export function StaffLeaveForm() {
     try {
       let attachmentUrl = existingAttachmentUrl;
       if (attachmentFile) {
-        attachmentUrl = await rosterApi.uploadStaffDocument(user.staff_id, attachmentFile);
+        attachmentUrl = await rosterApi.uploadStaffDocument(
+          user.staff_id,
+          attachmentFile,
+        );
       }
 
       const payload = {
@@ -146,7 +164,11 @@ export function StaffLeaveForm() {
 
       await rosterApi.upsertLeaveRequest(payload, id);
 
-      toast.success(isEdit ? 'Leave request updated' : 'Leave request submitted successfully');
+      toast.success(
+        isEdit
+          ? 'Leave request updated'
+          : 'Leave request submitted successfully',
+      );
       navigate(ROUTES.MY_LEAVE);
     } catch (error: any) {
       toast.error('Failed to save leave request: ' + error.message);
@@ -158,7 +180,9 @@ export function StaffLeaveForm() {
   if (loadingEdit) {
     return (
       <Container>
-        <div className="py-10 text-center text-sm text-muted-foreground">Loading...</div>
+        <div className="py-10 text-center text-sm text-muted-foreground">
+          Loading...
+        </div>
       </Container>
     );
   }
@@ -169,24 +193,40 @@ export function StaffLeaveForm() {
         <Toolbar className="hidden sm:flex">
           <ToolbarHeading>
             <div className="flex items-center gap-3">
-              <Button variant="outline" size="sm" onClick={() => navigate(ROUTES.MY_LEAVE)}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate(ROUTES.MY_LEAVE)}
+              >
                 <ArrowLeft className="size-4 me-1.5" />
                 Back
               </Button>
               <div>
-                <ToolbarPageTitle text={isEdit ? 'Edit Leave Request' : 'New Leave Request'} />
+                <ToolbarPageTitle
+                  text={isEdit ? 'Edit Leave Request' : 'New Leave Request'}
+                />
                 <ToolbarDescription>
-                  {isEdit ? 'Update your pending leave request' : 'Submit a leave request for approval'}
+                  {isEdit
+                    ? 'Update your pending leave request'
+                    : 'Submit a leave request for approval'}
                 </ToolbarDescription>
               </div>
             </div>
           </ToolbarHeading>
           <ToolbarActions>
-            <Button variant="outline" onClick={() => navigate(ROUTES.MY_LEAVE)} disabled={saving}>
+            <Button
+              variant="outline"
+              onClick={() => navigate(ROUTES.MY_LEAVE)}
+              disabled={saving}
+            >
               Cancel
             </Button>
             <Button form="leave-form" type="submit" disabled={saving}>
-              {saving ? 'Saving...' : isEdit ? 'Save Changes' : 'Submit Request'}
+              {saving
+                ? 'Saving...'
+                : isEdit
+                  ? 'Save Changes'
+                  : 'Submit Request'}
             </Button>
           </ToolbarActions>
         </Toolbar>
@@ -200,19 +240,27 @@ export function StaffLeaveForm() {
               <AlertTriangle className="size-5 text-warning mt-0.5 shrink-0" />
               <div className="space-y-1">
                 <p className="text-sm font-medium">
-                  {conflictingShifts.length} rostered shift{conflictingShifts.length !== 1 ? 's' : ''} overlap with these dates
+                  {conflictingShifts.length} rostered shift
+                  {conflictingShifts.length !== 1 ? 's' : ''} overlap with these
+                  dates
                 </p>
                 <div className="flex flex-wrap gap-1.5 mt-1">
-                  {conflictingShifts.map(s => (
-                    <Badge key={s.id} variant="warning" appearance="light" className="text-xs">
-                      {format(parseISO(s.start_date), 'EEE dd MMM')}
-                      {' '}{s.start_time?.slice(0,5)}–{s.end_time?.slice(0,5)}
+                  {conflictingShifts.map((s) => (
+                    <Badge
+                      key={s.id}
+                      variant="warning"
+                      appearance="light"
+                      className="text-xs"
+                    >
+                      {format(parseISO(s.start_date), 'EEE dd MMM')}{' '}
+                      {s.start_time?.slice(0, 5)}–{s.end_time?.slice(0, 5)}
                       {s.house?.house_name ? ` · ${s.house.house_name}` : ''}
                     </Badge>
                   ))}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Your supervisor will see these conflicts when reviewing your request.
+                  Your supervisor will see these conflicts when reviewing your
+                  request.
                 </p>
               </div>
             </div>
@@ -220,15 +268,21 @@ export function StaffLeaveForm() {
 
           <Card className="border-0 sm:border">
             <CardContent className="pt-6 pb-8 px-4 sm:px-6">
-              <form id="leave-form" onSubmit={handleSubmit} className="space-y-6">
+              <form
+                id="leave-form"
+                onSubmit={handleSubmit}
+                className="space-y-6"
+              >
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="leaveType">Leave Type <span className="text-destructive">*</span></Label>
+                    <Label htmlFor="leaveType">
+                      Leave Type <span className="text-destructive">*</span>
+                    </Label>
                     {canManageLeaveTypes && (
-                      <Button 
-                        type="button" 
-                        variant="link" 
-                        size="sm" 
+                      <Button
+                        type="button"
+                        variant="link"
+                        size="sm"
                         className="h-auto p-0 text-primary font-medium flex items-center gap-1"
                         onClick={() => setShowManageDialog(true)}
                       >
@@ -237,7 +291,11 @@ export function StaffLeaveForm() {
                       </Button>
                     )}
                   </div>
-                  <Select value={leaveTypeId} onValueChange={setLeaveTypeId} required>
+                  <Select
+                    value={leaveTypeId}
+                    onValueChange={setLeaveTypeId}
+                    required
+                  >
                     <SelectTrigger id="leaveType">
                       <SelectValue placeholder="Select leave type" />
                     </SelectTrigger>
@@ -253,7 +311,9 @@ export function StaffLeaveForm() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="startDate">Start Date <span className="text-destructive">*</span></Label>
+                    <Label htmlFor="startDate">
+                      Start Date <span className="text-destructive">*</span>
+                    </Label>
                     <Input
                       id="startDate"
                       type="date"
@@ -263,7 +323,9 @@ export function StaffLeaveForm() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="endDate">End Date <span className="text-destructive">*</span></Label>
+                    <Label htmlFor="endDate">
+                      End Date <span className="text-destructive">*</span>
+                    </Label>
                     <Input
                       id="endDate"
                       type="date"
@@ -275,15 +337,32 @@ export function StaffLeaveForm() {
                   </div>
                 </div>
 
-                {startDate && endDate && new Date(endDate) >= new Date(startDate) && (
-                  <p className="text-sm text-muted-foreground">
-                    Duration: {Math.round((new Date(endDate).getTime() - new Date(startDate).getTime()) / 86400000) + 1} day(s)
-                    {checkingConflicts && <span className="ml-2 text-xs">(checking conflicts...)</span>}
-                  </p>
-                )}
+                {startDate &&
+                  endDate &&
+                  new Date(endDate) >= new Date(startDate) && (
+                    <p className="text-sm text-muted-foreground">
+                      Duration:{' '}
+                      {Math.round(
+                        (new Date(endDate).getTime() -
+                          new Date(startDate).getTime()) /
+                          86400000,
+                      ) + 1}{' '}
+                      day(s)
+                      {checkingConflicts && (
+                        <span className="ml-2 text-xs">
+                          (checking conflicts...)
+                        </span>
+                      )}
+                    </p>
+                  )}
 
                 <div className="space-y-2">
-                  <Label htmlFor="reason">Reason <span className="text-muted-foreground text-xs">(optional)</span></Label>
+                  <Label htmlFor="reason">
+                    Reason{' '}
+                    <span className="text-muted-foreground text-xs">
+                      (optional)
+                    </span>
+                  </Label>
                   <Textarea
                     id="reason"
                     value={reason}
@@ -295,14 +374,29 @@ export function StaffLeaveForm() {
 
                 {/* File attachment */}
                 <div className="space-y-2">
-                  <Label>Attachment <span className="text-muted-foreground text-xs">(optional — e.g. sick note)</span></Label>
+                  <Label>
+                    Attachment{' '}
+                    <span className="text-muted-foreground text-xs">
+                      (optional — e.g. sick note)
+                    </span>
+                  </Label>
                   {existingAttachmentUrl && !attachmentFile && (
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Paperclip className="size-3.5" />
-                      <a href={existingAttachmentUrl} target="_blank" rel="noreferrer" className="underline truncate max-w-xs" title={getFilenameFromUrl(existingAttachmentUrl)}>
+                      <a
+                        href={existingAttachmentUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="underline truncate max-w-xs"
+                        title={getFilenameFromUrl(existingAttachmentUrl)}
+                      >
                         {getFilenameFromUrl(existingAttachmentUrl)}
                       </a>
-                      <button type="button" onClick={() => setExistingAttachmentUrl(null)} className="text-destructive hover:text-destructive/80">
+                      <button
+                        type="button"
+                        onClick={() => setExistingAttachmentUrl(null)}
+                        className="text-destructive hover:text-destructive/80"
+                      >
                         <X className="size-3.5" />
                       </button>
                     </div>
@@ -310,8 +404,14 @@ export function StaffLeaveForm() {
                   {attachmentFile ? (
                     <div className="flex items-center gap-2 text-sm">
                       <Paperclip className="size-3.5 text-muted-foreground" />
-                      <span className="truncate max-w-xs">{attachmentFile.name}</span>
-                      <button type="button" onClick={() => setAttachmentFile(null)} className="text-destructive hover:text-destructive/80">
+                      <span className="truncate max-w-xs">
+                        {attachmentFile.name}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setAttachmentFile(null)}
+                        className="text-destructive hover:text-destructive/80"
+                      >
                         <X className="size-3.5" />
                       </button>
                     </div>
@@ -322,7 +422,9 @@ export function StaffLeaveForm() {
                         type="file"
                         className="hidden"
                         accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                        onChange={(e) => setAttachmentFile(e.target.files?.[0] ?? null)}
+                        onChange={(e) =>
+                          setAttachmentFile(e.target.files?.[0] ?? null)
+                        }
                       />
                       <Button
                         type="button"
@@ -331,7 +433,9 @@ export function StaffLeaveForm() {
                         onClick={() => fileInputRef.current?.click()}
                       >
                         <Paperclip className="size-3.5 me-1.5" />
-                        {existingAttachmentUrl ? 'Replace attachment' : 'Attach file'}
+                        {existingAttachmentUrl
+                          ? 'Replace attachment'
+                          : 'Attach file'}
                       </Button>
                     </div>
                   )}

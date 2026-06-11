@@ -1,17 +1,21 @@
-import { useState, useMemo } from 'react';
-import { Link } from 'react-router';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { useMemo, useState } from 'react';
+import { useAuth } from '@/auth/context/auth-context';
+import { addDays, format } from 'date-fns';
 import { Calendar, Clock, MapPin, Users } from 'lucide-react';
-import { useRosterData, StaffShift, useShiftsQuery } from '@/components/roster/use-roster-data';
-import { format, addDays } from 'date-fns';
+import { Link } from 'react-router';
+import { toast } from 'sonner';
+import { ROUTES } from '@/config/routes.config';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { SecureAvatar } from '@/components/ui/secure-avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ShiftDialog, ShiftFormData } from '@/components/roster/shift-dialog';
-import { toast } from 'sonner';
-import { useAuth } from '@/auth/context/auth-context';
-import { ROUTES } from '@/config/routes.config';
-import { SecureAvatar } from '@/components/ui/secure-avatar';
-import { STORAGE_BUCKETS } from '@/config/storage-buckets';
+import {
+  StaffShift,
+  useRosterData,
+  useShiftsQuery,
+} from '@/components/roster/use-roster-data';
 
 const getInitials = (name?: string) => {
   if (!name) return '??';
@@ -27,30 +31,44 @@ export function UpcomingShifts() {
   const [showShiftDialog, setShowShiftDialog] = useState(false);
   const [selectedShift, setSelectedShift] = useState<StaffShift | null>(null);
   const { user } = useAuth();
-  
+
   // Only fetch metadata (houses, staff, participants) if the dialog is open
-  const { 
-    houses, 
-    participants, 
-    staff, 
-    updateShift, 
+  const {
+    houses,
+    participants,
+    staff,
+    updateShift,
     deleteShift,
     addShiftParticipant,
     removeShiftParticipant,
-    loading: metaLoading
+    loading: metaLoading,
   } = useRosterData('all', { includeMetadata: showShiftDialog });
 
   const today = useMemo(() => format(new Date(), 'yyyy-MM-dd'), []);
-  const tomorrow = useMemo(() => format(addDays(new Date(), 1), 'yyyy-MM-dd'), []);
+  const tomorrow = useMemo(
+    () => format(addDays(new Date(), 1), 'yyyy-MM-dd'),
+    [],
+  );
 
-  const { shifts: allShifts = [], isLoading: shiftsLoading } = useShiftsQuery('all', today, tomorrow, undefined, false, { includeMetadata: showShiftDialog });
+  const { shifts: allShifts = [], isLoading: shiftsLoading } = useShiftsQuery(
+    'all',
+    today,
+    tomorrow,
+    undefined,
+    false,
+    { includeMetadata: showShiftDialog },
+  );
 
   const upcomingShifts = useMemo(() => {
     const now = new Date();
-    return allShifts.filter(shift => {
-      const shiftEnd = new Date(`${shift.end_date ?? shift.start_date}T${shift.end_time}`);
-      return shiftEnd > now;
-    }).slice(0, 5);
+    return allShifts
+      .filter((shift) => {
+        const shiftEnd = new Date(
+          `${shift.end_date ?? shift.start_date}T${shift.end_time}`,
+        );
+        return shiftEnd > now;
+      })
+      .slice(0, 5);
   }, [allShifts]);
 
   const handleEditShift = (shift: StaffShift) => {
@@ -75,11 +93,16 @@ export function UpcomingShifts() {
         });
 
         // Handle participant changes
-        const currentParticipantIds = selectedShift.participants?.map(p => p.id) || [];
+        const currentParticipantIds =
+          selectedShift.participants?.map((p) => p.id) || [];
         const newParticipantIds = formData.participant_ids;
 
-        const toAdd = newParticipantIds.filter(id => !currentParticipantIds.includes(id));
-        const toRemove = currentParticipantIds.filter(id => !newParticipantIds.includes(id));
+        const toAdd = newParticipantIds.filter(
+          (id) => !currentParticipantIds.includes(id),
+        );
+        const toRemove = currentParticipantIds.filter(
+          (id) => !newParticipantIds.includes(id),
+        );
 
         for (const pId of toAdd) {
           await addShiftParticipant(selectedShift.id, pId);
@@ -89,7 +112,7 @@ export function UpcomingShifts() {
         }
 
         // Log activity
-        const staffMember = staff.find(s => s.id === formData.staff_id);
+        const staffMember = staff.find((s) => s.id === formData.staff_id);
         toast.success('Shift updated successfully');
       }
       setShowShiftDialog(false);
@@ -112,10 +135,14 @@ export function UpcomingShifts() {
 
   const getShiftTemplateColor = (type: string) => {
     switch (type.toUpperCase()) {
-      case 'SIL': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
-      case 'COMMUNITY': return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
-      case 'SLEEPOVER': return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400';
-      default: return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400';
+      case 'SIL':
+        return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
+      case 'COMMUNITY':
+        return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
+      case 'SLEEPOVER':
+        return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400';
+      default:
+        return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400';
     }
   };
 
@@ -142,8 +169,8 @@ export function UpcomingShifts() {
           ) : upcomingShifts.length > 0 ? (
             <div className="space-y-3">
               {upcomingShifts.map((shift, index) => (
-                <div 
-                  key={shift.id} 
+                <div
+                  key={shift.id}
                   className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors border border-transparent hover:border-gray-100 dark:hover:border-gray-800 cursor-pointer"
                   onClick={() => handleEditShift(shift)}
                 >
@@ -157,61 +184,74 @@ export function UpcomingShifts() {
                     <div className="flex items-center justify-between mb-1 gap-2">
                       <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
                         <Clock className="size-3" />
-                        {shift.start_time.slice(0, 5)} - {shift.end_time.slice(0, 5)}
+                        {shift.start_time.slice(0, 5)} -{' '}
+                        {shift.end_time.slice(0, 5)}
                       </div>
-                      <Badge variant="secondary" className={`text-[10px] px-1.5 py-0 capitalize ${getShiftTemplateColor(shift.shift_template)}`}>
+                      <Badge
+                        variant="secondary"
+                        className={`text-[10px] px-1.5 py-0 capitalize ${getShiftTemplateColor(shift.shift_template)}`}
+                      >
                         {shift.shift_template.toLowerCase()}
                       </Badge>
                     </div>
                     <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                      <Link 
+                      <Link
                         to={`${ROUTES.STAFF_DETAIL}/${shift.staff_id}`}
                         onClick={(e) => e.stopPropagation()}
                         className="flex items-center gap-1.5 group/staff"
                       >
-                        <SecureAvatar 
-                          src={shift.staff_photo_url} 
-                          initials={getInitials(shift.staff_name)} 
+                        <SecureAvatar
+                          src={shift.staff_photo_url}
+                          initials={getInitials(shift.staff_name)}
                           className="size-5 transition-all group-hover/staff:ring-2 group-hover/staff:ring-primary/20"
-                          bucket={STORAGE_BUCKETS.STAFF_PHOTOS} 
+                          bucket={STORAGE_BUCKETS.STAFF_PHOTOS}
                         />
                         <span className="text-sm font-semibold text-blue-700 dark:text-blue-400 hover:underline">
                           {shift.staff_name}
                         </span>
                       </Link>
-                      
-                      <span className="text-gray-400 text-xs font-normal px-0.5">with</span>
+
+                      <span className="text-gray-400 text-xs font-normal px-0.5">
+                        with
+                      </span>
 
                       {shift.participants && shift.participants.length > 0 ? (
                         <div className="flex items-center gap-1.5 flex-wrap">
                           {shift.participants.map((p, i) => (
-                            <div key={p.id} className="flex items-center gap-1.5">
-                              <Link 
+                            <div
+                              key={p.id}
+                              className="flex items-center gap-1.5"
+                            >
+                              <Link
                                 to={`${ROUTES.PARTICIPANT_DETAIL}/${p.id}`}
                                 onClick={(e) => e.stopPropagation()}
                                 className="flex items-center gap-1.5 group/p"
                               >
-                                <SecureAvatar 
-                                  src={p.photo_url} 
-                                  initials={getInitials(p.participant_name)} 
+                                <SecureAvatar
+                                  src={p.photo_url}
+                                  initials={getInitials(p.participant_name)}
                                   className="size-5 transition-all group-hover/p:ring-2 group-hover/p:ring-primary/20"
-                                  bucket={STORAGE_BUCKETS.PARTICIPANT_PHOTOS} 
+                                  bucket={STORAGE_BUCKETS.PARTICIPANT_PHOTOS}
                                 />
                                 <span className="text-sm font-semibold text-blue-700 dark:text-blue-400 hover:underline">
                                   {p.participant_name}
                                 </span>
                               </Link>
-                              {i < (shift.participants?.length || 0) - 1 && <span className="text-gray-300">,</span>}
+                              {i < (shift.participants?.length || 0) - 1 && (
+                                <span className="text-gray-300">,</span>
+                              )}
                             </div>
                           ))}
                         </div>
                       ) : (
-                        <span className="text-gray-500 text-xs font-normal italic">No Participants</span>
+                        <span className="text-gray-500 text-xs font-normal italic">
+                          No Participants
+                        </span>
                       )}
                     </div>
                     <div className="flex items-center gap-3 mt-1">
                       {shift.house?.house_name && (
-                        <Link 
+                        <Link
                           to={`${ROUTES.HOUSE_DETAIL}/${shift.house_id || shift.house.id}`}
                           onClick={(e) => e.stopPropagation()}
                           className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
@@ -231,7 +271,9 @@ export function UpcomingShifts() {
             </div>
           ) : (
             <div className="py-8 text-center">
-              <p className="text-sm text-muted-foreground">No upcoming shifts scheduled</p>
+              <p className="text-sm text-muted-foreground">
+                No upcoming shifts scheduled
+              </p>
             </div>
           )}
         </CardContent>

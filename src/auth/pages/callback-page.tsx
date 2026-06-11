@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/auth/context/auth-context';
 import { useNavigate, useSearchParams } from 'react-router';
-import { supabase } from '@/lib/supabase';
 import { ROUTES } from '@/config/routes.config';
+import { supabase } from '@/lib/supabase';
 
 /**
  * Callback page for OAuth authentication redirects.
@@ -34,7 +34,8 @@ export function CallbackPage() {
       try {
         const { data, error } = await supabase.auth.getSession();
         if (error) throw error;
-        if (!data.session) throw new Error('Authentication session not established');
+        if (!data.session)
+          throw new Error('Authentication session not established');
 
         // Navigate to the target page - AuthProvider will handle state updates via onAuthStateChange
         const nextPath = searchParams.get('next') || ROUTES.HOME;
@@ -42,7 +43,10 @@ export function CallbackPage() {
       } catch (err) {
         console.error('Error processing OAuth callback:', err);
         setError('An unexpected error occurred during authentication');
-        setTimeout(() => navigate(`${ROUTES.AUTH_SIGNIN}?error=auth_callback_error`), 1500);
+        setTimeout(
+          () => navigate(`${ROUTES.AUTH_SIGNIN}?error=auth_callback_error`),
+          1500,
+        );
       }
     };
 

@@ -23,8 +23,8 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
   const config = variantMap[status];
 
   return (
-    <Badge 
-      variant={config.variant} 
+    <Badge
+      variant={config.variant}
       appearance={config.appearance}
       size="sm"
       className={className}

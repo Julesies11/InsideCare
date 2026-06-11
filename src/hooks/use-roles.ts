@@ -1,6 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { systemApi } from '@/api/system.api';
 import { Database } from '@/models/database.types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { QUERY_KEYS } from '@/config/query-keys';
 
 export type RoleRow = Database['public']['Tables']['ic_roles']['Row'];
@@ -32,7 +32,9 @@ export function useAddRole() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (roleData: Database['public']['Tables']['ic_roles']['Insert']) => {
+    mutationFn: async (
+      roleData: Database['public']['Tables']['ic_roles']['Insert'],
+    ) => {
       const data = await systemApi.roles.create(roleData);
       return data as Role;
     },
@@ -46,7 +48,13 @@ export function useUpdateRole() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: Database['public']['Tables']['ic_roles']['Update'] }) => {
+    mutationFn: async ({
+      id,
+      updates,
+    }: {
+      id: string;
+      updates: Database['public']['Tables']['ic_roles']['Update'];
+    }) => {
       const data = await systemApi.roles.update(id, updates);
       return data as Role;
     },

@@ -22,7 +22,8 @@ export function ShiftNoteSummarySection({
         <div className="space-y-2">
           <Label htmlFor="shift_summary">Final Summary</Label>
           <p className="text-xs text-muted-foreground">
-            Provide a concise summary of the overall shift outcomes and any key messages for the next staff member.
+            Provide a concise summary of the overall shift outcomes and any key
+            messages for the next staff member.
           </p>
           <Textarea
             id="shift_summary"

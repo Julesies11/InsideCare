@@ -1,23 +1,39 @@
-import { Container } from '@/components/common/container';
-import { Button } from '@/components/ui/button';
-import { Plus, ShieldAlert, ArrowLeft, Printer, Loader2, FileSearch } from 'lucide-react';
-import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
-import { RBAC_MODULES } from '@/config/rbac-modules';
-import { IncidentList } from './components/incident-list';
-import { IncidentForm } from './components/incident-form';
-import { IncidentSingleReport } from './components/incident-single-report';
-import { useCreateIncidentReport, useUpdateIncidentReport, useIncidentReport } from '@/hooks/use-incident-reports';
-import { IncidentReport } from '@/models/incident-report';
-import { toast } from 'sonner';
-import { 
-  Toolbar, 
-  ToolbarHeading, 
-  ToolbarPageTitle, 
-  ToolbarDescription, 
-  ToolbarActions 
-} from '@/partials/common/toolbar';
-import { useParams, useNavigate, useLocation, useSearchParams } from 'react-router';
 import { useEffect } from 'react';
+import { IncidentReport } from '@/models/incident-report';
+import {
+  Toolbar,
+  ToolbarActions,
+  ToolbarDescription,
+  ToolbarHeading,
+  ToolbarPageTitle,
+} from '@/partials/common/toolbar';
+import {
+  ArrowLeft,
+  FileSearch,
+  Loader2,
+  Plus,
+  Printer,
+  ShieldAlert,
+} from 'lucide-react';
+import {
+  useLocation,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from 'react-router';
+import { toast } from 'sonner';
+import { RBAC_MODULES } from '@/config/rbac-modules';
+import {
+  useCreateIncidentReport,
+  useIncidentReport,
+  useUpdateIncidentReport,
+} from '@/hooks/use-incident-reports';
+import { ACCESS_LEVEL, useRBAC } from '@/hooks/useRBAC';
+import { Button } from '@/components/ui/button';
+import { Container } from '@/components/common/container';
+import { IncidentForm } from './components/incident-form';
+import { IncidentList } from './components/incident-list';
+import { IncidentSingleReport } from './components/incident-single-report';
 
 type ViewMode = 'list' | 'form' | 'print-single';
 
@@ -35,7 +51,9 @@ export function IncidentManagementPage() {
 
   useEffect(() => {
     if (legacyId) {
-      navigate(`/incidents/${legacyId}${legacyPrint ? '/print' : ''}`, { replace: true });
+      navigate(`/incidents/${legacyId}${legacyPrint ? '/print' : ''}`, {
+        replace: true,
+      });
     } else if (legacyMode === 'new') {
       navigate('/incidents/new', { replace: true });
     }
@@ -47,12 +65,15 @@ export function IncidentManagementPage() {
   const incidentIdOrRef = isNewMode ? undefined : idOrRef;
 
   // Fetch single incident if ID or Ref is present in URL
-  const { data: loadedIncident, isLoading: isLoadingIncident } = useIncidentReport(incidentIdOrRef);
+  const { data: loadedIncident, isLoading: isLoadingIncident } =
+    useIncidentReport(incidentIdOrRef);
 
-  const viewMode: ViewMode = isNewMode 
-    ? 'form' 
-    : incidentIdOrRef 
-      ? (isPrintSingle ? 'print-single' : 'form') 
+  const viewMode: ViewMode = isNewMode
+    ? 'form'
+    : incidentIdOrRef
+      ? isPrintSingle
+        ? 'print-single'
+        : 'form'
       : 'list';
 
   const editingIncident = incidentIdOrRef ? loadedIncident || null : null;
@@ -62,8 +83,10 @@ export function IncidentManagementPage() {
     requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE,
   });
 
-  const { mutateAsync: createIncident, isPending: isCreating } = useCreateIncidentReport();
-  const { mutateAsync: updateIncident, isPending: isUpdating } = useUpdateIncidentReport();
+  const { mutateAsync: createIncident, isPending: isCreating } =
+    useCreateIncidentReport();
+  const { mutateAsync: updateIncident, isPending: isUpdating } =
+    useUpdateIncidentReport();
 
   const handleEdit = (incident: IncidentReport) => {
     navigate(`/incidents/${incident.reference_id || incident.id}`);
@@ -87,7 +110,9 @@ export function IncidentManagementPage() {
 
   const handlePrintPreview = () => {
     if (editingIncident) {
-      navigate(`/incidents/${editingIncident.reference_id || editingIncident.id}/print`);
+      navigate(
+        `/incidents/${editingIncident.reference_id || editingIncident.id}/print`,
+      );
     }
   };
 
@@ -103,7 +128,9 @@ export function IncidentManagementPage() {
       navigate('/incidents');
     } catch (error: any) {
       console.error('Error saving incident:', error);
-      toast.error('Failed to save incident report: ' + (error.message || 'Unknown error'));
+      toast.error(
+        'Failed to save incident report: ' + (error.message || 'Unknown error'),
+      );
     }
   };
 
@@ -111,7 +138,9 @@ export function IncidentManagementPage() {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-3">
         <Loader2 className="size-8 animate-spin text-primary" />
-        <p className="text-sm font-medium text-gray-500">Loading incident details...</p>
+        <p className="text-sm font-medium text-gray-500">
+          Loading incident details...
+        </p>
       </div>
     );
   }
@@ -122,7 +151,8 @@ export function IncidentManagementPage() {
         <ShieldAlert className="size-12 text-destructive mx-auto" />
         <h3 className="text-lg font-bold text-gray-900">Incident Not Found</h3>
         <p className="text-sm text-gray-500 max-w-sm mx-auto">
-          The incident report you are looking for does not exist or you do not have permission to view it.
+          The incident report you are looking for does not exist or you do not
+          have permission to view it.
         </p>
         <Button variant="primary" onClick={handleBackToList}>
           Back to Incident Log
@@ -139,36 +169,47 @@ export function IncidentManagementPage() {
             <ToolbarHeading>
               <div className="flex items-center gap-3">
                 {viewMode === 'form' && (
-                  <Button variant="outline" size="sm" onClick={handleBackToList} disabled={isCreating || isUpdating}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleBackToList}
+                    disabled={isCreating || isUpdating}
+                  >
                     <ArrowLeft className="size-4 me-1.5" />
                     Back to List
                   </Button>
                 )}
                 {viewMode === 'print-single' && (
-                  <Button variant="outline" size="sm" onClick={handleBackToEdit}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleBackToEdit}
+                  >
                     <ArrowLeft className="size-4 me-1.5" />
                     Back to Edit
                   </Button>
                 )}
                 <div>
-                  <ToolbarPageTitle 
+                  <ToolbarPageTitle
                     text={
-                      viewMode === 'list' 
-                        ? 'Incident Management' 
-                        : viewMode === 'print-single' 
-                          ? `Print Incident Details${editingIncident?.reference_id ? ` · ${editingIncident.reference_id}` : ''}` 
-                          : editingIncident 
-                            ? `Edit Incident Report${editingIncident.reference_id ? ` · ${editingIncident.reference_id}` : ''}` 
+                      viewMode === 'list'
+                        ? 'Incident Management'
+                        : viewMode === 'print-single'
+                          ? `Print Incident Details${editingIncident?.reference_id ? ` · ${editingIncident.reference_id}` : ''}`
+                          : editingIncident
+                            ? `Edit Incident Report${editingIncident.reference_id ? ` · ${editingIncident.reference_id}` : ''}`
                             : 'Lodge Incident Report'
-                    } 
+                    }
                   />
                   {viewMode === 'list' ? (
                     <ToolbarDescription>
-                      Review, action, and manage all clinical and operational incidents.
+                      Review, action, and manage all clinical and operational
+                      incidents.
                     </ToolbarDescription>
                   ) : viewMode === 'print-single' ? (
                     <ToolbarDescription>
-                      Print view for {editingIncident?.reference_id || 'incident report'}.
+                      Print view for{' '}
+                      {editingIncident?.reference_id || 'incident report'}.
                     </ToolbarDescription>
                   ) : null}
                 </div>
@@ -212,9 +253,12 @@ export function IncidentManagementPage() {
                   <ShieldAlert className="size-5 text-amber-600" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-amber-900 uppercase tracking-tight">Clinical Safety</h4>
+                  <h4 className="text-sm font-bold text-amber-900 uppercase tracking-tight">
+                    Clinical Safety
+                  </h4>
                   <p className="text-xs text-amber-700/80 leading-relaxed mt-1 font-medium">
-                    Accurate reporting is vital for NDIS compliance and ensuring the highest standard of care for our participants.
+                    Accurate reporting is vital for NDIS compliance and ensuring
+                    the highest standard of care for our participants.
                   </p>
                 </div>
               </div>
@@ -222,9 +266,9 @@ export function IncidentManagementPage() {
               <IncidentList onEdit={handleEdit} />
             </div>
           ) : viewMode === 'form' ? (
-            <IncidentForm 
-              initialData={editingIncident || undefined} 
-              onSave={handleSave} 
+            <IncidentForm
+              initialData={editingIncident || undefined}
+              onSave={handleSave}
               onCancel={handleBackToList}
               isSaving={isCreating || isUpdating}
             />

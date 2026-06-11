@@ -1,15 +1,17 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
-import { ChecklistMasterPage } from './checklist-master-page';
-import { renderWithProviders } from '@/test/test-utils';
-import { TABLES } from '@/config/db-tables';
-import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
+import { renderWithProviders } from '@/test/test-utils';
 import { ChecklistMasterRow, Row } from '@/test/type-helpers';
+import { screen, waitFor } from '@testing-library/react';
+import { http, HttpResponse } from 'msw';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { TABLES } from '@/config/db-tables';
+import { ChecklistMasterPage } from './checklist-master-page';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
-const mockChecklistMaster: Partial<ChecklistMasterRow> & { items: Partial<Row<'ic_checklist_item_master'>>[] } = {
+const mockChecklistMaster: Partial<ChecklistMasterRow> & {
+  items: Partial<Row<'ic_checklist_item_master'>>[];
+} = {
   id: 'master-1',
   checklist_name: 'Weekly Safety Audit',
   frequency: 'weekly',
@@ -40,7 +42,7 @@ describe('ChecklistMasterPage', () => {
       }),
       http.post(`${SUPABASE_URL}/rest/v1/${TABLES.CHECKLIST_MASTER}`, () => {
         return HttpResponse.json({ ...mockChecklistMaster, id: 'new-id' });
-      })
+      }),
     );
   });
 
@@ -48,7 +50,7 @@ describe('ChecklistMasterPage', () => {
     renderWithProviders(<ChecklistMasterPage />);
 
     expect(screen.getByText('Checklist Master')).toBeInTheDocument();
-    
+
     await waitFor(() => {
       expect(screen.getByText('Weekly Safety Audit')).toBeInTheDocument();
       expect(screen.getByText('Standard safety check')).toBeInTheDocument();
@@ -62,7 +64,9 @@ describe('ChecklistMasterPage', () => {
     await user.click(newBtn);
 
     expect(screen.getByText('New Master Template')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/e\.g\. morning clinical routine/i)).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText(/e\.g\. morning clinical routine/i),
+    ).toBeInTheDocument();
   });
 
   it('allows opening the edit checklist dialog', async () => {
@@ -92,7 +96,9 @@ describe('ChecklistMasterPage', () => {
 
     await waitFor(() => {
       expect(screen.queryByText('Weekly Safety Audit')).not.toBeInTheDocument();
-      expect(screen.getByText(/no master templates found/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/no master templates found/i),
+      ).toBeInTheDocument();
     });
   });
 });

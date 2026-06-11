@@ -1,23 +1,24 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
-import { useStaffDashboardData } from './use-staff-dashboard-data';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { http, HttpResponse } from 'msw';
-import { server } from '@/test/mocks/server';
-import { TABLES } from '@/config/db-tables';
-import { format, subDays } from 'date-fns';
 import { ReactNode } from 'react';
+import { server } from '@/test/mocks/server';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { renderHook, waitFor } from '@testing-library/react';
+import { format, subDays } from 'date-fns';
+import { http, HttpResponse } from 'msw';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { TABLES } from '@/config/db-tables';
+import { useStaffDashboardData } from './use-staff-dashboard-data';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
-const createTestQueryClient = () => new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
-      staleTime: 0,
+const createTestQueryClient = () =>
+  new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+        staleTime: 0,
+      },
     },
-  },
-});
+  });
 
 const wrapper = ({ children }: { children: ReactNode }) => (
   <QueryClientProvider client={createTestQueryClient()}>
@@ -42,8 +43,8 @@ describe('useStaffDashboardData', () => {
         start_time: '10:00:00',
         end_time: '14:00:00',
         house: { id: 'house-1', name: 'House A' },
-        assigned_checklists: []
-      }
+        assigned_checklists: [],
+      },
     ];
 
     const mockEvents = [
@@ -56,24 +57,34 @@ describe('useStaffDashboardData', () => {
         location: 'Park',
         type: { name: 'Community', color: 'green' },
         house: { name: 'House A' },
-        staff_assignments: [{ staff_id: staffId }]
-      }
+        staff_assignments: [{ staff_id: staffId }],
+      },
     ];
 
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF_SHIFTS}`, () => HttpResponse.json(mockShifts)),
-      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSE_CALENDAR_EVENTS}`, () => HttpResponse.json(mockEvents)),
-      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.LEAVE_REQUESTS}`, () => HttpResponse.json([])),
-      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.TIMESHEETS}`, () => HttpResponse.json([]))
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF_SHIFTS}`, () =>
+        HttpResponse.json(mockShifts),
+      ),
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSE_CALENDAR_EVENTS}`, () =>
+        HttpResponse.json(mockEvents),
+      ),
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.LEAVE_REQUESTS}`, () =>
+        HttpResponse.json([]),
+      ),
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.TIMESHEETS}`, () =>
+        HttpResponse.json([]),
+      ),
     );
 
-    const { result } = renderHook(() => useStaffDashboardData(staffId), { wrapper });
+    const { result } = renderHook(() => useStaffDashboardData(staffId), {
+      wrapper,
+    });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     const schedule = result.current.data?.upcomingSchedule;
     expect(schedule).toHaveLength(2);
-    
+
     // Sorted by time: Event (09:00) then Shift (10:00)
     expect(schedule[0].entry_type).toBe('event');
     expect(schedule[0].title).toBe('Community Outing');
@@ -83,13 +94,23 @@ describe('useStaffDashboardData', () => {
 
   it('handles empty results gracefully', async () => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF_SHIFTS}`, () => HttpResponse.json([])),
-      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSE_CALENDAR_EVENTS}`, () => HttpResponse.json([])),
-      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.LEAVE_REQUESTS}`, () => HttpResponse.json([])),
-      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.TIMESHEETS}`, () => HttpResponse.json([]))
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF_SHIFTS}`, () =>
+        HttpResponse.json([]),
+      ),
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSE_CALENDAR_EVENTS}`, () =>
+        HttpResponse.json([]),
+      ),
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.LEAVE_REQUESTS}`, () =>
+        HttpResponse.json([]),
+      ),
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.TIMESHEETS}`, () =>
+        HttpResponse.json([]),
+      ),
     );
 
-    const { result } = renderHook(() => useStaffDashboardData(staffId), { wrapper });
+    const { result } = renderHook(() => useStaffDashboardData(staffId), {
+      wrapper,
+    });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 

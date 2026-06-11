@@ -1,11 +1,24 @@
-import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useEffect, useState } from 'react';
+import { HouseType } from '@/models/house';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { HouseType } from '@/models/house';
 
 interface HouseTypeMasterQuickAddProps {
   open: boolean;
@@ -52,9 +65,13 @@ export function HouseTypeMasterQuickAdd({
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{houseType ? 'Edit House Type' : 'Add House Type'}</DialogTitle>
+          <DialogTitle>
+            {houseType ? 'Edit House Type' : 'Add House Type'}
+          </DialogTitle>
           <DialogDescription>
-            {houseType ? 'Update the details for this house type.' : 'Create a new house type for the master list.'}
+            {houseType
+              ? 'Update the details for this house type.'
+              : 'Create a new house type for the master list.'}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
@@ -64,7 +81,9 @@ export function HouseTypeMasterQuickAdd({
               <Input
                 id="name"
                 value={formData.house_type_name}
-                onChange={(e) => setFormData({ ...formData, house_type_name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, house_type_name: e.target.value })
+                }
                 placeholder="House type name"
                 required
               />
@@ -75,7 +94,9 @@ export function HouseTypeMasterQuickAdd({
               <Textarea
                 id="description"
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
                 placeholder="House type description"
                 rows={3}
               />
@@ -85,7 +106,12 @@ export function HouseTypeMasterQuickAdd({
               <Label htmlFor="status">Status</Label>
               <Select
                 value={formData.status}
-                onValueChange={(value) => setFormData({ ...formData, status: value as 'Active' | 'Inactive' })}
+                onValueChange={(value) =>
+                  setFormData({
+                    ...formData,
+                    status: value as 'Active' | 'Inactive',
+                  })
+                }
               >
                 <SelectTrigger id="status">
                   <SelectValue />
@@ -102,9 +128,7 @@ export function HouseTypeMasterQuickAdd({
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit">
-              {houseType ? 'Update' : 'Add'}
-            </Button>
+            <Button type="submit">{houseType ? 'Update' : 'Add'}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

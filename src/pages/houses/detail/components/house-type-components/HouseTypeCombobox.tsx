@@ -1,5 +1,7 @@
 import * as React from 'react';
 import { useState } from 'react';
+import { Settings } from 'lucide-react';
+import { useHouseTypesMaster } from '@/hooks/use-house-types-master';
 import { Button, ButtonArrow } from '@/components/ui/button';
 import {
   Command,
@@ -16,8 +18,6 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Settings } from 'lucide-react';
-import { useHouseTypesMaster } from '@/hooks/use-house-types-master';
 
 interface HouseTypeComboboxProps {
   value: string | null;
@@ -36,8 +36,10 @@ export function HouseTypeCombobox({
   const { data: houseTypes = [], isLoading: loading } = useHouseTypesMaster();
 
   // Filter active house types for the dropdown list
-  const activeHouseTypes = houseTypes.filter((type) => type.status === 'Active');
-  
+  const activeHouseTypes = houseTypes.filter(
+    (type) => type.status === 'Active',
+  );
+
   // Find selected house type from full list (including inactive) so saved values display
   const selectedHouseType = houseTypes.find((type) => type.id === value);
 
@@ -60,7 +62,9 @@ export function HouseTypeCombobox({
             disabled={!canEdit}
           >
             {selectedHouseType ? (
-              <span className="truncate">{selectedHouseType.house_type_name}</span>
+              <span className="truncate">
+                {selectedHouseType.house_type_name}
+              </span>
             ) : (
               <span>Select house type...</span>
             )}
@@ -85,7 +89,9 @@ export function HouseTypeCombobox({
                         value={houseType.house_type_name}
                         onSelect={() => handleSelect(houseType.id)}
                       >
-                        <span className="truncate flex-1">{houseType.house_type_name}</span>
+                        <span className="truncate flex-1">
+                          {houseType.house_type_name}
+                        </span>
                         {value === houseType.id && <CommandCheck />}
                       </CommandItem>
                     ))

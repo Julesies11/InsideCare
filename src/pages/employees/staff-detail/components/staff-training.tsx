@@ -1,19 +1,41 @@
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { staffDetailsApi } from '@/api/staff-details.api';
+import { StaffPendingChanges } from '@/models/staff-pending-changes';
+import { differenceInDays, format, parseISO } from 'date-fns';
+import {
+  CheckSquare,
+  Clock,
+  Download,
+  Edit,
+  FileText,
+  Plus,
+  Trash2,
+} from 'lucide-react';
+import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+import { StaffTraining, useStaffTraining } from '@/hooks/use-staff';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Edit, Trash2, FileText, Download, Clock, CheckSquare } from 'lucide-react';
-import { StaffTraining, useStaffTraining } from '@/hooks/use-staff';
-import { toast } from 'sonner';
-import { StaffPendingChanges } from '@/models/staff-pending-changes';
-import { cn } from '@/lib/utils';
-import { format, differenceInDays, parseISO } from 'date-fns';
-import { staffDetailsApi } from '@/api/staff-details.api';
 
 interface StaffTrainingSectionProps {
   staffId?: string;
@@ -37,7 +59,9 @@ function calculateTrainingStatus(expiryDate?: string | null): TrainingStatus {
   return 'Current';
 }
 
-function getStatusBadgeVariant(status: TrainingStatus): "success" | "warning" | "destructive" {
+function getStatusBadgeVariant(
+  status: TrainingStatus,
+): 'success' | 'warning' | 'destructive' {
   switch (status) {
     case 'Current':
       return 'success';
@@ -53,8 +77,9 @@ export function StaffTrainingSection({
   canEdit,
   pendingChanges,
   onPendingChangesChange,
-  refreshKey = 0
-}: StaffTrainingSectionProps) {  const [showDialog, setShowDialog] = useState(false);
+  refreshKey = 0,
+}: StaffTrainingSectionProps) {
+  const [showDialog, setShowDialog] = useState(false);
   const [editingItem, setEditingItem] = useState<StaffTraining | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
@@ -67,7 +92,11 @@ export function StaffTrainingSection({
     expiry_date: '',
   });
 
-  const { training: serverTraining, loading, refresh } = useStaffTraining(staffId);
+  const {
+    training: serverTraining,
+    loading,
+    refresh,
+  } = useStaffTraining(staffId);
 
   // Trigger refresh when refreshKey changes
   useEffect(() => {
@@ -90,7 +119,9 @@ export function StaffTrainingSection({
     setShowDialog(true);
   };
 
-  const handleEdit = (item: StaffTraining | (StaffTraining & { tempId: string })) => {
+  const handleEdit = (
+    item: StaffTraining | (StaffTraining & { tempId: string }),
+  ) => {
     setEditingItem(item as StaffTraining);
     setSelectedFile(null);
     setFormData({
@@ -125,14 +156,18 @@ export function StaffTrainingSection({
           training: {
             ...pendingChanges.training,
             toAdd: pendingChanges.training.toAdd.map((item: any) =>
-              item.tempId === (editingItem as any).tempId 
-                ? { 
-                    ...item, 
+              item.tempId === (editingItem as any).tempId
+                ? {
+                    ...item,
                     ...formData,
-                    file: (editingItem as any)._removeFile ? null : (selectedFile || item.file),
-                    fileName: (editingItem as any)._removeFile ? null : (selectedFile?.name || item.fileName),
-                  } 
-                : item
+                    file: (editingItem as any)._removeFile
+                      ? null
+                      : selectedFile || item.file,
+                    fileName: (editingItem as any)._removeFile
+                      ? null
+                      : selectedFile?.name || item.fileName,
+                  }
+                : item,
             ),
           },
         };
@@ -143,12 +178,16 @@ export function StaffTrainingSection({
           training: {
             ...pendingChanges.training,
             toUpdate: [
-              ...pendingChanges.training.toUpdate.filter((p: any) => p.id !== editingItem.id),
-              { 
-                id: editingItem.id, 
+              ...pendingChanges.training.toUpdate.filter(
+                (p: any) => p.id !== editingItem.id,
+              ),
+              {
+                id: editingItem.id,
                 ...formData,
                 file: (editingItem as any)._removeFile ? null : selectedFile,
-                fileName: (editingItem as any)._removeFile ? null : selectedFile?.name,
+                fileName: (editingItem as any)._removeFile
+                  ? null
+                  : selectedFile?.name,
                 filePath: editingItem.file_path,
               },
             ],
@@ -164,8 +203,8 @@ export function StaffTrainingSection({
           ...pendingChanges.training,
           toAdd: [
             ...pendingChanges.training.toAdd,
-            { 
-              tempId, 
+            {
+              tempId,
               ...formData,
               file: selectedFile,
               fileName: selectedFile?.name,
@@ -187,25 +226,31 @@ export function StaffTrainingSection({
         ...pendingChanges,
         training: {
           ...pendingChanges.training,
-          toAdd: pendingChanges.training.toAdd.filter((p: any) => p.tempId !== item.tempId),
+          toAdd: pendingChanges.training.toAdd.filter(
+            (p: any) => p.tempId !== item.tempId,
+          ),
         },
       };
       onPendingChangesChange(newPending);
       return;
     }
 
-    if (confirm('Mark this training record for deletion? It will be removed when you click Save Changes.')) {
+    if (
+      confirm(
+        'Mark this training record for deletion? It will be removed when you click Save Changes.',
+      )
+    ) {
       const newPending = {
         ...pendingChanges,
         training: {
           ...pendingChanges.training,
           toDelete: [
-            ...pendingChanges.training.toDelete, 
-            { 
-              id: item.id, 
+            ...pendingChanges.training.toDelete,
+            {
+              id: item.id,
               filePath: item.file_path,
               fileName: item.file_name,
-            }
+            },
           ],
         },
       };
@@ -220,7 +265,9 @@ export function StaffTrainingSection({
       ...pendingChanges,
       training: {
         ...pendingChanges.training,
-        toUpdate: pendingChanges.training.toUpdate.filter((p: any) => p.id !== id),
+        toUpdate: pendingChanges.training.toUpdate.filter(
+          (p: any) => p.id !== id,
+        ),
       },
     };
     onPendingChangesChange(newPending);
@@ -233,7 +280,9 @@ export function StaffTrainingSection({
       ...pendingChanges,
       training: {
         ...pendingChanges.training,
-        toDelete: pendingChanges.training.toDelete.filter((item: any) => item.id !== id),
+        toDelete: pendingChanges.training.toDelete.filter(
+          (item: any) => item.id !== id,
+        ),
       },
     };
     onPendingChangesChange(newPending);
@@ -259,17 +308,19 @@ export function StaffTrainingSection({
   };
 
   const visibleTraining = useMemo(() => {
-    const fromServer = serverTraining.filter(item => !pendingChanges?.training.toDelete.some((d) => d.id === item.id));
+    const fromServer = serverTraining.filter(
+      (item) =>
+        !pendingChanges?.training.toDelete.some((d) => d.id === item.id),
+    );
     // Apply updates from pending changes
-    const withUpdates = fromServer.map(item => {
-      const update = pendingChanges?.training.toUpdate.find(u => u.id === item.id);
+    const withUpdates = fromServer.map((item) => {
+      const update = pendingChanges?.training.toUpdate.find(
+        (u) => u.id === item.id,
+      );
       return update ? { ...item, ...update } : item;
     });
-    
-    return [
-      ...withUpdates,
-      ...(pendingChanges?.training.toAdd || []),
-    ];
+
+    return [...withUpdates, ...(pendingChanges?.training.toAdd || [])];
   }, [serverTraining, pendingChanges?.training]);
 
   const currentStatus = calculateTrainingStatus(formData.expiry_date || null);
@@ -279,16 +330,26 @@ export function StaffTrainingSection({
       <Card className="pb-2.5" id="staff_training">
         <CardHeader>
           <CardTitle>Training</CardTitle>
-          <Button variant="secondary" size="sm" className="border border-gray-300" onClick={handleAdd} disabled={!canEdit}>
+          <Button
+            variant="secondary"
+            size="sm"
+            className="border border-gray-300"
+            onClick={handleAdd}
+            disabled={!canEdit}
+          >
             <Plus className="size-4 me-1.5" />
             Add Training
           </Button>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="text-center py-8 text-muted-foreground text-sm">Loading training records...</div>
+            <div className="text-center py-8 text-muted-foreground text-sm">
+              Loading training records...
+            </div>
           ) : visibleTraining.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground text-sm">No training records available</div>
+            <div className="text-center py-8 text-muted-foreground text-sm">
+              No training records available
+            </div>
           ) : (
             <Table>
               <TableHeader>
@@ -305,50 +366,85 @@ export function StaffTrainingSection({
               <TableBody>
                 {visibleTraining.map((item) => {
                   const isPendingAdd = 'tempId' in item;
-                  const isPendingUpdate = pendingChanges?.training.toUpdate.some((p) => p.id === item.id);
-                  const isPendingDelete = item.id ? pendingChanges?.training.toDelete.some((d) => d.id === item.id) : false;
+                  const isPendingUpdate =
+                    pendingChanges?.training.toUpdate.some(
+                      (p) => p.id === item.id,
+                    );
+                  const isPendingDelete = item.id
+                    ? pendingChanges?.training.toDelete.some(
+                        (d) => d.id === item.id,
+                      )
+                    : false;
                   const status = calculateTrainingStatus(item.expiry_date);
-                  const itemFileName = (item as any).fileName || (item as any).file_name;
-                  const itemFilePath = (item as any).filePath || (item as any).file_path;
+                  const itemFileName =
+                    (item as any).fileName || (item as any).file_name;
+                  const itemFilePath =
+                    (item as any).filePath || (item as any).file_path;
                   const hasFile = itemFilePath || (item as any).file;
 
                   return (
                     <TableRow
                       key={item.id || (item as any).tempId}
                       className={
-                        isPendingAdd ? 'bg-primary/5' :
-                        isPendingDelete ? 'opacity-50 bg-destructive/5' :
-                        isPendingUpdate ? 'bg-warning/5' : ''
+                        isPendingAdd
+                          ? 'bg-primary/5'
+                          : isPendingDelete
+                            ? 'opacity-50 bg-destructive/5'
+                            : isPendingUpdate
+                              ? 'bg-warning/5'
+                              : ''
                       }
                     >
                       <TableCell>
                         <div className="flex flex-col">
-                          <span className={cn(
-                            "font-medium text-gray-900 dark:text-gray-100",
-                            isPendingDelete && "line-through"
-                          )}>
+                          <span
+                            className={cn(
+                              'font-medium text-gray-900 dark:text-gray-100',
+                              isPendingDelete && 'line-through',
+                            )}
+                          >
                             {item.title}
                           </span>
-                          {(isPendingAdd || isPendingUpdate || isPendingDelete) && (
-                            <span className={cn(
-                              "text-[10px] flex items-center gap-1",
-                              isPendingAdd ? "text-primary" : isPendingUpdate ? "text-warning" : "text-destructive"
-                            )}>
+                          {(isPendingAdd ||
+                            isPendingUpdate ||
+                            isPendingDelete) && (
+                            <span
+                              className={cn(
+                                'text-[10px] flex items-center gap-1',
+                                isPendingAdd
+                                  ? 'text-primary'
+                                  : isPendingUpdate
+                                    ? 'text-warning'
+                                    : 'text-destructive',
+                              )}
+                            >
                               <Clock className="size-3" />
-                              Pending {isPendingAdd ? 'add' : isPendingUpdate ? 'update' : 'deletion'}
+                              Pending{' '}
+                              {isPendingAdd
+                                ? 'add'
+                                : isPendingUpdate
+                                  ? 'update'
+                                  : 'deletion'}
                             </span>
                           )}
                         </div>
                       </TableCell>
                       <TableCell>{item.category}</TableCell>
                       <TableCell>
-                        {item.date_completed ? format(parseISO(item.date_completed), 'dd/MM/yyyy') : '-'}
+                        {item.date_completed
+                          ? format(parseISO(item.date_completed), 'dd/MM/yyyy')
+                          : '-'}
                       </TableCell>
                       <TableCell>
-                        {item.expiry_date ? format(parseISO(item.expiry_date), 'dd/MM/yyyy') : '-'}
+                        {item.expiry_date
+                          ? format(parseISO(item.expiry_date), 'dd/MM/yyyy')
+                          : '-'}
                       </TableCell>
                       <TableCell>
-                        <Badge variant={getStatusBadgeVariant(status)} size="sm">
+                        <Badge
+                          variant={getStatusBadgeVariant(status)}
+                          size="sm"
+                        >
                           {status}
                         </Badge>
                       </TableCell>
@@ -356,24 +452,39 @@ export function StaffTrainingSection({
                         {hasFile ? (
                           <div className="flex items-center gap-2 max-w-[120px]">
                             <FileText className="size-3.5 text-primary shrink-0" />
-                            <span className="text-[10px] text-muted-foreground truncate" title={itemFileName || 'File'}>
+                            <span
+                              className="text-[10px] text-muted-foreground truncate"
+                              title={itemFileName || 'File'}
+                            >
                               {itemFileName || 'File attached'}
                             </span>
                             {itemFilePath && (
-                              <Button variant="ghost" size="icon" className="size-6 shrink-0" onClick={() => handleDownload(itemFilePath)}>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="size-6 shrink-0"
+                                onClick={() => handleDownload(itemFilePath)}
+                              >
                                 <Download className="size-3" />
                               </Button>
                             )}
                           </div>
                         ) : (
-                          <span className="text-[10px] text-muted-foreground italic">No document</span>
+                          <span className="text-[10px] text-muted-foreground italic">
+                            No document
+                          </span>
                         )}
                       </TableCell>
                       <TableCell>
                         <div className="flex justify-end gap-1">
                           {!isPendingDelete && (
                             <>
-                              <Button variant="ghost" size="sm" onClick={() => handleEdit(item)} disabled={!canEdit}>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEdit(item)}
+                                disabled={!canEdit}
+                              >
                                 <Edit className="size-4" />
                               </Button>
                               <Button
@@ -388,12 +499,22 @@ export function StaffTrainingSection({
                             </>
                           )}
                           {isPendingUpdate && item.id && (
-                            <Button variant="ghost" size="sm" onClick={() => handleUndoUpdate(item.id!)} disabled={!canEdit}>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleUndoUpdate(item.id!)}
+                              disabled={!canEdit}
+                            >
                               Undo
                             </Button>
                           )}
                           {isPendingDelete && item.id && (
-                            <Button variant="ghost" size="sm" onClick={() => handleUndoDelete(item.id!)} disabled={!canEdit}>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleUndoDelete(item.id!)}
+                              disabled={!canEdit}
+                            >
                               Undo
                             </Button>
                           )}
@@ -411,9 +532,13 @@ export function StaffTrainingSection({
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>{editingItem ? 'Edit Training' : 'Add Training'}</DialogTitle>
+            <DialogTitle>
+              {editingItem ? 'Edit Training' : 'Add Training'}
+            </DialogTitle>
             <DialogDescription>
-              {editingItem ? 'Update training record details' : 'Add a new training record'}
+              {editingItem
+                ? 'Update training record details'
+                : 'Add a new training record'}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -423,7 +548,9 @@ export function StaffTrainingSection({
                 <Input
                   id="title"
                   value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, title: e.target.value })
+                  }
                   placeholder="Training title"
                 />
               </div>
@@ -432,18 +559,22 @@ export function StaffTrainingSection({
                 <Input
                   id="category"
                   value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, category: e.target.value })
+                  }
                   placeholder="e.g., Safety, Clinical"
                 />
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
               <Textarea
                 id="description"
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
                 rows={2}
               />
             </div>
@@ -454,7 +585,9 @@ export function StaffTrainingSection({
                 <Input
                   id="provider"
                   value={formData.provider}
-                  onChange={(e) => setFormData({ ...formData, provider: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, provider: e.target.value })
+                  }
                   placeholder="Training provider"
                 />
               </div>
@@ -464,7 +597,12 @@ export function StaffTrainingSection({
                   id="date_completed"
                   type="date"
                   value={formData.date_completed || ''}
-                  onChange={(e) => setFormData({ ...formData, date_completed: e.target.value || null })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      date_completed: e.target.value || null,
+                    })
+                  }
                 />
               </div>
             </div>
@@ -476,13 +614,21 @@ export function StaffTrainingSection({
                   id="expiry_date"
                   type="date"
                   value={formData.expiry_date || ''}
-                  onChange={(e) => setFormData({ ...formData, expiry_date: e.target.value || null })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      expiry_date: e.target.value || null,
+                    })
+                  }
                 />
               </div>
               <div className="space-y-2">
                 <Label>Status</Label>
                 <div className="flex items-center h-10">
-                  <Badge variant={getStatusBadgeVariant(currentStatus)} size="sm">
+                  <Badge
+                    variant={getStatusBadgeVariant(currentStatus)}
+                    size="sm"
+                  >
                     {currentStatus}
                   </Badge>
                 </div>
@@ -500,9 +646,9 @@ export function StaffTrainingSection({
                   className="flex-1"
                 />
                 {(selectedFile || editingItem?.file_name) && (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     className="text-destructive border-destructive/20 hover:bg-destructive/5 gap-2"
                     onClick={() => {
                       setSelectedFile(null);
@@ -512,7 +658,9 @@ export function StaffTrainingSection({
                         (editingItem as any)._removeFile = true;
                       }
                       // Reset file input
-                      const input = document.getElementById('file') as HTMLInputElement;
+                      const input = document.getElementById(
+                        'file',
+                      ) as HTMLInputElement;
                       if (input) input.value = '';
                     }}
                   >
@@ -521,7 +669,7 @@ export function StaffTrainingSection({
                   </Button>
                 )}
               </div>
-              
+
               {selectedFile ? (
                 <p className="text-[10px] text-primary font-bold flex items-center gap-1.5 mt-1 animate-pulse">
                   <CheckSquare className="size-3" />

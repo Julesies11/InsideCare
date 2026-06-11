@@ -1,7 +1,7 @@
 import { ReactElement } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, RenderOptions } from '@testing-library/react';
 import { BrowserRouter } from 'react-router';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SettingsProvider } from '@/providers/settings-provider';
 import { ThemeProvider } from '@/providers/theme-provider';
 
@@ -19,9 +19,7 @@ const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
     <QueryClientProvider client={queryClient}>
       <SettingsProvider>
         <ThemeProvider>
-          <BrowserRouter>
-            {children}
-          </BrowserRouter>
+          <BrowserRouter>{children}</BrowserRouter>
         </ThemeProvider>
       </SettingsProvider>
     </QueryClientProvider>

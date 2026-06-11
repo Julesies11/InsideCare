@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { PaginationState, SortingState } from '@tanstack/react-table';
 import { useDebouncedSearchParams } from '@/hooks/use-debounced-search-params';
 
@@ -19,13 +19,15 @@ export function useTableUrlState({
 
   const getInitialPagination = (): PaginationState => ({
     pageIndex: Math.max(0, parseInt(searchParams.get('page') || '1') - 1),
-    pageSize: parseInt(searchParams.get('pageSize') || defaultPageSize.toString()),
+    pageSize: parseInt(
+      searchParams.get('pageSize') || defaultPageSize.toString(),
+    ),
   });
 
   const getInitialSorting = (): SortingState => {
     const sortParam = searchParams.get('sort');
     if (!sortParam) return defaultSort;
-    
+
     const [field, direction] = sortParam.split('.');
     return [{ id: field, desc: direction === 'desc' }];
   };
@@ -38,15 +40,20 @@ export function useTableUrlState({
     const param = searchParams.get('statuses');
     if (!param) return defaultStatuses;
     if (statusOptions.length > 0) {
-      return param.split(',').filter((s) => statusOptions.some(opt => opt.value === s));
+      return param
+        .split(',')
+        .filter((s) => statusOptions.some((opt) => opt.value === s));
     }
     return param.split(',');
   };
 
-  const [pagination, setPagination] = useState<PaginationState>(getInitialPagination());
+  const [pagination, setPagination] = useState<PaginationState>(
+    getInitialPagination(),
+  );
   const [sorting, setSorting] = useState<SortingState>(getInitialSorting());
   const [searchQuery, setSearchQuery] = useState(getInitialSearch());
-  const [selectedStatuses, setSelectedStatuses] = useState<string[]>(getInitialStatuses());
+  const [selectedStatuses, setSelectedStatuses] =
+    useState<string[]>(getInitialStatuses());
 
   // Additional generic array filter (e.g. houses)
   const getInitialArrayFilter = (key: string): string[] => {
@@ -56,27 +63,34 @@ export function useTableUrlState({
 
   useEffect(() => {
     const params = new URLSearchParams();
-    
+
     if (pagination.pageIndex > 0) {
       params.set('page', (pagination.pageIndex + 1).toString());
     }
     if (pagination.pageSize !== defaultPageSize) {
       params.set('pageSize', pagination.pageSize.toString());
     }
-    
+
     if (sorting.length > 0) {
       const sort = sorting[0];
       params.set('sort', `${sort.id}.${sort.desc ? 'desc' : 'asc'}`);
     }
-    
+
     if (searchQuery) {
       params.set('search', searchQuery);
     }
-    
+
     params.set('statuses', selectedStatuses.join(','));
 
     setSearchParams(params, { replace: true });
-  }, [pagination, sorting, searchQuery, selectedStatuses, setSearchParams, defaultPageSize]);
+  }, [
+    pagination,
+    sorting,
+    searchQuery,
+    selectedStatuses,
+    setSearchParams,
+    defaultPageSize,
+  ]);
 
   return {
     pagination,

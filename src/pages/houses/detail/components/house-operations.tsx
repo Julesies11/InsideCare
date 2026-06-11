@@ -1,8 +1,8 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { HousePendingChanges } from '@/models/house-pending-changes';
 import { CalendarDays } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { HouseCalendarEvents } from './house-calendar-events';
 import { HouseComms } from './house-comms';
-import { HousePendingChanges } from '@/models/house-pending-changes';
 
 interface HouseOperationsProps {
   houseId: string;
@@ -13,13 +13,13 @@ interface HouseOperationsProps {
   canEdit: boolean;
 }
 
-export function HouseOperations({ 
+export function HouseOperations({
   houseId,
   houseName,
   calendarEvents,
   pendingChanges,
   onPendingChangesChange,
-  canEdit
+  canEdit,
 }: HouseOperationsProps) {
   return (
     <div id="daily_operations">
@@ -31,8 +31,8 @@ export function HouseOperations({
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-0 pt-0">
-          <HouseCalendarEvents 
-            houseId={houseId} 
+          <HouseCalendarEvents
+            houseId={houseId}
             houseName={houseName}
             canEdit={canEdit}
             canDelete={canEdit}
@@ -41,8 +41,8 @@ export function HouseOperations({
             hideCardWrapper={true}
           />
 
-          <HouseComms 
-            houseId={houseId} 
+          <HouseComms
+            houseId={houseId}
             canEdit={canEdit}
             pendingChanges={pendingChanges}
             onPendingChangesChange={onPendingChangesChange}

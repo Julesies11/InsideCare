@@ -47,7 +47,6 @@ export function HygieneRoutines({
             />
           </div>
         </div>
-
       </CardContent>
     </Card>
   );

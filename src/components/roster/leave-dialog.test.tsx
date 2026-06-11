@@ -1,8 +1,8 @@
 import { renderWithProviders, screen, waitFor } from '@/test/test-utils';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TABLES } from '@/config/db-tables';
-import { LeaveDialog } from './leave-dialog';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { supabase } from '@/lib/supabase';
+import { LeaveDialog } from './leave-dialog';
 
 // Helper to create a mock query chain
 const createMockQuery = (data: any = [], error: any = null) => {
@@ -13,8 +13,12 @@ const createMockQuery = (data: any = [], error: any = null) => {
     gte: vi.fn().mockReturnThis(),
     lte: vi.fn().mockReturnThis(),
     order: vi.fn().mockReturnThis(),
-    single: vi.fn().mockResolvedValue({ data: Array.isArray(data) ? data[0] : data, error }),
-    maybeSingle: vi.fn().mockResolvedValue({ data: Array.isArray(data) ? data[0] : data, error }),
+    single: vi
+      .fn()
+      .mockResolvedValue({ data: Array.isArray(data) ? data[0] : data, error }),
+    maybeSingle: vi
+      .fn()
+      .mockResolvedValue({ data: Array.isArray(data) ? data[0] : data, error }),
     insert: vi.fn().mockResolvedValue({ data: null, error }),
     update: vi.fn().mockReturnThis(),
     then: vi.fn().mockImplementation((callback) => {
@@ -46,7 +50,7 @@ describe('LeaveDialog Component', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Default mock for leave_types
     (supabase.from as any).mockImplementation((table: string) => {
       if (table === TABLES.LEAVE_TYPES) {
@@ -58,7 +62,7 @@ describe('LeaveDialog Component', () => {
 
   it('renders "New Leave Request" title when no leaveId is provided', async () => {
     renderWithProviders(
-      <LeaveDialog open={true} onOpenChange={mockOnOpenChange} />
+      <LeaveDialog open={true} onOpenChange={mockOnOpenChange} />,
     );
     expect(screen.getByText(/New Leave Request/i)).toBeInTheDocument();
   });
@@ -81,7 +85,11 @@ describe('LeaveDialog Component', () => {
     });
 
     renderWithProviders(
-      <LeaveDialog open={true} onOpenChange={mockOnOpenChange} leaveId="test-leave-id" />
+      <LeaveDialog
+        open={true}
+        onOpenChange={mockOnOpenChange}
+        leaveId="test-leave-id"
+      />,
     );
 
     await waitFor(() => {
@@ -92,7 +100,13 @@ describe('LeaveDialog Component', () => {
   it('displays conflict warning when rostered shifts exist in the date range', async () => {
     (supabase.from as any).mockImplementation((table: string) => {
       if (table === TABLES.STAFF_SHIFTS) {
-        return createMockQuery([{ id: 's1', start_date: '2026-04-15', house: { house_name: 'Test House' } }]);
+        return createMockQuery([
+          {
+            id: 's1',
+            start_date: '2026-04-15',
+            house: { house_name: 'Test House' },
+          },
+        ]);
       }
       if (table === TABLES.LEAVE_TYPES) {
         return createMockQuery([{ id: 'lt1', name: 'Annual Leave' }]);
@@ -101,21 +115,36 @@ describe('LeaveDialog Component', () => {
     });
 
     renderWithProviders(
-      <LeaveDialog open={true} onOpenChange={mockOnOpenChange} initialDate="2026-04-15" />
+      <LeaveDialog
+        open={true}
+        onOpenChange={mockOnOpenChange}
+        initialDate="2026-04-15"
+      />,
     );
 
-    await waitFor(() => {
-      expect(screen.getByText(/1 rostered shift overlap/i)).toBeInTheDocument();
-    }, { timeout: 3000 });
+    await waitFor(
+      () => {
+        expect(
+          screen.getByText(/1 rostered shift overlap/i),
+        ).toBeInTheDocument();
+      },
+      { timeout: 3000 },
+    );
   });
 
   it('shows submit button', async () => {
     renderWithProviders(
-      <LeaveDialog open={true} onOpenChange={mockOnOpenChange} onSuccess={mockOnSuccess} />
+      <LeaveDialog
+        open={true}
+        onOpenChange={mockOnOpenChange}
+        onSuccess={mockOnSuccess}
+      />,
     );
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Submit Request/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: /Submit Request/i }),
+      ).toBeInTheDocument();
     });
   });
 });

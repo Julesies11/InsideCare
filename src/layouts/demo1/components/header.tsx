@@ -2,19 +2,16 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/auth/context/auth-context';
 import { NotificationsSheet } from '@/partials/topbar/notifications-sheet';
 import { UserDropdownMenu } from '@/partials/topbar/user-dropdown-menu';
-import { useNotifications } from '@/hooks/useNotifications';
+import { Bell, Menu } from 'lucide-react';
+import { Link, useLocation } from 'react-router';
 import { ROUTES } from '@/config/routes.config';
-import {
-  Bell,
-  Menu,
-} from 'lucide-react';
-import { useLocation } from 'react-router';
-import { Link } from 'react-router';
 import { toAbsoluteUrl } from '@/lib/helpers';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useScrollPosition } from '@/hooks/use-scroll-position';
+import { useNotifications } from '@/hooks/useNotifications';
 import { Button } from '@/components/ui/button';
+import { SecureAvatar } from '@/components/ui/secure-avatar';
 import {
   Sheet,
   SheetBody,
@@ -25,19 +22,22 @@ import {
 import { Container } from '@/components/common/container';
 import { SidebarMenu } from './sidebar-menu';
 
-import { SecureAvatar } from '@/components/ui/secure-avatar';
-
 export function Header() {
   const [isSidebarSheetOpen, setIsSidebarSheetOpen] = useState(false);
   const { unreadCount } = useNotifications();
   const { user } = useAuth();
-  const initials = (user?.staff_name
-    ? user.staff_name.split(' ').map(n => n[0]).join('').toUpperCase()
-    : [user?.first_name, user?.last_name]
-        .filter(Boolean)
-        .map((n) => n![0].toUpperCase())
-        .join('')
-  ) || (user?.email?.[0]?.toUpperCase() ?? '?');
+  const initials =
+    (user?.staff_name
+      ? user.staff_name
+          .split(' ')
+          .map((n) => n[0])
+          .join('')
+          .toUpperCase()
+      : [user?.first_name, user?.last_name]
+          .filter(Boolean)
+          .map((n) => n![0].toUpperCase())
+          .join('')) ||
+    (user?.email?.[0]?.toUpperCase() ?? '?');
 
   const { pathname } = useLocation();
   const mobileMode = useIsMobile();
@@ -94,42 +94,39 @@ export function Header() {
           </div>
         </div>
 
-
         {/* Main Content (MegaMenu or Breadcrumbs) */}
-        <div className="flex items-center grow">
-          {/* <Breadcrumb /> */}
-        </div>
+        <div className="flex items-center grow">{/* <Breadcrumb /> */}</div>
 
         {/* HeaderTopbar */}
         <div className="flex items-center gap-3">
           <>
             <NotificationsSheet
-                trigger={
-                  <Button
-                    variant="ghost"
-                    mode="icon"
-                    shape="circle"
-                    className="relative size-9 hover:bg-primary/10 hover:[&_svg]:text-primary"
-                  >
-                    <Bell className="size-4.5!" />
-                    {unreadCount > 0 && (
-                      <span className="absolute top-1 end-1 size-2 rounded-full bg-red-500" />
-                    )}
-                  </Button>
-                }
-              />
-              <UserDropdownMenu
-                trigger={
-                  <div className="cursor-pointer">
-                    <SecureAvatar 
-                      src={user?.photo_url} 
-                      initials={initials} 
-                      className="size-9 border-2 border-green-500" 
-                    />
-                  </div>
-                }
-              />
-            </>
+              trigger={
+                <Button
+                  variant="ghost"
+                  mode="icon"
+                  shape="circle"
+                  className="relative size-9 hover:bg-primary/10 hover:[&_svg]:text-primary"
+                >
+                  <Bell className="size-4.5!" />
+                  {unreadCount > 0 && (
+                    <span className="absolute top-1 end-1 size-2 rounded-full bg-red-500" />
+                  )}
+                </Button>
+              }
+            />
+            <UserDropdownMenu
+              trigger={
+                <div className="cursor-pointer">
+                  <SecureAvatar
+                    src={user?.photo_url}
+                    initials={initials}
+                    className="size-9 border-2 border-green-500"
+                  />
+                </div>
+              }
+            />
+          </>
         </div>
       </Container>
     </header>

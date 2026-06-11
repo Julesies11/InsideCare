@@ -1,8 +1,8 @@
-import { useQuery } from '@tanstack/react-query';
 import { systemApi } from '@/api/system.api';
-import { RBAC_MODULES } from '@/config/rbac-modules';
-import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
+import { useQuery } from '@tanstack/react-query';
 import { QUERY_KEYS } from '@/config/query-keys';
+import { RBAC_MODULES } from '@/config/rbac-modules';
+import { ACCESS_LEVEL, useRBAC } from '@/hooks/useRBAC';
 
 export interface AuthUserStatus {
   id: string;
@@ -21,10 +21,10 @@ export type AuthStatusMap = Record<string, AuthUserStatus>;
  */
 export function useAdminAuthStatus() {
   const { hasAccess } = useRBAC();
-  
-  const isAdmin = hasAccess({ 
-    resource: RBAC_MODULES.ACCESS_CONTROL, 
-    requiredLevel: ACCESS_LEVEL.FULL 
+
+  const isAdmin = hasAccess({
+    resource: RBAC_MODULES.ACCESS_CONTROL,
+    requiredLevel: ACCESS_LEVEL.FULL,
   });
 
   return useQuery({

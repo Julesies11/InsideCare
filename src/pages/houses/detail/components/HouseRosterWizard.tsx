@@ -1,15 +1,30 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { housesApi } from '@/api/houses.api';
+import { HousePendingChanges } from '@/models/house-pending-changes';
 import { useQueryClient } from '@tanstack/react-query';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { CheckCircle2, ChevronRight, ChevronLeft, Clock, CalendarDays, Send, Loader2 } from 'lucide-react';
+import {
+  CalendarDays,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Loader2,
+  Send,
+} from 'lucide-react';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useHouseShiftTemplates } from '@/hooks/use-house-shift-templates';
-import { HousePendingChanges } from '@/models/house-pending-changes';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { HouseChecklistSetup } from './house-checklist-setup';
 import { HouseShiftSetup } from './house-shift-setup';
-import { toast } from 'sonner';
-import { housesApi } from '@/api/houses.api';
 
 interface HouseRosterWizardProps {
   open: boolean;
@@ -22,18 +37,36 @@ interface HouseRosterWizardProps {
 }
 
 const STEPS = [
-  { id: 1, title: 'Shift Templates', description: 'Define work periods', icon: Clock },
-  { id: 2, title: 'Calendar Tasks', description: 'Facility routines', icon: CalendarDays },
+  {
+    id: 1,
+    title: 'Shift Templates',
+    description: 'Define work periods',
+    icon: Clock,
+  },
+  {
+    id: 2,
+    title: 'Calendar Tasks',
+    description: 'Facility routines',
+    icon: CalendarDays,
+  },
   { id: 3, title: 'Review', description: 'Finalize setup', icon: Send },
 ];
 
-export function HouseRosterWizard({ open, onOpenChange, houseId, houseName, pendingChanges, onPendingChangesChange, initialStep = 1 }: HouseRosterWizardProps) {
+export function HouseRosterWizard({
+  open,
+  onOpenChange,
+  houseId,
+  houseName,
+  pendingChanges,
+  onPendingChangesChange,
+  initialStep = 1,
+}: HouseRosterWizardProps) {
   const queryClient = useQueryClient();
   const [currentStep, setCurrentStep] = useState(initialStep);
   const [isSaving, setIsSaving] = useState(false);
-  
+
   const { shiftTemplates } = useHouseShiftTemplates(houseId);
-  
+
   // Sync step if initialStep changes
   useEffect(() => {
     if (open) setCurrentStep(initialStep || 1);
@@ -43,7 +76,7 @@ export function HouseRosterWizard({ open, onOpenChange, houseId, houseName, pend
     if (currentStep < STEPS.length) {
       const nextStep = currentStep + 1;
       setCurrentStep(nextStep);
-      
+
       try {
         await housesApi.updateSetupStep(houseId, nextStep);
       } catch (e) {
@@ -81,15 +114,18 @@ export function HouseRosterWizard({ open, onOpenChange, houseId, houseName, pend
         return (
           <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
             <div className="bg-primary/5 border border-primary/10 rounded-xl p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Step 1: Define Your Shift Templates</h3>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">
+                Step 1: Define Your Shift Templates
+              </h3>
               <p className="text-sm text-muted-foreground">
-                Set up the periods of work used in this house (e.g., Morning, Afternoon, Night). 
-                Assign <strong>Default Checklists</strong> to each shift template to automate your operational setup.
+                Set up the periods of work used in this house (e.g., Morning,
+                Afternoon, Night). Assign <strong>Default Checklists</strong> to
+                each shift template to automate your operational setup.
               </p>
             </div>
-            <HouseShiftSetup 
-              houseId={houseId} 
-              mode="model" 
+            <HouseShiftSetup
+              houseId={houseId}
+              mode="model"
               pendingChanges={pendingChanges}
               onPendingChangesChange={onPendingChangesChange}
               directSave={true}
@@ -100,16 +136,19 @@ export function HouseRosterWizard({ open, onOpenChange, houseId, houseName, pend
         return (
           <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
             <div className="bg-primary/5 border border-primary/10 rounded-xl p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Step 2: Calendar Tasks</h3>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">
+                Step 2: Calendar Tasks
+              </h3>
               <p className="text-sm text-muted-foreground">
-                Define the facility tasks that repeat on the house calendar. These are shared by all staff working on those days.
+                Define the facility tasks that repeat on the house calendar.
+                These are shared by all staff working on those days.
               </p>
             </div>
             <div className="min-h-[400px]">
-              <HouseChecklistSetup 
-                houseId={houseId} 
-                canAdd={true} 
-                canDelete={true} 
+              <HouseChecklistSetup
+                houseId={houseId}
+                canAdd={true}
+                canDelete={true}
                 pendingChanges={pendingChanges}
                 onPendingChangesChange={onPendingChangesChange}
                 directSave={true}
@@ -123,13 +162,18 @@ export function HouseRosterWizard({ open, onOpenChange, houseId, houseName, pend
             <div className="size-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
               <CheckCircle2 className="size-10 text-green-600" />
             </div>
-            <h3 className="text-2xl font-black text-gray-900 uppercase tracking-tight">Ready to Go!</h3>
+            <h3 className="text-2xl font-black text-gray-900 uppercase tracking-tight">
+              Ready to Go!
+            </h3>
             <p className="text-muted-foreground max-w-md mx-auto">
-              The operational skeleton for <strong>{houseName}</strong> is complete. 
-              You can now start assigning staff to the published roster.
+              The operational skeleton for <strong>{houseName}</strong> is
+              complete. You can now start assigning staff to the published
+              roster.
             </p>
             <div className="bg-gray-50 border rounded-2xl p-6 mt-8 text-left max-w-lg mx-auto">
-              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Summary</h4>
+              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">
+                Summary
+              </h4>
               <ul className="space-y-3">
                 <li className="flex items-center gap-2 text-sm font-medium">
                   <div className="size-1.5 rounded-full bg-green-500" />
@@ -154,14 +198,21 @@ export function HouseRosterWizard({ open, onOpenChange, houseId, houseName, pend
         <DialogHeader className="p-8 pb-4 border-b bg-white sticky top-0 z-10">
           <div className="flex items-center justify-between">
             <div>
-              <DialogTitle className="text-2xl font-black uppercase tracking-tight">House Setup Wizard</DialogTitle>
+              <DialogTitle className="text-2xl font-black uppercase tracking-tight">
+                House Setup Wizard
+              </DialogTitle>
               <DialogDescription className="font-medium text-muted-foreground">
-                Setting up operational routines for <span className="text-primary font-bold">{houseName}</span>
+                Setting up operational routines for{' '}
+                <span className="text-primary font-bold">{houseName}</span>
               </DialogDescription>
             </div>
             <div className="text-right">
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Progress</p>
-              <p className="text-lg font-black text-primary">{Math.round((currentStep / STEPS.length) * 100)}%</p>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                Progress
+              </p>
+              <p className="text-lg font-black text-primary">
+                {Math.round((currentStep / STEPS.length) * 100)}%
+              </p>
             </div>
           </div>
 
@@ -172,24 +223,39 @@ export function HouseRosterWizard({ open, onOpenChange, houseId, houseName, pend
               const StepIcon = step.icon;
               const isActive = currentStep === step.id;
               const isCompleted = currentStep > step.id;
-              
+
               return (
-                <div key={step.id} className="relative z-10 flex flex-col items-center gap-2 group">
-                  <div 
+                <div
+                  key={step.id}
+                  className="relative z-10 flex flex-col items-center gap-2 group"
+                >
+                  <div
                     className={cn(
-                      "size-10 rounded-xl flex items-center justify-center border-2 transition-all duration-300",
-                      isActive ? "bg-primary border-primary text-white shadow-lg scale-110 shadow-primary/20" : 
-                      isCompleted ? "bg-green-500 border-green-500 text-white" : 
-                      "bg-white border-gray-200 text-gray-400"
+                      'size-10 rounded-xl flex items-center justify-center border-2 transition-all duration-300',
+                      isActive
+                        ? 'bg-primary border-primary text-white shadow-lg scale-110 shadow-primary/20'
+                        : isCompleted
+                          ? 'bg-green-500 border-green-500 text-white'
+                          : 'bg-white border-gray-200 text-gray-400',
                     )}
                   >
-                    {isCompleted ? <CheckCircle2 className="size-5" /> : <StepIcon className="size-5" />}
+                    {isCompleted ? (
+                      <CheckCircle2 className="size-5" />
+                    ) : (
+                      <StepIcon className="size-5" />
+                    )}
                   </div>
                   <div className="text-center">
-                    <p className={cn(
-                      "text-[10px] font-bold uppercase tracking-tight",
-                      isActive ? "text-primary" : isCompleted ? "text-green-600" : "text-gray-400"
-                    )}>
+                    <p
+                      className={cn(
+                        'text-[10px] font-bold uppercase tracking-tight',
+                        isActive
+                          ? 'text-primary'
+                          : isCompleted
+                            ? 'text-green-600'
+                            : 'text-gray-400',
+                      )}
+                    >
                       {step.title}
                     </p>
                   </div>
@@ -200,31 +266,46 @@ export function HouseRosterWizard({ open, onOpenChange, houseId, houseName, pend
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto p-8 bg-gray-50/30 custom-scrollbar">
-          <div className="max-w-4xl mx-auto">
-            {renderStepContent()}
-          </div>
+          <div className="max-w-4xl mx-auto">{renderStepContent()}</div>
         </div>
 
         <DialogFooter className="p-6 bg-white border-t flex justify-between items-center sticky bottom-0 z-10">
-          <Button 
-            variant="ghost" 
-            onClick={handleBack} 
+          <Button
+            variant="ghost"
+            onClick={handleBack}
             disabled={currentStep === 1}
             className="font-bold gap-2 hover:bg-gray-100"
           >
             <ChevronLeft className="size-4" />
             Previous
           </Button>
-          
+
           <div className="flex gap-3">
-            <Button variant="outline" className="font-bold border-gray-300" onClick={() => onOpenChange(false)}>Save & Exit</Button>
+            <Button
+              variant="outline"
+              className="font-bold border-gray-300"
+              onClick={() => onOpenChange(false)}
+            >
+              Save & Exit
+            </Button>
             {currentStep === STEPS.length ? (
-              <Button variant="primary" className="px-10 font-bold shadow-lg shadow-primary/20" onClick={handleFinish} disabled={isSaving}>
-                {isSaving ? <Loader2 className="size-4 animate-spin mr-2" /> : null}
+              <Button
+                variant="primary"
+                className="px-10 font-bold shadow-lg shadow-primary/20"
+                onClick={handleFinish}
+                disabled={isSaving}
+              >
+                {isSaving ? (
+                  <Loader2 className="size-4 animate-spin mr-2" />
+                ) : null}
                 Finish Setup
               </Button>
             ) : (
-              <Button variant="primary" className="px-10 font-bold gap-2 shadow-lg shadow-primary/20" onClick={handleNext}>
+              <Button
+                variant="primary"
+                className="px-10 font-bold gap-2 shadow-lg shadow-primary/20"
+                onClick={handleNext}
+              >
                 Continue
                 <ChevronRight className="size-4" />
               </Button>

@@ -1,19 +1,22 @@
-import { supabase } from './supabase';
 import { TABLES } from '@/config/db-tables';
+import { supabase } from './supabase';
 
 /**
  * Invokes the Edge Function to recalculate and sync a user's permissions
  * to their Supabase Auth app_metadata.
- * 
+ *
  * @param userId The Supabase Auth User ID (NOT staff_id)
  */
 export async function syncUserPermissions(userId: string) {
   if (!userId) return { error: 'userId is required' };
 
   try {
-    const { data, error } = await supabase.functions.invoke('ic-update-user-permissions', {
-      body: { userId },
-    });
+    const { data, error } = await supabase.functions.invoke(
+      'ic-update-user-permissions',
+      {
+        body: { userId },
+      },
+    );
 
     if (error) {
       console.error('Failed to sync user permissions:', error);
@@ -29,7 +32,7 @@ export async function syncUserPermissions(userId: string) {
 
 /**
  * Helper to sync permissions by staff_id if auth_user_id is unknown.
- * 
+ *
  * @param staffId The staff member's ID
  */
 export async function syncUserPermissionsByStaffId(staffId: string) {
@@ -51,7 +54,7 @@ export async function syncUserPermissionsByStaffId(staffId: string) {
 /**
  * Syncs permissions for ALL active users assigned to a specific role.
  * Used when role-level permissions are modified.
- * 
+ *
  * @param roleId The ID of the modified role
  */
 export async function syncAllUsersOfRole(roleId: string) {
@@ -65,13 +68,14 @@ export async function syncAllUsersOfRole(roleId: string) {
     .eq('status', 'active');
 
   if (staffError) return { error: staffError };
-  if (!staffMembers || staffMembers.length === 0) return { data: [], error: null };
+  if (!staffMembers || staffMembers.length === 0)
+    return { data: [], error: null };
 
   console.log(`Syncing ${staffMembers.length} users for role ${roleId}...`);
 
   // Trigger sync for each user (fire and forget)
   const results = await Promise.all(
-    staffMembers.map(s => syncUserPermissions(s.auth_user_id!))
+    staffMembers.map((s) => syncUserPermissions(s.auth_user_id!)),
   );
 
   return { data: results, error: null };

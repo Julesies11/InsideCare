@@ -1,10 +1,10 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import { SignInPage } from '@/auth/pages/signin-page';
-import { ResetPasswordPage } from '@/auth/pages/reset-password-page';
-import { ChangePasswordPage } from '@/auth/pages/change-password-page';
-import { MemoryRouter } from 'react-router';
 import { useAuth } from '@/auth/context/auth-context';
+import { ChangePasswordPage } from '@/auth/pages/change-password-page';
+import { ResetPasswordPage } from '@/auth/pages/reset-password-page';
+import { SignInPage } from '@/auth/pages/signin-page';
+import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router';
+import { describe, expect, it, vi } from 'vitest';
 
 // Mock useAuth
 vi.mock('@/auth/context/auth-context', () => ({
@@ -16,7 +16,9 @@ vi.mock('@/lib/supabase', () => ({
   supabase: {
     auth: {
       getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
-      onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } })),
+      onAuthStateChange: vi.fn(() => ({
+        data: { subscription: { unsubscribe: vi.fn() } },
+      })),
     },
   },
 }));
@@ -32,10 +34,12 @@ describe('Auth Pages Smoke Tests', () => {
     render(
       <MemoryRouter>
         <SignInPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
-    expect(screen.getByRole('heading', { name: /Sign In/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: /Sign In/i }),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText(/Email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Password/i)).toBeInTheDocument();
   });
@@ -48,10 +52,12 @@ describe('Auth Pages Smoke Tests', () => {
     render(
       <MemoryRouter>
         <ResetPasswordPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
-    expect(screen.getByRole('heading', { name: /Reset Password/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: /Reset Password/i }),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText(/Email/i)).toBeInTheDocument();
   });
 
@@ -71,7 +77,7 @@ describe('Auth Pages Smoke Tests', () => {
     render(
       <MemoryRouter>
         <ChangePasswordPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     expect(screen.getByText(/Verifying link/i)).toBeInTheDocument();

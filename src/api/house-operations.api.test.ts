@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { houseOperationsApi } from './house-operations.api';
-import { supabase } from '@/lib/supabase';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TABLES } from '@/config/db-tables';
+import { supabase } from '@/lib/supabase';
+import { houseOperationsApi } from './house-operations.api';
 
 vi.mock('@/lib/supabase', () => ({
   supabase: {
@@ -36,11 +36,13 @@ describe('houseOperationsApi.syncOperations', () => {
       eq: vi.fn().mockReturnThis(),
       in: vi.fn().mockReturnThis(),
       not: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'cl-1' }, error: null }),
+      maybeSingle: vi
+        .fn()
+        .mockResolvedValue({ data: { id: 'cl-1' }, error: null }),
     };
-    
+
     const mockFrom = vi.mocked(supabase.from).mockReturnValue(mockQuery);
-    
+
     const pendingChanges = {
       staff: { toAdd: [], toUpdate: [], toDelete: [] },
       participants: { toAdd: [], toUpdate: [], toDelete: [] },
@@ -53,22 +55,22 @@ describe('houseOperationsApi.syncOperations', () => {
             house_checklist_name: 'Updated Checklist',
             items: [
               { id: 'item-1', title: 'Existing Task' },
-              { tempId: 'temp-2', title: 'New Task' }
-            ]
-          }
+              { tempId: 'temp-2', title: 'New Task' },
+            ],
+          },
         ],
-        toDelete: []
+        toDelete: [],
       },
       resources: { toAdd: [], toUpdate: [], toDelete: [] },
       comms: { toAdd: [] },
-      documents: { toAdd: [], toDelete: [] }
+      documents: { toAdd: [], toDelete: [] },
     };
 
     await houseOperationsApi.syncOperations(houseId, pendingChanges as any);
 
     // Verify Checklist Update
     expect(mockFrom).toHaveBeenCalledWith(TABLES.HOUSE_CHECKLISTS);
-    
+
     // Verify Items Surgical Deletion
     expect(mockFrom).toHaveBeenCalledWith(TABLES.HOUSE_CHECKLIST_ITEMS);
     expect(mockQuery.delete).toHaveBeenCalled();
@@ -77,21 +79,24 @@ describe('houseOperationsApi.syncOperations', () => {
     // Verify Items Upsert
     expect(mockQuery.upsert).toHaveBeenCalledWith(
       expect.arrayContaining([
-        expect.objectContaining({ title: 'Existing Task', checklist_id: 'cl-1' }),
-        expect.objectContaining({ title: 'New Task', checklist_id: 'cl-1' })
-      ])
+        expect.objectContaining({
+          title: 'Existing Task',
+          checklist_id: 'cl-1',
+        }),
+        expect.objectContaining({ title: 'New Task', checklist_id: 'cl-1' }),
+      ]),
     );
   });
 
   it('should handle checklist deletion with cascade logic', async () => {
     const mockFrom = vi.mocked(supabase.from);
-    
+
     const pendingChanges = {
       checklists: {
         toDelete: ['cl-delete-1'],
         toAdd: [],
-        toUpdate: []
-      }
+        toUpdate: [],
+      },
     };
 
     mockFrom.mockImplementation(() => ({
@@ -123,14 +128,26 @@ describe('houseOperationsApi.calendar complex saves', () => {
     mockFrom.mockImplementation((table) => ({
       insert: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'new-e1', house_id: 'h1' }, error: null }),
+      maybeSingle: vi
+        .fn()
+        .mockResolvedValue({
+          data: { id: 'new-e1', house_id: 'h1' },
+          error: null,
+        }),
     }));
 
-    const result = await houseOperationsApi.calendar.createWithRelations(event, pIds, sIds, []);
-    
+    const result = await houseOperationsApi.calendar.createWithRelations(
+      event,
+      pIds,
+      sIds,
+      [],
+    );
+
     expect(result.id).toBe('new-e1');
     expect(mockFrom).toHaveBeenCalledWith(TABLES.HOUSE_CALENDAR_EVENTS);
-    expect(mockFrom).toHaveBeenCalledWith(TABLES.HOUSE_CALENDAR_EVENT_PARTICIPANTS);
+    expect(mockFrom).toHaveBeenCalledWith(
+      TABLES.HOUSE_CALENDAR_EVENT_PARTICIPANTS,
+    );
     expect(mockFrom).toHaveBeenCalledWith(TABLES.HOUSE_CALENDAR_EVENT_STAFF);
   });
 });

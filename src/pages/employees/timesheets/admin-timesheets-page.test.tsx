@@ -1,17 +1,22 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
-import { AdminTimesheetsPage } from './admin-timesheets-page';
-import { renderWithProviders } from '@/test/test-utils';
-import { TABLES } from '@/config/db-tables';
-import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
-import { TimesheetRow, StaffRow, ShiftRow, HouseRow } from '@/test/type-helpers';
+import { renderWithProviders } from '@/test/test-utils';
+import {
+  HouseRow,
+  ShiftRow,
+  StaffRow,
+  TimesheetRow,
+} from '@/test/type-helpers';
+import { screen, waitFor } from '@testing-library/react';
+import { http, HttpResponse } from 'msw';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { TABLES } from '@/config/db-tables';
+import { AdminTimesheetsPage } from './admin-timesheets-page';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
-const mockTimesheet: Partial<TimesheetRow> & { 
-  staff: Partial<StaffRow>, 
-  shift: Partial<ShiftRow> & { house: Partial<HouseRow> } 
+const mockTimesheet: Partial<TimesheetRow> & {
+  staff: Partial<StaffRow>;
+  shift: Partial<ShiftRow> & { house: Partial<HouseRow> };
 } = {
   id: 'ts-1',
   staff_id: 'staff-1',
@@ -52,15 +57,17 @@ describe('AdminTimesheetsPage', () => {
       }),
       http.post(`${SUPABASE_URL}/rest/v1/${TABLES.NOTIFICATIONS}`, () => {
         return HttpResponse.json({});
-      })
+      }),
     );
   });
 
   it('renders the page and loads timesheets', async () => {
     renderWithProviders(<AdminTimesheetsPage />);
 
-    expect(screen.getByRole('heading', { name: /timesheets/i })).toBeInTheDocument();
-    
+    expect(
+      screen.getByRole('heading', { name: /timesheets/i }),
+    ).toBeInTheDocument();
+
     expect(await screen.findByText(/John Doe/i)).toBeInTheDocument();
     expect(await screen.findByText(/Sunset House/i)).toBeInTheDocument();
   });
@@ -93,7 +100,9 @@ describe('AdminTimesheetsPage', () => {
       expect(screen.getByText('John Doe')).toBeInTheDocument();
     });
 
-    const searchInput = screen.getByPlaceholderText(/search staff or location/i);
+    const searchInput = screen.getByPlaceholderText(
+      /search staff or location/i,
+    );
     await user.type(searchInput, 'NonExistent');
 
     await waitFor(() => {

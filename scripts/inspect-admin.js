@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import * as dotenv from 'dotenv';
+
 dotenv.config();
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
@@ -9,7 +10,7 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 async function inspectUser() {
   const { data, error } = await supabase.auth.signInWithPassword({
     email: 'julian.gibbings+admin@gmail.com',
-    password: 'Password123!'
+    password: 'Password123!',
   });
 
   if (error) {

@@ -1,18 +1,26 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
-import { StaffDashboard } from './staff-dashboard';
-import { renderWithProviders } from '@/test/test-utils';
-import { TABLES } from '@/config/db-tables';
-import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
+import { renderWithProviders } from '@/test/test-utils';
+import {
+  HouseRow,
+  LeaveRequestRow,
+  ShiftRow,
+  TimesheetRow,
+} from '@/test/type-helpers';
+import { screen, waitFor } from '@testing-library/react';
 import { format } from 'date-fns';
-import { ShiftRow, HouseRow, LeaveRequestRow, TimesheetRow } from '@/test/type-helpers';
+import { http, HttpResponse } from 'msw';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { TABLES } from '@/config/db-tables';
+import { StaffDashboard } from './staff-dashboard';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
 const today = format(new Date(), 'yyyy-MM-dd');
 
-const mockShifts: (Partial<ShiftRow> & { house: Partial<HouseRow>, assigned_checklists: any[] })[] = [
+const mockShifts: (Partial<ShiftRow> & {
+  house: Partial<HouseRow>;
+  assigned_checklists: any[];
+})[] = [
   {
     id: 'shift-1',
     start_date: today,
@@ -22,21 +30,23 @@ const mockShifts: (Partial<ShiftRow> & { house: Partial<HouseRow>, assigned_chec
     assigned_checklists: [
       {
         checklist_id: 'cl-1',
-        submissions: [{ shift_id: 'shift-1', status: 'completed' }]
+        submissions: [{ shift_id: 'shift-1', status: 'completed' }],
       },
       {
         checklist_id: 'cl-2',
-        submissions: []
+        submissions: [],
       },
       {
         checklist_id: 'cl-3',
-        submissions: []
-      }
-    ]
+        submissions: [],
+      },
+    ],
   },
 ];
 
-const mockLeave: (Partial<LeaveRequestRow> & { leave_type: { leave_type_name: string } })[] = [
+const mockLeave: (Partial<LeaveRequestRow> & {
+  leave_type: { leave_type_name: string };
+})[] = [
   {
     id: 'leave-1',
     leave_type: { leave_type_name: 'Annual Leave' },
@@ -46,14 +56,15 @@ const mockLeave: (Partial<LeaveRequestRow> & { leave_type: { leave_type_name: st
   },
 ];
 
-const mockTimesheets: (Partial<TimesheetRow> & { shift: Partial<ShiftRow> })[] = [
-  {
-    id: 'ts-1',
-    status: 'pending',
-    clock_in: '2026-03-04T08:00:00Z',
-    shift: { start_date: '2026-03-04' },
-  },
-];
+const mockTimesheets: (Partial<TimesheetRow> & { shift: Partial<ShiftRow> })[] =
+  [
+    {
+      id: 'ts-1',
+      status: 'pending',
+      clock_in: '2026-03-04T08:00:00Z',
+      shift: { start_date: '2026-03-04' },
+    },
+  ];
 
 // Mock useNavigate
 vi.mock('react-router', async () => {
@@ -67,15 +78,17 @@ vi.mock('react-router', async () => {
 describe('StaffDashboard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Ensure mock shift always matches the current real local date and time
     const localToday = format(new Date(), 'yyyy-MM-dd');
-    const mockShiftsWithCurrentDate = [{
-      ...mockShifts[0],
-      start_date: localToday,
-      start_time: '00:00',
-      end_time: '23:59'
-    }];
+    const mockShiftsWithCurrentDate = [
+      {
+        ...mockShifts[0],
+        start_date: localToday,
+        start_time: '00:00',
+        end_time: '23:59',
+      },
+    ];
 
     server.use(
       http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF_SHIFTS}`, () => {
@@ -86,7 +99,7 @@ describe('StaffDashboard', () => {
       }),
       http.get(`${SUPABASE_URL}/rest/v1/${TABLES.TIMESHEETS}`, () => {
         return HttpResponse.json(mockTimesheets);
-      })
+      }),
     );
   });
 
@@ -94,9 +107,15 @@ describe('StaffDashboard', () => {
     renderWithProviders(<StaffDashboard />);
 
     // Check headings
-    expect(screen.getByRole('heading', { name: /upcoming schedule/i })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: /leave requests/i })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: /timesheets/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: /upcoming schedule/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: /leave requests/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: /timesheets/i }),
+    ).toBeInTheDocument();
 
     // Wait for data to load
     await waitFor(() => {
@@ -112,7 +131,7 @@ describe('StaffDashboard', () => {
     await waitFor(() => {
       // Check for the active shift section
       expect(screen.getByText(/Active Shift/i)).toBeInTheDocument();
-      
+
       // Verify progress section exists via test-id
       const progressSection = screen.getByTestId('shift-checklist-progress');
       expect(progressSection).toBeInTheDocument();
@@ -123,9 +142,15 @@ describe('StaffDashboard', () => {
 
   it('renders empty states when no data is returned', async () => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF_SHIFTS}`, () => HttpResponse.json([])),
-      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.LEAVE_REQUESTS}`, () => HttpResponse.json([])),
-      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.TIMESHEETS}`, () => HttpResponse.json([]))
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF_SHIFTS}`, () =>
+        HttpResponse.json([]),
+      ),
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.LEAVE_REQUESTS}`, () =>
+        HttpResponse.json([]),
+      ),
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.TIMESHEETS}`, () =>
+        HttpResponse.json([]),
+      ),
     );
 
     renderWithProviders(<StaffDashboard />);
@@ -133,15 +158,23 @@ describe('StaffDashboard', () => {
     await waitFor(() => {
       expect(screen.getByText(/no upcoming commitments/i)).toBeInTheDocument();
       expect(screen.getByText(/no active leave requests/i)).toBeInTheDocument();
-      expect(screen.getByText(/no timesheets awaiting action/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/no timesheets awaiting action/i),
+      ).toBeInTheDocument();
     });
   });
 
   it('renders quick action buttons', () => {
     renderWithProviders(<StaffDashboard />);
 
-    expect(screen.getByRole('button', { name: /request leave/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /my timesheets/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /view roster/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /request leave/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /my timesheets/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /view roster/i }),
+    ).toBeInTheDocument();
   });
 });

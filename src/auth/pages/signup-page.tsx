@@ -1,9 +1,16 @@
 import { useState } from 'react';
 import { useAuth } from '@/auth/context/auth-context';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { AlertCircle, Check, Eye, EyeOff } from 'lucide-react';
+import {
+  AlertCircle,
+  Check,
+  Eye,
+  EyeOff,
+  LoaderCircleIcon,
+} from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router';
+import { ROUTES } from '@/config/routes.config';
 import { Alert, AlertIcon, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -16,9 +23,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { LoaderCircleIcon } from 'lucide-react';
 import { getSignupSchema, SignupSchemaType } from '../forms/signup-schema';
-import { ROUTES } from '@/config/routes.config';
 
 export function SignUpPage() {
   const navigate = useNavigate();
@@ -254,7 +259,8 @@ export function SignUpPage() {
         <Button type="submit" className="w-full" disabled={isProcessing}>
           {isProcessing ? (
             <span className="flex items-center gap-2">
-              <LoaderCircleIcon className="h-4 w-4 animate-spin" /> Creating account...
+              <LoaderCircleIcon className="h-4 w-4 animate-spin" /> Creating
+              account...
             </span>
           ) : (
             'Create Account'

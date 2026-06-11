@@ -1,11 +1,11 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { 
-  Alert, 
-  AlertContent, 
-  AlertDescription, 
-  AlertIcon, 
-  AlertTitle 
+import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+import {
+  Alert,
+  AlertContent,
+  AlertDescription,
+  AlertIcon,
+  AlertTitle,
 } from './alert';
 
 describe('Alert', () => {
@@ -14,9 +14,9 @@ describe('Alert', () => {
       <Alert>
         <AlertTitle>Success</AlertTitle>
         <AlertDescription>Your action was completed.</AlertDescription>
-      </Alert>
+      </Alert>,
     );
-    
+
     expect(screen.getByRole('alert')).toBeInTheDocument();
     expect(screen.getByText('Success')).toBeInTheDocument();
     expect(screen.getByText('Your action was completed.')).toBeInTheDocument();
@@ -31,9 +31,9 @@ describe('Alert', () => {
         <AlertContent>
           <AlertTitle>Info</AlertTitle>
         </AlertContent>
-      </Alert>
+      </Alert>,
     );
-    
+
     expect(screen.getByTestId('alert-icon')).toBeInTheDocument();
   });
 
@@ -42,12 +42,12 @@ describe('Alert', () => {
     render(
       <Alert close onClose={handleClose}>
         <AlertTitle>Closable Alert</AlertTitle>
-      </Alert>
+      </Alert>,
     );
-    
+
     const closeButton = screen.getByLabelText('Dismiss');
     fireEvent.click(closeButton);
-    
+
     expect(handleClose).toHaveBeenCalledTimes(1);
   });
 
@@ -55,36 +55,38 @@ describe('Alert', () => {
     const { rerender } = render(
       <Alert variant="destructive" appearance="solid">
         <AlertTitle>Error</AlertTitle>
-      </Alert>
+      </Alert>,
     );
-    
+
     let alert = screen.getByRole('alert');
     expect(alert).toHaveClass('bg-destructive');
 
     rerender(
       <Alert variant="success" appearance="solid">
         <AlertTitle>Success</AlertTitle>
-      </Alert>
+      </Alert>,
     );
     alert = screen.getByRole('alert');
     // From alert.tsx: bg-[var(--color-success,var(--color-green-500))]
-    expect(alert).toHaveClass('bg-[var(--color-success,var(--color-green-500))]');
+    expect(alert).toHaveClass(
+      'bg-[var(--color-success,var(--color-green-500))]',
+    );
   });
 
   it('applies the correct size classes', () => {
     const { rerender } = render(
       <Alert size="lg">
         <AlertTitle>Large Alert</AlertTitle>
-      </Alert>
+      </Alert>,
     );
-    
+
     let alert = screen.getByRole('alert');
     expect(alert).toHaveClass('p-4');
 
     rerender(
       <Alert size="sm">
         <AlertTitle>Small Alert</AlertTitle>
-      </Alert>
+      </Alert>,
     );
     alert = screen.getByRole('alert');
     expect(alert).toHaveClass('px-3');

@@ -1,8 +1,16 @@
 import { render, screen } from '@testing-library/react';
-import { ComplianceSettingsPage } from './compliance-settings-page';
-import { useComplianceTypes, useAddComplianceType, useUpdateComplianceType, useIDDocumentTypes, useAddIDDocumentType, useUpdateIDDocumentType, useDeleteIDDocumentType } from '@/hooks/use-staff';
-import { vi, describe, it, expect } from 'vitest';
 import { MemoryRouter } from 'react-router';
+import { describe, expect, it, vi } from 'vitest';
+import {
+  useAddComplianceType,
+  useAddIDDocumentType,
+  useComplianceTypes,
+  useDeleteIDDocumentType,
+  useIDDocumentTypes,
+  useUpdateComplianceType,
+  useUpdateIDDocumentType,
+} from '@/hooks/use-staff';
+import { ComplianceSettingsPage } from './compliance-settings-page';
 
 // Mock the hooks
 vi.mock('@/hooks/use-staff', () => ({
@@ -18,9 +26,9 @@ vi.mock('@/hooks/use-staff', () => ({
 vi.mock('@/providers/settings-provider', () => ({
   useSettings: vi.fn(() => ({
     settings: {
-      container: 'fixed'
-    }
-  }))
+      container: 'fixed',
+    },
+  })),
 }));
 
 describe('ComplianceSettingsPage Smoke Test', () => {
@@ -45,12 +53,14 @@ describe('ComplianceSettingsPage Smoke Test', () => {
     render(
       <MemoryRouter>
         <ComplianceSettingsPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     // Basic checks
     expect(screen.getByText(/Compliance Settings/i)).toBeInTheDocument();
-    expect(screen.getAllByText(/Add Compliance Type/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Add Compliance Type/i).length).toBeGreaterThan(
+      0,
+    );
     expect(screen.getByText(/Compliance Master List/i)).toBeInTheDocument();
     expect(screen.getByText(/100 Points of ID Config/i)).toBeInTheDocument();
   });

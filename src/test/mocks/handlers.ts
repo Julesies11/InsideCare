@@ -1,18 +1,20 @@
 import { http, HttpResponse } from 'msw';
 import { TABLES } from '@/config/db-tables';
-import { 
-  HouseRow, 
-  ParticipantRow, 
-  StaffRow, 
-  ActivityLogRow, 
-  ShiftRow, 
+import {
+  ActivityLogRow,
+  HouseRow,
   LeaveRequestRow,
   NotificationRow,
+  ParticipantRow,
+  Row,
+  ShiftRow,
+  StaffRow,
   TimesheetRow,
-  Row
 } from '../type-helpers';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://rdnaqrzqpcicskylmsyl.supabase.co';
+const SUPABASE_URL =
+  import.meta.env.VITE_SUPABASE_URL ||
+  'https://rdnaqrzqpcicskylmsyl.supabase.co';
 
 export const handlers = [
   // Auth Mocks
@@ -34,7 +36,7 @@ export const handlers = [
         last_sign_in_at: '2026-05-25T10:00:00Z',
         created_at: '2026-01-01T10:00:00Z',
         invited_at: '2026-01-01T10:00:00Z',
-      }
+      },
     ]);
   }),
 
@@ -42,7 +44,7 @@ export const handlers = [
   http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSES}`, ({ request }) => {
     const url = new URL(request.url);
     const idParam = url.searchParams.get('id');
-    
+
     const houses: Partial<HouseRow>[] = [
       {
         id: 'house-1',
@@ -62,7 +64,7 @@ export const handlers = [
 
     if (idParam && idParam.startsWith('eq.')) {
       const id = idParam.replace('eq.', '');
-      const house = houses.find(h => h.id === id);
+      const house = houses.find((h) => h.id === id);
       if (house) {
         if (request.headers.get('Accept')?.includes('vnd.pgrst.object+json')) {
           return HttpResponse.json(house);
@@ -78,8 +80,10 @@ export const handlers = [
   http.get(`${SUPABASE_URL}/rest/v1/${TABLES.PARTICIPANTS}`, ({ request }) => {
     const url = new URL(request.url);
     const idParam = url.searchParams.get('id');
-    
-    const participants: (Partial<ParticipantRow> & { houses?: Partial<HouseRow> })[] = [
+
+    const participants: (Partial<ParticipantRow> & {
+      houses?: Partial<HouseRow>;
+    })[] = [
       {
         id: 'participant-1',
         participant_name: 'John Doe',
@@ -93,7 +97,7 @@ export const handlers = [
 
     if (idParam && idParam.startsWith('eq.')) {
       const id = idParam.replace('eq.', '');
-      const participant = participants.find(p => p.id === id);
+      const participant = participants.find((p) => p.id === id);
       if (participant) {
         if (request.headers.get('Accept')?.includes('vnd.pgrst.object+json')) {
           return HttpResponse.json(participant);
@@ -105,14 +109,17 @@ export const handlers = [
     return HttpResponse.json(participants);
   }),
 
-  http.patch(`${SUPABASE_URL}/rest/v1/${TABLES.PARTICIPANTS}`, async ({ request }) => {
-    const body = await request.json();
-    return HttpResponse.json({ 
-      id: 'participant-1',
-      participant_name: 'John Doe',
-      ...body 
-    });
-  }),
+  http.patch(
+    `${SUPABASE_URL}/rest/v1/${TABLES.PARTICIPANTS}`,
+    async ({ request }) => {
+      const body = await request.json();
+      return HttpResponse.json({
+        id: 'participant-1',
+        participant_name: 'John Doe',
+        ...body,
+      });
+    },
+  ),
 
   // Database Mocks - Activity Log
   http.get(`${SUPABASE_URL}/rest/v1/${TABLES.ACTIVITY_LOG}`, () => {
@@ -139,7 +146,7 @@ export const handlers = [
   http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF}`, ({ request }) => {
     const url = new URL(request.url);
     const idParam = url.searchParams.get('id');
-    
+
     const staff: (Partial<StaffRow> & { role?: { role_name: string } })[] = [
       {
         id: 'staff-1',
@@ -147,13 +154,13 @@ export const handlers = [
         email: 'john.staff@example.com',
         status: 'active',
         auth_user_id: 'test-user-id',
-        role: { role_name: 'Administrator' }
+        role: { role_name: 'Administrator' },
       },
     ];
 
     if (idParam && idParam.startsWith('eq.')) {
       const id = idParam.replace('eq.', '');
-      const member = staff.find(s => s.id === id);
+      const member = staff.find((s) => s.id === id);
       if (member) {
         if (request.headers.get('Accept')?.includes('vnd.pgrst.object+json')) {
           return HttpResponse.json(member);
@@ -167,7 +174,10 @@ export const handlers = [
 
   // Database Mocks - Shift Notes
   http.get(`${SUPABASE_URL}/rest/v1/${TABLES.SHIFT_NOTES}`, () => {
-    const notes: (Partial<Row<'ic_shift_notes'>> & { participant?: Partial<ParticipantRow>, staff?: Partial<StaffRow> })[] = [
+    const notes: (Partial<Row<'ic_shift_notes'>> & {
+      participant?: Partial<ParticipantRow>;
+      staff?: Partial<StaffRow>;
+    })[] = [
       {
         id: 'note-1',
         participant_id: 'participant-1',
@@ -185,7 +195,7 @@ export const handlers = [
   http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF_SHIFTS}`, ({ request }) => {
     const url = new URL(request.url);
     const idParam = url.searchParams.get('id');
-    
+
     const shifts: (Partial<ShiftRow> & { house?: Partial<HouseRow> })[] = [
       {
         id: 'shift-1',
@@ -202,7 +212,7 @@ export const handlers = [
 
     if (idParam && idParam.startsWith('eq.')) {
       const id = idParam.replace('eq.', '');
-      const shift = shifts.find(s => s.id === id);
+      const shift = shifts.find((s) => s.id === id);
       if (shift) {
         if (request.headers.get('Accept')?.includes('vnd.pgrst.object+json')) {
           return HttpResponse.json(shift);
@@ -224,9 +234,12 @@ export const handlers = [
   }),
 
   // Database Mocks - Shift Assigned Checklists
-  http.get(`${SUPABASE_URL}/rest/v1/${TABLES.SHIFT_ASSIGNED_CHECKLISTS}`, () => {
-    return HttpResponse.json([]);
-  }),
+  http.get(
+    `${SUPABASE_URL}/rest/v1/${TABLES.SHIFT_ASSIGNED_CHECKLISTS}`,
+    () => {
+      return HttpResponse.json([]);
+    },
+  ),
 
   // Database Mocks - Leave Types
   http.get(`${SUPABASE_URL}/rest/v1/${TABLES.LEAVE_TYPES}`, () => {
@@ -238,34 +251,39 @@ export const handlers = [
   }),
 
   // Database Mocks - Leave Requests
-  http.get(`${SUPABASE_URL}/rest/v1/${TABLES.LEAVE_REQUESTS}`, ({ request }) => {
-    const url = new URL(request.url);
-    const idParam = url.searchParams.get('id');
-    
-    const requests: Partial<LeaveRequestRow>[] = [
-      {
-        id: 'leave-1',
-        staff_id: 'staff-1',
-        leave_type_id: 'leave-type-1',
-        start_date: '2026-06-01',
-        end_date: '2026-06-05',
-        status: 'pending',
-        created_at: new Date().toISOString(),
-      },
-    ];
+  http.get(
+    `${SUPABASE_URL}/rest/v1/${TABLES.LEAVE_REQUESTS}`,
+    ({ request }) => {
+      const url = new URL(request.url);
+      const idParam = url.searchParams.get('id');
 
-    if (idParam && idParam.startsWith('eq.')) {
-      const id = idParam.replace('eq.', '');
-      const req = requests.find(r => r.id === id);
-      if (req) {
-        if (request.headers.get('Accept')?.includes('vnd.pgrst.object+json')) {
-          return HttpResponse.json(req);
+      const requests: Partial<LeaveRequestRow>[] = [
+        {
+          id: 'leave-1',
+          staff_id: 'staff-1',
+          leave_type_id: 'leave-type-1',
+          start_date: '2026-06-01',
+          end_date: '2026-06-05',
+          status: 'pending',
+          created_at: new Date().toISOString(),
+        },
+      ];
+
+      if (idParam && idParam.startsWith('eq.')) {
+        const id = idParam.replace('eq.', '');
+        const req = requests.find((r) => r.id === id);
+        if (req) {
+          if (
+            request.headers.get('Accept')?.includes('vnd.pgrst.object+json')
+          ) {
+            return HttpResponse.json(req);
+          }
+          return HttpResponse.json([req]);
         }
-        return HttpResponse.json([req]);
       }
-    }
-    return HttpResponse.json(requests);
-  }),
+      return HttpResponse.json(requests);
+    },
+  ),
 
   // Database Mocks - Role Permissions
   http.get(`${SUPABASE_URL}/rest/v1/${TABLES.ROLE_PERMISSIONS}`, () => {

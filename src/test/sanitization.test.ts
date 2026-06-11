@@ -1,16 +1,15 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 /**
- * Peer review test to ensure the "Empty-to-Null" pattern used in 
+ * Peer review test to ensure the "Empty-to-Null" pattern used in
  * RolesPage, ChecklistMasterPage, and ShiftNotes is correct and robust.
  */
 describe('Data Sanitization Logic (Empty-to-Null)', () => {
-  
   it('converts empty strings to null in a flat object (Roles pattern)', () => {
     const roleData = {
       name: 'Admin',
       description: '', // Should become null
-      is_active: true
+      is_active: true,
     };
 
     const sanitizedData = { ...roleData };
@@ -28,12 +27,12 @@ describe('Data Sanitization Logic (Empty-to-Null)', () => {
   it('converts empty strings to null using logical OR (Checklist pattern)', () => {
     const formData = {
       name: 'Daily Check',
-      description: ''
+      description: '',
     };
 
     const payload = {
       name: formData.name,
-      description: formData.description || null
+      description: formData.description || null,
     };
 
     expect(payload.description).toBeNull();
@@ -44,7 +43,7 @@ describe('Data Sanitization Logic (Empty-to-Null)', () => {
     const formData = {
       notes: '',
       full_note: 'Detailed note',
-      other_field: 'keep me'
+      other_field: 'keep me',
     };
 
     const sanitizedData = {
@@ -62,7 +61,7 @@ describe('Data Sanitization Logic (Empty-to-Null)', () => {
     const data = {
       count: 0,
       enabled: false,
-      text: ''
+      text: '',
     };
 
     const sanitized = { ...data };

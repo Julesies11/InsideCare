@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { Participant, ParticipantWithHouse } from '@/models/participant';
 import {
   ColumnDef,
   getCoreRowModel,
@@ -12,33 +13,26 @@ import {
   SortingState,
   useReactTable,
 } from '@tanstack/react-table';
-import {
-  Filter,
-  Search,
-  X,
-} from 'lucide-react';
-import { useSearchParams } from 'react-router';
-import { useDebounce } from '@/hooks/use-debounce';
+import { Filter, Search, X } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router';
 import { toast } from 'sonner';
+import { RBAC_MODULES } from '@/config/rbac-modules';
+import { ROUTES } from '@/config/routes.config';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
+import { parseSupabaseError } from '@/lib/error-parser';
+import { useDebounce } from '@/hooks/use-debounce';
+import { useActiveHouses } from '@/hooks/use-houses';
+import { useParticipants } from '@/hooks/use-participants';
+import { ACCESS_LEVEL, useRBAC } from '@/hooks/useRBAC';
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { StatusBadge } from '@/components/ui/status-badge';
 import { Button } from '@/components/ui/button';
-import { StatusFilter, StatusOption } from '@/components/ui/status-filter';
-import {
-  Card,
-  CardFooter,
-  CardHeader,
-  CardTable,
-} from '@/components/ui/card';
+import { Card, CardFooter, CardHeader, CardTable } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataGrid } from '@/components/ui/data-grid';
 import { DataGridColumnHeader } from '@/components/ui/data-grid-column-header';
 import { DataGridPagination } from '@/components/ui/data-grid-pagination';
-import { Skeleton } from '@/components/ui/skeleton';
-import {
-  DataGridTable,
-} from '@/components/ui/data-grid-table';
+import { DataGridTable } from '@/components/ui/data-grid-table';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -48,17 +42,9 @@ import {
 } from '@/components/ui/popover';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { SecureAvatar } from '@/components/ui/secure-avatar';
-import { STORAGE_BUCKETS } from '@/config/storage-buckets';
-import { ROUTES } from '@/config/routes.config';
-import { useParticipants } from '@/hooks/use-participants';
-import { useActiveHouses } from '@/hooks/use-houses';
-import { Link } from 'react-router';
-import { Participant, ParticipantWithHouse }  from '@/models/participant';
-
-import { parseSupabaseError } from '@/lib/error-parser';
-
-import { RBAC_MODULES } from '@/config/rbac-modules';
-import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
+import { Skeleton } from '@/components/ui/skeleton';
+import { StatusBadge } from '@/components/ui/status-badge';
+import { StatusFilter, StatusOption } from '@/components/ui/status-filter';
 
 const PARTICIPANT_STATUS_OPTIONS: StatusOption[] = [
   { value: 'active', label: 'Active', badge: 'success' },
@@ -71,7 +57,7 @@ function getInitials(name: string | null | undefined): string {
   if (!name) return '??';
   return name
     .split(' ')
-    .map(word => word[0])
+    .map((word) => word[0])
     .join('')
     .toUpperCase()
     .slice(0, 2);
@@ -81,9 +67,9 @@ const Participants = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { hasAccess } = useRBAC();
 
-  const canManageAny = hasAccess({ 
-    resource: RBAC_MODULES.PARTICIPANTS, 
-    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE 
+  const canManageAny = hasAccess({
+    resource: RBAC_MODULES.PARTICIPANTS,
+    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE,
   });
 
   // Helper functions to parse URL params into initial state
@@ -95,7 +81,7 @@ const Participants = () => {
   const getInitialSorting = (): SortingState => {
     const sortParam = searchParams.get('sort');
     if (!sortParam) return [];
-    
+
     const [field, direction] = sortParam.split('.');
     return [{ id: field, desc: direction === 'desc' }];
   };
@@ -112,50 +98,73 @@ const Participants = () => {
   const getInitialStatuses = (): string[] => {
     const param = searchParams.get('statuses');
     if (!param) return ['active', 'draft']; // default visible
-    return param.split(',').filter((s) => PARTICIPANT_STATUS_OPTIONS.some(opt => opt.value === s));
+    return param
+      .split(',')
+      .filter((s) => PARTICIPANT_STATUS_OPTIONS.some((opt) => opt.value === s));
   };
 
   // Initialize state from URL params
-  const [pagination, setPagination] = useState<PaginationState>(getInitialPagination());
+  const [pagination, setPagination] = useState<PaginationState>(
+    getInitialPagination(),
+  );
   const [sorting, setSorting] = useState<SortingState>(getInitialSorting());
   const [searchQuery, setSearchQuery] = useState(getInitialSearch());
-  const [selectedHouses, setSelectedHouses] = useState<string[]>(getInitialHouses());
-  const [selectedStatuses, setSelectedStatuses] = useState<string[]>(getInitialStatuses());
+  const [selectedHouses, setSelectedHouses] =
+    useState<string[]>(getInitialHouses());
+  const [selectedStatuses, setSelectedStatuses] =
+    useState<string[]>(getInitialStatuses());
 
   // Use debounced search query for API calls
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
-  const filters = useMemo(() => ({
-    search: debouncedSearchQuery,
-    houseIds: selectedHouses,
-    statuses: selectedStatuses
-  }), [debouncedSearchQuery, selectedHouses, selectedStatuses]);
+  const filters = useMemo(
+    () => ({
+      search: debouncedSearchQuery,
+      houseIds: selectedHouses,
+      statuses: selectedStatuses,
+    }),
+    [debouncedSearchQuery, selectedHouses, selectedStatuses],
+  );
 
-  const { participants, count, isLoading: loading, error } = useParticipants(
+  const {
+    participants,
+    count,
+    isLoading: loading,
+    error,
+  } = useParticipants(
     pagination.pageIndex,
     pagination.pageSize,
     sorting,
-    filters
+    filters,
   );
 
-  console.log('[DEBUG] Participants rendering:', { pCount: participants.length, count, loading, error, filters });
+  console.log('[DEBUG] Participants rendering:', {
+    pCount: participants.length,
+    count,
+    loading,
+    error,
+    filters,
+  });
 
   const { data: activeHouses = [] } = useActiveHouses();
 
-  // Count of participants per house (This still uses the full list if we want accurate badges, 
+  // Count of participants per house (This still uses the full list if we want accurate badges,
   // but for now we'll simplify or keep it as is if useHouses has the counts)
   const houseCounts = useMemo(() => {
-    return participants.reduce((acc, item) => {
-      if (item.house_id) {
-        acc[item.house_id] = (acc[item.house_id] || 0) + 1;
-      }
-      return acc;
-    }, {} as Record<string, number>);
+    return participants.reduce(
+      (acc, item) => {
+        if (item.house_id) {
+          acc[item.house_id] = (acc[item.house_id] || 0) + 1;
+        }
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
   }, [participants]);
 
   const handleHouseChange = (checked: boolean, houseId: string) => {
     setSelectedHouses((prev) =>
-      checked ? [...prev, houseId] : prev.filter((id) => id !== houseId)
+      checked ? [...prev, houseId] : prev.filter((id) => id !== houseId),
     );
   };
 
@@ -170,15 +179,15 @@ const Participants = () => {
         cell: ({ row }) => {
           const detailUrl = `${ROUTES.PARTICIPANT_DETAIL}/${row.original.id}`;
           return (
-            <Link 
+            <Link
               to={detailUrl}
               className="flex items-center gap-2.5 group w-full max-w-full text-left"
             >
-              <SecureAvatar 
-                src={row.original.photo_url} 
-                initials={getInitials(row.original.participant_name)} 
+              <SecureAvatar
+                src={row.original.photo_url}
+                initials={getInitials(row.original.participant_name)}
                 className="size-9 group-hover:ring-2 group-hover:ring-primary/20 transition-all shrink-0"
-                bucket={STORAGE_BUCKETS.PARTICIPANT_PHOTOS} 
+                bucket={STORAGE_BUCKETS.PARTICIPANT_PHOTOS}
               />
 
               <div className="flex flex-col min-w-0">
@@ -250,11 +259,11 @@ const Participants = () => {
         cell: ({ row }) => {
           const houseId = (row.original as ParticipantWithHouse).house_id;
           const houseName = (row.original as ParticipantWithHouse).house_name;
-          
+
           if (!houseId) return <span className="text-sm text-gray-500">-</span>;
-          
+
           return (
-            <Link 
+            <Link
               to={`${ROUTES.HOUSE_DETAIL}/${houseId}`}
               className="text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline transition-colors"
             >
@@ -286,7 +295,7 @@ const Participants = () => {
         size: 100,
       },
     ],
-    []
+    [],
   );
 
   const pageCount = useMemo(() => {
@@ -331,7 +340,7 @@ const Participants = () => {
   // Sync state changes to URL query parameters
   useEffect(() => {
     const params = new URLSearchParams(searchParams);
-    
+
     // Pagination - update URL as soon as page changes
     if (pagination.pageIndex > 0) {
       params.set('page', (pagination.pageIndex + 1).toString()); // Convert to 1-indexed
@@ -344,7 +353,7 @@ const Participants = () => {
     } else {
       params.delete('pageSize');
     }
-    
+
     // Sorting
     if (sorting.length > 0) {
       const sort = sorting[0];
@@ -352,21 +361,21 @@ const Participants = () => {
     } else {
       params.delete('sort');
     }
-    
+
     // Search - sync raw query to URL immediately for responsiveness
     if (searchQuery) {
       params.set('search', searchQuery);
     } else {
       params.delete('search');
     }
-    
+
     // House Filter
     if (selectedHouses.length > 0) {
       params.set('houses', selectedHouses.join(','));
     } else {
       params.delete('houses');
     }
-    
+
     // Always update the URL with the current statuses
     if (selectedStatuses.length > 0) {
       params.set('statuses', selectedStatuses.join(','));
@@ -378,7 +387,15 @@ const Participants = () => {
     if (params.toString() !== searchParams.toString()) {
       setSearchParams(params, { replace: true });
     }
-  }, [pagination, sorting, searchQuery, selectedHouses, selectedStatuses, setSearchParams, searchParams]);
+  }, [
+    pagination,
+    sorting,
+    searchQuery,
+    selectedHouses,
+    selectedStatuses,
+    setSearchParams,
+    searchParams,
+  ]);
 
   return (
     <DataGrid
@@ -390,7 +407,7 @@ const Participants = () => {
         columnsMovable: true,
         columnsVisibility: true,
         cellBorder: true,
-        width: 'fixed'
+        width: 'fixed',
       }}
     >
       <Card>
@@ -422,7 +439,12 @@ const Participants = () => {
               label="Status"
             />
             {!canManageAny && (
-              <Badge variant="warning" appearance="light" size="sm" className="h-9 px-3">
+              <Badge
+                variant="warning"
+                appearance="light"
+                size="sm"
+                className="h-9 px-3"
+              >
                 Read Only
               </Badge>
             )}
@@ -471,7 +493,9 @@ const Participants = () => {
           </div>
         </CardHeader>
 
-        {loading && <div className="p-4 text-center">Loading participants...</div>}
+        {loading && (
+          <div className="p-4 text-center">Loading participants...</div>
+        )}
         {error && (
           <Alert variant="destructive" className="m-4">
             {error}

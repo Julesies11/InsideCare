@@ -9,7 +9,16 @@ const cleanGlobals = Object.fromEntries(
 );
 
 export default tseslint.config(
-  { ignores: ['dist', 'figma_exports_current', 'node_modules', 'playwright-report', 'test-results'] },
+  {
+    ignores: [
+      'dist',
+      'figma_exports_current',
+      'node_modules',
+      'playwright-report',
+      'test-results',
+      'docs/template_reference',
+    ],
+  },
   {
     extends: [...tseslint.configs.recommended],
     files: ['**/*.{ts,tsx}'],
@@ -24,7 +33,10 @@ export default tseslint.config(
     rules: {
       ...reactHooks.configs.recommended.rules,
       '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        { argsIgnorePattern: '^_' },
+      ],
     },
   },
   {
@@ -32,5 +44,5 @@ export default tseslint.config(
     rules: {
       'react-hooks/rules-of-hooks': 'off',
     },
-  }
+  },
 );

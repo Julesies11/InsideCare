@@ -1,6 +1,15 @@
 import { renderWithProviders, screen, waitFor } from '@/test/test-utils';
-import { StaffRoster, StaffChecklists, StaffLeaveList, StaffLeaveForm, StaffDashboard, StaffTimesheetList, StaffTimesheetForm, StaffProfile } from './index';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import {
+  StaffChecklists,
+  StaffDashboard,
+  StaffLeaveForm,
+  StaffLeaveList,
+  StaffProfile,
+  StaffRoster,
+  StaffTimesheetForm,
+  StaffTimesheetList,
+} from './index';
 
 // Mock useNavigate and useParams
 vi.mock('react-router', async () => {
@@ -9,9 +18,9 @@ vi.mock('react-router', async () => {
     ...actual,
     useNavigate: () => vi.fn(),
     useParams: () => ({ shiftId: 'test-shift' }),
-    useLocation: () => ({ 
+    useLocation: () => ({
       pathname: '/my-roster',
-      state: { fromTab: 'missing' } 
+      state: { fromTab: 'missing' },
     }),
   };
 });
@@ -20,7 +29,7 @@ vi.mock('react-router', async () => {
 vi.mock('@/lib/supabase', () => {
   const mockResult = { data: [], error: null };
   const mockSingleResult = { data: null, error: null };
-  
+
   const queryBuilder: any = {
     select: vi.fn(() => queryBuilder),
     eq: vi.fn(() => queryBuilder),
@@ -39,7 +48,7 @@ vi.mock('@/lib/supabase', () => {
   return {
     supabase: {
       from: vi.fn(() => queryBuilder),
-    }
+    },
   };
 });
 

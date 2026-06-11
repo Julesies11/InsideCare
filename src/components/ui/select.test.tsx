@@ -1,7 +1,13 @@
-import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './select';
 import userEvent from '@testing-library/user-event';
+import { describe, expect, it, vi } from 'vitest';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './select';
 
 describe('Select', () => {
   it('renders correctly and opens options', async () => {
@@ -15,22 +21,26 @@ describe('Select', () => {
           <SelectItem value="option-1">Option 1</SelectItem>
           <SelectItem value="option-2">Option 2</SelectItem>
         </SelectContent>
-      </Select>
+      </Select>,
     );
 
     const trigger = screen.getByRole('combobox');
     expect(trigger).toHaveTextContent('Option 1');
 
     await user.click(trigger);
-    
-    expect(screen.getByRole('option', { name: 'Option 1' })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: 'Option 2' })).toBeInTheDocument();
+
+    expect(
+      screen.getByRole('option', { name: 'Option 1' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('option', { name: 'Option 2' }),
+    ).toBeInTheDocument();
   });
 
   it('calls onValueChange when an option is selected', async () => {
     const user = userEvent.setup();
     const handleValueChange = vi.fn();
-    
+
     render(
       <Select onValueChange={handleValueChange}>
         <SelectTrigger aria-label="Select option">
@@ -40,7 +50,7 @@ describe('Select', () => {
           <SelectItem value="option-1">Option 1</SelectItem>
           <SelectItem value="option-2">Option 2</SelectItem>
         </SelectContent>
-      </Select>
+      </Select>,
     );
 
     await user.click(screen.getByRole('combobox'));

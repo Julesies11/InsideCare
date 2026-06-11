@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { rosterApi } from '@/api/roster.api';
-import { supabase } from '@/lib/supabase';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TABLES } from '@/config/db-tables';
-import { ROSTER_VIEWS, CALENDAR_VIEWS } from '@/config/query-views';
+import { CALENDAR_VIEWS, ROSTER_VIEWS } from '@/config/query-views';
+import { supabase } from '@/lib/supabase';
 
 // Mock Supabase client
 vi.mock('@/lib/supabase', () => ({
@@ -19,7 +19,7 @@ describe('Roster API - Unit Verification', () => {
   describe('listShifts', () => {
     it('should declare and use eventQuery safely to avoid ReferenceError', async () => {
       const mockShifts = [{ id: 'shift1', staff_id: 'staff1' }];
-      
+
       // Setup mock chain for shifts
       const shiftQueryMock = {
         select: vi.fn().mockReturnThis(),
@@ -39,7 +39,7 @@ describe('Roster API - Unit Verification', () => {
         staffId: 'staff1',
         startDate: '2026-06-01',
         endDate: '2026-06-07',
-        includeEvents: false
+        includeEvents: false,
       });
 
       expect(result).toHaveLength(1);
@@ -49,7 +49,14 @@ describe('Roster API - Unit Verification', () => {
 
     it('should include events when includeEvents is true', async () => {
       const mockShifts = [{ id: 'shift1', staff_id: 'staff1' }];
-      const mockEvents = [{ id: 'event1', title: 'Meeting', event_date: '2026-06-02', type: { event_type_name: 'Training', color: 'red' } }];
+      const mockEvents = [
+        {
+          id: 'event1',
+          title: 'Meeting',
+          event_date: '2026-06-02',
+          type: { event_type_name: 'Training', color: 'red' },
+        },
+      ];
 
       const createMockQuery = (data: any) => {
         const query: any = {
@@ -59,17 +66,19 @@ describe('Roster API - Unit Verification', () => {
           lte: vi.fn().mockReturnThis(),
           eq: vi.fn().mockReturnThis(),
           then: vi.fn().mockImplementation((onFullfilled) => {
-             return Promise.resolve({ data, error: null }).then(onFullfilled);
+            return Promise.resolve({ data, error: null }).then(onFullfilled);
           }),
         };
         // Also mock as a promise for Promise.all
-        query.then = (onFullfilled: any) => Promise.resolve({ data, error: null }).then(onFullfilled);
+        query.then = (onFullfilled: any) =>
+          Promise.resolve({ data, error: null }).then(onFullfilled);
         return query;
       };
 
       vi.mocked(supabase.from).mockImplementation((table) => {
         if (table === TABLES.STAFF_SHIFTS) return createMockQuery(mockShifts);
-        if (table === TABLES.HOUSE_CALENDAR_EVENTS) return createMockQuery(mockEvents);
+        if (table === TABLES.HOUSE_CALENDAR_EVENTS)
+          return createMockQuery(mockEvents);
         return createMockQuery([]);
       });
 
@@ -77,20 +86,35 @@ describe('Roster API - Unit Verification', () => {
         staffId: 'staff1',
         startDate: '2026-06-01',
         endDate: '2026-06-07',
-        includeEvents: true
+        includeEvents: true,
       });
 
       expect(result).toHaveLength(2);
-      expect(result.find(r => r.entry_type === 'shift')).toBeDefined();
-      expect(result.find(r => r.entry_type === 'event')).toBeDefined();
+      expect(result.find((r) => r.entry_type === 'shift')).toBeDefined();
+      expect(result.find((r) => r.entry_type === 'event')).toBeDefined();
     });
   });
 
   describe('getStaffRoster', () => {
     it('should use standardized views and handle nested data correctly', async () => {
-      const mockShifts = [{ id: 's1', house_info: { house_name: 'House A' }, participants: [] }];
-      const mockEvents = [{ id: 'e1', title: 'Event A', event_date: '2026-06-01', type: { event_type_name: 'Training', color: 'red' } }];
-      const mockLeave = [{ id: 'l1', start_date: '2026-06-02', leave_type: { leave_type_name: 'Sick' } }];
+      const mockShifts = [
+        { id: 's1', house_info: { house_name: 'House A' }, participants: [] },
+      ];
+      const mockEvents = [
+        {
+          id: 'e1',
+          title: 'Event A',
+          event_date: '2026-06-01',
+          type: { event_type_name: 'Training', color: 'red' },
+        },
+      ];
+      const mockLeave = [
+        {
+          id: 'l1',
+          start_date: '2026-06-02',
+          leave_type: { leave_type_name: 'Sick' },
+        },
+      ];
       const mockTimesheets = [{ shift_id: 's1' }];
       const mockNotes = [];
 
@@ -102,16 +126,18 @@ describe('Roster API - Unit Verification', () => {
           in: vi.fn().mockReturnThis(),
           order: vi.fn().mockReturnThis(),
           then: vi.fn().mockImplementation((onFullfilled) => {
-             return Promise.resolve({ data, error: null }).then(onFullfilled);
+            return Promise.resolve({ data, error: null }).then(onFullfilled);
           }),
         };
-        query.then = (onFullfilled: any) => Promise.resolve({ data, error: null }).then(onFullfilled);
+        query.then = (onFullfilled: any) =>
+          Promise.resolve({ data, error: null }).then(onFullfilled);
         return query;
       };
 
       vi.mocked(supabase.from).mockImplementation((table) => {
         if (table === TABLES.STAFF_SHIFTS) return createMockQuery(mockShifts);
-        if (table === TABLES.HOUSE_CALENDAR_EVENTS) return createMockQuery(mockEvents);
+        if (table === TABLES.HOUSE_CALENDAR_EVENTS)
+          return createMockQuery(mockEvents);
         if (table === TABLES.LEAVE_REQUESTS) return createMockQuery(mockLeave);
         if (table === TABLES.TIMESHEETS) return createMockQuery(mockTimesheets);
         if (table === TABLES.SHIFT_NOTES) return createMockQuery(mockNotes);
@@ -120,8 +146,8 @@ describe('Roster API - Unit Verification', () => {
 
       const result = await rosterApi.getStaffRoster('staff1');
 
-      expect(result).toHaveLength(3); 
-      const shift = result.find(r => r.entry_type === 'shift');
+      expect(result).toHaveLength(3);
+      const shift = result.find((r) => r.entry_type === 'shift');
       expect(shift.house.house_name).toBe('House A');
       expect(shift.has_timesheet).toBe(true);
     });

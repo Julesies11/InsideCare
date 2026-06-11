@@ -1,5 +1,5 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { participantDetailsApi } from '@/api/participant-details.api';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { QUERY_KEYS } from '@/config/query-keys';
 
 export interface ParticipantContact {
@@ -27,9 +27,11 @@ export function useParticipantContacts(participantId?: string) {
       if (!participantId) return [];
       const data = await participantDetailsApi.contacts.list(participantId);
 
-      return (data || []).map(item => ({
+      return (data || []).map((item) => ({
         ...item,
-        contact_type: Array.isArray(item.contact_type) ? item.contact_type[0] : item.contact_type
+        contact_type: Array.isArray(item.contact_type)
+          ? item.contact_type[0]
+          : item.contact_type,
       })) as ParticipantContact[];
     },
     enabled: !!participantId,
@@ -41,12 +43,16 @@ export function useAddParticipantContact() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (contact: Omit<ParticipantContact, 'id' | 'created_at' | 'updated_at'>) => {
+    mutationFn: async (
+      contact: Omit<ParticipantContact, 'id' | 'created_at' | 'updated_at'>,
+    ) => {
       const data = await participantDetailsApi.contacts.upsert(contact as any);
       return (Array.isArray(data) ? data[0] : data) as ParticipantContact;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PARTICIPANT_CONTACTS, data.participant_id] });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.PARTICIPANT_CONTACTS, data.participant_id],
+      });
     },
   });
 }
@@ -55,12 +61,23 @@ export function useUpdateParticipantContact() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: Partial<ParticipantContact> }) => {
-      const data = await participantDetailsApi.contacts.upsert({ id, ...updates } as any);
+    mutationFn: async ({
+      id,
+      updates,
+    }: {
+      id: string;
+      updates: Partial<ParticipantContact>;
+    }) => {
+      const data = await participantDetailsApi.contacts.upsert({
+        id,
+        ...updates,
+      } as any);
       return (Array.isArray(data) ? data[0] : data) as ParticipantContact;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PARTICIPANT_CONTACTS, data.participant_id] });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.PARTICIPANT_CONTACTS, data.participant_id],
+      });
     },
   });
 }
@@ -69,11 +86,19 @@ export function useDeleteParticipantContact() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, participantId }: { id: string; participantId: string }) => {
+    mutationFn: async ({
+      id,
+      participantId,
+    }: {
+      id: string;
+      participantId: string;
+    }) => {
       await participantDetailsApi.contacts.delete(id);
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PARTICIPANT_CONTACTS, variables.participantId] });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.PARTICIPANT_CONTACTS, variables.participantId],
+      });
     },
   });
 }

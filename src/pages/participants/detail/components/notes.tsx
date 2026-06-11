@@ -9,11 +9,7 @@ interface NotesProps {
   onSave: () => void;
 }
 
-export function Notes({
-  canEdit,
-  formData,
-  onFormChange,
-}: NotesProps) {
+export function Notes({ canEdit, formData, onFormChange }: NotesProps) {
   return (
     <Card className="pb-2.5" id="notes">
       <CardHeader>
@@ -33,7 +29,6 @@ export function Notes({
             />
           </div>
         </div>
-
       </CardContent>
     </Card>
   );

@@ -1,9 +1,9 @@
+import { HousePendingChanges } from '@/models/house-pending-changes';
+import { Activity, FileText, Info, Users } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { HouseParticipants } from './house-participants';
-import { FileText, Users, Activity, Info } from 'lucide-react';
-import { HousePendingChanges } from '@/models/house-pending-changes';
 
 interface HouseManagementProps {
   houseId?: string;
@@ -14,13 +14,13 @@ interface HouseManagementProps {
   onPendingChangesChange: (changes: HousePendingChanges) => void;
 }
 
-export function HouseManagement({ 
-  houseId, 
-  formData, 
+export function HouseManagement({
+  houseId,
+  formData,
   onFieldChange,
   canEdit,
   pendingChanges,
-  onPendingChangesChange
+  onPendingChangesChange,
 }: HouseManagementProps) {
   return (
     <div id="house_management">
@@ -38,7 +38,7 @@ export function HouseManagement({
               <Users className="size-4 text-primary" />
               Participants
             </Label>
-            <HouseParticipants 
+            <HouseParticipants
               houseId={houseId}
               canAdd={canEdit}
               canDelete={canEdit}
@@ -57,14 +57,21 @@ export function HouseManagement({
               </Label>
               <Textarea
                 value={formData.general_house_details || ''}
-                onChange={(e) => onFieldChange('general_house_details', e.target.value)}
-                placeholder={canEdit ? "Enter general house routines, preferences, and rules..." : "No information provided."}
+                onChange={(e) =>
+                  onFieldChange('general_house_details', e.target.value)
+                }
+                placeholder={
+                  canEdit
+                    ? 'Enter general house routines, preferences, and rules...'
+                    : 'No information provided.'
+                }
                 rows={4}
                 disabled={!canEdit}
                 className="resize-none"
               />
               <p className="text-xs text-muted-foreground italic">
-                Example: Keep the kitchen light on at night; specific cleaning routines, etc.
+                Example: Keep the kitchen light on at night; specific cleaning
+                routines, etc.
               </p>
             </div>
 
@@ -76,8 +83,14 @@ export function HouseManagement({
               </Label>
               <Textarea
                 value={formData.individuals_breakdown || ''}
-                onChange={(e) => onFieldChange('individuals_breakdown', e.target.value)}
-                placeholder={canEdit ? "Enter breakdown of individuals living in the house..." : "No information provided."}
+                onChange={(e) =>
+                  onFieldChange('individuals_breakdown', e.target.value)
+                }
+                placeholder={
+                  canEdit
+                    ? 'Enter breakdown of individuals living in the house...'
+                    : 'No information provided.'
+                }
                 rows={4}
                 disabled={!canEdit}
                 className="resize-none"
@@ -95,14 +108,21 @@ export function HouseManagement({
               </Label>
               <Textarea
                 value={formData.participant_dynamics || ''}
-                onChange={(e) => onFieldChange('participant_dynamics', e.target.value)}
-                placeholder={canEdit ? "Enter details about social dynamics and interactions..." : "No information provided."}
+                onChange={(e) =>
+                  onFieldChange('participant_dynamics', e.target.value)
+                }
+                placeholder={
+                  canEdit
+                    ? 'Enter details about social dynamics and interactions...'
+                    : 'No information provided.'
+                }
                 rows={4}
                 disabled={!canEdit}
                 className="resize-none"
               />
               <p className="text-xs text-muted-foreground italic">
-                Example: A gets jealous when B gets too much attention, manage this by X.
+                Example: A gets jealous when B gets too much attention, manage
+                this by X.
               </p>
             </div>
 
@@ -114,14 +134,21 @@ export function HouseManagement({
               </Label>
               <Textarea
                 value={formData.risk_management || ''}
-                onChange={(e) => onFieldChange('risk_management', e.target.value)}
-                placeholder={canEdit ? "Enter house-level risk management strategies and alerts..." : "No information provided."}
+                onChange={(e) =>
+                  onFieldChange('risk_management', e.target.value)
+                }
+                placeholder={
+                  canEdit
+                    ? 'Enter house-level risk management strategies and alerts...'
+                    : 'No information provided.'
+                }
                 rows={4}
                 disabled={!canEdit}
                 className="resize-none"
               />
               <p className="text-xs text-muted-foreground italic">
-                Identify key risks associated with the house environment or specific participant interactions.
+                Identify key risks associated with the house environment or
+                specific participant interactions.
               </p>
             </div>
 
@@ -134,13 +161,18 @@ export function HouseManagement({
               <Textarea
                 value={formData.observations || ''}
                 onChange={(e) => onFieldChange('observations', e.target.value)}
-                placeholder={canEdit ? "Enter any recent observations or patterns..." : "No information provided."}
+                placeholder={
+                  canEdit
+                    ? 'Enter any recent observations or patterns...'
+                    : 'No information provided.'
+                }
                 rows={4}
                 disabled={!canEdit}
                 className="resize-none"
               />
               <p className="text-xs text-muted-foreground italic">
-                Staff observations regarding the house environment and participant wellbeing.
+                Staff observations regarding the house environment and
+                participant wellbeing.
               </p>
             </div>
           </div>

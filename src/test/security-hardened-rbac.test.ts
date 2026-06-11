@@ -1,8 +1,8 @@
 import { renderHook } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { usePermissions } from '../hooks/use-permissions';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useAuth } from '../auth/context/auth-context';
-import { useRBAC, ACCESS_LEVEL } from '../hooks/useRBAC';
+import { usePermissions } from '../hooks/use-permissions';
+import { ACCESS_LEVEL, useRBAC } from '../hooks/useRBAC';
 
 // Mock the hooks
 vi.mock('../auth/context/auth-context');
@@ -38,7 +38,10 @@ describe('Security Hardened RBAC - usePermissions', () => {
     vi.mocked(useRBAC).mockReturnValue({
       hasAccess: vi.fn().mockImplementation(({ requiredLevel }) => {
         // Simple mock logic: read_only has access to context_read_only and read_only
-        return requiredLevel === ACCESS_LEVEL.READ_ONLY || requiredLevel === ACCESS_LEVEL.CONTEXT_READ_ONLY;
+        return (
+          requiredLevel === ACCESS_LEVEL.READ_ONLY ||
+          requiredLevel === ACCESS_LEVEL.CONTEXT_READ_ONLY
+        );
       }),
     } as any);
 
@@ -51,10 +54,10 @@ describe('Security Hardened RBAC - usePermissions', () => {
 
   it('should grant view access to context_read_only users correctly', () => {
     vi.mocked(useAuth).mockReturnValue({
-      user: { 
-        id: '3', 
+      user: {
+        id: '3',
         permissions: { participants: ACCESS_LEVEL.CONTEXT_READ_ONLY },
-        assigned_houses: ['house-123'] 
+        assigned_houses: ['house-123'],
       },
       isAdmin: false,
     } as any);
@@ -71,9 +74,9 @@ describe('Security Hardened RBAC - usePermissions', () => {
 
   it('should identify permissions from the permissions object correctly', () => {
     vi.mocked(useAuth).mockReturnValue({
-      user: { 
-        id: '5', 
-        permissions: { participants: ACCESS_LEVEL.CONTEXT_READ_ONLY }
+      user: {
+        id: '5',
+        permissions: { participants: ACCESS_LEVEL.CONTEXT_READ_ONLY },
       },
       isAdmin: false,
     } as any);
@@ -84,6 +87,8 @@ describe('Security Hardened RBAC - usePermissions', () => {
 
     const { result } = renderHook(() => usePermissions());
     expect(result.current.hasFullAccess('participants')).toBe(false);
-    expect(result.current.permissions.participants).toBe(ACCESS_LEVEL.CONTEXT_READ_ONLY);
+    expect(result.current.permissions.participants).toBe(
+      ACCESS_LEVEL.CONTEXT_READ_ONLY,
+    );
   });
 });

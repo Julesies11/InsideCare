@@ -1,11 +1,16 @@
 import { useRef, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Paperclip, X, FileText, Download, Trash2, UploadCloud } from 'lucide-react';
-import { HouseCalendarEventAttachment } from '@/hooks/useHouseCalendarEvents';
+import {
+  Download,
+  FileText,
+  Paperclip,
+  Trash2,
+  UploadCloud,
+  X,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getHouseFileUrl } from '@/hooks/use-house-documents';
-import { KeenIcon } from '@/components/keenicons';
+import { HouseCalendarEventAttachment } from '@/hooks/useHouseCalendarEvents';
+import { Button } from '@/components/ui/button';
 import {
   ContextMenu,
   ContextMenuContent,
@@ -13,6 +18,8 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from '@/components/ui/context-menu';
+import { Label } from '@/components/ui/label';
+import { KeenIcon } from '@/components/keenicons';
 
 export interface QueuedAttachment {
   file: File;
@@ -43,7 +50,7 @@ export function HouseCalendarEventAttachments({
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      Array.from(e.target.files).forEach(file => {
+      Array.from(e.target.files).forEach((file) => {
         onAddQueuedFile(file);
       });
       e.target.value = ''; // Reset input
@@ -65,7 +72,7 @@ export function HouseCalendarEventAttachments({
     if (!canEdit) return;
 
     if (e.dataTransfer.files) {
-      Array.from(e.dataTransfer.files).forEach(file => {
+      Array.from(e.dataTransfer.files).forEach((file) => {
         onAddQueuedFile(file);
       });
     }
@@ -77,13 +84,15 @@ export function HouseCalendarEventAttachments({
   };
 
   const activeAttachments = existingAttachments.filter(
-    (att) => !toDeleteAttachments.includes(att.id)
+    (att) => !toDeleteAttachments.includes(att.id),
   );
 
   return (
     <div className="space-y-4 pt-4 border-t mt-4">
       <div className="flex items-center justify-between">
-        <Label className="text-sm font-bold uppercase text-gray-700 tracking-wider">Attachments</Label>
+        <Label className="text-sm font-bold uppercase text-gray-700 tracking-wider">
+          Attachments
+        </Label>
       </div>
 
       {canEdit && (
@@ -93,10 +102,10 @@ export function HouseCalendarEventAttachments({
           onDrop={onDrop}
           onClick={() => fileInputRef.current?.click()}
           className={cn(
-            "relative border-2 border-dashed rounded-xl p-6 transition-all cursor-pointer group flex flex-col items-center justify-center gap-2",
-            isDragging 
-              ? "border-primary bg-primary/5 shadow-inner" 
-              : "border-gray-200 hover:border-primary/50 hover:bg-gray-50"
+            'relative border-2 border-dashed rounded-xl p-6 transition-all cursor-pointer group flex flex-col items-center justify-center gap-2',
+            isDragging
+              ? 'border-primary bg-primary/5 shadow-inner'
+              : 'border-gray-200 hover:border-primary/50 hover:bg-gray-50',
           )}
         >
           <input
@@ -110,8 +119,12 @@ export function HouseCalendarEventAttachments({
             <UploadCloud className="size-5" />
           </div>
           <div className="text-center">
-            <p className="text-sm font-bold text-gray-900">Click to upload or drag and drop</p>
-            <p className="text-xs text-muted-foreground mt-1">PDF, Word, Excel, or Images</p>
+            <p className="text-sm font-bold text-gray-900">
+              Click to upload or drag and drop
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              PDF, Word, Excel, or Images
+            </p>
           </div>
         </div>
       )}
@@ -121,16 +134,18 @@ export function HouseCalendarEventAttachments({
         {activeAttachments.map((att) => (
           <ContextMenu key={att.id}>
             <ContextMenuTrigger asChild>
-              <div
-                className="flex items-center justify-between p-3 rounded-xl border border-gray-100 bg-gray-50/50 group hover:border-primary/20 hover:bg-white transition-all shadow-sm cursor-context-menu"
-              >
+              <div className="flex items-center justify-between p-3 rounded-xl border border-gray-100 bg-gray-50/50 group hover:border-primary/20 hover:bg-white transition-all shadow-sm cursor-context-menu">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="size-8 rounded-lg bg-white border border-gray-100 flex items-center justify-center text-gray-400 shrink-0">
                     <FileText className="size-4" />
                   </div>
                   <div className="flex flex-col min-w-0">
-                    <span className="text-xs font-bold text-gray-900 truncate">{att.file_name}</span>
-                    <span className="text-[10px] text-muted-foreground">Uploaded File</span>
+                    <span className="text-xs font-bold text-gray-900 truncate">
+                      {att.file_name}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">
+                      Uploaded File
+                    </span>
                   </div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -165,17 +180,19 @@ export function HouseCalendarEventAttachments({
                 </div>
               </div>
             </ContextMenuTrigger>
-            
+
             <ContextMenuContent className="w-48">
-              <ContextMenuItem onClick={() => handleDownload(att.file_path, att.file_name)}>
+              <ContextMenuItem
+                onClick={() => handleDownload(att.file_path, att.file_name)}
+              >
                 <KeenIcon icon="cloud-download" className="me-2" />
                 Download
               </ContextMenuItem>
-              
+
               {canEdit && (
                 <>
                   <ContextMenuSeparator />
-                  <ContextMenuItem 
+                  <ContextMenuItem
                     variant="destructive"
                     onClick={() => onMarkForDeletion(att.id)}
                   >
@@ -202,7 +219,9 @@ export function HouseCalendarEventAttachments({
                 <span className="text-xs font-bold text-primary truncate">
                   {q.file.name}
                 </span>
-                <span className="text-[10px] text-primary/60 font-medium">Pending Upload</span>
+                <span className="text-[10px] text-primary/60 font-medium">
+                  Pending Upload
+                </span>
               </div>
             </div>
             <Button
@@ -223,7 +242,9 @@ export function HouseCalendarEventAttachments({
         {activeAttachments.length === 0 && queuedAttachments.length === 0 && (
           <div className="col-span-full py-8 text-center bg-gray-50/30 border border-dashed rounded-xl">
             <Paperclip className="size-8 mx-auto mb-2 text-gray-300 opacity-50" />
-            <p className="text-xs text-muted-foreground italic font-medium">No attachments yet</p>
+            <p className="text-xs text-muted-foreground italic font-medium">
+              No attachments yet
+            </p>
           </div>
         )}
       </div>

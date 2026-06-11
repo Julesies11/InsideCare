@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
 import { checklistsApi } from '@/api/checklists.api';
+import { useQuery } from '@tanstack/react-query';
 
 export interface HouseChecklistEvent {
   id: string;
@@ -26,12 +26,20 @@ export interface HouseChecklistEvent {
   };
 }
 
-export function useHouseChecklistEvents(houseId?: string, date?: string, shiftId?: string) {
+export function useHouseChecklistEvents(
+  houseId?: string,
+  date?: string,
+  shiftId?: string,
+) {
   const query = useQuery({
     queryKey: ['house-checklist-events', houseId, date, shiftId],
     queryFn: async () => {
       if (!houseId || !date) return [];
-      return await checklistsApi.listHouseChecklistEvents(houseId, date, shiftId) as unknown as HouseChecklistEvent[];
+      return (await checklistsApi.listHouseChecklistEvents(
+        houseId,
+        date,
+        shiftId,
+      )) as unknown as HouseChecklistEvent[];
     },
     enabled: !!houseId && !!date,
     staleTime: 1000 * 60 * 5,
@@ -45,4 +53,3 @@ export function useHouseChecklistEvents(houseId?: string, date?: string, shiftId
     refresh: query.refetch,
   };
 }
-

@@ -1,3 +1,4 @@
+import { cn } from '@/lib/utils';
 import {
   Select,
   SelectContent,
@@ -5,7 +6,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { cn } from '@/lib/utils';
 
 export interface ValidatedSelectProps {
   value?: string;
@@ -40,7 +40,7 @@ export function ValidatedSelect({
           id={id}
           className={cn(
             hasError && 'border-red-500 focus:ring-red-500',
-            className
+            className,
           )}
           aria-invalid={hasError}
           aria-describedby={hasError ? errorElementId : undefined}

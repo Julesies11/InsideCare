@@ -1,7 +1,15 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
-import { format, subDays, parseISO } from 'date-fns';
+import { useEffect, useMemo, useState } from 'react';
+import { format, parseISO, subDays } from 'date-fns';
+import { toast } from 'sonner';
+import { RBAC_MODULES } from '@/config/rbac-modules';
+import { useHouses } from '@/hooks/use-houses';
+import { useParticipants } from '@/hooks/use-participants';
+import { ShiftNote, ShiftNoteUpdateData } from '@/hooks/use-shift-notes';
+import { useStaff } from '@/hooks/use-staff';
+import { useStaffShifts } from '@/hooks/use-staff-shifts';
+import { ACCESS_LEVEL, useRBAC } from '@/hooks/useRBAC';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -13,7 +21,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -21,14 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ShiftNote, ShiftNoteUpdateData } from '@/hooks/use-shift-notes';
-import { useParticipants } from '@/hooks/use-participants';
-import { useStaff } from '@/hooks/use-staff';
-import { useHouses } from '@/hooks/use-houses';
-import { useStaffShifts } from '@/hooks/use-staff-shifts';
-import { toast } from 'sonner';
-import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
-import { RBAC_MODULES } from '@/config/rbac-modules';
+import { Textarea } from '@/components/ui/textarea';
 
 interface LinkedShiftInfo {
   id: string;
@@ -42,8 +42,13 @@ interface EditShiftNoteDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   shiftNote: ShiftNote | null;
-  onSave: (id: string, data: ShiftNoteUpdateData) => Promise<{ data: any; error: string | null }>;
-  onCreate?: (data: ShiftNoteUpdateData) => Promise<{ data: any; error: string | null }>;
+  onSave: (
+    id: string,
+    data: ShiftNoteUpdateData,
+  ) => Promise<{ data: any; error: string | null }>;
+  onCreate?: (
+    data: ShiftNoteUpdateData,
+  ) => Promise<{ data: any; error: string | null }>;
   onSuccess?: () => void;
   mode?: 'edit' | 'create';
   /** Pre-fill shift_id when launched from the roster "Write Note" button */
@@ -80,24 +85,33 @@ export function EditShiftNoteDialog({
   });
 
   // Filter participants to only show active ones from the selected house (if any)
-  const { participants, loading: loadingParticipants } = useParticipants(0, 1000, [], {
-    houses: formData.house_id ? [formData.house_id as string] : [],
-    statuses: ['active'],
-  });
+  const { participants, loading: loadingParticipants } = useParticipants(
+    0,
+    1000,
+    [],
+    {
+      houses: formData.house_id ? [formData.house_id as string] : [],
+      statuses: ['active'],
+    },
+  );
 
   // Fetch shifts for the last 14 days
   const startDate = format(subDays(new Date(), 14), 'yyyy-MM-dd');
   const endDate = format(new Date(), 'yyyy-MM-dd');
-  const { shifts, loading: loadingShifts } = useStaffShifts('all', startDate, endDate);
+  const { shifts, loading: loadingShifts } = useStaffShifts(
+    'all',
+    startDate,
+    endDate,
+  );
 
-  const canEdit = hasAccess({ 
-    resource: RBAC_MODULES.SHIFT_NOTES, 
-    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE 
+  const canEdit = hasAccess({
+    resource: RBAC_MODULES.SHIFT_NOTES,
+    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE,
   });
 
-  const canAdd = hasAccess({ 
-    resource: RBAC_MODULES.SHIFT_NOTES, 
-    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE 
+  const canAdd = hasAccess({
+    resource: RBAC_MODULES.SHIFT_NOTES,
+    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE,
   });
 
   const canSubmit = mode === 'create' ? canAdd : canEdit;
@@ -118,12 +132,12 @@ export function EditShiftNoteDialog({
           notes: null,
           full_note: null,
         });
-        
+
         // If we have an initialShiftId, find it in shifts and populate
         if (initialShiftId) {
-          const shift = shifts.find(s => s.id === initialShiftId);
+          const shift = shifts.find((s) => s.id === initialShiftId);
           if (shift) {
-            setFormData(prev => ({
+            setFormData((prev) => ({
               ...prev,
               start_date: shift.start_date,
               shift_time: shift.start_time,
@@ -145,12 +159,12 @@ export function EditShiftNoteDialog({
         });
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shiftNote, open, mode, initialShiftId]);
 
   const handleShiftChange = (shiftId: string) => {
     if (shiftId === 'none') {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         shift_id: null,
         start_date: format(new Date(), 'yyyy-MM-dd'),
@@ -161,9 +175,9 @@ export function EditShiftNoteDialog({
       return;
     }
 
-    const shift = shifts.find(s => s.id === shiftId);
+    const shift = shifts.find((s) => s.id === shiftId);
     if (shift) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         shift_id: shift.id,
         start_date: shift.start_date,
@@ -215,8 +229,8 @@ export function EditShiftNoteDialog({
     }
   };
 
-  const selectedStaff = staff.find(s => s.id === formData.staff_id);
-  const selectedHouse = houses.find(h => h.id === formData.house_id);
+  const selectedStaff = staff.find((s) => s.id === formData.staff_id);
+  const selectedHouse = houses.find((h) => h.id === formData.house_id);
 
   const isCreateMode = mode === 'create';
   const dialogTitle = isCreateMode ? 'Add Shift Note' : 'Edit Shift Note';
@@ -243,13 +257,19 @@ export function EditShiftNoteDialog({
                 disabled={!canSubmit || (!isCreateMode && !!formData.shift_id)}
               >
                 <SelectTrigger id="shift_id">
-                  <SelectValue placeholder={loadingShifts ? "Loading shifts..." : "Select a shift"} />
+                  <SelectValue
+                    placeholder={
+                      loadingShifts ? 'Loading shifts...' : 'Select a shift'
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Select a shift...</SelectItem>
                   {shifts.map((s) => (
                     <SelectItem key={s.id} value={s.id}>
-                      {format(parseISO(s.start_date), 'EEE, MMM d')} - {s.start_time.substring(0, 5)} ({s.staff_info?.staff_name || 'Unassigned'})
+                      {format(parseISO(s.start_date), 'EEE, MMM d')} -{' '}
+                      {s.start_time.substring(0, 5)} (
+                      {s.staff_info?.staff_name || 'Unassigned'})
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -286,20 +306,40 @@ export function EditShiftNoteDialog({
           {formData.shift_id && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-muted/30 rounded-lg border border-border/50">
               <div className="space-y-1">
-                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Date</span>
-                <p className="text-sm font-medium">{formData.start_date ? format(parseISO(formData.start_date), 'PPP') : 'N/A'}</p>
+                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
+                  Date
+                </span>
+                <p className="text-sm font-medium">
+                  {formData.start_date
+                    ? format(parseISO(formData.start_date), 'PPP')
+                    : 'N/A'}
+                </p>
               </div>
               <div className="space-y-1">
-                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Time</span>
-                <p className="text-sm font-medium">{formData.shift_time ? formData.shift_time.substring(0, 5) : 'N/A'}</p>
+                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
+                  Time
+                </span>
+                <p className="text-sm font-medium">
+                  {formData.shift_time
+                    ? formData.shift_time.substring(0, 5)
+                    : 'N/A'}
+                </p>
               </div>
               <div className="space-y-1">
-                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Staff</span>
-                <p className="text-sm font-medium">{selectedStaff?.staff_name || 'N/A'}</p>
+                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
+                  Staff
+                </span>
+                <p className="text-sm font-medium">
+                  {selectedStaff?.staff_name || 'N/A'}
+                </p>
               </div>
               <div className="space-y-1">
-                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">House</span>
-                <p className="text-sm font-medium">{selectedHouse?.house_name || 'N/A'}</p>
+                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
+                  House
+                </span>
+                <p className="text-sm font-medium">
+                  {selectedHouse?.house_name || 'N/A'}
+                </p>
               </div>
             </div>
           )}
@@ -337,7 +377,6 @@ export function EditShiftNoteDialog({
               disabled={!canSubmit}
             />
           </div>
-
         </DialogBody>
 
         <DialogFooter>

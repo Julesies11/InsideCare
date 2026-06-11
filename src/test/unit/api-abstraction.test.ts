@@ -1,7 +1,7 @@
-import { describe, it, expect, vi } from 'vitest';
 import { participantDetailsApi } from '@/api/participant-details.api';
-import { supabase } from '@/lib/supabase';
+import { describe, expect, it, vi } from 'vitest';
 import { TABLES } from '@/config/db-tables';
+import { supabase } from '@/lib/supabase';
 
 // Mock Supabase client
 vi.mock('@/lib/supabase', () => ({
@@ -26,7 +26,7 @@ describe('Participant Details API - Unit Review', () => {
     } as any);
 
     const result = await participantDetailsApi.medications.list('p1');
-    
+
     expect(supabase.from).toHaveBeenCalledWith(TABLES.PARTICIPANT_MEDICATIONS);
     expect(result).toEqual(mockData);
   });
@@ -39,7 +39,7 @@ describe('Participant Details API - Unit Review', () => {
     } as any);
 
     const result = await participantDetailsApi.goals.upsert(mockGoal as any);
-    
+
     expect(supabase.from).toHaveBeenCalledWith(TABLES.PARTICIPANT_GOALS);
     expect(result).toEqual([mockGoal]);
   });
@@ -52,6 +52,8 @@ describe('Participant Details API - Unit Review', () => {
       order: vi.fn().mockResolvedValue({ data: null, error: mockError }),
     } as any);
 
-    await expect(participantDetailsApi.contacts.list('p1')).rejects.toThrow('DB Error');
+    await expect(participantDetailsApi.contacts.list('p1')).rejects.toThrow(
+      'DB Error',
+    );
   });
 });

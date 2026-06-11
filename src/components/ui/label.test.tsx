@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
 import { Label } from './label';
 
 describe('Label', () => {
@@ -21,12 +21,12 @@ describe('Label', () => {
       <div>
         <Label htmlFor="test-input">Label Text</Label>
         <input id="test-input" />
-      </div>
+      </div>,
     );
-    
+
     const label = screen.getByText('Label Text');
     expect(label).toHaveAttribute('for', 'test-input');
-    
+
     // Check if the input is found by the label
     expect(screen.getByLabelText('Label Text')).toBeInTheDocument();
   });

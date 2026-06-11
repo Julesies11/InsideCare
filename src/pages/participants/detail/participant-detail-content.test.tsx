@@ -1,11 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
-import { ParticipantDetailContent } from './participant-detail-content';
-import { renderWithProviders } from '@/test/test-utils';
-import { TABLES } from '@/config/db-tables';
-import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
+import { renderWithProviders } from '@/test/test-utils';
 import { ParticipantRow } from '@/test/type-helpers';
+import { screen, waitFor } from '@testing-library/react';
+import { http, HttpResponse } from 'msw';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { TABLES } from '@/config/db-tables';
+import { ParticipantDetailContent } from './participant-detail-content';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
@@ -38,26 +38,38 @@ vi.mock('@/hooks/use-scroll-position', () => ({
 describe('ParticipantDetailContent', () => {
   beforeEach(() => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.PARTICIPANTS}`, ({ request }) => {
-        if (request.headers.get('Accept')?.includes('vnd.pgrst.object+json')) {
-          return HttpResponse.json(mockParticipant);
-        }
-        return HttpResponse.json([mockParticipant]);
-      })
+      http.get(
+        `${SUPABASE_URL}/rest/v1/${TABLES.PARTICIPANTS}`,
+        ({ request }) => {
+          if (
+            request.headers.get('Accept')?.includes('vnd.pgrst.object+json')
+          ) {
+            return HttpResponse.json(mockParticipant);
+          }
+          return HttpResponse.json([mockParticipant]);
+        },
+      ),
     );
   });
 
   it('renders loading state initially', () => {
     renderWithProviders(<ParticipantDetailContent />);
-    expect(screen.getByText(/loading participant details/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/loading participant details/i),
+    ).toBeInTheDocument();
   });
 
   it('renders participant data after loading', async () => {
     renderWithProviders(<ParticipantDetailContent />);
 
-    await waitFor(() => {
-      expect(screen.queryByText(/loading participant details/i)).not.toBeInTheDocument();
-    }, { timeout: 10000 });
+    await waitFor(
+      () => {
+        expect(
+          screen.queryByText(/loading participant details/i),
+        ).not.toBeInTheDocument();
+      },
+      { timeout: 10000 },
+    );
 
     // Check if name is rendered in the form (PersonalDetails component)
     expect(screen.getByDisplayValue('John Doe')).toBeInTheDocument();
@@ -67,9 +79,14 @@ describe('ParticipantDetailContent', () => {
   it('handles field changes', async () => {
     const { user } = renderWithProviders(<ParticipantDetailContent />);
 
-    await waitFor(() => {
-      expect(screen.queryByText(/loading participant details/i)).not.toBeInTheDocument();
-    }, { timeout: 10000 });
+    await waitFor(
+      () => {
+        expect(
+          screen.queryByText(/loading participant details/i),
+        ).not.toBeInTheDocument();
+      },
+      { timeout: 10000 },
+    );
 
     const nameInput = screen.getByDisplayValue('John Doe');
     await user.clear(nameInput);

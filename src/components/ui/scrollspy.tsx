@@ -2,7 +2,9 @@ import { ReactNode, RefObject, useCallback, useEffect, useRef } from 'react';
 
 type ScrollspyProps = {
   children: ReactNode;
-  targetRef?: RefObject<HTMLElement | HTMLDivElement | Document | null | undefined>;
+  targetRef?: RefObject<
+    HTMLElement | HTMLDivElement | Document | null | undefined
+  >;
   onUpdate?: (id: string) => void;
   offset?: number;
   smooth?: boolean;
@@ -48,12 +50,14 @@ export function Scrollspy({
   );
 
   const handleScroll = useCallback(() => {
-    if (!anchorElementsRef.current || anchorElementsRef.current.length === 0) return;
-    
+    if (!anchorElementsRef.current || anchorElementsRef.current.length === 0)
+      return;
+
     // Safety check for document
     if (typeof document === 'undefined') return;
 
-    const scrollElement = targetRef?.current === document ? window : targetRef?.current;
+    const scrollElement =
+      targetRef?.current === document ? window : targetRef?.current;
     const scrollTop =
       scrollElement === window
         ? window.scrollY || document.documentElement.scrollTop
@@ -69,8 +73,13 @@ export function Scrollspy({
       let customOffset = offset;
       const dataOffset = anchor.getAttribute(`data-${dataAttribute}-offset`);
       if (dataOffset) customOffset = parseInt(dataOffset, 10);
-      const delta = Math.abs(sectionElement.offsetTop - customOffset - scrollTop);
-      if (sectionElement.offsetTop - customOffset <= scrollTop && delta < minDelta) {
+      const delta = Math.abs(
+        sectionElement.offsetTop - customOffset - scrollTop,
+      );
+      if (
+        sectionElement.offsetTop - customOffset <= scrollTop &&
+        delta < minDelta
+      ) {
         minDelta = delta;
         activeIdx = idx;
       }
@@ -79,8 +88,13 @@ export function Scrollspy({
     // If at bottom, force last anchor
     if (scrollElement) {
       const scrollHeight =
-        scrollElement === window ? document.documentElement.scrollHeight : (scrollElement as HTMLElement).scrollHeight;
-      const clientHeight = scrollElement === window ? window.innerHeight : (scrollElement as HTMLElement).clientHeight;
+        scrollElement === window
+          ? document.documentElement.scrollHeight
+          : (scrollElement as HTMLElement).scrollHeight;
+      const clientHeight =
+        scrollElement === window
+          ? window.innerHeight
+          : (scrollElement as HTMLElement).clientHeight;
       if (scrollTop + clientHeight >= scrollHeight - 2) {
         activeIdx = anchorElementsRef.current.length - 1;
       }
@@ -88,7 +102,8 @@ export function Scrollspy({
 
     // Set only one anchor active and sync the URL hash
     const activeAnchor = anchorElementsRef.current[activeIdx];
-    const sectionId = activeAnchor?.getAttribute(`data-${dataAttribute}-anchor`) || null;
+    const sectionId =
+      activeAnchor?.getAttribute(`data-${dataAttribute}-anchor`) || null;
     setActiveSection(sectionId);
     // Remove data-active from all others
     anchorElementsRef.current.forEach((item, idx) => {
@@ -101,7 +116,10 @@ export function Scrollspy({
   const scrollTo = useCallback(
     (anchorElement: HTMLElement) => (event?: Event) => {
       if (event) event.preventDefault();
-      const sectionId = anchorElement.getAttribute(`data-${dataAttribute}-anchor`)?.replace('#', '') || null;
+      const sectionId =
+        anchorElement
+          .getAttribute(`data-${dataAttribute}-anchor`)
+          ?.replace('#', '') || null;
       if (!sectionId) return;
       const sectionElement = document.getElementById(sectionId);
       if (!sectionElement) return;
@@ -109,10 +127,13 @@ export function Scrollspy({
       // Safety check for document
       if (typeof document === 'undefined') return;
 
-      const scrollToElement = targetRef?.current === document ? window : targetRef?.current;
+      const scrollToElement =
+        targetRef?.current === document ? window : targetRef?.current;
 
       let customOffset = offset;
-      const dataOffset = anchorElement.getAttribute(`data-${dataAttribute}-offset`);
+      const dataOffset = anchorElement.getAttribute(
+        `data-${dataAttribute}-offset`,
+      );
       if (dataOffset) {
         customOffset = parseInt(dataOffset, 10);
       }
@@ -136,7 +157,9 @@ export function Scrollspy({
     const hash = CSS.escape(window.location.hash.replace('#', ''));
 
     if (hash) {
-      const targetElement = document.querySelector(`[data-${dataAttribute}-anchor="${hash}"]`) as HTMLElement;
+      const targetElement = document.querySelector(
+        `[data-${dataAttribute}-anchor="${hash}"]`,
+      ) as HTMLElement;
       if (targetElement) {
         scrollTo(targetElement)();
       }
@@ -146,14 +169,19 @@ export function Scrollspy({
   useEffect(() => {
     // Query elements and store them in the ref, avoiding unnecessary re-renders
     if (selfRef.current) {
-      anchorElementsRef.current = Array.from(selfRef.current.querySelectorAll(`[data-${dataAttribute}-anchor]`));
+      anchorElementsRef.current = Array.from(
+        selfRef.current.querySelectorAll(`[data-${dataAttribute}-anchor]`),
+      );
     }
 
     anchorElementsRef.current?.forEach((item) => {
       item.addEventListener('click', scrollTo(item as HTMLElement));
     });
 
-    const scrollElement = targetRef?.current === (typeof document !== 'undefined' ? document : null) ? window : targetRef?.current;
+    const scrollElement =
+      targetRef?.current === (typeof document !== 'undefined' ? document : null)
+        ? window
+        : targetRef?.current;
 
     // Attach the scroll event to the correct scrollable element
     scrollElement?.addEventListener('scroll', handleScroll);
@@ -176,7 +204,14 @@ export function Scrollspy({
       clearTimeout(timeout1);
       if (timeout2) clearTimeout(timeout2);
     };
-  }, [targetRef, selfRef, handleScroll, dataAttribute, scrollTo, scrollToHashSection]);
+  }, [
+    targetRef,
+    selfRef,
+    handleScroll,
+    dataAttribute,
+    scrollTo,
+    scrollToHashSection,
+  ]);
 
   return (
     <div data-slot="scrollspy" className={className} ref={selfRef}>

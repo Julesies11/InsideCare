@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
-import { AccessLevel, useRBAC } from '@/hooks/useRBAC';
 import { RBACModule } from '@/config/rbac-modules';
+import { AccessLevel, useRBAC } from '@/hooks/useRBAC';
 
 interface AccessControlProps {
   resource: RBACModule;
@@ -11,11 +11,11 @@ interface AccessControlProps {
 
 /**
  * AccessControl component for declarative RBAC in the UI.
- * Follows a 'Dumb Frontend' philosophy: checks if a user has any permission level 
+ * Follows a 'Dumb Frontend' philosophy: checks if a user has any permission level
  * for a resource, and lets Supabase RLS handle the contextual data filtering.
- * 
+ *
  * Supports both standard conditional rendering and the Render Prop pattern.
- * 
+ *
  * @example
  * <AccessControl resource={RBAC_MODULES.HOUSES} requiredLevel="read_only">
  *   {(isAllowed) => (
@@ -30,7 +30,7 @@ export function AccessControl({
   children,
 }: AccessControlProps) {
   const { hasAccess } = useRBAC();
-  
+
   const isAllowed = hasAccess({ resource, requiredLevel });
 
   // 1. Render Prop Pattern (Function as a Child)

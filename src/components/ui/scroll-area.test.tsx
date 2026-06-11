@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
 import { ScrollArea } from './scroll-area';
 
 describe('ScrollArea', () => {
@@ -7,9 +7,9 @@ describe('ScrollArea', () => {
     render(
       <ScrollArea className="h-40" data-testid="scroll-area">
         <div>Content</div>
-      </ScrollArea>
+      </ScrollArea>,
     );
-    
+
     expect(screen.getByTestId('scroll-area')).toBeInTheDocument();
     expect(screen.getByText('Content')).toBeInTheDocument();
   });
@@ -18,13 +18,12 @@ describe('ScrollArea', () => {
     render(
       <ScrollArea viewportClassName="custom-viewport" data-testid="scroll-area">
         <div>Content</div>
-      </ScrollArea>
+      </ScrollArea>,
     );
-    
+
     const viewport = document.querySelector('.custom-viewport');
     expect(viewport).toBeInTheDocument();
     expect(viewport).toHaveClass('h-full');
     expect(viewport).toHaveClass('w-full');
   });
-
 });

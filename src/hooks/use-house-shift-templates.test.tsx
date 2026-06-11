@@ -1,21 +1,22 @@
-import { describe, it, expect } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
-import { useHouseShiftTemplates } from './use-house-shift-templates';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactNode, ReactElement } from 'react';
-import { http, HttpResponse } from 'msw';
+import { ReactElement, ReactNode } from 'react';
 import { server } from '@/test/mocks/server';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { renderHook, waitFor } from '@testing-library/react';
+import { http, HttpResponse } from 'msw';
+import { describe, expect, it } from 'vitest';
 import { TABLES } from '@/config/db-tables';
+import { useHouseShiftTemplates } from './use-house-shift-templates';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
-const createTestQueryClient = () => new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
+const createTestQueryClient = () =>
+  new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
     },
-  },
-});
+  });
 
 const wrapper = ({ children }: { children: ReactNode }): ReactElement => (
   <QueryClientProvider client={createTestQueryClient()}>
@@ -26,22 +27,41 @@ const wrapper = ({ children }: { children: ReactNode }): ReactElement => (
 describe('useHouseShiftTemplates', () => {
   it('should fetch shift templates and defaults for a house', async () => {
     const mockShiftTemplates = [
-      { id: 'st-1', house_id: 'house-1', name: 'Morning', short_name: 'M', sort_order: 10, is_active: true }
+      {
+        id: 'st-1',
+        house_id: 'house-1',
+        name: 'Morning',
+        short_name: 'M',
+        sort_order: 10,
+        is_active: true,
+      },
     ];
     const mockDefaults = [
-      { shift_template_id: 'st-1', checklist_id: 'cl-1', checklist: { id: 'cl-1', name: 'Checklist 1' } }
+      {
+        shift_template_id: 'st-1',
+        checklist_id: 'cl-1',
+        checklist: { id: 'cl-1', name: 'Checklist 1' },
+      },
     ];
 
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSE_SHIFT_TEMPLATES}`, () => {
-        return HttpResponse.json(mockShiftTemplates);
-      }),
-      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.SHIFT_TEMPLATE_DEFAULT_CHECKLISTS}`, () => {
-        return HttpResponse.json(mockDefaults);
-      })
+      http.get(
+        `${SUPABASE_URL}/rest/v1/${TABLES.HOUSE_SHIFT_TEMPLATES}`,
+        () => {
+          return HttpResponse.json(mockShiftTemplates);
+        },
+      ),
+      http.get(
+        `${SUPABASE_URL}/rest/v1/${TABLES.SHIFT_TEMPLATE_DEFAULT_CHECKLISTS}`,
+        () => {
+          return HttpResponse.json(mockDefaults);
+        },
+      ),
     );
 
-    const { result } = renderHook(() => useHouseShiftTemplates('house-1'), { wrapper });
+    const { result } = renderHook(() => useHouseShiftTemplates('house-1'), {
+      wrapper,
+    });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.shiftTemplates).toHaveLength(1);
@@ -52,17 +72,28 @@ describe('useHouseShiftTemplates', () => {
 
   it('should create a new shift template', async () => {
     const newType = { name: 'Night', short_name: 'N' };
-    
+
     server.use(
-      http.post(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSE_SHIFT_TEMPLATES}`, () => {
-        return HttpResponse.json({ id: 'st-3', ...newType, house_id: 'house-1' });
-      })
+      http.post(
+        `${SUPABASE_URL}/rest/v1/${TABLES.HOUSE_SHIFT_TEMPLATES}`,
+        () => {
+          return HttpResponse.json({
+            id: 'st-3',
+            ...newType,
+            house_id: 'house-1',
+          });
+        },
+      ),
     );
 
-    const { result } = renderHook(() => useHouseShiftTemplates('house-1'), { wrapper });
+    const { result } = renderHook(() => useHouseShiftTemplates('house-1'), {
+      wrapper,
+    });
 
     result.current.createShiftTemplate.mutate(newType);
-    
-    await waitFor(() => expect(result.current.createShiftTemplate.isSuccess).toBe(true));
+
+    await waitFor(() =>
+      expect(result.current.createShiftTemplate.isSuccess).toBe(true),
+    );
   });
 });

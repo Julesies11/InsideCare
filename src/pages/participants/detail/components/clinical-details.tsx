@@ -26,7 +26,9 @@ export function ClinicalDetails({
             <Textarea
               id="primary_diagnosis"
               value={formData.primary_diagnosis || ''}
-              onChange={(e) => onFormChange('primary_diagnosis', e.target.value)}
+              onChange={(e) =>
+                onFormChange('primary_diagnosis', e.target.value)
+              }
               rows={5}
               placeholder="Primary Diagnosis..."
               disabled={!canEdit}
@@ -40,7 +42,9 @@ export function ClinicalDetails({
             <Textarea
               id="secondary_diagnosis"
               value={formData.secondary_diagnosis || ''}
-              onChange={(e) => onFormChange('secondary_diagnosis', e.target.value)}
+              onChange={(e) =>
+                onFormChange('secondary_diagnosis', e.target.value)
+              }
               rows={5}
               placeholder="Secondary Diagnosis..."
               disabled={!canEdit}
@@ -61,7 +65,6 @@ export function ClinicalDetails({
             />
           </div>
         </div>
-
       </CardContent>
     </Card>
   );

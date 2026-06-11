@@ -1,51 +1,56 @@
-import { useState, useMemo, useEffect } from 'react';
-import { Container } from '@/components/common/container';
-import { 
-  Card, 
-  CardHeader, 
-  CardTitle, 
-  CardContent, 
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { 
-  Filter, 
+import { useEffect, useMemo, useState } from 'react';
+import { useAuth } from '@/auth/context/auth-context';
+import { differenceInYears, format } from 'date-fns';
+import {
   ArrowLeft,
-  X,
-  Printer,
-  Loader2,
-  Users as UsersIcon,
+  Building,
   Check,
-  Building
+  Filter,
+  Loader2,
+  Printer,
+  Users as UsersIcon,
+  X,
 } from 'lucide-react';
-import { useNavigate, useParams, Link } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
 import { ROUTES } from '@/config/routes.config';
-import { useParticipant, useParticipants } from '@/hooks/use-participants';
-import { useParticipantMedications } from '@/hooks/use-participant-medications';
-import { useParticipantGoals } from '@/hooks/use-participant-goals';
+import { STORAGE_BUCKETS } from '@/config/storage-buckets';
+import { cn } from '@/lib/utils';
+import { useActivityLog } from '@/hooks/use-activity-log';
 import { useParticipantContacts } from '@/hooks/use-participant-contacts';
 import { useParticipantDocuments } from '@/hooks/use-participant-documents';
+import { useParticipantGoals } from '@/hooks/use-participant-goals';
+import { useParticipantMedications } from '@/hooks/use-participant-medications';
+import { useParticipant, useParticipants } from '@/hooks/use-participants';
+import {
+  useReportPreferences,
+  useSaveReportPreferences,
+} from '@/hooks/use-report-preferences';
 import { useShiftNotesByParticipantId } from '@/hooks/use-shift-notes';
-import { useActivityLog } from '@/hooks/use-activity-log';
-import { cn } from '@/lib/utils';
-import { PrintableReport } from '@/components/common/printable-report';
-import { SecureAvatar } from '@/components/ui/secure-avatar';
-import { STORAGE_BUCKETS } from '@/config/storage-buckets';
-import { format, differenceInYears } from 'date-fns';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/auth/context/auth-context';
-import { useReportPreferences, useSaveReportPreferences } from '@/hooks/use-report-preferences';
+import { SecureAvatar } from '@/components/ui/secure-avatar';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Container } from '@/components/common/container';
+import { PrintableReport } from '@/components/common/printable-report';
 
 export function ParticipantsReportPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id?: string }>();
   const { user } = useAuth();
-  const { preferences, isLoading: isLoadingPreferences, isSuccess } = useReportPreferences(
-    user?.staff_id,
-    'participant_profile'
-  );
+  const {
+    preferences,
+    isLoading: isLoadingPreferences,
+    isSuccess,
+  } = useReportPreferences(user?.staff_id, 'participant_profile');
   const savePreference = useSaveReportPreferences();
 
   // State for selected participant
@@ -66,7 +71,7 @@ export function ParticipantsReportPage() {
     contacts: true,
     documents: false, // Default false to exclude bulky files
     shiftNotes: false, // Default false to exclude bulky logs
-    activityLog: false // Default false
+    activityLog: false, // Default false
   });
 
   // Track if preferences have been loaded/applied
@@ -96,15 +101,18 @@ export function ParticipantsReportPage() {
   }, [id]);
 
   // Helper to save report criteria to the database
-  const saveCriteria = (updatedSections: typeof sections, updatedId: string) => {
+  const saveCriteria = (
+    updatedSections: typeof sections,
+    updatedId: string,
+  ) => {
     if (user?.staff_id) {
       savePreference.mutate({
         staffId: user.staff_id,
         reportType: 'participant_profile',
         criteria: {
           sections: updatedSections,
-          participantId: updatedId
-        }
+          participantId: updatedId,
+        },
       });
     }
   };
@@ -125,63 +133,60 @@ export function ParticipantsReportPage() {
       'contacts',
       'documents',
       'shiftNotes',
-      'activityLog'
+      'activityLog',
     ];
-    
+
     const nums: Partial<Record<keyof typeof sections, number>> = {};
     let currentNum = 1;
-    
-    order.forEach(key => {
+
+    order.forEach((key) => {
       if (sections[key]) {
         nums[key] = currentNum++;
       }
     });
-    
+
     return nums;
   }, [sections]);
 
   // Fetch all participants for the selection dropdown
-  const { participants: allParticipants, loading: isLoadingAll } = useParticipants(
-    0,
-    1000,
-    [{ id: 'participant', desc: false }],
-    { statuses: ['active', 'draft', 'inactive'] }
-  );
+  const { participants: allParticipants, loading: isLoadingAll } =
+    useParticipants(0, 1000, [{ id: 'participant', desc: false }], {
+      statuses: ['active', 'draft', 'inactive'],
+    });
 
   // Fetch single participant details
   const { participant, loading: isLoadingParticipant } = useParticipant(
-    selectedId || undefined
+    selectedId || undefined,
   );
 
   // Fetch Child Entities (conditional on selection)
-  const { medications = [], loading: isLoadingMeds } = useParticipantMedications(
-    selectedId || undefined
-  );
-  
+  const { medications = [], loading: isLoadingMeds } =
+    useParticipantMedications(selectedId || undefined);
+
   const { data: goalsData, isLoading: isLoadingGoals } = useParticipantGoals(
-    selectedId || undefined
+    selectedId || undefined,
   );
   const goals = goalsData?.goals || [];
   const goalProgress = goalsData?.progress || [];
 
-  const { data: contacts = [], isLoading: isLoadingContacts } = useParticipantContacts(
-    selectedId || undefined
-  );
+  const { data: contacts = [], isLoading: isLoadingContacts } =
+    useParticipantContacts(selectedId || undefined);
 
-  const { data: documents = [], isLoading: isLoadingDocs } = useParticipantDocuments(
-    selectedId || undefined
-  );
+  const { data: documents = [], isLoading: isLoadingDocs } =
+    useParticipantDocuments(selectedId || undefined);
 
-  const { shiftNotes = [], loading: isLoadingNotes } = useShiftNotesByParticipantId(
-    selectedId || undefined
-  );
+  const { shiftNotes = [], loading: isLoadingNotes } =
+    useShiftNotesByParticipantId(selectedId || undefined);
 
   const { activities = [], loading: isLoadingActivities } = useActivityLog(
-    useMemo(() => ({
-      entityId: selectedId || undefined,
-      entityType: 'participant',
-      pageSize: 50 // Limit activities count in report
-    }), [selectedId])
+    useMemo(
+      () => ({
+        entityId: selectedId || undefined,
+        entityType: 'participant',
+        pageSize: 50, // Limit activities count in report
+      }),
+      [selectedId],
+    ),
   );
 
   const handlePrint = () => {
@@ -191,7 +196,7 @@ export function ParticipantsReportPage() {
   const toggleSection = (sectionKey: keyof typeof sections) => {
     const nextSections = {
       ...sections,
-      [sectionKey]: !sections[sectionKey]
+      [sectionKey]: !sections[sectionKey],
     };
     setSections(nextSections);
     saveCriteria(nextSections, selectedId);
@@ -201,7 +206,7 @@ export function ParticipantsReportPage() {
     if (!name) return '??';
     return name
       .split(' ')
-      .map(word => word[0])
+      .map((word) => word[0])
       .join('')
       .toUpperCase()
       .slice(0, 2);
@@ -238,20 +243,27 @@ export function ParticipantsReportPage() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   };
 
-  const isDataLoading = isLoadingParticipant || isLoadingMeds || isLoadingGoals || isLoadingContacts || isLoadingDocs || isLoadingNotes || isLoadingActivities || isLoadingPreferences;
+  const isDataLoading =
+    isLoadingParticipant ||
+    isLoadingMeds ||
+    isLoadingGoals ||
+    isLoadingContacts ||
+    isLoadingDocs ||
+    isLoadingNotes ||
+    isLoadingActivities ||
+    isLoadingPreferences;
 
   return (
     <Container className="pt-2 pb-6 max-w-full lg:px-10 text-gray-900">
       <div className="flex flex-col gap-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
           {/* Left Column: Criteria (hidden on print) */}
           <div className="lg:col-span-3 space-y-4 no-print">
             <div className="sticky top-6 space-y-4">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => navigate(ROUTES.REPORTING)} 
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate(ROUTES.REPORTING)}
                 className="w-fit transition-colors hover:bg-gray-100"
               >
                 <ArrowLeft className="size-4 me-1.5" />
@@ -265,18 +277,17 @@ export function ParticipantsReportPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6 pt-6">
-                  
                   {/* Participant Dropdown Selector with Avatar */}
                   <div className="space-y-2 flex flex-col">
                     <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest font-sans">
                       Select Participant
                     </label>
-                    <Select 
-                      value={selectedId} 
+                    <Select
+                      value={selectedId}
                       onValueChange={(val) => {
                         setSelectedId(val);
                         saveCriteria(sections, val);
-                      }} 
+                      }}
                       disabled={isLoadingAll}
                     >
                       <SelectTrigger className="h-10 text-xs font-sans">
@@ -284,26 +295,40 @@ export function ParticipantsReportPage() {
                       </SelectTrigger>
                       <SelectContent>
                         {allParticipants.map((p) => (
-                          <SelectItem key={p.id} value={p.id} className="text-xs">
+                          <SelectItem
+                            key={p.id}
+                            value={p.id}
+                            className="text-xs"
+                          >
                             <div className="flex items-center justify-between w-full gap-2">
                               <div className="flex items-center gap-2.5 truncate">
-                                <SecureAvatar 
-                                  src={p.photo_url} 
-                                  initials={getInitials(p.participant_name)} 
-                                  className="size-5 shrink-0 rounded-full" 
-                                  bucket={STORAGE_BUCKETS.PARTICIPANT_PHOTOS} 
+                                <SecureAvatar
+                                  src={p.photo_url}
+                                  initials={getInitials(p.participant_name)}
+                                  className="size-5 shrink-0 rounded-full"
+                                  bucket={STORAGE_BUCKETS.PARTICIPANT_PHOTOS}
                                 />
                                 <span className="truncate font-medium">
                                   {p.participant_name}
                                 </span>
                               </div>
                               {p.status === 'draft' && (
-                                <Badge variant="warning" appearance="light" size="xs" className="uppercase font-bold text-[8px] font-sans shrink-0">
+                                <Badge
+                                  variant="warning"
+                                  appearance="light"
+                                  size="xs"
+                                  className="uppercase font-bold text-[8px] font-sans shrink-0"
+                                >
                                   Draft
                                 </Badge>
                               )}
                               {p.status === 'inactive' && (
-                                <Badge variant="destructive" appearance="light" size="xs" className="uppercase font-bold text-[8px] font-sans shrink-0">
+                                <Badge
+                                  variant="destructive"
+                                  appearance="light"
+                                  size="xs"
+                                  className="uppercase font-bold text-[8px] font-sans shrink-0"
+                                >
                                   Inactive
                                 </Badge>
                               )}
@@ -319,150 +344,222 @@ export function ParticipantsReportPage() {
                     <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest font-sans block mb-1">
                       Included Sections
                     </label>
-                    
+
                     <div className="space-y-2.5">
                       <div className="flex items-center gap-2.5">
-                        <Checkbox 
-                          id="sec-personal" 
-                          checked={sections.personal} 
-                          onCheckedChange={() => toggleSection('personal')} 
+                        <Checkbox
+                          id="sec-personal"
+                          checked={sections.personal}
+                          onCheckedChange={() => toggleSection('personal')}
                         />
-                        <Label htmlFor="sec-personal" className="text-xs font-normal cursor-pointer">Personal Details</Label>
+                        <Label
+                          htmlFor="sec-personal"
+                          className="text-xs font-normal cursor-pointer"
+                        >
+                          Personal Details
+                        </Label>
                       </div>
 
                       <div className="flex items-center gap-2.5">
-                        <Checkbox 
-                          id="sec-goals" 
-                          checked={sections.goals} 
-                          onCheckedChange={() => toggleSection('goals')} 
+                        <Checkbox
+                          id="sec-goals"
+                          checked={sections.goals}
+                          onCheckedChange={() => toggleSection('goals')}
                         />
-                        <Label htmlFor="sec-goals" className="text-xs font-normal cursor-pointer">Goals</Label>
+                        <Label
+                          htmlFor="sec-goals"
+                          className="text-xs font-normal cursor-pointer"
+                        >
+                          Goals
+                        </Label>
                       </div>
 
                       <div className="flex items-center gap-2.5">
-                        <Checkbox 
-                          id="sec-behaviour" 
-                          checked={sections.behaviour} 
-                          onCheckedChange={() => toggleSection('behaviour')} 
+                        <Checkbox
+                          id="sec-behaviour"
+                          checked={sections.behaviour}
+                          onCheckedChange={() => toggleSection('behaviour')}
                         />
-                        <Label htmlFor="sec-behaviour" className="text-xs font-normal cursor-pointer">Behaviour & Support</Label>
+                        <Label
+                          htmlFor="sec-behaviour"
+                          className="text-xs font-normal cursor-pointer"
+                        >
+                          Behaviour & Support
+                        </Label>
                       </div>
 
                       <div className="flex items-center gap-2.5">
-                        <Checkbox 
-                          id="sec-supportNeeds" 
-                          checked={sections.supportNeeds} 
-                          onCheckedChange={() => toggleSection('supportNeeds')} 
+                        <Checkbox
+                          id="sec-supportNeeds"
+                          checked={sections.supportNeeds}
+                          onCheckedChange={() => toggleSection('supportNeeds')}
                         />
-                        <Label htmlFor="sec-supportNeeds" className="text-xs font-normal cursor-pointer">Support Needs</Label>
+                        <Label
+                          htmlFor="sec-supportNeeds"
+                          className="text-xs font-normal cursor-pointer"
+                        >
+                          Support Needs
+                        </Label>
                       </div>
 
                       <div className="flex items-center gap-2.5">
-                        <Checkbox 
-                          id="sec-mealtime" 
-                          checked={sections.mealtime} 
-                          onCheckedChange={() => toggleSection('mealtime')} 
+                        <Checkbox
+                          id="sec-mealtime"
+                          checked={sections.mealtime}
+                          onCheckedChange={() => toggleSection('mealtime')}
                         />
-                        <Label htmlFor="sec-mealtime" className="text-xs font-normal cursor-pointer">Mealtime Management</Label>
+                        <Label
+                          htmlFor="sec-mealtime"
+                          className="text-xs font-normal cursor-pointer"
+                        >
+                          Mealtime Management
+                        </Label>
                       </div>
 
                       <div className="flex items-center gap-2.5">
-                        <Checkbox 
-                          id="sec-clinical" 
-                          checked={sections.clinical} 
-                          onCheckedChange={() => toggleSection('clinical')} 
+                        <Checkbox
+                          id="sec-clinical"
+                          checked={sections.clinical}
+                          onCheckedChange={() => toggleSection('clinical')}
                         />
-                        <Label htmlFor="sec-clinical" className="text-xs font-normal cursor-pointer">Clinical Details</Label>
+                        <Label
+                          htmlFor="sec-clinical"
+                          className="text-xs font-normal cursor-pointer"
+                        >
+                          Clinical Details
+                        </Label>
                       </div>
 
                       <div className="flex items-center gap-2.5">
-                        <Checkbox 
-                          id="sec-trackers" 
-                          checked={sections.trackers} 
-                          onCheckedChange={() => toggleSection('trackers')} 
+                        <Checkbox
+                          id="sec-trackers"
+                          checked={sections.trackers}
+                          onCheckedChange={() => toggleSection('trackers')}
                         />
-                        <Label htmlFor="sec-trackers" className="text-xs font-normal cursor-pointer">Clinical Trackers</Label>
+                        <Label
+                          htmlFor="sec-trackers"
+                          className="text-xs font-normal cursor-pointer"
+                        >
+                          Clinical Trackers
+                        </Label>
                       </div>
 
                       <div className="flex items-center gap-2.5">
-                        <Checkbox 
-                          id="sec-medicalRoutine" 
-                          checked={sections.medicalRoutine} 
-                          onCheckedChange={() => toggleSection('medicalRoutine')} 
+                        <Checkbox
+                          id="sec-medicalRoutine"
+                          checked={sections.medicalRoutine}
+                          onCheckedChange={() =>
+                            toggleSection('medicalRoutine')
+                          }
                         />
-                        <Label htmlFor="sec-medicalRoutine" className="text-xs font-normal cursor-pointer">Medical Routine</Label>
+                        <Label
+                          htmlFor="sec-medicalRoutine"
+                          className="text-xs font-normal cursor-pointer"
+                        >
+                          Medical Routine
+                        </Label>
                       </div>
 
                       <div className="flex items-center gap-2.5">
-                        <Checkbox 
-                          id="sec-medications" 
-                          checked={sections.medications} 
-                          onCheckedChange={() => toggleSection('medications')} 
+                        <Checkbox
+                          id="sec-medications"
+                          checked={sections.medications}
+                          onCheckedChange={() => toggleSection('medications')}
                         />
-                        <Label htmlFor="sec-medications" className="text-xs font-normal cursor-pointer">Medications</Label>
+                        <Label
+                          htmlFor="sec-medications"
+                          className="text-xs font-normal cursor-pointer"
+                        >
+                          Medications
+                        </Label>
                       </div>
 
                       <div className="flex items-center gap-2.5">
-                        <Checkbox 
-                          id="sec-emergency" 
-                          checked={sections.emergency} 
-                          onCheckedChange={() => toggleSection('emergency')} 
+                        <Checkbox
+                          id="sec-emergency"
+                          checked={sections.emergency}
+                          onCheckedChange={() => toggleSection('emergency')}
                         />
-                        <Label htmlFor="sec-emergency" className="text-xs font-normal cursor-pointer">Emergency Management</Label>
+                        <Label
+                          htmlFor="sec-emergency"
+                          className="text-xs font-normal cursor-pointer"
+                        >
+                          Emergency Management
+                        </Label>
                       </div>
 
                       <div className="flex items-center gap-2.5">
-                        <Checkbox 
-                          id="sec-contacts" 
-                          checked={sections.contacts} 
-                          onCheckedChange={() => toggleSection('contacts')} 
+                        <Checkbox
+                          id="sec-contacts"
+                          checked={sections.contacts}
+                          onCheckedChange={() => toggleSection('contacts')}
                         />
-                        <Label htmlFor="sec-contacts" className="text-xs font-normal cursor-pointer">Contacts</Label>
+                        <Label
+                          htmlFor="sec-contacts"
+                          className="text-xs font-normal cursor-pointer"
+                        >
+                          Contacts
+                        </Label>
                       </div>
 
                       <div className="flex items-center gap-2.5">
-                        <Checkbox 
-                          id="sec-documents" 
-                          checked={sections.documents} 
-                          onCheckedChange={() => toggleSection('documents')} 
+                        <Checkbox
+                          id="sec-documents"
+                          checked={sections.documents}
+                          onCheckedChange={() => toggleSection('documents')}
                         />
-                        <Label htmlFor="sec-documents" className="text-xs font-normal cursor-pointer text-blue-600 font-bold">Documents</Label>
+                        <Label
+                          htmlFor="sec-documents"
+                          className="text-xs font-normal cursor-pointer text-blue-600 font-bold"
+                        >
+                          Documents
+                        </Label>
                       </div>
 
                       <div className="flex items-center gap-2.5">
-                        <Checkbox 
-                          id="sec-notes" 
-                          checked={sections.shiftNotes} 
-                          onCheckedChange={() => toggleSection('shiftNotes')} 
+                        <Checkbox
+                          id="sec-notes"
+                          checked={sections.shiftNotes}
+                          onCheckedChange={() => toggleSection('shiftNotes')}
                         />
-                        <Label htmlFor="sec-notes" className="text-xs font-normal cursor-pointer">Shift Notes</Label>
+                        <Label
+                          htmlFor="sec-notes"
+                          className="text-xs font-normal cursor-pointer"
+                        >
+                          Shift Notes
+                        </Label>
                       </div>
 
                       <div className="flex items-center gap-2.5">
-                        <Checkbox 
-                          id="sec-activity" 
-                          checked={sections.activityLog} 
-                          onCheckedChange={() => toggleSection('activityLog')} 
+                        <Checkbox
+                          id="sec-activity"
+                          checked={sections.activityLog}
+                          onCheckedChange={() => toggleSection('activityLog')}
                         />
-                        <Label htmlFor="sec-activity" className="text-xs font-normal cursor-pointer">Activity Log</Label>
+                        <Label
+                          htmlFor="sec-activity"
+                          className="text-xs font-normal cursor-pointer"
+                        >
+                          Activity Log
+                        </Label>
                       </div>
                     </div>
                   </div>
 
                   {/* Actions */}
                   <div className="pt-4 border-t border-gray-100 flex flex-col gap-3">
-                    <Button 
-                      variant="primary" 
-                      onClick={handlePrint} 
-                      disabled={!selectedId || isDataLoading} 
+                    <Button
+                      variant="primary"
+                      onClick={handlePrint}
+                      disabled={!selectedId || isDataLoading}
                       className="w-full font-bold shadow-sm"
                     >
                       <Printer className="size-4 me-2" />
                       Print Preview
                     </Button>
-                    <Button 
-                      variant="ghost" 
-                      className="w-full text-xs text-gray-500 hover:text-primary font-sans transition-colors" 
+                    <Button
+                      variant="ghost"
+                      className="w-full text-xs text-gray-500 hover:text-primary font-sans transition-colors"
                       onClick={() => {
                         const resetSections = {
                           personal: true,
@@ -478,7 +575,7 @@ export function ParticipantsReportPage() {
                           contacts: true,
                           documents: false,
                           shiftNotes: false,
-                          activityLog: false
+                          activityLog: false,
                         };
                         setSections(resetSections);
                         saveCriteria(resetSections, selectedId);
@@ -488,23 +585,23 @@ export function ParticipantsReportPage() {
                       Reset Sections
                     </Button>
                   </div>
-
                 </CardContent>
               </Card>
 
               <div className="bg-blue-50/50 rounded-xl p-6 border border-blue-100/50">
-                <h4 className="text-blue-900 font-bold text-sm mb-2 font-sans">InsideCare Profile Report</h4>
+                <h4 className="text-blue-900 font-bold text-sm mb-2 font-sans">
+                  InsideCare Profile Report
+                </h4>
                 <p className="text-blue-700/70 text-xs leading-relaxed font-sans">
-                  Toggle sections in the checklist to compile a customized print-ready clinical report for the selected participant.
+                  Toggle sections in the checklist to compile a customized
+                  print-ready clinical report for the selected participant.
                 </p>
               </div>
-
             </div>
           </div>
 
           {/* Right Column: Live Report Preview */}
           <div className="lg:col-span-9 bg-gray-100/50 rounded-2xl border border-gray-200 min-h-[1000px] flex flex-col items-center py-4 px-4 overflow-hidden relative shadow-inner print:bg-transparent print:border-none print:shadow-none print:p-0">
-            
             {isDataLoading && selectedId && (
               <div className="absolute inset-0 bg-white/60 backdrop-blur-sm z-10 flex items-center justify-center">
                 <div className="flex flex-col items-center gap-3">
@@ -518,87 +615,132 @@ export function ParticipantsReportPage() {
 
             <div className="w-full max-w-[210mm] print:m-0 print:p-0">
               {participant ? (
-                <PrintableReport 
-                  title="Participant Clinical Profile" 
+                <PrintableReport
+                  title="Participant Clinical Profile"
                   subtitle="InsideCare Compiled Client Care Plan"
                   parameters={{
-                    'Participant': participant.participant_name || '',
-                    'House': participant.house_name || 'Unassigned',
-                    'NDIS ID': participant.ndis_number || 'N/A'
+                    Participant: participant.participant_name || '',
+                    House: participant.house_name || 'Unassigned',
+                    'NDIS ID': participant.ndis_number || 'N/A',
                   }}
                 >
                   <div className="space-y-12 pt-4 font-sans text-gray-900">
-
                     {/* Section: Personal Details */}
                     {sections.personal && (
                       <div className="space-y-4">
                         <h3 className="text-xs font-black text-gray-900 uppercase tracking-[0.2em] border-b border-gray-900 pb-2.5">
                           {sectionNumbers.personal}. Personal Details
                         </h3>
-                        
+
                         <div className="flex gap-6 items-start pb-4">
-                          <SecureAvatar 
-                            src={participant.photo_url} 
-                            initials={getInitials(participant.participant_name)} 
+                          <SecureAvatar
+                            src={participant.photo_url}
+                            initials={getInitials(participant.participant_name)}
                             className="size-24 border-2 border-gray-200 shadow-sm shrink-0 rounded-lg object-cover"
-                            bucket={STORAGE_BUCKETS.PARTICIPANT_PHOTOS} 
+                            bucket={STORAGE_BUCKETS.PARTICIPANT_PHOTOS}
                           />
                           <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-xs grow">
                             <div>
-                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">Full Name *</span>
-                              <Link to={`${ROUTES.PARTICIPANT_DETAIL}/${participant.id}`} className="font-semibold text-blue-700 hover:underline">
+                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                                Full Name *
+                              </span>
+                              <Link
+                                to={`${ROUTES.PARTICIPANT_DETAIL}/${participant.id}`}
+                                className="font-semibold text-blue-700 hover:underline"
+                              >
                                 {participant.participant_name}
                               </Link>
                             </div>
                             <div>
-                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">House</span>
+                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                                House
+                              </span>
                               {participant.house_id ? (
-                                <Link to={`${ROUTES.HOUSE_DETAIL}/${participant.house_id}`} className="font-semibold text-blue-700 hover:underline">
+                                <Link
+                                  to={`${ROUTES.HOUSE_DETAIL}/${participant.house_id}`}
+                                  className="font-semibold text-blue-700 hover:underline"
+                                >
                                   {participant.house_name}
                                 </Link>
                               ) : (
-                                <span className="font-semibold text-gray-700 italic">Unassigned</span>
+                                <span className="font-semibold text-gray-700 italic">
+                                  Unassigned
+                                </span>
                               )}
                             </div>
                             <div>
-                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">NDIS Number</span>
-                              <span className="font-semibold text-gray-700">{participant.ndis_number || '-'}</span>
-                            </div>
-                            <div>
-                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">Date of Birth</span>
+                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                                NDIS Number
+                              </span>
                               <span className="font-semibold text-gray-700">
-                                {formatDOB(participant.date_of_birth)} {participant.date_of_birth && `(${calculateAge(participant.date_of_birth)})`}
+                                {participant.ndis_number || '-'}
                               </span>
                             </div>
                             <div>
-                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">House Phone</span>
-                              <span className="font-semibold text-gray-700">{participant.house_phone || '-'}</span>
+                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                                Date of Birth
+                              </span>
+                              <span className="font-semibold text-gray-700">
+                                {formatDOB(participant.date_of_birth)}{' '}
+                                {participant.date_of_birth &&
+                                  `(${calculateAge(participant.date_of_birth)})`}
+                              </span>
                             </div>
                             <div>
-                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">Personal Mobile</span>
-                              <span className="font-semibold text-gray-700">{participant.personal_mobile || '-'}</span>
+                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                                House Phone
+                              </span>
+                              <span className="font-semibold text-gray-700">
+                                {participant.house_phone || '-'}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                                Personal Mobile
+                              </span>
+                              <span className="font-semibold text-gray-700">
+                                {participant.personal_mobile || '-'}
+                              </span>
                             </div>
                             <div>
                               <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
                                 Email {participant.status !== 'draft' && '*'}
                               </span>
-                              <span className="font-semibold text-gray-700">{participant.email || '-'}</span>
+                              <span className="font-semibold text-gray-700">
+                                {participant.email || '-'}
+                              </span>
                             </div>
                             <div>
-                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">Support Level</span>
-                              <span className="font-semibold text-gray-700 capitalize">{participant.support_level || '-'}</span>
+                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                                Support Level
+                              </span>
+                              <span className="font-semibold text-gray-700 capitalize">
+                                {participant.support_level || '-'}
+                              </span>
                             </div>
                             <div>
-                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">Support Coordinator</span>
-                              <span className="font-semibold text-gray-700">{participant.support_coordinator || '-'}</span>
+                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                                Support Coordinator
+                              </span>
+                              <span className="font-semibold text-gray-700">
+                                {participant.support_coordinator || '-'}
+                              </span>
                             </div>
                             <div>
-                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">Status</span>
-                              <span className="font-semibold text-gray-700 capitalize">{participant.status || '-'}</span>
+                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                                Status
+                              </span>
+                              <span className="font-semibold text-gray-700 capitalize">
+                                {participant.status || '-'}
+                              </span>
                             </div>
                             <div className="col-span-2">
-                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">Address</span>
-                              <span className="font-semibold text-gray-700">{participant.address || '-'}</span>
+                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                                Address
+                              </span>
+                              <span className="font-semibold text-gray-700">
+                                {participant.address || '-'}
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -611,12 +753,17 @@ export function ParticipantsReportPage() {
                         <h3 className="text-xs font-black text-gray-900 uppercase tracking-[0.2em] border-b border-gray-900 pb-2.5">
                           {sectionNumbers.goals}. Goals
                         </h3>
-                        
+
                         <div className="space-y-3">
                           {goals.map((goal) => {
-                            const progressNotes = goalProgress.filter(p => p.goal_id === goal.id);
+                            const progressNotes = goalProgress.filter(
+                              (p) => p.goal_id === goal.id,
+                            );
                             return (
-                              <div key={goal.id} className="p-4 border border-gray-100 rounded-xl bg-gray-50/50 space-y-2.5">
+                              <div
+                                key={goal.id}
+                                className="p-4 border border-gray-100 rounded-xl bg-gray-50/50 space-y-2.5"
+                              >
                                 <div className="flex justify-between items-start gap-3">
                                   <h4 className="font-semibold text-gray-900 text-xs grow leading-relaxed">
                                     {goal.description}
@@ -625,16 +772,27 @@ export function ParticipantsReportPage() {
                                     {goal.goal_type}
                                   </span>
                                 </div>
-                                
+
                                 {progressNotes.length > 0 && (
                                   <div className="border-t border-gray-200 pt-2.5 mt-2.5 space-y-2">
-                                    <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">Progress Log</span>
+                                    <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                                      Progress Log
+                                    </span>
                                     {progressNotes.slice(-2).map((p) => (
-                                      <div key={p.id} className="text-[11px] leading-relaxed text-gray-600 bg-white p-2 rounded border border-gray-100">
-                                        <p className="italic">"{p.progress_note}"</p>
+                                      <div
+                                        key={p.id}
+                                        className="text-[11px] leading-relaxed text-gray-600 bg-white p-2 rounded border border-gray-100"
+                                      >
+                                        <p className="italic">
+                                          "{p.progress_note}"
+                                        </p>
                                         {p.created_at && (
                                           <span className="text-[9px] text-gray-400 block mt-1 font-mono">
-                                            Recorded: {format(new Date(p.created_at), 'dd MMM yyyy HH:mm')}
+                                            Recorded:{' '}
+                                            {format(
+                                              new Date(p.created_at),
+                                              'dd MMM yyyy HH:mm',
+                                            )}
                                           </span>
                                         )}
                                       </div>
@@ -662,37 +820,83 @@ export function ParticipantsReportPage() {
                         <div className="grid grid-cols-2 gap-6 text-xs">
                           <div className="space-y-3">
                             <div>
-                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">Behaviour of Concern</span>
-                              <p className="text-gray-700 leading-relaxed mt-0.5 whitespace-pre-wrap">{participant.behaviour_of_concern || 'None recorded'}</p>
+                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                                Behaviour of Concern
+                              </span>
+                              <p className="text-gray-700 leading-relaxed mt-0.5 whitespace-pre-wrap">
+                                {participant.behaviour_of_concern ||
+                                  'None recorded'}
+                              </p>
                             </div>
                             <div>
-                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">Restrictive Practice Details</span>
-                              <p className="text-gray-700 leading-relaxed mt-0.5 whitespace-pre-wrap">{participant.restrictive_practice_details || 'None recorded'}</p>
+                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                                Restrictive Practice Details
+                              </span>
+                              <p className="text-gray-700 leading-relaxed mt-0.5 whitespace-pre-wrap">
+                                {participant.restrictive_practice_details ||
+                                  'None recorded'}
+                              </p>
                             </div>
                           </div>
-                          
+
                           <div className="space-y-3 bg-gray-50/50 p-4 rounded-lg border border-gray-100">
                             <div className="grid grid-cols-2 gap-y-2">
-                              <span className="text-gray-500">PBSP Engaged:</span>
-                              <span className="font-semibold text-gray-900">{participant.pbsp_engaged ? 'Yes' : 'No'}</span>
-                              
-                              <span className="text-gray-500">BSP Available:</span>
-                              <span className="font-semibold text-gray-900">{participant.bsp_available ? 'Yes' : 'No'}</span>
+                              <span className="text-gray-500">
+                                PBSP Engaged:
+                              </span>
+                              <span className="font-semibold text-gray-900">
+                                {participant.pbsp_engaged ? 'Yes' : 'No'}
+                              </span>
 
-                              <span className="text-gray-500">Restrictive Practices:</span>
-                              <span className="font-semibold text-gray-900">{participant.restrictive_practices_yn ? 'Yes' : 'No'}</span>
-                              
-                              <span className="text-gray-500">Restrictive Practice Authorisation:</span>
-                              <span className="font-semibold text-gray-900">{participant.restrictive_practice_authorisation ? 'Yes' : 'No'}</span>
+                              <span className="text-gray-500">
+                                BSP Available:
+                              </span>
+                              <span className="font-semibold text-gray-900">
+                                {participant.bsp_available ? 'Yes' : 'No'}
+                              </span>
+
+                              <span className="text-gray-500">
+                                Restrictive Practices:
+                              </span>
+                              <span className="font-semibold text-gray-900">
+                                {participant.restrictive_practices_yn
+                                  ? 'Yes'
+                                  : 'No'}
+                              </span>
+
+                              <span className="text-gray-500">
+                                Restrictive Practice Authorisation:
+                              </span>
+                              <span className="font-semibold text-gray-900">
+                                {participant.restrictive_practice_authorisation
+                                  ? 'Yes'
+                                  : 'No'}
+                              </span>
                             </div>
-                            
-                            {(participant.specialist_name || participant.specialist_phone || participant.specialist_email) && (
+
+                            {(participant.specialist_name ||
+                              participant.specialist_phone ||
+                              participant.specialist_email) && (
                               <div className="border-t border-gray-200 pt-2.5 mt-2.5">
-                                <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">Specialist Name</span>
-                                <p className="text-gray-800 font-semibold mt-0.5">{participant.specialist_name || '-'}</p>
+                                <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                                  Specialist Name
+                                </span>
+                                <p className="text-gray-800 font-semibold mt-0.5">
+                                  {participant.specialist_name || '-'}
+                                </p>
                                 <div className="mt-1 space-y-0.5 text-[11px] text-gray-500">
-                                  {participant.specialist_phone && <p>Specialist Phone: {participant.specialist_phone}</p>}
-                                  {participant.specialist_email && <p>Specialist Email: {participant.specialist_email}</p>}
+                                  {participant.specialist_phone && (
+                                    <p>
+                                      Specialist Phone:{' '}
+                                      {participant.specialist_phone}
+                                    </p>
+                                  )}
+                                  {participant.specialist_email && (
+                                    <p>
+                                      Specialist Email:{' '}
+                                      {participant.specialist_email}
+                                    </p>
+                                  )}
                                 </div>
                               </div>
                             )}
@@ -710,71 +914,119 @@ export function ParticipantsReportPage() {
                         <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-xs">
                           {participant.routine && (
                             <div className="col-span-2">
-                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">Routine</span>
-                              <p className="text-gray-700 leading-relaxed mt-0.5 whitespace-pre-wrap">{participant.routine}</p>
+                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                                Routine
+                              </span>
+                              <p className="text-gray-700 leading-relaxed mt-0.5 whitespace-pre-wrap">
+                                {participant.routine}
+                              </p>
                             </div>
                           )}
                           {participant.hygiene_support && (
                             <div>
-                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">Hygiene Support Required</span>
-                              <p className="text-gray-700 leading-relaxed mt-0.5 whitespace-pre-wrap">{participant.hygiene_support}</p>
+                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                                Hygiene Support Required
+                              </span>
+                              <p className="text-gray-700 leading-relaxed mt-0.5 whitespace-pre-wrap">
+                                {participant.hygiene_support}
+                              </p>
                             </div>
                           )}
                           {participant.mobility_support && (
                             <div>
-                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">Mobility Support Required</span>
-                              <p className="text-gray-700 leading-relaxed mt-0.5 whitespace-pre-wrap">{participant.mobility_support}</p>
+                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                                Mobility Support Required
+                              </span>
+                              <p className="text-gray-700 leading-relaxed mt-0.5 whitespace-pre-wrap">
+                                {participant.mobility_support}
+                              </p>
                             </div>
                           )}
                           {participant.meal_prep_support && (
                             <div>
-                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">Meal Preparation Support Needs</span>
-                              <p className="text-gray-700 leading-relaxed mt-0.5 whitespace-pre-wrap">{participant.meal_prep_support}</p>
+                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                                Meal Preparation Support Needs
+                              </span>
+                              <p className="text-gray-700 leading-relaxed mt-0.5 whitespace-pre-wrap">
+                                {participant.meal_prep_support}
+                              </p>
                             </div>
                           )}
                           {participant.household_support && (
                             <div>
-                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">Household Support Needs</span>
-                              <p className="text-gray-700 leading-relaxed mt-0.5 whitespace-pre-wrap">{participant.household_support}</p>
+                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                                Household Support Needs
+                              </span>
+                              <p className="text-gray-700 leading-relaxed mt-0.5 whitespace-pre-wrap">
+                                {participant.household_support}
+                              </p>
                             </div>
                           )}
-                          {(participant.communication_type || participant.communication_notes) && (
+                          {(participant.communication_type ||
+                            participant.communication_notes) && (
                             <div>
-                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">Communication</span>
+                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                                Communication
+                              </span>
                               <p className="text-gray-700 leading-relaxed mt-0.5">
-                                <strong>Preferred Communication Type:</strong> <span className="capitalize">{participant.communication_type || 'verbal'}</span><br/>
-                                <strong>Communication Type Notes:</strong> {participant.communication_notes || '-'}
+                                <strong>Preferred Communication Type:</strong>{' '}
+                                <span className="capitalize">
+                                  {participant.communication_type || 'verbal'}
+                                </span>
+                                <br />
+                                <strong>Communication Type Notes:</strong>{' '}
+                                {participant.communication_notes || '-'}
                               </p>
                             </div>
                           )}
                           {participant.communication_language_needs && (
                             <div>
-                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">Communication & Language Needs</span>
-                              <p className="text-gray-700 leading-relaxed mt-0.5 whitespace-pre-wrap">{participant.communication_language_needs}</p>
+                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                                Communication & Language Needs
+                              </span>
+                              <p className="text-gray-700 leading-relaxed mt-0.5 whitespace-pre-wrap">
+                                {participant.communication_language_needs}
+                              </p>
                             </div>
                           )}
                           {participant.finance_support && (
                             <div>
-                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">Finance Support Needs</span>
-                              <p className="text-gray-700 leading-relaxed mt-0.5 whitespace-pre-wrap">{participant.finance_support}</p>
+                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                                Finance Support Needs
+                              </span>
+                              <p className="text-gray-700 leading-relaxed mt-0.5 whitespace-pre-wrap">
+                                {participant.finance_support}
+                              </p>
                             </div>
                           )}
                           {participant.health_wellbeing_support && (
                             <div>
-                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">Health & Wellbeing Support Needs</span>
-                              <p className="text-gray-700 leading-relaxed mt-0.5 whitespace-pre-wrap">{participant.health_wellbeing_support}</p>
+                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                                Health & Wellbeing Support Needs
+                              </span>
+                              <p className="text-gray-700 leading-relaxed mt-0.5 whitespace-pre-wrap">
+                                {participant.health_wellbeing_support}
+                              </p>
                             </div>
                           )}
                           {participant.cultural_religious_support && (
                             <div>
-                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">Cultural and Religious Support Needs</span>
-                              <p className="text-gray-700 leading-relaxed mt-0.5 whitespace-pre-wrap">{participant.cultural_religious_support}</p>
+                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                                Cultural and Religious Support Needs
+                              </span>
+                              <p className="text-gray-700 leading-relaxed mt-0.5 whitespace-pre-wrap">
+                                {participant.cultural_religious_support}
+                              </p>
                             </div>
                           )}
                           {participant.other_support && (
                             <div className="col-span-2">
-                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">Any Other Support Needs</span>
-                              <p className="text-gray-700 leading-relaxed mt-0.5 whitespace-pre-wrap">{participant.other_support}</p>
+                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                                Any Other Support Needs
+                              </span>
+                              <p className="text-gray-700 leading-relaxed mt-0.5 whitespace-pre-wrap">
+                                {participant.other_support}
+                              </p>
                             </div>
                           )}
                         </div>
@@ -789,13 +1041,21 @@ export function ParticipantsReportPage() {
                         </h3>
                         <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-xs">
                           <div>
-                            <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">Is there a MTMP?</span>
-                            <span className="font-semibold text-gray-700">{participant.mtmp_required ? 'Yes' : 'No'}</span>
+                            <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                              Is there a MTMP?
+                            </span>
+                            <span className="font-semibold text-gray-700">
+                              {participant.mtmp_required ? 'Yes' : 'No'}
+                            </span>
                           </div>
                           {participant.mtmp_required && (
                             <div className="col-span-2">
-                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">If Yes, provide details</span>
-                              <p className="text-gray-700 leading-relaxed mt-0.5 whitespace-pre-wrap">{participant.mtmp_details || '-'}</p>
+                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                                If Yes, provide details
+                              </span>
+                              <p className="text-gray-700 leading-relaxed mt-0.5 whitespace-pre-wrap">
+                                {participant.mtmp_details || '-'}
+                              </p>
                             </div>
                           )}
                         </div>
@@ -810,16 +1070,28 @@ export function ParticipantsReportPage() {
                         </h3>
                         <div className="grid grid-cols-2 gap-6 text-xs">
                           <div>
-                            <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">Primary Diagnosis</span>
-                            <p className="text-gray-700 leading-relaxed break-words mt-0.5">{participant.primary_diagnosis || '-'}</p>
+                            <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                              Primary Diagnosis
+                            </span>
+                            <p className="text-gray-700 leading-relaxed break-words mt-0.5">
+                              {participant.primary_diagnosis || '-'}
+                            </p>
                           </div>
                           <div>
-                            <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">Secondary Diagnosis</span>
-                            <p className="text-gray-700 leading-relaxed break-words mt-0.5">{participant.secondary_diagnosis || '-'}</p>
+                            <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                              Secondary Diagnosis
+                            </span>
+                            <p className="text-gray-700 leading-relaxed break-words mt-0.5">
+                              {participant.secondary_diagnosis || '-'}
+                            </p>
                           </div>
                           <div className="col-span-2">
-                            <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">Allergies</span>
-                            <p className="text-red-700 font-semibold leading-relaxed break-words mt-0.5">{participant.allergies || 'No known allergies'}</p>
+                            <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                              Allergies
+                            </span>
+                            <p className="text-red-700 font-semibold leading-relaxed break-words mt-0.5">
+                              {participant.allergies || 'No known allergies'}
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -832,16 +1104,106 @@ export function ParticipantsReportPage() {
                           {sectionNumbers.trackers}. Clinical Trackers
                         </h3>
                         <div>
-                          <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider mb-2">Trackers Enabled on Care Plan</span>
+                          <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider mb-2">
+                            Trackers Enabled on Care Plan
+                          </span>
                           <div className="flex flex-wrap gap-2">
-                            {participant.track_bowel ? <Badge className="bg-teal-50 text-teal-700 border border-teal-200 uppercase text-[9px] font-bold">Bowel Tracking</Badge> : <Badge variant="secondary" className="opacity-40 uppercase text-[9px] font-normal">Bowel Tracking</Badge>}
-                            {participant.track_seizure ? <Badge className="bg-teal-50 text-teal-700 border border-teal-200 uppercase text-[9px] font-bold">Seizure Activity</Badge> : <Badge variant="secondary" className="opacity-40 uppercase text-[9px] font-normal">Seizure Activity</Badge>}
-                            {participant.track_sleep ? <Badge className="bg-teal-50 text-teal-700 border border-teal-200 uppercase text-[9px] font-bold">Sleep Tracking</Badge> : <Badge variant="secondary" className="opacity-40 uppercase text-[9px] font-normal">Sleep Tracking</Badge>}
-                            {participant.track_behaviour ? <Badge className="bg-teal-50 text-teal-700 border border-teal-200 uppercase text-[9px] font-bold">Behaviour Observation</Badge> : <Badge variant="secondary" className="opacity-40 uppercase text-[9px] font-normal">Behaviour Observation</Badge>}
-                            {participant.track_community ? <Badge className="bg-teal-50 text-teal-700 border border-teal-200 uppercase text-[9px] font-bold">Community Participation</Badge> : <Badge variant="secondary" className="opacity-40 uppercase text-[9px] font-normal">Community Participation</Badge>}
-                            {participant.track_nutrition ? <Badge className="bg-teal-50 text-teal-700 border border-teal-200 uppercase text-[9px] font-bold">Nutrition Tracker</Badge> : <Badge variant="secondary" className="opacity-40 uppercase text-[9px] font-normal">Nutrition Tracker</Badge>}
-                            {participant.track_mtm ? <Badge className="bg-teal-50 text-teal-700 border border-teal-200 uppercase text-[9px] font-bold">Mealtime Management</Badge> : <Badge variant="secondary" className="opacity-40 uppercase text-[9px] font-normal">Mealtime Management</Badge>}
-                            {participant.track_hygiene ? <Badge className="bg-teal-50 text-teal-700 border border-teal-200 uppercase text-[9px] font-bold">Hygiene Tracking</Badge> : <Badge variant="secondary" className="opacity-40 uppercase text-[9px] font-normal">Hygiene Tracking</Badge>}
+                            {participant.track_bowel ? (
+                              <Badge className="bg-teal-50 text-teal-700 border border-teal-200 uppercase text-[9px] font-bold">
+                                Bowel Tracking
+                              </Badge>
+                            ) : (
+                              <Badge
+                                variant="secondary"
+                                className="opacity-40 uppercase text-[9px] font-normal"
+                              >
+                                Bowel Tracking
+                              </Badge>
+                            )}
+                            {participant.track_seizure ? (
+                              <Badge className="bg-teal-50 text-teal-700 border border-teal-200 uppercase text-[9px] font-bold">
+                                Seizure Activity
+                              </Badge>
+                            ) : (
+                              <Badge
+                                variant="secondary"
+                                className="opacity-40 uppercase text-[9px] font-normal"
+                              >
+                                Seizure Activity
+                              </Badge>
+                            )}
+                            {participant.track_sleep ? (
+                              <Badge className="bg-teal-50 text-teal-700 border border-teal-200 uppercase text-[9px] font-bold">
+                                Sleep Tracking
+                              </Badge>
+                            ) : (
+                              <Badge
+                                variant="secondary"
+                                className="opacity-40 uppercase text-[9px] font-normal"
+                              >
+                                Sleep Tracking
+                              </Badge>
+                            )}
+                            {participant.track_behaviour ? (
+                              <Badge className="bg-teal-50 text-teal-700 border border-teal-200 uppercase text-[9px] font-bold">
+                                Behaviour Observation
+                              </Badge>
+                            ) : (
+                              <Badge
+                                variant="secondary"
+                                className="opacity-40 uppercase text-[9px] font-normal"
+                              >
+                                Behaviour Observation
+                              </Badge>
+                            )}
+                            {participant.track_community ? (
+                              <Badge className="bg-teal-50 text-teal-700 border border-teal-200 uppercase text-[9px] font-bold">
+                                Community Participation
+                              </Badge>
+                            ) : (
+                              <Badge
+                                variant="secondary"
+                                className="opacity-40 uppercase text-[9px] font-normal"
+                              >
+                                Community Participation
+                              </Badge>
+                            )}
+                            {participant.track_nutrition ? (
+                              <Badge className="bg-teal-50 text-teal-700 border border-teal-200 uppercase text-[9px] font-bold">
+                                Nutrition Tracker
+                              </Badge>
+                            ) : (
+                              <Badge
+                                variant="secondary"
+                                className="opacity-40 uppercase text-[9px] font-normal"
+                              >
+                                Nutrition Tracker
+                              </Badge>
+                            )}
+                            {participant.track_mtm ? (
+                              <Badge className="bg-teal-50 text-teal-700 border border-teal-200 uppercase text-[9px] font-bold">
+                                Mealtime Management
+                              </Badge>
+                            ) : (
+                              <Badge
+                                variant="secondary"
+                                className="opacity-40 uppercase text-[9px] font-normal"
+                              >
+                                Mealtime Management
+                              </Badge>
+                            )}
+                            {participant.track_hygiene ? (
+                              <Badge className="bg-teal-50 text-teal-700 border border-teal-200 uppercase text-[9px] font-bold">
+                                Hygiene Tracking
+                              </Badge>
+                            ) : (
+                              <Badge
+                                variant="secondary"
+                                className="opacity-40 uppercase text-[9px] font-normal"
+                              >
+                                Hygiene Tracking
+                              </Badge>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -855,43 +1217,120 @@ export function ParticipantsReportPage() {
                         </h3>
                         <div className="grid grid-cols-3 gap-6 text-xs">
                           <div className="bg-gray-50/50 p-3.5 rounded-lg border border-gray-100">
-                            <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider font-bold mb-1">Pharmacy</span>
+                            <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider font-bold mb-1">
+                              Pharmacy
+                            </span>
                             <div className="space-y-1">
-                              <div><span className="text-gray-400 text-[10px]">Pharmacy Name:</span> <span className="font-semibold text-gray-800">{participant.pharmacy_name || '-'}</span></div>
-                              <div><span className="text-gray-400 text-[10px]">Pharmacy Contact:</span> <span className="font-semibold text-gray-800">{participant.pharmacy_contact || '-'}</span></div>
-                              <div><span className="text-gray-400 text-[10px]">Pharmacy Location:</span> <span className="font-semibold text-gray-800">{participant.pharmacy_location || '-'}</span></div>
+                              <div>
+                                <span className="text-gray-400 text-[10px]">
+                                  Pharmacy Name:
+                                </span>{' '}
+                                <span className="font-semibold text-gray-800">
+                                  {participant.pharmacy_name || '-'}
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-gray-400 text-[10px]">
+                                  Pharmacy Contact:
+                                </span>{' '}
+                                <span className="font-semibold text-gray-800">
+                                  {participant.pharmacy_contact || '-'}
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-gray-400 text-[10px]">
+                                  Pharmacy Location:
+                                </span>{' '}
+                                <span className="font-semibold text-gray-800">
+                                  {participant.pharmacy_location || '-'}
+                                </span>
+                              </div>
                             </div>
                           </div>
 
                           <div className="bg-gray-50/50 p-3.5 rounded-lg border border-gray-100">
-                            <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider font-bold mb-1">General Practitioner</span>
+                            <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider font-bold mb-1">
+                              General Practitioner
+                            </span>
                             <div className="space-y-1">
-                              <div><span className="text-gray-400 text-[10px]">GP Name:</span> <span className="font-semibold text-gray-800">{participant.gp_name || '-'}</span></div>
-                              <div><span className="text-gray-400 text-[10px]">GP Contact:</span> <span className="font-semibold text-gray-800">{participant.gp_contact || '-'}</span></div>
-                              <div><span className="text-gray-400 text-[10px]">GP Location:</span> <span className="font-semibold text-gray-800">{participant.gp_location || '-'}</span></div>
+                              <div>
+                                <span className="text-gray-400 text-[10px]">
+                                  GP Name:
+                                </span>{' '}
+                                <span className="font-semibold text-gray-800">
+                                  {participant.gp_name || '-'}
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-gray-400 text-[10px]">
+                                  GP Contact:
+                                </span>{' '}
+                                <span className="font-semibold text-gray-800">
+                                  {participant.gp_contact || '-'}
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-gray-400 text-[10px]">
+                                  GP Location:
+                                </span>{' '}
+                                <span className="font-semibold text-gray-800">
+                                  {participant.gp_location || '-'}
+                                </span>
+                              </div>
                             </div>
                           </div>
-                          
+
                           <div className="bg-gray-50/50 p-3.5 rounded-lg border border-gray-100">
-                            <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider font-bold mb-1">Psychiatrist</span>
+                            <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider font-bold mb-1">
+                              Psychiatrist
+                            </span>
                             <div className="space-y-1">
-                              <div><span className="text-gray-400 text-[10px]">Psychiatrist Name:</span> <span className="font-semibold text-gray-800">{participant.psychiatrist_name || '-'}</span></div>
-                              <div><span className="text-gray-400 text-[10px]">Psychiatrist Contact:</span> <span className="font-semibold text-gray-800">{participant.psychiatrist_contact || '-'}</span></div>
-                              <div><span className="text-gray-400 text-[10px]">Psychiatrist Location:</span> <span className="font-semibold text-gray-800">{participant.psychiatrist_location || '-'}</span></div>
+                              <div>
+                                <span className="text-gray-400 text-[10px]">
+                                  Psychiatrist Name:
+                                </span>{' '}
+                                <span className="font-semibold text-gray-800">
+                                  {participant.psychiatrist_name || '-'}
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-gray-400 text-[10px]">
+                                  Psychiatrist Contact:
+                                </span>{' '}
+                                <span className="font-semibold text-gray-800">
+                                  {participant.psychiatrist_contact || '-'}
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-gray-400 text-[10px]">
+                                  Psychiatrist Location:
+                                </span>{' '}
+                                <span className="font-semibold text-gray-800">
+                                  {participant.psychiatrist_location || '-'}
+                                </span>
+                              </div>
                             </div>
                           </div>
 
                           {participant.medical_routine_other && (
                             <div className="col-span-3">
-                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">Any Other</span>
-                              <p className="text-gray-700 leading-relaxed mt-0.5 whitespace-pre-wrap">{participant.medical_routine_other}</p>
+                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                                Any Other
+                              </span>
+                              <p className="text-gray-700 leading-relaxed mt-0.5 whitespace-pre-wrap">
+                                {participant.medical_routine_other}
+                              </p>
                             </div>
                           )}
 
                           {participant.medical_routine_general_process && (
                             <div className="col-span-3">
-                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">General Process</span>
-                              <p className="text-gray-700 leading-relaxed mt-0.5 whitespace-pre-wrap">{participant.medical_routine_general_process}</p>
+                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                                General Process
+                              </span>
+                              <p className="text-gray-700 leading-relaxed mt-0.5 whitespace-pre-wrap">
+                                {participant.medical_routine_general_process}
+                              </p>
                             </div>
                           )}
                         </div>
@@ -904,16 +1343,20 @@ export function ParticipantsReportPage() {
                         <h3 className="text-xs font-black text-gray-900 uppercase tracking-[0.2em] border-b border-gray-900 pb-2.5">
                           {sectionNumbers.medications}. Medications
                         </h3>
-                        
+
                         <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm bg-white">
                           <table className="w-full text-left text-xs border-collapse">
                             <thead>
                               <tr className="bg-gray-50 border-b border-gray-200 font-bold text-gray-600 uppercase tracking-wider font-sans">
                                 <th className="px-4 py-3">Medication</th>
                                 <th className="px-4 py-3">Brand Name</th>
-                                <th className="px-4 py-3">Dosage / Instructions</th>
+                                <th className="px-4 py-3">
+                                  Dosage / Instructions
+                                </th>
                                 <th className="px-4 py-3 w-32">Type</th>
-                                <th className="px-4 py-3 w-24 text-center">Status</th>
+                                <th className="px-4 py-3 w-24 text-center">
+                                  Status
+                                </th>
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
@@ -929,13 +1372,18 @@ export function ParticipantsReportPage() {
                                     {med.dosage || '-'}
                                   </td>
                                   <td className="px-4 py-3 text-gray-500 capitalize">
-                                    {med.medication?.medication_type?.medication_type_name || '-'}
+                                    {med.medication?.medication_type
+                                      ?.medication_type_name || '-'}
                                   </td>
                                   <td className="px-4 py-3 text-center">
-                                    <span className={cn(
-                                      "text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border",
-                                      med.is_active ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-gray-100 text-gray-400 border-gray-200"
-                                    )}>
+                                    <span
+                                      className={cn(
+                                        'text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border',
+                                        med.is_active
+                                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                          : 'bg-gray-100 text-gray-400 border-gray-200',
+                                      )}
+                                    >
                                       {med.is_active ? 'Active' : 'Inactive'}
                                     </span>
                                   </td>
@@ -943,7 +1391,10 @@ export function ParticipantsReportPage() {
                               ))}
                               {medications.length === 0 && (
                                 <tr>
-                                  <td colSpan={5} className="px-4 py-10 text-center text-gray-400 italic">
+                                  <td
+                                    colSpan={5}
+                                    className="px-4 py-10 text-center text-gray-400 italic"
+                                  >
                                     No registered medications recorded.
                                   </td>
                                 </tr>
@@ -963,19 +1414,32 @@ export function ParticipantsReportPage() {
                         <div className="grid grid-cols-1 gap-4 text-xs">
                           {participant.mental_health_plan && (
                             <div>
-                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">Mental Health Plan</span>
-                              <p className="text-gray-700 leading-relaxed mt-0.5 whitespace-pre-wrap">{participant.mental_health_plan}</p>
+                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                                Mental Health Plan
+                              </span>
+                              <p className="text-gray-700 leading-relaxed mt-0.5 whitespace-pre-wrap">
+                                {participant.mental_health_plan}
+                              </p>
                             </div>
                           )}
                           {participant.medical_plan && (
                             <div>
-                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">Medical Plan</span>
-                              <p className="text-gray-700 leading-relaxed mt-0.5 whitespace-pre-wrap">{participant.medical_plan}</p>
+                              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                                Medical Plan
+                              </span>
+                              <p className="text-gray-700 leading-relaxed mt-0.5 whitespace-pre-wrap">
+                                {participant.medical_plan}
+                              </p>
                             </div>
                           )}
                           <div>
-                            <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">Natural Disaster / Relocation Plan</span>
-                            <p className="text-gray-700 leading-relaxed mt-0.5 whitespace-pre-wrap">{participant.natural_disaster_plan || 'No specific natural disaster plans listed.'}</p>
+                            <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                              Natural Disaster / Relocation Plan
+                            </span>
+                            <p className="text-gray-700 leading-relaxed mt-0.5 whitespace-pre-wrap">
+                              {participant.natural_disaster_plan ||
+                                'No specific natural disaster plans listed.'}
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -987,7 +1451,7 @@ export function ParticipantsReportPage() {
                         <h3 className="text-xs font-black text-gray-900 uppercase tracking-[0.2em] border-b border-gray-900 pb-2.5">
                           {sectionNumbers.contacts}. Contacts
                         </h3>
-                        
+
                         <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm bg-white">
                           <table className="w-full text-left text-xs border-collapse">
                             <thead>
@@ -1007,7 +1471,8 @@ export function ParticipantsReportPage() {
                                     {contact.contact_name}
                                   </td>
                                   <td className="px-4 py-3 text-gray-500 capitalize">
-                                    {contact.contact_type?.contact_type_name || 'Contact'}
+                                    {contact.contact_type?.contact_type_name ||
+                                      'Contact'}
                                   </td>
                                   <td className="px-4 py-3 text-gray-700 font-mono">
                                     {contact.phone || '-'}
@@ -1025,7 +1490,10 @@ export function ParticipantsReportPage() {
                               ))}
                               {contacts.length === 0 && (
                                 <tr>
-                                  <td colSpan={6} className="px-4 py-10 text-center text-gray-400 italic">
+                                  <td
+                                    colSpan={6}
+                                    className="px-4 py-10 text-center text-gray-400 italic"
+                                  >
                                     No contacts listed.
                                   </td>
                                 </tr>
@@ -1042,13 +1510,15 @@ export function ParticipantsReportPage() {
                         <h3 className="text-xs font-black text-gray-900 uppercase tracking-[0.2em] border-b border-gray-900 pb-2.5">
                           {sectionNumbers.documents}. Documents
                         </h3>
-                        
+
                         <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm bg-white">
                           <table className="w-full text-left text-xs border-collapse">
                             <thead>
                               <tr className="bg-gray-50 border-b border-gray-200 font-bold text-gray-600 uppercase tracking-wider font-sans">
                                 <th className="px-4 py-3">Document Name</th>
-                                <th className="px-4 py-3 w-28 text-right">Size</th>
+                                <th className="px-4 py-3 w-28 text-right">
+                                  Size
+                                </th>
                                 <th className="px-4 py-3 w-36">Uploaded On</th>
                                 <th className="px-4 py-3 w-32">Uploaded By</th>
                               </tr>
@@ -1063,16 +1533,25 @@ export function ParticipantsReportPage() {
                                     {formatByteSize(doc.file_size)}
                                   </td>
                                   <td className="px-4 py-3 text-gray-600 font-mono">
-                                    {doc.created_at ? format(new Date(doc.created_at), 'dd MMM yyyy HH:mm') : '-'}
+                                    {doc.created_at
+                                      ? format(
+                                          new Date(doc.created_at),
+                                          'dd MMM yyyy HH:mm',
+                                        )
+                                      : '-'}
                                   </td>
                                   <td className="px-4 py-3 text-gray-500 leading-tight">
-                                    {(doc as any).uploader_info?.staff_name || 'System'}
+                                    {(doc as any).uploader_info?.staff_name ||
+                                      'System'}
                                   </td>
                                 </tr>
                               ))}
                               {documents.length === 0 && (
                                 <tr>
-                                  <td colSpan={4} className="px-4 py-10 text-center text-gray-400 italic">
+                                  <td
+                                    colSpan={4}
+                                    className="px-4 py-10 text-center text-gray-400 italic"
+                                  >
                                     No uploaded documents.
                                   </td>
                                 </tr>
@@ -1089,28 +1568,47 @@ export function ParticipantsReportPage() {
                         <h3 className="text-xs font-black text-gray-900 uppercase tracking-[0.2em] border-b border-gray-900 pb-2.5">
                           {sectionNumbers.shiftNotes}. Shift Notes
                         </h3>
-                        
+
                         <div className="space-y-5">
                           {shiftNotes.slice(0, 10).map((note) => (
-                            <div key={note.id} className="p-4 border border-gray-100 rounded-xl bg-gray-50/50 text-xs space-y-2">
+                            <div
+                              key={note.id}
+                              className="p-4 border border-gray-100 rounded-xl bg-gray-50/50 text-xs space-y-2"
+                            >
                               <div className="flex justify-between items-center gap-2 border-b border-gray-200/50 pb-2 mb-2">
                                 <span className="font-bold text-gray-900">
-                                  Shift: {format(new Date(note.start_date), 'dd MMM yyyy')} ({note.shift_type || 'Day'})
+                                  Shift:{' '}
+                                  {format(
+                                    new Date(note.start_date),
+                                    'dd MMM yyyy',
+                                  )}{' '}
+                                  ({note.shift_type || 'Day'})
                                 </span>
                                 <span className="text-gray-400 font-medium">
-                                  Staff: <span className="font-semibold text-blue-700">{note.staff?.staff_name}</span>
+                                  Staff:{' '}
+                                  <span className="font-semibold text-blue-700">
+                                    {note.staff?.staff_name}
+                                  </span>
                                 </span>
                               </div>
                               {note.shift_summary && (
                                 <div>
-                                  <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">Summary Presentation</span>
-                                  <p className="text-gray-800 leading-relaxed font-medium mt-0.5">"{note.shift_summary}"</p>
+                                  <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                                    Summary Presentation
+                                  </span>
+                                  <p className="text-gray-800 leading-relaxed font-medium mt-0.5">
+                                    "{note.shift_summary}"
+                                  </p>
                                 </div>
                               )}
                               {note.full_note && (
                                 <div className="pt-2 border-t border-gray-100">
-                                  <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">Detailed Care Notes</span>
-                                  <p className="text-gray-700 leading-relaxed italic mt-0.5 whitespace-pre-wrap">"{note.full_note}"</p>
+                                  <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                                    Detailed Care Notes
+                                  </span>
+                                  <p className="text-gray-700 leading-relaxed italic mt-0.5 whitespace-pre-wrap">
+                                    "{note.full_note}"
+                                  </p>
                                 </div>
                               )}
                             </div>
@@ -1130,7 +1628,7 @@ export function ParticipantsReportPage() {
                         <h3 className="text-xs font-black text-gray-900 uppercase tracking-[0.2em] border-b border-gray-900 pb-2.5">
                           {sectionNumbers.activityLog}. Activity Log
                         </h3>
-                        
+
                         <div className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm">
                           <table className="w-full text-left text-xs border-collapse">
                             <thead>
@@ -1145,7 +1643,12 @@ export function ParticipantsReportPage() {
                               {activities.map((act) => (
                                 <tr key={act.id}>
                                   <td className="px-4 py-2.5 text-gray-500 whitespace-nowrap">
-                                    {act.created_at ? format(new Date(act.created_at), 'dd MMM yyyy HH:mm') : '-'}
+                                    {act.created_at
+                                      ? format(
+                                          new Date(act.created_at),
+                                          'dd MMM yyyy HH:mm',
+                                        )
+                                      : '-'}
                                   </td>
                                   <td className="px-4 py-2.5">
                                     <span className="font-bold uppercase tracking-tighter text-indigo-700">
@@ -1162,7 +1665,10 @@ export function ParticipantsReportPage() {
                               ))}
                               {activities.length === 0 && (
                                 <tr>
-                                  <td colSpan={4} className="px-4 py-8 text-center text-gray-400 italic font-sans text-xs">
+                                  <td
+                                    colSpan={4}
+                                    className="px-4 py-8 text-center text-gray-400 italic font-sans text-xs"
+                                  >
                                     No audit history logs recorded.
                                   </td>
                                 </tr>
@@ -1172,22 +1678,22 @@ export function ParticipantsReportPage() {
                         </div>
                       </div>
                     )}
-
                   </div>
                 </PrintableReport>
               ) : (
                 <div className="flex flex-col items-center justify-center min-h-[500px] bg-white rounded-xl border border-gray-200 shadow-sm p-8">
                   <UsersIcon className="size-16 text-gray-300 animate-pulse mb-4" />
-                  <h3 className="text-lg font-bold text-gray-800 font-sans">No Participant Selected</h3>
+                  <h3 className="text-lg font-bold text-gray-800 font-sans">
+                    No Participant Selected
+                  </h3>
                   <p className="text-sm text-gray-500 font-sans text-center max-w-sm mt-1">
-                    Select a participant from the criteria sidebar to compile and preview their clinical report.
+                    Select a participant from the criteria sidebar to compile
+                    and preview their clinical report.
                   </p>
                 </div>
               )}
             </div>
-
           </div>
-
         </div>
       </div>
     </Container>

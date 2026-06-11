@@ -58,7 +58,7 @@ export const TABLES = {
   TIMESHEETS: 'ic_timesheets',
   LEAVE_REQUESTS: 'ic_leave_requests',
   CHECKLIST_SCHEDULES: 'ic_checklist_schedules',
-  
+
   // Master Lists
   MEDICATIONS_MASTER: 'ic_medications_master',
   MEDICATION_TYPES_MASTER: 'ic_medication_types_master',
@@ -77,7 +77,7 @@ export const TABLES = {
   RESTRICTIVE_PRACTICE_TYPES_MASTER: 'ic_restrictive_practice_types_master',
   COMPLIANCE_TYPES_MASTER: 'ic_compliance_types_master',
   ID_DOCUMENT_TYPES: 'ic_id_document_types',
-  
+
   // Enums (PostgreSQL Enums don't need 'ic_' prefix in queries but might be useful to track)
   SHIFT_PERIOD_ENUM: 'ic_shift_period_enum',
   STATUS_ENUM: 'ic_status_enum',
@@ -90,4 +90,4 @@ export const TABLES = {
   REPORT_PREFERENCES: 'ic_report_preferences',
 } as const;
 
-export type TableName = typeof TABLES[keyof typeof TABLES];
+export type TableName = (typeof TABLES)[keyof typeof TABLES];

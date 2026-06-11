@@ -2,7 +2,7 @@ import { TABLES } from './db-tables';
 
 /**
  * Centralized Supabase .select() query strings (Views).
- * 
+ *
  * Rules:
  * 1. Always use the TABLES constant for join aliases to ensure consistency.
  * 2. Use explicit foreign key hints (e.g., !created_by) to prevent ambiguity.
@@ -230,7 +230,8 @@ export const STAFF_VIEWS = {
   /**
    * View for staff training records.
    */
-  TRAINING: 'id, staff_id, title, category, description, provider, date_completed, expiry_date, file_path, created_at, updated_at',
+  TRAINING:
+    'id, staff_id, title, category, description, provider, date_completed, expiry_date, file_path, created_at, updated_at',
 
   /**
    * View for staff documents.
@@ -454,7 +455,6 @@ export const CHECKLIST_VIEWS = {
   `,
 } as const;
 
-
 export const SHIFT_NOTE_VIEWS = {
   /**
    * Comprehensive shift note view with all relations.
@@ -623,11 +623,12 @@ export const MASTER_LIST_VIEWS = {
    * View for simple master lists (Name + Timestamps).
    */
   STANDARD: 'id, name, created_at, updated_at',
-  
+
   /**
    * View for contact types.
    */
-  CONTACT_TYPES: 'id, contact_type_name, is_active, created_by, updated_by, created_at, updated_at',
+  CONTACT_TYPES:
+    'id, contact_type_name, is_active, created_by, updated_by, created_at, updated_at',
 
   /**
    * View for employment types.
@@ -637,7 +638,8 @@ export const MASTER_LIST_VIEWS = {
   /**
    * View for departments.
    */
-  DEPARTMENTS: 'id, department_name, description, status, created_at, updated_at',
+  DEPARTMENTS:
+    'id, department_name, description, status, created_at, updated_at',
 
   /**
    * View for funding sources.
@@ -652,7 +654,8 @@ export const MASTER_LIST_VIEWS = {
   /**
    * View for compliance types.
    */
-  COMPLIANCE_TYPES: 'id, compliance_name, description, is_active, attachment_applicable, expiry_date_applicable, document_number_applicable, comments_applicable, created_at, updated_at',
+  COMPLIANCE_TYPES:
+    'id, compliance_name, description, is_active, attachment_applicable, expiry_date_applicable, document_number_applicable, comments_applicable, created_at, updated_at',
 } as const;
 
 export const CALENDAR_VIEWS = {
@@ -739,7 +742,7 @@ export const MISC_VIEWS = {
    * View for current shift checks.
    */
   CURRENT_SHIFT: `id, staff_id, house_id, start_date, start_time, end_date, end_time, house:${TABLES.HOUSES}!house_id(id, house_name)`,
-  
+
   /**
    * View for staff by role list.
    */

@@ -1,8 +1,8 @@
 import { renderWithProviders, screen, waitFor } from '@/test/test-utils';
-import { ViewShiftDialog } from './view-shift-dialog';
+import { describe, expect, it, vi } from 'vitest';
 import { StaffShiftNoteDialog } from './staff-shift-note-dialog';
-import { describe, it, expect, vi } from 'vitest';
 import { StaffShift } from './use-roster-data';
+import { ViewShiftDialog } from './view-shift-dialog';
 
 // Mock Supabase
 vi.mock('@/lib/supabase', () => ({
@@ -11,14 +11,16 @@ vi.mock('@/lib/supabase', () => ({
       select: vi.fn(() => ({
         eq: vi.fn(() => ({
           eq: vi.fn(() => ({
-            maybeSingle: vi.fn(() => Promise.resolve({ data: null, error: null }))
+            maybeSingle: vi.fn(() =>
+              Promise.resolve({ data: null, error: null }),
+            ),
           })),
-          order: vi.fn(() => Promise.resolve({ data: [], error: null }))
+          order: vi.fn(() => Promise.resolve({ data: [], error: null })),
         })),
         order: vi.fn(() => Promise.resolve({ data: [], error: null })),
-      }))
-    }))
-  }
+      })),
+    })),
+  },
 }));
 
 const mockShift: StaffShift = {
@@ -34,40 +36,38 @@ const mockShift: StaffShift = {
   house: { id: 'house-1', house_name: 'Alpha House' },
   participants: [{ id: 'p-1', participant_name: 'John Doe' }],
   assigned_checklists: [
-    { 
-      id: 'cl-1', 
-      checklist_id: 'template-1', 
+    {
+      id: 'cl-1',
+      checklist_id: 'template-1',
       assignment_title: 'Morning Routine',
-      items: [{ id: 'item-1', title: 'Medication' }]
-    }
-  ]
+      items: [{ id: 'item-1', title: 'Medication' }],
+    },
+  ],
 };
 
 describe('Roster Dialogs Smoke Tests', () => {
   it('renders ViewShiftDialog without crashing', async () => {
     renderWithProviders(
-      <ViewShiftDialog 
-        open={true} 
-        onOpenChange={() => {}} 
-        shift={mockShift} 
-      />
+      <ViewShiftDialog open={true} onOpenChange={() => {}} shift={mockShift} />,
     );
     await waitFor(() => {
       expect(screen.getByText(/08:00 – 16:00/i)).toBeInTheDocument();
       // Use getAllByText because it appears in sr-only description and location section
       expect(screen.getAllByText(/Alpha House/i)[0]).toBeInTheDocument();
-      expect(screen.getByText(/Instructions from Scheduler/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Instructions from Scheduler/i),
+      ).toBeInTheDocument();
       expect(screen.getByText(/Morning Routine/i)).toBeInTheDocument();
     });
   });
 
   it('renders StaffShiftNoteDialog without crashing', async () => {
     renderWithProviders(
-      <StaffShiftNoteDialog 
-        open={true} 
-        onOpenChange={() => {}} 
-        shift={mockShift} 
-      />
+      <StaffShiftNoteDialog
+        open={true}
+        onOpenChange={() => {}}
+        shift={mockShift}
+      />,
     );
     await waitFor(() => {
       expect(screen.getByText(/Write Shift Note/i)).toBeInTheDocument();

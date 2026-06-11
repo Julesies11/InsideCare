@@ -1,7 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
 import { participantsApi } from '@/api/participants.api';
-import { STATUS } from '@/config/enums';
 import { ParticipantListItem } from '@/models/participant';
+import { useQuery } from '@tanstack/react-query';
+import { STATUS } from '@/config/enums';
 
 export function useHouseParticipants(houseId?: string) {
   const query = useQuery({

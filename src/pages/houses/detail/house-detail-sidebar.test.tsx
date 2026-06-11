@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
 import { renderWithProviders, screen } from '@/test/test-utils';
+import { describe, expect, it } from 'vitest';
 import { HouseDetailSidebar } from './house-detail-sidebar';
 
 describe('HouseDetailSidebar', () => {

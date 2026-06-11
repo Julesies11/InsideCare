@@ -1,6 +1,6 @@
-import { supabase } from '@/lib/supabase';
-import { TABLES } from '@/config/db-tables';
 import { Database } from '@/models/database.types';
+import { TABLES } from '@/config/db-tables';
+import { supabase } from '@/lib/supabase';
 
 /**
  * Data Access Layer (DAL) for House Shift Templates.
@@ -27,10 +27,11 @@ export const shiftTemplatesApi = {
     const types = await this.list(houseId);
     if (!types.length) return { types: [], defaults: [] };
 
-    const typeIds = types.map(t => t.id);
+    const typeIds = types.map((t) => t.id);
     const { data: defaults, error } = await supabase
       .from(TABLES.SHIFT_TEMPLATE_DEFAULT_CHECKLISTS)
-      .select(`
+      .select(
+        `
         *,
         checklist:${TABLES.HOUSE_CHECKLISTS}(
           id, 
@@ -38,14 +39,15 @@ export const shiftTemplatesApi = {
           description, 
           items:${TABLES.HOUSE_CHECKLIST_ITEMS}(id, title, sort_order)
         )
-      `)
+      `,
+      )
       .in('shift_template_id', typeIds);
 
     if (error) throw error;
 
     return {
       types,
-      defaults: defaults || []
+      defaults: defaults || [],
     };
   },
 
@@ -54,7 +56,7 @@ export const shiftTemplatesApi = {
    */
   async upsert(payload: any, id?: string) {
     const { default_checklists, ...dbPayload } = payload;
-    
+
     let result;
     if (id) {
       const { data, error } = await supabase
@@ -106,10 +108,12 @@ export const shiftTemplatesApi = {
     if (checklistIds.length > 0) {
       const { error } = await supabase
         .from(TABLES.SHIFT_TEMPLATE_DEFAULT_CHECKLISTS)
-        .insert(checklistIds.map(clId => ({
-          shift_template_id: templateId,
-          checklist_id: clId
-        })));
+        .insert(
+          checklistIds.map((clId) => ({
+            shift_template_id: templateId,
+            checklist_id: clId,
+          })),
+        );
       if (error) throw error;
     }
   },
@@ -126,14 +130,14 @@ export const shiftTemplatesApi = {
     if (error) throw error;
     if (!sourceTemplates?.length) return 0;
 
-    const toInsert = sourceTemplates.map(st => ({
+    const toInsert = sourceTemplates.map((st) => ({
       ...st,
       id: undefined,
       house_id: targetHouseId,
       created_at: undefined,
       updated_at: undefined,
       created_by: undefined,
-      updated_by: undefined
+      updated_by: undefined,
     }));
 
     const { data: newTemplates, error: insertError } = await supabase
@@ -143,5 +147,5 @@ export const shiftTemplatesApi = {
 
     if (insertError) throw insertError;
     return newTemplates?.length || 0;
-  }
+  },
 };

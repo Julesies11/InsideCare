@@ -14,9 +14,11 @@ export interface UseFormValidationReturn {
 }
 
 export function useFormValidation(
-  options?: UseFormValidationOptions
+  options?: UseFormValidationOptions,
 ): UseFormValidationReturn {
-  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [validationErrors, setValidationErrors] = useState<
+    Record<string, string>
+  >({});
 
   const setFieldError = (field: string, error: string) => {
     setValidationErrors((prev) => ({ ...prev, [field]: error }));

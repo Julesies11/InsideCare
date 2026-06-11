@@ -1,18 +1,26 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 /**
  * Comprehensive tests for RBAC Enforcement and UI Visibility.
  */
 test.describe('RBAC Comprehensive', () => {
-
-  test('Admin has full access to management tools', async ({ browser, viewport }) => {
-    const context = await browser.newContext({ storageState: 'playwright/.auth/admin.json', viewport });
+  test('Admin has full access to management tools', async ({
+    browser,
+    viewport,
+  }) => {
+    const context = await browser.newContext({
+      storageState: 'playwright/.auth/admin.json',
+      viewport,
+    });
     const page = await context.newPage();
 
     await page.goto('/');
 
     // On mobile, open the sidebar drawer first
-    const mobileToggle = page.locator('header button').filter({ has: page.locator('svg') }).first();
+    const mobileToggle = page
+      .locator('header button')
+      .filter({ has: page.locator('svg') })
+      .first();
     if (await mobileToggle.isVisible({ timeout: 3000 })) {
       await mobileToggle.click({ force: true });
       await page.waitForTimeout(500);
@@ -33,8 +41,10 @@ test.describe('RBAC Comprehensive', () => {
 
     // Check for Archive buttons in Participant list
     await page.goto('/participants/profiles');
-    await expect(page.getByText(/Loading participants/i)).not.toBeVisible({ timeout: 30000 });
-    
+    await expect(page.getByText(/Loading participants/i)).not.toBeVisible({
+      timeout: 30000,
+    });
+
     const firstRow = page.locator('table tbody tr').first();
     if (await firstRow.isVisible()) {
       // Admin should see an archive button
@@ -45,8 +55,14 @@ test.describe('RBAC Comprehensive', () => {
     await context.close();
   });
 
-  test('Staff is restricted from management tools', async ({ browser, viewport }) => {
-    const context = await browser.newContext({ storageState: 'playwright/.auth/staff.json', viewport });
+  test('Staff is restricted from management tools', async ({
+    browser,
+    viewport,
+  }) => {
+    const context = await browser.newContext({
+      storageState: 'playwright/.auth/staff.json',
+      viewport,
+    });
     const page = await context.newPage();
 
     await page.goto('/');
@@ -61,7 +77,9 @@ test.describe('RBAC Comprehensive', () => {
 
     // Check for Archive buttons in Participant list - Staff should NOT see them
     await page.goto('/participants/profiles');
-    await expect(page.getByText(/Loading participants/i)).not.toBeVisible({ timeout: 30000 });
+    await expect(page.getByText(/Loading participants/i)).not.toBeVisible({
+      timeout: 30000,
+    });
 
     const firstRow = page.locator('table tbody tr').first();
     if (await firstRow.isVisible()) {
@@ -72,8 +90,14 @@ test.describe('RBAC Comprehensive', () => {
     await context.close();
   });
 
-  test('Public user is redirected to Sign In', async ({ browser, viewport }) => {
-    const context = await browser.newContext({ storageState: { cookies: [], origins: [] }, viewport });
+  test('Public user is redirected to Sign In', async ({
+    browser,
+    viewport,
+  }) => {
+    const context = await browser.newContext({
+      storageState: { cookies: [], origins: [] },
+      viewport,
+    });
     const page = await context.newPage();
 
     await page.goto('/my-dashboard');
@@ -85,20 +109,30 @@ test.describe('RBAC Comprehensive', () => {
     await context.close();
   });
 
-  test('Read-only access hides action buttons (Simulation via Admin on non-editable resource)', async ({ browser, viewport }) => {
+  test('Read-only access hides action buttons (Simulation via Admin on non-editable resource)', async ({
+    browser,
+    viewport,
+  }) => {
     // This is a placeholder for testing actual 'read_only' level if we had a session for it.
-    // For now, we verify that on a page where a user has permission but maybe not "Edit" rights, 
+    // For now, we verify that on a page where a user has permission but maybe not "Edit" rights,
     // the UI adapts correctly.
-    
-    const context = await browser.newContext({ storageState: 'playwright/.auth/staff.json', viewport });
+
+    const context = await browser.newContext({
+      storageState: 'playwright/.auth/staff.json',
+      viewport,
+    });
     const page = await context.newPage();
 
     await page.goto('/participants/profiles');
-    await expect(page.getByText(/Loading participants/i)).not.toBeVisible({ timeout: 30000 });
+    await expect(page.getByText(/Loading participants/i)).not.toBeVisible({
+      timeout: 30000,
+    });
 
     // Staff might have 'context_read_write' or 'context_read_only'.
     // If they have read-only, they shouldn't see "Add Participant" button.
-    const addParticipantBtn = page.getByRole('button', { name: /Add Participant/i });
+    const addParticipantBtn = page.getByRole('button', {
+      name: /Add Participant/i,
+    });
     // In our app, Staff usually don't have permission to add participants at the global level.
     await expect(addParticipantBtn).not.toBeVisible();
 

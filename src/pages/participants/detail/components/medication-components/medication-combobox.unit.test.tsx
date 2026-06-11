@@ -1,9 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { MedicationCombobox } from './medication-combobox';
-import { useMedicationsMaster } from '@/hooks/use-medications-master';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { useMedicationsMaster } from '@/hooks/use-medications-master';
+import { MedicationCombobox } from './medication-combobox';
 
 // Mock the hook
 vi.mock('@/hooks/use-medications-master', () => ({
@@ -21,9 +21,24 @@ const wrapper = ({ children }: { children: ReactNode }) => (
 );
 
 const mockMedications = [
-  { id: 'm1', medication_name: 'Med 1', brand_name: 'Brand 1', is_active: true },
-  { id: 'm2', medication_name: 'Med 2', brand_name: 'Brand 2', is_active: false },
-  { id: 'm3', medication_name: 'Med 3', brand_name: 'Brand 3', is_active: true },
+  {
+    id: 'm1',
+    medication_name: 'Med 1',
+    brand_name: 'Brand 1',
+    is_active: true,
+  },
+  {
+    id: 'm2',
+    medication_name: 'Med 2',
+    brand_name: 'Brand 2',
+    is_active: false,
+  },
+  {
+    id: 'm3',
+    medication_name: 'Med 3',
+    brand_name: 'Brand 3',
+    is_active: true,
+  },
 ];
 
 describe('MedicationCombobox', () => {
@@ -39,7 +54,7 @@ describe('MedicationCombobox', () => {
     render(
       <QueryClientProvider client={queryClient}>
         <MedicationCombobox value="" onChange={() => {}} canEdit={true} />
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     // Open the combobox
@@ -57,7 +72,7 @@ describe('MedicationCombobox', () => {
     render(
       <QueryClientProvider client={queryClient}>
         <MedicationCombobox value="m2" onChange={() => {}} canEdit={true} />
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     const trigger = screen.getByRole('combobox');
@@ -73,7 +88,7 @@ describe('MedicationCombobox', () => {
     render(
       <QueryClientProvider client={queryClient}>
         <MedicationCombobox value="" onChange={() => {}} canEdit={true} />
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     expect(useMedicationsMaster).toHaveBeenCalledWith(0, 1000);

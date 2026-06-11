@@ -1,10 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import React from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook, waitFor } from '@testing-library/react';
-import { useAdminAuthStatus } from './use-auth-status';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { supabase } from '@/lib/supabase';
 import { useRBAC } from '@/hooks/useRBAC';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import React from 'react';
+import { useAdminAuthStatus } from './use-auth-status';
 
 // Mock dependencies
 vi.mock('@/lib/supabase', () => ({
@@ -77,7 +77,9 @@ describe('useAdminAuthStatus', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(result.current.data).toEqual(mockData);
-    expect(supabase.functions.invoke).toHaveBeenCalledWith('ic-admin-auth-status');
+    expect(supabase.functions.invoke).toHaveBeenCalledWith(
+      'ic-admin-auth-status',
+    );
   });
 
   it('should handle errors from the edge function', async () => {

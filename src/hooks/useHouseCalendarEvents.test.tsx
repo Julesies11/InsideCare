@@ -1,21 +1,22 @@
-import { describe, it, expect } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
-import { useHouseCalendarEvents } from './useHouseCalendarEvents';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactNode, ReactElement } from 'react';
-import { http, HttpResponse } from 'msw';
+import { ReactElement, ReactNode } from 'react';
 import { server } from '@/test/mocks/server';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { renderHook, waitFor } from '@testing-library/react';
+import { http, HttpResponse } from 'msw';
+import { describe, expect, it } from 'vitest';
 import { TABLES } from '@/config/db-tables';
+import { useHouseCalendarEvents } from './useHouseCalendarEvents';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
-const createTestQueryClient = () => new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
+const createTestQueryClient = () =>
+  new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
     },
-  },
-});
+  });
 
 const wrapper = ({ children }: { children: ReactNode }): ReactElement => (
   <QueryClientProvider client={createTestQueryClient()}>
@@ -26,41 +27,52 @@ const wrapper = ({ children }: { children: ReactNode }): ReactElement => (
 describe('useHouseCalendarEvents Integration', () => {
   it('should intelligently map event types based on title and checklist flag', async () => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSE_CALENDAR_EVENTS}`, () => {
-        return HttpResponse.json([
-          { 
-            id: 'evt-1', 
-            title: 'Team Meeting', 
-            is_checklist_event: false,
-            type: { event_type_name: 'Meeting' }
-          },
-          { 
-            id: 'evt-2', 
-            title: 'Doctor Appointment', 
-            is_checklist_event: false,
-            type: { event_type_name: 'Appointment' }
-          },
-          { 
-            id: 'cl-1', 
-            title: 'Evening Checklist', 
-            is_checklist_event: true
-          },
-        ]);
-      }),
+      http.get(
+        `${SUPABASE_URL}/rest/v1/${TABLES.HOUSE_CALENDAR_EVENTS}`,
+        () => {
+          return HttpResponse.json([
+            {
+              id: 'evt-1',
+              title: 'Team Meeting',
+              is_checklist_event: false,
+              type: { event_type_name: 'Meeting' },
+            },
+            {
+              id: 'evt-2',
+              title: 'Doctor Appointment',
+              is_checklist_event: false,
+              type: { event_type_name: 'Appointment' },
+            },
+            {
+              id: 'cl-1',
+              title: 'Evening Checklist',
+              is_checklist_event: true,
+            },
+          ]);
+        },
+      ),
       http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF_SHIFTS}`, () => {
         return HttpResponse.json([]);
-      })
+      }),
     );
 
-    const { result } = renderHook(() => useHouseCalendarEvents('house-1'), { wrapper });
+    const { result } = renderHook(() => useHouseCalendarEvents('house-1'), {
+      wrapper,
+    });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
     expect(result.current.houseCalendarEvents).toHaveLength(3);
-    
-    const meeting = result.current.houseCalendarEvents.find(e => e.id === 'evt-1');
-    const appointment = result.current.houseCalendarEvents.find(e => e.id === 'evt-2');
-    const checklist = result.current.houseCalendarEvents.find(e => e.id === 'cl-1');
+
+    const meeting = result.current.houseCalendarEvents.find(
+      (e) => e.id === 'evt-1',
+    );
+    const appointment = result.current.houseCalendarEvents.find(
+      (e) => e.id === 'evt-2',
+    );
+    const checklist = result.current.houseCalendarEvents.find(
+      (e) => e.id === 'cl-1',
+    );
 
     expect(meeting?.type).toBe('meeting');
     expect(appointment?.type).toBe('appointment');
@@ -69,16 +81,19 @@ describe('useHouseCalendarEvents Integration', () => {
 
   it('should EXCLUDE shifts even if they are returned by the legacy API (Sanity Check)', async () => {
     server.use(
-      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSE_CALENDAR_EVENTS}`, () => {
-        return HttpResponse.json([
-          { 
-            id: 'evt-1', 
-            title: 'Team Meeting', 
-            is_checklist_event: false,
-            event_type_info: { event_type_name: 'Meeting' }
-          }
-        ]);
-      }),
+      http.get(
+        `${SUPABASE_URL}/rest/v1/${TABLES.HOUSE_CALENDAR_EVENTS}`,
+        () => {
+          return HttpResponse.json([
+            {
+              id: 'evt-1',
+              title: 'Team Meeting',
+              is_checklist_event: false,
+              event_type_info: { event_type_name: 'Meeting' },
+            },
+          ]);
+        },
+      ),
       http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF_SHIFTS}`, () => {
         return HttpResponse.json([
           {
@@ -87,18 +102,24 @@ describe('useHouseCalendarEvents Integration', () => {
             start_time: '08:00',
             end_time: '16:00',
             staff_id: 's1',
-            shift_template: 'Morning'
-          }
+            shift_template: 'Morning',
+          },
         ]);
-      })
+      }),
     );
 
-    const { result } = renderHook(() => useHouseCalendarEvents('house-1'), { wrapper });
+    const { result } = renderHook(() => useHouseCalendarEvents('house-1'), {
+      wrapper,
+    });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
     // Should only contain the 1 event, and NO shifts
     expect(result.current.houseCalendarEvents).toHaveLength(1);
-    expect(result.current.houseCalendarEvents.find(e => e.id?.toString().includes('shift'))).toBeUndefined();
+    expect(
+      result.current.houseCalendarEvents.find((e) =>
+        e.id?.toString().includes('shift'),
+      ),
+    ).toBeUndefined();
   });
 });

@@ -1,9 +1,9 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import { IncidentSummaryReportPage } from './incident-summary-report-page';
-import { SettingsProvider } from '@/providers/settings-provider';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
+import { describe, expect, it, vi } from 'vitest';
+import { SettingsProvider } from '@/providers/settings-provider';
+import { IncidentSummaryReportPage } from './incident-summary-report-page';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -20,7 +20,10 @@ vi.mock('@/auth/context/auth-context', () => ({
 }));
 
 vi.mock('@/hooks/use-incident-reports', () => ({
-  useIncidentReports: () => ({ data: { data: [], count: 0 }, isLoading: false }),
+  useIncidentReports: () => ({
+    data: { data: [], count: 0 },
+    isLoading: false,
+  }),
 }));
 
 vi.mock('@/hooks/use-incident-types-master', () => ({
@@ -45,12 +48,14 @@ describe('IncidentSummaryReportPage Smoke Test', () => {
             <IncidentSummaryReportPage />
           </MemoryRouter>
         </QueryClientProvider>
-      </SettingsProvider>
+      </SettingsProvider>,
     );
-    
+
     // Use querySelector to find the report header text in PrintableReport
-    expect(container.querySelector('h1')?.textContent).toContain('Incident Summary');
-    
+    expect(container.querySelector('h1')?.textContent).toContain(
+      'Incident Summary',
+    );
+
     expect(screen.getByText('Print Report')).toBeInTheDocument();
     expect(screen.getByText('Show Chronology Log')).toBeInTheDocument();
   });

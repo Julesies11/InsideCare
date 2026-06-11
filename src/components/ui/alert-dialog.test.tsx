@@ -1,15 +1,15 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { 
-  AlertDialog, 
-  AlertDialogTrigger, 
-  AlertDialogContent, 
-  AlertDialogHeader, 
-  AlertDialogTitle, 
+import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
-  AlertDialogAction,
-  AlertDialogCancel
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
 } from './alert-dialog';
 
 describe('AlertDialog', () => {
@@ -22,9 +22,9 @@ describe('AlertDialog', () => {
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
           </AlertDialogHeader>
         </AlertDialogContent>
-      </AlertDialog>
+      </AlertDialog>,
     );
-    
+
     expect(screen.getByText('Open Alert')).toBeInTheDocument();
   });
 
@@ -35,21 +35,25 @@ describe('AlertDialog', () => {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
+            <AlertDialogDescription>
+              This action cannot be undone.
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction>Continue</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
-      </AlertDialog>
+      </AlertDialog>,
     );
-    
+
     const trigger = screen.getByText('Open Alert');
     fireEvent.click(trigger);
-    
+
     expect(await screen.findByText('Are you sure?')).toBeInTheDocument();
-    expect(screen.getByText('This action cannot be undone.')).toBeInTheDocument();
+    expect(
+      screen.getByText('This action cannot be undone.'),
+    ).toBeInTheDocument();
     expect(screen.getByText('Cancel')).toBeInTheDocument();
     expect(screen.getByText('Continue')).toBeInTheDocument();
   });
@@ -63,15 +67,17 @@ describe('AlertDialog', () => {
             <AlertDialogTitle>Confirm</AlertDialogTitle>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction onClick={handleAction}>Continue</AlertDialogAction>
+            <AlertDialogAction onClick={handleAction}>
+              Continue
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
-      </AlertDialog>
+      </AlertDialog>,
     );
-    
+
     const continueButton = await screen.findByText('Continue');
     fireEvent.click(continueButton);
-    
+
     expect(handleAction).toHaveBeenCalledTimes(1);
   });
 });

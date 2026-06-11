@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { detectChanges } from '@/lib/activity-logger';
 
 interface UseDetailFormProps<T> {
@@ -40,11 +40,11 @@ export function useDetailForm<T extends Record<string, unknown>>({
   }, [saving, onSavingChange]);
 
   const updateField = useCallback((field: keyof T, value: unknown) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   }, []);
 
   const updateFields = useCallback((updates: Partial<T>) => {
-    setFormData(prev => ({ ...prev, ...updates }));
+    setFormData((prev) => ({ ...prev, ...updates }));
   }, []);
 
   const resetForm = useCallback(() => {
@@ -66,7 +66,7 @@ export function useDetailForm<T extends Record<string, unknown>>({
 
   const handleSave = async () => {
     if (!onSave || !isDirty) return;
-    
+
     setSaving(true);
     try {
       await onSave(changedFields);

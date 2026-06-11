@@ -1,19 +1,22 @@
 import React from 'react';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { ResolvedComplianceItem } from '@/models/compliance.types';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 
 interface ComplianceDetailsFormProps {
   item: ResolvedComplianceItem;
   canEdit: boolean;
-  onFieldChange: (field: 'document_number' | 'expiry_date' | 'comments', value: string) => void;
+  onFieldChange: (
+    field: 'document_number' | 'expiry_date' | 'comments',
+    value: string,
+  ) => void;
 }
 
 export const ComplianceDetailsForm = React.memo(function ComplianceDetailsForm({
   item,
   canEdit,
-  onFieldChange
+  onFieldChange,
 }: ComplianceDetailsFormProps) {
   // Return null if nothing to show
   if (!item.documentNumberApplicable && !item.commentsApplicable) {
@@ -25,7 +28,9 @@ export const ComplianceDetailsForm = React.memo(function ComplianceDetailsForm({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {item.documentNumberApplicable && (
           <div className="space-y-1">
-            <Label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Document Number</Label>
+            <Label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">
+              Document Number
+            </Label>
             <Input
               value={item.docNumber}
               onChange={(e) => onFieldChange('document_number', e.target.value)}
@@ -40,7 +45,9 @@ export const ComplianceDetailsForm = React.memo(function ComplianceDetailsForm({
 
       {item.commentsApplicable && (
         <div className="space-y-1">
-          <Label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Comments</Label>
+          <Label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">
+            Comments
+          </Label>
           <Textarea
             value={item.comments}
             onChange={(e) => onFieldChange('comments', e.target.value)}

@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import * as dotenv from 'dotenv';
+
 dotenv.config();
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
@@ -9,7 +10,7 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 async function checkActivity() {
   await supabase.auth.signInWithPassword({
     email: 'julian.gibbings+admin@gmail.com',
-    password: 'Password123!'
+    password: 'Password123!',
   });
 
   const { data: latest, error: latestError } = await supabase
@@ -35,7 +36,9 @@ async function checkActivity() {
   if (error) {
     console.error('Log Error:', error.message);
   } else {
-    log.forEach(l => console.log(`[${l.created_at}] ${l.action}: ${l.description}`));
+    log.forEach((l) =>
+      console.log(`[${l.created_at}] ${l.action}: ${l.description}`),
+    );
   }
 }
 

@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { format, addMonths, addWeeks, addDays } from 'date-fns';
-import { RosterCalendarHeader } from '@/components/roster/roster-calendar-header';
 import { StaffRosterCalendar as RosterCalendarView } from '@/pages/roster-board/components/staff-roster-calendar';
-import { LeaveDialog } from '@/components/roster/leave-dialog';
-import { ViewMode } from '@/components/roster/roster-utils';
 import { useQueryClient } from '@tanstack/react-query';
+import { addDays, addMonths, addWeeks, format } from 'date-fns';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { LeaveDialog } from '@/components/roster/leave-dialog';
+import { RosterCalendarHeader } from '@/components/roster/roster-calendar-header';
+import { ViewMode } from '@/components/roster/roster-utils';
 
 interface StaffRosterProps {
   staffId: string;
@@ -16,7 +16,7 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
   const queryClient = useQueryClient();
   const [viewMode, setViewMode] = useState<ViewMode>('week');
   const [currentDate, setCurrentDate] = useState(new Date());
-  
+
   const [showLeaveDialog, setShowLeaveDialog] = useState(false);
   const [selectedLeaveId, setSelectedLeaveId] = useState<string | null>(null);
 
@@ -25,11 +25,11 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
 
   const navigatePeriod = (direction: 'prev' | 'next') => {
     if (viewMode === 'today') {
-      setCurrentDate(prev => addDays(prev, direction === 'next' ? 1 : -1));
+      setCurrentDate((prev) => addDays(prev, direction === 'next' ? 1 : -1));
     } else if (viewMode === 'week') {
-      setCurrentDate(prev => addWeeks(prev, direction === 'next' ? 1 : -1));
+      setCurrentDate((prev) => addWeeks(prev, direction === 'next' ? 1 : -1));
     } else {
-      setCurrentDate(prev => addMonths(prev, direction === 'next' ? 1 : -1));
+      setCurrentDate((prev) => addMonths(prev, direction === 'next' ? 1 : -1));
     }
   };
 
@@ -37,7 +37,9 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
     if (viewMode === 'today') return format(currentDate, 'MMMM d, yyyy');
     if (viewMode === 'week') {
       const weekStart = new Date(currentDate);
-      weekStart.setDate(currentDate.getDate() - ((currentDate.getDay() + 6) % 7));
+      weekStart.setDate(
+        currentDate.getDate() - ((currentDate.getDay() + 6) % 7),
+      );
       const weekEnd = new Date(weekStart);
       weekEnd.setDate(weekStart.getDate() + 6);
       return `${format(weekStart, 'MMM d')} – ${format(weekEnd, 'MMM d, yyyy')}`;

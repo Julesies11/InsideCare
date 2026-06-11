@@ -1,8 +1,13 @@
 import { toast } from 'sonner';
-import { supabase } from '@/lib/supabase';
 import { TABLES } from '@/config/db-tables';
+import { supabase } from '@/lib/supabase';
 
-export type ErrorCategory = 'database' | 'network' | 'auth' | 'validation' | 'unknown';
+export type ErrorCategory =
+  | 'database'
+  | 'network'
+  | 'auth'
+  | 'validation'
+  | 'unknown';
 
 interface ErrorOptions {
   category?: ErrorCategory;
@@ -54,7 +59,7 @@ export async function syncOfflineErrors() {
     if (errors.length === 0) return;
 
     const { error } = await supabase.from(TABLES.ERROR_LOGS).insert(errors);
-    
+
     if (!error) {
       localStorage.removeItem(OFFLINE_ERRORS_KEY);
       console.log(`Synced ${errors.length} offline errors`);
@@ -74,10 +79,10 @@ if (typeof window !== 'undefined') {
  * Categorizes errors and provides consistent UI feedback and logging.
  */
 export const handleError = (error: unknown, options: ErrorOptions = {}) => {
-  const { 
-    category = 'unknown', 
-    title = 'An error occurred', 
-    showToast = true, 
+  const {
+    category = 'unknown',
+    title = 'An error occurred',
+    showToast = true,
     logToConsole = true,
     logToDatabase = true,
   } = options;
@@ -95,7 +100,7 @@ export const handleError = (error: unknown, options: ErrorOptions = {}) => {
 
   // 2. Extract user-friendly message
   let message = 'Something went wrong. Please try again.';
-  
+
   if (typeof error === 'string') {
     message = error;
   } else if (err?.message) {
@@ -130,29 +135,36 @@ export const handleError = (error: unknown, options: ErrorOptions = {}) => {
         stack: err?.stack,
       },
       url: typeof window !== 'undefined' ? window.location.href : 'unknown',
-      user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
+      user_agent:
+        typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
       app_version: import.meta.env.VITE_APP_VERSION || '1.0.0', // Using env var if available
     };
 
     // Fire and forget
-    supabase.auth.getUser().then(({ data }) => {
-      payload.user_id = data?.user?.id;
-      
-      if (!navigator.onLine) {
-        saveErrorOffline(payload);
-        return;
-      }
+    supabase.auth
+      .getUser()
+      .then(({ data }) => {
+        payload.user_id = data?.user?.id;
 
-      supabase.from(TABLES.ERROR_LOGS).insert([payload]).then(({ error: insertError }) => {
-        if (insertError) {
-          console.error('Failed to log error to database', insertError);
+        if (!navigator.onLine) {
           saveErrorOffline(payload);
+          return;
         }
+
+        supabase
+          .from(TABLES.ERROR_LOGS)
+          .insert([payload])
+          .then(({ error: insertError }) => {
+            if (insertError) {
+              console.error('Failed to log error to database', insertError);
+              saveErrorOffline(payload);
+            }
+          });
+      })
+      .catch(() => {
+        // If getting user fails, log without user_id
+        saveErrorOffline(payload);
       });
-    }).catch(() => {
-      // If getting user fails, log without user_id
-      saveErrorOffline(payload);
-    });
   }
 
   // 4. Show UI Notification
@@ -170,12 +182,19 @@ export const handleError = (error: unknown, options: ErrorOptions = {}) => {
  * Specifically handles Supabase response errors
  */
 export const handleSupabaseError = (error: unknown, title?: string) => {
-  return handleError(error, { category: 'database', title: title || 'Database Error' });
+  return handleError(error, {
+    category: 'database',
+    title: title || 'Database Error',
+  });
 };
 
 /**
  * Specifically handles validation errors (e.g., from Zod or manual checks)
  */
 export const handleValidationError = (message: string, title?: string) => {
-  return handleError(message, { category: 'validation', title: title || 'Validation Failed', logToDatabase: false });
+  return handleError(message, {
+    category: 'validation',
+    title: title || 'Validation Failed',
+    logToDatabase: false,
+  });
 };

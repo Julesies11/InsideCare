@@ -1,8 +1,8 @@
-import { supabase } from '@/lib/supabase';
 import { TABLES } from '@/config/db-tables';
+import { supabase } from '@/lib/supabase';
 
 // Define strict types for all supported notifications to prevent typos
-export type NotificationType = 
+export type NotificationType =
   | 'timesheet_approved'
   | 'timesheet_rejected'
   | 'timesheet_submitted'
@@ -36,7 +36,14 @@ export const NotificationService = {
   /**
    * Base method to insert a notification into the database.
    */
-  async send({ userId, type, title, body, link, metadata }: SendNotificationParams): Promise<void> {
+  async send({
+    userId,
+    type,
+    title,
+    body,
+    link,
+    metadata,
+  }: SendNotificationParams): Promise<void> {
     const { error } = await supabase.from(TABLES.NOTIFICATIONS).insert({
       user_id: userId,
       type,
@@ -56,7 +63,11 @@ export const NotificationService = {
   // Domain-Specific Notification Helpers
   // ---------------------------------------------------------------------------
 
-  async notifyTimesheetApproved(staffUserId: string, dateStr: string, notes?: string) {
+  async notifyTimesheetApproved(
+    staffUserId: string,
+    dateStr: string,
+    notes?: string,
+  ) {
     await this.send({
       userId: staffUserId,
       type: 'timesheet_approved',
@@ -66,7 +77,11 @@ export const NotificationService = {
     });
   },
 
-  async notifyTimesheetRejected(staffUserId: string, dateStr: string, notes?: string) {
+  async notifyTimesheetRejected(
+    staffUserId: string,
+    dateStr: string,
+    notes?: string,
+  ) {
     await this.send({
       userId: staffUserId,
       type: 'timesheet_rejected',
@@ -76,7 +91,11 @@ export const NotificationService = {
     });
   },
 
-  async notifyTimesheetSubmitted(adminUserId: string, staffName: string, dateStr: string) {
+  async notifyTimesheetSubmitted(
+    adminUserId: string,
+    staffName: string,
+    dateStr: string,
+  ) {
     await this.send({
       userId: adminUserId,
       type: 'timesheet_submitted',
@@ -86,27 +105,46 @@ export const NotificationService = {
     });
   },
 
-  async notifyLeaveApproved(staffUserId: string, dateRangeStr: string, leaveType: string, notes?: string) {
+  async notifyLeaveApproved(
+    staffUserId: string,
+    dateRangeStr: string,
+    leaveType: string,
+    notes?: string,
+  ) {
     await this.send({
       userId: staffUserId,
       type: 'leave_approved',
       title: 'Leave Request Approved',
-      body: notes || `Your ${leaveType} request (${dateRangeStr}) has been approved.`,
+      body:
+        notes ||
+        `Your ${leaveType} request (${dateRangeStr}) has been approved.`,
       link: '/my-leave',
     });
   },
 
-  async notifyLeaveRejected(staffUserId: string, dateRangeStr: string, leaveType: string, notes?: string) {
+  async notifyLeaveRejected(
+    staffUserId: string,
+    dateRangeStr: string,
+    leaveType: string,
+    notes?: string,
+  ) {
     await this.send({
       userId: staffUserId,
       type: 'leave_rejected',
       title: 'Leave Request Rejected',
-      body: notes || `Your ${leaveType} request (${dateRangeStr}) has been rejected.`,
+      body:
+        notes ||
+        `Your ${leaveType} request (${dateRangeStr}) has been rejected.`,
       link: '/my-leave',
     });
   },
 
-  async notifyLeaveSubmitted(adminUserId: string, staffName: string, dateRangeStr: string, leaveType: string) {
+  async notifyLeaveSubmitted(
+    adminUserId: string,
+    staffName: string,
+    dateRangeStr: string,
+    leaveType: string,
+  ) {
     await this.send({
       userId: adminUserId,
       type: 'leave_submitted',
@@ -120,7 +158,11 @@ export const NotificationService = {
   // Shift Alerts
   // ---------------------------------------------------------------------------
 
-  async notifyShiftAssigned(staffUserId: string, dateStr: string, houseName: string) {
+  async notifyShiftAssigned(
+    staffUserId: string,
+    dateStr: string,
+    houseName: string,
+  ) {
     await this.send({
       userId: staffUserId,
       type: 'shift_assigned',
@@ -130,7 +172,11 @@ export const NotificationService = {
     });
   },
 
-  async notifyShiftModified(staffUserId: string, dateStr: string, houseName: string) {
+  async notifyShiftModified(
+    staffUserId: string,
+    dateStr: string,
+    houseName: string,
+  ) {
     await this.send({
       userId: staffUserId,
       type: 'shift_modified',
@@ -140,7 +186,11 @@ export const NotificationService = {
     });
   },
 
-  async notifyShiftCancelled(staffUserId: string, dateStr: string, houseName: string) {
+  async notifyShiftCancelled(
+    staffUserId: string,
+    dateStr: string,
+    houseName: string,
+  ) {
     await this.send({
       userId: staffUserId,
       type: 'shift_cancelled',
@@ -154,20 +204,26 @@ export const NotificationService = {
   // Clinical Alerts
   // ---------------------------------------------------------------------------
 
-  async notifyClinicalUpdate(staffUserId: string, participantId: string, participantName: string, updateType: 'medication' | 'routine' | 'note') {
+  async notifyClinicalUpdate(
+    staffUserId: string,
+    participantId: string,
+    participantName: string,
+    updateType: 'medication' | 'routine' | 'note',
+  ) {
     const titles = {
       medication: 'Medication Update',
       routine: 'Routine Update',
       note: 'New Important Note',
     };
 
-    const type: NotificationType = updateType === 'medication' ? 'medication_update' : 'routine_update';
-    
+    const type: NotificationType =
+      updateType === 'medication' ? 'medication_update' : 'routine_update';
+
     // Map internal update types to section IDs in the detail page for auto-scrolling
     const sectionMap = {
       medication: 'medications',
       routine: 'medical-routine',
-      note: 'shift_notes'
+      note: 'shift_notes',
     };
 
     await this.send({
@@ -178,28 +234,42 @@ export const NotificationService = {
       link: `/participants/detail/${participantId}`,
       metadata: {
         participantId,
-        tab: sectionMap[updateType]
-      }
+        tab: sectionMap[updateType],
+      },
     });
   },
 
   /**
    * Helper to notify all staff assigned to a specific house about a participant update.
    */
-  async notifyAssignedStaff(houseId: string, participantId: string, participantName: string, updateType: 'medication' | 'routine' | 'note') {
+  async notifyAssignedStaff(
+    houseId: string,
+    participantId: string,
+    participantName: string,
+    updateType: 'medication' | 'routine' | 'note',
+  ) {
     // Fetch staff assigned to this house
     const { data: assignments } = await supabase
       .from(TABLES.HOUSE_STAFF_ASSIGNMENTS)
-      .select('staff:ic_staff!house_staff_assignments_staff_id_fkey(auth_user_id)')
+      .select(
+        'staff:ic_staff!house_staff_assignments_staff_id_fkey(auth_user_id)',
+      )
       .eq('house_id', houseId);
 
     if (assignments && assignments.length > 0) {
       const userIds = assignments
-        .map(a => (a.staff as any)?.auth_user_id)
+        .map((a) => (a.staff as any)?.auth_user_id)
         .filter(Boolean) as string[];
 
       await Promise.all(
-        userIds.map(uid => this.notifyClinicalUpdate(uid, participantId, participantName, updateType))
+        userIds.map((uid) =>
+          this.notifyClinicalUpdate(
+            uid,
+            participantId,
+            participantName,
+            updateType,
+          ),
+        ),
       );
     }
   },
@@ -208,7 +278,12 @@ export const NotificationService = {
   // Compliance Alerts
   // ---------------------------------------------------------------------------
 
-  async notifyComplianceExpiry(userId: string, documentName: string, expiryDateStr: string, isAdmin = false) {
+  async notifyComplianceExpiry(
+    userId: string,
+    documentName: string,
+    expiryDateStr: string,
+    isAdmin = false,
+  ) {
     await this.send({
       userId,
       type: 'compliance_alert',

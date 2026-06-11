@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
+import { useSignedUrl } from '@/hooks/use-signed-url';
 import { Button } from '@/components/ui/button';
 import {
   Tooltip,
@@ -8,7 +9,6 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { ImageInput, ImageInputFile } from './image-input';
-import { useSignedUrl } from '@/hooks/use-signed-url';
 
 interface AvatarInputProps {
   value?: string;
@@ -23,10 +23,15 @@ const sizeClasses = {
   lg: 'size-20',
 };
 
-export function AvatarInput({ value, onChange, size = 'md', bucket = 'staff-photos' }: AvatarInputProps) {
+export function AvatarInput({
+  value,
+  onChange,
+  size = 'md',
+  bucket = 'staff-photos',
+}: AvatarInputProps) {
   // Use useSignedUrl to resolve Supabase URLs or paths
   const { url: signedUrl } = useSignedUrl(bucket, value);
-  
+
   const [avatar, setAvatar] = useState<ImageInputFile[]>([]);
 
   // Update internal state if value prop changes or signed URL is resolved
@@ -44,7 +49,10 @@ export function AvatarInput({ value, onChange, size = 'md', bucket = 'staff-phot
   const handleChange = (selectedAvatar: ImageInputFile[]) => {
     setAvatar(selectedAvatar);
     if (selectedAvatar.length > 0) {
-      onChange(selectedAvatar[0].file || null, selectedAvatar[0].dataURL || null);
+      onChange(
+        selectedAvatar[0].file || null,
+        selectedAvatar[0].dataURL || null,
+      );
     } else {
       onChange(null, null);
     }
@@ -82,7 +90,11 @@ export function AvatarInput({ value, onChange, size = 'md', bucket = 'staff-phot
           )}
           <div className="w-full h-full relative border-2 border-gray-200 rounded-full overflow-hidden bg-gray-100">
             {avatar.length > 0 ? (
-              <img src={avatar[0].dataURL} alt="avatar" className="w-full h-full object-cover" />
+              <img
+                src={avatar[0].dataURL}
+                alt="avatar"
+                className="w-full h-full object-cover"
+              />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-gray-400">
                 <svg

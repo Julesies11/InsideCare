@@ -1,16 +1,15 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { ActivityLogTable } from './activity-log-table';
-import { useSearchParams } from 'react-router';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { MemoryRouter } from 'react-router';
 import React from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter, useSearchParams } from 'react-router';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { ActivityLogTable } from './activity-log-table';
 
 // Mock dependencies
 vi.mock('react-router', async () => {
   const actual = await vi.importActual('react-router');
   return {
-    ...actual as any,
+    ...(actual as any),
     useSearchParams: vi.fn(),
   };
 });
@@ -41,9 +40,7 @@ const queryClient = new QueryClient({
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
   <QueryClientProvider client={queryClient}>
-    <MemoryRouter>
-      {children}
-    </MemoryRouter>
+    <MemoryRouter>{children}</MemoryRouter>
   </QueryClientProvider>
 );
 
@@ -52,7 +49,10 @@ describe('ActivityLogTable URL Sync', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (useSearchParams as any).mockReturnValue([new URLSearchParams(), setSearchParams]);
+    (useSearchParams as any).mockReturnValue([
+      new URLSearchParams(),
+      setSearchParams,
+    ]);
   });
 
   it('should initialize state from URL parameters', async () => {
@@ -68,18 +68,22 @@ describe('ActivityLogTable URL Sync', () => {
     render(<ActivityLogTable />, { wrapper });
 
     // Verify search input value
-    const searchInput = screen.getByPlaceholderText(/Search logs.../i) as HTMLInputElement;
+    const searchInput = screen.getByPlaceholderText(
+      /Search logs.../i,
+    ) as HTMLInputElement;
     expect(searchInput.value).toBe('test-query');
 
     // Verify active tab (this might be harder to query directly, but we can check the useActivityLog call)
     const { useActivityLog } = await import('@/hooks/use-activity-log');
-    expect(useActivityLog).toHaveBeenCalledWith(expect.objectContaining({
-      search: 'test-query',
-      pageIndex: 1, // page 2 is index 1
-      category: 'data_changes',
-      userName: 'John Doe',
-      module: 'employees',
-    }));
+    expect(useActivityLog).toHaveBeenCalledWith(
+      expect.objectContaining({
+        search: 'test-query',
+        pageIndex: 1, // page 2 is index 1
+        category: 'data_changes',
+        userName: 'John Doe',
+        module: 'employees',
+      }),
+    );
   });
 
   it('should update URL when search query changes', async () => {
@@ -93,10 +97,11 @@ describe('ActivityLogTable URL Sync', () => {
         expect.objectContaining({
           toString: expect.any(Function),
         }),
-        { replace: true }
+        { replace: true },
       );
-      
-      const updatedParams = setSearchParams.mock.calls[setSearchParams.mock.calls.length - 1][0];
+
+      const updatedParams =
+        setSearchParams.mock.calls[setSearchParams.mock.calls.length - 1][0];
       expect(updatedParams.get('search')).toBe('new-search');
     });
   });
@@ -112,7 +117,8 @@ describe('ActivityLogTable URL Sync', () => {
     fireEvent.change(searchInput, { target: { value: 'trigger-reset' } });
 
     await waitFor(() => {
-      const updatedParams = setSearchParams.mock.calls[setSearchParams.mock.calls.length - 1][0];
+      const updatedParams =
+        setSearchParams.mock.calls[setSearchParams.mock.calls.length - 1][0];
       expect(updatedParams.get('search')).toBe('trigger-reset');
       expect(updatedParams.get('page')).toBe('1'); // Page 1 is index 0
     });

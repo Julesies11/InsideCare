@@ -8,11 +8,7 @@ interface MobilityProps {
   onFormChange: (field: string, value: any) => void;
 }
 
-export function Mobility({
-  canEdit,
-  formData,
-  onFormChange,
-}: MobilityProps) {
+export function Mobility({ canEdit, formData, onFormChange }: MobilityProps) {
   return (
     <Card className="pb-2.5" id="mobility">
       <CardHeader>
@@ -21,7 +17,9 @@ export function Mobility({
       <CardContent className="grid gap-5">
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <Label className="flex w-full max-w-56">Mobility Support Required</Label>
+            <Label className="flex w-full max-w-56">
+              Mobility Support Required
+            </Label>
             <Textarea
               id="mobility_support"
               value={formData.mobility_support || ''}

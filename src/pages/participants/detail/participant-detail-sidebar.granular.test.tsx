@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react';
-import { ParticipantDetailSidebar } from './participant-detail-sidebar';
-import { useRBAC } from '@/hooks/useRBAC';
-import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { MemoryRouter } from 'react-router';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { useRBAC } from '@/hooks/useRBAC';
+import { ParticipantDetailSidebar } from './participant-detail-sidebar';
 
 // Mock useRBAC
 vi.mock('@/hooks/useRBAC', () => ({
@@ -30,7 +30,7 @@ describe('ParticipantDetailSidebar Granular RBAC', () => {
     render(
       <MemoryRouter>
         <ParticipantDetailSidebar />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     expect(screen.getByText('Personal Details')).toBeInTheDocument();
@@ -50,14 +50,18 @@ describe('ParticipantDetailSidebar Granular RBAC', () => {
   it('hides specific sections when access is denied', () => {
     mockHasAccess.mockImplementation(({ resource }) => {
       // Deny access to Goals and Medications
-      if (resource === 'participant_goals' || resource === 'participant_medications') return false;
+      if (
+        resource === 'participant_goals' ||
+        resource === 'participant_medications'
+      )
+        return false;
       return true;
     });
 
     render(
       <MemoryRouter>
         <ParticipantDetailSidebar />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     expect(screen.getByText('Personal Details')).toBeInTheDocument();
@@ -74,7 +78,7 @@ describe('ParticipantDetailSidebar Granular RBAC', () => {
     render(
       <MemoryRouter>
         <ParticipantDetailSidebar />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     expect(screen.getByText('Personal Details')).toBeInTheDocument();

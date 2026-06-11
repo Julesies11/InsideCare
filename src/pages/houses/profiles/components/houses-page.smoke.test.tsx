@@ -1,8 +1,8 @@
-import { render, screen } from '@testing-library/react';
-import { HousesProfilesContent } from '../houses-basic-content';
-import { vi, describe, it, expect } from 'vitest';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
+import { describe, expect, it, vi } from 'vitest';
+import { HousesProfilesContent } from '../houses-basic-content';
 
 const queryClient = new QueryClient();
 
@@ -28,7 +28,7 @@ describe('HousesProfilesContent Smoke Test', () => {
         <QueryClientProvider client={queryClient}>
           <HousesProfilesContent />
         </QueryClientProvider>
-      </MemoryRouter>
+      </MemoryRouter>,
     );
     expect(screen.getByText(/House Management/i)).toBeInTheDocument();
   });

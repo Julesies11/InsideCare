@@ -24,8 +24,7 @@ export function BrandedLayout() {
           </Card>
         </div>
 
-        <div className="lg:rounded-xl lg:border lg:border-border lg:m-5 order-1 lg:order-2 bg-top xxl:bg-center xl:bg-cover bg-no-repeat branded-bg">
-        </div>
+        <div className="lg:rounded-xl lg:border lg:border-border lg:m-5 order-1 lg:order-2 bg-top xxl:bg-center xl:bg-cover bg-no-repeat branded-bg"></div>
       </div>
     </>
   );

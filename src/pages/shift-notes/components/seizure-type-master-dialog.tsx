@@ -1,18 +1,23 @@
 import { useState } from 'react';
+import { Check, Edit2, Plus, Search, X } from 'lucide-react';
+import {
+  SeizureTypeMaster,
+  useAddSeizureTypeMaster,
+  useSeizureTypesMaster,
+  useUpdateSeizureTypeMaster,
+} from '@/hooks/use-seizure-types-master';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Plus, Edit2, Check, X, Search } from 'lucide-react';
-import { useSeizureTypesMaster, useAddSeizureTypeMaster, useUpdateSeizureTypeMaster, SeizureTypeMaster } from '@/hooks/use-seizure-types-master';
+import { Textarea } from '@/components/ui/textarea';
 
 interface SeizureTypeMasterDialogProps {
   open: boolean;
@@ -34,8 +39,8 @@ export function SeizureTypeMasterDialog({
   const [formData, setFormData] = useState({ name: '', description: '' });
   const [isAdding, setIsAdding] = useState(false);
 
-  const filteredItems = items.filter(item =>
-    item.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredItems = items.filter((item) =>
+    item.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const handleEdit = (item: SeizureTypeMaster) => {
@@ -89,13 +94,18 @@ export function SeizureTypeMasterDialog({
         </DialogHeader>
 
         <div className="p-6 space-y-4 flex-1 overflow-hidden flex flex-col">
-          {(isAdding || editingId) ? (
+          {isAdding || editingId ? (
             <div className="bg-muted/30 p-4 rounded-lg border border-border space-y-4 animate-in fade-in slide-in-from-top-2">
               <div className="flex items-center justify-between">
                 <h4 className="font-medium text-sm">
                   {editingId ? 'Edit Seizure Type' : 'Add New Seizure Type'}
                 </h4>
-                <Button variant="ghost" size="icon" onClick={resetForm} className="size-8">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={resetForm}
+                  className="size-8"
+                >
                   <X className="size-4" />
                 </Button>
               </div>
@@ -105,7 +115,9 @@ export function SeizureTypeMasterDialog({
                   <Input
                     id="type-name"
                     value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
                     placeholder="e.g. Tonic-Clonic, Absence"
                   />
                 </div>
@@ -114,14 +126,22 @@ export function SeizureTypeMasterDialog({
                   <Textarea
                     id="type-desc"
                     value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, description: e.target.value })
+                    }
                     placeholder="Optional description of the seizure type..."
                     rows={2}
                   />
                 </div>
                 <div className="flex justify-end gap-2 pt-2">
-                  <Button variant="outline" size="sm" onClick={resetForm}>Cancel</Button>
-                  <Button size="sm" onClick={handleSave} disabled={!formData.name.trim()}>
+                  <Button variant="outline" size="sm" onClick={resetForm}>
+                    Cancel
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={handleSave}
+                    disabled={!formData.name.trim()}
+                  >
                     {editingId ? 'Update' : 'Save'}
                   </Button>
                 </div>
@@ -142,21 +162,37 @@ export function SeizureTypeMasterDialog({
           <ScrollArea className="flex-1 border rounded-lg">
             <div className="divide-y divide-border">
               {isLoading ? (
-                <div className="p-8 text-center text-muted-foreground text-sm">Loading types...</div>
+                <div className="p-8 text-center text-muted-foreground text-sm">
+                  Loading types...
+                </div>
               ) : filteredItems.length === 0 ? (
                 <div className="p-8 text-center text-muted-foreground text-sm">
-                  {searchQuery ? 'No matching types found.' : 'No seizure types added yet.'}
+                  {searchQuery
+                    ? 'No matching types found.'
+                    : 'No seizure types added yet.'}
                 </div>
               ) : (
                 filteredItems.map((item) => (
-                  <div key={item.id} className="p-4 flex items-center justify-between hover:bg-muted/10 transition-colors">
+                  <div
+                    key={item.id}
+                    className="p-4 flex items-center justify-between hover:bg-muted/10 transition-colors"
+                  >
                     <div className="space-y-0.5">
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-sm">{item.name}</span>
-                        {!item.is_active && <Badge variant="secondary" className="text-[10px] h-4">Inactive</Badge>}
+                        {!item.is_active && (
+                          <Badge
+                            variant="secondary"
+                            className="text-[10px] h-4"
+                          >
+                            Inactive
+                          </Badge>
+                        )}
                       </div>
                       {item.description && (
-                        <p className="text-xs text-muted-foreground line-clamp-1">{item.description}</p>
+                        <p className="text-xs text-muted-foreground line-clamp-1">
+                          {item.description}
+                        </p>
                       )}
                     </div>
                     {canEdit && (
@@ -168,7 +204,11 @@ export function SeizureTypeMasterDialog({
                           onClick={() => handleToggleStatus(item)}
                           title={item.is_active ? 'Deactivate' : 'Activate'}
                         >
-                          {item.is_active ? <X className="size-4 text-destructive" /> : <Check className="size-4 text-primary" />}
+                          {item.is_active ? (
+                            <X className="size-4 text-destructive" />
+                          ) : (
+                            <Check className="size-4 text-primary" />
+                          )}
                         </Button>
                         <Button
                           variant="ghost"

@@ -1,9 +1,9 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import { IncidentManagementPage } from './incident-management-page';
-import { SettingsProvider } from '@/providers/settings-provider';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
+import { describe, expect, it, vi } from 'vitest';
+import { SettingsProvider } from '@/providers/settings-provider';
+import { IncidentManagementPage } from './incident-management-page';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -29,7 +29,10 @@ vi.mock('@/hooks/useRBAC', () => ({
 }));
 
 vi.mock('@/hooks/use-incident-reports', () => ({
-  useIncidentReports: () => ({ data: { data: [], count: 0 }, isLoading: false }),
+  useIncidentReports: () => ({
+    data: { data: [], count: 0 },
+    isLoading: false,
+  }),
   useCreateIncidentReport: () => ({ mutateAsync: vi.fn(), isPending: false }),
   useUpdateIncidentReport: () => ({ mutateAsync: vi.fn(), isPending: false }),
   useIncidentReport: () => ({ data: null, isLoading: false }),
@@ -37,9 +40,9 @@ vi.mock('@/hooks/use-incident-reports', () => ({
 
 // Mock ResizeObserver which is used by some UI components
 global.ResizeObserver = vi.fn().mockImplementation(() => ({
-    observe: vi.fn(),
-    unobserve: vi.fn(),
-    disconnect: vi.fn(),
+  observe: vi.fn(),
+  unobserve: vi.fn(),
+  disconnect: vi.fn(),
 }));
 
 describe('IncidentManagementPage Smoke Test', () => {
@@ -51,9 +54,9 @@ describe('IncidentManagementPage Smoke Test', () => {
             <IncidentManagementPage />
           </MemoryRouter>
         </QueryClientProvider>
-      </SettingsProvider>
+      </SettingsProvider>,
     );
-    
+
     expect(screen.getByText('Incident Management')).toBeInTheDocument();
     expect(screen.getByText('Clinical Safety')).toBeInTheDocument();
     expect(screen.getByText('Lodge New Incident')).toBeInTheDocument();

@@ -1,13 +1,30 @@
-import { useState, useMemo } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
-import { useDepartmentsMaster, useAddDepartmentMaster, useUpdateDepartmentMaster, Department } from '@/hooks/use-departments-master';
-import { DepartmentMasterQuickAdd } from './department-master-quick-add';
+import { useMemo, useState } from 'react';
+import { ArrowDown, ArrowUp, ArrowUpDown, Edit, Plus } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  Department,
+  useAddDepartmentMaster,
+  useDepartmentsMaster,
+  useUpdateDepartmentMaster,
+} from '@/hooks/use-departments-master';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { DepartmentMasterQuickAdd } from './department-master-quick-add';
 
 interface DepartmentMasterDialogProps {
   open: boolean;
@@ -27,7 +44,9 @@ export function DepartmentMasterDialog({
   const { mutateAsync: addDepartment } = useAddDepartmentMaster();
   const { mutateAsync: updateDepartment } = useUpdateDepartmentMaster();
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
+  const [editingDepartment, setEditingDepartment] = useState<Department | null>(
+    null,
+  );
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
@@ -42,9 +61,13 @@ export function DepartmentMasterDialog({
   };
 
   const sortedAndFilteredDepartments = useMemo(() => {
-    const filtered = departments.filter((dept) =>
-      dept.department_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (dept.description && dept.description.toLowerCase().includes(searchQuery.toLowerCase()))
+    const filtered = departments.filter(
+      (dept) =>
+        dept.department_name
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        (dept.description &&
+          dept.description.toLowerCase().includes(searchQuery.toLowerCase())),
     );
 
     filtered.sort((a, b) => {
@@ -80,35 +103,58 @@ export function DepartmentMasterDialog({
   const handleToggleStatus = async (department: Department) => {
     const newStatus = department.status === 'Active' ? 'Inactive' : 'Active';
     try {
-      await updateDepartment({ id: department.id, updates: { status: newStatus } });
-      toast.success(`Department ${newStatus === 'Active' ? 'activated' : 'deactivated'} successfully`);
+      await updateDepartment({
+        id: department.id,
+        updates: { status: newStatus },
+      });
+      toast.success(
+        `Department ${newStatus === 'Active' ? 'activated' : 'deactivated'} successfully`,
+      );
       onUpdate();
     } catch (error) {
       const err = error as Error;
-      toast.error(`Failed to ${newStatus === 'Active' ? 'activate' : 'deactivate'} department: ` + err.message);
+      toast.error(
+        `Failed to ${newStatus === 'Active' ? 'activate' : 'deactivate'} department: ` +
+          err.message,
+      );
     }
   };
 
   const handleSave = async (departmentData: Partial<Department>) => {
     try {
       if (editingDepartment) {
-        await updateDepartment({ id: editingDepartment.id, updates: departmentData });
+        await updateDepartment({
+          id: editingDepartment.id,
+          updates: departmentData,
+        });
         toast.success('Department updated successfully');
       } else {
-        await addDepartment(departmentData as Omit<Department, 'id' | 'created_at' | 'updated_at'>);
+        await addDepartment(
+          departmentData as Omit<
+            Department,
+            'id' | 'created_at' | 'updated_at'
+          >,
+        );
         toast.success('Department added successfully');
       }
       setShowAddDialog(false);
       onUpdate();
     } catch (error) {
       const err = error as Error;
-      toast.error(`Failed to ${editingDepartment ? 'update' : 'add'} department: ` + err.message);
+      toast.error(
+        `Failed to ${editingDepartment ? 'update' : 'add'} department: ` +
+          err.message,
+      );
     }
   };
 
   const getSortIcon = (field: SortField) => {
     if (sortField !== field) return <ArrowUpDown className="size-4" />;
-    return sortDirection === 'asc' ? <ArrowUp className="size-4" /> : <ArrowDown className="size-4" />;
+    return sortDirection === 'asc' ? (
+      <ArrowUp className="size-4" />
+    ) : (
+      <ArrowDown className="size-4" />
+    );
   };
 
   return (
@@ -175,10 +221,18 @@ export function DepartmentMasterDialog({
               <TableBody>
                 {sortedAndFilteredDepartments.map((department) => (
                   <TableRow key={department.id}>
-                    <TableCell className="font-medium">{department.department_name}</TableCell>
+                    <TableCell className="font-medium">
+                      {department.department_name}
+                    </TableCell>
                     <TableCell>{department.description || '-'}</TableCell>
                     <TableCell>
-                      <Badge variant={department.status === 'Active' ? 'success' : 'secondary'}>
+                      <Badge
+                        variant={
+                          department.status === 'Active'
+                            ? 'success'
+                            : 'secondary'
+                        }
+                      >
                         {department.status}
                       </Badge>
                     </TableCell>
@@ -196,7 +250,9 @@ export function DepartmentMasterDialog({
                           size="sm"
                           onClick={() => handleToggleStatus(department)}
                         >
-                          {department.status === 'Active' ? 'Deactivate' : 'Activate'}
+                          {department.status === 'Active'
+                            ? 'Deactivate'
+                            : 'Activate'}
                         </Button>
                       </div>
                     </TableCell>

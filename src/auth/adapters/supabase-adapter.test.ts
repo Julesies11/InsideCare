@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
-import { SupabaseAdapter } from './supabase-adapter';
-import { supabase } from '@/lib/supabase';
+import { beforeEach, describe, expect, it, Mock, vi } from 'vitest';
 import { TABLES } from '@/config/db-tables';
+import { supabase } from '@/lib/supabase';
+import { SupabaseAdapter } from './supabase-adapter';
 
 // Mock the supabase client
 vi.mock('@/lib/supabase', () => ({
@@ -49,10 +49,15 @@ describe('SupabaseAdapter', () => {
       };
 
       // Mock auth.getUser
-      (supabase.auth.getUser as any).mockResolvedValue({ data: { user: mockUser }, error: null });
+      (supabase.auth.getUser as any).mockResolvedValue({
+        data: { user: mockUser },
+        error: null,
+      });
 
       // Mock staff table query
-      const mockMaybeSingle = vi.fn().mockResolvedValue({ data: mockStaff, error: null });
+      const mockMaybeSingle = vi
+        .fn()
+        .mockResolvedValue({ data: mockStaff, error: null });
       const mockEq = vi.fn().mockReturnValue({ maybeSingle: mockMaybeSingle });
       const mockSelect = vi.fn().mockReturnValue({ eq: mockEq });
       (supabase.from as any).mockReturnValue({ select: mockSelect });
@@ -96,10 +101,15 @@ describe('SupabaseAdapter', () => {
         },
       };
 
-      (supabase.auth.getUser as any).mockResolvedValue({ data: { user: mockUser }, error: null });
-      
+      (supabase.auth.getUser as any).mockResolvedValue({
+        data: { user: mockUser },
+        error: null,
+      });
+
       // Mock staff table query returning null
-      const mockMaybeSingle = vi.fn().mockResolvedValue({ data: null, error: null });
+      const mockMaybeSingle = vi
+        .fn()
+        .mockResolvedValue({ data: null, error: null });
       const mockEq = vi.fn().mockReturnValue({ maybeSingle: mockMaybeSingle });
       const mockSelect = vi.fn().mockReturnValue({ eq: mockEq });
       (supabase.from as any).mockReturnValue({ select: mockSelect });
@@ -112,27 +122,40 @@ describe('SupabaseAdapter', () => {
     });
 
     it('should throw error if user is not found', async () => {
-      (supabase.auth.getUser as any).mockResolvedValue({ data: { user: null }, error: new Error('Not found') });
+      (supabase.auth.getUser as any).mockResolvedValue({
+        data: { user: null },
+        error: new Error('Not found'),
+      });
 
-      await expect(SupabaseAdapter.getUserProfile()).rejects.toThrow('Not found');
+      await expect(SupabaseAdapter.getUserProfile()).rejects.toThrow(
+        'Not found',
+      );
     });
   });
 
   describe('updateUserProfile', () => {
     it('should update user metadata and return fresh profile', async () => {
       const updates = { first_name: 'Jane', last_name: 'Smith' };
-      
-      (supabase.auth.updateUser as any).mockResolvedValue({ data: {}, error: null });
-      
+
+      (supabase.auth.updateUser as any).mockResolvedValue({
+        data: {},
+        error: null,
+      });
+
       // Mock getUserProfile after update
       const mockUser = {
         id: 'user-123',
         email: 'test@example.com',
         user_metadata: { first_name: 'Jane', last_name: 'Smith' },
       };
-      (supabase.auth.getUser as any).mockResolvedValue({ data: { user: mockUser }, error: null });
-      
-      const mockMaybeSingle = vi.fn().mockResolvedValue({ data: null, error: null });
+      (supabase.auth.getUser as any).mockResolvedValue({
+        data: { user: mockUser },
+        error: null,
+      });
+
+      const mockMaybeSingle = vi
+        .fn()
+        .mockResolvedValue({ data: null, error: null });
       const mockEq = vi.fn().mockReturnValue({ maybeSingle: mockMaybeSingle });
       const mockSelect = vi.fn().mockReturnValue({ eq: mockEq });
       (supabase.from as any).mockReturnValue({ select: mockSelect });
@@ -149,4 +172,3 @@ describe('SupabaseAdapter', () => {
     });
   });
 });
-;

@@ -1,17 +1,17 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook } from '@testing-library/react';
-import { useMedicationsMaster } from './use-medications-master';
+import { ReactNode } from 'react';
 import { masterListsApi } from '@/api/master-lists.api';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactNode } from 'react';
+import { renderHook } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { useMedicationsMaster } from './use-medications-master';
 
 // Mock dependencies
 vi.mock('@/api/master-lists.api', () => ({
   masterListsApi: {
     medications: {
       list: vi.fn(),
-    }
-  }
+    },
+  },
 }));
 
 const queryClient = new QueryClient({
@@ -31,7 +31,10 @@ describe('useMedicationsMaster hook', () => {
   });
 
   it('should call API with default parameters when no arguments are provided', async () => {
-    (masterListsApi.medications.list as any).mockResolvedValue({ data: [], count: 0 });
+    (masterListsApi.medications.list as any).mockResolvedValue({
+      data: [],
+      count: 0,
+    });
 
     renderHook(() => useMedicationsMaster(), { wrapper });
 
@@ -42,10 +45,18 @@ describe('useMedicationsMaster hook', () => {
   });
 
   it('should call API with 1000 pageSize when requested', async () => {
-    (masterListsApi.medications.list as any).mockResolvedValue({ data: [], count: 0 });
+    (masterListsApi.medications.list as any).mockResolvedValue({
+      data: [],
+      count: 0,
+    });
 
     renderHook(() => useMedicationsMaster(0, 1000), { wrapper });
 
-    expect(masterListsApi.medications.list).toHaveBeenCalledWith(0, 1000, [], {});
+    expect(masterListsApi.medications.list).toHaveBeenCalledWith(
+      0,
+      1000,
+      [],
+      {},
+    );
   });
 });

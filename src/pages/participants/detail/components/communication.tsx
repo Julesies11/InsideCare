@@ -1,7 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface CommunicationProps {
   canEdit: boolean;
@@ -22,10 +28,14 @@ export function Communication({
       <CardContent className="grid gap-5">
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <Label className="flex w-full max-w-56">Preferred Communication Type</Label>
+            <Label className="flex w-full max-w-56">
+              Preferred Communication Type
+            </Label>
             <Select
               value={formData.communication_type || 'verbal'}
-              onValueChange={(value) => onFormChange('communication_type', value)}
+              onValueChange={(value) =>
+                onFormChange('communication_type', value)
+              }
               disabled={!canEdit}
             >
               <SelectTrigger className="w-full">
@@ -41,11 +51,18 @@ export function Communication({
 
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <Label htmlFor="communication_notes" className="flex w-full max-w-56">Communication Type Notes</Label>
+            <Label
+              htmlFor="communication_notes"
+              className="flex w-full max-w-56"
+            >
+              Communication Type Notes
+            </Label>
             <Textarea
               id="communication_notes"
               value={formData.communication_notes || ''}
-              onChange={(e) => onFormChange('communication_notes', e.target.value)}
+              onChange={(e) =>
+                onFormChange('communication_notes', e.target.value)
+              }
               rows={4}
               placeholder="Describe communication type preferences..."
               disabled={!canEdit}
@@ -55,11 +72,18 @@ export function Communication({
 
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <Label htmlFor="communication_language_needs" className="flex w-full max-w-56">Communication & Language Needs</Label>
+            <Label
+              htmlFor="communication_language_needs"
+              className="flex w-full max-w-56"
+            >
+              Communication & Language Needs
+            </Label>
             <Textarea
               id="communication_language_needs"
               value={formData.communication_language_needs || ''}
-              onChange={(e) => onFormChange('communication_language_needs', e.target.value)}
+              onChange={(e) =>
+                onFormChange('communication_language_needs', e.target.value)
+              }
               rows={4}
               placeholder="Describe how to communicate (e.g., firm tone, constant validation, etc.)..."
               disabled={!canEdit}

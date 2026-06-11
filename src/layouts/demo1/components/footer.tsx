@@ -8,7 +8,9 @@ export function Footer() {
       <Container>
         <div className="flex flex-col md:flex-row justify-center items-center gap-3 py-5">
           <div className="flex gap-2 font-normal text-sm">
-            <span className="text-muted-foreground">{currentYear} &copy; InsideCare. All rights reserved.</span>
+            <span className="text-muted-foreground">
+              {currentYear} &copy; InsideCare. All rights reserved.
+            </span>
           </div>
         </div>
       </Container>

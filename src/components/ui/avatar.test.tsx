@@ -1,6 +1,6 @@
-import { describe, it, expect, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
-import { Avatar, AvatarImage, AvatarFallback, AvatarStatus } from './avatar';
+import { describe, expect, it, vi } from 'vitest';
+import { Avatar, AvatarFallback, AvatarImage, AvatarStatus } from './avatar';
 
 describe('Avatar', () => {
   it('renders correctly with an image', async () => {
@@ -20,17 +20,24 @@ describe('Avatar', () => {
 
     render(
       <Avatar>
-        <AvatarImage src="https://example.com/avatar.jpg" alt="User Name" data-testid="avatar-image" />
-      </Avatar>
+        <AvatarImage
+          src="https://example.com/avatar.jpg"
+          alt="User Name"
+          data-testid="avatar-image"
+        />
+      </Avatar>,
     );
-    
+
     // Wait for the image to render
-    await waitFor(() => {
-      const image = screen.getByRole('img');
-      expect(image).toBeInTheDocument();
-      expect(image).toHaveAttribute('src', 'https://example.com/avatar.jpg');
-      expect(image).toHaveAttribute('alt', 'User Name');
-    }, { timeout: 1000 });
+    await waitFor(
+      () => {
+        const image = screen.getByRole('img');
+        expect(image).toBeInTheDocument();
+        expect(image).toHaveAttribute('src', 'https://example.com/avatar.jpg');
+        expect(image).toHaveAttribute('alt', 'User Name');
+      },
+      { timeout: 1000 },
+    );
 
     // Restore original Image
     window.Image = originalImage;
@@ -40,9 +47,9 @@ describe('Avatar', () => {
     render(
       <Avatar>
         <AvatarFallback data-testid="avatar-fallback">UN</AvatarFallback>
-      </Avatar>
+      </Avatar>,
     );
-    
+
     expect(screen.getByTestId('avatar-fallback')).toBeInTheDocument();
     expect(screen.getByText('UN')).toBeInTheDocument();
   });
@@ -52,9 +59,9 @@ describe('Avatar', () => {
       <Avatar>
         <AvatarFallback>U</AvatarFallback>
         <AvatarStatus variant="online" data-testid="avatar-status" />
-      </Avatar>
+      </Avatar>,
     );
-    
+
     const status = screen.getByTestId('avatar-status');
     expect(status).toBeInTheDocument();
     expect(status).toHaveClass('bg-green-600');
@@ -64,16 +71,16 @@ describe('Avatar', () => {
     const { rerender } = render(
       <Avatar>
         <AvatarStatus variant="busy" data-testid="avatar-status" />
-      </Avatar>
+      </Avatar>,
     );
-    
+
     let status = screen.getByTestId('avatar-status');
     expect(status).toHaveClass('bg-yellow-600');
 
     rerender(
       <Avatar>
         <AvatarStatus variant="away" data-testid="avatar-status" />
-      </Avatar>
+      </Avatar>,
     );
     status = screen.getByTestId('avatar-status');
     expect(status).toHaveClass('bg-blue-600');

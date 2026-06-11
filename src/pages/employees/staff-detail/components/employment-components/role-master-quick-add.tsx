@@ -1,11 +1,17 @@
-import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useEffect, useState } from 'react';
+import { Role } from '@/hooks/use-roles';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Role } from '@/hooks/use-roles';
+import { Textarea } from '@/components/ui/textarea';
 
 interface RoleMasterQuickAddProps {
   open: boolean;
@@ -61,7 +67,9 @@ export function RoleMasterQuickAdd({
               <Input
                 id="name"
                 value={formData.role_name}
-                onChange={(e) => setFormData({ ...formData, role_name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, role_name: e.target.value })
+                }
                 placeholder="Role name"
                 required
               />
@@ -72,7 +80,9 @@ export function RoleMasterQuickAdd({
               <Textarea
                 id="description"
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
                 placeholder="Role description"
                 rows={3}
               />
@@ -82,7 +92,9 @@ export function RoleMasterQuickAdd({
               <Switch
                 id="is_active"
                 checked={formData.is_active}
-                onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, is_active: checked })
+                }
               />
               <Label htmlFor="is_active">Role is Active</Label>
             </div>
@@ -92,9 +104,7 @@ export function RoleMasterQuickAdd({
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit">
-              {role ? 'Update' : 'Add'}
-            </Button>
+            <Button type="submit">{role ? 'Update' : 'Add'}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

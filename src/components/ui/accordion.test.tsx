@@ -1,10 +1,10 @@
-import { describe, it, expect } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { 
-  Accordion, 
-  AccordionItem, 
-  AccordionTrigger, 
-  AccordionContent 
+import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
 } from './accordion';
 
 describe('Accordion', () => {
@@ -19,9 +19,9 @@ describe('Accordion', () => {
           <AccordionTrigger>Item 2</AccordionTrigger>
           <AccordionContent>Content 2</AccordionContent>
         </AccordionItem>
-      </Accordion>
+      </Accordion>,
     );
-    
+
     expect(screen.getByText('Item 1')).toBeInTheDocument();
     expect(screen.getByText('Item 2')).toBeInTheDocument();
   });
@@ -33,12 +33,12 @@ describe('Accordion', () => {
           <AccordionTrigger>Toggle Item 1</AccordionTrigger>
           <AccordionContent>Visible Content 1</AccordionContent>
         </AccordionItem>
-      </Accordion>
+      </Accordion>,
     );
-    
+
     const trigger = screen.getByText('Toggle Item 1');
     fireEvent.click(trigger);
-    
+
     expect(await screen.findByText('Visible Content 1')).toBeInTheDocument();
   });
 
@@ -49,9 +49,9 @@ describe('Accordion', () => {
           <AccordionTrigger>Item 1</AccordionTrigger>
           <AccordionContent>Content 1</AccordionContent>
         </AccordionItem>
-      </Accordion>
+      </Accordion>,
     );
-    
+
     let item = screen.getByTestId('accordion-item');
     expect(item).toHaveClass('border');
     expect(item).toHaveClass('rounded-lg');
@@ -62,7 +62,7 @@ describe('Accordion', () => {
           <AccordionTrigger>Item 1</AccordionTrigger>
           <AccordionContent>Content 1</AccordionContent>
         </AccordionItem>
-      </Accordion>
+      </Accordion>,
     );
     item = screen.getByTestId('accordion-item');
     expect(item).toHaveClass('bg-accent/70');
@@ -75,9 +75,9 @@ describe('Accordion', () => {
           <AccordionTrigger>Item 1</AccordionTrigger>
           <AccordionContent>Content 1</AccordionContent>
         </AccordionItem>
-      </Accordion>
+      </Accordion>,
     );
-    
+
     // Check for ChevronDown icon (default for arrow)
     expect(document.querySelector('.lucide-chevron-down')).toBeInTheDocument();
 
@@ -87,7 +87,7 @@ describe('Accordion', () => {
           <AccordionTrigger>Item 1</AccordionTrigger>
           <AccordionContent>Content 1</AccordionContent>
         </AccordionItem>
-      </Accordion>
+      </Accordion>,
     );
     // Check for Plus icon
     expect(document.querySelector('.lucide-plus')).toBeInTheDocument();

@@ -1,13 +1,26 @@
 import { useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { LeaveTypeMaster } from '@/models/leave-type-master';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { LeaveTypeMaster } from '@/models/leave-type-master';
 
 const leaveTypeSchema = z.object({
   leave_type_name: z.string().min(1, 'Leave type name is required'),
@@ -67,7 +80,10 @@ export function LeaveTypeMasterQuickAdd({
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 py-4">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-4 py-4"
+          >
             <FormField
               control={form.control}
               name="leave_type_name"
@@ -88,7 +104,10 @@ export function LeaveTypeMasterQuickAdd({
                 <FormItem>
                   <div className="flex items-center gap-2">
                     <FormControl>
-                      <Switch checked={field.value} onCheckedChange={field.onChange} />
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
                     </FormControl>
                     <FormLabel>Active</FormLabel>
                   </div>

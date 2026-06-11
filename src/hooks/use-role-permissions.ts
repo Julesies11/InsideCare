@@ -1,8 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { systemApi } from '@/api/system.api';
-import { AccessLevel } from './useRBAC';
-import { syncAllUsersOfRole } from '@/lib/rbac-sync';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { QUERY_KEYS } from '@/config/query-keys';
+import { syncAllUsersOfRole } from '@/lib/rbac-sync';
+import { AccessLevel } from './useRBAC';
 
 export interface RolePermissions {
   role_id: string;
@@ -39,12 +39,20 @@ export function useUpdateRolePermissions() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ role_id, updates }: { role_id: string; updates: Partial<RolePermissions> }) => {
+    mutationFn: async ({
+      role_id,
+      updates,
+    }: {
+      role_id: string;
+      updates: Partial<RolePermissions>;
+    }) => {
       const data = await systemApi.permissions.upsert(role_id, updates);
       return data as RolePermissions;
     },
     onSuccess: (_, { role_id }) => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ROLE_PERMISSIONS] });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.ROLE_PERMISSIONS],
+      });
       // Propagate changes to all users of this role
       syncAllUsersOfRole(role_id);
     },

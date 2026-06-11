@@ -1,6 +1,6 @@
+import { Activity } from 'lucide-react';
 import { Container } from '@/components/common/container';
 import { ActivityLogTable } from './components/activity-log-table';
-import { Activity } from 'lucide-react';
 
 export function ActivityLogPage() {
   return (

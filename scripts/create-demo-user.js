@@ -12,7 +12,10 @@ const supabaseServiceRoleKey = process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
 if (!supabaseUrl || !supabaseServiceRoleKey) {
   console.error('❌ Missing required environment variables:');
   console.error('- VITE_SUPABASE_URL:', supabaseUrl ? '✅' : '❌');
-  console.error('- VITE_SUPABASE_SERVICE_ROLE_KEY:', supabaseServiceRoleKey ? '✅' : '❌');
+  console.error(
+    '- VITE_SUPABASE_SERVICE_ROLE_KEY:',
+    supabaseServiceRoleKey ? '✅' : '❌',
+  );
   process.exit(1);
 }
 
@@ -27,7 +30,11 @@ async function setupUsers() {
     // 1. Roles & Permissions
     const roles = [
       { name: 'Admin', desc: 'System Administrator', permissions: 'full' },
-      { name: 'Support Worker', desc: 'Care Support Staff', permissions: 'read_only' }
+      {
+        name: 'Support Worker',
+        desc: 'Care Support Staff',
+        permissions: 'read_only',
+      },
     ];
 
     const roleMap = {};
@@ -45,7 +52,8 @@ async function setupUsers() {
         const { data: newRole, error: createError } = await supabase
           .from('ic_roles')
           .insert({ role_name: r.name, description: r.desc })
-          .select().single();
+          .select()
+          .single();
         if (createError) throw createError;
         role = newRole;
 
@@ -67,7 +75,7 @@ async function setupUsers() {
             roster_board: r.permissions,
             access_control: r.name === 'Admin' ? 'full' : 'none',
             master_lists: r.permissions,
-            activity_log: r.permissions
+            activity_log: r.permissions,
           })
           .eq('role_id', role.id);
         if (permError) throw permError;
@@ -77,26 +85,40 @@ async function setupUsers() {
 
     // 2. Users
     const users = [
-      { email: 'demo@kt.com', pass: process.env.PLAYWRIGHT_ADMIN_PASSWORD || 'demo123', name: 'Demo Admin', role: 'Admin' },
-      { email: 'staff@kt.com', pass: process.env.PLAYWRIGHT_STAFF_PASSWORD || 'demo123', name: 'Demo Staff', role: 'Support Worker' }
+      {
+        email: 'demo@kt.com',
+        pass: process.env.PLAYWRIGHT_ADMIN_PASSWORD || 'demo123',
+        name: 'Demo Admin',
+        role: 'Admin',
+      },
+      {
+        email: 'staff@kt.com',
+        pass: process.env.PLAYWRIGHT_STAFF_PASSWORD || 'demo123',
+        name: 'Demo Staff',
+        role: 'Support Worker',
+      },
     ];
 
     for (const u of users) {
       console.log(`Processing user: ${u.email}...`);
-      
+
       // Auth User
-      const { data: { users: authUsers }, error: listError } = await supabase.auth.admin.listUsers();
+      const {
+        data: { users: authUsers },
+        error: listError,
+      } = await supabase.auth.admin.listUsers();
       if (listError) throw listError;
-      let authUser = authUsers.find(au => au.email === u.email);
+      let authUser = authUsers.find((au) => au.email === u.email);
 
       if (!authUser) {
         console.log(`Creating Auth user ${u.email}...`);
-        const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
-          email: u.email,
-          password: u.pass,
-          email_confirm: true,
-          user_metadata: { full_name: u.name }
-        });
+        const { data: newUser, error: createError } =
+          await supabase.auth.admin.createUser({
+            email: u.email,
+            password: u.pass,
+            email_confirm: true,
+            user_metadata: { full_name: u.name },
+          });
         if (createError) throw createError;
         authUser = newUser.user;
       }
@@ -117,7 +139,7 @@ async function setupUsers() {
             email: u.email,
             auth_user_id: authUser.id,
             role_id: roleMap[u.role],
-            status: 'active'
+            status: 'active',
           });
         if (createStaffError) throw createStaffError;
       } else {
@@ -141,7 +163,8 @@ async function setupUsers() {
       const { data: newHouse, error: createHouseError } = await supabase
         .from('ic_houses')
         .insert({ house_name: 'New House', status: 'active' })
-        .select().single();
+        .select()
+        .single();
       if (createHouseError) throw createHouseError;
       house = newHouse;
     }
@@ -157,29 +180,31 @@ async function setupUsers() {
       console.log('Creating John Doe...');
       const { error: createParticipantError } = await supabase
         .from('ic_participants')
-        .insert({ 
-          participant_name: 'John Doe', 
+        .insert({
+          participant_name: 'John Doe',
           email: 'john.doe@example.com',
-          status: 'active', 
-          house_id: house.id 
+          status: 'active',
+          house_id: house.id,
         });
       if (createParticipantError) throw createParticipantError;
     }
 
     console.log('Checking for Leave Types...');
-    const { data: leaveTypes } = await supabase.from('ic_leave_types').select('id').limit(1);
+    const { data: leaveTypes } = await supabase
+      .from('ic_leave_types')
+      .select('id')
+      .limit(1);
     if (!leaveTypes || leaveTypes.length === 0) {
       console.log('Creating default Leave Types...');
       const { error: ltError } = await supabase.from('ic_leave_types').insert([
         { leave_type_name: 'Annual Leave', is_active: true },
-        { leave_type_name: 'Sick Leave', is_active: true }
+        { leave_type_name: 'Sick Leave', is_active: true },
       ]);
       if (ltError) throw ltError;
     }
 
     console.log('✅ Environment Provisioned Successfully!');
     console.log('💡 Now run: node scripts/sync-all-user-jwt.js');
-
   } catch (error) {
     console.error('❌ Error:', error.message || error);
   }

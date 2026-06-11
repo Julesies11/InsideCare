@@ -1,4 +1,5 @@
 import { Link } from 'react-router';
+import { ROUTES } from '@/config/routes.config';
 import { toAbsoluteUrl } from '@/lib/helpers';
 import {
   Dialog,
@@ -8,7 +9,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { ROUTES } from '@/config/routes.config';
 
 export function WelcomeMessageDialog({
   open,
@@ -48,7 +48,10 @@ export function WelcomeMessageDialog({
           </div>
 
           <div className="flex justify-center mb-2">
-            <Link to={ROUTES.HOME} className="btn btn-primary flex justify-center">
+            <Link
+              to={ROUTES.HOME}
+              className="btn btn-primary flex justify-center"
+            >
               Show me around
             </Link>
           </div>

@@ -1,7 +1,7 @@
-import { render, screen, fireEvent } from '@testing-library/react';
-import { ShiftChecklistPicker } from './ShiftChecklistPicker';
-import { describe, it, expect, vi } from 'vitest';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { ShiftChecklistPicker } from './ShiftChecklistPicker';
 
 const mockChecklists = [
   { id: 'cl-1', name: 'Alpha Checklist', sort_order: 1 },
@@ -12,16 +12,16 @@ const mockChecklists = [
 describe('ShiftChecklistPicker', () => {
   it('does not re-sort items when selection changes', () => {
     const onToggle = vi.fn();
-    
+
     // Initially Alpha is selected
     const { rerender } = render(
       <TooltipProvider>
-        <ShiftChecklistPicker 
-          checklists={mockChecklists} 
-          selectedIds={['cl-1']} 
-          onToggle={onToggle} 
+        <ShiftChecklistPicker
+          checklists={mockChecklists}
+          selectedIds={['cl-1']}
+          onToggle={onToggle}
         />
-      </TooltipProvider>
+      </TooltipProvider>,
     );
 
     // Alpha should be first
@@ -36,12 +36,12 @@ describe('ShiftChecklistPicker', () => {
     // Simulate parent state update by rerendering with new selectedIds
     rerender(
       <TooltipProvider>
-        <ShiftChecklistPicker 
-          checklists={mockChecklists} 
-          selectedIds={['cl-1', 'cl-3']} 
-          onToggle={onToggle} 
+        <ShiftChecklistPicker
+          checklists={mockChecklists}
+          selectedIds={['cl-1', 'cl-3']}
+          onToggle={onToggle}
         />
-      </TooltipProvider>
+      </TooltipProvider>,
     );
 
     // Order should NOT have changed (Gamma should still be last, not jump to top)

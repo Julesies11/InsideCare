@@ -1,19 +1,26 @@
-import { useState, useEffect, useCallback, useMemo, useRef, MutableRefObject } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router';
-import { useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
-import { shiftNotesApi } from '@/api/shift-notes.api';
-import { rosterApi } from '@/api/roster.api';
+import {
+  MutableRefObject,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { participantsApi } from '@/api/participants.api';
+import { rosterApi } from '@/api/roster.api';
+import { shiftNotesApi } from '@/api/shift-notes.api';
+import { useQueryClient } from '@tanstack/react-query';
+import { useLocation, useNavigate, useParams } from 'react-router';
+import { toast } from 'sonner';
 import { SHIFT_PERIODS } from '@/config/enums';
-import { ShiftNoteOverviewSection } from '../components/sections/shift-note-overview-section';
-import { ShiftNoteSupportsSection } from '../components/sections/shift-note-supports-section';
-import { ShiftNoteHealthSection } from '../components/sections/shift-note-health-section';
-import { ShiftNoteTrackersSection } from '../components/sections/shift-note-trackers-section';
-import { ShiftNoteSummarySection } from '../components/sections/shift-note-summary-section';
+import { QUERY_KEYS } from '@/config/query-keys';
 import { ROUTES } from '@/config/routes.config';
 import { generateShiftNoteReferenceId } from '@/lib/shift-note-utils';
-import { QUERY_KEYS } from '@/config/query-keys';
+import { ShiftNoteHealthSection } from '../components/sections/shift-note-health-section';
+import { ShiftNoteOverviewSection } from '../components/sections/shift-note-overview-section';
+import { ShiftNoteSummarySection } from '../components/sections/shift-note-summary-section';
+import { ShiftNoteSupportsSection } from '../components/sections/shift-note-supports-section';
+import { ShiftNoteTrackersSection } from '../components/sections/shift-note-trackers-section';
 
 const DEFAULT_FORM_STATE: Record<string, unknown> = {
   start_date: '',
@@ -108,7 +115,9 @@ interface ShiftNoteDetailContentProps {
   onOriginalDataChange?: (data: Record<string, unknown>) => void;
   onSavingChange?: (saving: boolean) => void;
   onLoadingChange?: (loading: boolean) => void;
-  saveHandlerRef?: MutableRefObject<((status?: 'draft' | 'active') => Promise<void>) | null>;
+  saveHandlerRef?: MutableRefObject<
+    ((status?: 'draft' | 'active') => Promise<void>) | null
+  >;
   canEdit: boolean;
 }
 
@@ -185,7 +194,9 @@ export function ShiftNoteDetailContent({
 
       if (data) {
         const mappedType = data.shift_template?.toLowerCase();
-        const isValidType = Object.values(SHIFT_PERIODS).includes(mappedType as any);
+        const isValidType = Object.values(SHIFT_PERIODS).includes(
+          mappedType as any,
+        );
 
         // Batch update to prevent multiple re-renders
         const updates: Record<string, any> = {
@@ -195,7 +206,7 @@ export function ShiftNoteDetailContent({
           end_time: data.end_time,
           house_id: data.house_id,
           staff_id: data.staff_id,
-          shift: data
+          shift: data,
         };
 
         if (isValidType) {
@@ -216,7 +227,7 @@ export function ShiftNoteDetailContent({
       setLoading(true);
       const data = await shiftNotesApi.get(id);
 
-      if (!data) throw new Error("Shift note not found");
+      if (!data) throw new Error('Shift note not found');
 
       setFormData(data);
       originalDataRef.current = data;
@@ -267,7 +278,7 @@ export function ShiftNoteDetailContent({
               if (shiftData.staff_info) {
                 initialForm.staff = shiftData.staff_info;
               }
-              
+
               const mappedType = shiftData.shift_template?.toLowerCase();
               if (Object.values(SHIFT_PERIODS).includes(mappedType as any)) {
                 initialForm.shift_type = mappedType as any;
@@ -288,7 +299,8 @@ export function ShiftNoteDetailContent({
               initialForm.seizure_occurred = !!partData.track_seizure;
               initialForm.sleep_occurred = !!partData.track_sleep;
               initialForm.behaviour_observed = !!partData.track_behaviour;
-              initialForm.community_access_occurred = !!partData.track_community;
+              initialForm.community_access_occurred =
+                !!partData.track_community;
               initialForm.meal_provided = !!partData.track_nutrition;
               initialForm.mtm_meal_provided = !!partData.track_mtm;
               initialForm.hygiene_support_required = !!partData.track_hygiene;
@@ -346,7 +358,7 @@ export function ShiftNoteDetailContent({
   const handleFormChange = (field: string, value: unknown) => {
     if (!isEditable) return;
 
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
 
     if (field === 'participant_id' && isNewNote) {
       if (value) {
@@ -370,165 +382,265 @@ export function ShiftNoteDetailContent({
   const handleBulkChange = (changes: Record<string, unknown>) => {
     if (!isEditable) return;
 
-    setFormData(prev => ({ ...prev, ...changes }));
+    setFormData((prev) => ({ ...prev, ...changes }));
 
     if (changes.participant_id && isNewNote) {
       fetchParticipantDetails(changes.participant_id as string);
     }
   };
 
-  const handleSave = useCallback(async (targetStatus?: 'draft' | 'active') => {
-    if (!canEdit) return;
+  const handleSave = useCallback(
+    async (targetStatus?: 'draft' | 'active') => {
+      if (!canEdit) return;
 
-    if (!formData.start_date) {
-      toast.error('Date is required to save a shift note');
-      return;
-    }
-
-    if (!formData.shift_id) {
-      toast.error('A linked shift is required to save a shift note');
-      return;
-    }
-
-    const statusToSave = targetStatus || formData.status || 'draft';
-
-    // Strict validation only on active (completed) note submission
-    if (statusToSave === 'active') {
-      if (!formData.overall_presentation?.trim()) {
-        toast.error('Overall Presentation is required to submit a shift note');
+      if (!formData.start_date) {
+        toast.error('Date is required to save a shift note');
         return;
       }
-      if (!formData.shift_summary?.trim()) {
-        toast.error('Shift Summary is required to submit a shift note');
+
+      if (!formData.shift_id) {
+        toast.error('A linked shift is required to save a shift note');
         return;
       }
-    }
 
-    try {
-      if (onSavingChange) onSavingChange(true);
+      const statusToSave = targetStatus || formData.status || 'draft';
 
-      const validColumns = [
-        'participant_id', 'staff_id', 'start_date', 'shift_time', 'house_id', 'shift_id', 
-        'notes', 'full_note', 'status', 'shift_type', 'risks_observed', 'risk_description', 
-        'overall_presentation', 'adl_supports', 'domestic_tasks', 'capacity_building_goals', 
-        'regular_medication_status', 'prn_medication_given', 'prn_description', 
-        'pbs_strategies_used', 'pbs_strategies_details', 'pbs_when_used', 'pbs_outcome', 
-        'restrictive_practices_status', 'shift_summary', 'bowel_movement_occurred', 
-        'bowel_time', 'bowel_bristol_scale', 'bowel_amount', 'bowel_assistance_required', 
-        'bowel_notes', 'seizure_occurred', 'seizure_time_started', 'seizure_duration_minutes', 
-        'seizure_type_id', 'seizure_description', 'seizure_injury_occurred', 
-        'seizure_injury_description', 'seizure_emergency_services', 'seizure_notes', 
-        'sleep_occurred', 'sleep_type_period', 'sleep_start_time', 'sleep_wake_time', 
-        'sleep_quality', 'sleep_support_required', 'behaviour_observed', 
-        'behaviour_type_id', 'behaviour_intensity', 'behaviour_notes', 
-        'community_access_occurred', 'community_activity_type', 'community_location', 
-        'community_engagement_level', 'community_notes', 'meal_provided', 
-        'nutrition_meal_type', 'nutrition_intake', 'nutrition_refusal_alternatives', 
-        'nutrition_assistance_needed', 'nutrition_fluids_intake', 'nutrition_notes', 
-        'mtm_meal_provided', 'mtm_diet_type', 'mtm_fluids', 'mtm_texture_correct', 
-        'mtm_consistency_correct', 'mtm_positioning_appropriate', 'mtm_supervision_required', 
-        'mtm_swallowing_concerns', 'mtm_meal_intake', 'mtm_meal_intake_notes', 
-        'mtm_fluid_intake', 'mtm_fluid_intake_notes', 'mtm_concerns', 'mtm_notes', 
-        'mtm_texture_notes', 'mtm_consistency_notes', 'mtm_positioning_notes', 'mtm_supervision_notes',
-        'hygiene_support_required', 'hygiene_shower', 'hygiene_oral_care', 
-        'hygiene_toileting', 'hygiene_grooming', 'hygiene_observed_concerns', 'hygiene_notes'
-      ];
-
-      const dataToSave: Record<string, any> = {};
-      
-      // Only include valid database columns and clean up values
-      Object.keys(formData).forEach(key => {
-        if (validColumns.includes(key)) {
-          let value = formData[key];
-          // Clean up empty strings to null for better DB integrity
-          if (value === '' && key !== 'notes') {
-            value = null;
-          }
-          dataToSave[key] = value;
+      // Strict validation only on active (completed) note submission
+      if (statusToSave === 'active') {
+        if (!formData.overall_presentation?.trim()) {
+          toast.error(
+            'Overall Presentation is required to submit a shift note',
+          );
+          return;
         }
-      });
+        if (!formData.shift_summary?.trim()) {
+          toast.error('Shift Summary is required to submit a shift note');
+          return;
+        }
+      }
 
-      // Set tracker occurrences explicitly based on participant's flags
-      const participant = formData.participant as any;
-      dataToSave.bowel_movement_occurred = !!participant?.track_bowel;
-      dataToSave.seizure_occurred = !!participant?.track_seizure;
-      dataToSave.sleep_occurred = !!participant?.track_sleep;
-      dataToSave.behaviour_observed = !!participant?.track_behaviour;
-      dataToSave.community_access_occurred = !!participant?.track_community;
-      dataToSave.meal_provided = !!participant?.track_nutrition;
-      dataToSave.mtm_meal_provided = !!participant?.track_mtm;
-      dataToSave.hygiene_support_required = !!participant?.track_hygiene;
+      try {
+        if (onSavingChange) onSavingChange(true);
 
-      // Explicitly set the target status
-      dataToSave.status = statusToSave;
+        const validColumns = [
+          'participant_id',
+          'staff_id',
+          'start_date',
+          'shift_time',
+          'house_id',
+          'shift_id',
+          'notes',
+          'full_note',
+          'status',
+          'shift_type',
+          'risks_observed',
+          'risk_description',
+          'overall_presentation',
+          'adl_supports',
+          'domestic_tasks',
+          'capacity_building_goals',
+          'regular_medication_status',
+          'prn_medication_given',
+          'prn_description',
+          'pbs_strategies_used',
+          'pbs_strategies_details',
+          'pbs_when_used',
+          'pbs_outcome',
+          'restrictive_practices_status',
+          'shift_summary',
+          'bowel_movement_occurred',
+          'bowel_time',
+          'bowel_bristol_scale',
+          'bowel_amount',
+          'bowel_assistance_required',
+          'bowel_notes',
+          'seizure_occurred',
+          'seizure_time_started',
+          'seizure_duration_minutes',
+          'seizure_type_id',
+          'seizure_description',
+          'seizure_injury_occurred',
+          'seizure_injury_description',
+          'seizure_emergency_services',
+          'seizure_notes',
+          'sleep_occurred',
+          'sleep_type_period',
+          'sleep_start_time',
+          'sleep_wake_time',
+          'sleep_quality',
+          'sleep_support_required',
+          'behaviour_observed',
+          'behaviour_type_id',
+          'behaviour_intensity',
+          'behaviour_notes',
+          'community_access_occurred',
+          'community_activity_type',
+          'community_location',
+          'community_engagement_level',
+          'community_notes',
+          'meal_provided',
+          'nutrition_meal_type',
+          'nutrition_intake',
+          'nutrition_refusal_alternatives',
+          'nutrition_assistance_needed',
+          'nutrition_fluids_intake',
+          'nutrition_notes',
+          'mtm_meal_provided',
+          'mtm_diet_type',
+          'mtm_fluids',
+          'mtm_texture_correct',
+          'mtm_consistency_correct',
+          'mtm_positioning_appropriate',
+          'mtm_supervision_required',
+          'mtm_swallowing_concerns',
+          'mtm_meal_intake',
+          'mtm_meal_intake_notes',
+          'mtm_fluid_intake',
+          'mtm_fluid_intake_notes',
+          'mtm_concerns',
+          'mtm_notes',
+          'mtm_texture_notes',
+          'mtm_consistency_notes',
+          'mtm_positioning_notes',
+          'mtm_supervision_notes',
+          'hygiene_support_required',
+          'hygiene_shower',
+          'hygiene_oral_care',
+          'hygiene_toileting',
+          'hygiene_grooming',
+          'hygiene_observed_concerns',
+          'hygiene_notes',
+        ];
 
-      if (isNewNote) {
-        dataToSave.reference_id = generateShiftNoteReferenceId({
-          startDate: formData.start_date as string,
-          shiftTime: formData.shift_time as string,
-          staffName: (formData.staff as any)?.staff_name || (formData.staff as any)?.name,
-          participantName: (formData.participant as any)?.participant_name || (formData.participant as any)?.name,
-          orgPrefix: 'SC'
+        const dataToSave: Record<string, any> = {};
+
+        // Only include valid database columns and clean up values
+        Object.keys(formData).forEach((key) => {
+          if (validColumns.includes(key)) {
+            let value = formData[key];
+            // Clean up empty strings to null for better DB integrity
+            if (value === '' && key !== 'notes') {
+              value = null;
+            }
+            dataToSave[key] = value;
+          }
         });
 
-        const data = await shiftNotesApi.upsert(dataToSave);
-        
-        // Invalidate queries to refresh lists
-        await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SHIFT_NOTES] });
+        // Set tracker occurrences explicitly based on participant's flags
+        const participant = formData.participant as any;
+        dataToSave.bowel_movement_occurred = !!participant?.track_bowel;
+        dataToSave.seizure_occurred = !!participant?.track_seizure;
+        dataToSave.sleep_occurred = !!participant?.track_sleep;
+        dataToSave.behaviour_observed = !!participant?.track_behaviour;
+        dataToSave.community_access_occurred = !!participant?.track_community;
+        dataToSave.meal_provided = !!participant?.track_nutrition;
+        dataToSave.mtm_meal_provided = !!participant?.track_mtm;
+        dataToSave.hygiene_support_required = !!participant?.track_hygiene;
 
-        const msg = statusToSave === 'active' ? 'Shift note submitted successfully' : 'Draft saved successfully';
-        toast.success(msg);
+        // Explicitly set the target status
+        dataToSave.status = statusToSave;
 
-        // Update local and original values to reset dirty checker
-        const updatedNote = { ...formData, id: data.id, status: statusToSave, reference_id: data.reference_id };
-        setFormData(updatedNote);
-        originalDataRef.current = updatedNote;
-        onFormDataChange?.(updatedNote);
-        onOriginalDataChange?.(updatedNote);
-
-        if (statusToSave === 'active') {
-          const fromPath = location.state?.from;
-          navigate(fromPath || ROUTES.SHIFT_NOTES);
-        } else {
-          navigate(`${ROUTES.SHIFT_NOTES_DETAIL}/${data.id}`, { 
-            replace: true,
-            state: { from: location.state?.from }
+        if (isNewNote) {
+          dataToSave.reference_id = generateShiftNoteReferenceId({
+            startDate: formData.start_date as string,
+            shiftTime: formData.shift_time as string,
+            staffName:
+              (formData.staff as any)?.staff_name ||
+              (formData.staff as any)?.name,
+            participantName:
+              (formData.participant as any)?.participant_name ||
+              (formData.participant as any)?.name,
+            orgPrefix: 'SC',
           });
+
+          const data = await shiftNotesApi.upsert(dataToSave);
+
+          // Invalidate queries to refresh lists
+          await queryClient.invalidateQueries({
+            queryKey: [QUERY_KEYS.SHIFT_NOTES],
+          });
+
+          const msg =
+            statusToSave === 'active'
+              ? 'Shift note submitted successfully'
+              : 'Draft saved successfully';
+          toast.success(msg);
+
+          // Update local and original values to reset dirty checker
+          const updatedNote = {
+            ...formData,
+            id: data.id,
+            status: statusToSave,
+            reference_id: data.reference_id,
+          };
+          setFormData(updatedNote);
+          originalDataRef.current = updatedNote;
+          onFormDataChange?.(updatedNote);
+          onOriginalDataChange?.(updatedNote);
+
+          if (statusToSave === 'active') {
+            const fromPath = location.state?.from;
+            navigate(fromPath || ROUTES.SHIFT_NOTES);
+          } else {
+            navigate(`${ROUTES.SHIFT_NOTES_DETAIL}/${data.id}`, {
+              replace: true,
+              state: { from: location.state?.from },
+            });
+          }
+        } else {
+          await shiftNotesApi.update(id as string, dataToSave);
+
+          // Update local and original values to reset dirty checker
+          const updatedNote = { ...formData, status: statusToSave };
+          setFormData(updatedNote);
+          originalDataRef.current = updatedNote;
+          if (onOriginalDataChange) onOriginalDataChange(updatedNote);
+
+          // Invalidate queries to refresh lists
+          await queryClient.invalidateQueries({
+            queryKey: [QUERY_KEYS.SHIFT_NOTES],
+          });
+
+          const msg =
+            statusToSave === 'active'
+              ? 'Shift note submitted successfully'
+              : 'Draft saved successfully';
+          toast.success(msg);
+
+          if (statusToSave === 'active') {
+            const fromPath = location.state?.from;
+            navigate(fromPath || ROUTES.SHIFT_NOTES);
+          }
         }
-      } else {
-        await shiftNotesApi.update(id as string, dataToSave);
-
-        // Update local and original values to reset dirty checker
-        const updatedNote = { ...formData, status: statusToSave };
-        setFormData(updatedNote);
-        originalDataRef.current = updatedNote;
-        if (onOriginalDataChange) onOriginalDataChange(updatedNote);
-
-        // Invalidate queries to refresh lists
-        await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SHIFT_NOTES] });
-
-        const msg = statusToSave === 'active' ? 'Shift note submitted successfully' : 'Draft saved successfully';
-        toast.success(msg);
-
-        if (statusToSave === 'active') {
-          const fromPath = location.state?.from;
-          navigate(fromPath || ROUTES.SHIFT_NOTES);
+      } catch (err: unknown) {
+        console.error('Error saving shift note:', err);
+        const error = err as any;
+        let errorMessage = 'Failed to save shift note';
+        if (
+          error?.code === '23505' ||
+          error?.message?.includes('unique constraint')
+        ) {
+          errorMessage =
+            'A shift note already exists for this participant on this shift. Please update the existing note instead.';
+        } else if (error?.message) {
+          errorMessage = error.message;
         }
+        toast.error(errorMessage);
+      } finally {
+        if (onSavingChange) onSavingChange(false);
       }
-    } catch (err: unknown) {
-      console.error('Error saving shift note:', err);
-      const error = err as any;
-      let errorMessage = 'Failed to save shift note';
-      if (error?.code === '23505' || error?.message?.includes('unique constraint')) {
-        errorMessage = 'A shift note already exists for this participant on this shift. Please update the existing note instead.';
-      } else if (error?.message) {
-        errorMessage = error.message;
-      }
-      toast.error(errorMessage);
-    } finally {
-      if (onSavingChange) onSavingChange(false);
-    }
-  }, [canEdit, formData, isNewNote, id, navigate, location, onOriginalDataChange, onSavingChange]);
+    },
+    [
+      canEdit,
+      formData,
+      isNewNote,
+      id,
+      navigate,
+      location,
+      onOriginalDataChange,
+      onSavingChange,
+    ],
+  );
 
   // Expose save handler to parent
   useEffect(() => {
@@ -542,7 +654,9 @@ export function ShiftNoteDetailContent({
       <div className="flex items-center justify-center py-20">
         <div className="flex flex-col items-center gap-2">
           <div className="size-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-sm text-muted-foreground font-medium">Loading shift note...</p>
+          <p className="text-sm text-muted-foreground font-medium">
+            Loading shift note...
+          </p>
         </div>
       </div>
     );
@@ -551,9 +665,9 @@ export function ShiftNoteDetailContent({
   return (
     <div className="flex flex-col items-stretch grow gap-5 lg:gap-7.5">
       <div id="shift_note_overview">
-        <ShiftNoteOverviewSection 
-          canEdit={isEditable} 
-          formData={formData} 
+        <ShiftNoteOverviewSection
+          canEdit={isEditable}
+          formData={formData}
           onFormChange={handleFormChange}
           onBulkChange={handleBulkChange}
           isShiftLocked={isShiftLocked}
@@ -562,34 +676,34 @@ export function ShiftNoteDetailContent({
       </div>
 
       <div id="shift_note_supports">
-        <ShiftNoteSupportsSection 
-          canEdit={isEditable} 
-          formData={formData} 
-          onFormChange={handleFormChange} 
+        <ShiftNoteSupportsSection
+          canEdit={isEditable}
+          formData={formData}
+          onFormChange={handleFormChange}
         />
       </div>
 
       <div id="shift_note_health">
-        <ShiftNoteHealthSection 
-          canEdit={isEditable} 
-          formData={formData} 
-          onFormChange={handleFormChange} 
+        <ShiftNoteHealthSection
+          canEdit={isEditable}
+          formData={formData}
+          onFormChange={handleFormChange}
         />
       </div>
 
       <div id="shift_note_trackers">
-        <ShiftNoteTrackersSection 
-          canEdit={isEditable} 
-          formData={formData} 
-          onFormChange={handleFormChange} 
+        <ShiftNoteTrackersSection
+          canEdit={isEditable}
+          formData={formData}
+          onFormChange={handleFormChange}
         />
       </div>
 
       <div id="shift_note_summary">
-        <ShiftNoteSummarySection 
-          canEdit={isEditable} 
-          formData={formData} 
-          onFormChange={handleFormChange} 
+        <ShiftNoteSummarySection
+          canEdit={isEditable}
+          formData={formData}
+          onFormChange={handleFormChange}
         />
       </div>
     </div>

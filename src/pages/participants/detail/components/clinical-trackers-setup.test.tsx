@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 import { ClinicalTrackersSetup } from './clinical-trackers-setup';
 
 describe('ClinicalTrackersSetup', () => {
@@ -20,12 +20,14 @@ describe('ClinicalTrackersSetup', () => {
         canEdit={true}
         formData={defaultFormData}
         onFormChange={vi.fn()}
-      />
+      />,
     );
-    
+
     expect(screen.getByText('Clinical Trackers Setup')).toBeInTheDocument();
     expect(
-      screen.getByText('Configure which clinical detail trackers are enabled for this participant\'s shift notes.')
+      screen.getByText(
+        "Configure which clinical detail trackers are enabled for this participant's shift notes.",
+      ),
     ).toBeInTheDocument();
   });
 
@@ -35,7 +37,7 @@ describe('ClinicalTrackersSetup', () => {
         canEdit={true}
         formData={defaultFormData}
         onFormChange={vi.fn()}
-      />
+      />,
     );
 
     // Switches reflect checked/unchecked state correctly
@@ -55,7 +57,7 @@ describe('ClinicalTrackersSetup', () => {
         canEdit={false}
         formData={defaultFormData}
         onFormChange={vi.fn()}
-      />
+      />,
     );
 
     expect(screen.getByLabelText('Bowel Tracking')).toBeDisabled();
@@ -75,7 +77,7 @@ describe('ClinicalTrackersSetup', () => {
         canEdit={true}
         formData={defaultFormData}
         onFormChange={handleFormChange}
-      />
+      />,
     );
 
     // Toggle track_seizure switch from false to true

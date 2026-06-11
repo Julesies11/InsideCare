@@ -1,28 +1,49 @@
-import { useState, useMemo, useEffect } from 'react';
-import { Container } from '@/components/common/container';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Plus, Edit, Search, ArrowUpDown, ArrowUp, ArrowDown, X } from 'lucide-react';
-import { 
-  useMedicationsMaster, 
-  useMedicationTypes 
-} from '@/hooks/use-medications-master';
-import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Input } from '@/components/ui/input';
-import { useNavigate, useSearchParams, Link } from 'react-router';
-import { RBAC_MODULES } from '@/config/rbac-modules';
-import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
-import { useDebounce } from '@/hooks/use-debounce';
+import { useEffect, useMemo, useState } from 'react';
 import { PaginationState, SortingState } from '@tanstack/react-table';
+import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
+  Edit,
+  Plus,
+  Search,
+  Settings2,
+  X,
+} from 'lucide-react';
+import { Link, useNavigate, useSearchParams } from 'react-router';
+import { RBAC_MODULES } from '@/config/rbac-modules';
+import { ROUTES } from '@/config/routes.config';
+import { useDebounce } from '@/hooks/use-debounce';
+import {
+  useMedicationsMaster,
+  useMedicationTypes,
+} from '@/hooks/use-medications-master';
+import { ACCESS_LEVEL, useRBAC } from '@/hooks/useRBAC';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { DataGrid } from '@/components/ui/data-grid';
 import { DataGridPagination } from '@/components/ui/data-grid-pagination';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ROUTES } from '@/config/routes.config';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Container } from '@/components/common/container';
 import { MedicationTypeMasterDialog } from './components/medication-type-master-dialog';
-import { Settings2 } from 'lucide-react';
 
 type SortField = 'medication_name' | 'category' | 'side_effects' | 'is_active';
 
@@ -44,13 +65,21 @@ export function MedicationRegisterPage() {
     return [{ id, desc: direction === 'desc' }];
   };
 
-  const [pagination, setPagination] = useState<PaginationState>(getInitialPagination());
+  const [pagination, setPagination] = useState<PaginationState>(
+    getInitialPagination(),
+  );
   const [sorting, setSorting] = useState<SortingState>(getInitialSorting());
-  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
-  const [selectedTypeId, setSelectedTypeId] = useState(searchParams.get('type') || 'all');
-  const [includeInactive, setIncludeInactive] = useState(searchParams.get('inactive') === 'true');
+  const [searchQuery, setSearchQuery] = useState(
+    searchParams.get('search') || '',
+  );
+  const [selectedTypeId, setSelectedTypeId] = useState(
+    searchParams.get('type') || 'all',
+  );
+  const [includeInactive, setIncludeInactive] = useState(
+    searchParams.get('inactive') === 'true',
+  );
   const [typeMasterOpen, setTypeMasterOpen] = useState(false);
-  
+
   const debouncedSearch = useDebounce(searchQuery, 300);
 
   const canEdit = hasAccess({
@@ -63,33 +92,37 @@ export function MedicationRegisterPage() {
     requiredLevel: ACCESS_LEVEL.FULL,
   });
 
-  const { medications, count, isLoading: loading } = useMedicationsMaster(
+  const {
+    medications,
+    count,
+    isLoading: loading,
+  } = useMedicationsMaster(
     pagination.pageIndex,
     pagination.pageSize,
-    sorting.map(s => ({ id: s.id, desc: s.desc })),
-    { 
+    sorting.map((s) => ({ id: s.id, desc: s.desc })),
+    {
       search: debouncedSearch,
       typeId: selectedTypeId,
-      includeInactive: includeInactive 
-    }
+      includeInactive: includeInactive,
+    },
   );
 
   // Sync state changes to URL query parameters
   useEffect(() => {
     const params = new URLSearchParams();
-    
+
     if (pagination.pageIndex > 0) {
       params.set('page', (pagination.pageIndex + 1).toString());
     }
     if (pagination.pageSize !== 50) {
       params.set('pageSize', pagination.pageSize.toString());
     }
-    
+
     if (sorting.length > 0) {
       const sort = sorting[0];
       params.set('sort', `${sort.id}.${sort.desc ? 'desc' : 'asc'}`);
     }
-    
+
     if (debouncedSearch) {
       params.set('search', debouncedSearch);
     }
@@ -101,17 +134,24 @@ export function MedicationRegisterPage() {
     if (includeInactive) {
       params.set('inactive', 'true');
     }
-    
+
     setSearchParams(params, { replace: true });
-  }, [pagination, sorting, debouncedSearch, selectedTypeId, includeInactive, setSearchParams]);
+  }, [
+    pagination,
+    sorting,
+    debouncedSearch,
+    selectedTypeId,
+    includeInactive,
+    setSearchParams,
+  ]);
 
   // Reset to first page when filters change
   useEffect(() => {
-    setPagination(prev => ({ ...prev, pageIndex: 0 }));
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
   }, [debouncedSearch, selectedTypeId, includeInactive]);
 
   const handleSort = (field: SortField) => {
-    setSorting(prev => {
+    setSorting((prev) => {
       const isDesc = prev[0]?.id === field && !prev[0]?.desc;
       return [{ id: field, desc: isDesc }];
     });
@@ -127,10 +167,13 @@ export function MedicationRegisterPage() {
 
   const SortIcon = ({ field }: { field: SortField }) => {
     const activeSort = sorting[0];
-    if (activeSort?.id !== field) return <ArrowUpDown className="size-4 ms-1 inline opacity-30" />;
-    return activeSort.desc ? 
-      <ArrowDown className="size-4 ms-1 inline" /> : 
-      <ArrowUp className="size-4 ms-1 inline" />;
+    if (activeSort?.id !== field)
+      return <ArrowUpDown className="size-4 ms-1 inline opacity-30" />;
+    return activeSort.desc ? (
+      <ArrowDown className="size-4 ms-1 inline" />
+    ) : (
+      <ArrowUp className="size-4 ms-1 inline" />
+    );
   };
 
   // Optimized type fetching - Filter to only active types for the dropdown
@@ -140,16 +183,22 @@ export function MedicationRegisterPage() {
   const tableInstance = {
     getState: () => ({ pagination }),
     setPagination: (updater: any) => {
-      const nextValue = typeof updater === 'function' ? updater(pagination) : updater;
+      const nextValue =
+        typeof updater === 'function' ? updater(pagination) : updater;
       setPagination(nextValue);
     },
     getPageCount: () => Math.ceil(count / pagination.pageSize),
     getCanPreviousPage: () => pagination.pageIndex > 0,
-    getCanNextPage: () => (pagination.pageIndex + 1) * pagination.pageSize < count,
-    previousPage: () => setPagination(prev => ({ ...prev, pageIndex: prev.pageIndex - 1 })),
-    nextPage: () => setPagination(prev => ({ ...prev, pageIndex: prev.pageIndex + 1 })),
-    setPageIndex: (index: number) => setPagination(prev => ({ ...prev, pageIndex: index })),
-    setPageSize: (size: number) => setPagination(prev => ({ ...prev, pageIndex: 0, pageSize: size })),
+    getCanNextPage: () =>
+      (pagination.pageIndex + 1) * pagination.pageSize < count,
+    previousPage: () =>
+      setPagination((prev) => ({ ...prev, pageIndex: prev.pageIndex - 1 })),
+    nextPage: () =>
+      setPagination((prev) => ({ ...prev, pageIndex: prev.pageIndex + 1 })),
+    setPageIndex: (index: number) =>
+      setPagination((prev) => ({ ...prev, pageIndex: index })),
+    setPageSize: (size: number) =>
+      setPagination((prev) => ({ ...prev, pageIndex: 0, pageSize: size })),
     getFilteredRowModel: () => ({ rows: { length: count } }),
   };
 
@@ -186,7 +235,7 @@ export function MedicationRegisterPage() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                   {searchQuery && (
-                    <button 
+                    <button
                       onClick={() => setSearchQuery('')}
                       className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground"
                     >
@@ -196,39 +245,56 @@ export function MedicationRegisterPage() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <Select value={selectedTypeId} onValueChange={setSelectedTypeId}>
+                  <Select
+                    value={selectedTypeId}
+                    onValueChange={setSelectedTypeId}
+                  >
                     <SelectTrigger className="w-[200px]">
                       <SelectValue placeholder="Filter by Type" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Types</SelectItem>
-                      {medicationTypes.map(type => (
-                        <SelectItem key={type.id} value={type.id}>{type.medication_type_name}</SelectItem>
+                      {medicationTypes.map((type) => (
+                        <SelectItem key={type.id} value={type.id}>
+                          {type.medication_type_name}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="flex items-center gap-2 ps-2 border-s">
-                  <Switch 
-                    id="show-inactive" 
-                    checked={includeInactive} 
-                    onCheckedChange={setIncludeInactive} 
+                  <Switch
+                    id="show-inactive"
+                    checked={includeInactive}
+                    onCheckedChange={setIncludeInactive}
                   />
-                  <Label htmlFor="show-inactive" className="text-sm font-medium cursor-pointer">
+                  <Label
+                    htmlFor="show-inactive"
+                    className="text-sm font-medium cursor-pointer"
+                  >
                     Include Inactive
                   </Label>
                 </div>
               </div>
             </div>
 
-            <DataGrid table={tableInstance as any} recordCount={count} isLoading={loading}>
+            <DataGrid
+              table={tableInstance as any}
+              recordCount={count}
+              isLoading={loading}
+            >
               {loading ? (
                 <div className="py-20 text-center">
-                  <div className="inline-block size-8 animate-spin rounded-full border-4 border-solid border-current border-e-transparent align-[-0.125em] text-primary" role="status">
+                  <div
+                    className="inline-block size-8 animate-spin rounded-full border-4 border-solid border-current border-e-transparent align-[-0.125em] text-primary"
+                    role="status"
+                  >
                     <span className="sr-only">Loading...</span>
                   </div>
-                  <p className="mt-4 text-muted-foreground">Loading medications...</p>
+                  <p className="mt-4 text-muted-foreground">
+                    Loading medications...
+                  </p>
                 </div>
               ) : medications.length === 0 ? (
                 <div className="py-20 text-center text-muted-foreground border rounded-lg border-dashed">
@@ -242,45 +308,47 @@ export function MedicationRegisterPage() {
                     <Table>
                       <TableHeader className="bg-muted/50">
                         <TableRow>
-                          <TableHead 
+                          <TableHead
                             className="cursor-pointer select-none font-semibold text-gray-900 dark:text-gray-100"
                             onClick={() => handleSort('medication_name')}
                           >
                             Medication Name
                             <SortIcon field="medication_name" />
                           </TableHead>
-                          <TableHead 
+                          <TableHead
                             className="cursor-pointer select-none font-semibold text-gray-900 dark:text-gray-100"
                             onClick={() => handleSort('category')}
                           >
                             Type
                             <SortIcon field="category" />
                           </TableHead>
-                          <TableHead 
+                          <TableHead
                             className="cursor-pointer select-none font-semibold text-gray-900 dark:text-gray-100"
                             onClick={() => handleSort('side_effects')}
                           >
                             General Side Effects
                             <SortIcon field="side_effects" />
                           </TableHead>
-                          <TableHead 
+                          <TableHead
                             className="cursor-pointer select-none font-semibold text-gray-900 dark:text-gray-100"
                             onClick={() => handleSort('is_active')}
                           >
                             Status
                             <SortIcon field="is_active" />
                           </TableHead>
-                          <TableHead className="text-right font-semibold text-gray-900 dark:text-gray-100">Actions</TableHead>
+                          <TableHead className="text-right font-semibold text-gray-900 dark:text-gray-100">
+                            Actions
+                          </TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {medications.map((med) => (
-                          <TableRow 
-                            key={med.id} 
+                          <TableRow
+                            key={med.id}
                             className="group hover:bg-muted/50 transition-colors"
                           >
                             <TableCell className="font-medium">
-                              <Link 
+                              <Link
                                 to={`${ROUTES.MEDICATION_REGISTER}/${med.id}`}
                                 className="text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline transition-colors"
                               >
@@ -289,23 +357,31 @@ export function MedicationRegisterPage() {
                             </TableCell>
                             <TableCell>
                               {med.medication_type?.medication_type_name ? (
-                                <Badge variant="secondary" appearance="outline">{med.medication_type.medication_type_name}</Badge>
+                                <Badge variant="secondary" appearance="outline">
+                                  {med.medication_type.medication_type_name}
+                                </Badge>
                               ) : (
-                                <span className="text-muted-foreground text-sm">-</span>
+                                <span className="text-muted-foreground text-sm">
+                                  -
+                                </span>
                               )}
                             </TableCell>
                             <TableCell className="text-sm text-muted-foreground max-w-md truncate">
                               {med.side_effects || '-'}
                             </TableCell>
                             <TableCell>
-                              <Badge variant={med.is_active ? 'success' : 'secondary'}>
+                              <Badge
+                                variant={
+                                  med.is_active ? 'success' : 'secondary'
+                                }
+                              >
                                 {med.is_active ? 'Active' : 'Inactive'}
                               </Badge>
                             </TableCell>
                             <TableCell className="text-right">
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
+                              <Button
+                                variant="ghost"
+                                size="sm"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleEditMedication(med.id);
@@ -319,7 +395,7 @@ export function MedicationRegisterPage() {
                       </TableBody>
                     </Table>
                   </div>
-                  
+
                   <div className="mt-4">
                     <DataGridPagination />
                   </div>
@@ -329,9 +405,9 @@ export function MedicationRegisterPage() {
           </CardContent>
         </Card>
       </div>
-      <MedicationTypeMasterDialog 
-        open={typeMasterOpen} 
-        onClose={() => setTypeMasterOpen(false)} 
+      <MedicationTypeMasterDialog
+        open={typeMasterOpen}
+        onClose={() => setTypeMasterOpen(false)}
         canEdit={canManageTypes}
       />
     </Container>

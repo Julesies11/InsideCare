@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 /**
  * A hook that returns a debounced version of the provided value.
  * Useful for delaying search queries or other high-frequency updates.
- * 
+ *
  * @param value - The value to debounce
  * @param delay - Delay in milliseconds (default: 300ms)
  * @returns The debounced value

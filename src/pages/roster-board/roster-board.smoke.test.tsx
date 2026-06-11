@@ -1,9 +1,9 @@
-import { describe, it, expect, vi } from 'vitest';
+import { ReactNode } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { describe, expect, it, vi } from 'vitest';
 import { RosterBoardContent } from './roster-board-content';
-import { ReactNode } from 'react';
 
 // Mock required hooks and components
 vi.mock('@/hooks/useRBAC', () => ({
@@ -35,13 +35,14 @@ vi.mock('./components/staff-roster-calendar', () => ({
   StaffRosterCalendar: vi.fn(() => <div data-testid="staff-roster-calendar" />),
 }));
 
-const createTestQueryClient = () => new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
+const createTestQueryClient = () =>
+  new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
     },
-  },
-});
+  });
 
 const wrapper = ({ children }: { children: ReactNode }) => (
   <MemoryRouter>

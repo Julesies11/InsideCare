@@ -1,10 +1,15 @@
 import { useState } from 'react';
-import { toast } from 'sonner';
+import { systemApi } from '@/api/system.api';
+import {
+  getNewPasswordSchema,
+  NewPasswordSchemaType,
+} from '@/auth/forms/reset-password-schema';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
 import { Eye, EyeOff, LoaderCircle, ShieldCheck } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Form,
   FormControl,
@@ -14,11 +19,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import {
-  getNewPasswordSchema,
-  NewPasswordSchemaType,
-} from '@/auth/forms/reset-password-schema';
-import { systemApi } from '@/api/system.api';
 
 export function AccountSecurity() {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -115,7 +115,9 @@ export function AccountSecurity() {
                           type="button"
                           variant="ghost"
                           size="icon"
-                          onClick={() => setConfirmPasswordVisible(!confirmPasswordVisible)}
+                          onClick={() =>
+                            setConfirmPasswordVisible(!confirmPasswordVisible)
+                          }
                           className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                         >
                           {confirmPasswordVisible ? (
@@ -133,7 +135,11 @@ export function AccountSecurity() {
             </div>
 
             <div className="flex justify-end">
-              <Button type="submit" disabled={isProcessing} className="w-full sm:w-auto">
+              <Button
+                type="submit"
+                disabled={isProcessing}
+                className="w-full sm:w-auto"
+              >
                 {isProcessing ? (
                   <>
                     <LoaderCircle className="mr-2 size-4 animate-spin" />

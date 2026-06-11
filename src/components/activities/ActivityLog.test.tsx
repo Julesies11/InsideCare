@@ -1,14 +1,13 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { screen } from '@testing-library/react';
-import { ActivityLog } from './ActivityLog';
 import { renderWithProviders } from '@/test/test-utils';
+import { screen } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { useActivityLog } from '@/hooks/use-activity-log';
+import { ActivityLog } from './ActivityLog';
 
 // Mock the hook
 vi.mock('@/hooks/use-activity-log', () => ({
   useActivityLog: vi.fn(),
 }));
-
-import { useActivityLog } from '@/hooks/use-activity-log';
 
 const mockActivities = [
   {
@@ -99,11 +98,13 @@ describe('ActivityLog', () => {
       refetch,
     });
 
-    const { user } = renderWithProviders(<ActivityLog entityId="house-1" entityType="house" />);
-    
+    const { user } = renderWithProviders(
+      <ActivityLog entityId="house-1" entityType="house" />,
+    );
+
     const showAllButton = screen.getByText(/all-time activities/i);
     await user.click(showAllButton);
-    
+
     expect(screen.getByText(/show recent activities/i)).toBeInTheDocument();
   });
 });

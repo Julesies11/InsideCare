@@ -1,7 +1,21 @@
 import { renderWithProviders, screen } from '@/test/test-utils';
-import { ComplianceMonitoringPage } from './compliance-monitoring-page';
+import { describe, expect, it, vi } from 'vitest';
 import { useComplianceMonitoring, useComplianceTypes } from '@/hooks/use-staff';
-import { vi, describe, it, expect } from 'vitest';
+import { ComplianceMonitoringPage } from './compliance-monitoring-page';
+
+// Fix for React Router v7 context issues
+vi.mock('react-router-dom', async (importOriginal) => {
+  const actual = await importOriginal<any>();
+  const reactRouter = await import('react-router');
+  return {
+    ...actual,
+    Link: reactRouter.Link,
+    useNavigate: reactRouter.useNavigate,
+    useLocation: reactRouter.useLocation,
+    useParams: reactRouter.useParams,
+    useSearchParams: reactRouter.useSearchParams,
+  };
+});
 
 // Mock the hooks
 vi.mock('@/hooks/use-staff', () => ({

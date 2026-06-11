@@ -35,7 +35,9 @@ export function PersonalCareRoutine({
 
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <Label className="flex w-full max-w-56">Hygiene Support Required</Label>
+            <Label className="flex w-full max-w-56">
+              Hygiene Support Required
+            </Label>
             <Textarea
               id="hygiene_support"
               value={formData.hygiene_support || ''}
@@ -46,7 +48,6 @@ export function PersonalCareRoutine({
             />
           </div>
         </div>
-
       </CardContent>
     </Card>
   );

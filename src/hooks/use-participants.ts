@@ -1,14 +1,18 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { participantsApi, ParticipantsFilter, ParticipantsSort } from '@/api/participants.api';
-import { Participant, ParticipantWithHouse } from '@/models/participant';
+import {
+  participantsApi,
+  ParticipantsFilter,
+  ParticipantsSort,
+} from '@/api/participants.api';
 import { Database } from '@/models/database.types';
+import { Participant, ParticipantWithHouse } from '@/models/participant';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { QUERY_KEYS } from '@/config/query-keys';
 
 export function useParticipants(
   pageIndex: number = 0,
   pageSize: number = 10,
   sort: ParticipantsSort[] = [],
-  filters: ParticipantsFilter = {}
+  filters: ParticipantsFilter = {},
 ) {
   const query = useQuery({
     queryKey: [QUERY_KEYS.PARTICIPANTS, { pageIndex, pageSize, sort, filters }],
@@ -30,7 +34,7 @@ export function useActiveParticipants(options?: { enabled?: boolean }) {
     queryKey: [QUERY_KEYS.PARTICIPANTS, 'active'],
     queryFn: () => participantsApi.listActive(),
     staleTime: 1000 * 60 * 5, // 5 minutes cache
-    ...options
+    ...options,
   });
 
   return {
@@ -62,7 +66,9 @@ export function useParticipant(id?: string) {
       if (!id) return null;
       const data = await participantsApi.get(id);
       if (!data) {
-        throw new Error('You do not have permission to view this participant, or it does not exist.');
+        throw new Error(
+          'You do not have permission to view this participant, or it does not exist.',
+        );
       }
       return data as unknown as ParticipantWithHouse;
     },
@@ -81,8 +87,9 @@ export function useAddParticipant() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (participant: Database['public']['Tables']['ic_participants']['Insert']) => 
-      participantsApi.create(participant),
+    mutationFn: (
+      participant: Database['public']['Tables']['ic_participants']['Insert'],
+    ) => participantsApi.create(participant),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PARTICIPANTS] });
     },
@@ -93,11 +100,18 @@ export function useUpdateParticipant() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, updates }: { id: string; updates: Database['public']['Tables']['ic_participants']['Update'] }) => 
-      participantsApi.update(id, updates),
+    mutationFn: ({
+      id,
+      updates,
+    }: {
+      id: string;
+      updates: Database['public']['Tables']['ic_participants']['Update'];
+    }) => participantsApi.update(id, updates),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PARTICIPANTS] });
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PARTICIPANTS, data.id] });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.PARTICIPANTS, data.id],
+      });
     },
   });
 }

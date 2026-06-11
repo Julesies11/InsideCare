@@ -1,8 +1,11 @@
 import { Database } from './database.types';
 
-export type ShiftNoteRow = Database['public']['Tables']['ic_shift_notes']['Row'];
-export type ShiftNoteInsert = Database['public']['Tables']['ic_shift_notes']['Insert'];
-export type ShiftNoteUpdate = Database['public']['Tables']['ic_shift_notes']['Update'];
+export type ShiftNoteRow =
+  Database['public']['Tables']['ic_shift_notes']['Row'];
+export type ShiftNoteInsert =
+  Database['public']['Tables']['ic_shift_notes']['Insert'];
+export type ShiftNoteUpdate =
+  Database['public']['Tables']['ic_shift_notes']['Update'];
 
 export interface ShiftNote extends ShiftNoteRow {
   participant?: {
@@ -39,7 +42,10 @@ export const MEDICATION_STATUSES = [
 ] as const;
 
 export const RESTRICTIVE_PRACTICE_STATUSES = [
-  { id: 'Yes Incident Report Submitted', label: 'Yes Incident Report Submitted' },
+  {
+    id: 'Yes Incident Report Submitted',
+    label: 'Yes Incident Report Submitted',
+  },
   { id: 'No', label: 'No' },
   { id: 'Not applicable to client', label: 'Not applicable to client' },
 ] as const;

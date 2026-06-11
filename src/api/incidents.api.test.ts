@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { incidentsApi } from './incidents.api';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { supabase } from '@/lib/supabase';
+import { incidentsApi } from './incidents.api';
 
 vi.mock('@/lib/supabase', () => ({
   supabase: {
@@ -29,7 +29,7 @@ describe('Incidents API', () => {
     const mockSelect = vi.fn().mockReturnThis();
     const mockEq = vi.fn().mockReturnThis();
     const mockRange = vi.fn().mockResolvedValue({ data: [], count: 0 });
-    
+
     (supabase.from as any).mockReturnValue({
       select: mockSelect,
       eq: mockEq,
@@ -46,7 +46,9 @@ describe('Incidents API', () => {
   it('creates an incident report', async () => {
     const mockInsert = vi.fn().mockReturnThis();
     const mockSelect = vi.fn().mockReturnThis();
-    const mockSingle = vi.fn().mockResolvedValue({ data: { id: 'new-id' }, error: null });
+    const mockSingle = vi
+      .fn()
+      .mockResolvedValue({ data: { id: 'new-id' }, error: null });
 
     (supabase.from as any).mockReturnValue({
       insert: mockInsert,

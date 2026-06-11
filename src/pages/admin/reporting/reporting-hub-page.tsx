@@ -1,26 +1,26 @@
-import { useState, useMemo } from 'react';
-import { Container } from '@/components/common/container';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useNavigate } from 'react-router';
-import { 
-  Activity, 
-  ShieldCheck, 
-  ClipboardList, 
+import { useMemo, useState } from 'react';
+import {
+  Activity,
   AlertTriangle,
   ArrowRight,
-  Search,
-  Star,
-  Clock,
   Building,
-  Users
+  ClipboardList,
+  Clock,
+  Search,
+  ShieldCheck,
+  Star,
+  Users,
 } from 'lucide-react';
-import { usePermissions } from '@/hooks/use-permissions';
+import { useNavigate } from 'react-router';
 import { RBAC_MODULES } from '@/config/rbac-modules';
 import { ROUTES } from '@/config/routes.config';
 import { cn } from '@/lib/utils';
+import { usePermissions } from '@/hooks/use-permissions';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Container } from '@/components/common/container';
 
 interface ReportCardProps {
   title: string;
@@ -35,17 +35,17 @@ interface ReportCardProps {
   onReportClick: (path: string) => void;
 }
 
-function ReportCard({ 
-  title, 
-  description, 
-  icon: Icon, 
-  path, 
-  category, 
-  permission, 
+function ReportCard({
+  title,
+  description,
+  icon: Icon,
+  path,
+  category,
+  permission,
   implemented = true,
   isFavorite,
   onToggleFavorite,
-  onReportClick
+  onReportClick,
 }: ReportCardProps) {
   const navigate = useNavigate();
   const { canView } = usePermissions();
@@ -53,13 +53,13 @@ function ReportCard({
   if (!canView(permission)) return null;
 
   return (
-    <Card 
+    <Card
       className={cn(
-        "relative transition-all duration-300 bg-white/60 backdrop-blur-md border border-gray-200/80 shadow-xs select-none",
-        implemented 
-          ? "hover:shadow-md hover:border-primary/50 cursor-pointer group hover:-translate-y-0.5" 
-          : "opacity-60 cursor-not-allowed bg-gray-50/50 border-gray-100/80 shadow-none"
-      )} 
+        'relative transition-all duration-300 bg-white/60 backdrop-blur-md border border-gray-200/80 shadow-xs select-none',
+        implemented
+          ? 'hover:shadow-md hover:border-primary/50 cursor-pointer group hover:-translate-y-0.5'
+          : 'opacity-60 cursor-not-allowed bg-gray-50/50 border-gray-100/80 shadow-none',
+      )}
       onClick={() => {
         if (implemented) {
           onReportClick(path);
@@ -76,48 +76,76 @@ function ReportCard({
             e.stopPropagation();
             onToggleFavorite(path);
           }}
-          aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+          aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
         >
-          <Star className={cn("size-4 transition-colors", isFavorite ? "fill-amber-400 text-amber-400" : "text-gray-300 hover:text-gray-400")} />
+          <Star
+            className={cn(
+              'size-4 transition-colors',
+              isFavorite
+                ? 'fill-amber-400 text-amber-400'
+                : 'text-gray-300 hover:text-gray-400',
+            )}
+          />
         </button>
       )}
 
       <CardContent className="p-6">
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <div className={cn(
-              "w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300",
-              implemented 
-                ? "bg-gray-100 text-gray-600 group-hover:bg-primary/10 group-hover:text-primary group-hover:scale-105" 
-                : "bg-gray-200/50 text-gray-400"
-            )}>
+            <div
+              className={cn(
+                'w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300',
+                implemented
+                  ? 'bg-gray-100 text-gray-600 group-hover:bg-primary/10 group-hover:text-primary group-hover:scale-105'
+                  : 'bg-gray-200/50 text-gray-400',
+              )}
+            >
               <Icon className="size-6" />
             </div>
             <div className="flex gap-2 items-center mr-6">
               {!implemented && (
-                <Badge variant="secondary" className="uppercase text-[9px] font-black tracking-widest text-gray-500 bg-gray-200/80 border-none px-1.5 py-0.5">
+                <Badge
+                  variant="secondary"
+                  className="uppercase text-[9px] font-black tracking-widest text-gray-500 bg-gray-200/80 border-none px-1.5 py-0.5"
+                >
                   Coming Soon
                 </Badge>
               )}
-              <Badge variant="outline" className={cn(
-                "uppercase text-[10px] font-bold tracking-wider px-1.5 py-0.5 border-gray-200/80 text-gray-500",
-                !implemented && "text-gray-400 border-gray-200/40"
-              )}>
+              <Badge
+                variant="outline"
+                className={cn(
+                  'uppercase text-[10px] font-bold tracking-wider px-1.5 py-0.5 border-gray-200/80 text-gray-500',
+                  !implemented && 'text-gray-400 border-gray-200/40',
+                )}
+              >
                 {category}
               </Badge>
             </div>
           </div>
           <div className="space-y-1">
-            <h3 className={cn("text-base font-bold transition-colors font-sans", implemented ? "text-gray-900 group-hover:text-primary" : "text-gray-500")}>
+            <h3
+              className={cn(
+                'text-base font-bold transition-colors font-sans',
+                implemented
+                  ? 'text-gray-900 group-hover:text-primary'
+                  : 'text-gray-500',
+              )}
+            >
               {title}
             </h3>
-            <p className={cn("text-xs leading-relaxed min-h-[40px] font-sans", implemented ? "text-gray-500" : "text-gray-400")}>
+            <p
+              className={cn(
+                'text-xs leading-relaxed min-h-[40px] font-sans',
+                implemented ? 'text-gray-500' : 'text-gray-400',
+              )}
+            >
               {description}
             </p>
           </div>
           {implemented && (
             <div className="flex items-center text-primary font-bold text-xs mt-1 opacity-0 group-hover:opacity-100 transition-opacity font-sans">
-              RUN REPORT <ArrowRight className="size-3.5 ms-1.5 transition-transform group-hover:translate-x-1" />
+              RUN REPORT{' '}
+              <ArrowRight className="size-3.5 ms-1.5 transition-transform group-hover:translate-x-1" />
             </div>
           )}
         </div>
@@ -126,18 +154,21 @@ function ReportCard({
   );
 }
 
-function MiniReportCard({ 
-  report, 
-  onReportClick 
-}: { 
-  report: Omit<ReportCardProps, 'isFavorite' | 'onToggleFavorite' | 'onReportClick'>; 
+function MiniReportCard({
+  report,
+  onReportClick,
+}: {
+  report: Omit<
+    ReportCardProps,
+    'isFavorite' | 'onToggleFavorite' | 'onReportClick'
+  >;
   onReportClick: (path: string) => void;
 }) {
   const navigate = useNavigate();
   const Icon = report.icon;
-  
+
   return (
-    <div 
+    <div
       className="flex items-center gap-3 p-3 bg-white/70 border border-gray-200/60 rounded-xl hover:border-primary/50 hover:shadow-xs transition-all cursor-pointer group hover:-translate-y-0.5"
       onClick={() => {
         onReportClick(report.path);
@@ -181,103 +212,114 @@ export function ReportingHubPage() {
     }
   });
 
-  const reports = useMemo(() => [
-    {
-      title: 'Incident Summary Report',
-      description: 'Compare incident counts and trends by type against the previous period.',
-      icon: AlertTriangle,
-      path: ROUTES.REPORTING_CLINICAL_INCIDENTS,
-      category: 'Clinical',
-      permission: RBAC_MODULES.REPORTING_CLINICAL,
-      implemented: true,
-    },
-    {
-      title: 'Participants Report',
-      description: 'Summary of participants, houses, NDIS numbers, and clinical support plans.',
-      icon: Users,
-      path: ROUTES.REPORTING_CLINICAL_PARTICIPANTS,
-      category: 'Clinical',
-      permission: RBAC_MODULES.REPORTING_CLINICAL,
-      implemented: true,
-    },
-    {
-      title: 'Medication Compliance',
-      description: 'Review medication administration records and missed doses.',
-      icon: ClipboardList,
-      path: '/reporting/clinical/medications',
-      category: 'Clinical',
-      permission: RBAC_MODULES.REPORTING_CLINICAL,
-      implemented: false,
-    },
-    {
-      title: 'Restrictive Practice Register',
-      description: 'NDIS-compliant register of restraints applied, triggers, and approvals.',
-      icon: ShieldCheck,
-      path: '/reporting/clinical/restrictive-practices',
-      category: 'Clinical',
-      permission: RBAC_MODULES.REPORTING_CLINICAL,
-      implemented: false,
-    },
-    {
-      title: 'Staff Roster Summary',
-      description: 'Overview of rostered hours and coverage across houses.',
-      icon: Users,
-      path: '/reporting/operational/roster',
-      category: 'Operational',
-      permission: RBAC_MODULES.REPORTING_OPERATIONAL,
-      implemented: false,
-    },
-    {
-      title: 'Timesheet vs Roster Variance',
-      description: 'Comparison of rostered hours against actual timesheet hours.',
-      icon: ClipboardList,
-      path: '/reporting/operational/variance',
-      category: 'Operational',
-      permission: RBAC_MODULES.REPORTING_OPERATIONAL,
-      implemented: false,
-    },
-    {
-      title: 'House Occupancy & Vacancy',
-      description: 'Occupancy levels, vacancy rates, and active room roster mapping.',
-      icon: Building,
-      path: '/reporting/operational/occupancy',
-      category: 'Operational',
-      permission: RBAC_MODULES.REPORTING_OPERATIONAL,
-      implemented: false,
-    },
-    {
-      title: 'Compliance Audit',
-      description: 'Tracking of staff certifications, checks, and document expiries.',
-      icon: ShieldCheck,
-      path: ROUTES.REPORT_COMPLIANCE,
-      category: 'Compliance',
-      permission: RBAC_MODULES.REPORTING_CLINICAL,
-      implemented: true,
-    },
-    {
-      title: 'Activity Insights',
-      description: 'Aggregated audit log data for system-wide transparency.',
-      icon: Activity,
-      path: '/reporting/compliance/activity',
-      category: 'Compliance',
-      permission: RBAC_MODULES.REPORTING_COMPLIANCE,
-      implemented: false,
-    },
-    {
-      title: 'NDIS Quality Audit Report',
-      description: 'High-level checklist preparation document summarizing provider readiness.',
-      icon: ShieldCheck,
-      path: '/reporting/compliance/ndis-audit',
-      category: 'Compliance',
-      permission: RBAC_MODULES.REPORTING_COMPLIANCE,
-      implemented: false,
-    },
-  ], []);
+  const reports = useMemo(
+    () => [
+      {
+        title: 'Incident Summary Report',
+        description:
+          'Compare incident counts and trends by type against the previous period.',
+        icon: AlertTriangle,
+        path: ROUTES.REPORTING_CLINICAL_INCIDENTS,
+        category: 'Clinical',
+        permission: RBAC_MODULES.REPORTING_CLINICAL,
+        implemented: true,
+      },
+      {
+        title: 'Participants Report',
+        description:
+          'Summary of participants, houses, NDIS numbers, and clinical support plans.',
+        icon: Users,
+        path: ROUTES.REPORTING_CLINICAL_PARTICIPANTS,
+        category: 'Clinical',
+        permission: RBAC_MODULES.REPORTING_CLINICAL,
+        implemented: true,
+      },
+      {
+        title: 'Medication Compliance',
+        description:
+          'Review medication administration records and missed doses.',
+        icon: ClipboardList,
+        path: '/reporting/clinical/medications',
+        category: 'Clinical',
+        permission: RBAC_MODULES.REPORTING_CLINICAL,
+        implemented: false,
+      },
+      {
+        title: 'Restrictive Practice Register',
+        description:
+          'NDIS-compliant register of restraints applied, triggers, and approvals.',
+        icon: ShieldCheck,
+        path: '/reporting/clinical/restrictive-practices',
+        category: 'Clinical',
+        permission: RBAC_MODULES.REPORTING_CLINICAL,
+        implemented: false,
+      },
+      {
+        title: 'Staff Roster Summary',
+        description: 'Overview of rostered hours and coverage across houses.',
+        icon: Users,
+        path: '/reporting/operational/roster',
+        category: 'Operational',
+        permission: RBAC_MODULES.REPORTING_OPERATIONAL,
+        implemented: false,
+      },
+      {
+        title: 'Timesheet vs Roster Variance',
+        description:
+          'Comparison of rostered hours against actual timesheet hours.',
+        icon: ClipboardList,
+        path: '/reporting/operational/variance',
+        category: 'Operational',
+        permission: RBAC_MODULES.REPORTING_OPERATIONAL,
+        implemented: false,
+      },
+      {
+        title: 'House Occupancy & Vacancy',
+        description:
+          'Occupancy levels, vacancy rates, and active room roster mapping.',
+        icon: Building,
+        path: '/reporting/operational/occupancy',
+        category: 'Operational',
+        permission: RBAC_MODULES.REPORTING_OPERATIONAL,
+        implemented: false,
+      },
+      {
+        title: 'Compliance Audit',
+        description:
+          'Tracking of staff certifications, checks, and document expiries.',
+        icon: ShieldCheck,
+        path: ROUTES.REPORT_COMPLIANCE,
+        category: 'Compliance',
+        permission: RBAC_MODULES.REPORTING_CLINICAL,
+        implemented: true,
+      },
+      {
+        title: 'Activity Insights',
+        description: 'Aggregated audit log data for system-wide transparency.',
+        icon: Activity,
+        path: '/reporting/compliance/activity',
+        category: 'Compliance',
+        permission: RBAC_MODULES.REPORTING_COMPLIANCE,
+        implemented: false,
+      },
+      {
+        title: 'NDIS Quality Audit Report',
+        description:
+          'High-level checklist preparation document summarizing provider readiness.',
+        icon: ShieldCheck,
+        path: '/reporting/compliance/ndis-audit',
+        category: 'Compliance',
+        permission: RBAC_MODULES.REPORTING_COMPLIANCE,
+        implemented: false,
+      },
+    ],
+    [],
+  );
 
   const handleToggleFavorite = (path: string) => {
     setFavorites((prev) => {
-      const next = prev.includes(path) 
-        ? prev.filter((p) => p !== path) 
+      const next = prev.includes(path)
+        ? prev.filter((p) => p !== path)
         : [...prev, path];
       localStorage.setItem('ic_favorite_reports', JSON.stringify(next));
       return next;
@@ -297,23 +339,25 @@ export function ReportingHubPage() {
   }, [reports, canView]);
 
   const favoriteReports = useMemo(() => {
-    return allowedReports.filter((r) => favorites.includes(r.path) && r.implemented);
+    return allowedReports.filter(
+      (r) => favorites.includes(r.path) && r.implemented,
+    );
   }, [allowedReports, favorites]);
 
   const recentReports = useMemo(() => {
     return recents
       .map((path) => allowedReports.find((r) => r.path === path))
-      .filter((r): r is typeof reports[number] => !!r && r.implemented);
+      .filter((r): r is (typeof reports)[number] => !!r && r.implemented);
   }, [allowedReports, recents, reports]);
 
   const filteredReports = useMemo(() => {
     return allowedReports.filter((report) => {
-      const matchesSearch = 
+      const matchesSearch =
         report.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         report.description.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesCategory = 
-        selectedCategory === 'all' || 
+
+      const matchesCategory =
+        selectedCategory === 'all' ||
         report.category.toLowerCase() === selectedCategory.toLowerCase();
 
       return matchesSearch && matchesCategory;
@@ -329,12 +373,15 @@ export function ReportingHubPage() {
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex flex-col gap-1">
-            <h1 className="text-2xl font-bold text-gray-900 font-sans tracking-tight">Reporting Hub</h1>
+            <h1 className="text-2xl font-bold text-gray-900 font-sans tracking-tight">
+              Reporting Hub
+            </h1>
             <p className="text-gray-500 text-sm font-sans max-w-xl">
-              Generate and export comprehensive reports for clinical oversight and operational management.
+              Generate and export comprehensive reports for clinical oversight
+              and operational management.
             </p>
           </div>
-          
+
           {/* Sleek Search Input */}
           <div className="relative w-full md:w-80 shrink-0">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
@@ -354,20 +401,21 @@ export function ReportingHubPage() {
             {hasFavorites && (
               <div className="space-y-3">
                 <h2 className="text-[10px] font-black uppercase text-gray-400 tracking-wider flex items-center gap-1.5 font-sans">
-                  <Star className="size-3.5 text-amber-400 fill-amber-400" /> Favorite Reports
+                  <Star className="size-3.5 text-amber-400 fill-amber-400" />{' '}
+                  Favorite Reports
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {favoriteReports.map((report) => (
-                    <MiniReportCard 
-                      key={report.path} 
-                      report={report} 
-                      onReportClick={handleReportClick} 
+                    <MiniReportCard
+                      key={report.path}
+                      report={report}
+                      onReportClick={handleReportClick}
                     />
                   ))}
                 </div>
               </div>
             )}
-            
+
             {hasRecents && (
               <div className="space-y-3">
                 <h2 className="text-[10px] font-black uppercase text-gray-400 tracking-wider flex items-center gap-1.5 font-sans">
@@ -375,10 +423,10 @@ export function ReportingHubPage() {
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {recentReports.map((report) => (
-                    <MiniReportCard 
-                      key={report.path} 
-                      report={report} 
-                      onReportClick={handleReportClick} 
+                    <MiniReportCard
+                      key={report.path}
+                      report={report}
+                      onReportClick={handleReportClick}
                     />
                   ))}
                 </div>
@@ -388,7 +436,12 @@ export function ReportingHubPage() {
         )}
 
         {/* Categories Tab Control */}
-        <Tabs defaultValue="all" value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
+        <Tabs
+          defaultValue="all"
+          value={selectedCategory}
+          onValueChange={setSelectedCategory}
+          className="w-full"
+        >
           <div className="border-b border-gray-200/80 mb-6">
             <TabsList variant="line" size="md" className="-mb-px">
               <TabsTrigger value="all">All Reports</TabsTrigger>
@@ -403,9 +456,9 @@ export function ReportingHubPage() {
         {filteredReports.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredReports.map((report) => (
-              <ReportCard 
-                key={report.path} 
-                {...report} 
+              <ReportCard
+                key={report.path}
+                {...report}
                 isFavorite={favorites.includes(report.path)}
                 onToggleFavorite={handleToggleFavorite}
                 onReportClick={handleReportClick}
@@ -417,7 +470,9 @@ export function ReportingHubPage() {
             <div className="size-12 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 mb-3">
               <Search className="size-6" />
             </div>
-            <h3 className="text-sm font-bold text-gray-900 font-sans">No reports found</h3>
+            <h3 className="text-sm font-bold text-gray-900 font-sans">
+              No reports found
+            </h3>
             <p className="text-xs text-gray-500 font-sans mt-1 text-center max-w-xs">
               No reports match your current search queries or selected category.
             </p>

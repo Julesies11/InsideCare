@@ -1,29 +1,10 @@
-import { Fragment, useState, useRef, useCallback, useEffect } from 'react';
-import { useParams } from 'react-router';
-import { Container } from '@/components/common/container';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Mail, CheckCircle, Archive, UserCheck, MoreHorizontal, LogOut, ShieldX, HelpCircle } from 'lucide-react';
-import { StaffDetailContent } from './staff-detail-content.tsx';
-import { StaffDeactivationDialog } from './components/staff-deactivation-dialog';
-import { StaffActivationDialog } from './components/staff-activation-dialog';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-  DropdownMenuLabel,
-} from '@/components/ui/dropdown-menu';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/auth/context/auth-context';
-import { toast } from 'sonner';
 import { handleError } from '@/errors/error-handler';
+import {
+  emptyStaffPendingChanges,
+  StaffPendingChanges,
+} from '@/models/staff-pending-changes';
 import {
   Toolbar,
   ToolbarActions,
@@ -31,11 +12,48 @@ import {
   ToolbarHeading,
   ToolbarPageTitle,
 } from '@/partials/common/toolbar';
-import { StaffPendingChanges, emptyStaffPendingChanges } from '@/models/staff-pending-changes';
-import { useDirtyTracker } from '@/hooks/useDirtyTracker';
-import { useUpdateStaff, useStaffMember, useInviteStaff, useRevokeInvite } from '@/hooks/use-staff';
-import { useAdminAuthStatus } from '@/hooks/use-auth-status';
 import { format } from 'date-fns';
+import {
+  Archive,
+  ArrowLeft,
+  CheckCircle,
+  HelpCircle,
+  LogOut,
+  Mail,
+  MoreHorizontal,
+  ShieldX,
+  UserCheck,
+} from 'lucide-react';
+import { useParams } from 'react-router';
+import { toast } from 'sonner';
+import { useAdminAuthStatus } from '@/hooks/use-auth-status';
+import {
+  useInviteStaff,
+  useRevokeInvite,
+  useStaffMember,
+  useUpdateStaff,
+} from '@/hooks/use-staff';
+import { useDirtyTracker } from '@/hooks/useDirtyTracker';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { Container } from '@/components/common/container';
+import { StaffActivationDialog } from './components/staff-activation-dialog';
+import { StaffDeactivationDialog } from './components/staff-deactivation-dialog';
+import { StaffDetailContent } from './staff-detail-content.tsx';
 
 export function StaffDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -46,8 +64,12 @@ export function StaffDetailPage() {
   const { mutateAsync: revokeInvite } = useRevokeInvite();
   const { data: authStatusData } = useAdminAuthStatus();
   const [formData, setFormData] = useState<Record<string, any> | null>(null);
-  const [originalData, setOriginalData] = useState<Record<string, any> | null>(null);
-  const [pendingChanges, setPendingChanges] = useState<StaffPendingChanges>(emptyStaffPendingChanges);
+  const [originalData, setOriginalData] = useState<Record<string, any> | null>(
+    null,
+  );
+  const [pendingChanges, setPendingChanges] = useState<StaffPendingChanges>(
+    emptyStaffPendingChanges,
+  );
   const [saving, setSaving] = useState(false);
   const [photoDirty, setPhotoDirty] = useState(false);
   const saveHandlerRef = useRef<(() => Promise<void>) | null>(null);
@@ -61,9 +83,10 @@ export function StaffDetailPage() {
 
   const handleStatusToggle = async () => {
     if (!id || !staffMember) return;
-    
-    const isActivating = staffMember.status === 'inactive' || staffMember.status === 'draft';
-    
+
+    const isActivating =
+      staffMember.status === 'inactive' || staffMember.status === 'draft';
+
     if (isActivating) {
       setShowActivateDialog(true);
     } else {
@@ -78,7 +101,7 @@ export function StaffDetailPage() {
     try {
       // 1. Perform Activation
       await updateStaff({ id, updates: { status: 'active' } });
-      
+
       // 2. Perform Invitation if requested
       let inviteMsg = '';
       if (sendInvite && formData?.email && !staffAuthUserId) {
@@ -88,7 +111,10 @@ export function StaffDetailPage() {
 
       toast.success(`Staff member activated successfully${inviteMsg}`);
     } catch (err) {
-      handleError(err as Error, { category: 'network', title: 'Activation Failed' });
+      handleError(err as Error, {
+        category: 'network',
+        title: 'Activation Failed',
+      });
     } finally {
       setArchiving(false);
     }
@@ -108,12 +134,15 @@ export function StaffDetailPage() {
       }
 
       toast.success(
-        revokeAccess 
-          ? 'Staff member deactivated and portal access revoked' 
-          : 'Staff member deactivated successfully'
+        revokeAccess
+          ? 'Staff member deactivated and portal access revoked'
+          : 'Staff member deactivated successfully',
       );
     } catch (err) {
-      handleError(err as Error, { category: 'network', title: 'Deactivation Failed' });
+      handleError(err as Error, {
+        category: 'network',
+        title: 'Deactivation Failed',
+      });
     } finally {
       setArchiving(false);
     }
@@ -127,7 +156,9 @@ export function StaffDetailPage() {
     setInviting(true);
     try {
       await inviteStaff({ staffId: id, email: formData.email });
-      toast.success('Invite sent! The staff member will receive an email to set their password.');
+      toast.success(
+        'Invite sent! The staff member will receive an email to set their password.',
+      );
     } catch (err) {
       const error = err as Error;
       handleError(error, { category: 'network', title: 'Invite Failed' });
@@ -138,11 +169,11 @@ export function StaffDetailPage() {
 
   const handleRevokeInvite = async () => {
     if (!id || !staffAuthUserId) return;
-    
+
     const confirmed = window.confirm(
-      'Are you sure you want to cancel this invitation? This will delete the user\'s login account and they will no longer be able to access the portal.'
+      "Are you sure you want to cancel this invitation? This will delete the user's login account and they will no longer be able to access the portal.",
     );
-    
+
     if (!confirmed) return;
 
     setRevoking(true);
@@ -180,7 +211,9 @@ export function StaffDetailPage() {
 
   const handleBack = useCallback(() => {
     if (isDirty) {
-      const confirmLeave = window.confirm('You have unsaved changes. Are you sure you want to leave?');
+      const confirmLeave = window.confirm(
+        'You have unsaved changes. Are you sure you want to leave?',
+      );
       if (!confirmLeave) return;
     }
     window.history.back();
@@ -208,40 +241,86 @@ export function StaffDetailPage() {
                     <ToolbarPageTitle text="Staff Details" />
                     {id && (
                       <div className="flex items-center gap-1.5">
-                        <Badge 
-                          variant={staffAuthUserId ? "success" : "destructive"} 
-                          appearance="light" 
+                        <Badge
+                          variant={staffAuthUserId ? 'success' : 'destructive'}
+                          appearance="light"
                           size="sm"
                           className="font-semibold uppercase tracking-wider text-[10px]"
                         >
-                          {staffAuthUserId ? "Portal Active" : "No Portal Access"}
+                          {staffAuthUserId
+                            ? 'Portal Active'
+                            : 'No Portal Access'}
                         </Badge>
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <HelpCircle className="size-3.5 text-muted-foreground cursor-help hover:text-foreground transition-colors" />
                             </TooltipTrigger>
-                            <TooltipContent variant="light" className="max-w-[280px] p-3 shadow-lg border-border">
-                              <p className="font-semibold mb-1">About Portal Access</p>
+                            <TooltipContent
+                              variant="light"
+                              className="max-w-[280px] p-3 shadow-lg border-border"
+                            >
+                              <p className="font-semibold mb-1">
+                                About Portal Access
+                              </p>
                               <div className="text-[11px] leading-relaxed text-muted-foreground flex flex-col gap-1.5">
-                                {staffAuthUserId && authStatusData?.[staffAuthUserId] ? (
+                                {staffAuthUserId &&
+                                authStatusData?.[staffAuthUserId] ? (
                                   <>
-                                    {authStatusData[staffAuthUserId].invited_at && (
-                                      <p><span className="font-medium text-foreground">Invited:</span> {format(new Date(authStatusData[staffAuthUserId].invited_at), 'PPP p')}</p>
+                                    {authStatusData[staffAuthUserId]
+                                      .invited_at && (
+                                      <p>
+                                        <span className="font-medium text-foreground">
+                                          Invited:
+                                        </span>{' '}
+                                        {format(
+                                          new Date(
+                                            authStatusData[staffAuthUserId]
+                                              .invited_at,
+                                          ),
+                                          'PPP p',
+                                        )}
+                                      </p>
                                     )}
-                                    {authStatusData[staffAuthUserId].confirmed_at && (
-                                      <p><span className="font-medium text-foreground">Accepted:</span> {format(new Date(authStatusData[staffAuthUserId].confirmed_at), 'PPP p')}</p>
+                                    {authStatusData[staffAuthUserId]
+                                      .confirmed_at && (
+                                      <p>
+                                        <span className="font-medium text-foreground">
+                                          Accepted:
+                                        </span>{' '}
+                                        {format(
+                                          new Date(
+                                            authStatusData[staffAuthUserId]
+                                              .confirmed_at,
+                                          ),
+                                          'PPP p',
+                                        )}
+                                      </p>
                                     )}
-                                    {authStatusData[staffAuthUserId].last_sign_in_at ? (
-                                      <p><span className="font-medium text-foreground">Last Login:</span> {format(new Date(authStatusData[staffAuthUserId].last_sign_in_at), 'PPP p')}</p>
+                                    {authStatusData[staffAuthUserId]
+                                      .last_sign_in_at ? (
+                                      <p>
+                                        <span className="font-medium text-foreground">
+                                          Last Login:
+                                        </span>{' '}
+                                        {format(
+                                          new Date(
+                                            authStatusData[staffAuthUserId]
+                                              .last_sign_in_at,
+                                          ),
+                                          'PPP p',
+                                        )}
+                                      </p>
                                     ) : (
-                                      <p className="text-warning">Never logged in</p>
+                                      <p className="text-warning">
+                                        Never logged in
+                                      </p>
                                     )}
                                   </>
                                 ) : (
                                   <p>
-                                    {staffAuthUserId 
-                                      ? "This staff member has an active login and can access the portal to view their roster, timesheets, and participant data."
+                                    {staffAuthUserId
+                                      ? 'This staff member has an active login and can access the portal to view their roster, timesheets, and participant data.'
                                       : "This staff member currently has no login credentials. They cannot access the portal until you send them an invitation via the 'More Actions' menu."}
                                   </p>
                                 )}
@@ -257,7 +336,11 @@ export function StaffDetailPage() {
             </ToolbarHeading>
             <ToolbarActions>
               <div className="flex items-center gap-2">
-                <Button onClick={handleSave} disabled={!isDirty || saving} size="sm">
+                <Button
+                  onClick={handleSave}
+                  disabled={!isDirty || saving}
+                  size="sm"
+                >
                   {saving ? 'Saving...' : 'Save Changes'}
                 </Button>
 
@@ -290,31 +373,48 @@ export function StaffDetailPage() {
                 {isAdmin && staffMember && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm" className="size-9 px-0">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="size-9 px-0"
+                      >
                         <MoreHorizontal className="size-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-56">
-                      <DropdownMenuLabel className="text-xs font-semibold uppercase text-muted-foreground">Portal Settings</DropdownMenuLabel>
+                      <DropdownMenuLabel className="text-xs font-semibold uppercase text-muted-foreground">
+                        Portal Settings
+                      </DropdownMenuLabel>
                       {staffAuthUserId ? (
                         <>
                           <div className="px-2 py-1.5 flex flex-col gap-0.5">
                             <div className="flex items-center gap-2 text-[11px] text-green-600 font-bold uppercase tracking-wider">
                               <CheckCircle className="size-3" /> Access Active
                             </div>
-                            {authStatusData?.[staffAuthUserId]?.last_sign_in_at && (
+                            {authStatusData?.[staffAuthUserId]
+                              ?.last_sign_in_at && (
                               <div className="text-[10px] text-muted-foreground ps-5">
-                                Last login: {format(new Date(authStatusData[staffAuthUserId].last_sign_in_at!), 'PP p')}
+                                Last login:{' '}
+                                {format(
+                                  new Date(
+                                    authStatusData[staffAuthUserId]
+                                      .last_sign_in_at!,
+                                  ),
+                                  'PP p',
+                                )}
                               </div>
                             )}
                           </div>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={handleInvite} disabled={inviting}>
+                          <DropdownMenuItem
+                            onClick={handleInvite}
+                            disabled={inviting}
+                          >
                             <Mail className="size-4 mr-2" />
                             {inviting ? 'Sending...' : 'Resend Invite'}
                           </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={handleRevokeInvite} 
+                          <DropdownMenuItem
+                            onClick={handleRevokeInvite}
                             disabled={revoking}
                             className="text-destructive focus:text-destructive focus:bg-destructive/10"
                           >
@@ -323,8 +423,8 @@ export function StaffDetailPage() {
                           </DropdownMenuItem>
                         </>
                       ) : (
-                        <DropdownMenuItem 
-                          onClick={handleInvite} 
+                        <DropdownMenuItem
+                          onClick={handleInvite}
                           disabled={inviting || !formData?.email}
                         >
                           <Mail className="size-4 mr-2" />

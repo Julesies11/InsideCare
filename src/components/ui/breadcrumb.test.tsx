@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
 import {
   Breadcrumb,
   BreadcrumbEllipsis,
@@ -27,10 +27,12 @@ describe('Breadcrumb', () => {
             <BreadcrumbPage>Current House</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
-      </Breadcrumb>
+      </Breadcrumb>,
     );
-    
-    expect(screen.getByRole('navigation', { name: /breadcrumb/i })).toBeInTheDocument();
+
+    expect(
+      screen.getByRole('navigation', { name: /breadcrumb/i }),
+    ).toBeInTheDocument();
     expect(screen.getByText('Home')).toBeInTheDocument();
     expect(screen.getByText('Houses')).toBeInTheDocument();
     expect(screen.getByText('Current House')).toBeInTheDocument();
@@ -44,9 +46,9 @@ describe('Breadcrumb', () => {
             <BreadcrumbPage>Active Page</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
-      </Breadcrumb>
+      </Breadcrumb>,
     );
-    
+
     const activePage = screen.getByText('Active Page');
     expect(activePage).toHaveAttribute('aria-current', 'page');
   });
@@ -59,9 +61,9 @@ describe('Breadcrumb', () => {
             <BreadcrumbEllipsis data-testid="breadcrumb-ellipsis" />
           </BreadcrumbItem>
         </BreadcrumbList>
-      </Breadcrumb>
+      </Breadcrumb>,
     );
-    
+
     expect(screen.getByTestId('breadcrumb-ellipsis')).toBeInTheDocument();
     expect(screen.getByText('More')).toBeInTheDocument(); // sr-only text
   });
@@ -76,9 +78,9 @@ describe('Breadcrumb', () => {
           </BreadcrumbSeparator>
           <BreadcrumbItem>Item 2</BreadcrumbItem>
         </BreadcrumbList>
-      </Breadcrumb>
+      </Breadcrumb>,
     );
-    
+
     expect(screen.getByTestId('custom-separator')).toBeInTheDocument();
     expect(screen.getByText('/')).toBeInTheDocument();
   });

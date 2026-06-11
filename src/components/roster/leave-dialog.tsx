@@ -1,22 +1,13 @@
-import { useState, useEffect, useRef } from 'react';
-import { useAuth } from '@/auth/context/auth-context';
-import { toast } from 'sonner';
-import { format, parseISO } from 'date-fns';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { LEAVE_STATUS } from '@/config/enums';
+import { useEffect, useRef, useState } from 'react';
 import { rosterApi } from '@/api/roster.api';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { AlertTriangle, Paperclip, X, Loader2 } from 'lucide-react';
+import { useAuth } from '@/auth/context/auth-context';
+import { format, parseISO } from 'date-fns';
+import { AlertTriangle, Loader2, Paperclip, X } from 'lucide-react';
+import { toast } from 'sonner';
+import { LEAVE_STATUS } from '@/config/enums';
+import { getFilenameFromStorageUrl } from '@/lib/helpers';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -24,8 +15,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-
-import { getFilenameFromStorageUrl } from '@/lib/helpers';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 
 interface LeaveType {
   id: string;
@@ -48,7 +47,13 @@ interface LeaveDialogProps {
   initialDate?: string;
 }
 
-export function LeaveDialog({ open, onOpenChange, leaveId, onSuccess, initialDate }: LeaveDialogProps) {
+export function LeaveDialog({
+  open,
+  onOpenChange,
+  leaveId,
+  onSuccess,
+  initialDate,
+}: LeaveDialogProps) {
   const { user } = useAuth();
   const isEdit = !!leaveId;
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -59,12 +64,16 @@ export function LeaveDialog({ open, onOpenChange, leaveId, onSuccess, initialDat
   const [endDate, setEndDate] = useState(initialDate || '');
   const [reason, setReason] = useState('');
   const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
-  const [existingAttachmentUrl, setExistingAttachmentUrl] = useState<string | null>(null);
+  const [existingAttachmentUrl, setExistingAttachmentUrl] = useState<
+    string | null
+  >(null);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(isEdit);
 
   // Conflict detection
-  const [conflictingShifts, setConflictingShifts] = useState<ConflictingShift[]>([]);
+  const [conflictingShifts, setConflictingShifts] = useState<
+    ConflictingShift[]
+  >([]);
 
   useEffect(() => {
     if (open) {
@@ -83,7 +92,7 @@ export function LeaveDialog({ open, onOpenChange, leaveId, onSuccess, initialDat
           setLoading(true);
           try {
             const data = await rosterApi.getLeaveRequest(leaveId);
-            if (!data) throw new Error("Leave request not found");
+            if (!data) throw new Error('Leave request not found');
             setLeaveTypeId(data.leave_type_id || '');
             setStartDate(data.start_date || '');
             setEndDate(data.end_date || '');
@@ -119,7 +128,11 @@ export function LeaveDialog({ open, onOpenChange, leaveId, onSuccess, initialDat
 
     const check = async () => {
       try {
-        const data = await rosterApi.listConflictingShifts(user.staff_id!, startDate, endDate);
+        const data = await rosterApi.listConflictingShifts(
+          user.staff_id!,
+          startDate,
+          endDate,
+        );
         setConflictingShifts(data as ConflictingShift[]);
       } catch (error) {
         console.error('Error checking for conflicts:', error);
@@ -145,7 +158,10 @@ export function LeaveDialog({ open, onOpenChange, leaveId, onSuccess, initialDat
     try {
       let attachmentUrl = existingAttachmentUrl || undefined;
       if (attachmentFile) {
-        const filePath = await rosterApi.uploadStaffDocument(user.staff_id, attachmentFile);
+        const filePath = await rosterApi.uploadStaffDocument(
+          user.staff_id,
+          attachmentFile,
+        );
         attachmentUrl = await rosterApi.getStaffDocumentSignedUrl(filePath);
       }
 
@@ -156,17 +172,27 @@ export function LeaveDialog({ open, onOpenChange, leaveId, onSuccess, initialDat
         end_date: endDate,
         reason: reason || null,
         status: LEAVE_STATUS.PENDING,
-        ...(attachmentUrl !== undefined ? { attachment_url: attachmentUrl } : {}),
+        ...(attachmentUrl !== undefined
+          ? { attachment_url: attachmentUrl }
+          : {}),
       };
 
       await rosterApi.upsertLeaveRequest(payload, leaveId || undefined);
-      
-      toast.success(isEdit ? 'Leave request updated' : 'Leave request submitted successfully');
+
+      toast.success(
+        isEdit
+          ? 'Leave request updated'
+          : 'Leave request submitted successfully',
+      );
       onOpenChange(false);
       if (onSuccess) onSuccess();
     } catch (error) {
       console.error('Error submitting leave request:', error);
-      toast.error(isEdit ? 'Failed to update leave request' : 'Failed to submit leave request');
+      toast.error(
+        isEdit
+          ? 'Failed to update leave request'
+          : 'Failed to submit leave request',
+      );
     } finally {
       setSaving(false);
     }
@@ -176,7 +202,9 @@ export function LeaveDialog({ open, onOpenChange, leaveId, onSuccess, initialDat
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>{isEdit ? 'Edit Leave Request' : 'New Leave Request'}</DialogTitle>
+          <DialogTitle>
+            {isEdit ? 'Edit Leave Request' : 'New Leave Request'}
+          </DialogTitle>
         </DialogHeader>
 
         {loading ? (
@@ -185,18 +213,28 @@ export function LeaveDialog({ open, onOpenChange, leaveId, onSuccess, initialDat
             <p className="text-sm text-muted-foreground">Loading details...</p>
           </div>
         ) : (
-          <form id="leave-dialog-form" onSubmit={handleSubmit} className="space-y-5 py-4">
+          <form
+            id="leave-dialog-form"
+            onSubmit={handleSubmit}
+            className="space-y-5 py-4"
+          >
             {/* Conflict warning */}
             {conflictingShifts.length > 0 && (
               <div className="rounded-lg border border-warning/50 bg-warning/10 p-3 flex gap-3">
                 <AlertTriangle className="size-4 text-warning mt-0.5 shrink-0" />
                 <div className="space-y-1">
                   <p className="text-xs font-medium text-warning-800">
-                    {conflictingShifts.length} rostered shift{conflictingShifts.length !== 1 ? 's' : ''} overlap
+                    {conflictingShifts.length} rostered shift
+                    {conflictingShifts.length !== 1 ? 's' : ''} overlap
                   </p>
                   <div className="flex flex-wrap gap-1 mt-1">
-                    {conflictingShifts.map(s => (
-                      <Badge key={s.id} variant="warning" appearance="light" className="text-[10px] px-1 h-4">
+                    {conflictingShifts.map((s) => (
+                      <Badge
+                        key={s.id}
+                        variant="warning"
+                        appearance="light"
+                        className="text-[10px] px-1 h-4"
+                      >
                         {format(parseISO(s.start_date), 'dd MMM')}
                       </Badge>
                     ))}
@@ -206,8 +244,14 @@ export function LeaveDialog({ open, onOpenChange, leaveId, onSuccess, initialDat
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="leaveType">Leave Type <span className="text-destructive">*</span></Label>
-              <Select value={leaveTypeId} onValueChange={setLeaveTypeId} required>
+              <Label htmlFor="leaveType">
+                Leave Type <span className="text-destructive">*</span>
+              </Label>
+              <Select
+                value={leaveTypeId}
+                onValueChange={setLeaveTypeId}
+                required
+              >
                 <SelectTrigger id="leaveType">
                   <SelectValue placeholder="Select leave type" />
                 </SelectTrigger>
@@ -223,7 +267,9 @@ export function LeaveDialog({ open, onOpenChange, leaveId, onSuccess, initialDat
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="startDate">Start Date <span className="text-destructive">*</span></Label>
+                <Label htmlFor="startDate">
+                  Start Date <span className="text-destructive">*</span>
+                </Label>
                 <Input
                   id="startDate"
                   type="date"
@@ -233,7 +279,9 @@ export function LeaveDialog({ open, onOpenChange, leaveId, onSuccess, initialDat
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="endDate">End Date <span className="text-destructive">*</span></Label>
+                <Label htmlFor="endDate">
+                  End Date <span className="text-destructive">*</span>
+                </Label>
                 <Input
                   id="endDate"
                   type="date"
@@ -246,7 +294,12 @@ export function LeaveDialog({ open, onOpenChange, leaveId, onSuccess, initialDat
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="reason">Reason <span className="text-muted-foreground text-xs">(optional)</span></Label>
+              <Label htmlFor="reason">
+                Reason{' '}
+                <span className="text-muted-foreground text-xs">
+                  (optional)
+                </span>
+              </Label>
               <Textarea
                 id="reason"
                 value={reason}
@@ -257,15 +310,30 @@ export function LeaveDialog({ open, onOpenChange, leaveId, onSuccess, initialDat
             </div>
 
             <div className="space-y-2">
-              <Label>Attachment <span className="text-muted-foreground text-xs">(optional)</span></Label>
+              <Label>
+                Attachment{' '}
+                <span className="text-muted-foreground text-xs">
+                  (optional)
+                </span>
+              </Label>
               <div className="flex flex-col gap-2">
                 {existingAttachmentUrl && !attachmentFile && (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Paperclip className="size-3.5" />
-                    <a href={existingAttachmentUrl} target="_blank" rel="noreferrer" className="underline truncate max-w-[200px]" title={getFilenameFromUrl(existingAttachmentUrl)}>
+                    <a
+                      href={existingAttachmentUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="underline truncate max-w-[200px]"
+                      title={getFilenameFromUrl(existingAttachmentUrl)}
+                    >
                       {getFilenameFromUrl(existingAttachmentUrl)}
                     </a>
-                    <button type="button" onClick={() => setExistingAttachmentUrl(null)} className="text-destructive">
+                    <button
+                      type="button"
+                      onClick={() => setExistingAttachmentUrl(null)}
+                      className="text-destructive"
+                    >
                       <X className="size-3.5" />
                     </button>
                   </div>
@@ -273,8 +341,14 @@ export function LeaveDialog({ open, onOpenChange, leaveId, onSuccess, initialDat
                 {attachmentFile ? (
                   <div className="flex items-center gap-2 text-sm">
                     <Paperclip className="size-3.5 text-muted-foreground" />
-                    <span className="truncate max-w-[200px]">{attachmentFile.name}</span>
-                    <button type="button" onClick={() => setAttachmentFile(null)} className="text-destructive">
+                    <span className="truncate max-w-[200px]">
+                      {attachmentFile.name}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setAttachmentFile(null)}
+                      className="text-destructive"
+                    >
                       <X className="size-3.5" />
                     </button>
                   </div>
@@ -285,7 +359,9 @@ export function LeaveDialog({ open, onOpenChange, leaveId, onSuccess, initialDat
                       type="file"
                       className="hidden"
                       accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                      onChange={(e) => setAttachmentFile(e.target.files?.[0] ?? null)}
+                      onChange={(e) =>
+                        setAttachmentFile(e.target.files?.[0] ?? null)
+                      }
                     />
                     <Button
                       type="button"
@@ -305,10 +381,18 @@ export function LeaveDialog({ open, onOpenChange, leaveId, onSuccess, initialDat
         )}
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={saving}
+          >
             Cancel
           </Button>
-          <Button type="submit" form="leave-dialog-form" disabled={saving || loading}>
+          <Button
+            type="submit"
+            form="leave-dialog-form"
+            disabled={saving || loading}
+          >
             {saving ? 'Saving...' : isEdit ? 'Save Changes' : 'Submit Request'}
           </Button>
         </DialogFooter>

@@ -1,11 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
-import { HouseDetailPage } from './house-detail-page';
-import { renderWithProviders } from '@/test/test-utils';
-import { TABLES } from '@/config/db-tables';
-import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
+import { renderWithProviders } from '@/test/test-utils';
 import { HouseRow } from '@/test/type-helpers';
+import { screen, waitFor } from '@testing-library/react';
+import { http, HttpResponse } from 'msw';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { TABLES } from '@/config/db-tables';
+import { HouseDetailPage } from './house-detail-page';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
@@ -41,33 +41,44 @@ describe('HouseDetailPage', () => {
       http.get(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSES}`, ({ request }) => {
         const url = new URL(request.url);
         const idParam = url.searchParams.get('id');
-        if (idParam || request.headers.get('Accept')?.includes('vnd.pgrst.object+json')) {
+        if (
+          idParam ||
+          request.headers.get('Accept')?.includes('vnd.pgrst.object+json')
+        ) {
           return HttpResponse.json(mockHouse);
         }
         return HttpResponse.json([mockHouse]);
       }),
       http.patch(`${SUPABASE_URL}/rest/v1/${TABLES.HOUSES}`, () => {
         return HttpResponse.json(mockHouse);
-      })
+      }),
     );
   });
 
   it('renders the page with toolbar and content', async () => {
     renderWithProviders(<HouseDetailPage />);
 
-    expect(screen.getByRole('heading', { name: /house details/i })).toBeInTheDocument();
-    
-    await waitFor(() => {
-      expect(screen.getByDisplayValue('Test House 1')).toBeInTheDocument();
-    }, { timeout: 10000 });
+    expect(
+      screen.getByRole('heading', { name: /house details/i }),
+    ).toBeInTheDocument();
+
+    await waitFor(
+      () => {
+        expect(screen.getByDisplayValue('Test House 1')).toBeInTheDocument();
+      },
+      { timeout: 10000 },
+    );
   }, 20000);
 
   it('enables save button when data is changed', async () => {
     const { user } = renderWithProviders(<HouseDetailPage />);
 
-    await waitFor(() => {
-      expect(screen.getByDisplayValue('Test House 1')).toBeInTheDocument();
-    }, { timeout: 10000 });
+    await waitFor(
+      () => {
+        expect(screen.getByDisplayValue('Test House 1')).toBeInTheDocument();
+      },
+      { timeout: 10000 },
+    );
 
     const saveBtn = screen.getByRole('button', { name: /save changes/i });
     expect(saveBtn).toBeDisabled();
@@ -76,9 +87,12 @@ describe('HouseDetailPage', () => {
     await user.clear(nameInput);
     await user.type(nameInput, 'House Updated');
 
-    await waitFor(() => {
-      expect(nameInput).toHaveValue('House Updated');
-    }, { timeout: 10000 });
+    await waitFor(
+      () => {
+        expect(nameInput).toHaveValue('House Updated');
+      },
+      { timeout: 10000 },
+    );
 
     expect(saveBtn).toBeEnabled();
   }, 20000);

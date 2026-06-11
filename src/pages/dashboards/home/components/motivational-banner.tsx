@@ -11,7 +11,8 @@ export function MotivationalBanner() {
           </div>
           <div className="flex-1">
             <p className="text-lg text-green-900 dark:text-green-100 italic text-center">
-              "Every task you complete today, helps someone feel safer tomorrow."
+              "Every task you complete today, helps someone feel safer
+              tomorrow."
             </p>
             <div className="flex justify-center mt-2">
               <div className="flex gap-1.5">

@@ -1,6 +1,6 @@
 import { renderWithProviders, screen, waitFor } from '@/test/test-utils';
+import { describe, expect, it, vi } from 'vitest';
 import { StaffDetailPage } from './staff-detail-page';
-import { describe, it, expect, vi } from 'vitest';
 
 // Mock Supabase
 const mockSupabaseQuery = {
@@ -8,29 +8,33 @@ const mockSupabaseQuery = {
   eq: vi.fn().mockReturnThis(),
   in: vi.fn().mockReturnThis(),
   order: vi.fn().mockReturnThis(),
-  single: vi.fn().mockImplementation(() => Promise.resolve({ 
-    data: { 
-      id: 'staff-1', 
-      staff_name: 'John Staff', 
-      status: 'active', 
-      email: 'john@example.com',
-      role: { id: 'role-1', role_name: 'Staff' },
-      department_info: { id: 'dept-1', department_name: 'Care' }
-    }, 
-    error: null 
-  })),
-  maybeSingle: vi.fn().mockImplementation(() => Promise.resolve({ 
-    data: { 
-      id: 'staff-1', 
-      staff_name: 'John Staff', 
-      status: 'active', 
-      email: 'john@example.com',
-      role: { id: 'role-1', role_name: 'Staff' },
-      department_info: { id: 'dept-1', department_name: 'Care' }
-    }, 
-    error: null 
-  })),
-  then: vi.fn().mockImplementation(function(this: any, onSuccess) {
+  single: vi.fn().mockImplementation(() =>
+    Promise.resolve({
+      data: {
+        id: 'staff-1',
+        staff_name: 'John Staff',
+        status: 'active',
+        email: 'john@example.com',
+        role: { id: 'role-1', role_name: 'Staff' },
+        department_info: { id: 'dept-1', department_name: 'Care' },
+      },
+      error: null,
+    }),
+  ),
+  maybeSingle: vi.fn().mockImplementation(() =>
+    Promise.resolve({
+      data: {
+        id: 'staff-1',
+        staff_name: 'John Staff',
+        status: 'active',
+        email: 'john@example.com',
+        role: { id: 'role-1', role_name: 'Staff' },
+        department_info: { id: 'dept-1', department_name: 'Care' },
+      },
+      error: null,
+    }),
+  ),
+  then: vi.fn().mockImplementation(function (this: any, onSuccess) {
     if (typeof onSuccess === 'function') {
       return Promise.resolve(onSuccess({ data: [], error: null }));
     }
@@ -43,10 +47,15 @@ vi.mock('@/lib/supabase', () => ({
     from: vi.fn(() => mockSupabaseQuery),
     storage: {
       from: vi.fn(() => ({
-        createSignedUrl: vi.fn(() => Promise.resolve({ data: { signedUrl: 'http://test.com' }, error: null }))
-      }))
-    }
-  }
+        createSignedUrl: vi.fn(() =>
+          Promise.resolve({
+            data: { signedUrl: 'http://test.com' },
+            error: null,
+          }),
+        ),
+      })),
+    },
+  },
 }));
 
 // Mock hooks that use browser APIs
@@ -70,17 +79,23 @@ vi.mock('react-router', async () => {
 describe('Staff Detail Smoke Test', () => {
   it('renders the staff detail page without crashing', async () => {
     renderWithProviders(<StaffDetailPage />, {
-      route: '/employees/staff-detail/staff-1'
+      route: '/employees/staff-detail/staff-1',
     });
-    
+
     // Check for core page elements
-    await waitFor(() => {
-      expect(screen.getAllByText(/Employment/i).length).toBeGreaterThan(0);
-    }, { timeout: 2000 });
-    
-    await waitFor(() => {
-      // The name should appear in the form input
-      expect(screen.getByDisplayValue('John Staff')).toBeInTheDocument();
-    }, { timeout: 5000 });
+    await waitFor(
+      () => {
+        expect(screen.getAllByText(/Employment/i).length).toBeGreaterThan(0);
+      },
+      { timeout: 2000 },
+    );
+
+    await waitFor(
+      () => {
+        // The name should appear in the form input
+        expect(screen.getByDisplayValue('John Staff')).toBeInTheDocument();
+      },
+      { timeout: 5000 },
+    );
   });
 });

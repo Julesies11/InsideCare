@@ -74,9 +74,7 @@ export default function Item1({
           </div>
 
           <div className="relative sm:max-w-full w-full">
-            <ImageIcon
-              className="absolute end-3 top-1/2 -translate-y-1/2 text-muted-foreground size-4"
-            />
+            <ImageIcon className="absolute end-3 top-1/2 -translate-y-1/2 text-muted-foreground size-4" />
             <Input
               type="text"
               placeholder="Reply"

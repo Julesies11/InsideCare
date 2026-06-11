@@ -1,9 +1,9 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import { ReportingHubPage } from './reporting-hub-page';
-import { SettingsProvider } from '@/providers/settings-provider';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
+import { describe, expect, it, vi } from 'vitest';
+import { SettingsProvider } from '@/providers/settings-provider';
+import { ReportingHubPage } from './reporting-hub-page';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,11 +28,13 @@ describe('ReportingHubPage Smoke Test', () => {
             <ReportingHubPage />
           </MemoryRouter>
         </QueryClientProvider>
-      </SettingsProvider>
+      </SettingsProvider>,
     );
-    
-    expect(container.querySelector('h1')?.textContent).toContain('Reporting Hub');
-    
+
+    expect(container.querySelector('h1')?.textContent).toContain(
+      'Reporting Hub',
+    );
+
     // Verify descriptive text
     expect(screen.getByText(/Generate and export/i)).toBeInTheDocument();
   });

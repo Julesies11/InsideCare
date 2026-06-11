@@ -1,16 +1,17 @@
-import { describe, it, expect } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
-import { useShiftNotes } from './use-shift-notes';
+import { ReactElement, ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactNode, ReactElement } from 'react';
+import { renderHook, waitFor } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
+import { useShiftNotes } from './use-shift-notes';
 
-const createTestQueryClient = () => new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
+const createTestQueryClient = () =>
+  new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
     },
-  },
-});
+  });
 
 const wrapper = ({ children }: { children: ReactNode }): ReactElement => (
   <QueryClientProvider client={createTestQueryClient()}>

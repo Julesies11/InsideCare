@@ -1,9 +1,9 @@
-import { describe, it, expect, vi } from 'vitest';
-import { renderWithProviders, screen, waitFor } from '@/test/test-utils';
-import { MedicationRegisterPage } from '@/pages/participants/medication-register/medication-register-page';
 import { MedicationDetailPage } from '@/pages/participants/medication-register/medication-detail-page';
-import { ROUTES } from '@/config/routes.config';
+import { MedicationRegisterPage } from '@/pages/participants/medication-register/medication-register-page';
+import { renderWithProviders, screen, waitFor } from '@/test/test-utils';
 import { Route, Routes } from 'react-router';
+import { describe, expect, it, vi } from 'vitest';
+import { ROUTES } from '@/config/routes.config';
 
 // Mock the hooks
 vi.mock('@/hooks/use-medications-master', () => ({
@@ -21,7 +21,12 @@ vi.mock('@/hooks/use-medications-master', () => ({
     isLoading: false,
   }),
   useMedicationMaster: () => ({
-    data: { id: 'm1', medication_name: 'Test Med', type_id: '1', is_active: true },
+    data: {
+      id: 'm1',
+      medication_name: 'Test Med',
+      type_id: '1',
+      is_active: true,
+    },
     isLoading: false,
   }),
   useAddMedicationMaster: () => ({ mutateAsync: vi.fn() }),
@@ -32,16 +37,21 @@ vi.mock('@/hooks/use-medications-master', () => ({
 
 describe('Medications Smoke Tests', () => {
   it('MedicationRegisterPage renders without crashing', async () => {
-    renderWithProviders(<MedicationRegisterPage />, { route: ROUTES.MEDICATION_REGISTER });
+    renderWithProviders(<MedicationRegisterPage />, {
+      route: ROUTES.MEDICATION_REGISTER,
+    });
     expect(screen.getByText(/Medication Register/i)).toBeInTheDocument();
   });
 
   it('MedicationDetailPage renders without crashing for a new medication', async () => {
     renderWithProviders(
       <Routes>
-        <Route path={`${ROUTES.MEDICATION_REGISTER}/:id`} element={<MedicationDetailPage />} />
+        <Route
+          path={`${ROUTES.MEDICATION_REGISTER}/:id`}
+          element={<MedicationDetailPage />}
+        />
       </Routes>,
-      { route: `${ROUTES.MEDICATION_REGISTER}/new` }
+      { route: `${ROUTES.MEDICATION_REGISTER}/new` },
     );
     await waitFor(() => {
       expect(screen.getByText(/Add Medication/i)).toBeInTheDocument();

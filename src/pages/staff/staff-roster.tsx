@@ -1,47 +1,54 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router';
+import { useMemo, useState } from 'react';
 import { useAuth } from '@/auth/context/auth-context';
-import { format, addDays, addWeeks, addMonths } from 'date-fns';
-import { ClipboardList, Calendar, List, Users } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTable } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Container } from '@/components/common/container';
+import { StaffRosterCalendar } from '@/pages/roster-board/components/staff-roster-calendar';
 import {
   Toolbar,
   ToolbarActions,
+  ToolbarDescription,
   ToolbarHeading,
   ToolbarPageTitle,
-  ToolbarDescription,
 } from '@/partials/common/toolbar';
-import { StaffRosterCalendar } from '@/pages/roster-board/components/staff-roster-calendar';
+import { useQueryClient } from '@tanstack/react-query';
+import {
+  ColumnDef,
+  getCoreRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  SortingState,
+  useReactTable,
+} from '@tanstack/react-table';
+import { addDays, addMonths, addWeeks, format } from 'date-fns';
+import {
+  Calendar,
+  ClipboardList,
+  List,
+  Pencil,
+  Search,
+  Users,
+} from 'lucide-react';
+import { Link, useNavigate } from 'react-router';
+import { ROUTES } from '@/config/routes.config';
+import { cn } from '@/lib/utils';
+import { useDebounce } from '@/hooks/use-debounce';
+import {
+  RosterEntry as Entry,
+  useStaffRoster,
+  useStaffShiftsPaginated,
+} from '@/hooks/use-staff-roster';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTable } from '@/components/ui/card';
+import { DataGrid } from '@/components/ui/data-grid';
+import { DataGridColumnHeader } from '@/components/ui/data-grid-column-header';
+import { DataGridPagination } from '@/components/ui/data-grid-pagination';
+import { DataGridTable } from '@/components/ui/data-grid-table';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Container } from '@/components/common/container';
+import { LeaveDialog } from '@/components/roster/leave-dialog';
 import { RosterCalendarHeader } from '@/components/roster/roster-calendar-header';
 import { ViewMode } from '@/components/roster/roster-utils';
-import { LeaveDialog } from '@/components/roster/leave-dialog';
-import { useQueryClient } from '@tanstack/react-query';
-
-import { cn } from '@/lib/utils';
-import { useStaffRoster, useStaffShiftsPaginated, RosterEntry as Entry } from '@/hooks/use-staff-roster';
-import { Pencil, Search } from 'lucide-react';
-import { ROUTES } from '@/config/routes.config';
-import { DataGrid } from '@/components/ui/data-grid';
-import { DataGridTable } from '@/components/ui/data-grid-table';
-import { DataGridPagination } from '@/components/ui/data-grid-pagination';
-import { DataGridColumnHeader } from '@/components/ui/data-grid-column-header';
-import { useMemo } from 'react';
-import { 
-  ColumnDef, 
-  useReactTable, 
-  getCoreRowModel, 
-  getPaginationRowModel, 
-  getSortedRowModel,
-  SortingState
-} from '@tanstack/react-table';
-
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { useDebounce } from '@/hooks/use-debounce';
 
 type TabView = 'calendar' | 'list';
 
@@ -70,24 +77,29 @@ export function StaffRoster() {
   const [showLeaveDialog, setShowLeaveDialog] = useState(false);
 
   // List state
-  const { data: entries = [], isLoading: loading, refetch } = useStaffRoster(user?.staff_id);
+  const {
+    data: entries = [],
+    isLoading: loading,
+    refetch,
+  } = useStaffRoster(user?.staff_id);
 
   // Paginated shifts for list view
-  const { data: paginatedData, isLoading: paginatedLoading } = useStaffShiftsPaginated({
-    staffId: user?.staff_id,
-    pageIndex: pagination.pageIndex,
-    pageSize: pagination.pageSize,
-    search: debouncedSearch,
-    sorting: sorting.map(s => ({ id: s.id, desc: s.desc }))
-  });
+  const { data: paginatedData, isLoading: paginatedLoading } =
+    useStaffShiftsPaginated({
+      staffId: user?.staff_id,
+      pageIndex: pagination.pageIndex,
+      pageSize: pagination.pageSize,
+      search: debouncedSearch,
+      sorting: sorting.map((s) => ({ id: s.id, desc: s.desc })),
+    });
 
   const navigatePeriod = (direction: 'prev' | 'next') => {
     if (viewMode === 'today') {
-      setCurrentDate(prev => addDays(prev, direction === 'next' ? 1 : -1));
+      setCurrentDate((prev) => addDays(prev, direction === 'next' ? 1 : -1));
     } else if (viewMode === 'week') {
-      setCurrentDate(prev => addWeeks(prev, direction === 'next' ? 1 : -1));
+      setCurrentDate((prev) => addWeeks(prev, direction === 'next' ? 1 : -1));
     } else {
-      setCurrentDate(prev => addMonths(prev, direction === 'next' ? 1 : -1));
+      setCurrentDate((prev) => addMonths(prev, direction === 'next' ? 1 : -1));
     }
   };
 
@@ -95,7 +107,9 @@ export function StaffRoster() {
     if (viewMode === 'today') return format(currentDate, 'EEEE, MMMM d, yyyy');
     if (viewMode === 'week') {
       const weekStart = new Date(currentDate);
-      weekStart.setDate(currentDate.getDate() - ((currentDate.getDay() + 6) % 7));
+      weekStart.setDate(
+        currentDate.getDate() - ((currentDate.getDay() + 6) % 7),
+      );
       const weekEnd = new Date(weekStart);
       weekEnd.setDate(weekStart.getDate() + 6);
       return `${format(weekStart, 'MMM d')} – ${format(weekEnd, 'MMM d, yyyy')}`;
@@ -112,89 +126,128 @@ export function StaffRoster() {
   };
 
   const handleLeaveSuccess = () => {
-    queryClient.invalidateQueries({ queryKey: ['staff-roster', user?.staff_id] });
-    queryClient.invalidateQueries({ queryKey: ['leave-requests', user?.staff_id] });
+    queryClient.invalidateQueries({
+      queryKey: ['staff-roster', user?.staff_id],
+    });
+    queryClient.invalidateQueries({
+      queryKey: ['leave-requests', user?.staff_id],
+    });
     refetch();
   };
 
-  const columns = useMemo<ColumnDef<any>[]>(() => [
-    {
-      accessorKey: 'start_date',
-      header: ({ column }) => <DataGridColumnHeader title="From" column={column} />,
-      cell: ({ row }) => {
-        const dateStr = format(new Date(row.original.start_date + 'T00:00:00'), 'EEE dd MMM yyyy');
-        return (
-          <Link 
-            to={`${ROUTES.MY_TIMESHEETS}/${row.original.id}`}
-            className="text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline transition-colors"
-          >
-            {dateStr}
-          </Link>
-        );
-      },
-      enableSorting: true,
-    },
-    {
-      accessorKey: 'end_date',
-      header: ({ column }) => <DataGridColumnHeader title="To" column={column} />,
-      cell: ({ row }) => format(new Date((row.original.end_date || row.original.start_date) + 'T00:00:00'), 'EEE dd MMM yyyy'),
-      enableSorting: true,
-    },
-    {
-      accessorKey: 'entry_type',
-      header: ({ column }) => <DataGridColumnHeader title="Type" column={column} />,
-      cell: () => <Badge variant="secondary" appearance="light">Shift</Badge>,
-      enableSorting: false,
-    },
-    {
-      accessorKey: 'details',
-      header: ({ column }) => <DataGridColumnHeader title="Details" column={column} />,
-      cell: ({ row }) => (
-        <div className="flex flex-col text-left">
-          <span className="text-muted-foreground">{row.original.shift_template || 'Standard'}</span>
-          <span className="text-[10px] text-muted-foreground italic">
-            {row.original.start_time?.slice(0, 5)} – {row.original.end_time?.slice(0, 5)}
-            {row.original.house?.house_name && (
-              <>
-                {' at '}
-                <Link 
-                  to={`${ROUTES.HOUSE_DETAIL}/${row.original.house_id || row.original.house.id}`}
-                  className="text-blue-700 dark:text-blue-400 hover:underline transition-colors not-italic font-medium"
-                >
-                  {row.original.house.house_name}
-                </Link>
-              </>
-            )}
-          </span>
-        </div>
-      ),
-      enableSorting: true,
-    },
-    {
-      id: 'actions',
-      header: ({ column }) => <DataGridColumnHeader title="Action" column={column} />,
-      cell: ({ row }) => {
-        const entry = row.original;
-        if (entry.has_timesheet) {
-          return <Badge variant="success" appearance="light">Submitted</Badge>;
-        }
-        if (isPast(entry)) {
-          return (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => navigate(`${ROUTES.MY_TIMESHEETS}/${entry.id}`)}
-            >
-              <ClipboardList className="size-3.5 me-1.5" />
-              Timesheet
-            </Button>
+  const columns = useMemo<ColumnDef<any>[]>(
+    () => [
+      {
+        accessorKey: 'start_date',
+        header: ({ column }) => (
+          <DataGridColumnHeader title="From" column={column} />
+        ),
+        cell: ({ row }) => {
+          const dateStr = format(
+            new Date(row.original.start_date + 'T00:00:00'),
+            'EEE dd MMM yyyy',
           );
-        }
-        return <span className="text-xs text-muted-foreground">Upcoming</span>;
+          return (
+            <Link
+              to={`${ROUTES.MY_TIMESHEETS}/${row.original.id}`}
+              className="text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline transition-colors"
+            >
+              {dateStr}
+            </Link>
+          );
+        },
+        enableSorting: true,
       },
-      enableSorting: false,
-    }
-  ], [navigate]);
+      {
+        accessorKey: 'end_date',
+        header: ({ column }) => (
+          <DataGridColumnHeader title="To" column={column} />
+        ),
+        cell: ({ row }) =>
+          format(
+            new Date(
+              (row.original.end_date || row.original.start_date) + 'T00:00:00',
+            ),
+            'EEE dd MMM yyyy',
+          ),
+        enableSorting: true,
+      },
+      {
+        accessorKey: 'entry_type',
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Type" column={column} />
+        ),
+        cell: () => (
+          <Badge variant="secondary" appearance="light">
+            Shift
+          </Badge>
+        ),
+        enableSorting: false,
+      },
+      {
+        accessorKey: 'details',
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Details" column={column} />
+        ),
+        cell: ({ row }) => (
+          <div className="flex flex-col text-left">
+            <span className="text-muted-foreground">
+              {row.original.shift_template || 'Standard'}
+            </span>
+            <span className="text-[10px] text-muted-foreground italic">
+              {row.original.start_time?.slice(0, 5)} –{' '}
+              {row.original.end_time?.slice(0, 5)}
+              {row.original.house?.house_name && (
+                <>
+                  {' at '}
+                  <Link
+                    to={`${ROUTES.HOUSE_DETAIL}/${row.original.house_id || row.original.house.id}`}
+                    className="text-blue-700 dark:text-blue-400 hover:underline transition-colors not-italic font-medium"
+                  >
+                    {row.original.house.house_name}
+                  </Link>
+                </>
+              )}
+            </span>
+          </div>
+        ),
+        enableSorting: true,
+      },
+      {
+        id: 'actions',
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Action" column={column} />
+        ),
+        cell: ({ row }) => {
+          const entry = row.original;
+          if (entry.has_timesheet) {
+            return (
+              <Badge variant="success" appearance="light">
+                Submitted
+              </Badge>
+            );
+          }
+          if (isPast(entry)) {
+            return (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => navigate(`${ROUTES.MY_TIMESHEETS}/${entry.id}`)}
+              >
+                <ClipboardList className="size-3.5 me-1.5" />
+                Timesheet
+              </Button>
+            );
+          }
+          return (
+            <span className="text-xs text-muted-foreground">Upcoming</span>
+          );
+        },
+        enableSorting: false,
+      },
+    ],
+    [navigate],
+  );
 
   const table = useReactTable({
     data: paginatedData?.data || [],
@@ -204,11 +257,13 @@ export function StaffRoster() {
       sorting,
     },
     onPaginationChange: (updater) => {
-      const nextPagination = typeof updater === 'function' ? updater(pagination) : updater;
+      const nextPagination =
+        typeof updater === 'function' ? updater(pagination) : updater;
       setPagination(nextPagination);
     },
     onSortingChange: (updater) => {
-      const nextSorting = typeof updater === 'function' ? updater(sorting) : updater;
+      const nextSorting =
+        typeof updater === 'function' ? updater(sorting) : updater;
       setSorting(nextSorting);
     },
     getCoreRowModel: getCoreRowModel(),

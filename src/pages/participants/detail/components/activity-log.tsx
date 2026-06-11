@@ -8,12 +8,15 @@ interface ActivityLogProps {
 /**
  * @deprecated Use ActivityLog from @/components/activities/ActivityLog instead
  */
-export function ActivityLog({ participantId, refreshTrigger }: ActivityLogProps) {
+export function ActivityLog({
+  participantId,
+  refreshTrigger,
+}: ActivityLogProps) {
   return (
-    <CommonActivityLog 
-      entityId={participantId} 
-      entityType="participant" 
-      refreshTrigger={refreshTrigger} 
+    <CommonActivityLog
+      entityId={participantId}
+      entityType="participant"
+      refreshTrigger={refreshTrigger}
     />
   );
 }

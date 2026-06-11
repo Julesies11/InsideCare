@@ -8,11 +8,7 @@ interface FinancesProps {
   onFormChange: (field: string, value: any) => void;
 }
 
-export function Finances({
-  canEdit,
-  formData,
-  onFormChange,
-}: FinancesProps) {
+export function Finances({ canEdit, formData, onFormChange }: FinancesProps) {
   return (
     <Card className="pb-2.5" id="finances">
       <CardHeader>
@@ -21,7 +17,9 @@ export function Finances({
       <CardContent className="grid gap-5">
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <Label className="flex w-full max-w-56">Finance Support Needs</Label>
+            <Label className="flex w-full max-w-56">
+              Finance Support Needs
+            </Label>
             <Textarea
               id="finance_support"
               value={formData.finance_support || ''}

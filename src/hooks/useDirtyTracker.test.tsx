@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
 import { renderHook } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
 import { useDirtyTracker } from './useDirtyTracker';
 
 describe('useDirtyTracker', () => {
@@ -7,10 +7,12 @@ describe('useDirtyTracker', () => {
   const changedData = { name: 'Updated', address: '123 St' };
 
   it('should return isDirty: false when data matches and no pending changes', () => {
-    const { result } = renderHook(() => useDirtyTracker({
-      formData: originalData,
-      originalData: originalData
-    }));
+    const { result } = renderHook(() =>
+      useDirtyTracker({
+        formData: originalData,
+        originalData: originalData,
+      }),
+    );
 
     expect(result.current.isDirty).toBe(false);
     expect(result.current.formChanged).toBe(false);
@@ -18,10 +20,12 @@ describe('useDirtyTracker', () => {
   });
 
   it('should return isDirty: true when formData differs from originalData', () => {
-    const { result } = renderHook(() => useDirtyTracker({
-      formData: changedData,
-      originalData: originalData
-    }));
+    const { result } = renderHook(() =>
+      useDirtyTracker({
+        formData: changedData,
+        originalData: originalData,
+      }),
+    );
 
     expect(result.current.isDirty).toBe(true);
     expect(result.current.formChanged).toBe(true);
@@ -29,16 +33,22 @@ describe('useDirtyTracker', () => {
 
   it('should detect staff pending changes', () => {
     const pendingChanges = {
-      training: { toAdd: [{ title: 'New Training' }], toUpdate: [], toDelete: [] },
+      training: {
+        toAdd: [{ title: 'New Training' }],
+        toUpdate: [],
+        toDelete: [],
+      },
       documents: { toAdd: [], toDelete: [] },
-      staffCompliance: { toAdd: [], toUpdate: [], toDelete: [] }
+      staffCompliance: { toAdd: [], toUpdate: [], toDelete: [] },
     };
 
-    const { result } = renderHook(() => useDirtyTracker({
-      formData: originalData,
-      originalData: originalData,
-      pendingChanges: pendingChanges as any
-    }));
+    const { result } = renderHook(() =>
+      useDirtyTracker({
+        formData: originalData,
+        originalData: originalData,
+        pendingChanges: pendingChanges as any,
+      }),
+    );
 
     expect(result.current.isDirty).toBe(true);
     expect(result.current.hasPendingChildChanges).toBe(true);
@@ -53,14 +63,16 @@ describe('useDirtyTracker', () => {
       checklists: { toAdd: [], toUpdate: [], toDelete: [] },
       formAssignments: { toAdd: [], toDelete: [] },
       resources: { toAdd: [], toUpdate: [], toDelete: [] },
-      comms: { toAdd: [], toDelete: [] }
+      comms: { toAdd: [], toDelete: [] },
     };
 
-    const { result } = renderHook(() => useDirtyTracker({
-      formData: originalData,
-      originalData: originalData,
-      pendingChanges: pendingChanges as any
-    }));
+    const { result } = renderHook(() =>
+      useDirtyTracker({
+        formData: originalData,
+        originalData: originalData,
+        pendingChanges: pendingChanges as any,
+      }),
+    );
 
     expect(result.current.isDirty).toBe(true);
     expect(result.current.hasPendingChildChanges).toBe(true);

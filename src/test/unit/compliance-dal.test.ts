@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { complianceApi } from '@/api/compliance.api';
 import { staffDetailsApi } from '@/api/staff-details.api';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { supabase } from '@/lib/supabase';
 
 // Mock Supabase
@@ -56,27 +56,41 @@ describe('Compliance DAL & API', () => {
       // 1. Actual Records (empty)
       // 2. Master Types
       const mockMasterTypes = [
-        { id: '1', compliance_name: 'Check 1', description: 'Desc 1', attachment_applicable: true, expiry_date_applicable: true }
+        {
+          id: '1',
+          compliance_name: 'Check 1',
+          description: 'Desc 1',
+          attachment_applicable: true,
+          expiry_date_applicable: true,
+        },
       ];
 
       const fromSpy = vi.spyOn(supabase, 'from');
-      
+
       (supabase.from as any).mockImplementation((table: string) => {
         if (table === 'ic_staff_compliance') {
-            return { select: () => ({ eq: () => Promise.resolve({ data: [], error: null }) }) };
+          return {
+            select: () => ({
+              eq: () => Promise.resolve({ data: [], error: null }),
+            }),
+          };
         }
         if (table === 'ic_compliance_types_master') {
-            return { select: () => ({ eq: () => Promise.resolve({ data: mockMasterTypes, error: null }) }) };
+          return {
+            select: () => ({
+              eq: () => Promise.resolve({ data: mockMasterTypes, error: null }),
+            }),
+          };
         }
         return { select: vi.fn().mockReturnThis() };
       });
 
       const result = await staffDetailsApi.compliance.getSummary('staff-123');
-      
+
       expect(result).toHaveLength(1);
       expect(result[0]).toMatchObject({
         compliance_name: 'Check 1',
-        attachment_applicable: true
+        attachment_applicable: true,
       });
     });
   });

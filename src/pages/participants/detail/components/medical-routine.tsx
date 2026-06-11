@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 
 interface MedicalRoutineProps {
@@ -21,7 +21,6 @@ export function MedicalRoutine({
       </CardHeader>
 
       <CardContent className="grid gap-8">
-        
         {/* Pharmacy */}
         <div className="space-y-5" id="medical-routine-pharmacy">
           <h3 className="text-lg font-semibold">Pharmacy</h3>
@@ -32,7 +31,9 @@ export function MedicalRoutine({
                 <Input
                   id="pharmacy_name"
                   value={formData.pharmacy_name || ''}
-                  onChange={(e) => onFormChange('pharmacy_name', e.target.value)}
+                  onChange={(e) =>
+                    onFormChange('pharmacy_name', e.target.value)
+                  }
                   placeholder="Enter pharmacy name..."
                   disabled={!canEdit}
                 />
@@ -44,7 +45,9 @@ export function MedicalRoutine({
                 <Input
                   id="pharmacy_contact"
                   value={formData.pharmacy_contact || ''}
-                  onChange={(e) => onFormChange('pharmacy_contact', e.target.value)}
+                  onChange={(e) =>
+                    onFormChange('pharmacy_contact', e.target.value)
+                  }
                   placeholder="Enter pharmacy contact..."
                   disabled={!canEdit}
                 />
@@ -52,11 +55,15 @@ export function MedicalRoutine({
             </div>
             <div className="w-full">
               <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-                <Label className="flex w-full max-w-56">Pharmacy Location</Label>
+                <Label className="flex w-full max-w-56">
+                  Pharmacy Location
+                </Label>
                 <Input
                   id="pharmacy_location"
                   value={formData.pharmacy_location || ''}
-                  onChange={(e) => onFormChange('pharmacy_location', e.target.value)}
+                  onChange={(e) =>
+                    onFormChange('pharmacy_location', e.target.value)
+                  }
                   placeholder="Enter pharmacy location..."
                   disabled={!canEdit}
                 />
@@ -114,11 +121,15 @@ export function MedicalRoutine({
           <div className="grid gap-2.5">
             <div className="w-full">
               <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-                <Label className="flex w-full max-w-56">Psychiatrist Name</Label>
+                <Label className="flex w-full max-w-56">
+                  Psychiatrist Name
+                </Label>
                 <Input
                   id="psychiatrist_name"
                   value={formData.psychiatrist_name || ''}
-                  onChange={(e) => onFormChange('psychiatrist_name', e.target.value)}
+                  onChange={(e) =>
+                    onFormChange('psychiatrist_name', e.target.value)
+                  }
                   placeholder="Enter psychiatrist name..."
                   disabled={!canEdit}
                 />
@@ -126,11 +137,15 @@ export function MedicalRoutine({
             </div>
             <div className="w-full">
               <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-                <Label className="flex w-full max-w-56">Psychiatrist Contact</Label>
+                <Label className="flex w-full max-w-56">
+                  Psychiatrist Contact
+                </Label>
                 <Input
                   id="psychiatrist_contact"
                   value={formData.psychiatrist_contact || ''}
-                  onChange={(e) => onFormChange('psychiatrist_contact', e.target.value)}
+                  onChange={(e) =>
+                    onFormChange('psychiatrist_contact', e.target.value)
+                  }
                   placeholder="Enter psychiatrist contact..."
                   disabled={!canEdit}
                 />
@@ -138,11 +153,15 @@ export function MedicalRoutine({
             </div>
             <div className="w-full">
               <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-                <Label className="flex w-full max-w-56">Psychiatrist Location</Label>
+                <Label className="flex w-full max-w-56">
+                  Psychiatrist Location
+                </Label>
                 <Input
                   id="psychiatrist_location"
                   value={formData.psychiatrist_location || ''}
-                  onChange={(e) => onFormChange('psychiatrist_location', e.target.value)}
+                  onChange={(e) =>
+                    onFormChange('psychiatrist_location', e.target.value)
+                  }
                   placeholder="Enter psychiatrist location..."
                   disabled={!canEdit}
                 />
@@ -158,7 +177,9 @@ export function MedicalRoutine({
             <Textarea
               id="medical_routine_other"
               value={formData.medical_routine_other || ''}
-              onChange={(e) => onFormChange('medical_routine_other', e.target.value)}
+              onChange={(e) =>
+                onFormChange('medical_routine_other', e.target.value)
+              }
               rows={5}
               placeholder="Describe any other medical routine information..."
               disabled={!canEdit}
@@ -173,14 +194,15 @@ export function MedicalRoutine({
             <Textarea
               id="medical_routine_general_process"
               value={formData.medical_routine_general_process || ''}
-              onChange={(e) => onFormChange('medical_routine_general_process', e.target.value)}
+              onChange={(e) =>
+                onFormChange('medical_routine_general_process', e.target.value)
+              }
               rows={5}
               placeholder="Describe the general medical routine process..."
               disabled={!canEdit}
             />
           </div>
         </div>
-
       </CardContent>
     </Card>
   );

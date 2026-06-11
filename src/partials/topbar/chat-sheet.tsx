@@ -208,7 +208,9 @@ export function ChatSheet({ trigger }: { trigger: ReactNode }) {
                 <div className="flex flex-col gap-1">
                   <div
                     className="bg-primary text-primary-foreground text-sm font-medium p-3 rounded-lg shadow-xs"
-                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(message.text) }}
+                    dangerouslySetInnerHTML={{
+                      __html: DOMPurify.sanitize(message.text),
+                    }}
                   />
                   <div className="flex items-center justify-end gap-1">
                     <span className="text-xs text-secondary-foreground">
@@ -246,7 +248,9 @@ export function ChatSheet({ trigger }: { trigger: ReactNode }) {
                 <div className="flex flex-col gap-1">
                   <div
                     className="bg-accent/50 text-secondary-foreground text-sm font-medium p-3 rounded-lg shadow-xs"
-                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(message.text) }}
+                    dangerouslySetInnerHTML={{
+                      __html: DOMPurify.sanitize(message.text),
+                    }}
                   />
                   <span className="text-xs text-muted-foreground">
                     {message.time}

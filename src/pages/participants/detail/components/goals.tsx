@@ -1,19 +1,66 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { ParticipantPendingChanges } from '@/models/participant-pending-changes';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
+import {
+  Check,
+  ChevronRight,
+  Clock,
+  Edit,
+  Loader2,
+  MessageSquarePlus,
+  Plus,
+  Send,
+  Target,
+  Trash2,
+  X,
+} from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
+import {
+  GoalProgress,
+  ParticipantGoal,
+  useAddGoalProgress,
+  useDeleteGoalProgress,
+  useParticipantGoals,
+  useUpdateGoalProgress,
+} from '@/hooks/use-participant-goals';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetBody } from '@/components/ui/sheet';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import {
+  Sheet,
+  SheetBody,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Trash2, Target, MessageSquarePlus, Clock, ChevronRight, Send, Loader2, Check, X } from 'lucide-react';
-import { useParticipantGoals, ParticipantGoal, GoalProgress, useAddGoalProgress, useUpdateGoalProgress, useDeleteGoalProgress } from '@/hooks/use-participant-goals';
-import { ParticipantPendingChanges } from '@/models/participant-pending-changes';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
-import { format } from 'date-fns';
 
 interface GoalsProps {
   participantId?: string;
@@ -50,7 +97,10 @@ function ProgressNoteItem({
 
   const handleSaveEdit = async () => {
     const trimmed = editText.trim();
-    if (!trimmed || trimmed === note.progress_note) { setEditing(false); return; }
+    if (!trimmed || trimmed === note.progress_note) {
+      setEditing(false);
+      return;
+    }
     setSaving(true);
     await onEdit(note.id, trimmed);
     setSaving(false);
@@ -80,16 +130,31 @@ function ProgressNoteItem({
             className="resize-none text-sm"
             autoFocus
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleSaveEdit();
+              if (e.key === 'Enter' && (e.ctrlKey || e.metaKey))
+                handleSaveEdit();
               if (e.key === 'Escape') handleCancelEdit();
             }}
           />
           <div className="flex gap-1 justify-end">
-            <Button size="sm" variant="ghost" onClick={handleCancelEdit} disabled={saving}>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={handleCancelEdit}
+              disabled={saving}
+            >
               <X className="size-3.5" />
             </Button>
-            <Button size="sm" variant="primary" onClick={handleSaveEdit} disabled={saving || !editText.trim()}>
-              {saving ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />}
+            <Button
+              size="sm"
+              variant="primary"
+              onClick={handleSaveEdit}
+              disabled={saving || !editText.trim()}
+            >
+              {saving ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <Check className="size-3.5" />
+              )}
             </Button>
           </div>
         </div>
@@ -113,7 +178,10 @@ function ProgressNoteItem({
                 size="sm"
                 variant="ghost"
                 className="h-6 w-6 p-0"
-                onClick={() => { setEditText(note.progress_note); setEditing(true); }}
+                onClick={() => {
+                  setEditText(note.progress_note);
+                  setEditing(true);
+                }}
               >
                 <Edit className="size-3" />
               </Button>
@@ -124,7 +192,11 @@ function ProgressNoteItem({
                 onClick={handleDelete}
                 disabled={deleting}
               >
-                {deleting ? <Loader2 className="size-3 animate-spin" /> : <Trash2 className="size-3" />}
+                {deleting ? (
+                  <Loader2 className="size-3 animate-spin" />
+                ) : (
+                  <Trash2 className="size-3" />
+                )}
               </Button>
             </div>
           )}
@@ -165,7 +237,9 @@ function ProgressNotesList({
     <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-2 max-h-72 overflow-y-auto pr-1">
         {notes.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-4 text-center">No progress notes yet</p>
+          <p className="text-sm text-muted-foreground py-4 text-center">
+            No progress notes yet
+          </p>
         ) : (
           notes.map((note) => (
             <ProgressNoteItem
@@ -197,7 +271,11 @@ function ProgressNotesList({
             onClick={handleSubmit}
             disabled={saving || !noteText.trim()}
           >
-            {saving ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
+            {saving ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Send className="size-4" />
+            )}
           </Button>
         </div>
       )}
@@ -221,9 +299,14 @@ export function Goals({
   const [sheetGoal, setSheetGoal] = useState<ParticipantGoal | null>(null);
 
   // Option D: Progress dialog state — selected goal for focused progress dialog
-  const [progressDialogGoal, setProgressDialogGoal] = useState<ParticipantGoal | null>(null);
+  const [progressDialogGoal, setProgressDialogGoal] =
+    useState<ParticipantGoal | null>(null);
 
-  const { data, isLoading: loading, refetch } = useParticipantGoals(participantId);
+  const {
+    data,
+    isLoading: loading,
+    refetch,
+  } = useParticipantGoals(participantId);
   const goals = data?.goals || [];
   const goalProgress = data?.progress || [];
 
@@ -276,8 +359,8 @@ export function Goals({
       if (editingGoal.tempId) {
         const newPending = {
           ...pendingChanges,
-          toAdd: pendingChanges.toAdd.map(g =>
-            g.tempId === editingGoal.tempId ? { ...g, ...data } : g
+          toAdd: pendingChanges.toAdd.map((g) =>
+            g.tempId === editingGoal.tempId ? { ...g, ...data } : g,
           ),
         };
         onPendingChangesChange(newPending);
@@ -285,7 +368,7 @@ export function Goals({
         const newPending = {
           ...pendingChanges,
           toUpdate: [
-            ...pendingChanges.toUpdate.filter(g => g.id !== editingGoal.id),
+            ...pendingChanges.toUpdate.filter((g) => g.id !== editingGoal.id),
             { id: editingGoal.id, ...data },
           ],
         };
@@ -295,10 +378,7 @@ export function Goals({
       const tempId = `temp-${Date.now()}-${Math.random()}`;
       const newPending = {
         ...pendingChanges,
-        toAdd: [
-          ...pendingChanges.toAdd,
-          { tempId, ...data },
-        ],
+        toAdd: [...pendingChanges.toAdd, { tempId, ...data }],
       };
       onPendingChangesChange(newPending);
     }
@@ -313,7 +393,11 @@ export function Goals({
       return;
     }
 
-    if (confirm('Mark this goal for deletion? It will be removed when you click Save Changes.')) {
+    if (
+      confirm(
+        'Mark this goal for deletion? It will be removed when you click Save Changes.',
+      )
+    ) {
       const newPending = {
         ...pendingChanges,
         toDelete: [...pendingChanges.toDelete, goal.id],
@@ -326,7 +410,7 @@ export function Goals({
     if (!pendingChanges || !onPendingChangesChange) return;
     const newPending = {
       ...pendingChanges,
-      toAdd: pendingChanges.toAdd.filter(g => g.tempId !== tempId),
+      toAdd: pendingChanges.toAdd.filter((g) => g.tempId !== tempId),
     };
     onPendingChangesChange(newPending);
   };
@@ -335,7 +419,7 @@ export function Goals({
     if (!pendingChanges || !onPendingChangesChange) return;
     const newPending = {
       ...pendingChanges,
-      toUpdate: pendingChanges.toUpdate.filter(g => g.id !== id),
+      toUpdate: pendingChanges.toUpdate.filter((g) => g.id !== id),
     };
     onPendingChangesChange(newPending);
   };
@@ -344,15 +428,17 @@ export function Goals({
     if (!pendingChanges || !onPendingChangesChange) return;
     const newPending = {
       ...pendingChanges,
-      toDelete: pendingChanges.toDelete.filter(goalId => goalId !== id),
+      toDelete: pendingChanges.toDelete.filter((goalId) => goalId !== id),
     };
     onPendingChangesChange(newPending);
   };
 
-
   const handleAddNote = async (goalId: string, text: string) => {
     if (!participantId) return;
-    await addProgress({ progress: { goal_id: goalId, progress_note: text }, participantId });
+    await addProgress({
+      progress: { goal_id: goalId, progress_note: text },
+      participantId,
+    });
   };
 
   const handleEditNote = async (id: string, text: string) => {
@@ -366,28 +452,42 @@ export function Goals({
   };
 
   const visibleGoals = [
-    ...goals.filter(g => !pendingChanges?.toDelete?.includes(g.id)),
+    ...goals.filter((g) => !pendingChanges?.toDelete?.includes(g.id)),
     ...(pendingChanges?.toAdd || []),
   ];
 
-  const sheetNotes = sheetGoal ? goalProgress.filter(p => p.goal_id === sheetGoal.id) : [];
-  const progressDialogNotes = progressDialogGoal ? goalProgress.filter(p => p.goal_id === progressDialogGoal.id) : [];
+  const sheetNotes = sheetGoal
+    ? goalProgress.filter((p) => p.goal_id === sheetGoal.id)
+    : [];
+  const progressDialogNotes = progressDialogGoal
+    ? goalProgress.filter((p) => p.goal_id === progressDialogGoal.id)
+    : [];
 
   return (
     <>
       <Card className="pb-2.5" id="goals">
         <CardHeader>
           <CardTitle>Goals</CardTitle>
-          <Button variant="secondary" size="sm" className="border border-gray-300" onClick={handleAdd} disabled={!participantId || !canAdd}>
+          <Button
+            variant="secondary"
+            size="sm"
+            className="border border-gray-300"
+            onClick={handleAdd}
+            disabled={!participantId || !canAdd}
+          >
             <Plus className="size-4 me-1.5" />
             Add Goal
           </Button>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="text-center py-8 text-muted-foreground">Loading goals...</div>
+            <div className="text-center py-8 text-muted-foreground">
+              Loading goals...
+            </div>
           ) : visibleGoals.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">No goals recorded</div>
+            <div className="text-center py-8 text-muted-foreground">
+              No goals recorded
+            </div>
           ) : (
             <Table>
               <TableHeader>
@@ -401,24 +501,36 @@ export function Goals({
               <TableBody>
                 {visibleGoals.map((goal) => {
                   const isPendingAdd = 'tempId' in goal;
-                  const isPendingUpdate = pendingChanges?.toUpdate?.some(g => g.id === goal.id);
-                  const isPendingDelete = pendingChanges?.toDelete?.includes(goal.id);
-                  const noteCount = goalProgress.filter(p => p.goal_id === goal.id).length;
+                  const isPendingUpdate = pendingChanges?.toUpdate?.some(
+                    (g) => g.id === goal.id,
+                  );
+                  const isPendingDelete = pendingChanges?.toDelete?.includes(
+                    goal.id,
+                  );
+                  const noteCount = goalProgress.filter(
+                    (p) => p.goal_id === goal.id,
+                  ).length;
                   const isSaved = !isPendingAdd;
 
                   return (
                     <TableRow
                       key={goal.id || goal.tempId}
                       className={
-                        isPendingAdd ? 'bg-primary/5' :
-                        isPendingDelete ? 'opacity-50 bg-destructive/5' :
-                        isPendingUpdate ? 'bg-warning/5' : ''
+                        isPendingAdd
+                          ? 'bg-primary/5'
+                          : isPendingDelete
+                            ? 'opacity-50 bg-destructive/5'
+                            : isPendingUpdate
+                              ? 'bg-warning/5'
+                              : ''
                       }
                     >
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Target className="size-4 text-muted-foreground" />
-                          <span className={`font-medium ${isPendingDelete ? 'line-through' : ''}`}>
+                          <span
+                            className={`font-medium ${isPendingDelete ? 'line-through' : ''}`}
+                          >
                             {goal.goal_type === 'ndis' ? 'NDIS' : 'Identified'}
                           </span>
                         </div>
@@ -429,9 +541,15 @@ export function Goals({
                           <button
                             type="button"
                             className="text-left hover:underline focus:outline-none group flex items-center gap-1"
-                            onClick={() => setSheetGoal(goal as ParticipantGoal)}
+                            onClick={() =>
+                              setSheetGoal(goal as ParticipantGoal)
+                            }
                           >
-                            <span className={isPendingDelete ? 'line-through' : ''}>{goal.description}</span>
+                            <span
+                              className={isPendingDelete ? 'line-through' : ''}
+                            >
+                              {goal.description}
+                            </span>
                             <ChevronRight className="size-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                           </button>
                         ) : (
@@ -443,7 +561,9 @@ export function Goals({
                         {isSaved ? (
                           <button
                             type="button"
-                            onClick={() => setProgressDialogGoal(goal as ParticipantGoal)}
+                            onClick={() =>
+                              setProgressDialogGoal(goal as ParticipantGoal)
+                            }
                             className="focus:outline-none"
                           >
                             <Badge
@@ -451,18 +571,27 @@ export function Goals({
                               className="cursor-pointer hover:bg-secondary/80 transition-colors gap-1"
                             >
                               <MessageSquarePlus className="size-3" />
-                              {noteCount > 0 ? `${noteCount} note${noteCount !== 1 ? 's' : ''}` : 'Add notes'}
+                              {noteCount > 0
+                                ? `${noteCount} note${noteCount !== 1 ? 's' : ''}`
+                                : 'Add notes'}
                             </Badge>
                           </button>
                         ) : (
-                          <span className="text-xs text-muted-foreground">Save goal first</span>
+                          <span className="text-xs text-muted-foreground">
+                            Save goal first
+                          </span>
                         )}
                       </TableCell>
                       <TableCell>
                         <div className="flex justify-end gap-1">
                           {!isPendingDelete && (
                             <>
-                              <Button variant="ghost" size="sm" onClick={() => handleEdit(goal)} disabled={!canEdit}>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEdit(goal)}
+                                disabled={!canEdit}
+                              >
                                 <Edit className="size-4" />
                               </Button>
                               {canDelete && (
@@ -481,7 +610,9 @@ export function Goals({
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleCancelPendingAdd(goal.tempId!)}
+                              onClick={() =>
+                                handleCancelPendingAdd(goal.tempId!)
+                              }
                             >
                               Remove
                             </Button>
@@ -523,11 +654,16 @@ export function Goals({
           <DialogHeader>
             <DialogTitle>{editingGoal ? 'Edit Goal' : 'Add Goal'}</DialogTitle>
             <DialogDescription>
-              {editingGoal ? 'Update goal details and add progress notes' : 'Add a new goal for this participant'}
+              {editingGoal
+                ? 'Update goal details and add progress notes'
+                : 'Add a new goal for this participant'}
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSave)} className="space-y-4 py-2">
+            <form
+              onSubmit={form.handleSubmit(handleSave)}
+              className="space-y-4 py-2"
+            >
               <FormField
                 control={form.control}
                 name="goal_type"
@@ -535,7 +671,10 @@ export function Goals({
                   <FormItem>
                     <FormLabel>Goal Type *</FormLabel>
                     <FormControl>
-                      <select {...field} className="border rounded-md w-full p-2">
+                      <select
+                        {...field}
+                        className="border rounded-md w-full p-2"
+                      >
                         <option value="ndis">NDIS</option>
                         <option value="identified">Identified</option>
                       </select>
@@ -551,7 +690,12 @@ export function Goals({
                   <FormItem>
                     <FormLabel>Goal Description *</FormLabel>
                     <FormControl>
-                      <Textarea {...field} id="description" rows={3} placeholder="Describe the goal..." />
+                      <Textarea
+                        {...field}
+                        id="description"
+                        rows={3}
+                        placeholder="Describe the goal..."
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -563,7 +707,9 @@ export function Goals({
                 <div className="pt-1">
                   <p className="text-sm font-medium mb-2">Progress Notes</p>
                   <ProgressNotesList
-                    notes={goalProgress.filter(p => p.goal_id === editingGoal.id)}
+                    notes={goalProgress.filter(
+                      (p) => p.goal_id === editingGoal.id,
+                    )}
                     goalId={editingGoal.id}
                     onAddNote={handleAddNote}
                     onEditNote={handleEditNote}
@@ -578,10 +724,16 @@ export function Goals({
               ) : null}
 
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setShowGoalDialog(false)}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowGoalDialog(false)}
+                >
                   Cancel
                 </Button>
-                <Button type="submit" variant="primary">Save</Button>
+                <Button type="submit" variant="primary">
+                  Save
+                </Button>
               </DialogFooter>
             </form>
           </Form>
@@ -589,18 +741,32 @@ export function Goals({
       </Dialog>
 
       {/* Option B: Goal detail Sheet (right side panel) */}
-      <Sheet open={!!sheetGoal} onOpenChange={(open) => { if (!open) setSheetGoal(null); }}>
-        <SheetContent title="Goal Details" side="right" className="w-full sm:max-w-lg flex flex-col gap-0 p-0">
+      <Sheet
+        open={!!sheetGoal}
+        onOpenChange={(open) => {
+          if (!open) setSheetGoal(null);
+        }}
+      >
+        <SheetContent
+          title="Goal Details"
+          side="right"
+          className="w-full sm:max-w-lg flex flex-col gap-0 p-0"
+        >
           <SheetHeader className="px-6 pt-6 pb-4 border-b">
             <div className="flex items-center gap-2">
               <Target className="size-4 text-muted-foreground" />
               <Badge variant="secondary" className="text-xs">
-                {sheetGoal?.goal_type === 'ndis' ? 'NDIS Goal' : 'Identified Goal'}
+                {sheetGoal?.goal_type === 'ndis'
+                  ? 'NDIS Goal'
+                  : 'Identified Goal'}
               </Badge>
             </div>
-            <SheetTitle className="mt-2 text-base leading-snug">{sheetGoal?.description}</SheetTitle>
+            <SheetTitle className="mt-2 text-base leading-snug">
+              {sheetGoal?.description}
+            </SheetTitle>
             <SheetDescription>
-              Progress notes — {sheetNotes.length} {sheetNotes.length === 1 ? 'entry' : 'entries'}
+              Progress notes — {sheetNotes.length}{' '}
+              {sheetNotes.length === 1 ? 'entry' : 'entries'}
             </SheetDescription>
           </SheetHeader>
           <SheetBody className="flex-1 overflow-y-auto px-6 py-4">
@@ -619,7 +785,12 @@ export function Goals({
       </Sheet>
 
       {/* Option D: Focused progress notes Dialog */}
-      <Dialog open={!!progressDialogGoal} onOpenChange={(open) => { if (!open) setProgressDialogGoal(null); }}>
+      <Dialog
+        open={!!progressDialogGoal}
+        onOpenChange={(open) => {
+          if (!open) setProgressDialogGoal(null);
+        }}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">

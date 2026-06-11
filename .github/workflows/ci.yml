@@ -2,9 +2,9 @@ name: CI - Security, Lint, Build, E2E
 
 on:
   push:
-    branches: [ main, dev ]
+    branches: [main, dev]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   ci:
@@ -141,5 +141,3 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 30
-
-

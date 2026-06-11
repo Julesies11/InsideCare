@@ -1,7 +1,7 @@
-import { supabase } from '@/lib/supabase';
+import { ActivityLog, ActivityType } from '@/models/activity-log';
 import { TABLES } from '@/config/db-tables';
 import { ACTIVITY_VIEWS } from '@/config/query-views';
-import { ActivityLog, ActivityType } from '@/models/activity-log';
+import { supabase } from '@/lib/supabase';
 
 export interface ActivityLogListOptions {
   entityId?: string;
@@ -47,9 +47,10 @@ export const activityLogApi = {
     endDate,
   }: ActivityLogListOptions = {}) {
     // Use list columns for bulk table views unless we're looking at a single entity's log
-    const columns = (limit && limit > 1 && !entityId) || (!limit && !entityId) 
-      ? ACTIVITY_VIEWS.LIST 
-      : ACTIVITY_VIEWS.DETAIL;
+    const columns =
+      (limit && limit > 1 && !entityId) || (!limit && !entityId)
+        ? ACTIVITY_VIEWS.LIST
+        : ACTIVITY_VIEWS.DETAIL;
 
     let query = supabase
       .from(TABLES.ACTIVITY_LOG)
@@ -69,11 +70,17 @@ export const activityLogApi = {
       if (module === 'employees') {
         query = query.or('entity_type.eq.staff,entity_type.ilike.staff_%');
       } else if (module === 'participants') {
-        query = query.or('entity_type.eq.participants,entity_type.eq.participant,entity_type.ilike.participant_%');
+        query = query.or(
+          'entity_type.eq.participants,entity_type.eq.participant,entity_type.ilike.participant_%',
+        );
       } else if (module === 'houses') {
-        query = query.or('entity_type.eq.houses,entity_type.eq.house,entity_type.ilike.house_%');
+        query = query.or(
+          'entity_type.eq.houses,entity_type.eq.house,entity_type.ilike.house_%',
+        );
       } else if (module === 'incidents') {
-        query = query.or('entity_type.eq.incident_reports,entity_type.eq.incident_report,entity_type.eq.incident');
+        query = query.or(
+          'entity_type.eq.incident_reports,entity_type.eq.incident_report,entity_type.eq.incident',
+        );
       } else {
         query = query.eq('entity_type', module);
       }
@@ -96,7 +103,9 @@ export const activityLogApi = {
     }
 
     if (search) {
-      query = query.or(`description.ilike.%${search}%,user_name.ilike.%${search}%,entity_name.ilike.%${search}%`);
+      query = query.or(
+        `description.ilike.%${search}%,user_name.ilike.%${search}%,entity_name.ilike.%${search}%`,
+      );
     }
 
     if (sort.length > 0) {
@@ -117,7 +126,7 @@ export const activityLogApi = {
 
     const { data, error, count } = await query;
     if (error) throw error;
-    
+
     return {
       data: data as unknown as ActivityLog[],
       count: count || 0,
@@ -144,15 +153,20 @@ export const activityLogApi = {
 
     const { data, error } = await supabase
       .from(TABLES.ACTIVITY_LOG)
-      .insert([{
-        activity_type: activityType,
-        entity_type: entityType,
-        entity_id: entityId,
-        entity_name: entityName,
-        description: customDescription || (descriptions[activityType as string] || `${entityType} ${activityType}`),
-        user_name: userName,
-        metadata: metadata as any,
-      }])
+      .insert([
+        {
+          activity_type: activityType,
+          entity_type: entityType,
+          entity_id: entityId,
+          entity_name: entityName,
+          description:
+            customDescription ||
+            descriptions[activityType as string] ||
+            `${entityType} ${activityType}`,
+          user_name: userName,
+          metadata: metadata as any,
+        },
+      ])
       .select(ACTIVITY_VIEWS.DETAIL as any)
       .maybeSingle();
 
@@ -161,5 +175,5 @@ export const activityLogApi = {
       throw new Error('You do not have permission to log this activity.');
     }
     return data as unknown as ActivityLog;
-  }
+  },
 };

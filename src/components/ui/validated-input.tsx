@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
 
 export interface ValidatedInputProps extends React.ComponentProps<'input'> {
   error?: string;
@@ -19,7 +19,7 @@ const ValidatedInput = React.forwardRef<HTMLInputElement, ValidatedInputProps>(
           ref={ref}
           className={cn(
             hasError && 'border-red-500 focus-visible:ring-red-500',
-            className
+            className,
           )}
           aria-invalid={hasError}
           aria-describedby={hasError ? errorElementId : undefined}
@@ -32,7 +32,7 @@ const ValidatedInput = React.forwardRef<HTMLInputElement, ValidatedInputProps>(
         )}
       </div>
     );
-  }
+  },
 );
 
 ValidatedInput.displayName = 'ValidatedInput';

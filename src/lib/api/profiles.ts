@@ -10,12 +10,12 @@ import { uploadFile } from './storage';
 export async function handleAvatarUpload(
   file: File,
   bucket: string,
-  userId: string
+  userId: string,
 ): Promise<string> {
   return await uploadFile(file, {
     bucket,
     folder: userId,
     fileName: `avatar-${Date.now()}.jpg`,
-    compressionPreset: 'AVATAR'
+    compressionPreset: 'AVATAR',
   });
 }

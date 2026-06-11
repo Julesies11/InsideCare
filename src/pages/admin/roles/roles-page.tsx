@@ -1,19 +1,35 @@
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import { RoleMasterQuickAdd } from '@/pages/employees/staff-detail/components/employment-components/role-master-quick-add';
+import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
+  Edit,
+  List,
+  Plus,
+  ShieldCheck,
+  Users,
+} from 'lucide-react';
+import { toast } from 'sonner';
+import { RBAC_MODULES } from '@/config/rbac-modules';
+import { Role, useAddRole, useRoles, useUpdateRole } from '@/hooks/use-roles';
+import { ACCESS_LEVEL, useRBAC } from '@/hooks/useRBAC';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, ArrowUpDown, ArrowUp, ArrowDown, Users, ShieldCheck, List } from 'lucide-react';
-import { useRoles, useAddRole, useUpdateRole, Role } from '@/hooks/use-roles';
-import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
-import { RBAC_MODULES } from '@/config/rbac-modules';
-import { RoleMasterQuickAdd } from '@/pages/employees/staff-detail/components/employment-components/role-master-quick-add';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Container } from '@/components/common/container';
 import { RolePermissionsMatrix } from './components/role-permissions-matrix';
 import { RoleStaffListDialog } from './components/role-staff-list-dialog';
-import { toast } from 'sonner';
-import { Container } from '@/components/common/container';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 type SortField = 'name' | 'description' | 'is_active' | 'assigned_count';
 type SortDirection = 'asc' | 'desc';
@@ -24,19 +40,22 @@ export function RolesPage() {
   const { mutateAsync: updateRole } = useUpdateRole();
   const { hasAccess } = useRBAC();
 
-  const canEdit = hasAccess({ 
-    resource: RBAC_MODULES.ACCESS_CONTROL, 
-    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE 
+  const canEdit = hasAccess({
+    resource: RBAC_MODULES.ACCESS_CONTROL,
+    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE,
   });
-  
-  const canAdd = hasAccess({ 
-    resource: RBAC_MODULES.ACCESS_CONTROL, 
-    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE 
+
+  const canAdd = hasAccess({
+    resource: RBAC_MODULES.ACCESS_CONTROL,
+    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE,
   });
-  
+
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingRole, setEditingRole] = useState<Role | null>(null);
-  const [viewingStaffRole, setViewingStaffRole] = useState<{ id: string, name: string } | null>(null);
+  const [viewingStaffRole, setViewingStaffRole] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
@@ -51,9 +70,11 @@ export function RolesPage() {
   };
 
   const sortedAndFilteredRoles = useMemo(() => {
-    const filtered = roles.filter((role) =>
-      role.role_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (role.description && role.description.toLowerCase().includes(searchQuery.toLowerCase()))
+    const filtered = roles.filter(
+      (role) =>
+        role.role_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (role.description &&
+          role.description.toLowerCase().includes(searchQuery.toLowerCase())),
     );
 
     filtered.sort((a, b) => {
@@ -93,11 +114,16 @@ export function RolesPage() {
     const newStatus = !role.is_active;
     try {
       await updateRole({ id: role.id, updates: { is_active: newStatus } });
-      toast.success(`Role ${newStatus ? 'activated' : 'deactivated'} successfully`);
+      toast.success(
+        `Role ${newStatus ? 'activated' : 'deactivated'} successfully`,
+      );
       refreshRoles();
     } catch (error) {
       const err = error as Error;
-      toast.error(`Failed to ${newStatus ? 'activate' : 'deactivate'} role: ` + err.message);
+      toast.error(
+        `Failed to ${newStatus ? 'activate' : 'deactivate'} role: ` +
+          err.message,
+      );
     }
   };
 
@@ -115,20 +141,28 @@ export function RolesPage() {
         await updateRole({ id: editingRole.id, updates: sanitizedData });
         toast.success('Role updated successfully');
       } else {
-        await addRole(sanitizedData as Omit<Role, 'id' | 'created_at' | 'updated_at'>);
+        await addRole(
+          sanitizedData as Omit<Role, 'id' | 'created_at' | 'updated_at'>,
+        );
         toast.success('Role added successfully');
       }
       setShowAddDialog(false);
       refreshRoles();
     } catch (error) {
       const err = error as Error;
-      toast.error(`Failed to ${editingRole ? 'update' : 'add'} role: ` + err.message);
+      toast.error(
+        `Failed to ${editingRole ? 'update' : 'add'} role: ` + err.message,
+      );
     }
   };
 
   const getSortIcon = (field: SortField) => {
     if (sortField !== field) return <ArrowUpDown className="size-4" />;
-    return sortDirection === 'asc' ? <ArrowUp className="size-4" /> : <ArrowDown className="size-4" />;
+    return sortDirection === 'asc' ? (
+      <ArrowUp className="size-4" />
+    ) : (
+      <ArrowDown className="size-4" />
+    );
   };
 
   return (
@@ -170,7 +204,9 @@ export function RolesPage() {
           <TabsContent value="roles" className="mt-5">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between py-4">
-                <CardTitle className="text-base font-semibold">System Roles</CardTitle>
+                <CardTitle className="text-base font-semibold">
+                  System Roles
+                </CardTitle>
                 <div className="w-full max-w-sm">
                   <div className="relative">
                     <Input
@@ -233,22 +269,31 @@ export function RolesPage() {
                           {getSortIcon('is_active')}
                         </Button>
                       </TableHead>
-                      <TableHead className="w-[100px] text-right pr-6">Actions</TableHead>
+                      <TableHead className="w-[100px] text-right pr-6">
+                        Actions
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {sortedAndFilteredRoles.length > 0 ? (
                       sortedAndFilteredRoles.map((role) => (
                         <TableRow key={role.id}>
-                          <TableCell className="font-medium">{role.role_name}</TableCell>
+                          <TableCell className="font-medium">
+                            {role.role_name}
+                          </TableCell>
                           <TableCell>{role.description || '-'}</TableCell>
                           <TableCell>
-                            <button 
-                              onClick={() => setViewingStaffRole({ id: role.id, role_name: role.role_name })}
+                            <button
+                              onClick={() =>
+                                setViewingStaffRole({
+                                  id: role.id,
+                                  role_name: role.role_name,
+                                })
+                              }
                               className="group"
                             >
-                              <Badge 
-                                variant="outline" 
+                              <Badge
+                                variant="outline"
                                 className="font-mono cursor-pointer hover:border-primary hover:text-primary transition-colors"
                               >
                                 {role.assigned_count || 0} users
@@ -256,7 +301,9 @@ export function RolesPage() {
                             </button>
                           </TableCell>
                           <TableCell>
-                            <Badge variant={role.is_active ? 'success' : 'secondary'}>
+                            <Badge
+                              variant={role.is_active ? 'success' : 'secondary'}
+                            >
                               {role.is_active ? 'Active' : 'Inactive'}
                             </Badge>
                           </TableCell>
@@ -285,7 +332,10 @@ export function RolesPage() {
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={5} className="h-24 text-center text-gray-500">
+                        <TableCell
+                          colSpan={5}
+                          className="h-24 text-center text-gray-500"
+                        >
                           No roles found.
                         </TableCell>
                       </TableRow>

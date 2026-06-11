@@ -1,12 +1,12 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { screen, waitFor, fireEvent } from '@testing-library/react';
-import { StaffTimesheetForm } from './staff-timesheet-form';
+import { server } from '@/test/mocks/server';
 import { renderWithProviders } from '@/test/test-utils';
+import { HouseRow, ShiftRow, StaffRow } from '@/test/type-helpers';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { http, HttpResponse } from 'msw';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TABLES } from '@/config/db-tables';
 import { ROUTES } from '@/config/routes.config';
-import { http, HttpResponse } from 'msw';
-import { server } from '@/test/mocks/server';
-import { ShiftRow, HouseRow, StaffRow } from '@/test/type-helpers';
+import { StaffTimesheetForm } from './staff-timesheet-form';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
@@ -20,9 +20,7 @@ const mockShift: Partial<ShiftRow> & { house: Partial<HouseRow> } = {
   house: { house_name: 'Test House' },
 };
 
-const mockAdmins: Partial<StaffRow>[] = [
-  { auth_user_id: 'admin-1' }
-];
+const mockAdmins: Partial<StaffRow>[] = [{ auth_user_id: 'admin-1' }];
 
 const mockNavigate = vi.fn();
 
@@ -55,14 +53,19 @@ describe('StaffTimesheetForm', () => {
         return HttpResponse.json([]);
       }),
       http.get(`${SUPABASE_URL}/rest/v1/ic_shift_notes`, () => {
-        return HttpResponse.json([{ id: 'note-1', full_note: 'Completed note' }]);
+        return HttpResponse.json([
+          { id: 'note-1', full_note: 'Completed note' },
+        ]);
       }),
       http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF}`, () => {
         return HttpResponse.json(mockAdmins);
       }),
-      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.SHIFT_ASSIGNED_CHECKLISTS}`, () => {
-        return HttpResponse.json([]);
-      }),
+      http.get(
+        `${SUPABASE_URL}/rest/v1/${TABLES.SHIFT_ASSIGNED_CHECKLISTS}`,
+        () => {
+          return HttpResponse.json([]);
+        },
+      ),
       http.post(`${SUPABASE_URL}/rest/v1/${TABLES.TIMESHEETS}`, () => {
         return HttpResponse.json({ id: 'ts-1' });
       }),
@@ -71,13 +74,13 @@ describe('StaffTimesheetForm', () => {
       }),
       http.post(`${SUPABASE_URL}/rest/v1/${TABLES.NOTIFICATIONS}`, () => {
         return HttpResponse.json({});
-      })
+      }),
     );
   });
 
   it('renders correctly with shift data', async () => {
     renderWithProviders(<StaffTimesheetForm />);
-    
+
     await waitFor(() => {
       expect(screen.getByText(/Test House/i)).toBeInTheDocument();
       expect(screen.getByText(/08:00 – 16:00/i)).toBeInTheDocument();
@@ -89,7 +92,7 @@ describe('StaffTimesheetForm', () => {
     renderWithProviders(<StaffTimesheetForm />);
 
     await waitFor(() => {
-        expect(screen.getByLabelText(/Actual End/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/Actual End/i)).toBeInTheDocument();
     });
 
     // Change actual end to be later (9 hours instead of 8)
@@ -97,9 +100,11 @@ describe('StaffTimesheetForm', () => {
     fireEvent.change(endInput, { target: { value: '2026-03-05T17:00' } });
 
     await waitFor(() => {
-        expect(screen.getByText(/1.0 hrs overtime/i)).toBeInTheDocument();
-        expect(screen.getByText(/Overtime Explanation/i)).toBeInTheDocument();
-        expect(screen.getByText(/Required when overtime is claimed/i)).toBeInTheDocument();
+      expect(screen.getByText(/1.0 hrs overtime/i)).toBeInTheDocument();
+      expect(screen.getByText(/Overtime Explanation/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Required when overtime is claimed/i),
+      ).toBeInTheDocument();
     });
   });
 
@@ -107,7 +112,7 @@ describe('StaffTimesheetForm', () => {
     renderWithProviders(<StaffTimesheetForm />);
 
     await waitFor(() => {
-        expect(screen.getByText(/Convert to Sick Leave/i)).toBeInTheDocument();
+      expect(screen.getByText(/Convert to Sick Leave/i)).toBeInTheDocument();
     });
 
     const sickCheckbox = screen.getByLabelText(/Convert to Sick Leave/i);
@@ -121,12 +126,15 @@ describe('StaffTimesheetForm', () => {
 
     // Wait for loading to finish and submit button to appear
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Submit Timesheet/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: /Submit Timesheet/i }),
+      ).toBeInTheDocument();
     });
 
     // Find the sick reason textarea if it exists, or the overtime explanation
-    const textarea = screen.queryByLabelText(/Reason \(optional\)/i) || 
-                     screen.queryByLabelText(/Overtime Explanation/i);
+    const textarea =
+      screen.queryByLabelText(/Reason \(optional\)/i) ||
+      screen.queryByLabelText(/Overtime Explanation/i);
 
     if (textarea) {
       await user.type(textarea, 'This is a test shift note.');
@@ -137,7 +145,10 @@ describe('StaffTimesheetForm', () => {
 
     // Assert submission behavior
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(ROUTES.MY_TIMESHEETS, expect.anything());
+      expect(mockNavigate).toHaveBeenCalledWith(
+        ROUTES.MY_TIMESHEETS,
+        expect.anything(),
+      );
     });
   });
 
@@ -163,17 +174,19 @@ describe('StaffTimesheetForm', () => {
     // Override shift mock to return an incomplete routine
     server.use(
       http.get(`${SUPABASE_URL}/rest/v1/${TABLES.STAFF_SHIFTS}`, () => {
-        return HttpResponse.json([{
-          ...mockShift,
-          assigned_checklists: [
-            { 
-              checklist_id: 'cl-1', 
-              assignment_title: 'Morning Routine',
-              submissions: [{ status: 'in_progress' }]
-            }
-          ]
-        }]);
-      })
+        return HttpResponse.json([
+          {
+            ...mockShift,
+            assigned_checklists: [
+              {
+                checklist_id: 'cl-1',
+                assignment_title: 'Morning Routine',
+                submissions: [{ status: 'in_progress' }],
+              },
+            ],
+          },
+        ]);
+      }),
     );
 
     renderWithProviders(<StaffTimesheetForm />);
@@ -185,10 +198,10 @@ describe('StaffTimesheetForm', () => {
     });
 
     const submitBtn = screen.getByRole('button', { name: /Submit Timesheet/i });
-    
+
     // Check for disabled appearance (grayscale class)
     expect(submitBtn).toHaveClass('grayscale');
-    
+
     fireEvent.click(submitBtn);
     expect(mockNavigate).not.toHaveBeenCalled();
   });

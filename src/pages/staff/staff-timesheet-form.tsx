@@ -1,31 +1,41 @@
-import { useState, useEffect, useMemo } from 'react';
-import { useParams, useNavigate, useLocation, Link } from 'react-router';
-import { useAuth } from '@/auth/context/auth-context';
-import { format, parseISO, differenceInMinutes } from 'date-fns';
-import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
-import {
-  ArrowLeft, Clock, FileText, Info, CheckCircle2, ClipboardList, Car, Pencil,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Container } from '@/components/common/container';
-import {
-  Toolbar, ToolbarHeading, ToolbarPageTitle, ToolbarDescription,
-} from '@/partials/common/toolbar';
-import { NotificationService } from '@/lib/notification-service';
-import { ROUTES } from '@/config/routes.config';
-import { TIMESHEET_STATUS } from '@/config/enums';
+import { useEffect, useMemo, useState } from 'react';
 import { rosterApi } from '@/api/roster.api';
-import { timesheetsApi } from '@/api/timesheets.api';
 import { shiftNotesApi } from '@/api/shift-notes.api';
 import { staffApi } from '@/api/staff.api';
-import { SecureAvatar } from '@/components/ui/secure-avatar';
+import { timesheetsApi } from '@/api/timesheets.api';
+import { useAuth } from '@/auth/context/auth-context';
+import {
+  Toolbar,
+  ToolbarDescription,
+  ToolbarHeading,
+  ToolbarPageTitle,
+} from '@/partials/common/toolbar';
+import { differenceInMinutes, format, parseISO } from 'date-fns';
+import {
+  ArrowLeft,
+  Car,
+  CheckCircle2,
+  ClipboardList,
+  Clock,
+  FileText,
+  Info,
+  Pencil,
+} from 'lucide-react';
+import { Link, useLocation, useNavigate, useParams } from 'react-router';
+import { toast } from 'sonner';
+import { TIMESHEET_STATUS } from '@/config/enums';
+import { ROUTES } from '@/config/routes.config';
 import { STORAGE_BUCKETS } from '@/config/storage-buckets';
+import { NotificationService } from '@/lib/notification-service';
+import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { SecureAvatar } from '@/components/ui/secure-avatar';
+import { Textarea } from '@/components/ui/textarea';
+import { Container } from '@/components/common/container';
 
 interface Shift {
   id: string;
@@ -57,46 +67,61 @@ const getInitials = (name?: string) => {
 
 export function StaffTimesheetForm() {
   const { shiftId } = useParams<{ shiftId: string }>();
-  const { user }    = useAuth();
-  const navigate    = useNavigate();
-  const location    = useLocation();
-  const fromTab     = (location.state as any)?.fromTab;
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const fromTab = (location.state as any)?.fromTab;
 
-  const [shift, setShift]           = useState<Shift | null>(null);
-  const [loading, setLoading]       = useState(true);
-  const [saving, setSaving]         = useState(false);
+  const [shift, setShift] = useState<Shift | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [existingId, setExistingId] = useState<string | null>(null);
-  const [status, setStatus]         = useState<string | null>(null);
+  const [status, setStatus] = useState<string | null>(null);
   const [isReadOnly, setIsReadOnly] = useState(false);
-  const [assignedChecklists, setAssignedChecklists] = useState<AssignedChecklist[]>([]);
+  const [assignedChecklists, setAssignedChecklists] = useState<
+    AssignedChecklist[]
+  >([]);
 
   const handleBack = () => {
     navigate(ROUTES.MY_TIMESHEETS, { state: { activeTab: fromTab } });
   };
 
-  const [shiftNotes, setShiftNotes]                   = useState<any[]>([]);
-  const [actualStart, setActualStart]                 = useState('');
-  const [actualEnd, setActualEnd]                     = useState('');
-  const [breakMins, setBreakMins]                     = useState('0');
+  const [shiftNotes, setShiftNotes] = useState<any[]>([]);
+  const [actualStart, setActualStart] = useState('');
+  const [actualEnd, setActualEnd] = useState('');
+  const [breakMins, setBreakMins] = useState('0');
   const [overtimeExplanation, setOvertimeExplanation] = useState('');
-  const [travelKm, setTravelKm]                       = useState('');
-  const [sickShift, setSickShift]                     = useState(false);
-  const [sickReason, setSickReason]                   = useState('');
+  const [travelKm, setTravelKm] = useState('');
+  const [sickShift, setSickShift] = useState(false);
+  const [sickReason, setSickReason] = useState('');
 
   const scheduledMins = shift
     ? (() => {
-        const start = new Date(`${shift.start_date}T${shift.start_time.slice(0, 5)}`);
-        const end   = new Date(`${(shift.end_date || shift.start_date)}T${shift.end_time.slice(0, 5)}`);
+        const start = new Date(
+          `${shift.start_date}T${shift.start_time.slice(0, 5)}`,
+        );
+        const end = new Date(
+          `${shift.end_date || shift.start_date}T${shift.end_time.slice(0, 5)}`,
+        );
         return (end.getTime() - start.getTime()) / 60000;
       })()
     : 0;
 
-  const actualMins = actualStart && actualEnd
-    ? differenceInMinutes(new Date(actualEnd), new Date(actualStart)) - (parseInt(breakMins) || 0)
-    : null;
+  const actualMins =
+    actualStart && actualEnd
+      ? differenceInMinutes(new Date(actualEnd), new Date(actualStart)) -
+        (parseInt(breakMins) || 0)
+      : null;
 
-  const overtimeHours      = actualMins !== null && scheduledMins > 0 ? Math.max(0, (actualMins - scheduledMins) / 60) : 0;
-  const timesValid         = !!(actualStart && actualEnd && new Date(actualEnd) > new Date(actualStart));
+  const overtimeHours =
+    actualMins !== null && scheduledMins > 0
+      ? Math.max(0, (actualMins - scheduledMins) / 60)
+      : 0;
+  const timesValid = !!(
+    actualStart &&
+    actualEnd &&
+    new Date(actualEnd) > new Date(actualStart)
+  );
   const overtimeNeedsReason = overtimeHours > 0 && !overtimeExplanation.trim();
 
   useEffect(() => {
@@ -105,21 +130,57 @@ export function StaffTimesheetForm() {
       console.log('DEBUG: Starting timesheet data load for shiftId:', shiftId);
       try {
         const [shiftRes, tsRes, shiftNoteRes] = await Promise.all([
-          rosterApi.getShift(shiftId).then(res => { console.log('DEBUG: rosterApi.getShift SUCCESS'); return res; }).catch(err => { console.error('DEBUG: rosterApi.getShift FAILED:', err); throw err; }),
-          (user?.staff_id ? timesheetsApi.getExisting(shiftId, user.staff_id) : Promise.resolve(null)).then(res => { console.log('DEBUG: timesheetsApi.getExisting SUCCESS'); return res; }).catch(err => { console.error('DEBUG: timesheetsApi.getExisting FAILED:', err); throw err; }),
-          (user?.staff_id ? shiftNotesApi.getByShiftAndStaff(shiftId, user.staff_id) : Promise.resolve(null)).then(res => { console.log('DEBUG: shiftNotesApi.getByShiftAndStaff SUCCESS'); return res; }).catch(err => { console.error('DEBUG: shiftNotesApi.getByShiftAndStaff FAILED:', err); throw err; })
+          rosterApi
+            .getShift(shiftId)
+            .then((res) => {
+              console.log('DEBUG: rosterApi.getShift SUCCESS');
+              return res;
+            })
+            .catch((err) => {
+              console.error('DEBUG: rosterApi.getShift FAILED:', err);
+              throw err;
+            }),
+          (user?.staff_id
+            ? timesheetsApi.getExisting(shiftId, user.staff_id)
+            : Promise.resolve(null)
+          )
+            .then((res) => {
+              console.log('DEBUG: timesheetsApi.getExisting SUCCESS');
+              return res;
+            })
+            .catch((err) => {
+              console.error('DEBUG: timesheetsApi.getExisting FAILED:', err);
+              throw err;
+            }),
+          (user?.staff_id
+            ? shiftNotesApi.getByShiftAndStaff(shiftId, user.staff_id)
+            : Promise.resolve(null)
+          )
+            .then((res) => {
+              console.log('DEBUG: shiftNotesApi.getByShiftAndStaff SUCCESS');
+              return res;
+            })
+            .catch((err) => {
+              console.error(
+                'DEBUG: shiftNotesApi.getByShiftAndStaff FAILED:',
+                err,
+              );
+              throw err;
+            }),
         ]);
 
         if (shiftRes) {
           const s = shiftRes as any;
           setShift(s);
           setActualStart(`${s.start_date}T${s.start_time.slice(0, 5)}`);
-          setActualEnd(`${(s.end_date || s.start_date)}T${s.end_time.slice(0, 5)}`);
+          setActualEnd(
+            `${s.end_date || s.start_date}T${s.end_time.slice(0, 5)}`,
+          );
 
           if (s.assigned_checklists) {
             const mapped = s.assigned_checklists.map((cl: any) => ({
               ...cl,
-              status: cl.submissions?.[0]?.status || 'pending'
+              status: cl.submissions?.[0]?.status || 'pending',
             }));
             setAssignedChecklists(mapped);
           }
@@ -143,7 +204,8 @@ export function StaffTimesheetForm() {
           if (d.actual_start) setActualStart(d.actual_start.slice(0, 16));
           if (d.actual_end) setActualEnd(d.actual_end.slice(0, 16));
           if (d.break_minutes != null) setBreakMins(String(d.break_minutes));
-          if (d.overtime_explanation) setOvertimeExplanation(d.overtime_explanation);
+          if (d.overtime_explanation)
+            setOvertimeExplanation(d.overtime_explanation);
           if (d.travel_km) setTravelKm(String(d.travel_km));
           if (d.sick_shift) setSickShift(d.sick_shift);
           if (d.notes) setSickReason(d.notes);
@@ -179,7 +241,12 @@ export function StaffTimesheetForm() {
   useEffect(() => {
     if (loading || !shift) return;
 
-    const sections = ['actual-hours', 'additional-options', 'shift-notes', 'required-routines'];
+    const sections = [
+      'actual-hours',
+      'additional-options',
+      'shift-notes',
+      'required-routines',
+    ];
     let activeSectionId = '';
 
     const observerCallback = (entries: IntersectionObserverEntry[]) => {
@@ -193,7 +260,7 @@ export function StaffTimesheetForm() {
             window.history.replaceState(
               null,
               '',
-              window.location.pathname + window.location.search + '#' + id
+              window.location.pathname + window.location.search + '#' + id,
             );
           }
         }
@@ -206,7 +273,10 @@ export function StaffTimesheetForm() {
       threshold: [0.3],
     };
 
-    const observer = new IntersectionObserver(observerCallback, observerOptions);
+    const observer = new IntersectionObserver(
+      observerCallback,
+      observerOptions,
+    );
 
     sections.forEach((id) => {
       const el = document.getElementById(id);
@@ -221,7 +291,7 @@ export function StaffTimesheetForm() {
           window.history.replaceState(
             null,
             '',
-            window.location.pathname + window.location.search
+            window.location.pathname + window.location.search,
           );
           activeSectionId = '';
         }
@@ -238,43 +308,54 @@ export function StaffTimesheetForm() {
 
   const shiftParticipants = useMemo(() => {
     if (!shift) return [];
-    return (shift.participants || [])?.map((p: any) => {
-      const part = p.participant || p;
-      const actualPart = Array.isArray(part) ? part[0] : part;
-      return {
-        id: actualPart?.id || p.id || p.participant_id,
-        participant_name: actualPart?.participant_name || p.participant_name,
-        photo_url: actualPart?.photo_url || p.photo_url || null
-      };
-    }).filter((p: any) => p.id && p.participant_name) || [];
+    return (
+      (shift.participants || [])
+        ?.map((p: any) => {
+          const part = p.participant || p;
+          const actualPart = Array.isArray(part) ? part[0] : part;
+          return {
+            id: actualPart?.id || p.id || p.participant_id,
+            participant_name:
+              actualPart?.participant_name || p.participant_name,
+            photo_url: actualPart?.photo_url || p.photo_url || null,
+          };
+        })
+        .filter((p: any) => p.id && p.participant_name) || []
+    );
   }, [shift]);
 
   const participantNotes = useMemo(() => {
     if (!shift) return [];
-    
+
     if (shiftParticipants.length === 0) {
       // General House Note
-      const note = shiftNotes.find(n => !n.participant_id);
+      const note = shiftNotes.find((n) => !n.participant_id);
       const exists = !!note;
       const status: 'Completed' | 'Draft' | 'Overdue' = exists
-        ? (note.status === 'draft' ? 'Draft' : 'Completed')
+        ? note.status === 'draft'
+          ? 'Draft'
+          : 'Completed'
         : 'Overdue';
-      return [{
-        id: 'general',
-        participant_name: 'General House Note',
-        status,
-        noteId: note?.id || null,
-        photo_url: null,
-        updated_at: note?.updated_at || null,
-        reference_id: note?.reference_id || null
-      }];
+      return [
+        {
+          id: 'general',
+          participant_name: 'General House Note',
+          status,
+          noteId: note?.id || null,
+          photo_url: null,
+          updated_at: note?.updated_at || null,
+          reference_id: note?.reference_id || null,
+        },
+      ];
     }
 
-    return shiftParticipants.map(p => {
-      const note = shiftNotes.find(n => n.participant_id === p.id);
+    return shiftParticipants.map((p) => {
+      const note = shiftNotes.find((n) => n.participant_id === p.id);
       const exists = !!note;
       const status: 'Completed' | 'Draft' | 'Overdue' = exists
-        ? (note.status === 'draft' ? 'Draft' : 'Completed')
+        ? note.status === 'draft'
+          ? 'Draft'
+          : 'Completed'
         : 'Overdue';
       return {
         id: p.id,
@@ -283,34 +364,41 @@ export function StaffTimesheetForm() {
         status,
         noteId: note?.id || null,
         updated_at: note?.updated_at || null,
-        reference_id: note?.reference_id || null
+        reference_id: note?.reference_id || null,
       };
     });
   }, [shift, shiftParticipants, shiftNotes]);
-
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user?.staff_id || !shiftId || !shift) return;
 
-    const incompleteChecklists = assignedChecklists.filter(cl => cl.status !== 'completed');
+    const incompleteChecklists = assignedChecklists.filter(
+      (cl) => cl.status !== 'completed',
+    );
     if (incompleteChecklists.length > 0) {
       toast.error('Mandatory Checklists Incomplete', {
-        description: `Please complete the following routines before submitting: ${incompleteChecklists.map(cl => cl.assignment_title).join(', ')}`,
+        description: `Please complete the following routines before submitting: ${incompleteChecklists.map((cl) => cl.assignment_title).join(', ')}`,
         action: {
           label: 'Go to Checklists',
-          onClick: () => navigate(ROUTES.MY_CHECKLISTS)
-        }
+          onClick: () => navigate(ROUTES.MY_CHECKLISTS),
+        },
       });
       return;
     }
 
-    if (!timesValid) { toast.error('Please enter valid actual start and end times'); return; }
-    if (overtimeNeedsReason) { toast.error('Please explain the overtime hours before submitting'); return; }
+    if (!timesValid) {
+      toast.error('Please enter valid actual start and end times');
+      return;
+    }
+    if (overtimeNeedsReason) {
+      toast.error('Please explain the overtime hours before submitting');
+      return;
+    }
 
     setSaving(true);
     const now = new Date().toISOString();
-    
+
     const formatToFullISO = (val: string) => {
       if (!val) return null;
       const d = new Date(val);
@@ -321,7 +409,9 @@ export function StaffTimesheetForm() {
     const clockOut = formatToFullISO(actualEnd);
 
     if (!clockIn || !clockOut) {
-      toast.error('Missing required times. Please ensure start and end times are set.');
+      toast.error(
+        'Missing required times. Please ensure start and end times are set.',
+      );
       setSaving(false);
       return;
     }
@@ -337,7 +427,7 @@ export function StaffTimesheetForm() {
       overtime_explanation: overtimeExplanation || null,
       travel_km: parseFloat(travelKm) || 0,
       sick_shift: sickShift,
-      notes: sickShift ? (sickReason || null) : null,
+      notes: sickShift ? sickReason || null : null,
       overtime_hours: overtimeHours,
       status: TIMESHEET_STATUS.PENDING as any,
       submitted_at: now,
@@ -354,15 +444,17 @@ export function StaffTimesheetForm() {
       const admins = await staffApi.listAdmins();
 
       if (admins && admins.length > 0) {
-        const adminIds = admins.map(a => a.auth_user_id).filter(Boolean) as string[];
+        const adminIds = admins
+          .map((a) => a.auth_user_id)
+          .filter(Boolean) as string[];
         await Promise.all(
-          adminIds.map(adminId => 
+          adminIds.map((adminId) =>
             NotificationService.notifyTimesheetSubmitted(
-              adminId, 
-              userName, 
-              format(parseISO(shift.start_date), 'dd MMM yyyy')
-            )
-          )
+              adminId,
+              userName,
+              format(parseISO(shift.start_date), 'dd MMM yyyy'),
+            ),
+          ),
         );
       }
 
@@ -370,7 +462,9 @@ export function StaffTimesheetForm() {
       handleBack();
     } catch (error: any) {
       console.error('Timesheet submission error details:', error);
-      toast.error(`Failed to submit timesheet: ${error.message || 'Unknown error'}`);
+      toast.error(
+        `Failed to submit timesheet: ${error.message || 'Unknown error'}`,
+      );
     } finally {
       setSaving(false);
     }
@@ -379,20 +473,25 @@ export function StaffTimesheetForm() {
   if (loading) {
     return (
       <Container>
-        <div className="py-10 text-center text-sm text-muted-foreground">Loading shift...</div>
+        <div className="py-10 text-center text-sm text-muted-foreground">
+          Loading shift...
+        </div>
       </Container>
     );
   }
   if (!shift) {
     return (
       <Container>
-        <div className="py-10 text-center text-sm text-muted-foreground">Shift not found.</div>
+        <div className="py-10 text-center text-sm text-muted-foreground">
+          Shift not found.
+        </div>
       </Container>
     );
   }
 
-  const scheduledHrsDisplay  = (scheduledMins / 60).toFixed(1);
-  const actualHrsDisplay     = actualMins !== null ? Math.max(0, actualMins / 60).toFixed(1) : '—';
+  const scheduledHrsDisplay = (scheduledMins / 60).toFixed(1);
+  const actualHrsDisplay =
+    actualMins !== null ? Math.max(0, actualMins / 60).toFixed(1) : '—';
 
   return (
     <>
@@ -400,11 +499,18 @@ export function StaffTimesheetForm() {
         <Toolbar className="hidden sm:flex">
           <ToolbarHeading>
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" onClick={handleBack} className="-ml-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleBack}
+                className="-ml-2"
+              >
                 <ArrowLeft className="size-4" />
               </Button>
               <div>
-                <ToolbarPageTitle text={isReadOnly ? 'View Timesheet' : 'Submit Timesheet'} />
+                <ToolbarPageTitle
+                  text={isReadOnly ? 'View Timesheet' : 'Submit Timesheet'}
+                />
                 <ToolbarDescription>
                   {format(parseISO(shift.start_date), 'EEEE, dd MMM yyyy')}
                   {shift.house ? ` · ${shift.house.house_name}` : ''}
@@ -416,13 +522,16 @@ export function StaffTimesheetForm() {
       </Container>
 
       <Container className="py-6 sm:py-0">
-        <form onSubmit={handleSubmit} className="grid gap-5 lg:gap-7.5 max-w-2xl">
-
+        <form
+          onSubmit={handleSubmit}
+          className="grid gap-5 lg:gap-7.5 max-w-2xl"
+        >
           {isReadOnly && (
             <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 flex items-center gap-3">
               <Info className="size-5 text-primary" />
               <p className="text-sm">
-                This timesheet has been submitted and is currently <strong>{status}</strong>. It cannot be edited.
+                This timesheet has been submitted and is currently{' '}
+                <strong>{status}</strong>. It cannot be edited.
               </p>
             </div>
           )}
@@ -434,7 +543,9 @@ export function StaffTimesheetForm() {
                 Actual Hours Worked
               </CardTitle>
               <p className="text-sm text-muted-foreground mt-1">
-                Rostered: {shift.start_time.slice(0, 5)} – {shift.end_time.slice(0, 5)} ({scheduledHrsDisplay} hrs scheduled)
+                Rostered: {shift.start_time.slice(0, 5)} –{' '}
+                {shift.end_time.slice(0, 5)} ({scheduledHrsDisplay} hrs
+                scheduled)
               </p>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -477,11 +588,19 @@ export function StaffTimesheetForm() {
               </div>
               {actualMins !== null && (
                 <div className="rounded-lg bg-muted/50 border px-4 py-3 flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Total hours worked</span>
+                  <span className="text-sm text-muted-foreground">
+                    Total hours worked
+                  </span>
                   <div className="flex items-center gap-3">
-                    <span className="font-semibold">{actualHrsDisplay} hrs</span>
+                    <span className="font-semibold">
+                      {actualHrsDisplay} hrs
+                    </span>
                     {overtimeHours > 0 && (
-                      <Badge variant="warning" appearance="light" className="text-xs">
+                      <Badge
+                        variant="warning"
+                        appearance="light"
+                        className="text-xs"
+                      >
                         +{overtimeHours.toFixed(1)} hrs overtime
                       </Badge>
                     )}
@@ -491,7 +610,12 @@ export function StaffTimesheetForm() {
               {overtimeHours > 0 && (
                 <div className="space-y-1.5">
                   <Label htmlFor="overtimeExplanation">
-                    Overtime Explanation <span className={cn(isReadOnly ? "hidden" : "text-destructive")}>*</span>
+                    Overtime Explanation{' '}
+                    <span
+                      className={cn(isReadOnly ? 'hidden' : 'text-destructive')}
+                    >
+                      *
+                    </span>
                   </Label>
                   <Textarea
                     id="overtimeExplanation"
@@ -499,11 +623,17 @@ export function StaffTimesheetForm() {
                     onChange={(e) => setOvertimeExplanation(e.target.value)}
                     placeholder="Explain why overtime was required..."
                     rows={2}
-                    className={!isReadOnly && overtimeNeedsReason ? 'border-destructive' : ''}
+                    className={
+                      !isReadOnly && overtimeNeedsReason
+                        ? 'border-destructive'
+                        : ''
+                    }
                     readOnly={isReadOnly}
                   />
                   {!isReadOnly && overtimeNeedsReason && (
-                    <p className="text-xs text-destructive">Required when overtime is claimed</p>
+                    <p className="text-xs text-destructive">
+                      Required when overtime is claimed
+                    </p>
                   )}
                 </div>
               )}
@@ -534,10 +664,12 @@ export function StaffTimesheetForm() {
               </div>
 
               <div className="border-t pt-4">
-                <label className={cn(
-                  "flex items-start gap-3 select-none",
-                  isReadOnly ? "cursor-default" : "cursor-pointer"
-                )}>
+                <label
+                  className={cn(
+                    'flex items-start gap-3 select-none',
+                    isReadOnly ? 'cursor-default' : 'cursor-pointer',
+                  )}
+                >
                   <input
                     type="checkbox"
                     checked={sickShift}
@@ -551,7 +683,8 @@ export function StaffTimesheetForm() {
                     </span>
                     {!isReadOnly && (
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        Check this if you were unwell and this shift should be converted to sick leave.
+                        Check this if you were unwell and this shift should be
+                        converted to sick leave.
                       </p>
                     )}
                   </div>
@@ -602,15 +735,15 @@ export function StaffTimesheetForm() {
                       <tr key={pn.id} className="hover:bg-muted/10">
                         <td className="py-3 px-4 min-w-0">
                           {pn.id !== 'general' ? (
-                            <Link 
+                            <Link
                               to={`${ROUTES.PARTICIPANT_DETAIL}/${pn.id}`}
                               className="flex items-center gap-2 group/participant w-fit"
                             >
-                              <SecureAvatar 
-                                src={pn.photo_url} 
-                                initials={getInitials(pn.participant_name)} 
+                              <SecureAvatar
+                                src={pn.photo_url}
+                                initials={getInitials(pn.participant_name)}
                                 className="size-6 shrink-0 transition-all group-hover/participant:ring-2 group-hover/participant:ring-primary/20"
-                                bucket={STORAGE_BUCKETS.PARTICIPANT_PHOTOS} 
+                                bucket={STORAGE_BUCKETS.PARTICIPANT_PHOTOS}
                               />
                               <span className="text-sm font-medium text-blue-700 dark:text-blue-400 group-hover/participant:underline transition-colors truncate max-w-[150px] md:max-w-none">
                                 {pn.participant_name}
@@ -621,7 +754,9 @@ export function StaffTimesheetForm() {
                               <div className="size-6 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
                                 <FileText className="size-3 text-gray-500" />
                               </div>
-                              <span className="text-sm font-medium text-gray-700 truncate">{pn.participant_name}</span>
+                              <span className="text-sm font-medium text-gray-700 truncate">
+                                {pn.participant_name}
+                              </span>
                             </div>
                           )}
                         </td>
@@ -629,16 +764,27 @@ export function StaffTimesheetForm() {
                           {pn.reference_id || '—'}
                         </td>
                         <td className="py-3 px-4">
-                          <Badge 
-                            variant={pn.status === 'Completed' ? 'success' : pn.status === 'Draft' ? 'warning' : 'destructive'} 
-                            appearance="light" 
+                          <Badge
+                            variant={
+                              pn.status === 'Completed'
+                                ? 'success'
+                                : pn.status === 'Draft'
+                                  ? 'warning'
+                                  : 'destructive'
+                            }
+                            appearance="light"
                             className="text-[10px] font-bold uppercase shrink-0"
                           >
                             {pn.status}
                           </Badge>
                         </td>
                         <td className="py-3 px-4 text-xs text-muted-foreground whitespace-nowrap">
-                          {pn.updated_at ? format(parseISO(pn.updated_at), 'dd MMM yyyy, HH:mm') : '—'}
+                          {pn.updated_at
+                            ? format(
+                                parseISO(pn.updated_at),
+                                'dd MMM yyyy, HH:mm',
+                              )
+                            : '—'}
                         </td>
                         <td className="py-3 px-4 text-right">
                           <Button
@@ -646,9 +792,19 @@ export function StaffTimesheetForm() {
                             variant="outline"
                             size="sm"
                             className="w-20 justify-center"
-                            onClick={() => navigate(`${ROUTES.SHIFT_NOTES_DETAIL}/${pn.noteId || 'new'}?shiftId=${shiftId}&staffId=${user?.staff_id || ''}${pn.id !== 'general' ? `&participantId=${pn.id}` : ''}`, {
-                              state: { from: location.pathname + location.search + '#shift-notes' }
-                            })}
+                            onClick={() =>
+                              navigate(
+                                `${ROUTES.SHIFT_NOTES_DETAIL}/${pn.noteId || 'new'}?shiftId=${shiftId}&staffId=${user?.staff_id || ''}${pn.id !== 'general' ? `&participantId=${pn.id}` : ''}`,
+                                {
+                                  state: {
+                                    from:
+                                      location.pathname +
+                                      location.search +
+                                      '#shift-notes',
+                                  },
+                                },
+                              )
+                            }
                           >
                             {isReadOnly ? (
                               'View'
@@ -671,38 +827,62 @@ export function StaffTimesheetForm() {
           </Card>
 
           {assignedChecklists.length > 0 && (
-            <Card id="required-routines" className={cn(
-              "border-0 sm:border",
-              assignedChecklists.every(cl => cl.status === 'completed') ? "border-green-200 bg-green-50/10" : "border-orange-200 bg-orange-50/10"
-            )}>
+            <Card
+              id="required-routines"
+              className={cn(
+                'border-0 sm:border',
+                assignedChecklists.every((cl) => cl.status === 'completed')
+                  ? 'border-green-200 bg-green-50/10'
+                  : 'border-orange-200 bg-orange-50/10',
+              )}
+            >
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-base">
-                  <CheckCircle2 className={cn(
-                    "size-4",
-                    assignedChecklists.every(cl => cl.status === 'completed') ? "text-green-600" : "text-orange-600"
-                  )} />
+                  <CheckCircle2
+                    className={cn(
+                      'size-4',
+                      assignedChecklists.every(
+                        (cl) => cl.status === 'completed',
+                      )
+                        ? 'text-green-600'
+                        : 'text-orange-600',
+                    )}
+                  />
                   Required Shift Routines
                 </CardTitle>
                 {!isReadOnly && (
                   <p className="text-sm text-muted-foreground mt-1">
-                    You must complete all routines assigned to your shift before submitting your timesheet.
+                    You must complete all routines assigned to your shift before
+                    submitting your timesheet.
                   </p>
                 )}
               </CardHeader>
               <CardContent>
                 <div className="divide-y border rounded-lg bg-white overflow-hidden">
                   {assignedChecklists.map((cl) => (
-                    <div key={cl.checklist_id} className="flex items-center justify-between p-3">
+                    <div
+                      key={cl.checklist_id}
+                      className="flex items-center justify-between p-3"
+                    >
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <div className={cn(
-                          "size-2 rounded-full shrink-0",
-                          cl.status === 'completed' ? "bg-green-500" : "bg-orange-400" + (!isReadOnly ? " animate-pulse" : "")
-                        )} />
-                        <span className="text-sm font-medium text-gray-700 truncate">{cl.assignment_title}</span>
+                        <div
+                          className={cn(
+                            'size-2 rounded-full shrink-0',
+                            cl.status === 'completed'
+                              ? 'bg-green-500'
+                              : 'bg-orange-400' +
+                                  (!isReadOnly ? ' animate-pulse' : ''),
+                          )}
+                        />
+                        <span className="text-sm font-medium text-gray-700 truncate">
+                          {cl.assignment_title}
+                        </span>
                       </div>
-                      <Badge 
-                        variant={cl.status === 'completed' ? 'success' : 'warning'} 
-                        appearance="light" 
+                      <Badge
+                        variant={
+                          cl.status === 'completed' ? 'success' : 'warning'
+                        }
+                        appearance="light"
                         className="text-[10px] font-bold uppercase shrink-0"
                       >
                         {cl.status === 'completed' ? 'Completed' : 'Pending'}
@@ -710,20 +890,23 @@ export function StaffTimesheetForm() {
                     </div>
                   ))}
                 </div>
-                
-                {!isReadOnly && assignedChecklists.some(cl => cl.status !== 'completed') && (
-                  <div className="mt-4">
-                    <Button 
-                      type="button" 
-                      variant="primary" 
-                      className="w-full font-bold shadow-sm"
-                      onClick={() => navigate(ROUTES.MY_CHECKLISTS)}
-                    >
-                      <ClipboardList className="size-4 me-2" />
-                      Complete Checklists Now
-                    </Button>
-                  </div>
-                )}
+
+                {!isReadOnly &&
+                  assignedChecklists.some(
+                    (cl) => cl.status !== 'completed',
+                  ) && (
+                    <div className="mt-4">
+                      <Button
+                        type="button"
+                        variant="primary"
+                        className="w-full font-bold shadow-sm"
+                        onClick={() => navigate(ROUTES.MY_CHECKLISTS)}
+                      >
+                        <ClipboardList className="size-4 me-2" />
+                        Complete Checklists Now
+                      </Button>
+                    </div>
+                  )}
               </CardContent>
             </Card>
           )}
@@ -731,12 +914,14 @@ export function StaffTimesheetForm() {
           <div className="flex items-center gap-3 pb-8">
             {!isReadOnly ? (
               <>
-                <Button 
-                  type="submit" 
-                  disabled={saving} 
+                <Button
+                  type="submit"
+                  disabled={saving}
                   className={cn(
-                    "flex-1 sm:flex-none sm:min-w-[160px]",
-                    assignedChecklists.some(cl => cl.status !== 'completed') && "opacity-50 grayscale cursor-not-allowed"
+                    'flex-1 sm:flex-none sm:min-w-[160px]',
+                    assignedChecklists.some(
+                      (cl) => cl.status !== 'completed',
+                    ) && 'opacity-50 grayscale cursor-not-allowed',
                   )}
                 >
                   {saving ? 'Submitting...' : 'Submit Timesheet'}
@@ -760,7 +945,6 @@ export function StaffTimesheetForm() {
               </Button>
             )}
           </div>
-
         </form>
       </Container>
     </>

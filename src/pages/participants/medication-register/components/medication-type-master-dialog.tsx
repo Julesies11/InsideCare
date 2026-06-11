@@ -1,24 +1,24 @@
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import { MedicationType } from '@/api/master-lists.api';
+import { Edit2, Plus, Search, X } from 'lucide-react';
+import { toast } from 'sonner';
+import {
+  useAddMedicationType,
+  useMedicationTypes,
+  useUpdateMedicationType,
+} from '@/hooks/use-medications-master';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Switch } from '@/components/ui/switch';
-import { Plus, Edit2, X, Search } from 'lucide-react';
-import { 
-  useMedicationTypes, 
-  useAddMedicationType, 
-  useUpdateMedicationType
-} from '@/hooks/use-medications-master';
-import { MedicationType } from '@/api/master-lists.api';
-import { toast } from 'sonner';
-import { Badge } from '@/components/ui/badge';
 
 interface MedicationTypeMasterDialogProps {
   open: boolean;
@@ -41,8 +41,10 @@ export function MedicationTypeMasterDialog({
   const [isAdding, setIsAdding] = useState(false);
 
   const filteredItems = useMemo(() => {
-    return items.filter(item =>
-      item.medication_type_name.toLowerCase().includes(searchQuery.toLowerCase())
+    return items.filter((item) =>
+      item.medication_type_name
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()),
     );
   }, [items, searchQuery]);
 
@@ -57,11 +59,11 @@ export function MedicationTypeMasterDialog({
 
     try {
       if (editingId) {
-        const oldItem = items.find(i => i.id === editingId);
-        await updateType({ 
-          id: editingId, 
-          name: formData.medication_type_name, 
-          oldName: oldItem?.medication_type_name 
+        const oldItem = items.find((i) => i.id === editingId);
+        await updateType({
+          id: editingId,
+          name: formData.medication_type_name,
+          oldName: oldItem?.medication_type_name,
         });
         toast.success('Medication type updated');
       } else {
@@ -76,12 +78,14 @@ export function MedicationTypeMasterDialog({
 
   const handleToggleStatus = async (item: MedicationType) => {
     try {
-      await updateType({ 
-        id: item.id, 
+      await updateType({
+        id: item.id,
         is_active: !item.is_active,
-        oldActive: item.is_active 
+        oldActive: item.is_active,
       });
-      toast.success(`Medication type ${!item.is_active ? 'activated' : 'deactivated'}`);
+      toast.success(
+        `Medication type ${!item.is_active ? 'activated' : 'deactivated'}`,
+      );
     } catch (error: any) {
       toast.error(error.message || 'Failed to update status');
     }
@@ -100,7 +104,11 @@ export function MedicationTypeMasterDialog({
           <DialogTitle className="text-xl flex items-center justify-between gap-4">
             <span className="truncate">Manage Medication Types</span>
             {canEdit && !isAdding && !editingId && (
-              <Button size="sm" onClick={() => setIsAdding(true)} className="shrink-0">
+              <Button
+                size="sm"
+                onClick={() => setIsAdding(true)}
+                className="shrink-0"
+              >
                 <Plus className="size-4 me-2" />
                 Add Type
               </Button>
@@ -109,13 +117,20 @@ export function MedicationTypeMasterDialog({
         </DialogHeader>
 
         <div className="p-6 space-y-4 flex-1 flex flex-col min-h-0 overflow-hidden">
-          {(isAdding || editingId) ? (
+          {isAdding || editingId ? (
             <div className="bg-muted/30 p-4 rounded-lg border border-border space-y-4 animate-in fade-in slide-in-from-top-2 shrink-0">
               <div className="flex items-center justify-between">
                 <h4 className="font-medium text-sm">
-                  {editingId ? 'Edit Medication Type' : 'Add New Medication Type'}
+                  {editingId
+                    ? 'Edit Medication Type'
+                    : 'Add New Medication Type'}
                 </h4>
-                <Button variant="ghost" size="icon" onClick={resetForm} className="size-8">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={resetForm}
+                  className="size-8"
+                >
                   <X className="size-4" />
                 </Button>
               </div>
@@ -125,14 +140,25 @@ export function MedicationTypeMasterDialog({
                   <Input
                     id="type-name"
                     value={formData.medication_type_name}
-                    onChange={(e) => setFormData({ ...formData, medication_type_name: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        medication_type_name: e.target.value,
+                      })
+                    }
                     placeholder="e.g. Antipsychotic, Supplement"
                     autoFocus
                   />
                 </div>
                 <div className="flex justify-end gap-2 pt-2">
-                  <Button variant="outline" size="sm" onClick={resetForm}>Cancel</Button>
-                  <Button size="sm" onClick={handleSave} disabled={!formData.medication_type_name.trim()}>
+                  <Button variant="outline" size="sm" onClick={resetForm}>
+                    Cancel
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={handleSave}
+                    disabled={!formData.medication_type_name.trim()}
+                  >
                     {editingId ? 'Update' : 'Save'}
                   </Button>
                 </div>
@@ -148,7 +174,7 @@ export function MedicationTypeMasterDialog({
                 className="pl-9 pr-9"
               />
               {searchQuery && (
-                <button 
+                <button
                   onClick={() => setSearchQuery('')}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1 rounded-full hover:bg-muted"
                 >
@@ -162,20 +188,32 @@ export function MedicationTypeMasterDialog({
             <ScrollArea className="flex-1">
               <div className="divide-y divide-border">
                 {isLoading ? (
-                  <div className="p-8 text-center text-muted-foreground text-sm">Loading types...</div>
+                  <div className="p-8 text-center text-muted-foreground text-sm">
+                    Loading types...
+                  </div>
                 ) : filteredItems.length === 0 ? (
                   <div className="p-8 text-center text-muted-foreground text-sm">
-                    {searchQuery ? 'No matching types found.' : 'No medication types added yet.'}
+                    {searchQuery
+                      ? 'No matching types found.'
+                      : 'No medication types added yet.'}
                   </div>
                 ) : (
                   filteredItems.map((item) => (
-                    <div key={item.id} className="p-4 flex items-center justify-between hover:bg-muted/10 transition-colors">
+                    <div
+                      key={item.id}
+                      className="p-4 flex items-center justify-between hover:bg-muted/10 transition-colors"
+                    >
                       <div className="flex items-center gap-3 pe-4 min-w-0">
-                        <span className={`font-medium text-sm truncate ${!item.is_active ? 'text-muted-foreground' : ''}`}>
+                        <span
+                          className={`font-medium text-sm truncate ${!item.is_active ? 'text-muted-foreground' : ''}`}
+                        >
                           {item.medication_type_name}
                         </span>
                         {!item.is_active && (
-                          <Badge variant="secondary" className="text-[10px] py-0 px-1.5 h-4 uppercase font-bold tracking-wider shrink-0">
+                          <Badge
+                            variant="secondary"
+                            className="text-[10px] py-0 px-1.5 h-4 uppercase font-bold tracking-wider shrink-0"
+                          >
                             Inactive
                           </Badge>
                         )}
@@ -191,7 +229,7 @@ export function MedicationTypeMasterDialog({
                             <Edit2 className="size-4" />
                           </Button>
                           <div className="flex items-center gap-2 ps-2 border-s">
-                            <Switch 
+                            <Switch
                               checked={item.is_active}
                               onCheckedChange={() => handleToggleStatus(item)}
                               className="scale-75"

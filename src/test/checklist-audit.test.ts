@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { supabase } from '@/lib/supabase';
 
 // Mock Supabase
@@ -7,17 +7,19 @@ vi.mock('@/lib/supabase', () => ({
     from: vi.fn(() => ({
       insert: vi.fn(() => ({
         select: vi.fn(() => ({
-          single: vi.fn(() => Promise.resolve({ data: { id: 'new-cl-id' }, error: null }))
-        }))
+          single: vi.fn(() =>
+            Promise.resolve({ data: { id: 'new-cl-id' }, error: null }),
+          ),
+        })),
       })),
       update: vi.fn(() => ({
-        eq: vi.fn(() => Promise.resolve({ error: null }))
+        eq: vi.fn(() => Promise.resolve({ error: null })),
       })),
       delete: vi.fn(() => ({
-        eq: vi.fn(() => Promise.resolve({ error: null }))
-      }))
-    }))
-  }
+        eq: vi.fn(() => Promise.resolve({ error: null })),
+      })),
+    })),
+  },
 }));
 
 describe('Checklist Persistence Logic Audit', () => {
@@ -28,13 +30,13 @@ describe('Checklist Persistence Logic Audit', () => {
   it('should include group_title when inserting checklist items', async () => {
     // This is a conceptual test - in a real scenario we'd test the actual function
     // but here we are auditing the code structure.
-    
+
     const mockItem = {
       title: 'Test Task',
       instructions: 'Do it',
       priority: 'high',
       is_required: true,
-      sort_order: 1
+      sort_order: 1,
       // group_title is missing here
     };
 
@@ -55,7 +57,7 @@ describe('Checklist Persistence Logic Audit', () => {
   it('should preserve provided group_title', () => {
     const mockItem = {
       title: 'Test Task',
-      group_title: 'Night'
+      group_title: 'Night',
     };
 
     const transformed = {

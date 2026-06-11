@@ -1,4 +1,5 @@
 import { Link } from 'react-router';
+import { ROUTES } from '@/config/routes.config';
 import { toAbsoluteUrl } from '@/lib/helpers';
 import {
   Dialog,
@@ -8,7 +9,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { ROUTES } from '@/config/routes.config';
 
 export function AccountDeactivatedDialog({
   open,
@@ -47,7 +47,10 @@ export function AccountDeactivatedDialog({
             support if this is an error or for reactivation.
           </div>
 
-          <Link to={ROUTES.HOME} className="btn btn-primary flex justify-center">
+          <Link
+            to={ROUTES.HOME}
+            className="btn btn-primary flex justify-center"
+          >
             Go to Home
           </Link>
         </DialogBody>

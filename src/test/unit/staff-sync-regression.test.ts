@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { staffDetailsApi } from '@/api/staff-details.api';
-import { supabase } from '@/lib/supabase';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TABLES } from '@/config/db-tables';
+import { supabase } from '@/lib/supabase';
 
 // Mock Supabase client
 vi.mock('@/lib/supabase', () => ({
@@ -33,12 +33,14 @@ describe('staffDetailsApi.syncDetails Regression Test', () => {
 
     const pendingChanges: any = {
       training: {
-        toAdd: [{
-          title: 'Empty Date Training',
-          category: 'Safety',
-          date_completed: '', // Empty string that caused the error
-          expiry_date: '',
-        }],
+        toAdd: [
+          {
+            title: 'Empty Date Training',
+            category: 'Safety',
+            date_completed: '', // Empty string that caused the error
+            expiry_date: '',
+          },
+        ],
         toUpdate: [],
         toDelete: [],
       },
@@ -62,11 +64,13 @@ describe('staffDetailsApi.syncDetails Regression Test', () => {
     const pendingChanges: any = {
       training: { toAdd: [], toUpdate: [], toDelete: [] },
       staffCompliance: {
-        toAdd: [{
-          compliance_name: 'Empty Date Compliance',
-          status: 'Current',
-          expiry_date: '', // Empty string that caused the error
-        }],
+        toAdd: [
+          {
+            compliance_name: 'Empty Date Compliance',
+            status: 'Current',
+            expiry_date: '', // Empty string that caused the error
+          },
+        ],
         toUpdate: [],
         toDelete: [],
       },
@@ -87,12 +91,14 @@ describe('staffDetailsApi.syncDetails Regression Test', () => {
 
     const pendingChanges: any = {
       training: {
-        toAdd: [{
-          title: 'Valid Date Training',
-          category: 'Safety',
-          date_completed: '2026-05-31',
-          expiry_date: '2027-05-31',
-        }],
+        toAdd: [
+          {
+            title: 'Valid Date Training',
+            category: 'Safety',
+            date_completed: '2026-05-31',
+            expiry_date: '2027-05-31',
+          },
+        ],
         toUpdate: [],
         toDelete: [],
       },

@@ -1,5 +1,3 @@
-
-
 export type IncidentStatus = 'New' | 'Actioned' | 'Referred' | 'Closed';
 export type IncidentPriority = 'Critical' | 'High' | 'Medium' | 'Low';
 export type IncidentSeverity = 'Low' | 'Moderate' | 'High';
@@ -19,7 +17,7 @@ export interface IncidentReport {
   outcome: string;
   witnesses?: string;
   notified_parties?: string;
-  
+
   // Restrictive Practice
   is_restrictive_practice: boolean;
   restrictive_practice_type_id?: string;
@@ -46,6 +44,8 @@ export interface IncidentReport {
   updated_by?: string;
 }
 
-export type IncidentReportInsert = Omit<Partial<IncidentReport>, 'id' | 'created_at' | 'updated_at'>;
+export type IncidentReportInsert = Omit<
+  Partial<IncidentReport>,
+  'id' | 'created_at' | 'updated_at'
+>;
 export type IncidentReportUpdate = Partial<IncidentReport>;
-

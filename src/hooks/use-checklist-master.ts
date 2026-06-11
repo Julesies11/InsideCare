@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
 import { masterListsApi } from '@/api/master-lists.api';
+import { useQuery } from '@tanstack/react-query';
 import { QUERY_KEYS } from '@/config/query-keys';
 
 export interface ChecklistMasterItem {
