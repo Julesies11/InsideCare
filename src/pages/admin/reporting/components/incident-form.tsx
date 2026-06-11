@@ -31,8 +31,8 @@ import { generateIncidentReferenceId } from '@/lib/incident-utils';
 
 const incidentSchema = z.object({
   reference_id: z.string().optional().nullable(),
-  involved_participant_id: z.string().uuid('Please select a participant'),
-  involved_staff_id: z.string().uuid().optional().nullable(),
+  involved_participant_id: z.string().uuid().optional().nullable(),
+  involved_staff_id: z.string().uuid('Please select who witnessed the incident'),
   incident_date: z.string().min(1, 'Incident date and time is required'),
   incident_type_id: z.string().uuid('Please select an incident type'),
   severity: z.enum(['Low', 'Moderate', 'High']),
@@ -130,7 +130,7 @@ export function IncidentForm({ initialData, onSave, onCancel, isSaving }: Incide
   } = useForm<IncidentFormData>({
     resolver: zodResolver(incidentSchema),
     defaultValues: {
-      involved_participant_id: initialData?.involved_participant_id || '',
+      involved_participant_id: initialData?.involved_participant_id || null,
       involved_staff_id: initialData?.involved_staff_id || null,
       incident_date: initialData?.incident_date ? format(new Date(initialData.incident_date), "yyyy-MM-dd'T'HH:mm") : format(new Date(), "yyyy-MM-dd'T'HH:mm"),
       incident_type_id: initialData?.incident_type_id || '',
@@ -165,6 +165,7 @@ export function IncidentForm({ initialData, onSave, onCancel, isSaving }: Incide
     // Sanitize empty strings to null for optional fields
     const sanitizedData: any = {
       ...data,
+      involved_participant_id: data.involved_participant_id || null,
       involved_staff_id: data.involved_staff_id || null,
       restrictive_practice_type_id: data.restrictive_practice_type_id || null,
       rp_start_time: data.rp_start_time || null,
@@ -224,15 +225,16 @@ export function IncidentForm({ initialData, onSave, onCancel, isSaving }: Incide
               )}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Participant <span className="text-destructive">*</span></Label>
+                  <Label>Participant <span className="text-muted-foreground text-xs">(optional)</span></Label>
                   <Select 
-                    value={watch('involved_participant_id')} 
-                    onValueChange={(val) => setValue('involved_participant_id', val)}
+                    value={watch('involved_participant_id') || 'none'} 
+                    onValueChange={(val) => setValue('involved_participant_id', val === 'none' ? null : val)}
                   >
                     <SelectTrigger className={errors.involved_participant_id ? 'border-destructive' : ''}>
                       <SelectValue placeholder="Select participant" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="none">None / General</SelectItem>
                       {participants.map(p => (
                         <SelectItem key={p.id} value={p.id}>
                           <div className="flex items-center gap-2">
@@ -252,16 +254,15 @@ export function IncidentForm({ initialData, onSave, onCancel, isSaving }: Incide
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Involved Staff <span className="text-muted-foreground text-xs">(optional)</span></Label>
+                  <Label>Witnessed by <span className="text-destructive">*</span></Label>
                   <Select 
-                    value={watch('involved_staff_id') || 'none'} 
-                    onValueChange={(val) => setValue('involved_staff_id', val === 'none' ? null : val)}
+                    value={watch('involved_staff_id') || ''} 
+                    onValueChange={(val) => setValue('involved_staff_id', val)}
                   >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select involved staff" />
+                    <SelectTrigger className={errors.involved_staff_id ? 'border-destructive' : ''}>
+                      <SelectValue placeholder="Select witness staff" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">None / General</SelectItem>
                       {staffList.map(s => (
                         <SelectItem key={s.id} value={s.id}>
                           <div className="flex items-center gap-2">
@@ -276,6 +277,7 @@ export function IncidentForm({ initialData, onSave, onCancel, isSaving }: Incide
                       ))}
                     </SelectContent>
                   </Select>
+                  {errors.involved_staff_id && <p className="text-xs text-destructive">{errors.involved_staff_id.message}</p>}
                 </div>
 
                 <div className="space-y-2">
@@ -289,6 +291,15 @@ export function IncidentForm({ initialData, onSave, onCancel, isSaving }: Incide
                 </div>
 
                 <div className="space-y-2">
+                  <Label>Date & Time Lodged</Label>
+                  <div className="h-10 px-3 flex items-center bg-gray-50 border border-border rounded-lg text-sm text-gray-700 font-medium font-sans">
+                    {initialData?.created_at 
+                      ? format(new Date(initialData.created_at), 'dd MMM yyyy HH:mm') 
+                      : `${format(new Date(), 'dd MMM yyyy HH:mm')} (auto-set on submit)`}
+                  </div>
+                </div>
+
+                <div className="space-y-2 md:col-span-2">
                   <Label>Reported By</Label>
                   <div className="flex items-center gap-3 p-2.5 bg-gray-50 border border-border rounded-lg">
                     <SecureAvatar 
@@ -301,7 +312,6 @@ export function IncidentForm({ initialData, onSave, onCancel, isSaving }: Incide
                       <span className="text-[10px] text-gray-500 font-medium uppercase tracking-wider">{user?.role_name || 'Staff Member'}</span>
                     </div>
                   </div>
-                  <p className="text-[10px] text-gray-400">Automatic timestamp: {format(new Date(), 'dd/MM/yyyy HH:mm')}</p>
                 </div>
               </div>
             </CardContent>
@@ -408,15 +418,9 @@ export function IncidentForm({ initialData, onSave, onCancel, isSaving }: Incide
                 {errors.outcome && <p className="text-xs text-destructive">{errors.outcome.message}</p>}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Witnesses <span className="text-muted-foreground text-xs">(optional)</span></Label>
-                  <Input {...register('witnesses')} placeholder="Names of any witnesses..." />
-                </div>
-                <div className="space-y-2">
-                  <Label>Who was notified? <span className="text-muted-foreground text-xs">(optional)</span></Label>
-                  <Input {...register('notified_parties')} placeholder="Guardian, GP, Pharmacist, etc." />
-                </div>
+              <div className="space-y-2">
+                <Label>Who was notified? <span className="text-muted-foreground text-xs">(optional)</span></Label>
+                <Input {...register('notified_parties')} placeholder="Guardian, GP, Pharmacist, etc." />
               </div>
             </CardContent>
           </Card>

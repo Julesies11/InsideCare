@@ -6,15 +6,24 @@ import { StaffPendingChanges } from '@/models/staff-pending-changes';
 import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 import { format, subDays } from 'date-fns';
 
+type ComplianceMasterRow = Database['public']['Tables']['ic_compliance_types_master']['Row'];
+
 export interface StaffComplianceSummaryRow {
   compliance_type_id: string;
   compliance_name: string;
   compliance_desc: string | null;
-  is_default_global: boolean;
+  system_category: string | null;
+  attachment_applicable: boolean;
+  expiry_date_applicable: boolean;
+  document_number_applicable: boolean;
+  comments_applicable: boolean;
   record_id: string | null;
   record_status: string | null;
   expiry_date: string | null;
   completion_date: string | null;
+  document_number: string | null;
+  comments: string | null;
+  verified_documents: any[] | null;
 }
 
 /**
@@ -29,74 +38,63 @@ export const staffDetailsApi = {
    */
   compliance: {
     async getSummary(staffId: string): Promise<StaffComplianceSummaryRow[]> {
-      const today = new Date().toISOString().split('T')[0];
-
-      const [assignmentsResult, actualRecordsResult, globalDefaultsResult] = await Promise.all([
-        supabase
-          .from(TABLES.HOUSE_STAFF_ASSIGNMENTS)
-          .select('house_id')
-          .eq('staff_id', staffId)
-          .or(`end_date.is.null,end_date.gte.${today}`),
-        
+      const [actualRecordsResult, masterTypesResult] = await Promise.all([
         supabase
           .from(TABLES.STAFF_COMPLIANCE)
-          .select('id, compliance_type_id, compliance_name, status, expiry_date, completion_date')
+          .select(`
+            id, compliance_type_id, compliance_name, status, expiry_date, completion_date, document_number, comments, updated_at,
+            updater:${TABLES.STAFF}!updated_by(staff_name),
+            verified_documents:${TABLES.STAFF_COMPLIANCE_DOCUMENTS}!staff_compliance_id(
+              id, document_type, document_number, expiry_date, file_name, file_path, points, comments
+            )
+          `)
           .eq('staff_id', staffId),
           
         supabase
           .from(TABLES.COMPLIANCE_TYPES_MASTER)
-          .select('id, compliance_name, description, is_default_global')
-          .eq('is_default_global', true)
+          .select('id, compliance_name, description, system_category, attachment_applicable, expiry_date_applicable, document_number_applicable, comments_applicable')
           .eq('is_active', true)
       ]);
 
-      if (assignmentsResult.error) throw assignmentsResult.error;
       if (actualRecordsResult.error) throw actualRecordsResult.error;
-      if (globalDefaultsResult.error) throw globalDefaultsResult.error;
+      if (masterTypesResult.error) throw masterTypesResult.error;
 
-      const houseIds = (assignmentsResult.data || []).map(a => a.house_id);
-      const requiredTypes = [...(globalDefaultsResult.data || [])];
-
-      if (houseIds.length > 0) {
-        const { data: houseReqs, error: houseReqsError } = await supabase
-          .from(TABLES.HOUSE_COMPLIANCE_REQUIREMENTS)
-          .select(`
-            compliance_type_id,
-            compliance_type:${TABLES.COMPLIANCE_TYPES_MASTER}!compliance_type_id(id, compliance_name, description, is_default_global)
-          `)
-          .in('house_id', houseIds);
-
-        if (houseReqsError) throw houseReqsError;
-
-        const seenIds = new Set(requiredTypes.map(t => t.id));
-        for (const req of houseReqs || []) {
-          const type = req.compliance_type as any;
-          if (type && type.is_active && !seenIds.has(type.id)) {
-            seenIds.add(type.id);
-            requiredTypes.push(type);
-          }
-        }
-      }
-
-      // Left join in memory
+      const requiredTypes = (masterTypesResult.data || []) as ComplianceMasterRow[];
       const actualRecords = actualRecordsResult.data || [];
+
       return requiredTypes.map(type => {
-        // Find matching record: prefer matching by compliance_type_id; fallback to compliance_name for legacy rows
-        const record = actualRecords.find(r => 
-          r.compliance_type_id
-            ? r.compliance_type_id === type.id
-            : r.compliance_name === type.compliance_name
-        );
+        // Find matching record: strictly match by compliance_type_id
+        const record = actualRecords.find(r => r.compliance_type_id === type.id);
+
+        let status = record?.status || null;
+        if (status === 'complete' && record?.expiry_date) {
+          const expiry = new Date(record.expiry_date);
+          const days = Math.ceil((expiry.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+          if (days < 0) status = 'Expired';
+          else if (days <= 30) status = 'Expiring Soon';
+        }
 
         return {
           compliance_type_id: type.id,
           compliance_name: type.compliance_name,
           compliance_desc: type.description || null,
-          is_default_global: type.is_default_global || false,
+          system_category: type.system_category || null,
+          attachment_applicable: type.attachment_applicable || false,
+          expiry_date_applicable: type.expiry_date_applicable ?? true,
+          document_number_applicable: type.document_number_applicable || false,
+          comments_applicable: type.comments_applicable || false,
           record_id: record?.id || null,
-          record_status: record?.status || null,
+          record_status: status,
           expiry_date: record?.expiry_date || null,
           completion_date: record?.completion_date || null,
+          document_number: record?.document_number || null,
+          comments: record?.comments || null,
+          verified_documents: (record?.verified_documents || null)?.map((d: any) => ({
+            ...d,
+            document_type: d.document_type === null ? 'attachment' : d.document_type
+          })) || null,
+          updated_at: record?.updated_at || null,
+          updated_by_name: (record as any)?.updater?.staff_name || null
         };
       }).sort((a, b) => a.compliance_name.localeCompare(b.compliance_name));
     },
@@ -113,54 +111,13 @@ export const staffDetailsApi = {
     },
 
     async listRequired(staffId: string) {
-      const today = new Date().toISOString().split('T')[0];
-      const { data: assignments, error: assignmentsError } = await supabase
-        .from(TABLES.HOUSE_STAFF_ASSIGNMENTS)
-        .select('house_id')
-        .eq('staff_id', staffId)
-        .or(`end_date.is.null,end_date.gte.${today}`);
-
-      if (assignmentsError) throw assignmentsError;
-
-      const houseIds = (assignments || []).map(a => a.house_id);
-
-      if (houseIds.length === 0) {
-        // Fall back to active global defaults
-        const { data: defaults, error: defaultsError } = await supabase
-          .from(TABLES.COMPLIANCE_TYPES_MASTER)
-          .select('id, compliance_name, description, is_active, is_default_global')
-          .eq('is_default_global', true)
-          .eq('is_active', true);
-        
-        if (defaultsError) throw defaultsError;
-        return defaults || [];
-      }
-
-      const { data, error } = await supabase
-        .from(TABLES.HOUSE_COMPLIANCE_REQUIREMENTS)
-        .select(`
-          compliance_type_id,
-          compliance_type:${TABLES.COMPLIANCE_TYPES_MASTER}!compliance_type_id(id, compliance_name, description, is_active, is_default_global)
-        `)
-        .in('house_id', houseIds);
-
-      if (error) throw error;
-
-      // Extract compliance types
-      const requirements = (data || [])
-        .map((r: any) => r.compliance_type)
-        .filter((r: any) => r && r.is_active);
-
-      // Unique by id
-      const seen = new Set();
-      const unique = [];
-      for (const r of requirements) {
-        if (!seen.has(r.id)) {
-          seen.add(r.id);
-          unique.push(r);
-        }
-      }
-      return unique;
+      const { data: defaults, error: defaultsError } = await supabase
+        .from(TABLES.COMPLIANCE_TYPES_MASTER)
+        .select('id, compliance_name, description, is_active, system_category, attachment_applicable, expiry_date_applicable, document_number_applicable, comments_applicable')
+        .eq('is_active', true);
+      
+      if (defaultsError) throw defaultsError;
+      return defaults || [];
     },
 
     async upsert(records: Database['public']['Tables']['ic_staff_compliance']['Insert'] | Database['public']['Tables']['ic_staff_compliance']['Insert'][]) {
@@ -179,6 +136,16 @@ export const staffDetailsApi = {
         .from(TABLES.STAFF_COMPLIANCE)
         .delete()
         .eq('id', id);
+
+      if (error) throw error;
+      return true;
+    },
+
+    async deleteAttachmentFile(filePaths: string[]) {
+      if (!filePaths || filePaths.length === 0) return true;
+      const { error } = await supabase.storage
+        .from(STORAGE_BUCKETS.STAFF_DOCUMENTS)
+        .remove(filePaths);
 
       if (error) throw error;
       return true;
@@ -309,6 +276,25 @@ export const staffDetailsApi = {
     },
 
     async upload(staffId: string, file: File, uploadedBy?: string) {
+      // Security Validation: Validate MIME type and File Size
+      const ALLOWED_MIMES = [
+        'application/pdf',
+        'image/jpeg',
+        'image/png',
+        'image/webp',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      ];
+      const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+
+      if (!ALLOWED_MIMES.includes(file.type)) {
+        throw new Error(`Security Violation: File type '${file.type}' is not permitted.`);
+      }
+
+      if (file.size > MAX_SIZE) {
+        throw new Error('Security Violation: File size exceeds the 10MB limit.');
+      }
+
       const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
       const filePath = `${staffId}/documents/${fileName}`;
 
@@ -340,28 +326,94 @@ export const staffDetailsApi = {
 
     const normalizeDate = (val: any) => (val === '' || val === undefined) ? null : val;
 
+    // Helper to map UI display statuses back to DB enum values
+    const mapStatusForDb = (status?: string): 'complete' | 'in_progress' | 'not_applicable' => {
+      if (!status) return 'in_progress';
+      const s = status.toLowerCase();
+      if (s === 'complete' || s === 'compliant' || s === 'expired' || s === 'expiring soon') return 'complete';
+      if (s === 'not_applicable' || s === 'n/a') return 'not_applicable';
+      return 'in_progress';
+    };
+
     // 1. Process Compliance
     if (pending?.staffCompliance?.toAdd?.length > 0) {
-      const { error } = await supabase.from(TABLES.STAFF_COMPLIANCE).insert(
-        pending.staffCompliance.toAdd.map(c => ({
+      for (const c of pending.staffCompliance.toAdd) {
+        const { data, error } = await supabase.from(TABLES.STAFF_COMPLIANCE).upsert({
           staff_id: staffId,
           compliance_type_id: c.compliance_type_id ?? null,
           compliance_name: c.compliance_name,
-          status: c.status,
-          expiry_date: normalizeDate(c.expiry_date)
-        }))
-      );
-      if (error) errors.push(`Compliance Add: ${error.message}`);
+          status: mapStatusForDb(c.status),
+          expiry_date: normalizeDate(c.expiry_date),
+          document_number: c.document_number ?? null,
+          comments: c.comments ?? null
+        }, { onConflict: 'staff_id,compliance_type_id' }).select('id').single();
+
+        if (error) {
+          errors.push(`Compliance Add: ${error.message}`);
+          continue;
+        }
+
+        // Insert verified documents if any
+        if (data && c.verifiedDocuments && c.verifiedDocuments.length > 0) {
+          // Robustness: Clear existing docs just in case this was an upsert conflict
+          await supabase.from(TABLES.STAFF_COMPLIANCE_DOCUMENTS).delete().eq('staff_compliance_id', data.id);
+
+          const docsPayload = c.verifiedDocuments.map(doc => ({
+            staff_compliance_id: data.id,
+            document_type: doc.document_type === 'attachment' ? null : doc.document_type,
+            document_number: doc.document_number || null,
+            expiry_date: normalizeDate(doc.expiry_date),
+            file_name: doc.file_name ?? null,
+            file_path: doc.file_path ?? null,
+            points: doc.points,
+            comments: doc.comments ?? null
+          }));
+          const { error: docsError } = await supabase.from(TABLES.STAFF_COMPLIANCE_DOCUMENTS).insert(docsPayload);
+          if (docsError) errors.push(`Compliance Docs Add for ${c.compliance_name}: ${docsError.message}`);
+        }
+      }
     }
     if (pending?.staffCompliance?.toUpdate?.length > 0) {
       for (const c of pending.staffCompliance.toUpdate) {
         const { error } = await supabase.from(TABLES.STAFF_COMPLIANCE).update({
           compliance_type_id: c.compliance_type_id ?? null,
           compliance_name: c.compliance_name,
-          status: c.status,
-          expiry_date: normalizeDate(c.expiry_date)
+          status: mapStatusForDb(c.status),
+          expiry_date: normalizeDate(c.expiry_date),
+          document_number: c.document_number ?? null,
+          comments: c.comments ?? null
         }).eq('id', c.id);
-        if (error) errors.push(`Compliance Update ${c.id}: ${error.message}`);
+
+        if (error) {
+          errors.push(`Compliance Update ${c.id}: ${error.message}`);
+          continue;
+        }
+
+        // Clear existing compliance docs and insert current list
+        const { error: deleteDocsError } = await supabase
+          .from(TABLES.STAFF_COMPLIANCE_DOCUMENTS)
+          .delete()
+          .eq('staff_compliance_id', c.id);
+
+        if (deleteDocsError) {
+          errors.push(`Compliance Docs Clear for ${c.id}: ${deleteDocsError.message}`);
+          continue;
+        }
+
+        if (c.verifiedDocuments && c.verifiedDocuments.length > 0) {
+          const docsPayload = c.verifiedDocuments.map(doc => ({
+            staff_compliance_id: c.id!,
+            document_type: doc.document_type === 'attachment' ? null : doc.document_type,
+            document_number: doc.document_number || null,
+            expiry_date: normalizeDate(doc.expiry_date),
+            file_name: doc.file_name ?? null,
+            file_path: doc.file_path ?? null,
+            points: doc.points,
+            comments: doc.comments ?? null
+          }));
+          const { error: docsError } = await supabase.from(TABLES.STAFF_COMPLIANCE_DOCUMENTS).insert(docsPayload);
+          if (docsError) errors.push(`Compliance Docs Insert for ${c.id}: ${docsError.message}`);
+        }
       }
     }
     if (pending?.staffCompliance?.toDelete?.length > 0) {

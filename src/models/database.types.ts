@@ -482,35 +482,47 @@ export type Database = {
       }
       ic_compliance_types_master: {
         Row: {
+          attachment_applicable: boolean
+          comments_applicable: boolean | null
           compliance_name: string
           created_at: string | null
           created_by: string | null
           description: string | null
+          document_number_applicable: boolean | null
+          expiry_date_applicable: boolean | null
           id: string
           is_active: boolean | null
-          is_default_global: boolean | null
+          system_category: string | null
           updated_at: string | null
           updated_by: string | null
         }
         Insert: {
+          attachment_applicable?: boolean
+          comments_applicable?: boolean | null
           compliance_name: string
           created_at?: string | null
           created_by?: string | null
           description?: string | null
+          document_number_applicable?: boolean | null
+          expiry_date_applicable?: boolean | null
           id?: string
           is_active?: boolean | null
-          is_default_global?: boolean | null
+          system_category?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
         Update: {
+          attachment_applicable?: boolean
+          comments_applicable?: boolean | null
           compliance_name?: string
           created_at?: string | null
           created_by?: string | null
           description?: string | null
+          document_number_applicable?: boolean | null
+          expiry_date_applicable?: boolean | null
           id?: string
           is_active?: boolean | null
-          is_default_global?: boolean | null
+          system_category?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -1659,65 +1671,6 @@ export type Database = {
           },
         ]
       }
-      ic_house_compliance_requirements: {
-        Row: {
-          compliance_type_id: string
-          created_at: string | null
-          created_by: string | null
-          house_id: string
-          id: string
-          updated_at: string | null
-          updated_by: string | null
-        }
-        Insert: {
-          compliance_type_id: string
-          created_at?: string | null
-          created_by?: string | null
-          house_id: string
-          id?: string
-          updated_at?: string | null
-          updated_by?: string | null
-        }
-        Update: {
-          compliance_type_id?: string
-          created_at?: string | null
-          created_by?: string | null
-          house_id?: string
-          id?: string
-          updated_at?: string | null
-          updated_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ic_house_compliance_requirements_compliance_type_id_fkey"
-            columns: ["compliance_type_id"]
-            isOneToOne: false
-            referencedRelation: "ic_compliance_types_master"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ic_house_compliance_requirements_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ic_house_compliance_requirements_house_id_fkey"
-            columns: ["house_id"]
-            isOneToOne: false
-            referencedRelation: "ic_houses"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ic_house_compliance_requirements_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       ic_house_files: {
         Row: {
           category: string | null
@@ -2431,6 +2384,72 @@ export type Database = {
           },
         ]
       }
+      ic_id_document_types: {
+        Row: {
+          attachment_applicable: boolean
+          category: string
+          comments_applicable: boolean
+          created_at: string | null
+          created_by: string | null
+          document_number_applicable: boolean
+          expiry_date_applicable: boolean | null
+          id: string
+          is_active: boolean | null
+          name: string
+          placeholder: string | null
+          points: number
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          attachment_applicable?: boolean
+          category: string
+          comments_applicable?: boolean
+          created_at?: string | null
+          created_by?: string | null
+          document_number_applicable?: boolean
+          expiry_date_applicable?: boolean | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          placeholder?: string | null
+          points: number
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          attachment_applicable?: boolean
+          category?: string
+          comments_applicable?: boolean
+          created_at?: string | null
+          created_by?: string | null
+          document_number_applicable?: boolean
+          expiry_date_applicable?: boolean | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          placeholder?: string | null
+          points?: number
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ic_id_document_types_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_id_document_types_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ic_incident_reports: {
         Row: {
           admin_actions_taken: string | null
@@ -2445,8 +2464,8 @@ export type Database = {
           incident_date: string
           incident_type: string | null
           incident_type_id: string | null
-          involved_participant_id: string
-          involved_staff_id: string | null
+          involved_participant_id: string | null
+          involved_staff_id: string
           is_ndis_reportable: boolean
           is_restrictive_practice: boolean
           ndis_reported_date: string | null
@@ -2483,8 +2502,8 @@ export type Database = {
           incident_date: string
           incident_type?: string | null
           incident_type_id?: string | null
-          involved_participant_id: string
-          involved_staff_id?: string | null
+          involved_participant_id?: string | null
+          involved_staff_id: string
           is_ndis_reportable?: boolean
           is_restrictive_practice?: boolean
           ndis_reported_date?: string | null
@@ -2521,8 +2540,8 @@ export type Database = {
           incident_date?: string
           incident_type?: string | null
           incident_type_id?: string | null
-          involved_participant_id?: string
-          involved_staff_id?: string | null
+          involved_participant_id?: string | null
+          involved_staff_id?: string
           is_ndis_reportable?: boolean
           is_restrictive_practice?: boolean
           ndis_reported_date?: string | null
@@ -5487,41 +5506,53 @@ export type Database = {
       }
       ic_staff_compliance: {
         Row: {
+          comments: string | null
           completion_date: string | null
           compliance_name: string
           compliance_type_id: string | null
           created_at: string | null
           created_by: string | null
+          document_number: string | null
           expiry_date: string | null
           id: string
           staff_id: string
-          status: string | null
+          status:
+            | Database["public"]["Enums"]["ic_compliance_status_enum"]
+            | null
           updated_at: string | null
           updated_by: string | null
         }
         Insert: {
+          comments?: string | null
           completion_date?: string | null
           compliance_name: string
           compliance_type_id?: string | null
           created_at?: string | null
           created_by?: string | null
+          document_number?: string | null
           expiry_date?: string | null
           id?: string
           staff_id: string
-          status?: string | null
+          status?:
+            | Database["public"]["Enums"]["ic_compliance_status_enum"]
+            | null
           updated_at?: string | null
           updated_by?: string | null
         }
         Update: {
+          comments?: string | null
           completion_date?: string | null
           compliance_name?: string
           compliance_type_id?: string | null
           created_at?: string | null
           created_by?: string | null
+          document_number?: string | null
           expiry_date?: string | null
           id?: string
           staff_id?: string
-          status?: string | null
+          status?:
+            | Database["public"]["Enums"]["ic_compliance_status_enum"]
+            | null
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -5550,6 +5581,83 @@ export type Database = {
           {
             foreignKeyName: "staff_compliance_staff_id_fkey"
             columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ic_staff_compliance_documents: {
+        Row: {
+          comments: string | null
+          created_at: string | null
+          created_by: string | null
+          document_number: string | null
+          document_type: string | null
+          expiry_date: string | null
+          file_name: string | null
+          file_path: string | null
+          id: string
+          points: number
+          staff_compliance_id: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          comments?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          document_number?: string | null
+          document_type?: string | null
+          expiry_date?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          id?: string
+          points: number
+          staff_compliance_id: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          comments?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          document_number?: string | null
+          document_type?: string | null
+          expiry_date?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          id?: string
+          points?: number
+          staff_compliance_id?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ic_staff_compliance_documents_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_staff_compliance_documents_document_type_fkey"
+            columns: ["document_type"]
+            isOneToOne: false
+            referencedRelation: "ic_id_document_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_staff_compliance_documents_staff_compliance_id_fkey"
+            columns: ["staff_compliance_id"]
+            isOneToOne: false
+            referencedRelation: "ic_staff_compliance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_staff_compliance_documents_updated_by_fkey"
+            columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "ic_staff"
             referencedColumns: ["id"]
@@ -6052,6 +6160,7 @@ export type Database = {
         | "context_read_only"
         | "read_only"
         | "none"
+      ic_compliance_status_enum: "complete" | "in_progress" | "not_applicable"
       ic_shift_period_enum:
         | "morning"
         | "day"
@@ -6195,6 +6304,7 @@ export const Constants = {
         "read_only",
         "none",
       ],
+      ic_compliance_status_enum: ["complete", "in_progress", "not_applicable"],
       ic_shift_period_enum: [
         "morning",
         "day",

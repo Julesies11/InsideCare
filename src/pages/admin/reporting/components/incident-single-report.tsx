@@ -50,12 +50,16 @@ export function IncidentSingleReport({ incident }: IncidentSingleReportProps) {
                 <span className="font-semibold text-gray-950">{incident.participant?.participant_name || 'General (No Participant)'}</span>
               </div>
               <div>
-                <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">Involved Staff Member</span>
+                <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">Witnessed by Staff</span>
                 <span className="font-semibold text-gray-950">{incident.staff?.staff_name || 'N/A'}</span>
               </div>
               <div>
                 <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">Incident Date & Time</span>
                 <span className="font-semibold text-gray-950">{formatDateTime(incident.incident_date)}</span>
+              </div>
+              <div>
+                <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">Date & Time Lodged</span>
+                <span className="font-semibold text-gray-950">{formatDateTime(incident.created_at)}</span>
               </div>
               <div>
                 <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">House/Facility</span>
@@ -117,21 +121,14 @@ export function IncidentSingleReport({ incident }: IncidentSingleReportProps) {
             </div>
           </div>
 
-          {/* Section 3: Witnesses & Notifications */}
+          {/* Section 3: External Notifications */}
           <div className="space-y-3">
             <h3 className="text-xs font-black text-gray-900 uppercase tracking-widest border-b-2 border-gray-900 pb-1.5">
-              3. Witnesses & External Notifications
+              3. External Notifications
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-3 border border-gray-100 rounded-lg bg-gray-50/20">
-                <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider mb-1">Witness Names / Contacts</span>
-                <p className="text-gray-700 whitespace-pre-wrap">{incident.witnesses || 'No witnesses recorded.'}</p>
-              </div>
-              
-              <div className="p-3 border border-gray-100 rounded-lg bg-gray-50/20">
-                <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider mb-1">Notified Parties (e.g. Guardians, Advocacy, Police)</span>
-                <p className="text-gray-700 whitespace-pre-wrap">{incident.notified_parties || 'No external notifications recorded.'}</p>
-              </div>
+            <div className="p-3 border border-gray-100 rounded-lg bg-gray-50/20">
+              <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider mb-1">Notified Parties (e.g. Guardians, Advocacy, Police)</span>
+              <p className="text-gray-700 whitespace-pre-wrap">{incident.notified_parties || 'No external notifications recorded.'}</p>
             </div>
           </div>
 

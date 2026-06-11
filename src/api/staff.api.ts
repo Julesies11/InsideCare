@@ -117,7 +117,7 @@ export const staffApi = {
       .from(TABLES.STAFF)
       .select(`
         id, staff_name, status, email, photo_url,
-        house_assignments:${TABLES.HOUSE_STAFF_ASSIGNMENTS}!house_staff_assignments_staff_id_fkey(
+        house_assignments:${TABLES.HOUSE_STAFF_ASSIGNMENTS}!staff_id(
           id,
           house_id,
           end_date,
@@ -140,6 +140,47 @@ export const staffApi = {
         ...s,
         name: s.staff_name,
         house_assignments: activeAssignments
+      };
+    });
+  },
+
+  /**
+   * Fetches a summary of compliance status for all active staff.
+   * Used for the Admin Compliance Monitoring dashboard.
+   */
+  async getComplianceMonitoring() {
+    const today = new Date().toISOString().split('T')[0];
+    const { data, error } = await supabase
+      .from(TABLES.STAFF)
+      .select(`
+        id, staff_name, email, photo_url, status,
+        house_assignments:${TABLES.HOUSE_STAFF_ASSIGNMENTS}!staff_id(
+          house_id,
+          end_date,
+          house:${TABLES.HOUSES}!house_id(house_name)
+        ),
+        compliance:${TABLES.STAFF_COMPLIANCE}!staff_id(
+          id, compliance_type_id, compliance_name, status, expiry_date
+        )
+      `)
+      .eq('status', 'active')
+      .order('staff_name');
+
+    if (error) throw error;
+    
+    return (data || []).map((s: any) => {
+      const activeAssignments = (s.house_assignments || []).filter((ha: any) => {
+        return !ha.end_date || ha.end_date >= today;
+      }).map((ha: any) => ({
+        ...ha,
+        house: Array.isArray(ha.house) ? ha.house[0] : ha.house
+      }));
+
+      return {
+        ...s,
+        name: s.staff_name,
+        house_assignments: activeAssignments,
+        compliance: s.compliance || []
       };
     });
   },

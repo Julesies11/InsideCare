@@ -208,7 +208,33 @@ export function useRevokeInvite() {
   });
 }
 
-export function useStaffCompliance(staffId?: string) {
+export function useComplianceMonitoring(params: {
+  page: number;
+  pageSize: number;
+  searchTerm?: string;
+  statusFilter?: string[];
+  staffStatuses?: string[];
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}) {
+  const query = useQuery({
+    queryKey: ['compliance-monitoring', params],
+    queryFn: () => complianceApi.monitoring.getPaginatedList(params),
+    placeholderData: (previousData) => previousData,
+  });
+
+  return {
+    ...query,
+    data: query.data?.data || [],
+    totalCount: query.data?.totalCount || 0,
+    loading: query.isLoading,
+    error: query.error ? (query.error as any).message : null,
+    refresh: query.refetch,
+  };
+}
+
+export function useStaffCompliance(staffId: string) {
+
   const query = useQuery({
     queryKey: [QUERY_KEYS.STAFF_COMPLIANCE, staffId],
     queryFn: async () => {
@@ -371,6 +397,54 @@ export function useUpdateComplianceType() {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.COMPLIANCE_TYPES_MASTER] });
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF_COMPLIANCE] });
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF_COMPLIANCE_SUMMARY] });
+    },
+  });
+}
+
+export function useIDDocumentTypes(includeInactive = false) {
+  const query = useQuery({
+    queryKey: [QUERY_KEYS.ID_DOCUMENT_TYPES, { includeInactive }],
+    queryFn: () => complianceApi.idDocumentTypes.list(includeInactive),
+    staleTime: 1000 * 60 * 10, // 10 minutes
+  });
+
+  return {
+    ...query,
+    idDocumentTypes: query.data || [],
+    loading: query.isLoading,
+    error: query.error ? (query.error as any).message : null,
+    refresh: query.refetch,
+  };
+}
+
+export function useAddIDDocumentType() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (newType: Partial<Database['public']['Tables']['ic_id_document_types']['Insert']>) =>
+      complianceApi.idDocumentTypes.upsert(newType),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ID_DOCUMENT_TYPES] });
+    },
+  });
+}
+
+export function useUpdateIDDocumentType() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, updates }: { id: string; updates: Partial<Database['public']['Tables']['ic_id_document_types']['Update']> }) =>
+      complianceApi.idDocumentTypes.upsert({ id, ...updates }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ID_DOCUMENT_TYPES] });
+    },
+  });
+}
+
+export function useDeleteIDDocumentType() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => complianceApi.idDocumentTypes.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ID_DOCUMENT_TYPES] });
     },
   });
 }

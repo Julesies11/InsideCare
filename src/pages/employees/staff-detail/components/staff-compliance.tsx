@@ -1,334 +1,177 @@
-import { useMemo } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { useStaffComplianceSummary } from '@/hooks/use-staff';
+import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useStaffComplianceSummary, useIDDocumentTypes } from '@/hooks/use-staff';
 import { StaffPendingChanges } from '@/models/staff-pending-changes';
-import { differenceInDays, parseISO } from 'date-fns';
+import { useStaffComplianceState } from '@/hooks/use-staff-compliance-state';
+import { ComplianceTableRow } from './compliance/compliance-table-row';
+import { IDVerificationModal } from './compliance/id-verification-modal';
+import { useAuth } from '@/auth/context/auth-context';
+import { VerifiedDocument, ComplianceStatus } from '@/models/compliance.types';
 
 interface StaffComplianceSectionProps {
   staffId?: string;
   canEdit: boolean;
   pendingChanges?: StaffPendingChanges;
   onPendingChangesChange?: (changes: StaffPendingChanges) => void;
-}
-
-function calculateComplianceStatus(expiryDate?: string | null): 'Complete' | 'Expiring Soon' | 'Expired' {
-  if (!expiryDate) return 'Complete';
-
-  const today = new Date();
-  const expiry = parseISO(expiryDate);
-  const daysUntilExpiry = differenceInDays(expiry, today);
-
-  if (daysUntilExpiry < 0) return 'Expired';
-  if (daysUntilExpiry <= 30) return 'Expiring Soon';
-  return 'Complete';
-}
-
-function getStatusBadgeVariant(status: 'Complete' | 'Expiring Soon' | 'Expired'): "success" | "warning" | "destructive" {
-  switch (status) {
-    case 'Complete':
-      return 'success';
-    case 'Expiring Soon':
-      return 'warning';
-    case 'Expired':
-      return 'destructive';
-  }
+  staffName?: string;
 }
 
 export function StaffComplianceSection({ 
   staffId,
   canEdit,
   pendingChanges,
-  onPendingChangesChange
+  onPendingChangesChange,
+  staffName = 'Staff Member'
 }: StaffComplianceSectionProps) {
-  const { data: summary = [], loading } = useStaffComplianceSummary(staffId);
+  const { user } = useAuth();
+  const userName = user?.fullname || user?.email || 'System';
 
-  // Reconcile required compliance types, actual records, and pending changes.
-  // Primary key for matching is compliance_type_id (UUID). compliance_name is
-  // retained only as a display label and for DB write-back (audit trigger compat).
-  const resolvedItems = useMemo(() => {
-    return summary.map((row) => {
-      const reqId = row.compliance_type_id;
+  const { data: summary = [], loading: loadingSummary, error: summaryError } = useStaffComplianceSummary(staffId);
+  const { idDocumentTypes = [], isLoading: loadingDocs, error: docsError } = useIDDocumentTypes();
+  const loading = loadingSummary || loadingDocs;
+  const error = summaryError || docsError;
 
-      const pendingAdd = pendingChanges?.staffCompliance?.toAdd.find(
-        (c) => c.compliance_type_id === reqId
-      );
-      const pendingUpdate = pendingChanges?.staffCompliance?.toUpdate.find(
-        (c) => c.compliance_type_id === reqId
-      );
-      const isPendingDelete = row.record_id
-        ? pendingChanges?.staffCompliance?.toDelete.includes(row.record_id)
-        : false;
+  const { hash } = useLocation();
 
-      let isCompleted = !!row.record_id;
-      let expiryDate = row.expiry_date || '';
-      let isTemp = false;
-
-      if (pendingAdd) {
-        isCompleted = true;
-        expiryDate = pendingAdd.expiry_date || '';
-        isTemp = true;
-      } else if (isPendingDelete) {
-        isCompleted = false;
-        expiryDate = '';
-      } else if (pendingUpdate) {
-        isCompleted = true;
-        expiryDate = pendingUpdate.expiry_date || '';
-      }
-
-      const status = isCompleted ? calculateComplianceStatus(expiryDate) : null;
-
-      return {
-        requirementId: reqId,
-        recordId: row.record_id,
-        complianceName: row.compliance_name,
-        description: row.compliance_desc,
-        isCompleted,
-        expiryDate,
-        status,
-        isTemp,
-        isPendingDelete,
-        isPendingUpdate: !!pendingUpdate,
-      };
-    });
-  }, [summary, pendingChanges]);
-
-  const handleCheckboxChange = (reqId: string, recordId: string | null, complianceName: string, checked: boolean) => {
-    if (!pendingChanges || !onPendingChangesChange) return;
-
-    const pendingAdd = pendingChanges.staffCompliance.toAdd.find(
-      (c) => c.compliance_type_id === reqId
-    );
-
-    if (checked) {
-      // Undo deletion if it was pending delete
-      if (recordId && pendingChanges.staffCompliance.toDelete.includes(recordId)) {
-        onPendingChangesChange({
-          ...pendingChanges,
-          staffCompliance: {
-            ...pendingChanges.staffCompliance,
-            toDelete: pendingChanges.staffCompliance.toDelete.filter((id) => id !== recordId)
-          }
-        });
-        return;
-      }
-
-      // If already complete, do nothing
-      if (recordId || pendingAdd) return;
-
-      // Add to toAdd
-      onPendingChangesChange({
-        ...pendingChanges,
-        staffCompliance: {
-          ...pendingChanges.staffCompliance,
-          toAdd: [
-            ...pendingChanges.staffCompliance.toAdd,
-            {
-              compliance_type_id: reqId,
-              compliance_name: complianceName,
-              status: 'Complete',
-              expiry_date: null
-            }
-          ]
+  // Scroll to targeted requirement if hash exists
+  useEffect(() => {
+    if (!loading && hash) {
+      const id = hash.replace('#', '');
+      setTimeout(() => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          // Highlight the row temporarily for better UX
+          element.classList.add('bg-primary/10');
+          setTimeout(() => element.classList.remove('bg-primary/10'), 2000);
         }
-      });
-    } else {
-      // Uncheck / mark for removal
-      if (pendingAdd) {
-        onPendingChangesChange({
-          ...pendingChanges,
-          staffCompliance: {
-            ...pendingChanges.staffCompliance,
-            toAdd: pendingChanges.staffCompliance.toAdd.filter(
-              (c) => c.compliance_type_id !== reqId
-            )
-          }
-        });
-      } else if (recordId) {
-        onPendingChangesChange({
-          ...pendingChanges,
-          staffCompliance: {
-            ...pendingChanges.staffCompliance,
-            toUpdate: pendingChanges.staffCompliance.toUpdate.filter((c) => c.id !== recordId),
-            toDelete: [...pendingChanges.staffCompliance.toDelete, recordId]
-          }
-        });
-      }
+      }, 100);
     }
-  };
+  }, [loading, hash]);
 
-  const handleExpiryChange = (reqId: string, recordId: string | null, complianceName: string, value: string) => {
-    if (!pendingChanges || !onPendingChangesChange) return;
+  // Utilize the new Gold Standard State Hook
+  const {
+    resolvedItems,
+    updateStatus,
+    updateField,
+    addAttachment,
+    removeAttachment,
+    updateIDVerification
+  } = useStaffComplianceState({
+    summary,
+    pendingChanges,
+    onPendingChangesChange,
+    userName
+  });
 
-    const pendingAdd = pendingChanges.staffCompliance.toAdd.find(
-      (c) => c.compliance_type_id === reqId
-    );
-    const expiryDate = value || null;
+  // ID Verification Modal States
+  const [isIDModalOpen, setIsIDModalOpen] = useState(false);
+  const [selectedRequirementId, setSelectedRequirementId] = useState<string | null>(null);
+  const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
+  const [selectedComplianceName, setSelectedComplianceName] = useState<string | null>(null);
+  const [selectedInitialVerifiedDocs, setSelectedInitialVerifiedDocs] = useState<VerifiedDocument[] | null>(null);
 
-    if (pendingAdd) {
-      onPendingChangesChange({
-        ...pendingChanges,
-        staffCompliance: {
-          ...pendingChanges.staffCompliance,
-          toAdd: pendingChanges.staffCompliance.toAdd.map((c) =>
-            c.compliance_type_id === reqId ? { ...c, expiry_date: expiryDate } : c
-          )
-        }
-      });
-    } else if (recordId) {
-      const existingUpdate = pendingChanges.staffCompliance.toUpdate.find(
-        (c) => c.id === recordId
-      );
-      let toUpdate = [];
+  // Memoize handlers to prevent ComplianceTableRow re-renders
+  const handleStatusChange = useCallback((reqId: string, recordId: string | null, name: string, status: 'complete' | 'in_progress' | 'not_applicable') => {
+    updateStatus(reqId, recordId, name, status);
+  }, [updateStatus]);
 
-      if (existingUpdate) {
-        toUpdate = pendingChanges.staffCompliance.toUpdate.map((c) =>
-          c.id === recordId ? { ...c, expiry_date: expiryDate } : c
-        );
-      } else {
-        const summaryItem = summary.find(r => r.compliance_type_id === reqId);
-        toUpdate = [
-          ...pendingChanges.staffCompliance.toUpdate,
-          {
-            id: recordId,
-            compliance_type_id: reqId,
-            compliance_name: complianceName,
-            status: summaryItem?.record_status || 'Complete',
-            expiry_date: expiryDate
-          }
-        ];
-      }
+  const handleFieldChange = useCallback((reqId: string, recordId: string | null, name: string, field: 'document_number' | 'expiry_date' | 'comments', value: string) => {
+    updateField(reqId, recordId, name, field, value);
+  }, [updateField]);
 
-      onPendingChangesChange({
-        ...pendingChanges,
-        staffCompliance: {
-          ...pendingChanges.staffCompliance,
-          toUpdate
-        }
-      });
-    } else {
-      // Auto-complete the item when setting an expiry date
-      onPendingChangesChange({
-        ...pendingChanges,
-        staffCompliance: {
-          ...pendingChanges.staffCompliance,
-          toAdd: [
-            ...pendingChanges.staffCompliance.toAdd,
-            {
-              compliance_type_id: reqId,
-              compliance_name: complianceName,
-              status: 'Complete',
-              expiry_date: expiryDate
-            }
-          ]
-        }
-      });
-    }
-  };
+  const handleAddAttachment = useCallback((reqId: string, recordId: string | null, fileData: { file_name: string; file_path: string }) => {
+    addAttachment(reqId, recordId, fileData);
+  }, [addAttachment]);
+
+  const handleRemoveAttachment = useCallback((reqId: string, recordId: string | null, filePath: string) => {
+    removeAttachment(reqId, recordId, filePath);
+  }, [removeAttachment]);
+
+  const handleIDVerificationSave = useCallback((verifiedDocuments: VerifiedDocument[], calculatedExpiry: string | null, status: ComplianceStatus) => {
+    if (!selectedRequirementId || !selectedComplianceName) return;
+    updateIDVerification(selectedRequirementId, selectedRecordId, selectedComplianceName, verifiedDocuments, calculatedExpiry, status);
+  }, [selectedRequirementId, selectedRecordId, selectedComplianceName, updateIDVerification]);
+
+  // Memoize modal open handler
+  const handleOpenIDModal = useCallback((reqId: string, recordId: string | null, name: string, docs: VerifiedDocument[] | null) => {
+    setSelectedRequirementId(reqId);
+    setSelectedRecordId(recordId);
+    setSelectedComplianceName(name);
+    setSelectedInitialVerifiedDocs(docs);
+    setIsIDModalOpen(true);
+  }, []);
 
   return (
-    <Card className="pb-2.5" id="staff_compliance">
-      <CardHeader>
-        <CardTitle>Compliance</CardTitle>
+    <Card className="pb-2.5 shadow-xs border-slate-200" id="staff_compliance">
+      <CardHeader className="bg-slate-50/50 border-b border-slate-100 py-5">
+        <CardTitle className="text-lg">Compliance Tracking</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
         {loading ? (
-          <div className="text-center py-8 text-muted-foreground text-sm">Loading compliance requirements...</div>
+          <div className="text-center py-12 text-muted-foreground text-sm animate-pulse">Loading compliance requirements...</div>
+        ) : error ? (
+          <div className="p-6 m-6 bg-red-50 border border-red-200 rounded-xl text-center">
+             <p className="text-sm text-red-700 font-medium">Failed to load compliance data</p>
+             <p className="text-xs text-red-500 mt-1">{(error as any).message || 'Unknown database error'}</p>
+          </div>
         ) : resolvedItems.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground text-sm">
-            No compliance requirements configured for this staff member's assigned houses.
+          <div className="text-center py-12 text-muted-foreground text-sm bg-slate-50/50 m-6 rounded-xl border border-dashed border-slate-200">
+            No compliance requirements configured.
           </div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-accent/60">
-                <TableHead className="text-start text-secondary-foreground font-normal min-w-[250px] h-10">
-                  Requirement
-                </TableHead>
-                <TableHead className="min-w-24 text-secondary-foreground font-normal text-center h-10">
-                  Completed
-                </TableHead>
-                <TableHead className="min-w-[180px] text-secondary-foreground font-normal text-center h-10">
-                  Expiry Date
-                </TableHead>
-                <TableHead className="min-w-[120px] text-secondary-foreground font-normal text-center h-10">
-                  Status
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody className="text-mono font-medium">
-              {resolvedItems.map((item) => {
-                const isPendingAdd = item.isTemp;
-                const isPendingUpdate = item.isPendingUpdate;
-                const isPendingDelete = item.isPendingDelete;
-
-                return (
-                  <TableRow 
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-slate-50 hover:bg-slate-50">
+                  <TableHead className="text-start text-slate-500 font-bold uppercase tracking-wider text-[11px] min-w-[350px] px-2 h-11 border-b border-slate-200">
+                    Requirement
+                  </TableHead>
+                  <TableHead className="min-w-[150px] px-2 text-slate-500 font-bold uppercase tracking-wider text-[11px] text-center h-11 border-b border-slate-200">
+                    Workflow Status
+                  </TableHead>
+                  <TableHead className="min-w-[155px] px-2 text-slate-500 font-bold uppercase tracking-wider text-[11px] text-center h-11 border-b border-slate-200">
+                    Expiry Date
+                  </TableHead>
+                  <TableHead className="min-w-[110px] px-2 text-slate-500 font-bold uppercase tracking-wider text-[11px] text-center h-11 border-b border-slate-200">
+                    Compliance
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody className="text-sm font-medium">
+                {resolvedItems.map((item) => (
+                  <ComplianceTableRow
                     key={item.requirementId}
-                    className={
-                      isPendingAdd ? 'bg-primary/5' :
-                      isPendingDelete ? 'opacity-50 bg-destructive/5' :
-                      isPendingUpdate ? 'bg-warning/5' : ''
-                    }
-                  >
-                    <TableCell className="py-5.5!">
-                      <div className="flex flex-col">
-                        <span className={isPendingDelete ? 'line-through text-muted-foreground' : ''}>
-                          {item.complianceName}
-                        </span>
-                        {item.description && (
-                          <span className="text-xs text-muted-foreground font-normal">
-                            {item.description}
-                          </span>
-                        )}
-                        {(isPendingAdd || isPendingUpdate || isPendingDelete) && (
-                          <span className={`text-[10px] flex items-center gap-1 mt-0.5 ${
-                            isPendingAdd ? 'text-primary' : isPendingUpdate ? 'text-warning' : 'text-destructive'
-                          }`}>
-                            Pending {isPendingAdd ? 'add' : isPendingUpdate ? 'update' : 'removal'}
-                          </span>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="py-5.5! text-center">
-                      <Checkbox
-                        id={`check-${item.requirementId}`}
-                        checked={item.isCompleted}
-                        onCheckedChange={(checked) => handleCheckboxChange(item.requirementId, item.recordId, item.complianceName, checked as boolean)}
-                        disabled={!canEdit}
-                      />
-                    </TableCell>
-                    <TableCell className="py-5.5! text-center">
-                      <Input
-                        id={`expiry-${item.requirementId}`}
-                        type="date"
-                        value={item.expiryDate || ''}
-                        onChange={(e) => handleExpiryChange(item.requirementId, item.recordId, item.complianceName, e.target.value)}
-                        disabled={!canEdit || (!item.isCompleted && !item.expiryDate)}
-                        className="max-w-[160px] mx-auto"
-                      />
-                    </TableCell>
-                    <TableCell className="py-5.5! text-center">
-                      {item.isCompleted ? (
-                        <Badge variant={getStatusBadgeVariant(item.status!)} size="sm">
-                          {item.status}
-                        </Badge>
-                      ) : (
-                        <Badge variant="secondary" size="sm" className="bg-gray-100 text-gray-500 border-gray-200">
-                          Incomplete
-                        </Badge>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+                    staffId={staffId || ''}
+                    userName={userName}
+                    item={item}
+                    canEdit={canEdit}
+                    onStatusChange={handleStatusChange}
+                    onFieldChange={handleFieldChange}
+                    onAddAttachment={handleAddAttachment}
+                    onRemoveAttachment={handleRemoveAttachment}
+                    onOpenIDModal={handleOpenIDModal}
+                    idDocumentTypes={idDocumentTypes}
+                  />
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         )}
       </CardContent>
+
+      {staffId && (
+        <IDVerificationModal
+          open={isIDModalOpen}
+          onOpenChange={setIsIDModalOpen}
+          staffId={staffId}
+          staffName={staffName}
+          initialVerifiedDocuments={selectedInitialVerifiedDocs}
+          onSave={handleIDVerificationSave}
+        />
+      )}
     </Card>
   );
 }

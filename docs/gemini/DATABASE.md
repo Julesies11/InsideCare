@@ -85,3 +85,15 @@ To preserve data integrity and historical clinical records, the application foll
 - **`ic_restrictive_practice_types_master`**: Standard restrictive practice categories.
     - `is_active`: Boolean (Default: true). Deactivating a type hides it from new selections but preserves existing clinical records.
 - **Implementation**: API methods must support `includeInactive` filters, and UI components must implement **Contextual Filtering** (showing active types plus the currently assigned inactive type during editing).
+
+### 7. Compliance & ID Verification
+- **`ic_compliance_types_master`**: Master list of compliance checks.
+  - `attachment_applicable`: Boolean toggle to show/hide file attachment uploader.
+  - `expiry_date_applicable`: Toggle to show/hide expiry date input.
+  - `document_number_applicable`: Toggle to show/hide document number input.
+  - `comments_applicable`: Toggle to show/hide comments textarea.
+- **`ic_id_document_types`**: Configurable identification document types for 100-point checks.
+  - Fields: `name`, `category` (primary/secondary), `points`, `expiry_required`, `placeholder`.
+- **`ic_compliance_status_enum`**: Standardized statuses for requirement tracking: `complete`, `in_progress`, `not_applicable`.
+- **`ic_staff_compliance`**: Staff-specific compliance records. Uses `ic_compliance_status_enum` for precise state tracking.
+- **`ic_staff_compliance_documents`**: Junction table for multi-document verification (e.g., 100 points of ID) and standard compliance attachments.

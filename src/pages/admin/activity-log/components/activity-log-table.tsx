@@ -435,6 +435,7 @@ export function ActivityLogTable() {
                     <SelectItem value="employees">Staff</SelectItem>
                     <SelectItem value="participants">Participants</SelectItem>
                     <SelectItem value="houses">Houses</SelectItem>
+                    <SelectItem value="incidents">Incidents</SelectItem>
                     <SelectItem value="roles">Roles</SelectItem>
                     <SelectItem value="auth">Auth / Security</SelectItem>
                   </SelectContent>
@@ -522,9 +523,17 @@ export function ActivityLogTable() {
                   </div>
                   <div className="space-y-1">
                     <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Entity</p>
-                    {['staff', 'participants', 'houses', 'employees', 'ic_staff', 'ic_participants', 'ic_houses'].includes(inspectingActivity.entity_type) ? (
+                    {['staff', 'participants', 'houses', 'employees', 'ic_staff', 'ic_participants', 'ic_houses', 'incident_reports', 'incident_report'].includes(inspectingActivity.entity_type) ? (
                       <Link 
-                        to={`${(inspectingActivity.entity_type === 'staff' || inspectingActivity.entity_type === 'employees' || inspectingActivity.entity_type === 'ic_staff') ? ROUTES.STAFF_DETAIL : (inspectingActivity.entity_type === 'participants' || inspectingActivity.entity_type === 'ic_participants') ? ROUTES.PARTICIPANT_DETAIL : ROUTES.HOUSE_DETAIL}/${inspectingActivity.entity_id}`}
+                        to={
+                          (inspectingActivity.entity_type === 'staff' || inspectingActivity.entity_type === 'employees' || inspectingActivity.entity_type === 'ic_staff')
+                            ? `${ROUTES.STAFF_DETAIL}/${inspectingActivity.entity_id}`
+                            : (inspectingActivity.entity_type === 'participants' || inspectingActivity.entity_type === 'ic_participants')
+                            ? `${ROUTES.PARTICIPANT_DETAIL}/${inspectingActivity.entity_id}`
+                            : (inspectingActivity.entity_type === 'houses' || inspectingActivity.entity_type === 'ic_houses')
+                            ? `${ROUTES.HOUSE_DETAIL}/${inspectingActivity.entity_id}`
+                            : `${ROUTES.INCIDENT_REPORT}/${inspectingActivity.entity_id}`
+                        }
                         className="text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline"
                       >
                         {inspectingActivity.entity_name || inspectingActivity.entity_id}

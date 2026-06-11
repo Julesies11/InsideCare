@@ -1,6 +1,6 @@
 import { Container } from '@/components/common/container';
 import { Button } from '@/components/ui/button';
-import { Plus, ShieldAlert, ArrowLeft, Printer, Loader2 } from 'lucide-react';
+import { Plus, ShieldAlert, ArrowLeft, Printer, Loader2, FileSearch } from 'lucide-react';
 import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
 import { RBAC_MODULES } from '@/config/rbac-modules';
 import { IncidentList } from './components/incident-list';
@@ -16,28 +16,46 @@ import {
   ToolbarDescription, 
   ToolbarActions 
 } from '@/partials/common/toolbar';
-import { useSearchParams } from 'react-router';
+import { useParams, useNavigate, useLocation, useSearchParams } from 'react-router';
+import { useEffect } from 'react';
 
 type ViewMode = 'list' | 'form' | 'print-single';
 
 export function IncidentManagementPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const { idOrRef } = useParams<{ idOrRef?: string }>();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { hasAccess } = useRBAC();
 
-  const incidentId = searchParams.get('id') || undefined;
-  const mode = searchParams.get('mode');
-  const isPrintSingle = searchParams.get('print') === 'true';
+  // Redirect legacy search params to clean paths
+  const legacyId = searchParams.get('id');
+  const legacyMode = searchParams.get('mode');
+  const legacyPrint = searchParams.get('print') === 'true';
 
-  // Fetch single incident if ID is present in URL
-  const { data: loadedIncident, isLoading: isLoadingIncident } = useIncidentReport(incidentId);
+  useEffect(() => {
+    if (legacyId) {
+      navigate(`/incidents/${legacyId}${legacyPrint ? '/print' : ''}`, { replace: true });
+    } else if (legacyMode === 'new') {
+      navigate('/incidents/new', { replace: true });
+    }
+  }, [legacyId, legacyMode, legacyPrint, navigate]);
 
-  const viewMode: ViewMode = mode === 'new' 
+  const isNewMode = location.pathname.endsWith('/new');
+  const isPrintSingle = location.pathname.endsWith('/print');
+
+  const incidentIdOrRef = isNewMode ? undefined : idOrRef;
+
+  // Fetch single incident if ID or Ref is present in URL
+  const { data: loadedIncident, isLoading: isLoadingIncident } = useIncidentReport(incidentIdOrRef);
+
+  const viewMode: ViewMode = isNewMode 
     ? 'form' 
-    : incidentId 
+    : incidentIdOrRef 
       ? (isPrintSingle ? 'print-single' : 'form') 
       : 'list';
 
-  const editingIncident = incidentId ? loadedIncident || null : null;
+  const editingIncident = incidentIdOrRef ? loadedIncident || null : null;
 
   const canReport = hasAccess({
     resource: RBAC_MODULES.REPORTING_CLINICAL,
@@ -48,48 +66,48 @@ export function IncidentManagementPage() {
   const { mutateAsync: updateIncident, isPending: isUpdating } = useUpdateIncidentReport();
 
   const handleEdit = (incident: IncidentReport) => {
-    setSearchParams({ id: incident.id }, { replace: true });
+    navigate(`/incidents/${incident.reference_id || incident.id}`);
   };
 
   const handleAddNew = () => {
-    setSearchParams({ mode: 'new' }, { replace: true });
+    navigate('/incidents/new');
   };
 
   const handleBackToList = () => {
-    setSearchParams({}, { replace: true });
+    navigate('/incidents');
   };
 
   const handleBackToEdit = () => {
-    if (incidentId) {
-      setSearchParams({ id: incidentId }, { replace: true });
+    if (incidentIdOrRef) {
+      navigate(`/incidents/${incidentIdOrRef}`);
     } else {
-      setSearchParams({}, { replace: true });
+      navigate('/incidents');
     }
   };
 
   const handlePrintPreview = () => {
-    if (incidentId) {
-      setSearchParams({ id: incidentId, print: 'true' }, { replace: true });
+    if (editingIncident) {
+      navigate(`/incidents/${editingIncident.reference_id || editingIncident.id}/print`);
     }
   };
 
   const handleSave = async (data: any) => {
     try {
-      if (incidentId) {
-        await updateIncident({ id: incidentId, ...data });
+      if (loadedIncident?.id) {
+        await updateIncident({ id: loadedIncident.id, ...data });
         toast.success('Incident report updated successfully');
       } else {
         await createIncident(data);
         toast.success('Incident report lodged successfully');
       }
-      setSearchParams({}, { replace: true });
+      navigate('/incidents');
     } catch (error: any) {
       console.error('Error saving incident:', error);
       toast.error('Failed to save incident report: ' + (error.message || 'Unknown error'));
     }
   };
 
-  if (incidentId && isLoadingIncident) {
+  if (incidentIdOrRef && isLoadingIncident) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-3">
         <Loader2 className="size-8 animate-spin text-primary" />
@@ -98,7 +116,7 @@ export function IncidentManagementPage() {
     );
   }
 
-  if (incidentId && !isLoadingIncident && !loadedIncident) {
+  if (incidentIdOrRef && !isLoadingIncident && !loadedIncident) {
     return (
       <Container className="py-20 text-center space-y-4">
         <ShieldAlert className="size-12 text-destructive mx-auto" />
@@ -144,14 +162,15 @@ export function IncidentManagementPage() {
                             : 'Lodge Incident Report'
                     } 
                   />
-                  <ToolbarDescription>
-                    {viewMode === 'list' 
-                      ? 'Review, action, and manage all clinical and operational incidents.' 
-                      : viewMode === 'print-single'
-                        ? `Print view for ${editingIncident?.reference_id || 'incident report'}.`
-                        : 'Provide comprehensive details for accurate clinical oversight and compliance.'
-                    }
-                  </ToolbarDescription>
+                  {viewMode === 'list' ? (
+                    <ToolbarDescription>
+                      Review, action, and manage all clinical and operational incidents.
+                    </ToolbarDescription>
+                  ) : viewMode === 'print-single' ? (
+                    <ToolbarDescription>
+                      Print view for {editingIncident?.reference_id || 'incident report'}.
+                    </ToolbarDescription>
+                  ) : null}
                 </div>
               </div>
             </ToolbarHeading>
@@ -168,7 +187,7 @@ export function IncidentManagementPage() {
               )}
               {viewMode === 'form' && editingIncident && (
                 <Button variant="outline" onClick={handlePrintPreview}>
-                  <Printer className="size-4 me-2" />
+                  <FileSearch className="size-4 me-2" />
                   Print Preview
                 </Button>
               )}

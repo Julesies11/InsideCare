@@ -18,7 +18,6 @@ import { HouseChecklistSetup } from './components/house-checklist-setup';
 import { HouseResources } from './components/house-resources';
 import { HouseChecklistHistory } from './components/house-checklist-history';
 import { HouseManagement } from './components/house-management';
-import { HouseComplianceSettings } from './components/HouseComplianceSettings';
 import { HousePendingChanges, emptyHousePendingChanges } from '@/models/house-pending-changes';
 import { useAuth } from '@/auth/context/auth-context';
 import { useQueryClient } from '@tanstack/react-query';
@@ -237,7 +236,6 @@ export function HouseDetailContent({
       await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.CHECKLISTS, id] });
       await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.HOUSE_RESOURCES, id] });
       await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.HOUSE_COMMS, id] });
-      await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.HOUSE_COMPLIANCE_REQUIREMENTS, id] });
       await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF_COMPLIANCE] });
       await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF_COMPLIANCE_SUMMARY] });
 
@@ -423,15 +421,6 @@ export function HouseDetailContent({
               canDelete={canEditStaff}
               pendingChanges={pendingChanges}
               onPendingChangesChange={onPendingChangesChange}
-            />
-          )}
-
-          {canViewBasics && (
-            <HouseComplianceSettings
-              houseId={id!}
-              pendingChanges={pendingChanges}
-              onPendingChangesChange={onPendingChangesChange}
-              canEdit={canEditBasics}
             />
           )}
 

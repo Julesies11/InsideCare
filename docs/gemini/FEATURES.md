@@ -21,6 +21,9 @@ Management of care providers and support staff.
     - **Advanced Search & Sort**: Integrated DataGrid support allows staff to search and sort their entire shift history across multiple fields (date, template, house, notes).
     - **Staff Shift View**: Dedicated read-only dashboard for staff to view their assigned shifts with checklist previews and scheduler instructions.
 - **Compliance Tracking**: Monitoring of mandatory NDIS checks and their expiry dates.
+    - **Dynamic ID Configuration**: Centralized administrative interface to manage 100-point ID verification rules, including point values and expiry requirements for various document types.
+    - **Enforced Attachments**: "Requires Document" toggle for compliance types that forces the collection of document reference numbers and file attachments (e.g., Comprehensive Car Insurance) during staff record updates.
+    - **Contextual UI**: Inline document details and file uploaders integrated directly into the compliance checklist for streamlined data entry.
 - **Training Records**: Tracking of staff training sessions and certifications.
 - **Granular Document Management**: New document management system aligned with Participant Documents.
     - **Secure Storage**: Files are stored in `${staffId}/documents/` with strict RLS policies.
@@ -138,3 +141,10 @@ Central registry for system-wide analytics and compliance exports.
     - **Criteria Persistence**: Toggled sections checklist and selected participant selection automatically save to the database (`ic_report_preferences`) for the logged-in staff member, instantly restoring their workspace parameters when they reload the page.
     - **Status Highlighting**: Displays the participant's secure avatar in the selection list, highlighting inactive or draft participants using styled status badges.
 - **Extensible Architecture**: Designed to seamlessly integrate future clinical, operational, and financial reports, utilizing visual locks for reports currently under development.
+- **Compliance Monitoring Report**: Advanced refactored organizational audit featuring:
+    - **Exception-First Focus**: Defaults to actionable risks (Expired, Missing, Expiring Soon, In Progress) to streamline risk management.
+    - **Granular Filtering**: Slice data by specific House or individual Staff Member.
+    - **Flexible Grouping**: Pivot report views by Staff Member or Requirement Type for varied audit perspectives.
+    - **Persistence**: User filter and grouping preferences are saved to the database, ensuring a consistent workspace upon return.
+    - **Print Optimized**: Clean, professional layout with summary KPIs and organizational parameters, designed for regulatory compliance audits.
+    - **Remediation Integration**: Deep links from report rows directly to staff compliance profiles for immediate resolution of gaps.

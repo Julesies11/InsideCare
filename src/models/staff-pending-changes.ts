@@ -8,7 +8,18 @@ export interface PendingStaffCompliance {
   compliance_name: string;
   completion_date?: string | null;
   expiry_date?: string | null;
+  document_number?: string | null;
+  comments?: string | null;
   status?: string | null;
+  verifiedDocuments?: Array<{
+    id?: string;
+    document_type: string;
+    document_number: string;
+    expiry_date: string | null;
+    file_name?: string | null;
+    file_path?: string | null;
+    points: number;
+  }> | null;
 }
 
 export interface PendingStaffTraining {
