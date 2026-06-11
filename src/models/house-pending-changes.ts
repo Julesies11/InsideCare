@@ -208,6 +208,7 @@ export interface HousePendingChanges {
       file_name?: string;
       file_size?: number;
       notes?: string;
+      oldFilePath?: string | null;
     }>;
     toDelete: Array<{ id: string; filePath?: string }>;
   };

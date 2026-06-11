@@ -53,6 +53,7 @@ export const QUERY_KEYS = {
   STAFF_COMPLIANCE: 'staff-compliance',
   STAFF_COMPLIANCE_SUMMARY: 'staff-compliance-summary',
   STAFF_TRAINING: 'staff-training',
+  STAFF_QUALIFICATIONS: 'staff-qualifications',
   STAFF_DOCUMENTS: 'staff-documents',
   PARTICIPANT_CONTACTS: 'participant-contacts',
   PARTICIPANT_DOCUMENTS: 'participant-documents',

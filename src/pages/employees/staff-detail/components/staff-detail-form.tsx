@@ -12,6 +12,7 @@ import { StaffOnboardingSection } from './staff-onboarding';
 import { StaffComplianceSection } from './staff-compliance';
 import { StaffRoster } from './staff-roster';
 import { StaffTrainingSection } from './staff-training';
+import { StaffQualificationsSection } from './staff-qualifications';
 
 interface StaffDetailFormProps {
   staffId: string;
@@ -23,6 +24,7 @@ interface StaffDetailFormProps {
   canEditEmergency?: boolean;
   canEditCompliance?: boolean;
   canEditTraining?: boolean;
+  canEditQualifications?: boolean;
   canEditDocuments?: boolean;
   canDeleteDocuments?: boolean;
   canEditRoster?: boolean;
@@ -34,6 +36,7 @@ interface StaffDetailFormProps {
   canViewEmergency?: boolean;
   canViewCompliance?: boolean;
   canViewTraining?: boolean;
+  canViewQualifications?: boolean;
   canViewDocuments?: boolean;
   canViewRoster?: boolean;
   canViewLeave?: boolean;
@@ -58,6 +61,7 @@ export function StaffDetailForm({
   canEditEmergency = false,
   canEditCompliance = false,
   canEditTraining = false,
+  canEditQualifications = false,
   canEditDocuments = false,
   canEditRoster = false,
   canEditLeave = false,
@@ -68,6 +72,7 @@ export function StaffDetailForm({
   canViewEmergency = false,
   canViewCompliance = false,
   canViewTraining = false,
+  canViewQualifications = false,
   canViewDocuments = false,
   canViewRoster = false,
   canViewLeave = false,
@@ -80,6 +85,7 @@ export function StaffDetailForm({
   staffName = '',
   documentsRefreshKey = 0,
   trainingRefreshKey = 0,
+  qualificationsRefreshKey = 0,
 }: StaffDetailFormProps) {
   const { hasAccess } = useRBAC();
 
@@ -174,7 +180,19 @@ export function StaffDetailForm({
         />
       )}
 
-      {/* 7. Documents */}
+      {/* 7. Qualifications */}
+      {canViewQualifications && (
+        <StaffQualificationsSection
+          key={`qualifications-${qualificationsRefreshKey}`}
+          staffId={staffId}
+          canEdit={canEditQualifications}
+          pendingChanges={pendingChanges}
+          onPendingChangesChange={onPendingChangesChange}
+          refreshKey={qualificationsRefreshKey}
+        />
+      )}
+
+      {/* 8. Documents */}
       {canViewDocuments && (
         <Documents
           key={`documents-${documentsRefreshKey}`}

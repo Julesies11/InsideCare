@@ -4,7 +4,7 @@ import { UserModel } from '@/auth/lib/models';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, RenderOptions } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router';
 import { SettingsProvider } from '@/providers/settings-provider';
 
 // Create a custom render function that includes providers

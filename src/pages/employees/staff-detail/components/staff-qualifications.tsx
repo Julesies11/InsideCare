@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { StaffTraining, useStaffTraining } from '@/hooks/use-staff';
+import { StaffQualification, useStaffQualifications } from '@/hooks/use-staff';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -34,10 +34,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Textarea } from '@/components/ui/textarea';
 import { toAbsoluteUrl } from '@/lib/helpers';
 
-interface StaffTrainingSectionProps {
+interface StaffQualificationsSectionProps {
   staffId?: string;
   canEdit: boolean;
   pendingChanges?: StaffPendingChanges;
@@ -45,7 +44,7 @@ interface StaffTrainingSectionProps {
   refreshKey?: number;
 }
 
-type TrainingStatus = 'Current' | 'Expiring Soon' | 'Expired';
+type QualificationStatus = 'Current' | 'Expiring Soon' | 'Expired';
 
 const getFileIcon = (fileName?: string) => {
   if (!fileName) return 'doc.svg';
@@ -63,6 +62,7 @@ const getFileIcon = (fileName?: string) => {
     case 'jpeg':
     case 'png':
     case 'svg':
+      return 'image.svg';
     case 'webp':
       return 'image.svg';
     case 'txt':
@@ -76,7 +76,9 @@ const getFileIcon = (fileName?: string) => {
   }
 };
 
-function calculateTrainingStatus(expiryDate?: string | null): TrainingStatus {
+function calculateQualificationStatus(
+  expiryDate?: string | null,
+): QualificationStatus {
   if (!expiryDate) return 'Current';
 
   const today = new Date();
@@ -89,7 +91,7 @@ function calculateTrainingStatus(expiryDate?: string | null): TrainingStatus {
 }
 
 function getStatusBadgeVariant(
-  status: TrainingStatus,
+  status: QualificationStatus,
 ): 'success' | 'warning' | 'destructive' {
   switch (status) {
     case 'Current':
@@ -101,22 +103,22 @@ function getStatusBadgeVariant(
   }
 }
 
-export function StaffTrainingSection({
+export function StaffQualificationsSection({
   staffId,
   canEdit,
   pendingChanges,
   onPendingChangesChange,
   refreshKey = 0,
-}: StaffTrainingSectionProps) {
+}: StaffQualificationsSectionProps) {
   const [showDialog, setShowDialog] = useState(false);
-  const [editingItem, setEditingItem] = useState<StaffTraining | null>(null);
+  const [editingItem, setEditingItem] = useState<StaffQualification | null>(
+    null,
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
     title: '',
-    category: '',
-    description: '',
-    provider: '',
+    institution: '',
     date_completed: '',
     expiry_date: '',
     file: null as File | null,
@@ -125,10 +127,10 @@ export function StaffTrainingSection({
   });
 
   const {
-    training: serverTraining,
+    qualifications: serverQualifications,
     loading,
     refresh,
-  } = useStaffTraining(staffId);
+  } = useStaffQualifications(staffId);
 
   // Trigger refresh when refreshKey changes
   useEffect(() => {
@@ -141,9 +143,7 @@ export function StaffTrainingSection({
     setEditingItem(null);
     setFormData({
       title: '',
-      category: '',
-      description: '',
-      provider: '',
+      institution: '',
       date_completed: '',
       expiry_date: '',
       file: null,
@@ -154,14 +154,12 @@ export function StaffTrainingSection({
   };
 
   const handleEdit = (
-    item: StaffTraining | (StaffTraining & { tempId: string }),
+    item: StaffQualification | (StaffQualification & { tempId: string }),
   ) => {
-    setEditingItem(item as StaffTraining);
+    setEditingItem(item as StaffQualification);
     setFormData({
       title: item.title,
-      category: item.category,
-      description: item.description || '',
-      provider: item.provider || '',
+      institution: item.institution || '',
       date_completed: item.date_completed || '',
       expiry_date: item.expiry_date || '',
       file: (item as any).file || null,
@@ -196,18 +194,16 @@ export function StaffTrainingSection({
   };
 
   const handleSave = () => {
-    if (!formData.title.trim() || !formData.category.trim()) {
-      toast.error('Title and Category are required');
+    if (!formData.title.trim()) {
+      toast.error('Title is required');
       return;
     }
 
     if (!pendingChanges || !onPendingChangesChange) return;
 
-    const trainingData: any = {
+    const qualificationData: any = {
       title: formData.title,
-      category: formData.category,
-      description: formData.description,
-      provider: formData.provider,
+      institution: formData.institution,
       date_completed: formData.date_completed,
       expiry_date: formData.expiry_date,
       file: formData.toRemoveFile ? null : (formData.file || undefined),
@@ -225,13 +221,13 @@ export function StaffTrainingSection({
       if ((editingItem as any).tempId) {
         const newPending = {
           ...pendingChanges,
-          training: {
-            ...pendingChanges.training,
-            toAdd: pendingChanges.training.toAdd.map((item: any) =>
+          qualifications: {
+            ...pendingChanges.qualifications,
+            toAdd: pendingChanges.qualifications.toAdd.map((item: any) =>
               item.tempId === (editingItem as any).tempId
                 ? {
                     ...item,
-                    ...trainingData,
+                    ...qualificationData,
                   }
                 : item,
             ),
@@ -241,16 +237,16 @@ export function StaffTrainingSection({
       } else {
         const newPending = {
           ...pendingChanges,
-          training: {
-            ...pendingChanges.training,
+          qualifications: {
+            ...pendingChanges.qualifications,
             toUpdate: [
-              ...pendingChanges.training.toUpdate.filter(
+              ...pendingChanges.qualifications.toUpdate.filter(
                 (p: any) => p.id !== editingItem.id,
               ),
               {
                 id: editingItem.id,
                 filePath: editingItem.file_path,
-                ...trainingData,
+                ...qualificationData,
               },
             ],
           },
@@ -261,13 +257,13 @@ export function StaffTrainingSection({
       const tempId = `temp-${Date.now()}-${Math.random()}`;
       const newPending = {
         ...pendingChanges,
-        training: {
-          ...pendingChanges.training,
+        qualifications: {
+          ...pendingChanges.qualifications,
           toAdd: [
-            ...pendingChanges.training.toAdd,
+            ...pendingChanges.qualifications.toAdd,
             {
               tempId,
-              ...trainingData,
+              ...qualificationData,
             },
           ],
         },
@@ -283,9 +279,9 @@ export function StaffTrainingSection({
     if (item.tempId) {
       const newPending = {
         ...pendingChanges,
-        training: {
-          ...pendingChanges.training,
-          toAdd: pendingChanges.training.toAdd.filter(
+        qualifications: {
+          ...pendingChanges.qualifications,
+          toAdd: pendingChanges.qualifications.toAdd.filter(
             (p: any) => p.tempId !== item.tempId,
           ),
         },
@@ -296,15 +292,15 @@ export function StaffTrainingSection({
 
     if (
       confirm(
-        'Mark this training record for deletion? It will be removed when you click Save Changes.',
+        'Mark this qualification record for deletion? It will be removed when you click Save Changes.',
       )
     ) {
       const newPending = {
         ...pendingChanges,
-        training: {
-          ...pendingChanges.training,
+        qualifications: {
+          ...pendingChanges.qualifications,
           toDelete: [
-            ...pendingChanges.training.toDelete,
+            ...pendingChanges.qualifications.toDelete,
             {
               id: item.id,
               filePath: item.file_path,
@@ -322,9 +318,9 @@ export function StaffTrainingSection({
 
     const newPending = {
       ...pendingChanges,
-      training: {
-        ...pendingChanges.training,
-        toUpdate: pendingChanges.training.toUpdate.filter(
+      qualifications: {
+        ...pendingChanges.qualifications,
+        toUpdate: pendingChanges.qualifications.toUpdate.filter(
           (p: any) => p.id !== id,
         ),
       },
@@ -337,9 +333,9 @@ export function StaffTrainingSection({
 
     const newPending = {
       ...pendingChanges,
-      training: {
-        ...pendingChanges.training,
-        toDelete: pendingChanges.training.toDelete.filter(
+      qualifications: {
+        ...pendingChanges.qualifications,
+        toDelete: pendingChanges.qualifications.toDelete.filter(
           (item: any) => item.id !== id,
         ),
       },
@@ -366,29 +362,31 @@ export function StaffTrainingSection({
     }
   };
 
-  const visibleTraining = useMemo(() => {
-    const fromServer = serverTraining.filter(
+  const visibleQualifications = useMemo(() => {
+    const fromServer = (serverQualifications || []).filter(
       (item) =>
-        !pendingChanges?.training.toDelete.some((d) => d.id === item.id),
+        !pendingChanges?.qualifications.toDelete.some((d) => d.id === item.id),
     );
     // Apply updates from pending changes
     const withUpdates = fromServer.map((item) => {
-      const update = pendingChanges?.training.toUpdate.find(
+      const update = pendingChanges?.qualifications.toUpdate.find(
         (u) => u.id === item.id,
       );
       return update ? { ...item, ...update } : item;
     });
 
-    return [...withUpdates, ...(pendingChanges?.training.toAdd || [])];
-  }, [serverTraining, pendingChanges?.training]);
+    return [...withUpdates, ...(pendingChanges?.qualifications.toAdd || [])];
+  }, [serverQualifications, pendingChanges?.qualifications]);
 
-  const currentStatus = calculateTrainingStatus(formData.expiry_date || null);
+  const currentStatus = calculateQualificationStatus(
+    formData.expiry_date || null,
+  );
 
   return (
     <>
-      <Card className="pb-2.5" id="staff_training">
+      <Card className="pb-2.5" id="staff_qualifications">
         <CardHeader>
-          <CardTitle>Training</CardTitle>
+          <CardTitle>Qualifications</CardTitle>
           <Button
             variant="secondary"
             size="sm"
@@ -397,24 +395,24 @@ export function StaffTrainingSection({
             disabled={!canEdit}
           >
             <Plus className="size-4 me-1.5" />
-            Add Training
+            Add Qualification
           </Button>
         </CardHeader>
         <CardContent>
           {loading ? (
             <div className="text-center py-8 text-muted-foreground text-sm">
-              Loading training records...
+              Loading qualifications...
             </div>
-          ) : visibleTraining.length === 0 ? (
+          ) : visibleQualifications.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground text-sm">
-              No training records available
+              No qualifications available
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Training Name</TableHead>
-                  <TableHead>Category</TableHead>
+                  <TableHead>Qualification Title</TableHead>
+                  <TableHead>Institution</TableHead>
                   <TableHead>Date Completed</TableHead>
                   <TableHead>Expiry Date</TableHead>
                   <TableHead>Status</TableHead>
@@ -423,18 +421,18 @@ export function StaffTrainingSection({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {visibleTraining.map((item) => {
+                {visibleQualifications.map((item) => {
                   const isPendingAdd = 'tempId' in item;
                   const isPendingUpdate =
-                    pendingChanges?.training.toUpdate.some(
+                    pendingChanges?.qualifications.toUpdate.some(
                       (p) => p.id === item.id,
                     );
                   const isPendingDelete = item.id
-                    ? pendingChanges?.training.toDelete.some(
+                    ? pendingChanges?.qualifications.toDelete.some(
                         (d) => d.id === item.id,
                       )
                     : false;
-                  const status = calculateTrainingStatus(item.expiry_date);
+                  const status = calculateQualificationStatus(item.expiry_date);
                   const itemFileName =
                     (item as any).fileName || (item as any).file_name;
                   const itemFilePath =
@@ -488,7 +486,7 @@ export function StaffTrainingSection({
                           )}
                         </div>
                       </TableCell>
-                      <TableCell>{item.category}</TableCell>
+                      <TableCell>{item.institution}</TableCell>
                       <TableCell>
                         {item.date_completed
                           ? format(parseISO(item.date_completed), 'dd/MM/yyyy')
@@ -545,7 +543,7 @@ export function StaffTrainingSection({
                                 size="sm"
                                 onClick={() => handleEdit(item)}
                                 disabled={!canEdit}
-                                title="Edit training"
+                                title="Edit qualification"
                               >
                                 <Edit className="size-4" />
                               </Button>
@@ -555,7 +553,7 @@ export function StaffTrainingSection({
                                 className="text-destructive"
                                 onClick={() => handleDelete(item)}
                                 disabled={!canEdit}
-                                title="Delete training"
+                                title="Delete qualification"
                               >
                                 <Trash2 className="size-4" />
                               </Button>
@@ -596,12 +594,12 @@ export function StaffTrainingSection({
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {editingItem ? 'Edit Training' : 'Add Training'}
+              {editingItem ? 'Edit Qualification' : 'Add Qualification'}
             </DialogTitle>
             <DialogDescription>
               {editingItem
-                ? 'Update training record details'
-                : 'Add a new training record'}
+                ? 'Update qualification record details'
+                : 'Add a new qualification record'}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -614,46 +612,23 @@ export function StaffTrainingSection({
                   onChange={(e) =>
                     setFormData({ ...formData, title: e.target.value })
                   }
-                  placeholder="Training title"
+                  placeholder="Qualification title"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="category">Category *</Label>
+                <Label htmlFor="institution">Institution</Label>
                 <Input
-                  id="category"
-                  value={formData.category}
+                  id="institution"
+                  value={formData.institution}
                   onChange={(e) =>
-                    setFormData({ ...formData, category: e.target.value })
+                    setFormData({ ...formData, institution: e.target.value })
                   }
-                  placeholder="e.g., Safety, Clinical"
+                  placeholder="e.g., University, TAFE"
                 />
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-                rows={2}
-              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="provider">Provider</Label>
-                <Input
-                  id="provider"
-                  value={formData.provider}
-                  onChange={(e) =>
-                    setFormData({ ...formData, provider: e.target.value })
-                  }
-                  placeholder="Training provider"
-                />
-              </div>
               <div className="space-y-2">
                 <Label htmlFor="date_completed">Date Completed</Label>
                 <Input
@@ -663,14 +638,11 @@ export function StaffTrainingSection({
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      date_completed: e.target.value || null,
+                      date_completed: e.target.value || '',
                     })
                   }
                 />
               </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="expiry_date">Expiry Date</Label>
                 <Input
@@ -680,21 +652,19 @@ export function StaffTrainingSection({
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      expiry_date: e.target.value || null,
+                      expiry_date: e.target.value || '',
                     })
                   }
                 />
               </div>
-              <div className="space-y-2">
-                <Label>Status</Label>
-                <div className="flex items-center h-10">
-                  <Badge
-                    variant={getStatusBadgeVariant(currentStatus)}
-                    size="sm"
-                  >
-                    {currentStatus}
-                  </Badge>
-                </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Status</Label>
+              <div className="flex items-center h-10">
+                <Badge variant={getStatusBadgeVariant(currentStatus)} size="sm">
+                  {currentStatus}
+                </Badge>
               </div>
             </div>
 

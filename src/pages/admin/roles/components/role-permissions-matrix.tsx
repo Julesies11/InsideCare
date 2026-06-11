@@ -142,6 +142,11 @@ const GROUPS: GroupConfig[] = [
       { id: RBAC_MODULES.STAFF_COMPLIANCE, label: 'Compliance', isChild: true },
       { id: RBAC_MODULES.STAFF_ONBOARDING, label: 'Onboarding', isChild: true },
       { id: RBAC_MODULES.STAFF_TRAINING, label: 'Training', isChild: true },
+      {
+        id: RBAC_MODULES.STAFF_QUALIFICATIONS,
+        label: 'Qualifications',
+        isChild: true,
+      },
       { id: RBAC_MODULES.STAFF_DOCUMENTS, label: 'Documents', isChild: true },
       {
         id: RBAC_MODULES.STAFF_ROSTER,

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '@/auth/context/auth-context';
 import { ComplianceStatus, VerifiedDocument } from '@/models/compliance.types';
 import { StaffPendingChanges } from '@/models/staff-pending-changes';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 import {
   useIDDocumentTypes,
   useStaffComplianceSummary,

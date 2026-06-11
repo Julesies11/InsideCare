@@ -6,7 +6,7 @@ import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TABLES } from '@/config/db-tables';
 import { StaffDetailPage } from './staff-detail-page';
-import { Route, Routes } from 'react-router-dom';
+import { Route, Routes } from 'react-router';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
