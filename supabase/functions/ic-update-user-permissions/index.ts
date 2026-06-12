@@ -173,6 +173,8 @@ serve(async (req) => {
       role_id: _rId,
       created_at: _ca,
       updated_at: _ua,
+      created_by: _cb,
+      updated_by: _ub,
       ...modulePermissions
     } = permissions || {};
 

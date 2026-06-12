@@ -301,7 +301,11 @@ export function AppRoutingSetup() {
             </Route>
 
             <Route
-              element={<RequirePermission module={RBAC_MODULES.SHIFT_NOTES} />}
+              element={
+                <RequirePermission
+                  module={RBAC_MODULES.PARTICIPANT_SHIFT_NOTES}
+                />
+              }
             >
               <Route path={ROUTES.SHIFT_NOTES} element={<ShiftNotesPage />} />
               <Route

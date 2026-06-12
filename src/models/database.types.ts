@@ -4879,7 +4879,6 @@ export type Database = {
           reporting_operational: Database["public"]["Enums"]["ic_access_level_enum"]
           role_id: string
           roster_board: Database["public"]["Enums"]["ic_access_level_enum"]
-          shift_notes: Database["public"]["Enums"]["ic_access_level_enum"]
           shift_routines: Database["public"]["Enums"]["ic_access_level_enum"]
           staff_activity_log: Database["public"]["Enums"]["ic_access_level_enum"]
           staff_availability: Database["public"]["Enums"]["ic_access_level_enum"]
@@ -4938,7 +4937,6 @@ export type Database = {
           reporting_operational?: Database["public"]["Enums"]["ic_access_level_enum"]
           role_id: string
           roster_board?: Database["public"]["Enums"]["ic_access_level_enum"]
-          shift_notes?: Database["public"]["Enums"]["ic_access_level_enum"]
           shift_routines?: Database["public"]["Enums"]["ic_access_level_enum"]
           staff_activity_log?: Database["public"]["Enums"]["ic_access_level_enum"]
           staff_availability?: Database["public"]["Enums"]["ic_access_level_enum"]
@@ -4997,7 +4995,6 @@ export type Database = {
           reporting_operational?: Database["public"]["Enums"]["ic_access_level_enum"]
           role_id?: string
           roster_board?: Database["public"]["Enums"]["ic_access_level_enum"]
-          shift_notes?: Database["public"]["Enums"]["ic_access_level_enum"]
           shift_routines?: Database["public"]["Enums"]["ic_access_level_enum"]
           staff_activity_log?: Database["public"]["Enums"]["ic_access_level_enum"]
           staff_availability?: Database["public"]["Enums"]["ic_access_level_enum"]

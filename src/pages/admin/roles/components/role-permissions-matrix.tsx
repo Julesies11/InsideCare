@@ -294,7 +294,6 @@ export const getContextDescription = (
     RBAC_MODULES.PARTICIPANT_DOCUMENTS,
     RBAC_MODULES.PARTICIPANT_SHIFT_NOTES,
     RBAC_MODULES.PARTICIPANT_ACTIVITY_LOG,
-    RBAC_MODULES.SHIFT_NOTES,
   ].includes(moduleId);
 
   const isSystem = [

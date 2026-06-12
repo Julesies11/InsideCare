@@ -8,28 +8,6 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
-// Map of role permissions to check against
-const PERMISSION_COLUMNS = [
-  'my_roster',
-  'my_timesheets',
-  'my_leave',
-  'shift_routines',
-  'participants',
-  'shift_notes',
-  'employees',
-  'timesheets',
-  'leave_requests',
-  'roster_board',
-  'houses',
-  'house_checklists',
-  'access_control',
-  'master_lists',
-  'activity_log',
-  'reporting_clinical',
-  'reporting_operational',
-  'reporting_compliance',
-];
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: corsHeaders });
@@ -84,33 +62,54 @@ serve(async (req) => {
     console.log(`Syncing JWT claims for Auth User: ${targetAuthUserId}`);
 
     // 2. Fetch the comprehensive state from the database
-    const { data: profile, error: profileError } = await supabaseAdmin
+    const { data: staff, error: profileError } = await supabaseAdmin
       .from('ic_staff')
-      .select('id, role_id, status')
+      .select(
+        `
+        id, 
+        role_id, 
+        manager_id, 
+        status,
+        auth_user_id,
+        role:ic_roles!staff_role_id_fkey(role_name)
+      `,
+      )
       .eq('auth_user_id', targetAuthUserId)
       .maybeSingle();
 
     if (profileError) throw profileError;
 
     let is_admin = false;
-    const permissions: Record<string, string> = {};
+    let permissions: Record<string, string> = {};
     let assigned_houses: string[] = [];
-    const staff_id = profile?.id ?? null;
+    let managed_staff_ids: string[] = [];
+    const staff_id = staff?.id ?? null;
+    const role_id = staff?.role_id ?? null;
+    const role_name = staff?.role?.role_name ?? '';
 
     // Only calculate active permissions if the profile is active
-    if (profile && profile.status === 'active' && profile.role_id) {
+    if (staff && staff.status === 'active' && staff.role_id) {
       // Get Role Permissions
       const { data: rolePerms } = await supabaseAdmin
         .from('ic_role_permissions')
         .select('*')
-        .eq('role_id', profile.role_id)
+        .eq('role_id', staff.role_id)
         .maybeSingle();
 
       if (rolePerms) {
-        is_admin = rolePerms.access_control === 'full';
-        PERMISSION_COLUMNS.forEach((col) => {
-          if (rolePerms[col]) permissions[col] = rolePerms[col];
-        });
+        // Dynamically extract module permissions, excluding internal fields
+        const {
+          id: _pId,
+          role_id: _rId,
+          created_at: _ca,
+          updated_at: _ua,
+          created_by: _cb,
+          updated_by: _ub,
+          ...modulePermissions
+        } = rolePerms;
+
+        permissions = modulePermissions;
+        is_admin = modulePermissions.access_control === 'full';
       }
 
       // Get House Assignments
@@ -122,24 +121,35 @@ serve(async (req) => {
       if (assignments) {
         assigned_houses = assignments.map((a) => a.house_id);
       }
+
+      // Get Managed Staff IDs (Direct Reports)
+      const { data: reports } = await supabaseAdmin
+        .from('ic_staff')
+        .select('id')
+        .eq('manager_id', staff.id);
+
+      if (reports) {
+        managed_staff_ids = reports.map((r) => r.id);
+      }
     }
 
-    // 3. Prepare the new app_metadata payload
-    const updateData = {
-      app_metadata: {
-        is_admin,
-        staff_id,
-        permissions,
-        assigned_houses,
-      },
+    // 3. Prepare the new app_metadata payload (Unified Gold Standard Schema)
+    const app_metadata = {
+      staff_id,
+      role_id,
+      is_admin,
+      role_name,
+      permissions,
+      assigned_houses,
+      managed_staff_ids,
+      last_sync: new Date().toISOString(),
     };
 
     // 4. Inject into Supabase Auth
     const { data: updatedUser, error: updateError } =
-      await supabaseAdmin.auth.admin.updateUserById(
-        targetAuthUserId,
-        updateData,
-      );
+      await supabaseAdmin.auth.admin.updateUserById(targetAuthUserId, {
+        app_metadata,
+      });
 
     if (updateError) throw updateError;
 

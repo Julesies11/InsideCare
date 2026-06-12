@@ -7834,13 +7834,6 @@
           },
           {
             "pk": false,
-            "name": "shift_notes",
-            "type": "USER-DEFINED",
-            "default": "'none'::ic_access_level_enum",
-            "nullable": "NO"
-          },
-          {
-            "pk": false,
             "name": "employees",
             "type": "USER-DEFINED",
             "default": "'none'::ic_access_level_enum",
@@ -9499,7 +9492,7 @@
             "ref_table": "ic_staff"
           }
         ],
-        "policy_count": 7
+        "policy_count": 4
       },
       {
         "name": "ic_shift_participants",
