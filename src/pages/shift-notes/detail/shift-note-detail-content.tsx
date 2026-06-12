@@ -173,8 +173,7 @@ export function ShiftNoteDetailContent({
           hygiene_support_required: !!data.track_hygiene,
         };
 
-        if (data.mtmp_required) {
-          updates.mtm_meal_provided = true;
+        if (data.track_mtm && data.mtmp_required) {
           updates.mtm_notes = `Auto-populated from Care Plan: ${data.mtmp_details || ''}`;
         }
 
@@ -263,7 +262,30 @@ export function ShiftNoteDetailContent({
           initialForm.participant_id = participantId;
         }
 
-        // Fetch shift details if shiftId exists
+        // 1. Check if a note already exists for this staff, shift, and participant
+        // This prevents double-creation if the user reloads or navigates back
+        if (shiftId && participantId) {
+          const staffToUse = staffId || initialForm.staff_id;
+          if (staffToUse) {
+            const existingNotes = await shiftNotesApi.getByShiftAndStaff(
+              shiftId,
+              staffToUse,
+              participantId,
+            );
+
+            if (existingNotes && existingNotes.length > 0) {
+              const latestNote = existingNotes[0];
+              // If it's a draft or active note, redirect to the existing one
+              navigate(`${ROUTES.SHIFT_NOTES_DETAIL}/${latestNote.id}`, {
+                replace: true,
+                state: { from: location.state?.from },
+              });
+              return; // Stop initialization as we are redirecting
+            }
+          }
+        }
+
+        // 2. Fetch shift details if shiftId exists
         if (shiftId) {
           initialForm.shift_id = shiftId;
           try {
@@ -305,8 +327,7 @@ export function ShiftNoteDetailContent({
               initialForm.mtm_meal_provided = !!partData.track_mtm;
               initialForm.hygiene_support_required = !!partData.track_hygiene;
 
-              if (partData.mtmp_required) {
-                initialForm.mtm_meal_provided = true;
+              if (partData.track_mtm && partData.mtmp_required) {
                 initialForm.mtm_notes = `Auto-populated from Care Plan: ${partData.mtmp_details || ''}`;
               }
             }

@@ -520,6 +520,7 @@ export const StaffRosterCalendar = forwardRef<
           onSuccess={() => {
             queryClient.invalidateQueries({ queryKey: ['leave-requests'] });
           }}
+          readOnly={true}
         />
 
         {canEdit ? (

@@ -414,7 +414,7 @@ export const shiftNotesApi = {
       .upsert(
         { ...payload, status: payload.status || 'active' },
         {
-          onConflict: 'shift_id,staff_id,participant_id',
+          onConflict: 'id',
         },
       )
       .select(SHIFT_NOTE_VIEWS.DETAIL)

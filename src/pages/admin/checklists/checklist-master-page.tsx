@@ -275,27 +275,22 @@ export function ChecklistMasterPage() {
       {/* Edit Template Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
         <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col p-0 border-none shadow-2xl overflow-hidden">
-          <DialogHeader className="p-6 border-b bg-white">
-            <div className="flex items-center gap-4">
-              <div className="size-12 rounded-2xl bg-primary/10 flex items-center justify-center">
-                <ClipboardList className="size-6 text-primary" />
-              </div>
-              <div>
-                <DialogTitle className="text-xl font-black uppercase tracking-tight">
-                  {selectedTemplate
-                    ? 'Edit Master Template'
-                    : 'New Master Template'}
-                </DialogTitle>
-                <DialogDescription className="text-sm font-medium">
-                  Standardize this routine for organization-wide use.
-                </DialogDescription>
-              </div>
+          <DialogHeader className="p-4 sm:p-5 border-b bg-white">
+            <div>
+              <DialogTitle className="text-lg font-black uppercase tracking-tight">
+                {selectedTemplate
+                  ? 'Edit Master Template'
+                  : 'New Master Template'}
+              </DialogTitle>
+              <DialogDescription className="text-xs font-medium text-muted-foreground">
+                Standardize this routine for organization-wide use.
+              </DialogDescription>
             </div>
           </DialogHeader>
 
-          <div className="flex-1 overflow-y-auto p-6 space-y-8 bg-gray-50/30 custom-scrollbar">
-            <div className="grid gap-6">
-              <div className="space-y-2">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-5 bg-gray-50/30 custom-scrollbar">
+            <div className="grid gap-4">
+              <div className="space-y-1.5">
                 <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">
                   Template Name *
                 </Label>
@@ -305,15 +300,15 @@ export function ChecklistMasterPage() {
                     setFormData({ ...formData, checklist_name: e.target.value })
                   }
                   placeholder="e.g. Morning Clinical Routine"
-                  className="h-12 text-lg font-bold"
+                  className="h-10 text-base font-bold"
                 />
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">
                   Default Applicable Days (Optional)
                 </Label>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5">
                   {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(
                     (day) => {
                       const isSelected = formData.days_of_week.includes(day);
@@ -322,9 +317,9 @@ export function ChecklistMasterPage() {
                           key={day}
                           variant={isSelected ? 'primary' : 'outline'}
                           className={cn(
-                            'cursor-pointer h-8 px-4 text-xs font-bold transition-all',
+                            'cursor-pointer h-7 px-3 text-[10px] font-bold transition-all',
                             isSelected
-                              ? 'shadow-lg shadow-primary/20 scale-105'
+                              ? 'shadow-sm shadow-primary/20 scale-105'
                               : 'bg-white hover:bg-gray-100 border-gray-200',
                           )}
                           onClick={() => {
@@ -342,7 +337,7 @@ export function ChecklistMasterPage() {
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">
                   Description
                 </Label>
@@ -352,13 +347,13 @@ export function ChecklistMasterPage() {
                     setFormData({ ...formData, description: e.target.value })
                   }
                   placeholder="Describe the standard procedure for this routine..."
-                  rows={3}
-                  className="bg-white resize-none"
+                  rows={2}
+                  className="bg-white resize-none text-sm"
                 />
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div className="flex items-center justify-between px-1">
                 <div className="flex items-center gap-2">
                   <h3 className="text-sm font-black uppercase tracking-widest text-gray-900">
@@ -390,28 +385,31 @@ export function ChecklistMasterPage() {
                     <SortableItem
                       key={item.id || item.tempId || idx}
                       value={(item.id || item.tempId || idx).toString()}
+                      className="flex items-center justify-between p-3 border rounded-lg bg-white group hover:border-primary/30 transition-colors"
                     >
                       <div className="flex flex-col gap-1 flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-sm text-gray-900">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-bold text-sm text-gray-900 truncate">
                             {item.title}
                           </span>
-                          {item.is_required && (
-                            <Badge
-                              variant="outline"
-                              className="text-[9px] h-4 px-1.5 border-red-100 text-red-600 bg-red-50 uppercase font-black tracking-tighter"
-                            >
-                              Mandatory
-                            </Badge>
-                          )}
-                          {item.group_title && (
-                            <Badge
-                              variant="outline"
-                              className="text-[9px] h-4 px-1.5 uppercase font-bold text-blue-600 border-blue-100 bg-blue-50"
-                            >
-                              {item.group_title}
-                            </Badge>
-                          )}
+                          <div className="flex gap-1">
+                            {item.is_required && (
+                              <Badge
+                                variant="outline"
+                                className="text-[9px] h-4 px-1.5 border-red-100 text-red-600 bg-red-50 uppercase font-black tracking-tighter"
+                              >
+                                Mandatory
+                              </Badge>
+                            )}
+                            {item.group_title && (
+                              <Badge
+                                variant="outline"
+                                className="text-[9px] h-4 px-1.5 uppercase font-bold text-blue-600 border-blue-100 bg-blue-50"
+                              >
+                                {item.group_title}
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                         {item.instructions && (
                           <p className="text-[10px] text-muted-foreground truncate font-medium">
@@ -419,7 +417,7 @@ export function ChecklistMasterPage() {
                           </p>
                         )}
                       </div>
-                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
+                      <div className="flex gap-1 shrink-0 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200">
                         <Button
                           variant="ghost"
                           size="icon"
@@ -479,24 +477,24 @@ export function ChecklistMasterPage() {
       {/* Task Item Dialog */}
       <Dialog open={showItemDialog} onOpenChange={setShowItemDialog}>
         <DialogContent className="max-w-md border-none shadow-2xl p-0 overflow-hidden">
-          <DialogHeader className="p-6 pb-4 border-b bg-white">
-            <div className="flex items-center gap-3">
-              <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center">
+          <DialogHeader className="p-4 sm:p-5 pb-3 border-b bg-white">
+            <div className="flex items-center">
+              <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center mr-3 shrink-0">
                 <CheckSquare className="size-5 text-primary" />
               </div>
               <div>
                 <DialogTitle className="text-lg font-black uppercase tracking-tight">
                   {selectedItem ? 'Edit Standard Task' : 'Add Standard Task'}
                 </DialogTitle>
-                <DialogDescription className="text-xs font-medium">
+                <DialogDescription className="text-xs font-medium text-muted-foreground">
                   Define a requirement for this template.
                 </DialogDescription>
               </div>
             </div>
           </DialogHeader>
 
-          <div className="space-y-6 p-6 bg-gray-50/30">
-            <div className="space-y-2">
+          <div className="space-y-4 p-4 sm:p-5 bg-gray-50/30">
+            <div className="space-y-1.5">
               <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">
                 Task Title *
               </Label>
@@ -510,7 +508,7 @@ export function ChecklistMasterPage() {
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">
                 Instructions (Optional)
               </Label>
@@ -528,8 +526,8 @@ export function ChecklistMasterPage() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1.5">
                 <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">
                   Shift Period
                 </Label>
@@ -551,7 +549,7 @@ export function ChecklistMasterPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">
                   Priority
                 </Label>
@@ -574,7 +572,7 @@ export function ChecklistMasterPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between p-4 rounded-2xl border bg-white shadow-sm border-gray-100">
+            <div className="flex items-center justify-between p-3 rounded-2xl border border-gray-100 bg-white shadow-sm">
               <div className="space-y-0.5">
                 <Label className="text-xs font-bold text-gray-900 uppercase tracking-tight">
                   Mandatory Task
@@ -593,7 +591,7 @@ export function ChecklistMasterPage() {
             </div>
           </div>
 
-          <DialogFooter className="p-4 border-t bg-white flex flex-row gap-3">
+          <DialogFooter className="p-3 sm:p-4 border-t bg-white flex flex-row gap-3">
             <Button
               variant="ghost"
               onClick={() => setShowItemDialog(false)}

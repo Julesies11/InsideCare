@@ -1031,8 +1031,8 @@ export const rosterApi = {
    * Uploads a staff document.
    */
   async uploadStaffDocument(staffId: string, file: File) {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Math.random()}.${fileExt}`;
+    const timestamp = Date.now();
+    const fileName = `${timestamp}-${file.name}`;
     const filePath = `leave-attachments/${staffId}/${fileName}`;
 
     const { error: uploadError } = await supabase.storage

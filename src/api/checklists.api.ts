@@ -749,13 +749,18 @@ export const checklistsApi = {
       const { error } = await supabase
         .from(TABLES.HOUSE_CHECKLIST_ITEMS)
         .insert(
-          items.map((i) => ({
-            ...i,
-            checklist_id: checklistId,
-            id: undefined,
-            created_at: undefined,
-            updated_at: undefined,
-          })),
+          items.map((i) => {
+            // Strip out read-only/joined properties and internal IDs
+            // Ensure empty strings are null for UUID columns
+            const { id, group, created_at, updated_at, ...itemData } = i;
+            return {
+              ...itemData,
+              checklist_id: checklistId,
+              group_id: itemData.group_id === '' ? null : itemData.group_id,
+              master_item_id:
+                itemData.master_item_id === '' ? null : itemData.master_item_id,
+            };
+          }),
         );
       if (error) throw error;
     }

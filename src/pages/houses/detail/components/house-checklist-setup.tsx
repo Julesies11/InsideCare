@@ -360,7 +360,7 @@ export function HouseChecklistSetup({
 
     setIsFetchingSource(true);
     try {
-      const data = await checklistsApi.listByHouse(sourceId);
+      const data = await checklistsApi.listHouseChecklists(sourceId);
       setSourceChecklists(data || []);
       setSelectedImportIds([]);
     } catch (err) {
@@ -510,20 +510,24 @@ export function HouseChecklistSetup({
 
       {/* Checklist Dialog */}
       <Dialog open={showChecklistDialog} onOpenChange={setShowChecklistDialog}>
-        <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col p-0">
-          <DialogHeader className="p-6 border-b">
-            <DialogTitle>
-              {selectedChecklist ? 'Edit Checklist' : 'New House Checklist'}
-            </DialogTitle>
-            <DialogDescription>
-              Define a routine for this house and its specific tasks.
-            </DialogDescription>
+        <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col p-0 border-none shadow-2xl overflow-hidden">
+          <DialogHeader className="p-4 sm:p-5 border-b bg-white">
+            <div>
+              <DialogTitle className="text-lg font-black uppercase tracking-tight">
+                {selectedChecklist ? 'Edit Checklist' : 'New House Checklist'}
+              </DialogTitle>
+              <DialogDescription className="text-xs font-medium text-muted-foreground">
+                Define a routine for this house and its specific tasks.
+              </DialogDescription>
+            </div>
           </DialogHeader>
 
-          <div className="flex-1 overflow-y-auto p-6 space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Checklist Name *</Label>
+          <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-5 bg-gray-50/30 custom-scrollbar">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">
+                  Checklist Name *
+                </Label>
                 <Input
                   value={checklistFormData.house_checklist_name}
                   onChange={(e) =>
@@ -533,44 +537,53 @@ export function HouseChecklistSetup({
                     })
                   }
                   placeholder="e.g. Morning Routine, Weekly Cleaning"
+                  className="bg-white h-10 font-bold"
                 />
               </div>
-              <div className="space-y-2">
-                <Label>Applicable Days (Optional)</Label>
-                <div className="flex flex-wrap gap-2">
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">
+                  Applicable Days (Optional)
+                </Label>
+                <div className="flex flex-wrap gap-1.5">
                   {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(
-                    (day) => (
-                      <Badge
-                        key={day}
-                        variant={
-                          checklistFormData.days_of_week.includes(day)
-                            ? 'primary'
-                            : 'outline'
-                        }
-                        className="cursor-pointer"
-                        onClick={() => {
-                          const newDays =
-                            checklistFormData.days_of_week.includes(day)
+                    (day) => {
+                      const isSelected =
+                        checklistFormData.days_of_week.includes(day);
+                      return (
+                        <Badge
+                          key={day}
+                          variant={isSelected ? 'primary' : 'outline'}
+                          className={cn(
+                            'cursor-pointer h-7 px-3 text-[10px] font-bold transition-all',
+                            isSelected
+                              ? 'shadow-sm shadow-primary/20 scale-105'
+                              : 'bg-white hover:bg-gray-100 border-gray-200',
+                          )}
+                          onClick={() => {
+                            const newDays = isSelected
                               ? checklistFormData.days_of_week.filter(
                                   (d) => d !== day,
                                 )
                               : [...checklistFormData.days_of_week, day];
-                          setChecklistFormData({
-                            ...checklistFormData,
-                            days_of_week: newDays,
-                          });
-                        }}
-                      >
-                        {day}
-                      </Badge>
-                    ),
+                            setChecklistFormData({
+                              ...checklistFormData,
+                              days_of_week: newDays,
+                            });
+                          }}
+                        >
+                          {day}
+                        </Badge>
+                      );
+                    },
                   )}
                 </div>
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label>Description</Label>
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">
+                Description
+              </Label>
               <Textarea
                 value={checklistFormData.description}
                 onChange={(e) =>
@@ -581,18 +594,22 @@ export function HouseChecklistSetup({
                 }
                 placeholder="Briefly describe the purpose of this checklist..."
                 rows={2}
+                className="bg-white resize-none text-sm"
               />
             </div>
 
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label className="text-sm font-bold">
-                  Tasks ({checklistFormData.items.length})
-                </Label>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between px-1">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-black uppercase tracking-widest text-gray-900">
+                    Tasks ({checklistFormData.items.length})
+                  </h3>
+                  <div className="h-1 w-1 rounded-full bg-gray-300" />
+                </div>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 gap-2 text-primary"
+                  className="h-8 gap-2 text-primary font-bold hover:bg-primary/5"
                   onClick={handleAddItemToDialog}
                 >
                   <Plus className="size-4" />
@@ -600,87 +617,104 @@ export function HouseChecklistSetup({
                 </Button>
               </div>
 
-              <Sortable
-                value={checklistFormData.items}
-                onValueChange={(newItems) =>
-                  setChecklistFormData({
-                    ...checklistFormData,
-                    items: newItems,
-                  })
-                }
-                getItemValue={(item) =>
-                  (item.tempId || item.id || '').toString()
-                }
-              >
-                {checklistFormData.items.map((item, idx) => (
-                  <SortableItem
-                    key={item.tempId || idx}
-                    value={item.tempId || idx.toString()}
-                  >
-                    <div className="flex flex-col gap-1 flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-sm text-gray-900">
-                          {item.title}
-                        </span>
-                        {item.is_required && (
-                          <Badge
-                            variant="outline"
-                            className="text-[9px] h-4 px-1 border-red-200 text-red-600 bg-red-50 uppercase font-black tracking-tighter"
-                          >
-                            Required
-                          </Badge>
-                        )}
-                        {item.group_title && (
-                          <Badge
-                            variant="outline"
-                            className="text-[9px] h-4 px-1 uppercase font-bold text-blue-600 border-blue-200 bg-blue-50"
-                          >
-                            {item.group_title}
-                          </Badge>
+              <div className="space-y-3">
+                <Sortable
+                  value={checklistFormData.items}
+                  onValueChange={(newItems) =>
+                    setChecklistFormData({
+                      ...checklistFormData,
+                      items: newItems,
+                    })
+                  }
+                  getItemValue={(item) =>
+                    (item.tempId || item.id || '').toString()
+                  }
+                >
+                  {checklistFormData.items.map((item, idx) => (
+                    <SortableItem
+                      key={item.tempId || idx}
+                      value={item.tempId || idx.toString()}
+                      className="flex items-center justify-between p-3 border border-gray-200 rounded-xl bg-white group hover:border-primary/30 hover:shadow-md hover:shadow-primary/5 transition-all duration-200"
+                    >
+                      <div className="flex flex-col gap-1 flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-bold text-sm text-gray-900 truncate">
+                            {item.title}
+                          </span>
+                          <div className="flex gap-1">
+                            {item.is_required && (
+                              <Badge
+                                variant="outline"
+                                className="text-[9px] h-4 px-1.5 border-red-100 text-red-600 bg-red-50 uppercase font-black tracking-tighter"
+                              >
+                                Required
+                              </Badge>
+                            )}
+                            {item.group_title && (
+                              <Badge
+                                variant="outline"
+                                className="text-[9px] h-4 px-1.5 uppercase font-bold text-blue-600 border-blue-100 bg-blue-50"
+                              >
+                                {item.group_title}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        {item.instructions && (
+                          <p className="text-[10px] text-muted-foreground truncate font-medium">
+                            {item.instructions}
+                          </p>
                         )}
                       </div>
-                      {item.instructions && (
-                        <p className="text-[10px] text-muted-foreground truncate">
-                          {item.instructions}
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="size-7"
-                        onClick={() => {
-                          setSelectedItem(item);
-                          setItemFormData({ ...item });
-                          setShowItemDialog(true);
-                        }}
-                      >
-                        <Edit className="size-3.5" />{' '}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="size-7 text-destructive"
-                        onClick={() => handleDeleteItemFromDialog(item)}
-                      >
-                        <Trash2 className="size-3.5" />
-                      </Button>
-                    </div>
-                  </SortableItem>
-                ))}
-              </Sortable>
+                      <div className="flex gap-1 shrink-0 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="size-8 rounded-lg"
+                          onClick={() => {
+                            setSelectedItem(item);
+                            setItemFormData({ ...item });
+                            setShowItemDialog(true);
+                          }}
+                        >
+                          <Edit className="size-3.5 text-gray-500" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="size-8 rounded-lg hover:bg-red-50"
+                          onClick={() => handleDeleteItemFromDialog(item)}
+                        >
+                          <Trash2 className="size-3.5 text-red-400" />
+                        </Button>
+                      </div>
+                    </SortableItem>
+                  ))}
+                </Sortable>
+
+                {checklistFormData.items.length === 0 && (
+                  <div className="py-12 text-center border-2 border-dashed rounded-2xl bg-gray-50/50">
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+                      No tasks added yet
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
-          <DialogFooter className="p-6 pt-2 border-t">
+          <DialogFooter className="p-4 border-t bg-white flex flex-row gap-3">
             <Button
-              variant="outline"
+              variant="ghost"
               onClick={() => setShowChecklistDialog(false)}
+              className="flex-1 font-bold h-11"
             >
               Cancel
             </Button>
-            <Button variant="primary" onClick={handleSaveChecklist}>
+            <Button
+              onClick={handleSaveChecklist}
+              className="flex-[2] font-black uppercase tracking-tight h-11 shadow-xl shadow-primary/20"
+            >
               Save Checklist
             </Button>
           </DialogFooter>
@@ -689,31 +723,42 @@ export function HouseChecklistSetup({
 
       {/* Task Item Dialog */}
       <Dialog open={showItemDialog} onOpenChange={setShowItemDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <CheckSquare className="size-5 text-primary" />
-              {selectedItem ? 'Edit Task' : 'Add Task'}
-            </DialogTitle>
-            <DialogDescription>
-              Define the specific requirements for this task.
-            </DialogDescription>
+        <DialogContent className="max-w-md border-none shadow-2xl p-0 overflow-hidden">
+          <DialogHeader className="p-4 sm:p-5 pb-3 border-b bg-white">
+            <div className="flex items-center">
+              <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center mr-3 shrink-0">
+                <CheckSquare className="size-5 text-primary" />
+              </div>
+              <div>
+                <DialogTitle className="text-lg font-black uppercase tracking-tight">
+                  {selectedItem ? 'Edit Task' : 'Add Task'}
+                </DialogTitle>
+                <DialogDescription className="text-xs font-medium text-muted-foreground">
+                  Define the specific requirements for this task.
+                </DialogDescription>
+              </div>
+            </div>
           </DialogHeader>
 
-          <div className="space-y-5 py-4">
-            <div className="space-y-2">
-              <Label>Task Title *</Label>
+          <div className="space-y-4 p-4 sm:p-5 bg-gray-50/30">
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">
+                Task Title *
+              </Label>
               <Input
                 value={itemFormData.title}
                 onChange={(e) =>
                   setItemFormData({ ...itemFormData, title: e.target.value })
                 }
                 placeholder="e.g. Check kitchen cleanliness"
+                className="bg-white h-10 font-medium"
               />
             </div>
 
-            <div className="space-y-2">
-              <Label>Instructions (Optional)</Label>
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">
+                Instructions (Optional)
+              </Label>
               <Textarea
                 value={itemFormData.instructions}
                 onChange={(e) =>
@@ -724,12 +769,15 @@ export function HouseChecklistSetup({
                 }
                 placeholder="Step-by-step guidance for staff..."
                 rows={3}
+                className="bg-white resize-none text-sm"
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Group / Shift Period</Label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">
+                  Group / Shift Period
+                </Label>
                 <Select
                   value={itemFormData.group_id || itemFormData.group_title}
                   onValueChange={(v) => {
@@ -741,7 +789,7 @@ export function HouseChecklistSetup({
                     });
                   }}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-white h-10">
                     <SelectValue placeholder="Select shift..." />
                   </SelectTrigger>
                   <SelectContent>
@@ -762,15 +810,17 @@ export function HouseChecklistSetup({
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <Label>Priority</Label>
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1">
+                  Priority
+                </Label>
                 <Select
                   value={itemFormData.priority}
                   onValueChange={(v) =>
                     setItemFormData({ ...itemFormData, priority: v })
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-white h-10">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -783,10 +833,12 @@ export function HouseChecklistSetup({
               </div>
             </div>
 
-            <div className="flex items-center justify-between p-3 rounded-lg border bg-gray-50/50">
+            <div className="flex items-center justify-between p-3 rounded-2xl border border-gray-100 bg-white shadow-sm">
               <div className="space-y-0.5">
-                <Label className="text-sm font-bold">Mandatory Task</Label>
-                <p className="text-[10px] text-muted-foreground">
+                <Label className="text-xs font-bold text-gray-900 uppercase tracking-tight">
+                  Mandatory Task
+                </Label>
+                <p className="text-[10px] text-muted-foreground font-medium">
                   Staff must confirm this task is done.
                 </p>
               </div>
@@ -795,15 +847,23 @@ export function HouseChecklistSetup({
                 onCheckedChange={(v) =>
                   setItemFormData({ ...itemFormData, is_required: v })
                 }
+                className="scale-90"
               />
             </div>
           </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowItemDialog(false)}>
+          <DialogFooter className="p-3 sm:p-4 border-t bg-white flex flex-row gap-3">
+            <Button
+              variant="ghost"
+              onClick={() => setShowItemDialog(false)}
+              className="flex-1 font-bold h-10"
+            >
               Cancel
             </Button>
-            <Button variant="primary" onClick={handleSaveItemInDialog}>
+            <Button
+              onClick={handleSaveItemInDialog}
+              className="flex-[2] font-black uppercase tracking-tight h-10 shadow-lg shadow-primary/10"
+            >
               Apply Task
             </Button>
           </DialogFooter>
@@ -825,7 +885,7 @@ export function HouseChecklistSetup({
           </DialogHeader>
 
           <div className="space-y-6 py-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Source Type</Label>
                 <Select
