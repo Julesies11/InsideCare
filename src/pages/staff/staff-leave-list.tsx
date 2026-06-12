@@ -9,22 +9,19 @@ import {
   ToolbarPageTitle,
 } from '@/partials/common/toolbar';
 import { format } from 'date-fns';
-import { Paperclip, Plus, Umbrella } from 'lucide-react';
+import { Plus, Umbrella } from 'lucide-react';
 import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { ROUTES } from '@/config/routes.config';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTable } from '@/components/ui/card';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { Container } from '@/components/common/container';
+import {
+  getFileIcon,
+  getFilenameFromStorageUrl,
+  toAbsoluteUrl,
+} from '@/lib/helpers';
 
 interface LeaveRequest {
   id: string;
@@ -34,6 +31,7 @@ interface LeaveRequest {
   reason: string | null;
   status: 'pending' | 'approved' | 'rejected';
   admin_notes: string | null;
+  attachment_url: string | null;
   created_at: string;
 }
 
@@ -77,6 +75,18 @@ export function StaffLeaveList() {
   useEffect(() => {
     fetchRequests();
   }, [fetchRequests]);
+
+  const handleView = async (filePath: string) => {
+    if (!filePath) return;
+    try {
+      const url = await rosterApi.getStaffDocumentSignedUrl(filePath);
+      if (url) window.open(url, '_blank');
+    } catch (error) {
+      console.error('Error viewing document:', error);
+      toast.error('Failed to open document');
+    }
+  };
+
   const dayCount = (req: LeaveRequest) => {
     const ms =
       new Date(req.end_date).getTime() - new Date(req.start_date).getTime();
@@ -136,90 +146,123 @@ export function StaffLeaveList() {
                 </span>
               </CardHeader>
               <CardTable>
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b bg-muted/40">
-                      <th className="text-left px-5 py-3 font-medium text-muted-foreground">
-                        Type
-                      </th>
-                      <th className="text-left px-5 py-3 font-medium text-muted-foreground">
-                        Dates
-                      </th>
-                      <th className="text-left px-5 py-3 font-medium text-muted-foreground hidden sm:table-cell">
-                        Duration
-                      </th>
-                      <th className="text-left px-5 py-3 font-medium text-muted-foreground">
-                        Status
-                      </th>
-                      <th className="text-left px-5 py-3 font-medium text-muted-foreground hidden md:table-cell">
-                        Notes
-                      </th>
-                      <th className="px-5 py-3"></th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {requests.map((req) => (
-                      <tr
-                        key={req.id}
-                        className="group hover:bg-muted/30 transition-colors"
-                      >
-                        <td className="px-5 py-3.5 font-medium">
-                          <Link
-                            to={`${ROUTES.MY_LEAVE}/${req.id}/edit`}
-                            className="text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline transition-colors"
-                          >
-                            {req.leave_type?.leave_type_name ?? 'Leave'}
-                          </Link>
-                        </td>
-                        <td className="px-5 py-3.5 text-muted-foreground">
-                          {format(new Date(req.start_date), 'dd MMM yyyy')}
-                          {req.start_date !== req.end_date && (
-                            <>
-                              {' '}
-                              – {format(new Date(req.end_date), 'dd MMM yyyy')}
-                            </>
-                          )}
-                        </td>
-                        <td className="px-5 py-3.5 text-muted-foreground hidden sm:table-cell">
-                          {dayCount(req)} day{dayCount(req) !== 1 ? 's' : ''}
-                        </td>
-                        <td className="px-5 py-3.5">
-                          <Badge
-                            variant={statusVariant[req.status] ?? 'secondary'}
-                            appearance="light"
-                          >
-                            {statusLabel[req.status] ?? req.status}
-                          </Badge>
-                        </td>
-                        <td className="px-5 py-3.5 hidden sm:table-cell">
-                          {req.attachment_url ? (
-                            <a
-                              href={req.attachment_url}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline transition-colors"
-                              title="View attachment"
-                            >
-                              <Paperclip className="size-3.5" />
-                              View
-                            </a>
-                          ) : (
-                            <span className="text-muted-foreground/50">—</span>
-                          )}
-                        </td>
-                        <td className="px-5 py-3.5 text-muted-foreground hidden md:table-cell max-w-xs">
-                          {req.admin_notes ? (
-                            <span className="italic">{req.admin_notes}</span>
-                          ) : req.reason ? (
-                            <span className="truncate block">{req.reason}</span>
-                          ) : (
-                            <span className="text-muted-foreground/50">—</span>
-                          )}
-                        </td>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b bg-muted/40 text-left">
+                        <th className="px-5 py-3 font-medium text-muted-foreground">
+                          Type
+                        </th>
+                        <th className="px-5 py-3 font-medium text-muted-foreground">
+                          Dates
+                        </th>
+                        <th className="px-5 py-3 font-medium text-muted-foreground hidden sm:table-cell">
+                          Duration
+                        </th>
+                        <th className="px-5 py-3 font-medium text-muted-foreground">
+                          Status
+                        </th>
+                        <th className="px-5 py-3 font-medium text-muted-foreground">
+                          File
+                        </th>
+                        <th className="px-5 py-3 font-medium text-muted-foreground hidden md:table-cell">
+                          Notes
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y">
+                      {requests.map((req) => {
+                        const fileName = req.attachment_url
+                          ? getFilenameFromStorageUrl(req.attachment_url)
+                          : null;
+                        return (
+                          <tr
+                            key={req.id}
+                            className="group hover:bg-muted/30 transition-colors"
+                          >
+                            <td className="px-5 py-3.5 font-medium">
+                              <Link
+                                to={`${ROUTES.MY_LEAVE}/${req.id}/edit`}
+                                className="text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline transition-colors"
+                              >
+                                {req.leave_type?.leave_type_name ?? 'Leave'}
+                              </Link>
+                            </td>
+                            <td className="px-5 py-3.5 text-muted-foreground whitespace-nowrap">
+                              {format(new Date(req.start_date), 'dd MMM yyyy')}
+                              {req.start_date !== req.end_date && (
+                                <>
+                                  {' '}
+                                  –{' '}
+                                  {format(
+                                    new Date(req.end_date),
+                                    'dd MMM yyyy',
+                                  )}
+                                </>
+                              )}
+                            </td>
+                            <td className="px-5 py-3.5 text-muted-foreground hidden sm:table-cell">
+                              {dayCount(req)} day{dayCount(req) !== 1 ? 's' : ''}
+                            </td>
+                            <td className="px-5 py-3.5">
+                              <Badge
+                                variant={
+                                  statusVariant[req.status] ?? 'secondary'
+                                }
+                                appearance="light"
+                              >
+                                {statusLabel[req.status] ?? req.status}
+                              </Badge>
+                            </td>
+                            <td className="px-5 py-3.5">
+                              {fileName ? (
+                                <button
+                                  type="button"
+                                  className="flex items-center gap-2 cursor-pointer select-none group/file"
+                                  onClick={() =>
+                                    req.attachment_url &&
+                                    handleView(req.attachment_url)
+                                  }
+                                  title="Click to view"
+                                >
+                                  <img
+                                    src={toAbsoluteUrl(
+                                      `/media/file-types/${getFileIcon(fileName)}`,
+                                    )}
+                                    className="size-6 shrink-0 transition-opacity group-hover/file:opacity-80"
+                                    alt="file icon"
+                                  />
+                                  <div className="line-clamp-1 text-muted-foreground group-hover/file:text-primary group-hover/file:underline transition-colors text-xs max-w-[150px]">
+                                    {fileName}
+                                  </div>
+                                </button>
+                              ) : (
+                                <span className="text-muted-foreground/30 text-xs italic">
+                                  —
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-5 py-3.5 text-muted-foreground hidden md:table-cell max-w-xs">
+                              {req.admin_notes ? (
+                                <span className="italic">
+                                  {req.admin_notes}
+                                </span>
+                              ) : req.reason ? (
+                                <span className="truncate block">
+                                  {req.reason}
+                                </span>
+                              ) : (
+                                <span className="text-muted-foreground/50">
+                                  —
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </CardTable>
             </Card>
           )}

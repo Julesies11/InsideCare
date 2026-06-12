@@ -1,9 +1,7 @@
 import { useState } from 'react';
 import { StaffRosterCalendar as RosterCalendarView } from '@/pages/roster-board/components/staff-roster-calendar';
-import { useQueryClient } from '@tanstack/react-query';
 import { addDays, addMonths, addWeeks, format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LeaveDialog } from '@/components/roster/leave-dialog';
 import { RosterCalendarHeader } from '@/components/roster/roster-calendar-header';
 import { ViewMode } from '@/components/roster/roster-utils';
 
@@ -13,12 +11,8 @@ interface StaffRosterProps {
 }
 
 export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
-  const queryClient = useQueryClient();
   const [viewMode, setViewMode] = useState<ViewMode>('week');
   const [currentDate, setCurrentDate] = useState(new Date());
-
-  const [showLeaveDialog, setShowLeaveDialog] = useState(false);
-  const [selectedLeaveId, setSelectedLeaveId] = useState<string | null>(null);
 
   const [showLeave, setShowLeave] = useState<boolean>(true);
   const [showEvents, setShowEvents] = useState<boolean>(false);
@@ -45,16 +39,6 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
       return `${format(weekStart, 'MMM d')} – ${format(weekEnd, 'MMM d, yyyy')}`;
     }
     return format(currentDate, 'MMMM yyyy');
-  };
-
-  const handleEditLeave = (leaveId: string) => {
-    setSelectedLeaveId(leaveId);
-    setShowLeaveDialog(true);
-  };
-
-  const handleLeaveSuccess = () => {
-    queryClient.invalidateQueries({ queryKey: ['staff-roster', staffId] });
-    queryClient.invalidateQueries({ queryKey: ['leave-requests', staffId] });
   };
 
   return (
@@ -90,14 +74,6 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
           includeEvents={showEvents}
           isPersonal={true}
           checklists={[]}
-          onEditLeave={(leave) => handleEditLeave(leave.id)}
-        />
-
-        <LeaveDialog
-          open={showLeaveDialog}
-          onOpenChange={setShowLeaveDialog}
-          leaveId={selectedLeaveId}
-          onSuccess={handleLeaveSuccess}
         />
       </CardContent>
     </Card>

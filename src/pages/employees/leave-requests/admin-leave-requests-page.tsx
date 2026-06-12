@@ -255,6 +255,17 @@ export function AdminLeaveRequestsPage() {
     }
   };
 
+  const handleView = async (filePath: string) => {
+    if (!filePath) return;
+    try {
+      const url = await rosterApi.getStaffDocumentSignedUrl(filePath);
+      if (url) window.open(url, '_blank');
+    } catch (error) {
+      console.error('Error viewing document:', error);
+      toast.error('Failed to open document');
+    }
+  };
+
   return (
     <Fragment>
       <Container>
@@ -550,16 +561,15 @@ export function AdminLeaveRequestsPage() {
             </div>
 
             {selected?.attachment_url && (
-              <div className="flex items-center gap-2 text-sm text-primary">
-                <Paperclip className="size-4" />
-                <a
-                  href={selected.attachment_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:underline font-medium"
+              <div className="flex items-center gap-2 text-sm">
+                <Paperclip className="size-4 text-muted-foreground" />
+                <button
+                  type="button"
+                  onClick={() => handleView(selected.attachment_url!)}
+                  className="text-primary hover:underline font-medium cursor-pointer"
                 >
                   View Attachment
-                </a>
+                </button>
               </div>
             )}
           </div>

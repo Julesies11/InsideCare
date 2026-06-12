@@ -45,6 +45,7 @@ interface LeaveDialogProps {
   leaveId?: string | null;
   onSuccess?: () => void;
   initialDate?: string;
+  readOnly?: boolean;
 }
 
 export function LeaveDialog({
@@ -53,6 +54,7 @@ export function LeaveDialog({
   leaveId,
   onSuccess,
   initialDate,
+  readOnly = false,
 }: LeaveDialogProps) {
   const { user } = useAuth();
   const isEdit = !!leaveId;
@@ -121,7 +123,7 @@ export function LeaveDialog({
 
   // Check for conflicting shifts when dates change
   useEffect(() => {
-    if (!startDate || !endDate || !user?.staff_id || !open) {
+    if (!startDate || !endDate || !user?.staff_id || !open || readOnly) {
       setConflictingShifts([]);
       return;
     }
@@ -141,12 +143,13 @@ export function LeaveDialog({
 
     const timer = setTimeout(check, 500);
     return () => clearTimeout(timer);
-  }, [startDate, endDate, user?.staff_id, open]);
+  }, [startDate, endDate, user?.staff_id, open, readOnly]);
 
   const getFilenameFromUrl = getFilenameFromStorageUrl;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (readOnly) return;
     if (!user?.staff_id) return;
     if (!leaveTypeId || !startDate || !endDate) {
       toast.error('Please fill in all required fields');
@@ -203,7 +206,11 @@ export function LeaveDialog({
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>
-            {isEdit ? 'Edit Leave Request' : 'New Leave Request'}
+            {readOnly
+              ? 'Leave Request Details'
+              : isEdit
+                ? 'Edit Leave Request'
+                : 'New Leave Request'}
           </DialogTitle>
         </DialogHeader>
 
@@ -219,7 +226,7 @@ export function LeaveDialog({
             className="space-y-5 py-4"
           >
             {/* Conflict warning */}
-            {conflictingShifts.length > 0 && (
+            {!readOnly && conflictingShifts.length > 0 && (
               <div className="rounded-lg border border-warning/50 bg-warning/10 p-3 flex gap-3">
                 <AlertTriangle className="size-4 text-warning mt-0.5 shrink-0" />
                 <div className="space-y-1">
@@ -251,6 +258,7 @@ export function LeaveDialog({
                 value={leaveTypeId}
                 onValueChange={setLeaveTypeId}
                 required
+                disabled={readOnly}
               >
                 <SelectTrigger id="leaveType">
                   <SelectValue placeholder="Select leave type" />
@@ -276,6 +284,7 @@ export function LeaveDialog({
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
                   required
+                  disabled={readOnly}
                 />
               </div>
               <div className="space-y-2">
@@ -289,6 +298,7 @@ export function LeaveDialog({
                   min={startDate}
                   onChange={(e) => setEndDate(e.target.value)}
                   required
+                  disabled={readOnly}
                 />
               </div>
             </div>
@@ -306,6 +316,7 @@ export function LeaveDialog({
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="Briefly describe the reason..."
                 rows={3}
+                disabled={readOnly}
               />
             </div>
 
@@ -329,52 +340,55 @@ export function LeaveDialog({
                     >
                       {getFilenameFromUrl(existingAttachmentUrl)}
                     </a>
-                    <button
-                      type="button"
-                      onClick={() => setExistingAttachmentUrl(null)}
-                      className="text-destructive"
-                    >
-                      <X className="size-3.5" />
-                    </button>
+                    {!readOnly && (
+                      <button
+                        type="button"
+                        onClick={() => setExistingAttachmentUrl(null)}
+                        className="text-destructive"
+                      >
+                        <X className="size-3.5" />
+                      </button>
+                    )}
                   </div>
                 )}
-                {attachmentFile ? (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Paperclip className="size-3.5 text-muted-foreground" />
-                    <span className="truncate max-w-[200px]">
-                      {attachmentFile.name}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setAttachmentFile(null)}
-                      className="text-destructive"
-                    >
-                      <X className="size-3.5" />
-                    </button>
-                  </div>
-                ) : (
-                  <div>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      className="hidden"
-                      accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                      onChange={(e) =>
-                        setAttachmentFile(e.target.files?.[0] ?? null)
-                      }
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-8"
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      <Paperclip className="size-3.5 me-1.5" />
-                      {existingAttachmentUrl ? 'Replace' : 'Attach'}
-                    </Button>
-                  </div>
-                )}
+                {!readOnly &&
+                  (attachmentFile ? (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Paperclip className="size-3.5 text-muted-foreground" />
+                      <span className="truncate max-w-[200px]">
+                        {attachmentFile.name}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setAttachmentFile(null)}
+                        className="text-destructive"
+                      >
+                        <X className="size-3.5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        className="hidden"
+                        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                        onChange={(e) =>
+                          setAttachmentFile(e.target.files?.[0] ?? null)
+                        }
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-8"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        <Paperclip className="size-3.5 me-1.5" />
+                        {existingAttachmentUrl ? 'Replace' : 'Attach'}
+                      </Button>
+                    </div>
+                  ))}
               </div>
             </div>
           </form>
@@ -386,15 +400,21 @@ export function LeaveDialog({
             onClick={() => onOpenChange(false)}
             disabled={saving}
           >
-            Cancel
+            {readOnly ? 'Close' : 'Cancel'}
           </Button>
-          <Button
-            type="submit"
-            form="leave-dialog-form"
-            disabled={saving || loading}
-          >
-            {saving ? 'Saving...' : isEdit ? 'Save Changes' : 'Submit Request'}
-          </Button>
+          {!readOnly && (
+            <Button
+              type="submit"
+              form="leave-dialog-form"
+              disabled={saving || loading}
+            >
+              {saving
+                ? 'Saving...'
+                : isEdit
+                  ? 'Save Changes'
+                  : 'Submit Request'}
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -6,7 +6,6 @@ import { useLocation, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { ROUTES } from '@/config/routes.config';
 import { useHouseShiftTemplates } from '@/hooks/use-house-shift-templates';
-import { LeaveDialog } from '@/components/roster/leave-dialog';
 import { getDateRange, ViewMode } from '@/components/roster/roster-utils';
 import { LeaveBlock, ShiftCalendar } from '@/components/roster/shift-calendar';
 import { ShiftDialog, ShiftFormData } from '@/components/roster/shift-dialog';
@@ -17,6 +16,7 @@ import {
   useRosterData,
   useShiftsQuery,
 } from '@/components/roster/use-roster-data';
+import { ViewLeaveDialog } from '@/components/roster/view-leave-dialog';
 import { ViewShiftDialog } from '@/components/roster/view-shift-dialog';
 
 export interface LeaveBlock {
@@ -43,6 +43,7 @@ interface StaffRosterCalendarProps {
   checklists: any[];
   includeEvents?: boolean;
   isPersonal?: boolean;
+  onEditLeave?: (leave: LeaveBlock) => void;
 }
 
 export interface StaffRosterCalendarHandle {
@@ -73,6 +74,7 @@ export const StaffRosterCalendar = forwardRef<
       checklists,
       includeEvents = false,
       isPersonal = false,
+      onEditLeave,
     },
     ref,
   ) => {
@@ -216,8 +218,12 @@ export const StaffRosterCalendar = forwardRef<
     };
 
     const handleEditLeave = (leave: LeaveBlock) => {
-      setSelectedLeaveId(leave.id);
-      setShowLeaveDialog(true);
+      if (onEditLeave) {
+        onEditLeave(leave);
+      } else {
+        setSelectedLeaveId(leave.id);
+        setShowLeaveDialog(true);
+      }
     };
 
     const handleSaveShift = async (formData: ShiftFormData) => {
@@ -513,13 +519,10 @@ export const StaffRosterCalendar = forwardRef<
           />
         )}
 
-        <LeaveDialog
+        <ViewLeaveDialog
           open={showLeaveDialog}
           onOpenChange={setShowLeaveDialog}
           leaveId={selectedLeaveId}
-          onSuccess={() => {
-            queryClient.invalidateQueries({ queryKey: ['leave-requests'] });
-          }}
         />
 
         {canEdit ? (

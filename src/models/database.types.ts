@@ -73,6 +73,54 @@ export type Database = {
           },
         ]
       }
+      ic_behaviour_intensity_master: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ic_behaviour_intensity_master_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_behaviour_intensity_master_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ic_behaviour_types_master: {
         Row: {
           created_at: string | null
@@ -114,6 +162,102 @@ export type Database = {
           },
           {
             foreignKeyName: "fk_ic_behaviour_types_master_updated_by"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ic_bowel_amounts_master: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ic_bowel_amounts_master_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_bowel_amounts_master_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ic_bowel_assistance_master: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ic_bowel_assistance_master_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_bowel_assistance_master_updated_by_fkey"
             columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "ic_staff"
@@ -2384,6 +2528,54 @@ export type Database = {
           },
         ]
       }
+      ic_hygiene_levels_master: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ic_hygiene_levels_master_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_hygiene_levels_master_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ic_id_document_types: {
         Row: {
           attachment_applicable: boolean
@@ -2897,6 +3089,246 @@ export type Database = {
           },
         ]
       }
+      ic_mtm_diet_types_master: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ic_mtm_diet_types_master_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_mtm_diet_types_master_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ic_mtm_fluid_intake_master: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ic_mtm_fluid_intake_master_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_mtm_fluid_intake_master_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ic_mtm_fluids_master: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ic_mtm_fluids_master_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_mtm_fluids_master_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ic_mtm_meal_intake_master: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ic_mtm_meal_intake_master_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_mtm_meal_intake_master_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ic_mtm_swallowing_concerns_master: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ic_mtm_swallowing_concerns_master_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_mtm_swallowing_concerns_master_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ic_notifications: {
         Row: {
           body: string | null
@@ -2950,6 +3382,102 @@ export type Database = {
           },
           {
             foreignKeyName: "fk_ic_notifications_updated_by"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ic_nutrition_intake_master: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ic_nutrition_intake_master_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_nutrition_intake_master_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ic_nutrition_meal_types_master: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ic_nutrition_meal_types_master_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_nutrition_meal_types_master_updated_by_fkey"
             columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "ic_staff"
@@ -4870,12 +5398,12 @@ export type Database = {
       ic_shift_notes: {
         Row: {
           adl_supports: string | null
-          behaviour_intensity: string | null
+          behaviour_intensity_id: string | null
           behaviour_notes: string | null
           behaviour_observed: boolean | null
           behaviour_type_id: string | null
-          bowel_amount: string | null
-          bowel_assistance_required: string | null
+          bowel_amount_id: string | null
+          bowel_assistance_id: string | null
           bowel_bristol_scale: number | null
           bowel_movement_occurred: boolean | null
           bowel_notes: string | null
@@ -4891,23 +5419,23 @@ export type Database = {
           domestic_tasks: string | null
           full_note: string | null
           house_id: string | null
-          hygiene_grooming: string | null
+          hygiene_grooming_id: string | null
           hygiene_notes: string | null
           hygiene_observed_concerns: string | null
-          hygiene_oral_care: string | null
-          hygiene_shower: string | null
+          hygiene_oral_care_id: string | null
+          hygiene_shower_id: string | null
           hygiene_support_required: boolean | null
-          hygiene_toileting: string | null
+          hygiene_toileting_id: string | null
           id: string
           meal_provided: boolean | null
           mtm_concerns: string | null
           mtm_consistency_correct: boolean | null
           mtm_consistency_notes: string | null
-          mtm_diet_type: string | null
-          mtm_fluid_intake: string | null
+          mtm_diet_type_id: string | null
+          mtm_fluid_intake_id: string | null
           mtm_fluid_intake_notes: string | null
-          mtm_fluids: string | null
-          mtm_meal_intake: string | null
+          mtm_fluids_id: string | null
+          mtm_meal_intake_id: string | null
           mtm_meal_intake_notes: string | null
           mtm_meal_provided: boolean | null
           mtm_notes: string | null
@@ -4915,14 +5443,14 @@ export type Database = {
           mtm_positioning_notes: string | null
           mtm_supervision_notes: string | null
           mtm_supervision_required: boolean | null
-          mtm_swallowing_concerns: string | null
+          mtm_swallowing_concerns_id: string | null
           mtm_texture_correct: boolean | null
           mtm_texture_notes: string | null
           notes: string | null
           nutrition_assistance_needed: string | null
           nutrition_fluids_intake: string | null
-          nutrition_intake: string | null
-          nutrition_meal_type: string | null
+          nutrition_intake_id: string | null
+          nutrition_meal_type_id: string | null
           nutrition_notes: string | null
           nutrition_refusal_alternatives: string | null
           overall_presentation: string | null
@@ -4952,10 +5480,10 @@ export type Database = {
           shift_time: string | null
           shift_type: Database["public"]["Enums"]["ic_shift_period_enum"] | null
           sleep_occurred: boolean | null
-          sleep_quality: string | null
+          sleep_quality_id: string | null
           sleep_start_time: string | null
           sleep_support_required: string | null
-          sleep_type_period: string | null
+          sleep_type_id: string | null
           sleep_wake_time: string | null
           staff_id: string | null
           start_date: string
@@ -4965,12 +5493,12 @@ export type Database = {
         }
         Insert: {
           adl_supports?: string | null
-          behaviour_intensity?: string | null
+          behaviour_intensity_id?: string | null
           behaviour_notes?: string | null
           behaviour_observed?: boolean | null
           behaviour_type_id?: string | null
-          bowel_amount?: string | null
-          bowel_assistance_required?: string | null
+          bowel_amount_id?: string | null
+          bowel_assistance_id?: string | null
           bowel_bristol_scale?: number | null
           bowel_movement_occurred?: boolean | null
           bowel_notes?: string | null
@@ -4986,23 +5514,23 @@ export type Database = {
           domestic_tasks?: string | null
           full_note?: string | null
           house_id?: string | null
-          hygiene_grooming?: string | null
+          hygiene_grooming_id?: string | null
           hygiene_notes?: string | null
           hygiene_observed_concerns?: string | null
-          hygiene_oral_care?: string | null
-          hygiene_shower?: string | null
+          hygiene_oral_care_id?: string | null
+          hygiene_shower_id?: string | null
           hygiene_support_required?: boolean | null
-          hygiene_toileting?: string | null
+          hygiene_toileting_id?: string | null
           id?: string
           meal_provided?: boolean | null
           mtm_concerns?: string | null
           mtm_consistency_correct?: boolean | null
           mtm_consistency_notes?: string | null
-          mtm_diet_type?: string | null
-          mtm_fluid_intake?: string | null
+          mtm_diet_type_id?: string | null
+          mtm_fluid_intake_id?: string | null
           mtm_fluid_intake_notes?: string | null
-          mtm_fluids?: string | null
-          mtm_meal_intake?: string | null
+          mtm_fluids_id?: string | null
+          mtm_meal_intake_id?: string | null
           mtm_meal_intake_notes?: string | null
           mtm_meal_provided?: boolean | null
           mtm_notes?: string | null
@@ -5010,14 +5538,14 @@ export type Database = {
           mtm_positioning_notes?: string | null
           mtm_supervision_notes?: string | null
           mtm_supervision_required?: boolean | null
-          mtm_swallowing_concerns?: string | null
+          mtm_swallowing_concerns_id?: string | null
           mtm_texture_correct?: boolean | null
           mtm_texture_notes?: string | null
           notes?: string | null
           nutrition_assistance_needed?: string | null
           nutrition_fluids_intake?: string | null
-          nutrition_intake?: string | null
-          nutrition_meal_type?: string | null
+          nutrition_intake_id?: string | null
+          nutrition_meal_type_id?: string | null
           nutrition_notes?: string | null
           nutrition_refusal_alternatives?: string | null
           overall_presentation?: string | null
@@ -5049,10 +5577,10 @@ export type Database = {
             | Database["public"]["Enums"]["ic_shift_period_enum"]
             | null
           sleep_occurred?: boolean | null
-          sleep_quality?: string | null
+          sleep_quality_id?: string | null
           sleep_start_time?: string | null
           sleep_support_required?: string | null
-          sleep_type_period?: string | null
+          sleep_type_id?: string | null
           sleep_wake_time?: string | null
           staff_id?: string | null
           start_date: string
@@ -5062,12 +5590,12 @@ export type Database = {
         }
         Update: {
           adl_supports?: string | null
-          behaviour_intensity?: string | null
+          behaviour_intensity_id?: string | null
           behaviour_notes?: string | null
           behaviour_observed?: boolean | null
           behaviour_type_id?: string | null
-          bowel_amount?: string | null
-          bowel_assistance_required?: string | null
+          bowel_amount_id?: string | null
+          bowel_assistance_id?: string | null
           bowel_bristol_scale?: number | null
           bowel_movement_occurred?: boolean | null
           bowel_notes?: string | null
@@ -5083,23 +5611,23 @@ export type Database = {
           domestic_tasks?: string | null
           full_note?: string | null
           house_id?: string | null
-          hygiene_grooming?: string | null
+          hygiene_grooming_id?: string | null
           hygiene_notes?: string | null
           hygiene_observed_concerns?: string | null
-          hygiene_oral_care?: string | null
-          hygiene_shower?: string | null
+          hygiene_oral_care_id?: string | null
+          hygiene_shower_id?: string | null
           hygiene_support_required?: boolean | null
-          hygiene_toileting?: string | null
+          hygiene_toileting_id?: string | null
           id?: string
           meal_provided?: boolean | null
           mtm_concerns?: string | null
           mtm_consistency_correct?: boolean | null
           mtm_consistency_notes?: string | null
-          mtm_diet_type?: string | null
-          mtm_fluid_intake?: string | null
+          mtm_diet_type_id?: string | null
+          mtm_fluid_intake_id?: string | null
           mtm_fluid_intake_notes?: string | null
-          mtm_fluids?: string | null
-          mtm_meal_intake?: string | null
+          mtm_fluids_id?: string | null
+          mtm_meal_intake_id?: string | null
           mtm_meal_intake_notes?: string | null
           mtm_meal_provided?: boolean | null
           mtm_notes?: string | null
@@ -5107,14 +5635,14 @@ export type Database = {
           mtm_positioning_notes?: string | null
           mtm_supervision_notes?: string | null
           mtm_supervision_required?: boolean | null
-          mtm_swallowing_concerns?: string | null
+          mtm_swallowing_concerns_id?: string | null
           mtm_texture_correct?: boolean | null
           mtm_texture_notes?: string | null
           notes?: string | null
           nutrition_assistance_needed?: string | null
           nutrition_fluids_intake?: string | null
-          nutrition_intake?: string | null
-          nutrition_meal_type?: string | null
+          nutrition_intake_id?: string | null
+          nutrition_meal_type_id?: string | null
           nutrition_notes?: string | null
           nutrition_refusal_alternatives?: string | null
           overall_presentation?: string | null
@@ -5146,10 +5674,10 @@ export type Database = {
             | Database["public"]["Enums"]["ic_shift_period_enum"]
             | null
           sleep_occurred?: boolean | null
-          sleep_quality?: string | null
+          sleep_quality_id?: string | null
           sleep_start_time?: string | null
           sleep_support_required?: string | null
-          sleep_type_period?: string | null
+          sleep_type_id?: string | null
           sleep_wake_time?: string | null
           staff_id?: string | null
           start_date?: string
@@ -5173,6 +5701,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "ic_shift_notes_behaviour_intensity_id_fkey"
+            columns: ["behaviour_intensity_id"]
+            isOneToOne: false
+            referencedRelation: "ic_behaviour_intensity_master"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "ic_shift_notes_behaviour_type_id_fkey"
             columns: ["behaviour_type_id"]
             isOneToOne: false
@@ -5180,10 +5715,115 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "ic_shift_notes_bowel_amount_id_fkey"
+            columns: ["bowel_amount_id"]
+            isOneToOne: false
+            referencedRelation: "ic_bowel_amounts_master"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_shift_notes_bowel_assistance_id_fkey"
+            columns: ["bowel_assistance_id"]
+            isOneToOne: false
+            referencedRelation: "ic_bowel_assistance_master"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_shift_notes_hygiene_grooming_id_fkey"
+            columns: ["hygiene_grooming_id"]
+            isOneToOne: false
+            referencedRelation: "ic_hygiene_levels_master"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_shift_notes_hygiene_oral_care_id_fkey"
+            columns: ["hygiene_oral_care_id"]
+            isOneToOne: false
+            referencedRelation: "ic_hygiene_levels_master"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_shift_notes_hygiene_shower_id_fkey"
+            columns: ["hygiene_shower_id"]
+            isOneToOne: false
+            referencedRelation: "ic_hygiene_levels_master"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_shift_notes_hygiene_toileting_id_fkey"
+            columns: ["hygiene_toileting_id"]
+            isOneToOne: false
+            referencedRelation: "ic_hygiene_levels_master"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_shift_notes_mtm_diet_type_id_fkey"
+            columns: ["mtm_diet_type_id"]
+            isOneToOne: false
+            referencedRelation: "ic_mtm_diet_types_master"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_shift_notes_mtm_fluid_intake_id_fkey"
+            columns: ["mtm_fluid_intake_id"]
+            isOneToOne: false
+            referencedRelation: "ic_mtm_fluid_intake_master"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_shift_notes_mtm_fluids_id_fkey"
+            columns: ["mtm_fluids_id"]
+            isOneToOne: false
+            referencedRelation: "ic_mtm_fluids_master"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_shift_notes_mtm_meal_intake_id_fkey"
+            columns: ["mtm_meal_intake_id"]
+            isOneToOne: false
+            referencedRelation: "ic_mtm_meal_intake_master"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_shift_notes_mtm_swallowing_concerns_id_fkey"
+            columns: ["mtm_swallowing_concerns_id"]
+            isOneToOne: false
+            referencedRelation: "ic_mtm_swallowing_concerns_master"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_shift_notes_nutrition_intake_id_fkey"
+            columns: ["nutrition_intake_id"]
+            isOneToOne: false
+            referencedRelation: "ic_nutrition_intake_master"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_shift_notes_nutrition_meal_type_id_fkey"
+            columns: ["nutrition_meal_type_id"]
+            isOneToOne: false
+            referencedRelation: "ic_nutrition_meal_types_master"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "ic_shift_notes_seizure_type_id_fkey"
             columns: ["seizure_type_id"]
             isOneToOne: false
             referencedRelation: "ic_seizure_types_master"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_shift_notes_sleep_quality_id_fkey"
+            columns: ["sleep_quality_id"]
+            isOneToOne: false
+            referencedRelation: "ic_sleep_quality_master"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_shift_notes_sleep_type_id_fkey"
+            columns: ["sleep_type_id"]
+            isOneToOne: false
+            referencedRelation: "ic_sleep_types_master"
             referencedColumns: ["id"]
           },
           {
@@ -5382,6 +6022,102 @@ export type Database = {
             columns: ["shift_template_id"]
             isOneToOne: false
             referencedRelation: "ic_house_shift_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ic_sleep_quality_master: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ic_sleep_quality_master_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_sleep_quality_master_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ic_sleep_types_master: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ic_sleep_types_master_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_sleep_types_master_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
             referencedColumns: ["id"]
           },
         ]

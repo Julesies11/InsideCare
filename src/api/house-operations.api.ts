@@ -621,8 +621,15 @@ export const houseOperationsApi = {
             .from(TABLES.HOUSE_CHECKLIST_ITEMS)
             .insert(
               cl.items.map((i) => {
-                const { tempId, ...itemData } = i;
-                return { ...itemData, checklist_id: data.id };
+                // Strip out read-only/joined properties like 'group'
+                // Ensure empty strings are null for UUID columns
+                const { tempId, group, id, ...itemData } = i;
+                return {
+                  ...itemData,
+                  checklist_id: data.id,
+                  group_id: this.sanitizeValue(itemData.group_id),
+                  master_item_id: this.sanitizeValue(itemData.master_item_id),
+                };
               }),
             );
           if (itemsError)
@@ -672,20 +679,61 @@ export const houseOperationsApi = {
             // They will simply remain in the DB and reappear on refresh
           }
 
-          // Upsert current items (Add/Update)
+          // Synchronize items by separating new and existing
           if (cl.items.length > 0) {
-            const { error: itemsError } = await supabase
-              .from(TABLES.HOUSE_CHECKLIST_ITEMS)
-              .upsert(
-                cl.items.map((i) => {
-                  const { tempId, ...itemData } = i;
-                  return { ...itemData, checklist_id: cl.id };
-                }),
-              );
-            if (itemsError)
-              errors.push(
-                `Checklist Items Update for ${cl.house_checklist_name}: ${itemsError.message}`,
-              );
+            const itemsToUpsert = cl.items.filter(
+              (i) => i.id && i.id !== '' && !i.id.toString().startsWith('temp-'),
+            );
+            const itemsToInsert = cl.items.filter(
+              (i) =>
+                !i.id || i.id === '' || i.id.toString().startsWith('temp-'),
+            );
+
+            // 1. Process existing items (Updates)
+            if (itemsToUpsert.length > 0) {
+              const { error: upsertError } = await supabase
+                .from(TABLES.HOUSE_CHECKLIST_ITEMS)
+                .upsert(
+                  itemsToUpsert.map((i) => {
+                    const { tempId, group, ...itemData } = i;
+                    return {
+                      ...itemData,
+                      checklist_id: cl.id,
+                      group_id: this.sanitizeValue(itemData.group_id),
+                      master_item_id: this.sanitizeValue(
+                        itemData.master_item_id,
+                      ),
+                    };
+                  }),
+                );
+              if (upsertError)
+                errors.push(
+                  `Checklist Items Update for ${cl.house_checklist_name}: ${upsertError.message}`,
+                );
+            }
+
+            // 2. Process new items (Additions)
+            if (itemsToInsert.length > 0) {
+              const { error: insertError } = await supabase
+                .from(TABLES.HOUSE_CHECKLIST_ITEMS)
+                .insert(
+                  itemsToInsert.map((i) => {
+                    const { tempId, group, id, ...itemData } = i;
+                    return {
+                      ...itemData,
+                      checklist_id: cl.id,
+                      group_id: this.sanitizeValue(itemData.group_id),
+                      master_item_id: this.sanitizeValue(
+                        itemData.master_item_id,
+                      ),
+                    };
+                  }),
+                );
+              if (insertError)
+                errors.push(
+                  `Checklist Items Add for ${cl.house_checklist_name}: ${insertError.message}`,
+                );
+            }
           }
         }
       }

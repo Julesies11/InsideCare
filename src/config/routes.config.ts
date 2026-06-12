@@ -64,6 +64,7 @@ export const ROUTES = {
   LEAVE_TYPES: '/admin/leave-types',
   COMPLIANCE_SETTINGS: '/admin/compliance-settings',
   ONBOARDING_SETTINGS: '/admin/onboarding-settings',
+  CLINICAL_TRACKER_SETTINGS: '/admin/clinical-trackers',
   COMPLIANCE_MONITORING: '/admin/compliance-monitoring',
   ONBOARDING_MONITORING: '/admin/onboarding-monitoring',
   ACTIVITY_LOG: '/activity-log',

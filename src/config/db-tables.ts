@@ -81,6 +81,21 @@ export const TABLES = {
   ID_DOCUMENT_TYPES: 'ic_id_document_types',
   ONBOARDING_ITEMS_MASTER: 'ic_onboarding_items_master',
 
+  // Clinical Tracker Master Lists
+  SLEEP_QUALITY_MASTER: 'ic_sleep_quality_master',
+  SLEEP_TYPES_MASTER: 'ic_sleep_types_master',
+  BEHAVIOUR_INTENSITY_MASTER: 'ic_behaviour_intensity_master',
+  NUTRITION_MEAL_TYPES_MASTER: 'ic_nutrition_meal_types_master',
+  NUTRITION_INTAKE_MASTER: 'ic_nutrition_intake_master',
+  MTM_DIET_TYPES_MASTER: 'ic_mtm_diet_types_master',
+  MTM_FLUIDS_MASTER: 'ic_mtm_fluids_master',
+  MTM_MEAL_INTAKE_MASTER: 'ic_mtm_meal_intake_master',
+  MTM_FLUID_INTAKE_MASTER: 'ic_mtm_fluid_intake_master',
+  MTM_SWALLOWING_CONCERNS_MASTER: 'ic_mtm_swallowing_concerns_master',
+  HYGIENE_LEVELS_MASTER: 'ic_hygiene_levels_master',
+  BOWEL_AMOUNTS_MASTER: 'ic_bowel_amounts_master',
+  BOWEL_ASSISTANCE_MASTER: 'ic_bowel_assistance_master',
+
   // Enums (PostgreSQL Enums don't need 'ic_' prefix in queries but might be useful to track)
   SHIFT_PERIOD_ENUM: 'ic_shift_period_enum',
   STATUS_ENUM: 'ic_status_enum',

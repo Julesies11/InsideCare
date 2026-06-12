@@ -134,6 +134,11 @@ const OnboardingSettingsPage = lazy(() =>
     (m) => ({ default: m.OnboardingSettingsPage }),
   ),
 );
+const ClinicalTrackersPage = lazy(() =>
+  import('@/pages/admin/clinical-trackers').then(
+    (m) => ({ default: m.ClinicalTrackersPage }),
+  ),
+);
 const ComplianceMonitoringPage = lazy(() =>
   import('@/pages/admin/compliance-monitoring/compliance-monitoring-page').then(
     (m) => ({ default: m.ComplianceMonitoringPage }),
@@ -446,6 +451,10 @@ export function AppRoutingSetup() {
                 <Route
                   path={ROUTES.LEAVE_TYPES}
                   element={<LeaveTypeMasterPage />}
+                />
+                <Route
+                  path={ROUTES.CLINICAL_TRACKER_SETTINGS}
+                  element={<ClinicalTrackersPage />}
                 />
               </Route>
               <Route path={ROUTES.ACCESS_CONTROL} element={<RolesPage />} />

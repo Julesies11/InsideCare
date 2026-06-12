@@ -15,6 +15,7 @@ import {
   ArrowLeft,
   Paperclip,
   Settings2,
+  Upload,
   X,
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router';
@@ -38,6 +39,12 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Container } from '@/components/common/container';
+import {
+  getFileIcon,
+  getFilenameFromStorageUrl,
+  toAbsoluteUrl,
+} from '@/lib/helpers';
+import { cn } from '@/lib/utils';
 
 interface ConflictingShift {
   id: string;
@@ -54,6 +61,7 @@ export function StaffLeaveForm() {
   const { id } = useParams<{ id: string }>();
   const isEdit = !!id;
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const getFilenameFromUrl = getFilenameFromStorageUrl;
 
   const { data: leaveTypes = [], refetch: refetchLeaveTypes } =
     useLeaveTypesMaster(false);
@@ -66,6 +74,7 @@ export function StaffLeaveForm() {
   const [existingAttachmentUrl, setExistingAttachmentUrl] = useState<
     string | null
   >(null);
+  const [toDeleteFile, setToDeleteFile] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loadingEdit, setLoadingEdit] = useState(isEdit);
 
@@ -129,6 +138,30 @@ export function StaffLeaveForm() {
     check();
   }, [startDate, endDate, user?.staff_id]);
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setAttachmentFile(file);
+      if (existingAttachmentUrl) {
+        setToDeleteFile(true);
+        setExistingAttachmentUrl(null);
+      } else {
+        setToDeleteFile(false);
+      }
+    }
+  };
+
+  const handleRemoveFile = () => {
+    setAttachmentFile(null);
+    if (existingAttachmentUrl) {
+      setToDeleteFile(true);
+      setExistingAttachmentUrl(null);
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user?.staff_id) return;
@@ -150,6 +183,8 @@ export function StaffLeaveForm() {
           user.staff_id,
           attachmentFile,
         );
+      } else if (toDeleteFile) {
+        attachmentUrl = null;
       }
 
       const payload = {
@@ -186,6 +221,23 @@ export function StaffLeaveForm() {
       </Container>
     );
   }
+
+  const handleView = async (filePath: string) => {
+    if (!filePath) return;
+    try {
+      const url = await rosterApi.getStaffDocumentSignedUrl(filePath);
+      if (url) window.open(url, '_blank');
+    } catch (error) {
+      console.error('Error viewing document:', error);
+      toast.error('Failed to open document');
+    }
+  };
+
+  const currentFileName = attachmentFile
+    ? attachmentFile.name
+    : existingAttachmentUrl
+      ? getFilenameFromUrl(existingAttachmentUrl)
+      : '';
 
   return (
     <>
@@ -380,65 +432,69 @@ export function StaffLeaveForm() {
                       (optional — e.g. sick note)
                     </span>
                   </Label>
-                  {existingAttachmentUrl && !attachmentFile && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Paperclip className="size-3.5" />
-                      <a
-                        href={existingAttachmentUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="underline truncate max-w-xs"
-                        title={getFilenameFromUrl(existingAttachmentUrl)}
-                      >
-                        {getFilenameFromUrl(existingAttachmentUrl)}
-                      </a>
-                      <button
-                        type="button"
-                        onClick={() => setExistingAttachmentUrl(null)}
-                        className="text-destructive hover:text-destructive/80"
-                      >
-                        <X className="size-3.5" />
-                      </button>
-                    </div>
-                  )}
-                  {attachmentFile ? (
-                    <div className="flex items-center gap-2 text-sm">
-                      <Paperclip className="size-3.5 text-muted-foreground" />
-                      <span className="truncate max-w-xs">
-                        {attachmentFile.name}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setAttachmentFile(null)}
-                        className="text-destructive hover:text-destructive/80"
-                      >
-                        <X className="size-3.5" />
-                      </button>
-                    </div>
-                  ) : (
-                    <div>
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        className="hidden"
-                        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                        onChange={(e) =>
-                          setAttachmentFile(e.target.files?.[0] ?? null)
-                        }
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
+                  <div className="flex flex-col gap-2">
+                    {currentFileName ? (
+                      <div className="flex items-center justify-between p-3 border rounded-lg bg-gray-50">
+                        <div className="flex items-center gap-3 overflow-hidden">
+                          <img
+                            src={toAbsoluteUrl(
+                              `/media/file-types/${getFileIcon(currentFileName)}`,
+                            )}
+                            className="size-8 shrink-0"
+                            alt="file icon"
+                          />
+                          <div className="flex flex-col overflow-hidden">
+                            <button
+                              type="button"
+                              className="text-sm font-medium truncate text-blue-700 dark:text-blue-400 hover:underline text-left cursor-pointer"
+                              onClick={() =>
+                                existingAttachmentUrl &&
+                                handleView(existingAttachmentUrl)
+                              }
+                              disabled={!existingAttachmentUrl}
+                            >
+                              {currentFileName}
+                            </button>
+                            {attachmentFile && (
+                              <span className="text-xs text-muted-foreground">
+                                {Math.round(attachmentFile.size / 1024)} KB
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:bg-destructive/10 shrink-0"
+                          onClick={handleRemoveFile}
+                          title="Remove attachment"
+                        >
+                          <X className="size-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div
+                        className="flex flex-col items-center justify-center py-8 border-2 border-dashed rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
                         onClick={() => fileInputRef.current?.click()}
                       >
-                        <Paperclip className="size-3.5 me-1.5" />
-                        {existingAttachmentUrl
-                          ? 'Replace attachment'
-                          : 'Attach file'}
-                      </Button>
-                    </div>
-                  )}
+                        <Upload className="size-8 text-muted-foreground mb-2" />
+                        <span className="text-sm font-medium">
+                          Click to upload or drag and drop
+                        </span>
+                        <span className="text-xs text-muted-foreground mt-1">
+                          PDF, DOC, DOCX, JPG, PNG up to 10MB
+                        </span>
+                      </div>
+                    )}
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      className="hidden"
+                      accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                      onChange={handleFileChange}
+                    />
+                  </div>
                 </div>
               </form>
             </CardContent>

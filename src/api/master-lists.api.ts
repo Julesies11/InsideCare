@@ -1,7 +1,7 @@
 import { ContactTypeMaster } from '@/models/contact-type-master';
 import { Database } from '@/models/database.types';
 import { MedicationMaster } from '@/models/medication-master';
-import { TABLES } from '@/config/db-tables';
+import { TABLES, TableName } from '@/config/db-tables';
 import { MASTER_LIST_VIEWS, MEDICATION_VIEWS } from '@/config/query-views';
 import { supabase } from '@/lib/supabase';
 
@@ -858,6 +858,42 @@ export const masterListsApi = {
         .from(TABLES.RESTRICTIVE_PRACTICE_TYPES_MASTER)
         .delete()
         .eq('id', id);
+      if (error) throw error;
+    },
+  },
+
+  /**
+   * Clinical Tracker Master Lists (Unified API)
+   */
+  clinicalTrackers: {
+    async list(table: TableName, includeInactive = true) {
+      let query = supabase
+        .from(table)
+        .select('id, name, description, is_active, created_at, updated_at')
+        .order('name', { ascending: true });
+
+      if (!includeInactive) {
+        query = query.eq('is_active', true);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data;
+    },
+
+    async upsert(table: TableName, record: any) {
+      const { data, error } = await supabase
+        .from(table)
+        .upsert([record])
+        .select()
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+
+    async delete(table: TableName, id: string) {
+      const { error } = await supabase.from(table).delete().eq('id', id);
       if (error) throw error;
     },
   },

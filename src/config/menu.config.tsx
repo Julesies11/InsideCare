@@ -146,6 +146,7 @@ export const MENU_SIDEBAR: MenuItemConfig[] = [
       RBAC_MODULES.REPORTING_CLINICAL,
       RBAC_MODULES.REPORTING_OPERATIONAL,
       RBAC_MODULES.REPORTING_COMPLIANCE,
+      RBAC_MODULES.MASTER_LISTS,
     ],
   },
   {
@@ -155,10 +156,26 @@ export const MENU_SIDEBAR: MenuItemConfig[] = [
     permission: RBAC_MODULES.ACCESS_CONTROL,
   },
   {
-    title: 'Checklist Templates',
+    title: 'Master Lists',
     icon: ClipboardList,
-    path: ROUTES.CHECKLIST_TEMPLATES,
-    permission: RBAC_MODULES.ACCESS_CONTROL,
+    permission: RBAC_MODULES.MASTER_LISTS,
+    children: [
+      {
+        title: 'Clinical Trackers',
+        path: ROUTES.CLINICAL_TRACKER_SETTINGS,
+        permission: RBAC_MODULES.MASTER_LISTS,
+      },
+      {
+        title: 'Leave Types',
+        path: ROUTES.LEAVE_TYPES,
+        permission: RBAC_MODULES.MASTER_LISTS,
+      },
+      {
+        title: 'Checklist Templates',
+        path: ROUTES.CHECKLIST_TEMPLATES,
+        permission: RBAC_MODULES.ACCESS_CONTROL,
+      },
+    ],
   },
   {
     title: 'Reporting',

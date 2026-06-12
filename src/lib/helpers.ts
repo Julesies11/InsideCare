@@ -117,6 +117,39 @@ export function formatDateTime(input: Date | string | number): string {
 }
 
 /**
+ * Returns the SVG filename for a given file extension.
+ * Used for displaying consistent file-type icons.
+ */
+export function getFileIcon(fileName?: string): string {
+  if (!fileName) return 'doc.svg';
+  const extension = fileName.split('.').pop()?.toLowerCase();
+  switch (extension) {
+    case 'pdf':
+      return 'pdf.svg';
+    case 'doc':
+    case 'docx':
+      return 'word.svg';
+    case 'xls':
+    case 'xlsx':
+      return 'excel.svg';
+    case 'jpg':
+    case 'jpeg':
+    case 'png':
+    case 'svg':
+    case 'webp':
+      return 'image.svg';
+    case 'txt':
+      return 'text.svg';
+    case 'zip':
+    case 'rar':
+    case '7z':
+      return 'zip.svg';
+    default:
+      return 'doc.svg';
+  }
+}
+
+/**
  * Extracts a human-readable filename from a Supabase storage URL or path.
  * Handles signed URLs and removes timestamp prefixes (e.g., 1700000000000-file.pdf).
  */
@@ -134,5 +167,32 @@ export function getFilenameFromStorageUrl(
     return decoded || 'Existing attachment';
   } catch (e) {
     return 'Existing attachment';
+  }
+}
+
+/**
+ * Extracts a storage path relative to the bucket from a full Supabase storage URL.
+ * If the input is already a path, it returns it as-is.
+ * Example: https://.../object/public/bucket/path/to/file -> path/to/file
+ */
+export function getStoragePath(url: string | null | undefined): string {
+  if (!url) return '';
+  // If it's not a URL, assume it's already a path
+  if (!url.startsWith('http')) return url;
+
+  try {
+    // Supabase URL pattern: /storage/v1/object/(public|authenticated|sign)/bucket-name/path/to/file
+    const searchStr = '/storage/v1/object/';
+    const index = url.indexOf(searchStr);
+    if (index === -1) return url;
+
+    const remaining = url.substring(index + searchStr.length);
+    const parts = remaining.split('/');
+    // parts[0] is 'public' or 'authenticated' or 'sign'
+    // parts[1] is the bucket name
+    // The rest is the path
+    return parts.slice(2).join('/').split('?')[0];
+  } catch (e) {
+    return url;
   }
 }
