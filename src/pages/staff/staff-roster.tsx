@@ -46,7 +46,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Container } from '@/components/common/container';
-import { LeaveDialog } from '@/components/roster/leave-dialog';
 import { RosterCalendarHeader } from '@/components/roster/roster-calendar-header';
 import { ViewMode } from '@/components/roster/roster-utils';
 
@@ -71,10 +70,6 @@ export function StaffRoster() {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebounce(search, 300);
-
-  // Leave Dialog state
-  const [selectedLeaveId, setSelectedLeaveId] = useState<string | null>(null);
-  const [showLeaveDialog, setShowLeaveDialog] = useState(false);
 
   // List state
   const {
@@ -121,18 +116,7 @@ export function StaffRoster() {
     entry.start_date <= new Date().toISOString().split('T')[0];
 
   const handleEditLeave = (leaveId: string) => {
-    setSelectedLeaveId(leaveId);
-    setShowLeaveDialog(true);
-  };
-
-  const handleLeaveSuccess = () => {
-    queryClient.invalidateQueries({
-      queryKey: ['staff-roster', user?.staff_id],
-    });
-    queryClient.invalidateQueries({
-      queryKey: ['leave-requests', user?.staff_id],
-    });
-    refetch();
+    navigate(`${ROUTES.MY_LEAVE}/${leaveId}/edit`);
   };
 
   const columns = useMemo<ColumnDef<any>[]>(
@@ -390,13 +374,6 @@ export function StaffRoster() {
           </div>
         )}
       </Container>
-
-      <LeaveDialog
-        open={showLeaveDialog}
-        onOpenChange={setShowLeaveDialog}
-        leaveId={selectedLeaveId}
-        onSuccess={handleLeaveSuccess}
-      />
     </>
   );
 }

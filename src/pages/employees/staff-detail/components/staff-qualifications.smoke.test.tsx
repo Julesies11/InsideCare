@@ -17,7 +17,7 @@ describe('StaffQualificationsSection Smoke Test', () => {
     render(
       <MemoryRouter>
         <QueryClientProvider client={queryClient}>
-          <StaffQualificationsSection staffId=\"test-id\" canEdit={true} />
+          <StaffQualificationsSection staffId="test-id" canEdit={true} />
         </QueryClientProvider>
       </MemoryRouter>,
     );

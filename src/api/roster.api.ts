@@ -4,6 +4,7 @@ import { LEAVE_STATUS } from '@/config/enums';
 import { CALENDAR_VIEWS, ROSTER_VIEWS } from '@/config/query-views';
 import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 import { supabase } from '@/lib/supabase';
+import { getStoragePath } from '@/lib/helpers';
 
 export interface ShiftParticipantSync {
   shift_id: string;
@@ -954,7 +955,7 @@ export const rosterApi = {
   async getLeaveRequest(id: string) {
     const { data, error } = await supabase
       .from(TABLES.LEAVE_REQUESTS)
-      .select('leave_type_id, start_date, end_date, reason, attachment_url')
+      .select(ROSTER_VIEWS.LEAVE_LIST)
       .eq('id', id)
       .maybeSingle();
 
@@ -1047,9 +1048,10 @@ export const rosterApi = {
    * Generates a signed URL for a staff document.
    */
   async getStaffDocumentSignedUrl(filePath: string) {
+    const cleanPath = getStoragePath(filePath);
     const { data, error } = await supabase.storage
       .from(STORAGE_BUCKETS.STAFF_DOCUMENTS)
-      .createSignedUrl(filePath, 3600);
+      .createSignedUrl(cleanPath, 3600);
 
     if (error) throw error;
     return data.signedUrl;

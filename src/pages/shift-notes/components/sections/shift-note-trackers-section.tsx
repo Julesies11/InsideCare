@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useBehaviourTypesMaster } from '@/hooks/use-behaviour-types-master';
+import { useClinicalTrackersMaster } from '@/hooks/use-clinical-trackers-master';
 import { useSeizureTypesMaster } from '@/hooks/use-seizure-types-master';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -45,6 +46,7 @@ export function ShiftNoteTrackersSection({
   const [behaviourMasterOpen, setBehaviourMasterOpen] = useState(false);
   const { data: seizureTypes = [] } = useSeizureTypesMaster();
   const { data: behaviourTypes = [] } = useBehaviourTypesMaster();
+  const { data: trackerMasters = {} as any } = useClinicalTrackersMaster();
 
   const disabled = !canEdit;
 
@@ -77,7 +79,7 @@ export function ShiftNoteTrackersSection({
               <div className="space-y-2">
                 <Label>Bristol Scale Type *</Label>
                 <BristolScalePicker
-                  value={formData.bowel_bristol_scale}
+                  value={formData.bowel_bristol_scale as number}
                   onChange={(v) => onFormChange('bowel_bristol_scale', v)}
                   disabled={disabled}
                 />
@@ -89,7 +91,7 @@ export function ShiftNoteTrackersSection({
                     <Input
                       id="bowel_time"
                       type="time"
-                      value={formData.bowel_time || ''}
+                      value={(formData.bowel_time as string) || ''}
                       onChange={(e) =>
                         onFormChange('bowel_time', e.target.value)
                       }
@@ -97,12 +99,12 @@ export function ShiftNoteTrackersSection({
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="bowel_amount">Amount</Label>
+                    <Label htmlFor="bowel_amount_id">Amount</Label>
                     <Select
-                      value={formData.bowel_amount || 'none'}
+                      value={(formData.bowel_amount_id as string) || 'none'}
                       onValueChange={(val) =>
                         onFormChange(
-                          'bowel_amount',
+                          'bowel_amount_id',
                           val === 'none' ? null : val,
                         )
                       }
@@ -113,22 +115,24 @@ export function ShiftNoteTrackersSection({
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="none">Select amount...</SelectItem>
-                        <SelectItem value="Small">Small</SelectItem>
-                        <SelectItem value="Medium">Medium</SelectItem>
-                        <SelectItem value="Large">Large</SelectItem>
+                        {trackerMasters.BOWEL_AMOUNTS_MASTER?.map((item: any) => (
+                          <SelectItem key={item.id} value={item.id}>
+                            {item.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="bowel_assistance_required">
+                  <Label htmlFor="bowel_assistance_id">
                     Assistance Required
                   </Label>
                   <Select
-                    value={formData.bowel_assistance_required || 'none'}
+                    value={(formData.bowel_assistance_id as string) || 'none'}
                     onValueChange={(val) =>
                       onFormChange(
-                        'bowel_assistance_required',
+                        'bowel_assistance_id',
                         val === 'none' ? null : val,
                       )
                     }
@@ -139,9 +143,11 @@ export function ShiftNoteTrackersSection({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">Select assistance...</SelectItem>
-                      <SelectItem value="none">None</SelectItem>
-                      <SelectItem value="prompted">Prompted</SelectItem>
-                      <SelectItem value="assisted">Assisted</SelectItem>
+                      {trackerMasters.BOWEL_ASSISTANCE_MASTER?.map((item: any) => (
+                        <SelectItem key={item.id} value={item.id}>
+                          {item.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -151,7 +157,7 @@ export function ShiftNoteTrackersSection({
               <Label htmlFor="bowel_notes">Extra Notes</Label>
               <Textarea
                 id="bowel_notes"
-                value={formData.bowel_notes || ''}
+                value={(formData.bowel_notes as string) || ''}
                 onChange={(e) => onFormChange('bowel_notes', e.target.value)}
                 placeholder="Any concerns or extra notes..."
                 rows={2}
@@ -192,7 +198,7 @@ export function ShiftNoteTrackersSection({
                 <Input
                   id="seizure_time_started"
                   type="time"
-                  value={formData.seizure_time_started || ''}
+                  value={(formData.seizure_time_started as string) || ''}
                   onChange={(e) =>
                     onFormChange('seizure_time_started', e.target.value)
                   }
@@ -207,7 +213,7 @@ export function ShiftNoteTrackersSection({
                   id="seizure_duration_minutes"
                   type="number"
                   min="0"
-                  value={formData.seizure_duration_minutes || ''}
+                  value={(formData.seizure_duration_minutes as string) || ''}
                   onChange={(e) =>
                     onFormChange(
                       'seizure_duration_minutes',
@@ -220,7 +226,7 @@ export function ShiftNoteTrackersSection({
               <div className="space-y-2 lg:col-span-2">
                 <Label htmlFor="seizure_type_id">Seizure Type</Label>
                 <Select
-                  value={formData.seizure_type_id || 'none'}
+                  value={(formData.seizure_type_id as string) || 'none'}
                   onValueChange={(val) =>
                     onFormChange('seizure_type_id', val === 'none' ? null : val)
                   }
@@ -248,7 +254,7 @@ export function ShiftNoteTrackersSection({
               <Label htmlFor="seizure_description">Description</Label>
               <Textarea
                 id="seizure_description"
-                value={formData.seizure_description || ''}
+                value={(formData.seizure_description as string) || ''}
                 onChange={(e) =>
                   onFormChange('seizure_description', e.target.value)
                 }
@@ -316,7 +322,7 @@ export function ShiftNoteTrackersSection({
                     </Label>
                     <Input
                       id="seizure_injury_description"
-                      value={formData.seizure_injury_description || ''}
+                      value={(formData.seizure_injury_description as string) || ''}
                       onChange={(e) =>
                         onFormChange(
                           'seizure_injury_description',
@@ -383,7 +389,7 @@ export function ShiftNoteTrackersSection({
                   <Label htmlFor="seizure_notes">Other Concerns / Notes</Label>
                   <Input
                     id="seizure_notes"
-                    value={formData.seizure_notes || ''}
+                    value={(formData.seizure_notes as string) || ''}
                     onChange={(e) =>
                       onFormChange('seizure_notes', e.target.value)
                     }
@@ -412,12 +418,12 @@ export function ShiftNoteTrackersSection({
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="sleep_type_period">Sleep Type</Label>
+                <Label htmlFor="sleep_type_id">Sleep Type</Label>
                 <Select
-                  value={formData.sleep_type_period || 'none'}
+                  value={(formData.sleep_type_id as string) || 'none'}
                   onValueChange={(val) =>
                     onFormChange(
-                      'sleep_type_period',
+                      'sleep_type_id',
                       val === 'none' ? null : val,
                     )
                   }
@@ -428,8 +434,11 @@ export function ShiftNoteTrackersSection({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Select...</SelectItem>
-                    <SelectItem value="Day sleep">Day sleep</SelectItem>
-                    <SelectItem value="Night sleep">Night sleep</SelectItem>
+                    {trackerMasters.SLEEP_TYPES_MASTER?.map((item: any) => (
+                      <SelectItem key={item.id} value={item.id}>
+                        {item.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -438,7 +447,7 @@ export function ShiftNoteTrackersSection({
                 <Input
                   id="sleep_start_time"
                   type="time"
-                  value={formData.sleep_start_time || ''}
+                  value={(formData.sleep_start_time as string) || ''}
                   onChange={(e) =>
                     onFormChange('sleep_start_time', e.target.value)
                   }
@@ -450,7 +459,7 @@ export function ShiftNoteTrackersSection({
                 <Input
                   id="sleep_wake_time"
                   type="time"
-                  value={formData.sleep_wake_time || ''}
+                  value={(formData.sleep_wake_time as string) || ''}
                   onChange={(e) =>
                     onFormChange('sleep_wake_time', e.target.value)
                   }
@@ -458,16 +467,29 @@ export function ShiftNoteTrackersSection({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="sleep_quality">Sleep Quality</Label>
-                <Input
-                  id="sleep_quality"
-                  value={formData.sleep_quality || ''}
-                  onChange={(e) =>
-                    onFormChange('sleep_quality', e.target.value)
+                <Label htmlFor="sleep_quality_id">Sleep Quality</Label>
+                <Select
+                  value={(formData.sleep_quality_id as string) || 'none'}
+                  onValueChange={(val) =>
+                    onFormChange(
+                      'sleep_quality_id',
+                      val === 'none' ? null : val,
+                    )
                   }
-                  placeholder="e.g. Restless, Deep"
                   disabled={disabled}
-                />
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Select...</SelectItem>
+                    {trackerMasters.SLEEP_QUALITY_MASTER?.map((item: any) => (
+                      <SelectItem key={item.id} value={item.id}>
+                        {item.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <div className="space-y-2">
@@ -476,7 +498,7 @@ export function ShiftNoteTrackersSection({
               </Label>
               <Textarea
                 id="sleep_support_required"
-                value={formData.sleep_support_required || ''}
+                value={(formData.sleep_support_required as string) || ''}
                 onChange={(e) =>
                   onFormChange('sleep_support_required', e.target.value)
                 }
@@ -517,7 +539,7 @@ export function ShiftNoteTrackersSection({
               <div className="space-y-2">
                 <Label htmlFor="behaviour_type_id">Behaviour Type</Label>
                 <Select
-                  value={formData.behaviour_type_id || 'none'}
+                  value={(formData.behaviour_type_id as string) || 'none'}
                   onValueChange={(val) =>
                     onFormChange(
                       'behaviour_type_id',
@@ -542,12 +564,12 @@ export function ShiftNoteTrackersSection({
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="behaviour_intensity">Intensity</Label>
+                <Label htmlFor="behaviour_intensity_id">Intensity</Label>
                 <Select
-                  value={formData.behaviour_intensity || 'none'}
+                  value={(formData.behaviour_intensity_id as string) || 'none'}
                   onValueChange={(val) =>
                     onFormChange(
-                      'behaviour_intensity',
+                      'behaviour_intensity_id',
                       val === 'none' ? null : val,
                     )
                   }
@@ -558,9 +580,11 @@ export function ShiftNoteTrackersSection({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Select intensity...</SelectItem>
-                    <SelectItem value="Low">Low</SelectItem>
-                    <SelectItem value="Moderate">Moderate</SelectItem>
-                    <SelectItem value="High">High</SelectItem>
+                    {trackerMasters.BEHAVIOUR_INTENSITY_MASTER?.map((item: any) => (
+                      <SelectItem key={item.id} value={item.id}>
+                        {item.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -569,7 +593,7 @@ export function ShiftNoteTrackersSection({
               <Label htmlFor="behaviour_notes">Notes</Label>
               <Textarea
                 id="behaviour_notes"
-                value={formData.behaviour_notes || ''}
+                value={(formData.behaviour_notes as string) || ''}
                 onChange={(e) =>
                   onFormChange('behaviour_notes', e.target.value)
                 }
@@ -600,7 +624,7 @@ export function ShiftNoteTrackersSection({
                 <Label htmlFor="community_activity_type">Activity Type</Label>
                 <Input
                   id="community_activity_type"
-                  value={formData.community_activity_type || ''}
+                  value={(formData.community_activity_type as string) || ''}
                   onChange={(e) =>
                     onFormChange('community_activity_type', e.target.value)
                   }
@@ -612,7 +636,7 @@ export function ShiftNoteTrackersSection({
                 <Label htmlFor="community_location">Location</Label>
                 <Input
                   id="community_location"
-                  value={formData.community_location || ''}
+                  value={(formData.community_location as string) || ''}
                   onChange={(e) =>
                     onFormChange('community_location', e.target.value)
                   }
@@ -626,7 +650,7 @@ export function ShiftNoteTrackersSection({
                 </Label>
                 <Input
                   id="community_engagement_level"
-                  value={formData.community_engagement_level || ''}
+                  value={(formData.community_engagement_level as string) || ''}
                   onChange={(e) =>
                     onFormChange('community_engagement_level', e.target.value)
                   }
@@ -639,7 +663,7 @@ export function ShiftNoteTrackersSection({
               <Label htmlFor="community_notes">Notes</Label>
               <Textarea
                 id="community_notes"
-                value={formData.community_notes || ''}
+                value={(formData.community_notes as string) || ''}
                 onChange={(e) =>
                   onFormChange('community_notes', e.target.value)
                 }
@@ -667,12 +691,12 @@ export function ShiftNoteTrackersSection({
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="nutrition_meal_type">Meal Type</Label>
+                <Label htmlFor="nutrition_meal_type_id">Meal Type</Label>
                 <Select
-                  value={formData.nutrition_meal_type || 'none'}
+                  value={(formData.nutrition_meal_type_id as string) || 'none'}
                   onValueChange={(val) =>
                     onFormChange(
-                      'nutrition_meal_type',
+                      'nutrition_meal_type_id',
                       val === 'none' ? null : val,
                     )
                   }
@@ -683,20 +707,21 @@ export function ShiftNoteTrackersSection({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Select...</SelectItem>
-                    <SelectItem value="Bfast">Breakfast</SelectItem>
-                    <SelectItem value="Lunch">Lunch</SelectItem>
-                    <SelectItem value="Dinner">Dinner</SelectItem>
-                    <SelectItem value="Snack">Snack</SelectItem>
+                    {trackerMasters.NUTRITION_MEAL_TYPES_MASTER?.map((item: any) => (
+                      <SelectItem key={item.id} value={item.id}>
+                        {item.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="nutrition_intake">Intake</Label>
+                <Label htmlFor="nutrition_intake_id">Intake</Label>
                 <Select
-                  value={formData.nutrition_intake || 'none'}
+                  value={(formData.nutrition_intake_id as string) || 'none'}
                   onValueChange={(val) =>
                     onFormChange(
-                      'nutrition_intake',
+                      'nutrition_intake_id',
                       val === 'none' ? null : val,
                     )
                   }
@@ -707,9 +732,11 @@ export function ShiftNoteTrackersSection({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Select...</SelectItem>
-                    <SelectItem value="Full">Full</SelectItem>
-                    <SelectItem value="Partial">Partial</SelectItem>
-                    <SelectItem value="Refused">Refused</SelectItem>
+                    {trackerMasters.NUTRITION_INTAKE_MASTER?.map((item: any) => (
+                      <SelectItem key={item.id} value={item.id}>
+                        {item.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -717,7 +744,7 @@ export function ShiftNoteTrackersSection({
                 <Label htmlFor="nutrition_fluids_intake">Fluids Intake</Label>
                 <Input
                   id="nutrition_fluids_intake"
-                  value={formData.nutrition_fluids_intake || ''}
+                  value={(formData.nutrition_fluids_intake as string) || ''}
                   onChange={(e) =>
                     onFormChange('nutrition_fluids_intake', e.target.value)
                   }
@@ -734,7 +761,7 @@ export function ShiftNoteTrackersSection({
                 </Label>
                 <Input
                   id="nutrition_assistance_needed"
-                  value={formData.nutrition_assistance_needed || ''}
+                  value={(formData.nutrition_assistance_needed as string) || ''}
                   onChange={(e) =>
                     onFormChange('nutrition_assistance_needed', e.target.value)
                   }
@@ -748,7 +775,7 @@ export function ShiftNoteTrackersSection({
                 </Label>
                 <Input
                   id="nutrition_refusal_alternatives"
-                  value={formData.nutrition_refusal_alternatives || ''}
+                  value={(formData.nutrition_refusal_alternatives as string) || ''}
                   onChange={(e) =>
                     onFormChange(
                       'nutrition_refusal_alternatives',
@@ -765,7 +792,7 @@ export function ShiftNoteTrackersSection({
               <Label htmlFor="nutrition_notes">Notes</Label>
               <Textarea
                 id="nutrition_notes"
-                value={formData.nutrition_notes || ''}
+                value={(formData.nutrition_notes as string) || ''}
                 onChange={(e) =>
                   onFormChange('nutrition_notes', e.target.value)
                 }
@@ -793,11 +820,11 @@ export function ShiftNoteTrackersSection({
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="mtm_diet_type">Diet Type</Label>
+                <Label htmlFor="mtm_diet_type_id">Diet Type</Label>
                 <Select
-                  value={formData.mtm_diet_type || 'none'}
+                  value={(formData.mtm_diet_type_id as string) || 'none'}
                   onValueChange={(val) =>
-                    onFormChange('mtm_diet_type', val === 'none' ? null : val)
+                    onFormChange('mtm_diet_type_id', val === 'none' ? null : val)
                   }
                   disabled={disabled}
                 >
@@ -806,20 +833,20 @@ export function ShiftNoteTrackersSection({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Select diet...</SelectItem>
-                    <SelectItem value="Regular">Regular</SelectItem>
-                    <SelectItem value="Soft">Soft</SelectItem>
-                    <SelectItem value="Minced">Minced</SelectItem>
-                    <SelectItem value="Pureed">Pureed</SelectItem>
-                    <SelectItem value="Liquidised">Liquidised</SelectItem>
+                    {trackerMasters.MTM_DIET_TYPES_MASTER?.map((item: any) => (
+                      <SelectItem key={item.id} value={item.id}>
+                        {item.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="mtm_fluids">Fluids Consistency</Label>
+                <Label htmlFor="mtm_fluids_id">Fluids Consistency</Label>
                 <Select
-                  value={formData.mtm_fluids || 'none'}
+                  value={(formData.mtm_fluids_id as string) || 'none'}
                   onValueChange={(val) =>
-                    onFormChange('mtm_fluids', val === 'none' ? null : val)
+                    onFormChange('mtm_fluids_id', val === 'none' ? null : val)
                   }
                   disabled={disabled}
                 >
@@ -828,11 +855,11 @@ export function ShiftNoteTrackersSection({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Select consistency...</SelectItem>
-                    <SelectItem value="Thin">Thin</SelectItem>
-                    <SelectItem value="Mildly thick">Mildly thick</SelectItem>
-                    <SelectItem value="Extremely thick">
-                      Extremely thick
-                    </SelectItem>
+                    {trackerMasters.MTM_FLUIDS_MASTER?.map((item: any) => (
+                      <SelectItem key={item.id} value={item.id}>
+                        {item.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -1103,13 +1130,13 @@ export function ShiftNoteTrackersSection({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="mtm_swallowing_concerns">
+              <Label htmlFor="mtm_swallowing_concerns_id">
                 Any swallowing concerns?
               </Label>
               <Select
-                value={formData.mtm_swallowing_concerns || 'no'}
+                value={(formData.mtm_swallowing_concerns_id as string) || 'none'}
                 onValueChange={(val) =>
-                  onFormChange('mtm_swallowing_concerns', val)
+                  onFormChange('mtm_swallowing_concerns_id', val === 'none' ? null : val)
                 }
                 disabled={disabled}
               >
@@ -1117,16 +1144,12 @@ export function ShiftNoteTrackersSection({
                   <SelectValue placeholder="Select..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="no">No</SelectItem>
-                  <SelectItem value="Coughing">Coughing</SelectItem>
-                  <SelectItem value="Choking">Choking</SelectItem>
-                  <SelectItem value="Wet voice">Wet voice</SelectItem>
-                  <SelectItem value="Food refusal linked to swallowing">
-                    Food refusal linked to swallowing
-                  </SelectItem>
-                  <SelectItem value="Prolonged eating time">
-                    Prolonged eating time
-                  </SelectItem>
+                  <SelectItem value="none">Select...</SelectItem>
+                  {trackerMasters.MTM_SWALLOWING_CONCERNS_MASTER?.map((item: any) => (
+                    <SelectItem key={item.id} value={item.id}>
+                      {item.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -1134,12 +1157,12 @@ export function ShiftNoteTrackersSection({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="mtm_meal_intake">Meal Intake</Label>
+                  <Label htmlFor="mtm_meal_intake_id">Meal Intake</Label>
                   <Select
-                    value={formData.mtm_meal_intake || 'none'}
+                    value={(formData.mtm_meal_intake_id as string) || 'none'}
                     onValueChange={(val) =>
                       onFormChange(
-                        'mtm_meal_intake',
+                        'mtm_meal_intake_id',
                         val === 'none' ? null : val,
                       )
                     }
@@ -1150,16 +1173,17 @@ export function ShiftNoteTrackersSection({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">Select intake...</SelectItem>
-                      <SelectItem value="Full">Full</SelectItem>
-                      <SelectItem value="Partial">Partial</SelectItem>
-                      <SelectItem value="Minimal">Minimal</SelectItem>
-                      <SelectItem value="None">None</SelectItem>
+                      {trackerMasters.MTM_MEAL_INTAKE_MASTER?.map((item: any) => (
+                        <SelectItem key={item.id} value={item.id}>
+                          {item.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <Input
                   placeholder="Intake notes..."
-                  value={formData.mtm_meal_intake_notes || ''}
+                  value={(formData.mtm_meal_intake_notes as string) || ''}
                   onChange={(e) =>
                     onFormChange('mtm_meal_intake_notes', e.target.value)
                   }
@@ -1168,12 +1192,12 @@ export function ShiftNoteTrackersSection({
               </div>
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="mtm_fluid_intake">Fluid Intake</Label>
+                  <Label htmlFor="mtm_fluid_intake_id">Fluid Intake</Label>
                   <Select
-                    value={formData.mtm_fluid_intake || 'none'}
+                    value={(formData.mtm_fluid_intake_id as string) || 'none'}
                     onValueChange={(val) =>
                       onFormChange(
-                        'mtm_fluid_intake',
+                        'mtm_fluid_intake_id',
                         val === 'none' ? null : val,
                       )
                     }
@@ -1184,15 +1208,17 @@ export function ShiftNoteTrackersSection({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">Select intake...</SelectItem>
-                      <SelectItem value="Adequate">Adequate</SelectItem>
-                      <SelectItem value="Low">Low</SelectItem>
-                      <SelectItem value="Refused">Refused</SelectItem>
+                      {trackerMasters.MTM_FLUID_INTAKE_MASTER?.map((item: any) => (
+                        <SelectItem key={item.id} value={item.id}>
+                          {item.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <Input
                   placeholder="Fluid intake notes..."
-                  value={formData.mtm_fluid_intake_notes || ''}
+                  value={(formData.mtm_fluid_intake_notes as string) || ''}
                   onChange={(e) =>
                     onFormChange('mtm_fluid_intake_notes', e.target.value)
                   }
@@ -1205,7 +1231,7 @@ export function ShiftNoteTrackersSection({
               <Label htmlFor="mtm_notes">Additional Mealtime Notes</Label>
               <Textarea
                 id="mtm_notes"
-                value={formData.mtm_notes || ''}
+                value={(formData.mtm_notes as string) || ''}
                 onChange={(e) => onFormChange('mtm_notes', e.target.value)}
                 placeholder="General comments..."
                 rows={2}
@@ -1231,11 +1257,11 @@ export function ShiftNoteTrackersSection({
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="hygiene_shower">Shower</Label>
+                <Label htmlFor="hygiene_shower_id">Shower</Label>
                 <Select
-                  value={formData.hygiene_shower || 'none'}
+                  value={(formData.hygiene_shower_id as string) || 'none'}
                   onValueChange={(val) =>
-                    onFormChange('hygiene_shower', val === 'none' ? null : val)
+                    onFormChange('hygiene_shower_id', val === 'none' ? null : val)
                   }
                   disabled={disabled}
                 >
@@ -1244,27 +1270,21 @@ export function ShiftNoteTrackersSection({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Select...</SelectItem>
-                    <SelectItem value="Independently">Independently</SelectItem>
-                    <SelectItem value="With prompting">
-                      With prompting
-                    </SelectItem>
-                    <SelectItem value="Supervision required">
-                      Supervision required
-                    </SelectItem>
-                    <SelectItem value="Assistance needed">
-                      Assistance needed
-                    </SelectItem>
-                    <SelectItem value="Refused">Refused</SelectItem>
+                    {trackerMasters.HYGIENE_LEVELS_MASTER?.map((item: any) => (
+                      <SelectItem key={item.id} value={item.id}>
+                        {item.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="hygiene_oral_care">Oral Care</Label>
+                <Label htmlFor="hygiene_oral_care_id">Oral Care</Label>
                 <Select
-                  value={formData.hygiene_oral_care || 'none'}
+                  value={(formData.hygiene_oral_care_id as string) || 'none'}
                   onValueChange={(val) =>
                     onFormChange(
-                      'hygiene_oral_care',
+                      'hygiene_oral_care_id',
                       val === 'none' ? null : val,
                     )
                   }
@@ -1275,27 +1295,21 @@ export function ShiftNoteTrackersSection({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Select...</SelectItem>
-                    <SelectItem value="Independently">Independently</SelectItem>
-                    <SelectItem value="With prompting">
-                      With prompting
-                    </SelectItem>
-                    <SelectItem value="Supervision required">
-                      Supervision required
-                    </SelectItem>
-                    <SelectItem value="Assistance needed">
-                      Assistance needed
-                    </SelectItem>
-                    <SelectItem value="Refused">Refused</SelectItem>
+                    {trackerMasters.HYGIENE_LEVELS_MASTER?.map((item: any) => (
+                      <SelectItem key={item.id} value={item.id}>
+                        {item.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="hygiene_toileting">Toileting</Label>
+                <Label htmlFor="hygiene_toileting_id">Toileting</Label>
                 <Select
-                  value={formData.hygiene_toileting || 'none'}
+                  value={(formData.hygiene_toileting_id as string) || 'none'}
                   onValueChange={(val) =>
                     onFormChange(
-                      'hygiene_toileting',
+                      'hygiene_toileting_id',
                       val === 'none' ? null : val,
                     )
                   }
@@ -1306,27 +1320,21 @@ export function ShiftNoteTrackersSection({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Select...</SelectItem>
-                    <SelectItem value="Independently">Independently</SelectItem>
-                    <SelectItem value="With prompting">
-                      With prompting
-                    </SelectItem>
-                    <SelectItem value="Supervision required">
-                      Supervision required
-                    </SelectItem>
-                    <SelectItem value="Assistance needed">
-                      Assistance needed
-                    </SelectItem>
-                    <SelectItem value="Refused">Refused</SelectItem>
+                    {trackerMasters.HYGIENE_LEVELS_MASTER?.map((item: any) => (
+                      <SelectItem key={item.id} value={item.id}>
+                        {item.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="hygiene_grooming">Grooming</Label>
+                <Label htmlFor="hygiene_grooming_id">Grooming</Label>
                 <Select
-                  value={formData.hygiene_grooming || 'none'}
+                  value={(formData.hygiene_grooming_id as string) || 'none'}
                   onValueChange={(val) =>
                     onFormChange(
-                      'hygiene_grooming',
+                      'hygiene_grooming_id',
                       val === 'none' ? null : val,
                     )
                   }
@@ -1337,17 +1345,11 @@ export function ShiftNoteTrackersSection({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Select...</SelectItem>
-                    <SelectItem value="Independently">Independently</SelectItem>
-                    <SelectItem value="With prompting">
-                      With prompting
-                    </SelectItem>
-                    <SelectItem value="Supervision required">
-                      Supervision required
-                    </SelectItem>
-                    <SelectItem value="Assistance needed">
-                      Assistance needed
-                    </SelectItem>
-                    <SelectItem value="Refused">Refused</SelectItem>
+                    {trackerMasters.HYGIENE_LEVELS_MASTER?.map((item: any) => (
+                      <SelectItem key={item.id} value={item.id}>
+                        {item.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -1358,7 +1360,7 @@ export function ShiftNoteTrackersSection({
               </Label>
               <Input
                 id="hygiene_observed_concerns"
-                value={formData.hygiene_observed_concerns || ''}
+                value={(formData.hygiene_observed_concerns as string) || ''}
                 onChange={(e) =>
                   onFormChange('hygiene_observed_concerns', e.target.value)
                 }
@@ -1370,7 +1372,7 @@ export function ShiftNoteTrackersSection({
               <Label htmlFor="hygiene_notes">Notes</Label>
               <Textarea
                 id="hygiene_notes"
-                value={formData.hygiene_notes || ''}
+                value={(formData.hygiene_notes as string) || ''}
                 onChange={(e) => onFormChange('hygiene_notes', e.target.value)}
                 placeholder="Extra details..."
                 rows={2}

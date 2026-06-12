@@ -39,7 +39,11 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Container } from '@/components/common/container';
-import { getFilenameFromStorageUrl, toAbsoluteUrl } from '@/lib/helpers';
+import {
+  getFileIcon,
+  getFilenameFromStorageUrl,
+  toAbsoluteUrl,
+} from '@/lib/helpers';
 import { cn } from '@/lib/utils';
 
 interface ConflictingShift {
@@ -49,35 +53,6 @@ interface ConflictingShift {
   end_time: string;
   house?: { house_name: string } | null;
 }
-
-const getFileIcon = (fileName?: string) => {
-  if (!fileName) return 'doc.svg';
-  const extension = fileName.split('.').pop()?.toLowerCase();
-  switch (extension) {
-    case 'pdf':
-      return 'pdf.svg';
-    case 'doc':
-    case 'docx':
-      return 'word.svg';
-    case 'xls':
-    case 'xlsx':
-      return 'excel.svg';
-    case 'jpg':
-    case 'jpeg':
-    case 'png':
-    case 'svg':
-    case 'webp':
-      return 'image.svg';
-    case 'txt':
-      return 'text.svg';
-    case 'zip':
-    case 'rar':
-    case '7z':
-      return 'zip.svg';
-    default:
-      return 'doc.svg';
-  }
-};
 
 export function StaffLeaveForm() {
   const { user } = useAuth();
@@ -248,6 +223,7 @@ export function StaffLeaveForm() {
   }
 
   const handleView = async (filePath: string) => {
+    if (!filePath) return;
     try {
       const url = await rosterApi.getStaffDocumentSignedUrl(filePath);
       if (url) window.open(url, '_blank');
@@ -470,7 +446,7 @@ export function StaffLeaveForm() {
                           <div className="flex flex-col overflow-hidden">
                             <button
                               type="button"
-                              className="text-sm font-medium truncate text-blue-700 dark:text-blue-400 hover:underline text-left"
+                              className="text-sm font-medium truncate text-blue-700 dark:text-blue-400 hover:underline text-left cursor-pointer"
                               onClick={() =>
                                 existingAttachmentUrl &&
                                 handleView(existingAttachmentUrl)

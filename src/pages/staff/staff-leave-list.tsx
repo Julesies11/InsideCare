@@ -17,7 +17,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTable } from '@/components/ui/card';
 import { Container } from '@/components/common/container';
-import { getFilenameFromStorageUrl, toAbsoluteUrl } from '@/lib/helpers';
+import {
+  getFileIcon,
+  getFilenameFromStorageUrl,
+  toAbsoluteUrl,
+} from '@/lib/helpers';
 
 interface LeaveRequest {
   id: string;
@@ -44,33 +48,6 @@ const statusLabel: Record<string, string> = {
   pending: 'Pending',
   approved: 'Approved',
   rejected: 'Rejected',
-};
-
-const getFileIcon = (fileName?: string) => {
-  if (!fileName) return 'doc.svg';
-  const extension = fileName.split('.').pop()?.toLowerCase();
-  switch (extension) {
-    case 'pdf':
-      return 'pdf.svg';
-    case 'doc':
-    case 'docx':
-      return 'word.svg';
-    case 'xls':
-    case 'xlsx':
-      return 'excel.svg';
-    case 'jpg':
-    case 'jpeg':
-    case 'png':
-    case 'svg':
-    case 'webp':
-      return 'image.svg';
-    case 'txt':
-      return 'text.svg';
-    case 'zip':
-      return 'zip.svg';
-    default:
-      return 'doc.svg';
-  }
 };
 
 export function StaffLeaveList() {
@@ -100,6 +77,7 @@ export function StaffLeaveList() {
   }, [fetchRequests]);
 
   const handleView = async (filePath: string) => {
+    if (!filePath) return;
     try {
       const url = await rosterApi.getStaffDocumentSignedUrl(filePath);
       if (url) window.open(url, '_blank');
