@@ -114,6 +114,81 @@
         "policy_count": 7
       },
       {
+        "name": "ic_behaviour_intensity_master",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "name",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "description",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "is_active",
+            "type": "boolean",
+            "default": "true",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "created_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
         "name": "ic_behaviour_types_master",
         "columns": [
           {
@@ -187,6 +262,156 @@
           }
         ],
         "policy_count": 4
+      },
+      {
+        "name": "ic_bowel_amounts_master",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "name",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "description",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "is_active",
+            "type": "boolean",
+            "default": "true",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "created_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "ic_bowel_assistance_master",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "name",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "description",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "is_active",
+            "type": "boolean",
+            "default": "true",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "created_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          }
+        ],
+        "policy_count": 2
       },
       {
         "name": "ic_branch_policies",
@@ -312,14 +537,14 @@
             "ref_table": "ic_staff"
           },
           {
-            "col": "updated_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
             "col": "branch_id",
             "ref_col": "id",
             "ref_table": "ic_branches"
+          },
+          {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 2
@@ -464,12 +689,12 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -579,17 +804,17 @@
             "ref_table": "ic_house_shift_templates"
           },
           {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
             "col": "master_id",
             "ref_col": "id",
             "ref_table": "ic_checklist_master"
           },
           {
             "col": "created_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
-            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -659,12 +884,12 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -882,12 +1107,12 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -1032,12 +1257,12 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -1107,12 +1332,12 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -1321,12 +1546,12 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -1422,12 +1647,12 @@
             "ref_table": "ic_house_calendar_events"
           },
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -1660,12 +1885,12 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -1798,11 +2023,6 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "updated_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
             "col": "event_type_id",
             "ref_col": "id",
             "ref_table": "ic_house_calendar_event_types_master"
@@ -1813,19 +2033,24 @@
             "ref_table": "ic_house_checklists"
           },
           {
+            "col": "checklist_schedule_id",
+            "ref_col": "id",
+            "ref_table": "ic_checklist_schedules"
+          },
+          {
             "col": "house_id",
             "ref_col": "id",
             "ref_table": "ic_houses"
           },
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "checklist_schedule_id",
+            "col": "created_by",
             "ref_col": "id",
-            "ref_table": "ic_checklist_schedules"
+            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 2
@@ -1921,17 +2146,12 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "updated_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
             "col": "submission_id",
             "ref_col": "id",
             "ref_table": "ic_house_checklist_submissions"
           },
           {
-            "col": "uploaded_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
@@ -1944,6 +2164,11 @@
             "col": "item_id",
             "ref_col": "id",
             "ref_table": "ic_house_checklist_items"
+          },
+          {
+            "col": "uploaded_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 2
@@ -2053,14 +2278,14 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
+            "col": "group_id",
+            "ref_col": "id",
+            "ref_table": "ic_house_shift_templates"
+          },
+          {
             "col": "master_item_id",
             "ref_col": "id",
             "ref_table": "ic_checklist_item_master"
-          },
-          {
-            "col": "updated_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
           },
           {
             "col": "created_by",
@@ -2068,9 +2293,9 @@
             "ref_table": "ic_staff"
           },
           {
-            "col": "group_id",
+            "col": "updated_by",
             "ref_col": "id",
-            "ref_table": "ic_house_shift_templates"
+            "ref_table": "ic_staff"
           },
           {
             "col": "checklist_id",
@@ -2178,14 +2403,9 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "completed_by",
+            "col": "submission_id",
             "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
-            "col": "item_id",
-            "ref_col": "id",
-            "ref_table": "ic_house_checklist_items"
+            "ref_table": "ic_house_checklist_submissions"
           },
           {
             "col": "master_item_id",
@@ -2193,17 +2413,22 @@
             "ref_table": "ic_checklist_item_master"
           },
           {
-            "col": "submission_id",
+            "col": "item_id",
             "ref_col": "id",
-            "ref_table": "ic_house_checklist_submissions"
+            "ref_table": "ic_house_checklist_items"
           },
           {
-            "col": "created_by",
+            "col": "completed_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
             "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -2336,9 +2561,9 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "checklist_id",
+            "col": "created_by",
             "ref_col": "id",
-            "ref_table": "ic_house_checklists"
+            "ref_table": "ic_staff"
           },
           {
             "col": "submitted_by",
@@ -2371,17 +2596,17 @@
             "ref_table": "ic_houses"
           },
           {
+            "col": "checklist_id",
+            "ref_col": "id",
+            "ref_table": "ic_house_checklists"
+          },
+          {
             "col": "calendar_event_id",
             "ref_col": "id",
             "ref_table": "ic_house_calendar_events"
           },
           {
             "col": "updated_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
-            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -2479,16 +2704,6 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "updated_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
-            "col": "house_id",
-            "ref_col": "id",
-            "ref_table": "ic_houses"
-          },
-          {
             "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
@@ -2497,6 +2712,16 @@
             "col": "master_id",
             "ref_col": "id",
             "ref_table": "ic_checklist_master"
+          },
+          {
+            "col": "house_id",
+            "ref_col": "id",
+            "ref_table": "ic_houses"
+          },
+          {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 4
@@ -2569,14 +2794,14 @@
             "ref_table": "ic_staff"
           },
           {
-            "col": "house_id",
-            "ref_col": "id",
-            "ref_table": "ic_houses"
-          },
-          {
             "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
+          },
+          {
+            "col": "house_id",
+            "ref_col": "id",
+            "ref_table": "ic_houses"
           }
         ],
         "policy_count": 2
@@ -2693,14 +2918,14 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "updated_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
             "col": "house_id",
             "ref_col": "id",
             "ref_table": "ic_houses"
+          },
+          {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
           },
           {
             "col": "created_by",
@@ -2820,17 +3045,7 @@
             "ref_table": "ic_house_forms"
           },
           {
-            "col": "updated_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
-            "col": "assigned_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
-            "col": "completed_by",
+            "col": "staff_id",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
@@ -2840,7 +3055,17 @@
             "ref_table": "ic_participants"
           },
           {
-            "col": "staff_id",
+            "col": "completed_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "assigned_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
@@ -2948,11 +3173,6 @@
             "ref_table": "ic_participants"
           },
           {
-            "col": "submitted_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
             "col": "form_id",
             "ref_col": "id",
             "ref_table": "ic_house_forms"
@@ -2963,12 +3183,17 @@
             "ref_table": "ic_house_form_assignments"
           },
           {
+            "col": "created_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
             "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "created_by",
+            "col": "submitted_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -3071,12 +3296,12 @@
             "ref_table": "ic_houses"
           },
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -3216,6 +3441,11 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
             "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
@@ -3224,11 +3454,6 @@
             "col": "house_id",
             "ref_col": "id",
             "ref_table": "ic_houses"
-          },
-          {
-            "col": "updated_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 2
@@ -3338,17 +3563,17 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
+            "col": "created_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
             "col": "house_id",
             "ref_col": "id",
             "ref_table": "ic_houses"
           },
           {
             "col": "updated_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
-            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -3444,7 +3669,7 @@
             "ref_table": "ic_staff"
           },
           {
-            "col": "updated_by",
+            "col": "staff_id",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
@@ -3454,7 +3679,7 @@
             "ref_table": "ic_houses"
           },
           {
-            "col": "staff_id",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -3697,10 +3922,90 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
+            "col": "house_type_id",
+            "ref_col": "id",
+            "ref_table": "ic_house_types_master"
+          },
+          {
+            "col": "created_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
             "col": "branch_id",
             "ref_col": "id",
             "ref_table": "ic_branches"
+          }
+        ],
+        "policy_count": 4
+      },
+      {
+        "name": "ic_hygiene_levels_master",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
           },
+          {
+            "pk": false,
+            "name": "name",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "description",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "is_active",
+            "type": "boolean",
+            "default": "true",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
           {
             "col": "updated_by",
             "ref_col": "id",
@@ -3710,14 +4015,9 @@
             "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
-          },
-          {
-            "col": "house_type_id",
-            "ref_col": "id",
-            "ref_table": "ic_house_types_master"
           }
         ],
-        "policy_count": 4
+        "policy_count": 2
       },
       {
         "name": "ic_id_document_types",
@@ -3824,12 +4124,12 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -4095,22 +4395,12 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "created_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
             "col": "restrictive_practice_type_id",
             "ref_col": "id",
             "ref_table": "ic_restrictive_practice_types_master"
           },
           {
-            "col": "reported_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
-            "col": "involved_staff_id",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
@@ -4133,6 +4423,16 @@
             "col": "involved_participant_id",
             "ref_col": "id",
             "ref_table": "ic_participants"
+          },
+          {
+            "col": "involved_staff_id",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "reported_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 4
@@ -4299,22 +4599,22 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "leave_type_id",
-            "ref_col": "id",
-            "ref_table": "ic_leave_types"
-          },
-          {
             "col": "staff_id",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "updated_by",
+            "col": "leave_type_id",
+            "ref_col": "id",
+            "ref_table": "ic_leave_types"
+          },
+          {
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -4445,12 +4745,12 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -4562,12 +4862,12 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
@@ -4578,6 +4878,381 @@
           }
         ],
         "policy_count": 7
+      },
+      {
+        "name": "ic_mtm_diet_types_master",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "name",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "description",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "is_active",
+            "type": "boolean",
+            "default": "true",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "created_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "ic_mtm_fluid_intake_master",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "name",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "description",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "is_active",
+            "type": "boolean",
+            "default": "true",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "created_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "ic_mtm_fluids_master",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "name",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "description",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "is_active",
+            "type": "boolean",
+            "default": "true",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "created_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "ic_mtm_meal_intake_master",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "name",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "description",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "is_active",
+            "type": "boolean",
+            "default": "true",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "created_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "ic_mtm_swallowing_concerns_master",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "name",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "description",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "is_active",
+            "type": "boolean",
+            "default": "true",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "created_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          }
+        ],
+        "policy_count": 2
       },
       {
         "name": "ic_notifications",
@@ -4670,17 +5345,167 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
         ],
         "policy_count": 1
+      },
+      {
+        "name": "ic_nutrition_intake_master",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "name",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "description",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "is_active",
+            "type": "boolean",
+            "default": "true",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "created_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          }
+        ],
+        "policy_count": 2
+      },
+      {
+        "name": "ic_nutrition_meal_types_master",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "name",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "description",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "is_active",
+            "type": "boolean",
+            "default": "true",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "created_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          }
+        ],
+        "policy_count": 2
       },
       {
         "name": "ic_onboarding_items_master",
@@ -4851,24 +5676,24 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "created_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
             "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "contact_type_id",
+            "col": "created_by",
             "ref_col": "id",
-            "ref_table": "ic_contact_types_master"
+            "ref_table": "ic_staff"
           },
           {
             "col": "participant_id",
             "ref_col": "id",
             "ref_table": "ic_participants"
+          },
+          {
+            "col": "contact_type_id",
+            "ref_col": "id",
+            "ref_table": "ic_contact_types_master"
           }
         ],
         "policy_count": 2
@@ -4936,24 +5761,24 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "created_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
             "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "document_id",
+            "col": "created_by",
             "ref_col": "id",
-            "ref_table": "ic_participant_documents"
+            "ref_table": "ic_staff"
           },
           {
             "col": "role_id",
             "ref_col": "id",
             "ref_table": "ic_roles"
+          },
+          {
+            "col": "document_id",
+            "ref_col": "id",
+            "ref_table": "ic_participant_documents"
           }
         ],
         "policy_count": 2
@@ -5141,14 +5966,14 @@
             "ref_table": "ic_staff"
           },
           {
-            "col": "participant_id",
-            "ref_col": "id",
-            "ref_table": "ic_participants"
-          },
-          {
             "col": "submitted_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
+          },
+          {
+            "col": "participant_id",
+            "ref_col": "id",
+            "ref_table": "ic_participants"
           },
           {
             "col": "updated_by",
@@ -5289,12 +6114,12 @@
             "ref_table": "ic_participants"
           },
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
@@ -5372,11 +6197,6 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "goal_id",
-            "ref_col": "id",
-            "ref_table": "ic_participant_goals"
-          },
-          {
             "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
@@ -5385,6 +6205,11 @@
             "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
+          },
+          {
+            "col": "goal_id",
+            "ref_col": "id",
+            "ref_table": "ic_participant_goals"
           }
         ],
         "policy_count": 1
@@ -5459,7 +6284,7 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
@@ -5469,7 +6294,7 @@
             "ref_table": "ic_participants"
           },
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -5581,6 +6406,11 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
             "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
@@ -5589,11 +6419,6 @@
             "col": "participant_id",
             "ref_col": "id",
             "ref_table": "ic_participants"
-          },
-          {
-            "col": "updated_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 2
@@ -5668,14 +6493,14 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "updated_by",
+            "col": "participant_id",
             "ref_col": "id",
-            "ref_table": "ic_staff"
+            "ref_table": "ic_participants"
           },
           {
             "col": "medication_id",
@@ -5683,9 +6508,9 @@
             "ref_table": "ic_medications_master"
           },
           {
-            "col": "participant_id",
+            "col": "created_by",
             "ref_col": "id",
-            "ref_table": "ic_participants"
+            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 2
@@ -5772,14 +6597,14 @@
             "ref_table": "ic_staff"
           },
           {
-            "col": "created_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
             "col": "participant_id",
             "ref_col": "id",
             "ref_table": "ic_participants"
+          },
+          {
+            "col": "created_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 4
@@ -5917,17 +6742,17 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
             "col": "participant_id",
             "ref_col": "id",
             "ref_table": "ic_participants"
           },
           {
             "col": "created_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
-            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -6438,9 +7263,9 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "updated_by",
+            "col": "house_id",
             "ref_col": "id",
-            "ref_table": "ic_staff"
+            "ref_table": "ic_houses"
           },
           {
             "col": "created_by",
@@ -6448,9 +7273,9 @@
             "ref_table": "ic_staff"
           },
           {
-            "col": "house_id",
+            "col": "updated_by",
             "ref_col": "id",
-            "ref_table": "ic_houses"
+            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 5
@@ -6539,12 +7364,12 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -6635,17 +7460,17 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "created_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
             "col": "department_id",
             "ref_col": "id",
             "ref_table": "ic_departments"
           },
           {
             "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -6708,7 +7533,7 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
@@ -6718,7 +7543,7 @@
             "ref_table": "ic_participants"
           },
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -7366,12 +8191,12 @@
             "ref_table": "ic_roles"
           },
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -7455,12 +8280,12 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -7598,24 +8423,24 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "service_id",
-            "ref_col": "id",
-            "ref_table": "ic_services"
-          },
-          {
-            "col": "participant_id",
-            "ref_col": "id",
-            "ref_table": "ic_participants"
-          },
-          {
             "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
+            "col": "service_id",
+            "ref_col": "id",
+            "ref_table": "ic_services"
+          },
+          {
             "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
+          },
+          {
+            "col": "participant_id",
+            "ref_col": "id",
+            "ref_table": "ic_participants"
           }
         ],
         "policy_count": 3
@@ -7676,12 +8501,7 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "updated_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
-            "col": "created_by",
+            "col": "staff_id",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
@@ -7691,7 +8511,12 @@
             "ref_table": "ic_services"
           },
           {
-            "col": "staff_id",
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -7768,12 +8593,12 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -7864,6 +8689,11 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
+            "col": "shift_id",
+            "ref_col": "id",
+            "ref_table": "ic_staff_shifts"
+          },
+          {
             "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
@@ -7879,19 +8709,14 @@
             "ref_table": "ic_houses"
           },
           {
-            "col": "shift_template_id",
-            "ref_col": "id",
-            "ref_table": "ic_house_shift_templates"
-          },
-          {
             "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "shift_id",
+            "col": "shift_template_id",
             "ref_col": "id",
-            "ref_table": "ic_staff_shifts"
+            "ref_table": "ic_house_shift_templates"
           }
         ],
         "policy_count": 4
@@ -8125,20 +8950,6 @@
           },
           {
             "pk": false,
-            "name": "bowel_amount",
-            "type": "text",
-            "default": null,
-            "nullable": "YES"
-          },
-          {
-            "pk": false,
-            "name": "bowel_assistance_required",
-            "type": "text",
-            "default": null,
-            "nullable": "YES"
-          },
-          {
-            "pk": false,
             "name": "bowel_notes",
             "type": "text",
             "default": null,
@@ -8216,13 +9027,6 @@
           },
           {
             "pk": false,
-            "name": "sleep_type_period",
-            "type": "text",
-            "default": null,
-            "nullable": "YES"
-          },
-          {
-            "pk": false,
             "name": "sleep_start_time",
             "type": "time without time zone",
             "default": null,
@@ -8232,13 +9036,6 @@
             "pk": false,
             "name": "sleep_wake_time",
             "type": "time without time zone",
-            "default": null,
-            "nullable": "YES"
-          },
-          {
-            "pk": false,
-            "name": "sleep_quality",
-            "type": "text",
             "default": null,
             "nullable": "YES"
           },
@@ -8260,13 +9057,6 @@
             "pk": false,
             "name": "behaviour_type_id",
             "type": "uuid",
-            "default": null,
-            "nullable": "YES"
-          },
-          {
-            "pk": false,
-            "name": "behaviour_intensity",
-            "type": "text",
             "default": null,
             "nullable": "YES"
           },
@@ -8321,20 +9111,6 @@
           },
           {
             "pk": false,
-            "name": "nutrition_meal_type",
-            "type": "text",
-            "default": null,
-            "nullable": "YES"
-          },
-          {
-            "pk": false,
-            "name": "nutrition_intake",
-            "type": "text",
-            "default": null,
-            "nullable": "YES"
-          },
-          {
-            "pk": false,
             "name": "nutrition_refusal_alternatives",
             "type": "text",
             "default": null,
@@ -8370,20 +9146,6 @@
           },
           {
             "pk": false,
-            "name": "mtm_diet_type",
-            "type": "text",
-            "default": null,
-            "nullable": "YES"
-          },
-          {
-            "pk": false,
-            "name": "mtm_fluids",
-            "type": "text",
-            "default": null,
-            "nullable": "YES"
-          },
-          {
-            "pk": false,
             "name": "mtm_texture_correct",
             "type": "boolean",
             "default": null,
@@ -8412,28 +9174,7 @@
           },
           {
             "pk": false,
-            "name": "mtm_swallowing_concerns",
-            "type": "text",
-            "default": null,
-            "nullable": "YES"
-          },
-          {
-            "pk": false,
-            "name": "mtm_meal_intake",
-            "type": "text",
-            "default": null,
-            "nullable": "YES"
-          },
-          {
-            "pk": false,
             "name": "mtm_meal_intake_notes",
-            "type": "text",
-            "default": null,
-            "nullable": "YES"
-          },
-          {
-            "pk": false,
-            "name": "mtm_fluid_intake",
             "type": "text",
             "default": null,
             "nullable": "YES"
@@ -8464,34 +9205,6 @@
             "name": "hygiene_support_required",
             "type": "boolean",
             "default": "false",
-            "nullable": "YES"
-          },
-          {
-            "pk": false,
-            "name": "hygiene_shower",
-            "type": "text",
-            "default": null,
-            "nullable": "YES"
-          },
-          {
-            "pk": false,
-            "name": "hygiene_oral_care",
-            "type": "text",
-            "default": null,
-            "nullable": "YES"
-          },
-          {
-            "pk": false,
-            "name": "hygiene_toileting",
-            "type": "text",
-            "default": null,
-            "nullable": "YES"
-          },
-          {
-            "pk": false,
-            "name": "hygiene_grooming",
-            "type": "text",
-            "default": null,
             "nullable": "YES"
           },
           {
@@ -8549,10 +9262,227 @@
             "type": "text",
             "default": null,
             "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "sleep_quality_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "sleep_type_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "behaviour_intensity_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "nutrition_meal_type_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "nutrition_intake_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "mtm_diet_type_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "mtm_fluids_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "mtm_meal_intake_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "mtm_fluid_intake_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "mtm_swallowing_concerns_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "hygiene_shower_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "hygiene_oral_care_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "hygiene_toileting_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "hygiene_grooming_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "bowel_amount_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "bowel_assistance_id",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
           }
         ],
         "rls_enabled": true,
         "foreign_keys": [
+          {
+            "col": "hygiene_oral_care_id",
+            "ref_col": "id",
+            "ref_table": "ic_hygiene_levels_master"
+          },
+          {
+            "col": "created_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "behaviour_intensity_id",
+            "ref_col": "id",
+            "ref_table": "ic_behaviour_intensity_master"
+          },
+          {
+            "col": "behaviour_type_id",
+            "ref_col": "id",
+            "ref_table": "ic_behaviour_types_master"
+          },
+          {
+            "col": "bowel_amount_id",
+            "ref_col": "id",
+            "ref_table": "ic_bowel_amounts_master"
+          },
+          {
+            "col": "bowel_assistance_id",
+            "ref_col": "id",
+            "ref_table": "ic_bowel_assistance_master"
+          },
+          {
+            "col": "hygiene_grooming_id",
+            "ref_col": "id",
+            "ref_table": "ic_hygiene_levels_master"
+          },
+          {
+            "col": "hygiene_shower_id",
+            "ref_col": "id",
+            "ref_table": "ic_hygiene_levels_master"
+          },
+          {
+            "col": "hygiene_toileting_id",
+            "ref_col": "id",
+            "ref_table": "ic_hygiene_levels_master"
+          },
+          {
+            "col": "mtm_diet_type_id",
+            "ref_col": "id",
+            "ref_table": "ic_mtm_diet_types_master"
+          },
+          {
+            "col": "mtm_fluid_intake_id",
+            "ref_col": "id",
+            "ref_table": "ic_mtm_fluid_intake_master"
+          },
+          {
+            "col": "mtm_fluids_id",
+            "ref_col": "id",
+            "ref_table": "ic_mtm_fluids_master"
+          },
+          {
+            "col": "mtm_meal_intake_id",
+            "ref_col": "id",
+            "ref_table": "ic_mtm_meal_intake_master"
+          },
+          {
+            "col": "mtm_swallowing_concerns_id",
+            "ref_col": "id",
+            "ref_table": "ic_mtm_swallowing_concerns_master"
+          },
+          {
+            "col": "nutrition_intake_id",
+            "ref_col": "id",
+            "ref_table": "ic_nutrition_intake_master"
+          },
+          {
+            "col": "nutrition_meal_type_id",
+            "ref_col": "id",
+            "ref_table": "ic_nutrition_meal_types_master"
+          },
+          {
+            "col": "seizure_type_id",
+            "ref_col": "id",
+            "ref_table": "ic_seizure_types_master"
+          },
+          {
+            "col": "sleep_quality_id",
+            "ref_col": "id",
+            "ref_table": "ic_sleep_quality_master"
+          },
+          {
+            "col": "sleep_type_id",
+            "ref_col": "id",
+            "ref_table": "ic_sleep_types_master"
+          },
+          {
+            "col": "house_id",
+            "ref_col": "id",
+            "ref_table": "ic_houses"
+          },
           {
             "col": "participant_id",
             "ref_col": "id",
@@ -8567,31 +9497,6 @@
             "col": "staff_id",
             "ref_col": "id",
             "ref_table": "ic_staff"
-          },
-          {
-            "col": "updated_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
-            "col": "created_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
-            "col": "behaviour_type_id",
-            "ref_col": "id",
-            "ref_table": "ic_behaviour_types_master"
-          },
-          {
-            "col": "seizure_type_id",
-            "ref_col": "id",
-            "ref_table": "ic_seizure_types_master"
-          },
-          {
-            "col": "house_id",
-            "ref_col": "id",
-            "ref_table": "ic_houses"
           }
         ],
         "policy_count": 7
@@ -8652,6 +9557,11 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
+            "col": "participant_id",
+            "ref_col": "id",
+            "ref_table": "ic_participants"
+          },
+          {
             "col": "shift_id",
             "ref_col": "id",
             "ref_table": "ic_staff_shifts"
@@ -8665,11 +9575,6 @@
             "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
-          },
-          {
-            "col": "participant_id",
-            "ref_col": "id",
-            "ref_table": "ic_participants"
           }
         ],
         "policy_count": 4
@@ -8735,12 +9640,12 @@
             "ref_table": "ic_house_checklists"
           },
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "created_by",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -8803,6 +9708,11 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
             "col": "shift_template_id",
             "ref_col": "id",
             "ref_table": "ic_house_shift_templates"
@@ -8816,6 +9726,76 @@
             "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
+          }
+        ],
+        "policy_count": 5
+      },
+      {
+        "name": "ic_sleep_quality_master",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "name",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "description",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "is_active",
+            "type": "boolean",
+            "default": "true",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "created_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
           },
           {
             "col": "updated_by",
@@ -8823,7 +9803,82 @@
             "ref_table": "ic_staff"
           }
         ],
-        "policy_count": 5
+        "policy_count": 2
+      },
+      {
+        "name": "ic_sleep_types_master",
+        "columns": [
+          {
+            "pk": true,
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "name",
+            "type": "text",
+            "default": null,
+            "nullable": "NO"
+          },
+          {
+            "pk": false,
+            "name": "description",
+            "type": "text",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "is_active",
+            "type": "boolean",
+            "default": "true",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "created_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          },
+          {
+            "pk": false,
+            "name": "updated_by",
+            "type": "uuid",
+            "default": null,
+            "nullable": "YES"
+          }
+        ],
+        "rls_enabled": true,
+        "foreign_keys": [
+          {
+            "col": "updated_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "created_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          }
+        ],
+        "policy_count": 2
       },
       {
         "name": "ic_staff",
@@ -9019,14 +10074,9 @@
             "ref_table": "ic_staff"
           },
           {
-            "col": "updated_by",
+            "col": "manager_id",
             "ref_col": "id",
             "ref_table": "ic_staff"
-          },
-          {
-            "col": "department_id",
-            "ref_col": "id",
-            "ref_table": "ic_departments"
           },
           {
             "col": "employment_type_id",
@@ -9034,7 +10084,12 @@
             "ref_table": "ic_employment_types_master"
           },
           {
-            "col": "manager_id",
+            "col": "department_id",
+            "ref_col": "id",
+            "ref_table": "ic_departments"
+          },
+          {
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
@@ -9257,12 +10312,17 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "updated_by",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "created_by",
+            "col": "staff_compliance_id",
+            "ref_col": "id",
+            "ref_table": "ic_staff_compliance"
+          },
+          {
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
@@ -9270,11 +10330,6 @@
             "col": "document_type",
             "ref_col": "id",
             "ref_table": "ic_id_document_types"
-          },
-          {
-            "col": "staff_compliance_id",
-            "ref_col": "id",
-            "ref_table": "ic_staff_compliance"
           }
         ],
         "policy_count": 2
@@ -9342,14 +10397,9 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "role_id",
+            "col": "document_id",
             "ref_col": "id",
-            "ref_table": "ic_roles"
-          },
-          {
-            "col": "updated_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
+            "ref_table": "ic_staff_documents"
           },
           {
             "col": "created_by",
@@ -9357,9 +10407,14 @@
             "ref_table": "ic_staff"
           },
           {
-            "col": "document_id",
+            "col": "updated_by",
             "ref_col": "id",
-            "ref_table": "ic_staff_documents"
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "role_id",
+            "ref_col": "id",
+            "ref_table": "ic_roles"
           }
         ],
         "policy_count": 2
@@ -9448,17 +10503,17 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "updated_by",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
             "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
             "col": "staff_id",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -9757,6 +10812,16 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
+            "col": "staff_id",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "shift_template_id",
+            "ref_col": "id",
+            "ref_table": "ic_house_shift_templates"
+          },
+          {
             "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
@@ -9770,16 +10835,6 @@
             "col": "house_id",
             "ref_col": "id",
             "ref_table": "ic_houses"
-          },
-          {
-            "col": "shift_template_id",
-            "ref_col": "id",
-            "ref_table": "ic_house_shift_templates"
-          },
-          {
-            "col": "staff_id",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
           }
         ],
         "policy_count": 5
@@ -9896,12 +10951,12 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "updated_by",
+            "col": "staff_id",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
-            "col": "staff_id",
+            "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
@@ -10107,12 +11162,12 @@
             "ref_table": "ic_staff"
           },
           {
-            "col": "shift_id",
+            "col": "staff_id",
             "ref_col": "id",
-            "ref_table": "ic_staff_shifts"
+            "ref_table": "ic_staff"
           },
           {
-            "col": "staff_id",
+            "col": "created_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
@@ -10122,9 +11177,9 @@
             "ref_table": "ic_staff"
           },
           {
-            "col": "created_by",
+            "col": "shift_id",
             "ref_col": "id",
-            "ref_table": "ic_staff"
+            "ref_table": "ic_staff_shifts"
           }
         ],
         "policy_count": 4
@@ -10199,17 +11254,17 @@
         "rls_enabled": true,
         "foreign_keys": [
           {
-            "col": "staff_id",
-            "ref_col": "id",
-            "ref_table": "ic_staff"
-          },
-          {
             "col": "updated_by",
             "ref_col": "id",
             "ref_table": "ic_staff"
           },
           {
             "col": "created_by",
+            "ref_col": "id",
+            "ref_table": "ic_staff"
+          },
+          {
+            "col": "staff_id",
             "ref_col": "id",
             "ref_table": "ic_staff"
           }
@@ -10263,7 +11318,7 @@
         "args": "",
         "name": "ic_audit_trigger_func",
         "returns": "trigger",
-        "definition": "\nDECLARE\n    target_data JSONB;\n    entity_name_val TEXT;\n    user_name_val TEXT;\n    acting_staff_id UUID;\nBEGIN\n    acting_staff_id := public.ic_jwt_get_staff_id();\n    \n    -- Resolve acting user name\n    SELECT staff_name INTO user_name_val FROM public.ic_staff WHERE id = acting_staff_id LIMIT 1;\n    \n    target_data := CASE WHEN TG_OP = 'DELETE' THEN to_jsonb(OLD) ELSE to_jsonb(NEW) END;\n\n    -- Resolve Entity Name (Primary Check)\n    -- ADDED 'title' for Qualifications support\n    entity_name_val := COALESCE(\n        target_data->>'reference_id',\n        target_data->>'title',\n        target_data->>'file_name',\n        target_data->>'staff_name', \n        target_data->>'participant_name',\n        target_data->>'name'\n    );\n\n    -- Resolve names for ID-only records dynamically from master tables\n    IF entity_name_val IS NULL THEN\n        IF TG_TABLE_NAME = 'ic_staff_compliance' THEN\n            SELECT compliance_name INTO entity_name_val FROM public.ic_compliance_types_master WHERE id = (target_data->>'compliance_type_id')::uuid;\n        ELSIF TG_TABLE_NAME = 'ic_staff_onboarding' THEN\n            SELECT item_name INTO entity_name_val FROM public.ic_onboarding_items_master WHERE id = (target_data->>'onboarding_item_id')::uuid;\n        ELSIF TG_TABLE_NAME = 'ic_participant_medications' THEN\n            SELECT medication_name INTO entity_name_val FROM public.ic_medications_master WHERE id = (target_data->>'medication_id')::uuid;\n        END IF;\n    END IF;\n\n    -- Standard Audit Log Insertion\n    INSERT INTO public.ic_activity_log (\n        activity_type, entity_type, entity_id, entity_name, description, user_name, user_id\n    ) VALUES (\n        LOWER(TG_OP), REPLACE(TG_TABLE_NAME, 'ic_', ''), (target_data->>'id'), entity_name_val, \n        INITCAP(TG_OP) || ' ' || REPLACE(TG_TABLE_NAME, 'ic_', '') || ': ' || COALESCE(entity_name_val, 'ID ' || (target_data->>'id')),\n        COALESCE(user_name_val, 'System'), acting_staff_id\n    );\n\n    RETURN CASE WHEN TG_OP = 'DELETE' THEN OLD ELSE NEW END;\nEND;\n"
+        "definition": "\nDECLARE\n    target_data JSONB;\n    entity_name_val TEXT;\n    user_name_val TEXT;\n    acting_staff_id UUID;\nBEGIN\n    acting_staff_id := public.ic_jwt_get_staff_id();\n    \n    -- Resolve acting user name\n    SELECT staff_name INTO user_name_val FROM public.ic_staff WHERE id = acting_staff_id LIMIT 1;\n    \n    target_data := CASE WHEN TG_OP = 'DELETE' THEN to_jsonb(OLD) ELSE to_jsonb(NEW) END;\n\n    -- Resolve Entity Name (Primary Check)\n    entity_name_val := COALESCE(\n        target_data->>'reference_id',\n        target_data->>'title',\n        target_data->>'file_name',\n        target_data->>'staff_name', \n        target_data->>'participant_name',\n        target_data->>'name'\n    );\n\n    -- Resolve names for ID-only records dynamically from master tables\n    IF entity_name_val IS NULL THEN\n        IF TG_TABLE_NAME = 'ic_staff_compliance' THEN\n            SELECT compliance_name INTO entity_name_val FROM public.ic_compliance_types_master WHERE id = (target_data->>'compliance_type_id')::uuid;\n        ELSIF TG_TABLE_NAME = 'ic_staff_onboarding' THEN\n            SELECT item_name INTO entity_name_val FROM public.ic_onboarding_items_master WHERE id = (target_data->>'onboarding_item_id')::uuid;\n        ELSIF TG_TABLE_NAME = 'ic_participant_medications' THEN\n            SELECT medication_name INTO entity_name_val FROM public.ic_medications_master WHERE id = (target_data->>'medication_id')::uuid;\n        END IF;\n    END IF;\n\n    -- Standard Audit Log Insertion\n    INSERT INTO public.ic_activity_log (\n        activity_type, entity_type, entity_id, entity_name, description, user_name, user_id\n    ) VALUES (\n        LOWER(TG_OP), REPLACE(TG_TABLE_NAME, 'ic_', ''), (target_data->>'id'), entity_name_val, \n        INITCAP(TG_OP) || ' ' || REPLACE(TG_TABLE_NAME, 'ic_', '') || ': ' || COALESCE(entity_name_val, 'ID ' || (target_data->>'id')),\n        COALESCE(user_name_val, 'System'), acting_staff_id\n    );\n\n    RETURN CASE WHEN TG_OP = 'DELETE' THEN OLD ELSE NEW END;\nEND;\n"
       },
       {
         "args": "",
@@ -10275,7 +11330,7 @@
         "args": "p_module text",
         "name": "ic_jwt_get_perm",
         "returns": "text",
-        "definition": "\nDECLARE\n  v_perm_text text;\nBEGIN\n  -- FIRST: Try to get from JWT (Fastest, no recursion)\n  v_perm_text := auth.jwt() -> 'app_metadata' -> 'permissions' ->> p_module;\n  \n  IF v_perm_text IS NOT NULL THEN\n    RETURN v_perm_text;\n  END IF;\n\n  -- SECOND: Fallback to database lookup\n  SELECT \n    CASE p_module\n      -- Personal Modules (Staff Portal)\n      WHEN 'my_roster' THEN my_roster::text\n      WHEN 'my_timesheets' THEN my_timesheets::text\n      WHEN 'my_leave' THEN my_leave::text\n      WHEN 'shift_routines' THEN shift_routines::text\n      \n      -- Care Management (Base and Granular)\n      WHEN 'participants' THEN participants::text\n      WHEN 'participant_goals' THEN participant_goals::text\n      WHEN 'participant_behaviour' THEN participant_behaviour::text\n      WHEN 'participant_support_needs' THEN participant_support_needs::text\n      WHEN 'participant_mealtime' THEN participant_mealtime::text\n      WHEN 'participant_medical_routine' THEN participant_medical_routine::text\n      WHEN 'participant_clinical_trackers' THEN participant_clinical_trackers::text\n      WHEN 'participant_medications' THEN participant_medications::text\n      WHEN 'participant_emergency' THEN participant_emergency::text\n      WHEN 'participant_contacts' THEN participant_contacts::text\n      WHEN 'participant_documents' THEN participant_documents::text\n      WHEN 'participant_shift_notes' THEN participant_shift_notes::text\n      WHEN 'participant_activity_log' THEN participant_activity_log::text\n      WHEN 'shift_notes' THEN shift_notes::text\n      \n      -- Employees & HR (Base and Granular)\n      WHEN 'employees' THEN employees::text\n      WHEN 'staff_employment' THEN staff_employment::text\n      WHEN 'staff_availability' THEN staff_availability::text\n      WHEN 'staff_emergency' THEN staff_emergency::text\n      WHEN 'staff_compliance' THEN staff_compliance::text\n      WHEN 'staff_onboarding' THEN staff_onboarding::text\n      WHEN 'staff_training' THEN staff_training::text\n      WHEN 'staff_qualifications' THEN staff_qualifications::text\n      WHEN 'staff_documents' THEN staff_documents::text\n      WHEN 'staff_roster' THEN staff_roster::text\n      WHEN 'staff_leave' THEN staff_leave::text\n      WHEN 'staff_warnings' THEN staff_warnings::text\n      WHEN 'staff_activity_log' THEN staff_activity_log::text\n      \n      -- House Management\n      WHEN 'house_management' THEN house_management::text\n      WHEN 'house_operations' THEN house_operations::text\n      WHEN 'house_checklists' THEN house_checklists::text\n      WHEN 'house_checklist_history' THEN house_checklist_history::text\n      WHEN 'house_resources' THEN house_resources::text\n      WHEN 'house_comms' THEN house_comms::text\n      WHEN 'house_files' THEN house_files::text\n      WHEN 'house_compliance' THEN house_compliance::text\n      \n      -- Administration & System\n      WHEN 'access_control' THEN access_control::text\n      WHEN 'admin_onboarding' THEN admin_onboarding::text\n      WHEN 'activity_log' THEN activity_log::text\n      WHEN 'roster_manager' THEN roster_manager::text\n      WHEN 'timesheet_manager' THEN timesheet_manager::text\n      WHEN 'medications_master' THEN medications_master::text\n      WHEN 'compliance_master' THEN compliance_master::text\n      WHEN 'funding_master' THEN funding_master::text\n      WHEN 'branch_management' THEN branch_management::text\n      \n      -- Reporting\n      WHEN 'reporting_clinical' THEN reporting_clinical::text\n      WHEN 'reporting_operational' THEN reporting_operational::text\n      WHEN 'reporting_compliance' THEN reporting_compliance::text\n      ELSE 'none'\n    END INTO v_perm_text\n  FROM public.ic_role_permissions\n  WHERE role_id = public.ic_jwt_get_role_id()\n  LIMIT 1;\n\n  RETURN COALESCE(v_perm_text, 'none');\nEND;\n"
+        "definition": "\nDECLARE\n  v_perm_text text;\n  v_role_id uuid;\n  v_jwt jsonb;\nBEGIN\n  -- Cache JWT once for performance\n  v_jwt := auth.jwt();\n\n  -- PATH 1: JWT PERFORMANCE PATH (Primary - Instant)\n  v_perm_text := v_jwt -> 'app_metadata' -> 'permissions' ->> p_module;\n  IF v_perm_text IS NOT NULL THEN\n    RETURN v_perm_text;\n  END IF;\n\n  -- PATH 2: DYNAMIC DATABASE FALLBACK (Resilient)\n  -- 2a. Resolve Role Identity (Check JWT first, then DB)\n  v_role_id := (v_jwt -> 'app_metadata' ->> 'role_id')::uuid;\n  IF v_role_id IS NULL THEN\n    SELECT role_id INTO v_role_id FROM public.ic_staff WHERE auth_user_id = auth.uid() LIMIT 1;\n  END IF;\n\n  -- 2b. JSONB Lookup (Prevents \"Undefined Column\" errors if a module is missing from the table)\n  IF v_role_id IS NOT NULL THEN\n    SELECT (to_jsonb(rp) ->> p_module) INTO v_perm_text\n    FROM public.ic_role_permissions rp\n    WHERE rp.role_id = v_role_id;\n  END IF;\n\n  -- Default to 'none' if module is missing from table or value is null\n  RETURN COALESCE(v_perm_text, 'none');\nEND;\n"
       },
       {
         "args": "",

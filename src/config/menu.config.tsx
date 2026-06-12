@@ -96,7 +96,7 @@ export const MENU_SIDEBAR: MenuItemConfig[] = [
       {
         title: 'Shift Notes',
         path: ROUTES.SHIFT_NOTES,
-        permission: RBAC_MODULES.SHIFT_NOTES,
+        permission: RBAC_MODULES.PARTICIPANT_SHIFT_NOTES,
       },
     ],
   },

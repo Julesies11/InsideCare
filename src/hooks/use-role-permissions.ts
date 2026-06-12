@@ -9,7 +9,6 @@ export interface RolePermissions {
   participant_profiles: AccessLevel;
   staff_profiles: AccessLevel;
   house_profiles: AccessLevel;
-  shift_notes: AccessLevel;
   participant_documents: AccessLevel;
   house_documents: AccessLevel;
   staff_documents: AccessLevel;

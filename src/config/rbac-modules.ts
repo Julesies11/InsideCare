@@ -23,7 +23,6 @@ export const RBAC_MODULES = {
   PARTICIPANT_DOCUMENTS: 'participant_documents',
   PARTICIPANT_SHIFT_NOTES: 'participant_shift_notes',
   PARTICIPANT_ACTIVITY_LOG: 'participant_activity_log',
-  SHIFT_NOTES: 'shift_notes',
 
   // Employees & HR
   EMPLOYEES: 'employees',

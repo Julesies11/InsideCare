@@ -52,7 +52,7 @@ export function ShiftNoteDetailPage() {
   const [sidebarSticky, setSidebarSticky] = useState(false);
 
   const canEdit = hasAccess({
-    resource: RBAC_MODULES.SHIFT_NOTES,
+    resource: RBAC_MODULES.PARTICIPANT_SHIFT_NOTES,
     requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE,
   });
 

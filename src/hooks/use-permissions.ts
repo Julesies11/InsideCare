@@ -10,7 +10,6 @@ export type PermissionModule =
   // Care Management
   | 'participants'
   | 'participant_clinical_trackers'
-  | 'shift_notes'
   // Employees & HR
   | 'employees'
   | 'timesheets'
