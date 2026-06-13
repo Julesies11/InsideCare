@@ -1,6 +1,6 @@
 import { Database } from '@/models/database.types';
 import { TABLES } from '@/config/db-tables';
-import { SYSTEM_VIEWS } from '@/config/query-views';
+import { ROLE_VIEWS, SYSTEM_VIEWS } from '@/config/query-views';
 import { supabase } from '@/lib/supabase';
 
 /**
@@ -149,19 +149,14 @@ export const systemApi = {
     async list() {
       const { data, error } = await supabase
         .from(TABLES.ROLES)
-        .select(
-          `
-          *,
-          staff:${TABLES.STAFF}!staff_role_id_fkey(count)
-        `,
-        )
+        .select(ROLE_VIEWS.LIST)
         .order('role_name', { ascending: true });
 
       if (error) throw error;
 
       return (data || []).map((role) => ({
         ...role,
-        assigned_count: (role as any).staff?.[0]?.count || 0,
+        assigned_count: (role as any).staff?.length || 0,
       }));
     },
 

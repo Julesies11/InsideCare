@@ -32,7 +32,7 @@ describe('RolePermissionsMatrix Smoke Test', () => {
     expect(screen.getByText('Context Read/Write')).toBeInTheDocument();
     expect(screen.getByText('Context Read-Only')).toBeInTheDocument();
     expect(screen.getByText('Read-Only')).toBeInTheDocument();
-    expect(screen.getByText('No Access')).toBeInTheDocument();
+    expect(screen.getAllByText('No Access').length).toBeGreaterThan(0);
 
     // Check if a module is rendered
     expect(screen.getByText('Participant Profiles')).toBeInTheDocument();

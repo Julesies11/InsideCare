@@ -6,15 +6,25 @@ import { getContextDescription } from './role-permissions-matrix';
 describe('RolePermissionsMatrix Utils', () => {
   describe('getContextDescription', () => {
     it('returns the correct description for NONE level', () => {
-      expect(
-        getContextDescription(RBAC_MODULES.PARTICIPANTS, ACCESS_LEVEL.NONE),
-      ).toBe('Module is hidden and access is blocked.');
+      const result = getContextDescription(
+        RBAC_MODULES.PARTICIPANTS,
+        ACCESS_LEVEL.NONE,
+        'Participants',
+      );
+      expect(result.prefix).toBe('No Access');
+      expect(result.body).toContain('Participants');
+      expect(result.body).toContain('hidden and access is blocked');
     });
 
     it('returns the correct description for FULL level', () => {
-      expect(
-        getContextDescription(RBAC_MODULES.PARTICIPANTS, ACCESS_LEVEL.FULL),
-      ).toBe('Global access to all records across the organization.');
+      const result = getContextDescription(
+        RBAC_MODULES.PARTICIPANTS,
+        ACCESS_LEVEL.FULL,
+        'Participants',
+      );
+      expect(result.prefix).toBe('Full Access');
+      expect(result.body).toContain('Participants');
+      expect(result.body).toContain('organization-wide');
     });
 
     it('returns module-specific descriptions for CONTEXT_READ_WRITE', () => {
@@ -23,15 +33,17 @@ describe('RolePermissionsMatrix Utils', () => {
         getContextDescription(
           RBAC_MODULES.MY_ROSTER,
           ACCESS_LEVEL.CONTEXT_READ_WRITE,
-        ),
-      ).toContain('personal records');
+          'My Roster',
+        ).body,
+      ).toContain('personal My Roster records');
 
       // Management
       expect(
         getContextDescription(
           RBAC_MODULES.EMPLOYEES,
           ACCESS_LEVEL.CONTEXT_READ_WRITE,
-        ),
+          'Staff Profiles',
+        ).body,
       ).toContain('direct reports');
 
       // Clinical
@@ -39,7 +51,8 @@ describe('RolePermissionsMatrix Utils', () => {
         getContextDescription(
           RBAC_MODULES.PARTICIPANTS,
           ACCESS_LEVEL.CONTEXT_READ_WRITE,
-        ),
+          'Participant Profiles',
+        ).body,
       ).toContain('assigned houses');
 
       // Operational
@@ -47,42 +60,47 @@ describe('RolePermissionsMatrix Utils', () => {
         getContextDescription(
           RBAC_MODULES.HOUSES,
           ACCESS_LEVEL.CONTEXT_READ_WRITE,
-        ),
-      ).toContain('Full management');
+          'House Profiles',
+        ).body,
+      ).toContain('management');
 
       // Reporting
       expect(
         getContextDescription(
           RBAC_MODULES.REPORTING_CLINICAL,
           ACCESS_LEVEL.CONTEXT_READ_WRITE,
-        ),
-      ).toContain('Create and manage reports');
+          'Clinical Reports',
+        ).body,
+      ).toContain('reports for assigned houses');
     });
 
     it('returns module-specific descriptions for CONTEXT_READ_ONLY', () => {
-      expect(
-        getContextDescription(
-          RBAC_MODULES.PARTICIPANTS,
-          ACCESS_LEVEL.CONTEXT_READ_ONLY,
-        ),
-      ).toContain('View-only for participants');
+      const result = getContextDescription(
+        RBAC_MODULES.PARTICIPANTS,
+        ACCESS_LEVEL.CONTEXT_READ_ONLY,
+        'Participants',
+      );
+      expect(result.prefix).toBe('View-only');
+      expect(result.body).toContain('assigned houses');
 
       // Reporting
-      expect(
-        getContextDescription(
-          RBAC_MODULES.REPORTING_CLINICAL,
-          ACCESS_LEVEL.CONTEXT_READ_ONLY,
-        ),
-      ).toContain('View reports');
+      const reportResult = getContextDescription(
+        RBAC_MODULES.REPORTING_CLINICAL,
+        ACCESS_LEVEL.CONTEXT_READ_ONLY,
+        'Clinical Reports',
+      );
+      expect(reportResult.prefix).toBe('View-only');
+      expect(reportResult.body).toContain('reports for assigned houses');
     });
 
     it('returns global READ_ONLY description', () => {
-      expect(
-        getContextDescription(
-          RBAC_MODULES.ACTIVITY_LOG,
-          ACCESS_LEVEL.READ_ONLY,
-        ),
-      ).toContain('Global view-only access');
+      const result = getContextDescription(
+        RBAC_MODULES.ACTIVITY_LOG,
+        ACCESS_LEVEL.READ_ONLY,
+        'Activity Log',
+      );
+      expect(result.prefix).toBe('Read-only');
+      expect(result.body).toContain('No edits allowed');
     });
   });
 });

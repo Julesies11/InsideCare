@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import {
   Activity,
   ArrowRight,
@@ -20,6 +20,7 @@ import { useClinicalTrackersMaster } from '@/hooks/use-clinical-trackers-master'
 // Tracker Categories Definition
 const TRACKER_TAXONOMIES = [
   { id: 'BEHAVIOUR_INTENSITY_MASTER', label: 'Behaviour Intensity', table: 'BEHAVIOUR_INTENSITY_MASTER' as keyof typeof TABLES },
+  { id: 'BEHAVIOUR_TYPES_MASTER', label: 'Behaviour Types', table: 'BEHAVIOUR_TYPES_MASTER' as keyof typeof TABLES },
   { id: 'BOWEL_AMOUNTS_MASTER', label: 'Bowel Amounts', table: 'BOWEL_AMOUNTS_MASTER' as keyof typeof TABLES },
   { id: 'BOWEL_ASSISTANCE_MASTER', label: 'Bowel Assistance', table: 'BOWEL_ASSISTANCE_MASTER' as keyof typeof TABLES },
   { id: 'HYGIENE_LEVELS_MASTER', label: 'Hygiene Support Levels', table: 'HYGIENE_LEVELS_MASTER' as keyof typeof TABLES },
@@ -30,6 +31,7 @@ const TRACKER_TAXONOMIES = [
   { id: 'MTM_SWALLOWING_CONCERNS_MASTER', label: 'MTM Swallowing Concerns', table: 'MTM_SWALLOWING_CONCERNS_MASTER' as keyof typeof TABLES },
   { id: 'NUTRITION_INTAKE_MASTER', label: 'Nutrition Intake', table: 'NUTRITION_INTAKE_MASTER' as keyof typeof TABLES },
   { id: 'NUTRITION_MEAL_TYPES_MASTER', label: 'Nutrition Meal Types', table: 'NUTRITION_MEAL_TYPES_MASTER' as keyof typeof TABLES },
+  { id: 'SEIZURE_TYPES_MASTER', label: 'Seizure Types', table: 'SEIZURE_TYPES_MASTER' as keyof typeof TABLES },
   { id: 'SLEEP_QUALITY_MASTER', label: 'Sleep Quality', table: 'SLEEP_QUALITY_MASTER' as keyof typeof TABLES },
   { id: 'SLEEP_TYPES_MASTER', label: 'Sleep Types', table: 'SLEEP_TYPES_MASTER' as keyof typeof TABLES },
 ] as const;

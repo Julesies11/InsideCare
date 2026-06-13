@@ -7,6 +7,7 @@ export type RoleRow = Database['public']['Tables']['ic_roles']['Row'];
 
 export interface Role extends RoleRow {
   assigned_count?: number;
+  staff?: Array<{ id: string; staff_name: string; photo_url: string | null }>;
 }
 
 export function useRoles() {

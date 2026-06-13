@@ -55,12 +55,12 @@ The core operational engine of the care system.
   - **Positive Behaviour Support (PBS)**: Detailed tracking of PBS strategies, timing, and outcomes.
   - **Modular Clinical Trackers**: Toggleable, event-based trackers for:
     - **Bowel Tracking**: Featuring a visual Bristol Scale picker (1-7), time, and amount logging.
-    - **Seizure Activity**: Detailed logs of time, duration, and type (linked to master list).
+    - **Seizure Activity**: Detailed logs of time, duration, and type.
     - **Sleep Tracking**: Day/Night quality and support needs.
-    - **Behaviour Observations**: Intensity and type tracking (linked to master list).
+    - **Behaviour Observations**: Intensity and type tracking.
     - **Mealtime Management (MTM)**: Advanced tracking with **Conditional Integrity Checks**. Automatically forces detailed documentation if texture, consistency, or positioning requirements aren't met, or if specific supervision is required.
     - **Hygiene & Community**: Support levels and engagement tracking.
-  - **Master List Management**: Integrated administrative dialogs to manage Seizure and Behaviour types (matching Medication Register patterns).
+  - **Clinical Tracker Management**: Centralized administrative interface for all clinical dropdown options (Seizure Types, Behaviour Types, Sleep Quality, etc.) at **Admin > Clinical Trackers**.
   - **Automation**: Automatic shift type detection from roster templates and Care Plan data injection.
   - **Multi-Participant Shift Notes Uniqueness**: Partial unique index protection enforces one active or draft note per staff, shift, and participant. This prevents duplicate note submissions while ensuring staff members can successfully submit separate shift notes for multiple different participants assigned to the exact same shift.
 - **Overnight Shift Logic**: Intelligent date-range querying ensures that overnight shifts (starting yesterday but ending today) are correctly recognized in "Today's" views and "Active Shift" detection.
