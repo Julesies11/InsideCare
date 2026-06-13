@@ -239,7 +239,6 @@ export function ParticipantDetailContent({
     resource: RBAC_MODULES.PARTICIPANT_SHIFT_NOTES,
     requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE,
   });
-  const canAddShiftNotes = canEditShiftNotes;
   const canDeleteShiftNotes = hasAccess({
     resource: RBAC_MODULES.PARTICIPANT_SHIFT_NOTES,
     requiredLevel: ACCESS_LEVEL.FULL,
@@ -960,7 +959,6 @@ export function ParticipantDetailContent({
         {canViewShiftNotes && (
           <ShiftNotes
             participantId={id}
-            canAdd={canAddShiftNotes}
             canDelete={canDeleteShiftNotes}
             canEdit={canEditShiftNotes}
             pendingChanges={pendingChanges?.shiftNotes}

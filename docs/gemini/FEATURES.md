@@ -48,12 +48,15 @@ The core operational engine of the care system.
   - **3-Status Model**: Precisely categorizes every shift as **Completed**, **Draft**, or **Overdue**.
   - **Compliance-First Filters**: Multi-select status buttons allow Admins and Staff to overlay documentation gaps, defaulting to 'Draft' and 'Overdue' filters.
   - **Visual Compliance Strips**: High-density color indicators on every row for millisecond-level status recognition.
-- **Enhanced Clinical Notes**: Comprehensive clinical documentation completed at the end of every shift. Includes:
+- **Enhanced Clinical Notes**: Comprehensive clinical documentation completed at the end of every shift.
+  - **Centralized Management**: Shift notes are managed exclusively via the Shift Notes module. Direct creation from Participant Detail pages is disabled to ensure all notes are correctly linked to rostered shifts.
   - **Structured Tracking**: Dedicated sections for Risks, Overall Presentation, ADL Supports, Domestic Tasks, and Capacity Building goals.
   - **Interactive Binary Inputs**: All Yes/No fields (Risks, PBS, Medication, Trackers) use high-clarity Radio Button Groups for faster, more accurate entry.
   - **Health & Medication**: Integrated logging of regular and PRN medication statuses with prompt-based guidance.
   - **Positive Behaviour Support (PBS)**: Detailed tracking of PBS strategies, timing, and outcomes.
-  - **Modular Clinical Trackers**: Toggleable, event-based trackers for:
+  - **Modular Clinical Trackers**: Toggleable, event-based trackers driven by a **"Preference-Driven Visibility, Data-Driven Occurrence"** logic:
+    - **Visibility**: Sidebar links and tracker sections are shown only if enabled in the Participant Care Plan.
+    - **Occurrence**: Flags (e.g. `seizure_occurred`) are derived automatically from the presence of data, preventing documentation "false positives".
     - **Bowel Tracking**: Featuring a visual Bristol Scale picker (1-7), time, and amount logging.
     - **Seizure Activity**: Detailed logs of time, duration, and type.
     - **Sleep Tracking**: Day/Night quality and support needs.
