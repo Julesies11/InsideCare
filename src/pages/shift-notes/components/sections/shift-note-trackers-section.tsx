@@ -1,20 +1,13 @@
-import { useState } from 'react';
 import {
   Activity,
   Brain,
   Droplet,
-  LucideIcon,
   Moon,
   Navigation,
-  Settings2,
   ShowerHead,
   Utensils,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useBehaviourTypesMaster } from '@/hooks/use-behaviour-types-master';
 import { useClinicalTrackersMaster } from '@/hooks/use-clinical-trackers-master';
-import { useSeizureTypesMaster } from '@/hooks/use-seizure-types-master';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -27,9 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { BehaviourTypeMasterDialog } from '../behaviour-type-master-dialog';
 import { BristolScalePicker } from '../bristol-scale-picker';
-import { SeizureTypeMasterDialog } from '../seizure-type-master-dialog';
 
 interface ShiftNoteTrackersSectionProps {
   canEdit: boolean;
@@ -42,10 +33,6 @@ export function ShiftNoteTrackersSection({
   formData,
   onFormChange,
 }: ShiftNoteTrackersSectionProps) {
-  const [seizureMasterOpen, setSeizureMasterOpen] = useState(false);
-  const [behaviourMasterOpen, setBehaviourMasterOpen] = useState(false);
-  const { data: seizureTypes = [] } = useSeizureTypesMaster();
-  const { data: behaviourTypes = [] } = useBehaviourTypesMaster();
   const { data: trackerMasters = {} as any } = useClinicalTrackersMaster();
 
   const disabled = !canEdit;
@@ -175,21 +162,10 @@ export function ShiftNoteTrackersSection({
           className="animate-in fade-in slide-in-from-top-2"
         >
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <Activity className="size-4 text-primary" />
-                Seizure Activity
-              </CardTitle>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSeizureMasterOpen(true)}
-                className="h-8 px-2 text-xs"
-              >
-                <Settings2 className="size-3 me-1.5" />
-                Manage Types
-              </Button>
-            </div>
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="size-4 text-primary" />
+              Seizure Activity
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -237,14 +213,11 @@ export function ShiftNoteTrackersSection({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Select type...</SelectItem>
-                    {seizureTypes
-                      .filter((t) => t.is_active)
-                      .map((t) => (
-                        <SelectItem key={t.id} value={t.id}>
-                          {t.name}
-                        </SelectItem>
-                      ))}
-                    <SelectItem value="unknown">Unknown / Unsure</SelectItem>
+                    {trackerMasters.SEIZURE_TYPES_MASTER?.map((t: any) => (
+                      <SelectItem key={t.id} value={t.id}>
+                        {t.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -518,21 +491,10 @@ export function ShiftNoteTrackersSection({
           className="animate-in fade-in slide-in-from-top-2"
         >
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <Brain className="size-4 text-primary" />
-                Behaviour Observation
-              </CardTitle>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setBehaviourMasterOpen(true)}
-                className="h-8 px-2 text-xs"
-              >
-                <Settings2 className="size-3 me-1.5" />
-                Manage Types
-              </Button>
-            </div>
+            <CardTitle className="flex items-center gap-2">
+              <Brain className="size-4 text-primary" />
+              Behaviour Observation
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -553,13 +515,11 @@ export function ShiftNoteTrackersSection({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Select type...</SelectItem>
-                    {behaviourTypes
-                      .filter((t) => t.is_active)
-                      .map((t) => (
-                        <SelectItem key={t.id} value={t.id}>
-                          {t.name}
-                        </SelectItem>
-                      ))}
+                    {trackerMasters.BEHAVIOUR_TYPES_MASTER?.map((t: any) => (
+                      <SelectItem key={t.id} value={t.id}>
+                        {t.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -1383,17 +1343,6 @@ export function ShiftNoteTrackersSection({
         </Card>
       )}
 
-      <SeizureTypeMasterDialog
-        open={seizureMasterOpen}
-        onClose={() => setSeizureMasterOpen(false)}
-        canEdit={canEdit}
-      />
-
-      <BehaviourTypeMasterDialog
-        open={behaviourMasterOpen}
-        onClose={() => setBehaviourMasterOpen(false)}
-        canEdit={canEdit}
-      />
     </div>
   );
 }

@@ -1,5 +1,9 @@
 import { Fragment, useEffect, useState } from 'react';
-import { Info, ShieldAlert } from 'lucide-react';
+import {
+  Info,
+  Search,
+  ShieldAlert,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { RBAC_MODULES, RBACModule } from '@/config/rbac-modules';
 import { cn } from '@/lib/utils';
@@ -16,9 +20,9 @@ import {
   CardContent,
   CardFooter,
   CardHeader,
-  CardTitle,
 } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -249,9 +253,16 @@ const GROUPS: GroupConfig[] = [
 export const getContextDescription = (
   moduleId: RBACModule,
   level: AccessLevel,
-): string => {
-  if (level === ACCESS_LEVEL.NONE)
-    return 'Module is hidden and access is blocked.';
+  moduleLabel?: string,
+): { prefix: string; body: string } => {
+  const label = moduleLabel || 'this module';
+
+  if (level === ACCESS_LEVEL.NONE) {
+    return {
+      prefix: 'No Access',
+      body: `to ${label}. Module is hidden and access is blocked.`,
+    };
+  }
 
   const isPersonal = [
     RBAC_MODULES.MY_ROSTER,
@@ -313,34 +324,87 @@ export const getContextDescription = (
 
   switch (level) {
     case ACCESS_LEVEL.FULL:
-      return 'Global access to all records across the organization.';
+      return {
+        prefix: 'Full Access',
+        body: `to ${label} organization-wide.`,
+      };
     case ACCESS_LEVEL.READ_ONLY:
-      return 'Global view-only access to all records (No edits).';
+      return {
+        prefix: 'Read-only',
+        body: `of ${label} organization-wide. No edits allowed.`,
+      };
     case ACCESS_LEVEL.CONTEXT_READ_WRITE:
-      if (isPersonal) return 'Access limited to your own personal records.';
+      if (isPersonal)
+        return {
+          prefix: 'Read/Write',
+          body: `access limited to your own personal ${label} records.`,
+        };
       if (isManagement)
-        return 'View and edit direct reports or assigned house staff.';
+        return {
+          prefix: 'Read/Write',
+          body: `of ${label} for direct reports or assigned house staff.`,
+        };
       if (isClinical)
-        return 'View and edit participants in your assigned houses.';
+        return {
+          prefix: 'Read/Write',
+          body: `of ${label} for participants in your assigned houses.`,
+        };
       if (isOperational)
-        return 'Full management of assigned houses and facilities.';
-      if (isSystem) return 'Full access to system configurations or logs.';
+        return {
+          prefix: 'Read/Write',
+          body: `management of ${label} within your assigned houses.`,
+        };
+      if (isSystem)
+        return {
+          prefix: 'Full Access',
+          body: `to ${label} configurations and logs.`,
+        };
       if (isReporting)
-        return 'Create and manage reports for assigned houses/staff.';
-      return 'Context-aware read and write access.';
+        return {
+          prefix: 'Read/Write',
+          body: `of ${label} reports for assigned houses and staff.`,
+        };
+      return {
+        prefix: 'Read/Write',
+        body: `context-aware access to ${label}.`,
+      };
     case ACCESS_LEVEL.CONTEXT_READ_ONLY:
-      if (isPersonal) return 'View-only access to your own personal records.';
+      if (isPersonal)
+        return {
+          prefix: 'View-only',
+          body: `of your own personal ${label} records.`,
+        };
       if (isManagement)
-        return 'View-only access for direct reports or assigned houses.';
+        return {
+          prefix: 'View-only',
+          body: `of ${label} for direct reports or assigned house staff.`,
+        };
       if (isClinical)
-        return 'View-only for participants in your assigned houses.';
+        return {
+          prefix: 'View-only',
+          body: `of ${label} for participants in your assigned houses.`,
+        };
       if (isOperational)
-        return 'View-only access for assigned houses and facilities.';
-      if (isSystem) return 'View-only access to logs or configurations.';
-      if (isReporting) return 'View reports for assigned houses/staff.';
-      return 'Context-aware view-only access.';
+        return {
+          prefix: 'View-only',
+          body: `of ${label} within your assigned houses.`,
+        };
+      if (isSystem)
+        return {
+          prefix: 'View-only',
+          body: `of ${label} logs and configurations.`,
+        };
+      if (isReporting)
+        return {
+          prefix: 'View-only',
+          body: `of ${label} reports for assigned houses and staff.`,
+        };
+      return {
+        prefix: 'View-only',
+        body: `context-aware access to ${label}.`,
+      };
     default:
-      return 'Access is restricted.';
+      return { prefix: 'Restricted', body: `access to ${label}.` };
   }
 };
 
@@ -389,6 +453,7 @@ export function RolePermissionsMatrix() {
 
   const activeRoles = roles.filter((r) => r.is_active);
   const [selectedRoleId, setSelectedRoleId] = useState<string>('');
+  const [matrixSearch, setMatrixSearch] = useState('');
 
   const selectedRole = activeRoles.find((r) => r.id === selectedRoleId);
   const selectedPermissions = allPermissions.find(
@@ -427,6 +492,13 @@ export function RolePermissionsMatrix() {
     }
   };
 
+  const filteredGroups = GROUPS.map((group) => {
+    const matchedModules = group.modules.filter((m) =>
+      m.label.toLowerCase().includes(matrixSearch.toLowerCase()),
+    );
+    return { ...group, modules: matchedModules };
+  }).filter((group) => group.modules.length > 0);
+
   if (isLoading || !selectedRoleId) {
     return (
       <Card>
@@ -455,8 +527,8 @@ export function RolePermissionsMatrix() {
       )}
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between gap-2 py-5 border-b mb-4">
-          <div className="flex flex-col gap-2 w-[350px]">
+        <CardHeader className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 py-5 border-b mb-0">
+          <div className="flex flex-col gap-2 w-full sm:max-w-[350px]">
             <Label className="text-sm font-bold text-gray-700">
               Select Role to Edit
             </Label>
@@ -473,195 +545,230 @@ export function RolePermissionsMatrix() {
               </SelectContent>
             </Select>
           </div>
+
+          <div className="relative w-full sm:max-w-[300px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+            <Input
+              placeholder="Search modules..."
+              value={matrixSearch}
+              onChange={(e) => setMatrixSearch(e.target.value)}
+              className="pl-9 h-10 border-gray-200 focus:border-primary"
+            />
+          </div>
         </CardHeader>
 
-        <CardContent className="p-0 overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-gray-50/50">
-                <TableHead className="text-start font-bold text-gray-900 min-w-[250px] py-4">
-                  Module
-                </TableHead>
-                {ACCESS_LEVELS.map((level) => (
-                  <TableHead
-                    key={level.value}
-                    className="min-w-[140px] text-center py-4"
-                  >
-                    <div className="flex flex-col gap-0.5">
-                      <span className="font-bold text-gray-900">
-                        {level.label}
-                      </span>
-                      <span className="text-[10px] uppercase tracking-wider text-gray-500 font-medium leading-none">
-                        {level.description}
-                      </span>
-                    </div>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto overflow-y-visible border-b">
+            <Table className="border-separate border-spacing-0">
+              <TableHeader className="sticky top-[60px] z-30">
+                <TableRow className="bg-gray-50/95 backdrop-blur-sm">
+                  <TableHead className="sticky left-0 z-40 bg-gray-50/95 backdrop-blur-sm text-start font-bold text-gray-900 min-w-[280px] py-4 border-b border-r shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                    Module
                   </TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody className="text-sm font-medium">
-              {GROUPS.map((group) => {
-                // Special logic for Houses group dependency
-                const isHousesGroup = group.title === 'Houses';
-                const houseProfilesLevel = getPermission(RBAC_MODULES.HOUSES);
-                const houseProfilesDisabled =
-                  houseProfilesLevel === ACCESS_LEVEL.NONE;
-
-                // Special logic for Participant Records group dependency
-                const isParticipantsGroup =
-                  group.title === 'Participant Records';
-                const participantProfilesLevel = getPermission(
-                  RBAC_MODULES.PARTICIPANTS,
-                );
-                const participantProfilesDisabled =
-                  participantProfilesLevel === ACCESS_LEVEL.NONE;
-
-                // Special logic for Employees group dependency
-                const isEmployeesGroup = group.title === 'Employees';
-                const staffProfilesLevel = getPermission(
-                  RBAC_MODULES.EMPLOYEES,
-                );
-                const staffProfilesDisabled =
-                  staffProfilesLevel === ACCESS_LEVEL.NONE;
-
-                return (
-                  <Fragment key={group.title}>
-                    <TableRow
-                      key={`${group.title}-header`}
-                      className="bg-gray-100/30"
+                  {ACCESS_LEVELS.map((level) => (
+                    <TableHead
+                      key={level.value}
+                      className="min-w-[140px] text-center py-4 border-b bg-inherit"
                     >
-                      <TableCell
-                        colSpan={ACCESS_LEVELS.length + 1}
-                        className="py-2.5 px-4 font-bold text-gray-800 uppercase tracking-wide text-xs"
+                      <div className="flex flex-col gap-0.5">
+                        <span className="font-bold text-gray-900">
+                          {level.label}
+                        </span>
+                        <span className="text-[10px] uppercase tracking-wider text-gray-500 font-medium leading-none">
+                          {level.description}
+                        </span>
+                      </div>
+                    </TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody className="text-sm font-medium">
+                {filteredGroups.map((group) => {
+                  // Special logic for Houses group dependency
+                  const isHousesGroup = group.title === 'Houses';
+                  const houseProfilesLevel = getPermission(RBAC_MODULES.HOUSES);
+                  const houseProfilesDisabled =
+                    houseProfilesLevel === ACCESS_LEVEL.NONE;
+
+                  // Special logic for Participant Records group dependency
+                  const isParticipantsGroup =
+                    group.title === 'Participant Records';
+                  const participantProfilesLevel = getPermission(
+                    RBAC_MODULES.PARTICIPANTS,
+                  );
+                  const participantProfilesDisabled =
+                    participantProfilesLevel === ACCESS_LEVEL.NONE;
+
+                  // Special logic for Employees group dependency
+                  const isEmployeesGroup = group.title === 'Employees';
+                  const staffProfilesLevel = getPermission(
+                    RBAC_MODULES.EMPLOYEES,
+                  );
+                  const staffProfilesDisabled =
+                    staffProfilesLevel === ACCESS_LEVEL.NONE;
+
+                  return (
+                    <Fragment key={group.title}>
+                      <TableRow
+                        key={`${group.title}-header`}
+                        className="bg-gray-100/30 sticky top-[128px] z-20"
                       >
-                        {group.title}
-                      </TableCell>
-                    </TableRow>
-                    {group.modules.map((module) => {
-                      const currentLevel = module.id
-                        ? getPermission(module.id)
-                        : ACCESS_LEVEL.NONE;
-
-                      // Dependency checks
-                      const isLocked =
-                        module.id &&
-                        ((isHousesGroup &&
-                          houseProfilesDisabled &&
-                          module.id !== RBAC_MODULES.HOUSES) ||
-                          (isParticipantsGroup &&
-                            participantProfilesDisabled &&
-                            module.id !== RBAC_MODULES.PARTICIPANTS) ||
-                          (isEmployeesGroup &&
-                            staffProfilesDisabled &&
-                            module.id !== RBAC_MODULES.EMPLOYEES &&
-                            module.isChild));
-
-                      return (
-                        <TableRow
-                          key={`${group.title}-${module.id || module.label}`}
-                          className={cn(
-                            'hover:bg-gray-50/50 transition-colors',
-                            isLocked && 'opacity-40',
-                            module.isLabelOnly &&
-                              'bg-gray-50/30 hover:bg-gray-50/30 cursor-default',
-                          )}
+                        <TableCell
+                          colSpan={ACCESS_LEVELS.length + 1}
+                          className="py-2.5 px-4 font-bold text-gray-800 uppercase tracking-wide text-xs bg-gray-100/95 backdrop-blur-sm border-b"
                         >
-                          <TableCell
+                          <div className="flex items-center justify-between gap-4 text-gray-600">
+                            <span>{group.title}</span>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                      {group.modules.map((module) => {
+                        const currentLevel = module.id
+                          ? getPermission(module.id)
+                          : ACCESS_LEVEL.NONE;
+
+                        // Dependency checks
+                        const isLocked =
+                          module.id &&
+                          ((isHousesGroup &&
+                            houseProfilesDisabled &&
+                            module.id !== RBAC_MODULES.HOUSES) ||
+                            (isParticipantsGroup &&
+                              participantProfilesDisabled &&
+                              module.id !== RBAC_MODULES.PARTICIPANTS) ||
+                            (isEmployeesGroup &&
+                              staffProfilesDisabled &&
+                              module.id !== RBAC_MODULES.EMPLOYEES &&
+                              module.isChild));
+
+                        const desc = module.id
+                          ? getContextDescription(
+                              module.id,
+                              isAdminRole ? ACCESS_LEVEL.FULL : currentLevel,
+                              module.label,
+                            )
+                          : null;
+
+                        return (
+                          <TableRow
+                            key={`${group.title}-${module.id || module.label}`}
                             className={cn(
-                              'py-4',
-                              module.isChild ? 'pl-14' : 'pl-8',
+                              'group hover:bg-gray-50/50 transition-colors',
+                              isLocked && 'opacity-60 grayscale-[0.5]',
+                              module.isLabelOnly &&
+                                'bg-gray-50/30 hover:bg-gray-50/30 cursor-default',
                             )}
                           >
-                            <div className="flex flex-col">
-                              <div className="flex items-center gap-2">
-                                <span
-                                  className={cn(
-                                    'font-semibold',
-                                    module.isChild
-                                      ? 'text-gray-600'
-                                      : 'text-gray-700',
-                                    module.isLabelOnly &&
-                                      'text-gray-900 font-bold',
-                                  )}
-                                >
-                                  {module.label}
-                                </span>
-                                {isLocked && (
-                                  <Badge
-                                    variant="secondary"
-                                    className="text-[10px] py-0 px-1.5 h-4 font-bold uppercase tracking-tight bg-gray-200 text-gray-500 border-none"
-                                  >
-                                    LOCKED
-                                  </Badge>
-                                )}
-                              </div>
-                              {!module.isLabelOnly && (
-                                <div className="flex items-center gap-1 text-[11px] text-gray-400 mt-1">
-                                  <Info className="size-3" />
-                                  <span>
-                                    {isLocked
-                                      ? `Requires '${isHousesGroup ? 'Houses' : isParticipantsGroup ? 'Participant Profiles' : 'Staff Profiles'}' access to be active.`
-                                      : getContextDescription(
-                                          module.id!,
-                                          isAdminRole
-                                            ? ACCESS_LEVEL.FULL
-                                            : currentLevel,
-                                        )}
-                                  </span>
-                                </div>
+                            <TableCell
+                              className={cn(
+                                'py-4 sticky left-0 z-10 bg-white group-hover:bg-[#fcfcfe] transition-colors border-r shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]',
+                                module.isChild ? 'pl-14' : 'pl-8',
                               )}
-                            </div>
-                          </TableCell>
-                          {ACCESS_LEVELS.map((level) => {
-                            let isChecked =
-                              !module.isLabelOnly &&
-                              currentLevel === level.value;
-
-                            // Override for Admin Role
-                            if (isAdminRole && !module.isLabelOnly) {
-                              isChecked = level.value === ACCESS_LEVEL.FULL;
-                            }
-
-                            return (
-                              <TableCell
-                                key={level.value}
-                                className="py-4 text-center"
-                              >
-                                {!module.isLabelOnly && (
-                                  <div className="flex justify-center">
-                                    <Checkbox
-                                      checked={isChecked}
-                                      onCheckedChange={() => {
-                                        if (
-                                          !isChecked &&
-                                          canEdit &&
-                                          !isLocked &&
-                                          module.id
-                                        )
-                                          handleUpdate(module.id, level.value);
-                                      }}
-                                      disabled={
-                                        isAdminRole || !canEdit || isLocked
-                                      }
-                                      className={cn(
-                                        'size-5 border-gray-300 data-[state=checked]:bg-primary data-[state=checked]:border-primary',
-                                        (isAdminRole || !canEdit || isLocked) &&
-                                          'opacity-50 cursor-not-allowed',
+                            >
+                              <div className="flex flex-col">
+                                <div className="flex items-center gap-2 text-wrap">
+                                  <span
+                                    className={cn(
+                                      'font-semibold',
+                                      module.isChild
+                                        ? 'text-gray-600'
+                                        : 'text-gray-700',
+                                      module.isLabelOnly &&
+                                        'text-gray-900 font-bold',
+                                    )}
+                                  >
+                                    {module.label}
+                                  </span>
+                                  {isLocked && (
+                                    <Badge
+                                      variant="secondary"
+                                      className="text-[10px] py-0 px-1.5 h-4 font-bold uppercase tracking-tight bg-gray-100 text-gray-400 border-none whitespace-nowrap"
+                                    >
+                                      LOCKED
+                                    </Badge>
+                                  )}
+                                </div>
+                                {!module.isLabelOnly && desc && (
+                                  <div className="flex items-start gap-1 text-[11px] text-gray-400 mt-1 leading-relaxed">
+                                    <Info className="size-3 mt-0.5 shrink-0" />
+                                    <span>
+                                      {isLocked ? (
+                                        <span className="italic text-gray-400">
+                                          Requires '
+                                          {isHousesGroup
+                                            ? 'Houses'
+                                            : isParticipantsGroup
+                                              ? 'Participant Profiles'
+                                              : 'Staff Profiles'}
+                                          ' access to be active.
+                                        </span>
+                                      ) : (
+                                        <>
+                                          <span className="font-bold text-gray-600">
+                                            {desc.prefix}
+                                          </span>{' '}
+                                          {desc.body}
+                                        </>
                                       )}
-                                    />
+                                    </span>
                                   </div>
                                 )}
-                              </TableCell>
-                            );
-                          })}
-                        </TableRow>
-                      );
-                    })}
-                  </Fragment>
-                );
-              })}
-            </TableBody>
-          </Table>
+                              </div>
+                            </TableCell>
+                            {ACCESS_LEVELS.map((level) => {
+                              let isChecked =
+                                !module.isLabelOnly &&
+                                currentLevel === level.value;
+
+                              // Override for Admin Role
+                              if (isAdminRole && !module.isLabelOnly) {
+                                isChecked = level.value === ACCESS_LEVEL.FULL;
+                              }
+
+                              return (
+                                <TableCell
+                                  key={level.value}
+                                  className="py-4 text-center border-b border-gray-100 last:border-r-0"
+                                >
+                                  {!module.isLabelOnly && (
+                                    <div className="flex justify-center">
+                                      <Checkbox
+                                        checked={isChecked}
+                                        onCheckedChange={() => {
+                                          if (
+                                            !isChecked &&
+                                            canEdit &&
+                                            !isLocked &&
+                                            module.id
+                                          )
+                                            handleUpdate(
+                                              module.id,
+                                              level.value,
+                                            );
+                                        }}
+                                        disabled={
+                                          isAdminRole || !canEdit || isLocked
+                                        }
+                                        className={cn(
+                                          'size-5 border-gray-300 data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all',
+                                          (isAdminRole || !canEdit || isLocked) &&
+                                            'opacity-50 cursor-not-allowed',
+                                        )}
+                                      />
+                                    </div>
+                                  )}
+                                </TableCell>
+                              );
+                            })}
+                          </TableRow>
+                        );
+                      })}
+                    </Fragment>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
         <CardFooter className="bg-gray-50/50 py-5 border-t text-sm text-gray-500 italic">
           Changes are saved automatically to the database when a checkbox is

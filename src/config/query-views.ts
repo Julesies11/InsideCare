@@ -776,6 +776,16 @@ export const MISC_VIEWS = {
   `,
 } as const;
 
+export const ROLE_VIEWS = {
+  /**
+   * View for roles with assigned staff.
+   */
+  LIST: `
+    id, role_name, description, is_active, created_at, updated_at,
+    staff:${TABLES.STAFF}!staff_role_id_fkey(id, staff_name, photo_url)
+  `,
+} as const;
+
 export const SYSTEM_VIEWS = {
   /**
    * View for user notifications.

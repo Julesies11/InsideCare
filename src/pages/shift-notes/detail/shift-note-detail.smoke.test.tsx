@@ -21,18 +21,6 @@ vi.mock('@/hooks/use-staff', () => ({
 vi.mock('@/hooks/use-houses', () => ({
   useHouses: () => ({ houses: [{ id: 'h-1', house_name: 'Main House' }] }),
 }));
-vi.mock('@/hooks/use-seizure-types-master', () => ({
-  useSeizureTypesMaster: () => ({ data: [], isLoading: false }),
-  useAddSeizureTypeMaster: () => ({ mutateAsync: vi.fn() }),
-  useUpdateSeizureTypeMaster: () => ({ mutateAsync: vi.fn() }),
-  useDeleteSeizureTypeMaster: () => ({ mutateAsync: vi.fn() }),
-}));
-vi.mock('@/hooks/use-behaviour-types-master', () => ({
-  useBehaviourTypesMaster: () => ({ data: [], isLoading: false }),
-  useAddBehaviourTypeMaster: () => ({ mutateAsync: vi.fn() }),
-  useUpdateBehaviourTypeMaster: () => ({ mutateAsync: vi.fn() }),
-  useDeleteBehaviourTypeMaster: () => ({ mutateAsync: vi.fn() }),
-}));
 
 const queryClient = new QueryClient({
   defaultOptions: {

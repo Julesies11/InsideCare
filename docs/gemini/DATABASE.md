@@ -97,6 +97,7 @@ When implementing attachment deletion within a "Pending Changes" workflow:
 ### 4. Operational Tables
 
 - **`ic_shift_notes`**: Flat normalization with 75+ clinical columns.
+  - **Uniqueness Logic**: As of **June 12, 2026**, the legacy `shift_notes_shift_staff_unique` constraint has been removed. Uniqueness is now enforced by the `ic_shift_notes_staff_shift_participant_active_idx` partial index, which allows **one active/draft note per staff member per shift per participant**. This enables multi-participant house shifts while preventing duplicates.
   - **Clinical Integrity Fields**: Includes specialized description columns (`mtm_texture_notes`, `mtm_consistency_notes`, `mtm_positioning_notes`, `mtm_supervision_notes`) to capture detailed clinical context when standard requirements are not met.
 - **`ic_staff_shifts`**: Scheduled work periods.
 - **`ic_house_checklists`**: Facility and shift routines.
@@ -117,6 +118,7 @@ All operational tables use a unified, hardened trigger (`ic_trigger_set_audit_co
 
 To preserve data integrity and historical clinical records, the application follows a **"Deactivate, Don't Delete"** pattern for master list items.
 
+- **Global Read Access**: As of **June 12, 2026**, all Master and Lookup tables (e.g., Leave Types, Clinical Scales, Departments) are **globally readable** by any authenticated staff member (`SELECT TO authenticated USING (true)`). This ensures that dropdowns always work for staff members in their daily tasks (Shift Notes, Leave Requests) even if they do not have the `master_lists` management permission.
 - **`ic_medication_types_master`**: Lookup table for medication categories.
 - **`ic_incident_types_master`**: NDIS-compliant incident classifications.
 - **`ic_restrictive_practice_types_master`**: Standard restrictive practice categories.
