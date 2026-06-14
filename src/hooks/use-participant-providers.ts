@@ -8,6 +8,10 @@ export interface ParticipantProvider {
   provider_name: string;
   provider_type?: string;
   provider_description?: string;
+  company?: string;
+  phone?: string;
+  email?: string;
+  notes?: string;
   is_active?: boolean;
   created_at?: string;
   updated_at?: string;

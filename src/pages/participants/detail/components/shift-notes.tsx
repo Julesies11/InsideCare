@@ -6,7 +6,6 @@ import {
   Edit,
   FileText,
   Home,
-  Plus,
   Trash2,
   Users,
 } from 'lucide-react';
@@ -43,7 +42,6 @@ interface ShiftNotePendingChanges {
 
 interface ShiftNotesProps {
   participantId?: string;
-  canAdd: boolean;
   canDelete: boolean;
   canEdit: boolean;
   pendingChanges?: ShiftNotePendingChanges;
@@ -53,7 +51,6 @@ interface ShiftNotesProps {
 
 export function ShiftNotes({
   participantId,
-  canAdd,
   canDelete,
   canEdit,
   pendingChanges,
@@ -166,24 +163,6 @@ export function ShiftNotes({
     <Card id="shift_notes">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Shift Notes</CardTitle>
-        {canAdd && (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() =>
-              navigate(
-                `${ROUTES.SHIFT_NOTES_DETAIL}/new?participantId=${participantId}`,
-                {
-                  state: { from: location.pathname + location.search },
-                },
-              )
-            }
-            className="h-8 gap-1.5"
-          >
-            <Plus className="size-3.5" />
-            <span>Add Note</span>
-          </Button>
-        )}
       </CardHeader>
       <CardContent>
         {loading ? (

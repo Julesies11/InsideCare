@@ -99,6 +99,7 @@ When implementing attachment deletion within a "Pending Changes" workflow:
 - **`ic_shift_notes`**: Flat normalization with 75+ clinical columns.
   - **Uniqueness Logic**: As of **June 12, 2026**, the legacy `shift_notes_shift_staff_unique` constraint has been removed. Uniqueness is now enforced by the `ic_shift_notes_staff_shift_participant_active_idx` partial index, which allows **one active/draft note per staff member per shift per participant**. This enables multi-participant house shifts while preventing duplicates.
   - **Clinical Integrity Fields**: Includes specialized description columns (`mtm_texture_notes`, `mtm_consistency_notes`, `mtm_positioning_notes`, `mtm_supervision_notes`) to capture detailed clinical context when standard requirements are not met.
+  - **Master List Mapping**: All clinical dropdowns (Sleep, Behaviour, Nutrition, etc.) must map to their corresponding `*_id` UUID columns. Frontend state keys must exactly match database column names to ensure persistence through unified save handlers.
 - **`ic_staff_shifts`**: Scheduled work periods.
 - **`ic_house_checklists`**: Facility and shift routines.
 - **`ic_timesheets`**: Tracked actual hours vs rostered.

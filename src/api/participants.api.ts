@@ -106,11 +106,26 @@ export const participantsApi = {
   async listActive() {
     const { data, error } = await supabase
       .from(TABLES.PARTICIPANTS)
-      .select('id, participant_name, status, house_id, photo_url')
+      .select(
+        `
+        id, 
+        participant_name, 
+        status, 
+        house_id, 
+        photo_url,
+        houses:${TABLES.HOUSES}!house_id (
+          house_name
+        )
+      `,
+      )
       .eq('status', 'active')
       .order('participant_name');
     if (error) throw error;
-    return (data || []).map((p: any) => ({ ...p, name: p.participant_name }));
+    return (data || []).map((p: any) => ({
+      ...p,
+      name: p.participant_name,
+      house_name: p.houses?.house_name || null,
+    }));
   },
 
   /**

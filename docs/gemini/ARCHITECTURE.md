@@ -137,6 +137,14 @@ As of **June 2, 2026**, the application implements a strict "Deactivate instead 
 - **Behavior**: Dropdowns show only active items for new records, but include the current inactive item when editing an existing record to prevent data loss or "missing" selections.
 - **API Support**: API methods must support `includeInactive` filters to accommodate this standard.
 
+## 10. Clinical Tracker Standards
+
+Clinical trackers (Sleep, Bowel, Seizure, etc.) follow a strict "Preference-Driven Visibility, Data-Driven Occurrence" pattern:
+
+- **Visibility**: Sections and sidebar links are visible ONLY if the participant's profile has the corresponding `track_*` flag enabled.
+- **Occurrence Flags**: Flags like `bowel_movement_occurred` or `seizure_occurred` are derived in the UI layer during the save process. They are set to `true` if ANY data (notes, IDs, times) has been entered in that section, and `false` otherwise. This prevents "false positive" documentation where a tracker is marked as having occurred just because it is being tracked.
+- **Master List Alignment**: All tracker fields use the `_id` suffix (e.g., `sleep_quality_id`) to maintain strict foreign key integrity with the master list tables.
+
 ## 6. UI & Data Presentation Standards
 
 ### 6.1 Detail Navigation ("InsideCare Pattern")

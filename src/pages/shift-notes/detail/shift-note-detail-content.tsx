@@ -49,8 +49,8 @@ const DEFAULT_FORM_STATE: Record<string, unknown> = {
   bowel_movement_occurred: false,
   bowel_time: null,
   bowel_bristol_scale: null,
-  bowel_amount: null,
-  bowel_assistance_required: null,
+  bowel_amount_id: null,
+  bowel_assistance_id: null,
   bowel_notes: '',
   seizure_occurred: false,
   seizure_time_started: null,
@@ -62,14 +62,14 @@ const DEFAULT_FORM_STATE: Record<string, unknown> = {
   seizure_emergency_services: false,
   seizure_notes: '',
   sleep_occurred: false,
-  sleep_type_period: null,
+  sleep_type_id: null,
   sleep_start_time: null,
   sleep_wake_time: null,
-  sleep_quality: '',
+  sleep_quality_id: null,
   sleep_support_required: '',
   behaviour_observed: false,
   behaviour_type_id: null,
-  behaviour_intensity: null,
+  behaviour_intensity_id: null,
   behaviour_notes: '',
   community_access_occurred: false,
   community_activity_type: '',
@@ -77,23 +77,23 @@ const DEFAULT_FORM_STATE: Record<string, unknown> = {
   community_engagement_level: '',
   community_notes: '',
   meal_provided: false,
-  nutrition_meal_type: null,
-  nutrition_intake: null,
+  nutrition_meal_type_id: null,
+  nutrition_intake_id: null,
   nutrition_refusal_alternatives: '',
   nutrition_assistance_needed: '',
   nutrition_fluids_intake: '',
   nutrition_notes: '',
   mtm_meal_provided: false,
-  mtm_diet_type: null,
-  mtm_fluids: null,
+  mtm_diet_type_id: null,
+  mtm_fluids_id: null,
   mtm_texture_correct: null,
   mtm_consistency_correct: null,
   mtm_positioning_appropriate: null,
   mtm_supervision_required: null,
-  mtm_swallowing_concerns: 'no',
-  mtm_meal_intake: null,
+  mtm_swallowing_concerns_id: null,
+  mtm_meal_intake_id: null,
   mtm_meal_intake_notes: '',
-  mtm_fluid_intake: null,
+  mtm_fluid_intake_id: null,
   mtm_fluid_intake_notes: '',
   mtm_concerns: '',
   mtm_notes: '',
@@ -102,10 +102,10 @@ const DEFAULT_FORM_STATE: Record<string, unknown> = {
   mtm_positioning_notes: '',
   mtm_supervision_notes: '',
   hygiene_support_required: false,
-  hygiene_shower: null,
-  hygiene_oral_care: null,
-  hygiene_toileting: null,
-  hygiene_grooming: null,
+  hygiene_shower_id: null,
+  hygiene_oral_care_id: null,
+  hygiene_toileting_id: null,
+  hygiene_grooming_id: null,
   hygiene_observed_concerns: '',
   hygiene_notes: '',
 };
@@ -388,9 +388,26 @@ export function ShiftNoteDetailContent({
         handleBulkChange({
           participant: null,
           bowel_movement_occurred: false,
+          bowel_time: null,
+          bowel_bristol_scale: null,
+          bowel_amount_id: null,
+          bowel_assistance_id: null,
+          bowel_notes: '',
           seizure_occurred: false,
+          seizure_time_started: null,
+          seizure_duration_minutes: null,
+          seizure_type_id: null,
+          seizure_description: '',
+          seizure_notes: '',
           sleep_occurred: false,
+          sleep_type_id: null,
+          sleep_start_time: null,
+          sleep_wake_time: null,
+          sleep_quality_id: null,
           behaviour_observed: false,
+          behaviour_type_id: null,
+          behaviour_intensity_id: null,
+          behaviour_notes: '',
           community_access_occurred: false,
           meal_provided: false,
           mtm_meal_provided: false,
@@ -472,8 +489,8 @@ export function ShiftNoteDetailContent({
           'bowel_movement_occurred',
           'bowel_time',
           'bowel_bristol_scale',
-          'bowel_amount',
-          'bowel_assistance_required',
+          'bowel_amount_id',
+          'bowel_assistance_id',
           'bowel_notes',
           'seizure_occurred',
           'seizure_time_started',
@@ -485,14 +502,14 @@ export function ShiftNoteDetailContent({
           'seizure_emergency_services',
           'seizure_notes',
           'sleep_occurred',
-          'sleep_type_period',
+          'sleep_type_id',
           'sleep_start_time',
           'sleep_wake_time',
-          'sleep_quality',
+          'sleep_quality_id',
           'sleep_support_required',
           'behaviour_observed',
           'behaviour_type_id',
-          'behaviour_intensity',
+          'behaviour_intensity_id',
           'behaviour_notes',
           'community_access_occurred',
           'community_activity_type',
@@ -500,23 +517,23 @@ export function ShiftNoteDetailContent({
           'community_engagement_level',
           'community_notes',
           'meal_provided',
-          'nutrition_meal_type',
-          'nutrition_intake',
+          'nutrition_meal_type_id',
+          'nutrition_intake_id',
           'nutrition_refusal_alternatives',
           'nutrition_assistance_needed',
           'nutrition_fluids_intake',
           'nutrition_notes',
           'mtm_meal_provided',
-          'mtm_diet_type',
-          'mtm_fluids',
+          'mtm_diet_type_id',
+          'mtm_fluids_id',
           'mtm_texture_correct',
           'mtm_consistency_correct',
           'mtm_positioning_appropriate',
           'mtm_supervision_required',
-          'mtm_swallowing_concerns',
-          'mtm_meal_intake',
+          'mtm_swallowing_concerns_id',
+          'mtm_meal_intake_id',
           'mtm_meal_intake_notes',
-          'mtm_fluid_intake',
+          'mtm_fluid_intake_id',
           'mtm_fluid_intake_notes',
           'mtm_concerns',
           'mtm_notes',
@@ -525,10 +542,10 @@ export function ShiftNoteDetailContent({
           'mtm_positioning_notes',
           'mtm_supervision_notes',
           'hygiene_support_required',
-          'hygiene_shower',
-          'hygiene_oral_care',
-          'hygiene_toileting',
-          'hygiene_grooming',
+          'hygiene_shower_id',
+          'hygiene_oral_care_id',
+          'hygiene_toileting_id',
+          'hygiene_grooming_id',
           'hygiene_observed_concerns',
           'hygiene_notes',
         ];
@@ -547,16 +564,78 @@ export function ShiftNoteDetailContent({
           }
         });
 
-        // Set tracker occurrences explicitly based on participant's flags
+        // Set tracker occurrences explicitly based on data presence or participant's flags
         const participant = formData.participant as any;
-        dataToSave.bowel_movement_occurred = !!participant?.track_bowel;
-        dataToSave.seizure_occurred = !!participant?.track_seizure;
-        dataToSave.sleep_occurred = !!participant?.track_sleep;
-        dataToSave.behaviour_observed = !!participant?.track_behaviour;
-        dataToSave.community_access_occurred = !!participant?.track_community;
-        dataToSave.meal_provided = !!participant?.track_nutrition;
-        dataToSave.mtm_meal_provided = !!participant?.track_mtm;
-        dataToSave.hygiene_support_required = !!participant?.track_hygiene;
+        
+        // Derive occurrence flags from data presence to prevent false positives
+        dataToSave.bowel_movement_occurred = !!(
+          formData.bowel_bristol_scale || 
+          formData.bowel_amount_id || 
+          formData.bowel_time || 
+          formData.bowel_notes ||
+          formData.bowel_assistance_id
+        );
+        
+        dataToSave.seizure_occurred = !!(
+          formData.seizure_time_started || 
+          formData.seizure_duration_minutes || 
+          formData.seizure_type_id ||
+          formData.seizure_notes ||
+          formData.seizure_injury_occurred ||
+          formData.seizure_emergency_services
+        );
+
+        dataToSave.sleep_occurred = !!(
+          formData.sleep_type_id ||
+          formData.sleep_start_time ||
+          formData.sleep_wake_time ||
+          formData.sleep_quality_id ||
+          formData.sleep_support_required
+        );
+
+        dataToSave.behaviour_observed = !!(
+          formData.behaviour_type_id ||
+          formData.behaviour_intensity_id ||
+          formData.behaviour_notes
+        );
+
+        dataToSave.community_access_occurred = !!(
+          formData.community_activity_type ||
+          formData.community_location ||
+          formData.community_engagement_level ||
+          formData.community_notes
+        );
+
+        dataToSave.meal_provided = !!(
+          formData.nutrition_meal_type_id ||
+          formData.nutrition_intake_id ||
+          formData.nutrition_refusal_alternatives ||
+          formData.nutrition_assistance_needed ||
+          formData.nutrition_fluids_intake ||
+          formData.nutrition_notes
+        );
+
+        dataToSave.mtm_meal_provided = !!(
+          formData.mtm_diet_type_id ||
+          formData.mtm_fluids_id ||
+          formData.mtm_texture_correct !== null ||
+          formData.mtm_consistency_correct !== null ||
+          formData.mtm_positioning_appropriate !== null ||
+          formData.mtm_supervision_required !== null ||
+          formData.mtm_swallowing_concerns_id ||
+          formData.mtm_meal_intake_id ||
+          formData.mtm_fluid_intake_id ||
+          formData.mtm_notes
+        );
+
+        dataToSave.hygiene_support_required = !!(
+          formData.hygiene_shower_id ||
+          formData.hygiene_oral_care_id ||
+          formData.hygiene_toileting_id ||
+          formData.hygiene_grooming_id ||
+          formData.hygiene_observed_concerns ||
+          formData.hygiene_notes
+        );
 
         // Explicitly set the target status
         dataToSave.status = statusToSave;

@@ -6,6 +6,7 @@ import {
   CheckSquare,
   ClipboardList,
   Clock,
+  FileText,
   Home,
   LogOut,
   Settings,

@@ -167,29 +167,130 @@ export const participantDetailsApi = {
    */
   providers: {
     async list(participantId: string) {
-      const { data, error } = await supabase
+      // 1. Fetch junction records
+      const { data: junctions, error: junctionError } = await supabase
         .from(TABLES.PARTICIPANT_PROVIDERS)
         .select('*')
-        .eq('participant_id', participantId)
-        .order('created_at', { ascending: false });
+        .eq('participant_id', participantId);
 
-      if (error) throw error;
-      return data || [];
+      if (junctionError) throw junctionError;
+      if (!junctions || junctions.length === 0) return [];
+
+      // 2. Extract provider IDs
+      const providerIds = junctions.map((j) => j.provider_id).filter(Boolean);
+      if (providerIds.length === 0) return [];
+
+      // 3. Fetch provider records
+      const { data: providersList, error: providersError } = await supabase
+        .from(TABLES.PROVIDERS)
+        .select('*')
+        .in('id', providerIds);
+
+      if (providersError) throw providersError;
+
+      // 4. Map to expected frontend structure
+      const providerMap = new Map(providersList?.map((p) => [p.id, p]) || []);
+
+      return junctions.map((j) => {
+        const provider = providerMap.get(j.provider_id);
+        return {
+          id: j.id,
+          participant_id: j.participant_id,
+          provider_name: provider?.provider_name || '',
+          provider_type: provider?.type || '',
+          provider_description: provider?.specialties || '',
+          company: provider?.company || '',
+          phone: provider?.phone || '',
+          email: provider?.email || '',
+          notes: provider?.notes || '',
+          is_active: provider?.status === 'Active',
+          created_at: j.created_at,
+          updated_at: j.updated_at,
+        };
+      });
     },
 
-    async upsert(
-      providers:
-        | Database['public']['Tables']['ic_participant_providers']['Insert']
-        | Database['public']['Tables']['ic_participant_providers']['Insert'][],
-    ) {
-      const records = Array.isArray(providers) ? providers : [providers];
-      const { data, error } = await supabase
-        .from(TABLES.PARTICIPANT_PROVIDERS)
-        .upsert(records)
-        .select();
+    async upsert(providerData: any) {
+      const isArray = Array.isArray(providerData);
+      const records = isArray ? providerData : [providerData];
+      const results = [];
 
-      if (error) throw error;
-      return data;
+      for (const record of records) {
+        let providerId = record.provider_id;
+
+        // 1. Create or update the provider details first if necessary
+        if (!providerId && record.provider_name) {
+          const { data: existing } = await supabase
+            .from(TABLES.PROVIDERS)
+            .select('id')
+            .eq('provider_name', record.provider_name)
+            .limit(1);
+
+          if (existing && existing.length > 0) {
+            providerId = existing[0].id;
+          } else {
+            const { data: newProvider, error: providerErr } = await supabase
+              .from(TABLES.PROVIDERS)
+              .insert({
+                provider_name: record.provider_name,
+                type: record.provider_type,
+                specialties: record.provider_description,
+                status: record.is_active === false ? 'Inactive' : 'Active',
+              })
+              .select('id')
+              .single();
+
+            if (providerErr) throw providerErr;
+            providerId = newProvider.id;
+          }
+        }
+
+        // 2. Handle junction upsert
+        if (record.id && !record.id.startsWith('temp-')) {
+          if (providerId) {
+            const { error: providerUpdateErr } = await supabase
+              .from(TABLES.PROVIDERS)
+              .update({
+                provider_name: record.provider_name,
+                type: record.provider_type,
+                specialties: record.provider_description,
+                status: record.is_active === false ? 'Inactive' : 'Active',
+              })
+              .eq('id', providerId);
+            if (providerUpdateErr) throw providerUpdateErr;
+          }
+
+          const { data: junction, error: junctionErr } = await supabase
+            .from(TABLES.PARTICIPANT_PROVIDERS)
+            .select('*')
+            .eq('id', record.id)
+            .single();
+
+          if (junctionErr) throw junctionErr;
+          results.push({
+            ...record,
+            ...junction,
+          });
+        } else {
+          const { data: newJunction, error: junctionErr } = await supabase
+            .from(TABLES.PARTICIPANT_PROVIDERS)
+            .insert({
+              participant_id: record.participant_id,
+              provider_id: providerId,
+            })
+            .select()
+            .single();
+
+          if (junctionErr) throw junctionErr;
+          results.push({
+            ...record,
+            ...newJunction,
+            id: newJunction.id,
+          });
+        }
+      }
+
+      return isArray ? results : results[0];
     },
 
     async delete(id: string) {
@@ -253,7 +354,7 @@ export const participantDetailsApi = {
         .from(TABLES.PARTICIPANT_FUNDING)
         .select(PARTICIPANT_VIEWS.FUNDING)
         .eq('participant_id', participantId)
-        .order('start_date', { ascending: false });
+        .order('end_date', { ascending: false });
 
       if (error) throw error;
       return data || [];

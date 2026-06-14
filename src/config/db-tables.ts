@@ -22,6 +22,8 @@ export const TABLES = {
   PARTICIPANT_FUNDING: 'ic_participant_funding',
   PARTICIPANT_HYGIENE_ROUTINES: 'ic_participant_hygiene_routines',
   PARTICIPANT_RESTRICTIVE_PRACTICES: 'ic_participant_restrictive_practices',
+  PARTICIPANT_PROVIDERS: 'ic_provider_participants',
+  PROVIDERS: 'ic_providers',
 
   // House Child Entities
   HOUSE_STAFF_ASSIGNMENTS: 'ic_house_staff_assignments',

@@ -158,5 +158,21 @@
     "roles": "{authenticated}",
     "using_expression": "((bucket_id = 'ic_staff_photos'::text) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('employees'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text])) OR (split_part(name, '/'::text, 1) = (ic_jwt_get_staff_id())::text)))",
     "with_check_expression": null
+  },
+  {
+    "bucket_context": "ic_word_templates",
+    "policyname": "RBAC ic_word_templates ALL ADMIN",
+    "operation": "ALL",
+    "roles": "{authenticated}",
+    "using_expression": "((bucket_id = 'ic_word_templates'::text) AND ic_jwt_is_admin())",
+    "with_check_expression": "((bucket_id = 'ic_word_templates'::text) AND ic_jwt_is_admin())"
+  },
+  {
+    "bucket_context": "ic_word_templates",
+    "policyname": "RBAC ic_word_templates SELECT",
+    "operation": "SELECT",
+    "roles": "{authenticated}",
+    "using_expression": "(bucket_id = 'ic_word_templates'::text)",
+    "with_check_expression": null
   }
 ]

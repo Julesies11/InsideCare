@@ -6,6 +6,7 @@ import {
   Building,
   ClipboardList,
   Clock,
+  FileText,
   Search,
   ShieldCheck,
   Star,
@@ -232,6 +233,36 @@ export function ReportingHubPage() {
         path: ROUTES.REPORTING_CLINICAL_PARTICIPANTS,
         category: 'Clinical',
         permission: RBAC_MODULES.REPORTING_CLINICAL,
+        implemented: true,
+      },
+      {
+        title: 'Participant Word Reports',
+        description:
+          'Merge participant data into custom MS Word templates for letters and agreements.',
+        icon: FileText,
+        path: ROUTES.REPORTING_WORD_TEMPLATES,
+        category: 'Clinical',
+        permission: RBAC_MODULES.REPORTING_CLINICAL,
+        implemented: true,
+      },
+      {
+        title: 'Staff Word Reports',
+        description:
+          'Merge staff data into custom MS Word templates for employment contracts and notices.',
+        icon: FileText,
+        path: ROUTES.REPORTING_WORD_TEMPLATES_STAFF,
+        category: 'Operational',
+        permission: RBAC_MODULES.REPORTING_OPERATIONAL,
+        implemented: true,
+      },
+      {
+        title: 'House Word Reports',
+        description:
+          'Merge house data into custom MS Word templates for house agreements and audits.',
+        icon: FileText,
+        path: ROUTES.REPORTING_WORD_TEMPLATES_HOUSES,
+        category: 'Operational',
+        permission: RBAC_MODULES.REPORTING_OPERATIONAL,
         implemented: true,
       },
       {
