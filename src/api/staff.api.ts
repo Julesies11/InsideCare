@@ -138,6 +138,7 @@ export const staffApi = {
       .select(
         `
         id, staff_name, status, email, photo_url,
+        role:ic_roles!role_id(id, role_name),
         house_assignments:${TABLES.HOUSE_STAFF_ASSIGNMENTS}!staff_id(
           id,
           house_id,
@@ -163,6 +164,7 @@ export const staffApi = {
       return {
         ...s,
         name: s.staff_name,
+        role: Array.isArray(s.role) ? s.role[0] : s.role,
         house_assignments: activeAssignments,
       };
     });

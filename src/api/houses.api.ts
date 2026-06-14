@@ -114,7 +114,7 @@ export const housesApi = {
   async listActive() {
     const { data, error } = await supabase
       .from(TABLES.HOUSES)
-      .select('id, house_name, status, branch_id')
+      .select('id, house_name, status, branch_id, address')
       .eq('status', 'active')
       .order('house_name');
     if (error) throw error;
@@ -127,7 +127,7 @@ export const housesApi = {
   async listLightweight() {
     const { data, error } = await supabase
       .from(TABLES.HOUSES)
-      .select('id, house_name, status, branch_id')
+      .select('id, house_name, status, branch_id, address')
       .order('house_name');
     if (error) throw error;
     return (data || []).map((h: any) => ({ ...h, name: h.house_name }));

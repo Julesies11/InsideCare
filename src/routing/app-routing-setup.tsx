@@ -184,6 +184,21 @@ const ComplianceReportPage = lazy(() =>
     default: m.ComplianceReportPage,
   })),
 );
+const WordTemplatesReportPage = lazy(() =>
+  import('@/pages/admin/reporting/word-templates-report-page').then((m) => ({
+    default: m.WordTemplatesReportPage,
+  })),
+);
+const StaffWordTemplatesPage = lazy(() =>
+  import('@/pages/admin/reporting/staff-word-templates-page').then((m) => ({
+    default: m.StaffWordTemplatesPage,
+  })),
+);
+const HouseWordTemplatesPage = lazy(() =>
+  import('@/pages/admin/reporting/house-word-templates-page').then((m) => ({
+    default: m.HouseWordTemplatesPage,
+  })),
+);
 const OnboardingReportPage = lazy(() =>
   import('@/pages/admin/reporting/onboarding-report-page').then((m) => ({
     default: m.OnboardingReportPage,
@@ -401,6 +416,25 @@ export function AppRoutingSetup() {
                 path={`${ROUTES.REPORTING_CLINICAL_PARTICIPANTS}/:id?`}
                 element={<ParticipantsReportPage />}
               />
+              <Route
+                path={ROUTES.REPORTING_WORD_TEMPLATES}
+                element={<WordTemplatesReportPage />}
+              />
+            </Route>
+
+            <Route
+              element={
+                <RequirePermission module={RBAC_MODULES.REPORTING_OPERATIONAL} />
+              }
+            >
+              <Route
+                path={ROUTES.REPORTING_WORD_TEMPLATES_STAFF}
+                element={<StaffWordTemplatesPage />}
+              />
+              <Route
+                path={ROUTES.REPORTING_WORD_TEMPLATES_HOUSES}
+                element={<HouseWordTemplatesPage />}
+              />
             </Route>
 
             {/* Combined Compliance & Onboarding Admin Protection */}
@@ -461,7 +495,13 @@ export function AppRoutingSetup() {
                   element={<ClinicalTrackersPage />}
                 />
               </Route>
-              <Route path={ROUTES.ACCESS_CONTROL} element={<RolesPage />} />
+              <Route
+                element={
+                  <RequirePermission module={RBAC_MODULES.ACCESS_CONTROL} />
+                }
+              >
+                <Route path={ROUTES.ACCESS_CONTROL} element={<RolesPage />} />
+              </Route>
             </Route>
 
             <Route

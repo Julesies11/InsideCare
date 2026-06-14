@@ -22,21 +22,11 @@
   {
     "schemaname": "public",
     "tablename": "ic_activity_log",
-    "policyname": "RBAC Activity Log - Participant Context",
+    "policyname": "RBAC Activity Log - Self Auth",
     "permissive": "PERMISSIVE",
     "roles": "{public}",
     "cmd": "SELECT",
-    "qual": "(((entity_type = ANY (ARRAY['participants'::text, 'participant'::text])) OR (entity_type ~~ 'participant_%'::text) OR (entity_type = 'shift_notes'::text)) AND ((ic_jwt_get_perm('participants'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])) OR (ic_jwt_get_perm('participant_activity_log'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text]))))",
-    "with_check": null
-  },
-  {
-    "schemaname": "public",
-    "tablename": "ic_activity_log",
-    "policyname": "RBAC Activity Log - Global Auditor",
-    "permissive": "PERMISSIVE",
-    "roles": "{public}",
-    "cmd": "SELECT",
-    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('activity_log'::text) = ANY (ARRAY['read'::text, 'context_read_write'::text, 'full'::text])))",
+    "qual": "((entity_type = 'auth'::text) AND (entity_id = (auth.uid())::text))",
     "with_check": null
   },
   {
@@ -52,21 +42,31 @@
   {
     "schemaname": "public",
     "tablename": "ic_activity_log",
-    "policyname": "RBAC Activity Log - Self Auth",
-    "permissive": "PERMISSIVE",
-    "roles": "{public}",
-    "cmd": "SELECT",
-    "qual": "((entity_type = 'auth'::text) AND (entity_id = (auth.uid())::text))",
-    "with_check": null
-  },
-  {
-    "schemaname": "public",
-    "tablename": "ic_activity_log",
     "policyname": "RBAC Activity Log - Staff Context",
     "permissive": "PERMISSIVE",
     "roles": "{public}",
     "cmd": "SELECT",
     "qual": "(((entity_type = ANY (ARRAY['staff'::text, 'employee'::text])) OR (entity_type ~~ 'staff_%'::text)) AND (ic_jwt_is_admin() OR (ic_jwt_get_perm('employees'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])) OR (ic_jwt_get_perm('staff_activity_log'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])) OR (entity_id = (ic_jwt_get_staff_id())::text)))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "ic_activity_log",
+    "policyname": "RBAC Activity Log - Global Auditor",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('activity_log'::text) = ANY (ARRAY['read'::text, 'context_read_write'::text, 'full'::text])))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "ic_activity_log",
+    "policyname": "RBAC Activity Log - Participant Context",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "(((entity_type = ANY (ARRAY['participants'::text, 'participant'::text])) OR (entity_type ~~ 'participant_%'::text) OR (entity_type = 'shift_notes'::text)) AND ((ic_jwt_get_perm('participants'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])) OR (ic_jwt_get_perm('participant_activity_log'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text]))))",
     "with_check": null
   },
   {
@@ -82,11 +82,11 @@
   {
     "schemaname": "public",
     "tablename": "ic_behaviour_intensity_master",
-    "policyname": "RBAC ic_behaviour_intensity_master SELECT (Staff)",
+    "policyname": "RBAC ic_behaviour_intensity_master SELECT GLOBAL",
     "permissive": "PERMISSIVE",
-    "roles": "{public}",
+    "roles": "{authenticated}",
     "cmd": "SELECT",
-    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('master_lists'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR (ic_jwt_get_perm('shift_notes'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])) OR (ic_jwt_get_perm('participant_clinical_trackers'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])) OR (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])))",
+    "qual": "true",
     "with_check": null
   },
   {
@@ -112,7 +112,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_behaviour_types_master",
-    "policyname": "RBAC behaviour_types SELECT",
+    "policyname": "RBAC ic_behaviour_types_master SELECT GLOBAL",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "SELECT",
@@ -142,11 +142,11 @@
   {
     "schemaname": "public",
     "tablename": "ic_bowel_amounts_master",
-    "policyname": "RBAC ic_bowel_amounts_master SELECT (Staff)",
+    "policyname": "RBAC ic_bowel_amounts_master SELECT GLOBAL",
     "permissive": "PERMISSIVE",
-    "roles": "{public}",
+    "roles": "{authenticated}",
     "cmd": "SELECT",
-    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('master_lists'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR (ic_jwt_get_perm('shift_notes'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])) OR (ic_jwt_get_perm('participant_clinical_trackers'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])) OR (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])))",
+    "qual": "true",
     "with_check": null
   },
   {
@@ -162,11 +162,11 @@
   {
     "schemaname": "public",
     "tablename": "ic_bowel_assistance_master",
-    "policyname": "RBAC ic_bowel_assistance_master SELECT (Staff)",
+    "policyname": "RBAC ic_bowel_assistance_master SELECT GLOBAL",
     "permissive": "PERMISSIVE",
-    "roles": "{public}",
+    "roles": "{authenticated}",
     "cmd": "SELECT",
-    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('master_lists'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR (ic_jwt_get_perm('shift_notes'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])) OR (ic_jwt_get_perm('participant_clinical_trackers'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])) OR (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])))",
+    "qual": "true",
     "with_check": null
   },
   {
@@ -222,11 +222,11 @@
   {
     "schemaname": "public",
     "tablename": "ic_branches",
-    "policyname": "RBAC branches SELECT",
+    "policyname": "RBAC ic_branches SELECT GLOBAL",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "SELECT",
-    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('master_lists'::text) = ANY (ARRAY['full'::text, 'read_only'::text])))",
+    "qual": "true",
     "with_check": null
   },
   {
@@ -272,7 +272,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_checklist_master",
-    "policyname": "RBAC ic_checklist_master DELETE",
+    "policyname": "RBAC checklist_master DELETE",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "DELETE",
@@ -282,7 +282,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_checklist_master",
-    "policyname": "RBAC checklist_master DELETE",
+    "policyname": "RBAC ic_checklist_master DELETE",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "DELETE",
@@ -322,7 +322,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_checklist_master",
-    "policyname": "RBAC checklist_master UPDATE",
+    "policyname": "RBAC ic_checklist_master UPDATE",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "UPDATE",
@@ -332,7 +332,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_checklist_master",
-    "policyname": "RBAC ic_checklist_master UPDATE",
+    "policyname": "RBAC checklist_master UPDATE",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "UPDATE",
@@ -382,7 +382,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_compliance_types_master",
-    "policyname": "RBAC ic_compliance_types_master SELECT",
+    "policyname": "RBAC ic_compliance_types_master SELECT GLOBAL",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "SELECT",
@@ -402,7 +402,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_contact_types_master",
-    "policyname": "RBAC ic_contact_types_master DELETE",
+    "policyname": "RBAC contact_types_master DELETE",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "DELETE",
@@ -412,7 +412,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_contact_types_master",
-    "policyname": "RBAC contact_types_master DELETE",
+    "policyname": "RBAC ic_contact_types_master DELETE",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "DELETE",
@@ -442,17 +442,17 @@
   {
     "schemaname": "public",
     "tablename": "ic_contact_types_master",
-    "policyname": "RBAC contact_types_master SELECT",
+    "policyname": "RBAC ic_contact_types_master SELECT GLOBAL",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "SELECT",
-    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('master_lists'::text) = ANY (ARRAY['full'::text, 'read_only'::text])))",
+    "qual": "true",
     "with_check": null
   },
   {
     "schemaname": "public",
     "tablename": "ic_contact_types_master",
-    "policyname": "RBAC ic_contact_types_master UPDATE",
+    "policyname": "RBAC contact_types_master UPDATE",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "UPDATE",
@@ -462,7 +462,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_contact_types_master",
-    "policyname": "RBAC contact_types_master UPDATE",
+    "policyname": "RBAC ic_contact_types_master UPDATE",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "UPDATE",
@@ -502,7 +502,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_departments",
-    "policyname": "RBAC departments SELECT",
+    "policyname": "RBAC ic_departments SELECT GLOBAL",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "SELECT",
@@ -552,7 +552,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_employment_types_master",
-    "policyname": "RBAC employment_types_master SELECT",
+    "policyname": "RBAC ic_employment_types_master SELECT GLOBAL",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "SELECT",
@@ -622,11 +622,11 @@
   {
     "schemaname": "public",
     "tablename": "ic_funding_sources_master",
-    "policyname": "RBAC funding_sources_master SELECT",
+    "policyname": "RBAC ic_funding_sources_master SELECT GLOBAL",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "SELECT",
-    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('master_lists'::text) = ANY (ARRAY['full'::text, 'read_only'::text])))",
+    "qual": "true",
     "with_check": null
   },
   {
@@ -642,7 +642,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_funding_types_master",
-    "policyname": "RBAC funding_types_master DELETE",
+    "policyname": "RBAC ic_funding_types_master DELETE",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "DELETE",
@@ -652,7 +652,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_funding_types_master",
-    "policyname": "RBAC ic_funding_types_master DELETE",
+    "policyname": "RBAC funding_types_master DELETE",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "DELETE",
@@ -672,11 +672,11 @@
   {
     "schemaname": "public",
     "tablename": "ic_funding_types_master",
-    "policyname": "RBAC funding_types_master SELECT",
+    "policyname": "RBAC ic_funding_types_master SELECT GLOBAL",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "SELECT",
-    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('master_lists'::text) = ANY (ARRAY['full'::text, 'read_only'::text])))",
+    "qual": "true",
     "with_check": null
   },
   {
@@ -772,21 +772,11 @@
   {
     "schemaname": "public",
     "tablename": "ic_house_calendar_event_types_master",
-    "policyname": "RBAC ic_house_calendar_event_types_master SELECT",
+    "policyname": "RBAC ic_house_calendar_event_types_master SELECT GLOBAL",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "SELECT",
     "qual": "true",
-    "with_check": null
-  },
-  {
-    "schemaname": "public",
-    "tablename": "ic_house_calendar_event_types_master",
-    "policyname": "RBAC house_calendar_event_types_master SELECT",
-    "permissive": "PERMISSIVE",
-    "roles": "{authenticated}",
-    "cmd": "SELECT",
-    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('master_lists'::text) = ANY (ARRAY['full'::text, 'read_only'::text])))",
     "with_check": null
   },
   {
@@ -1172,7 +1162,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_house_types_master",
-    "policyname": "RBAC house_types_master SELECT",
+    "policyname": "RBAC ic_house_types_master SELECT GLOBAL",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "SELECT",
@@ -1242,11 +1232,11 @@
   {
     "schemaname": "public",
     "tablename": "ic_hygiene_levels_master",
-    "policyname": "RBAC ic_hygiene_levels_master SELECT (Staff)",
+    "policyname": "RBAC ic_hygiene_levels_master SELECT GLOBAL",
     "permissive": "PERMISSIVE",
-    "roles": "{public}",
+    "roles": "{authenticated}",
     "cmd": "SELECT",
-    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('master_lists'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR (ic_jwt_get_perm('shift_notes'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])) OR (ic_jwt_get_perm('participant_clinical_trackers'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])) OR (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])))",
+    "qual": "true",
     "with_check": null
   },
   {
@@ -1262,7 +1252,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_id_document_types",
-    "policyname": "RBAC id_document_types SELECT",
+    "policyname": "RBAC ic_id_document_types SELECT GLOBAL",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "SELECT",
@@ -1322,7 +1312,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_incident_types_master",
-    "policyname": "RBAC ic_incident_types_master SELECT",
+    "policyname": "RBAC ic_incident_types_master SELECT GLOBAL",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "SELECT",
@@ -1352,21 +1342,21 @@
   {
     "schemaname": "public",
     "tablename": "ic_leave_requests",
-    "policyname": "RBAC leave_requests SELECT",
-    "permissive": "PERMISSIVE",
-    "roles": "{authenticated}",
-    "cmd": "SELECT",
-    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('staff_leave'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR (ic_jwt_get_perm('leave_requests'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text])) OR ((ic_jwt_get_perm('staff_leave'::text) = ANY (ARRAY['context_read_write'::text, 'context_read_only'::text])) AND ic_jwt_manages_staff(staff_id)) OR (ic_jwt_get_staff_id() = staff_id))",
-    "with_check": null
-  },
-  {
-    "schemaname": "public",
-    "tablename": "ic_leave_requests",
     "policyname": "RBAC ic_leave_requests SELECT",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "SELECT",
     "qual": "((staff_id = ic_jwt_get_staff_id()) OR (ic_jwt_get_perm('leave_requests'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR ((ic_jwt_get_perm('leave_requests'::text) = 'context_read_write'::text) AND ic_jwt_manages_staff(staff_id)))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "ic_leave_requests",
+    "policyname": "RBAC leave_requests SELECT",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('staff_leave'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR (ic_jwt_get_perm('leave_requests'::text) = ANY (ARRAY['full'::text, 'read_only'::text, 'context_read_write'::text, 'context_read_only'::text])) OR ((ic_jwt_get_perm('staff_leave'::text) = ANY (ARRAY['context_read_write'::text, 'context_read_only'::text])) AND ic_jwt_manages_staff(staff_id)) OR (ic_jwt_get_staff_id() = staff_id))",
     "with_check": null
   },
   {
@@ -1412,21 +1402,11 @@
   {
     "schemaname": "public",
     "tablename": "ic_leave_types",
-    "policyname": "RBAC leave_types SELECT",
+    "policyname": "RBAC ic_leave_types SELECT GLOBAL",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "SELECT",
     "qual": "true",
-    "with_check": null
-  },
-  {
-    "schemaname": "public",
-    "tablename": "ic_leave_types",
-    "policyname": "RBAC ic_leave_types UPDATE",
-    "permissive": "PERMISSIVE",
-    "roles": "{authenticated}",
-    "cmd": "UPDATE",
-    "qual": "ic_jwt_is_admin()",
     "with_check": null
   },
   {
@@ -1441,6 +1421,16 @@
   },
   {
     "schemaname": "public",
+    "tablename": "ic_leave_types",
+    "policyname": "RBAC ic_leave_types UPDATE",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "UPDATE",
+    "qual": "ic_jwt_is_admin()",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
     "tablename": "ic_medication_types_master",
     "policyname": "RBAC ic_medication_types_master ADMIN ONLY",
     "permissive": "PERMISSIVE",
@@ -1452,7 +1442,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_medication_types_master",
-    "policyname": "RBAC ic_medication_types_master SELECT",
+    "policyname": "RBAC ic_medication_types_master SELECT GLOBAL",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "SELECT",
@@ -1462,7 +1452,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_medications_master",
-    "policyname": "RBAC medications_master DELETE",
+    "policyname": "RBAC ic_medications_master DELETE",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "DELETE",
@@ -1472,7 +1462,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_medications_master",
-    "policyname": "RBAC ic_medications_master DELETE",
+    "policyname": "RBAC medications_master DELETE",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "DELETE",
@@ -1502,11 +1492,21 @@
   {
     "schemaname": "public",
     "tablename": "ic_medications_master",
-    "policyname": "RBAC medications_master SELECT",
+    "policyname": "RBAC ic_medications_master SELECT GLOBAL",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "SELECT",
     "qual": "true",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "ic_medications_master",
+    "policyname": "RBAC ic_medications_master UPDATE",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "UPDATE",
+    "qual": "ic_jwt_is_admin()",
     "with_check": null
   },
   {
@@ -1521,16 +1521,6 @@
   },
   {
     "schemaname": "public",
-    "tablename": "ic_medications_master",
-    "policyname": "RBAC ic_medications_master UPDATE",
-    "permissive": "PERMISSIVE",
-    "roles": "{authenticated}",
-    "cmd": "UPDATE",
-    "qual": "ic_jwt_is_admin()",
-    "with_check": null
-  },
-  {
-    "schemaname": "public",
     "tablename": "ic_mtm_diet_types_master",
     "policyname": "RBAC ic_mtm_diet_types_master ALL (Admin)",
     "permissive": "PERMISSIVE",
@@ -1542,11 +1532,11 @@
   {
     "schemaname": "public",
     "tablename": "ic_mtm_diet_types_master",
-    "policyname": "RBAC ic_mtm_diet_types_master SELECT (Staff)",
+    "policyname": "RBAC ic_mtm_diet_types_master SELECT GLOBAL",
     "permissive": "PERMISSIVE",
-    "roles": "{public}",
+    "roles": "{authenticated}",
     "cmd": "SELECT",
-    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('master_lists'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR (ic_jwt_get_perm('shift_notes'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])) OR (ic_jwt_get_perm('participant_clinical_trackers'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])) OR (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])))",
+    "qual": "true",
     "with_check": null
   },
   {
@@ -1562,11 +1552,11 @@
   {
     "schemaname": "public",
     "tablename": "ic_mtm_fluid_intake_master",
-    "policyname": "RBAC ic_mtm_fluid_intake_master SELECT (Staff)",
+    "policyname": "RBAC ic_mtm_fluid_intake_master SELECT GLOBAL",
     "permissive": "PERMISSIVE",
-    "roles": "{public}",
+    "roles": "{authenticated}",
     "cmd": "SELECT",
-    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('master_lists'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR (ic_jwt_get_perm('shift_notes'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])) OR (ic_jwt_get_perm('participant_clinical_trackers'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])) OR (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])))",
+    "qual": "true",
     "with_check": null
   },
   {
@@ -1582,11 +1572,11 @@
   {
     "schemaname": "public",
     "tablename": "ic_mtm_fluids_master",
-    "policyname": "RBAC ic_mtm_fluids_master SELECT (Staff)",
+    "policyname": "RBAC ic_mtm_fluids_master SELECT GLOBAL",
     "permissive": "PERMISSIVE",
-    "roles": "{public}",
+    "roles": "{authenticated}",
     "cmd": "SELECT",
-    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('master_lists'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR (ic_jwt_get_perm('shift_notes'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])) OR (ic_jwt_get_perm('participant_clinical_trackers'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])) OR (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])))",
+    "qual": "true",
     "with_check": null
   },
   {
@@ -1602,11 +1592,11 @@
   {
     "schemaname": "public",
     "tablename": "ic_mtm_meal_intake_master",
-    "policyname": "RBAC ic_mtm_meal_intake_master SELECT (Staff)",
+    "policyname": "RBAC ic_mtm_meal_intake_master SELECT GLOBAL",
     "permissive": "PERMISSIVE",
-    "roles": "{public}",
+    "roles": "{authenticated}",
     "cmd": "SELECT",
-    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('master_lists'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR (ic_jwt_get_perm('shift_notes'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])) OR (ic_jwt_get_perm('participant_clinical_trackers'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])) OR (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])))",
+    "qual": "true",
     "with_check": null
   },
   {
@@ -1622,11 +1612,11 @@
   {
     "schemaname": "public",
     "tablename": "ic_mtm_swallowing_concerns_master",
-    "policyname": "RBAC ic_mtm_swallowing_concerns_master SELECT (Staff)",
+    "policyname": "RBAC ic_mtm_swallowing_concerns_master SELECT GLOBAL",
     "permissive": "PERMISSIVE",
-    "roles": "{public}",
+    "roles": "{authenticated}",
     "cmd": "SELECT",
-    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('master_lists'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR (ic_jwt_get_perm('shift_notes'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])) OR (ic_jwt_get_perm('participant_clinical_trackers'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])) OR (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])))",
+    "qual": "true",
     "with_check": null
   },
   {
@@ -1652,11 +1642,11 @@
   {
     "schemaname": "public",
     "tablename": "ic_nutrition_intake_master",
-    "policyname": "RBAC ic_nutrition_intake_master SELECT (Staff)",
+    "policyname": "RBAC ic_nutrition_intake_master SELECT GLOBAL",
     "permissive": "PERMISSIVE",
-    "roles": "{public}",
+    "roles": "{authenticated}",
     "cmd": "SELECT",
-    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('master_lists'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR (ic_jwt_get_perm('shift_notes'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])) OR (ic_jwt_get_perm('participant_clinical_trackers'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])) OR (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])))",
+    "qual": "true",
     "with_check": null
   },
   {
@@ -1672,11 +1662,11 @@
   {
     "schemaname": "public",
     "tablename": "ic_nutrition_meal_types_master",
-    "policyname": "RBAC ic_nutrition_meal_types_master SELECT (Staff)",
+    "policyname": "RBAC ic_nutrition_meal_types_master SELECT GLOBAL",
     "permissive": "PERMISSIVE",
-    "roles": "{public}",
+    "roles": "{authenticated}",
     "cmd": "SELECT",
-    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('master_lists'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR (ic_jwt_get_perm('shift_notes'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])) OR (ic_jwt_get_perm('participant_clinical_trackers'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])) OR (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])))",
+    "qual": "true",
     "with_check": null
   },
   {
@@ -2172,7 +2162,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_restrictive_practice_types_master",
-    "policyname": "RBAC ic_restrictive_practice_types_master SELECT",
+    "policyname": "RBAC ic_restrictive_practice_types_master SELECT GLOBAL",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "SELECT",
@@ -2262,7 +2252,7 @@
   {
     "schemaname": "public",
     "tablename": "ic_seizure_types_master",
-    "policyname": "RBAC seizure_types SELECT",
+    "policyname": "RBAC ic_seizure_types_master SELECT GLOBAL",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "SELECT",
@@ -2372,22 +2362,22 @@
   {
     "schemaname": "public",
     "tablename": "ic_shift_assigned_checklists",
-    "policyname": "RBAC ic_shift_assigned_checklists - Roster Manager",
-    "permissive": "PERMISSIVE",
-    "roles": "{authenticated}",
-    "cmd": "ALL",
-    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('roster_board'::text) = 'full'::text) OR ((ic_jwt_get_perm('roster_board'::text) = 'context_read_write'::text) AND ic_jwt_has_house(house_id)))",
-    "with_check": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('roster_board'::text) = 'full'::text) OR ((ic_jwt_get_perm('roster_board'::text) = 'context_read_write'::text) AND ic_jwt_has_house(house_id)))"
-  },
-  {
-    "schemaname": "public",
-    "tablename": "ic_shift_assigned_checklists",
     "policyname": "RBAC ic_shift_assigned_checklists ALL (Admin)",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "ALL",
     "qual": "ic_jwt_is_admin()",
     "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "ic_shift_assigned_checklists",
+    "policyname": "RBAC ic_shift_assigned_checklists - Roster Manager",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('roster_board'::text) = 'full'::text) OR ((ic_jwt_get_perm('roster_board'::text) = 'context_read_write'::text) AND ic_jwt_has_house(house_id)))",
+    "with_check": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('roster_board'::text) = 'full'::text) OR ((ic_jwt_get_perm('roster_board'::text) = 'context_read_write'::text) AND ic_jwt_has_house(house_id)))"
   },
   {
     "schemaname": "public",
@@ -2472,21 +2462,21 @@
   {
     "schemaname": "public",
     "tablename": "ic_shift_participants",
-    "policyname": "RBAC staff_participants SELECT (Roster Board)",
-    "permissive": "PERMISSIVE",
-    "roles": "{authenticated}",
-    "cmd": "SELECT",
-    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('roster_board'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR ((ic_jwt_get_perm('roster_board'::text) = ANY (ARRAY['context_read_write'::text, 'context_read_only'::text])) AND (EXISTS ( SELECT 1\n   FROM ic_staff_shifts ss\n  WHERE ((ss.id = ic_shift_participants.shift_id) AND ic_jwt_has_house(ss.house_id))))))",
-    "with_check": null
-  },
-  {
-    "schemaname": "public",
-    "tablename": "ic_shift_participants",
     "policyname": "RBAC staff_participants SELECT",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "SELECT",
     "qual": "(ic_jwt_is_admin() OR (EXISTS ( SELECT 1\n   FROM ic_staff_shifts ss\n  WHERE ((ss.id = ic_shift_participants.shift_id) AND (ss.staff_id = ic_jwt_get_staff_id())))))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "ic_shift_participants",
+    "policyname": "RBAC staff_participants SELECT (Roster Board)",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('roster_board'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR ((ic_jwt_get_perm('roster_board'::text) = ANY (ARRAY['context_read_write'::text, 'context_read_only'::text])) AND (EXISTS ( SELECT 1\n   FROM ic_staff_shifts ss\n  WHERE ((ss.id = ic_shift_participants.shift_id) AND ic_jwt_has_house(ss.house_id))))))",
     "with_check": null
   },
   {
@@ -2582,11 +2572,11 @@
   {
     "schemaname": "public",
     "tablename": "ic_sleep_quality_master",
-    "policyname": "RBAC ic_sleep_quality_master SELECT (Staff)",
+    "policyname": "RBAC ic_sleep_quality_master SELECT GLOBAL",
     "permissive": "PERMISSIVE",
-    "roles": "{public}",
+    "roles": "{authenticated}",
     "cmd": "SELECT",
-    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('master_lists'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR (ic_jwt_get_perm('shift_notes'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])) OR (ic_jwt_get_perm('participant_clinical_trackers'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])) OR (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])))",
+    "qual": "true",
     "with_check": null
   },
   {
@@ -2602,11 +2592,11 @@
   {
     "schemaname": "public",
     "tablename": "ic_sleep_types_master",
-    "policyname": "RBAC ic_sleep_types_master SELECT (Staff)",
+    "policyname": "RBAC ic_sleep_types_master SELECT GLOBAL",
     "permissive": "PERMISSIVE",
-    "roles": "{public}",
+    "roles": "{authenticated}",
     "cmd": "SELECT",
-    "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('master_lists'::text) = ANY (ARRAY['full'::text, 'read_only'::text])) OR (ic_jwt_get_perm('shift_notes'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])) OR (ic_jwt_get_perm('participant_clinical_trackers'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])) OR (ic_jwt_get_perm('participants'::text) = ANY (ARRAY['context_read'::text, 'context_read_write'::text, 'full'::text])))",
+    "qual": "true",
     "with_check": null
   },
   {
@@ -2862,21 +2852,21 @@
   {
     "schemaname": "public",
     "tablename": "ic_staff_training",
-    "policyname": "RBAC ic_staff_training ALL (Admin)",
-    "permissive": "PERMISSIVE",
-    "roles": "{authenticated}",
-    "cmd": "ALL",
-    "qual": "ic_jwt_is_admin()",
-    "with_check": null
-  },
-  {
-    "schemaname": "public",
-    "tablename": "ic_staff_training",
     "policyname": "RBAC staff_training ALL",
     "permissive": "PERMISSIVE",
     "roles": "{authenticated}",
     "cmd": "ALL",
     "qual": "(ic_jwt_is_admin() OR (ic_jwt_get_perm('staff_training'::text) = 'full'::text) OR ((ic_jwt_get_perm('staff_training'::text) = 'context_read_write'::text) AND ic_jwt_manages_staff(staff_id)))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "ic_staff_training",
+    "policyname": "RBAC ic_staff_training ALL (Admin)",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "ic_jwt_is_admin()",
     "with_check": null
   },
   {
